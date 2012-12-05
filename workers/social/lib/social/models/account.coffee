@@ -360,9 +360,16 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flag)->
+  checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
-    flags and (flag in flags)
+    if flags
+      if 'string' is typeof flag
+        return flagToCheck in flags
+      else
+        for flag in flagToCheck
+          if flag in flags
+            return yes
+    no
 
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
 

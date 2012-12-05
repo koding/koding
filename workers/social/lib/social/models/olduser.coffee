@@ -21,7 +21,8 @@ module.exports = class JOldUser extends jraphical.Module
       'nickname'          : 'unique'
     sharedMethods         :
       static              : [
-        '__importKodingenUsers', '__migrateKodingenUsers', '__currentState'
+        '__importKodingenUsers', '__migrateKodingenUsers',
+        '__currentState', '__stopMigrate'
       ]
     schema                :
       nickname            :
@@ -33,7 +34,7 @@ module.exports = class JOldUser extends jraphical.Module
         type              : String
         enum              : [
           'invalid status type', [
-            'unregistered','registered','confirmed'
+            'unregistered','registered','confirmed','failed'
           ]
         ]
         default           : 'unregistered'
@@ -46,6 +47,8 @@ module.exports = class JOldUser extends jraphical.Module
       email               :
         type              : String
         email             : yes
+
+  @_migrateDelayTimer = null
 
   @__importKodingenUsers = secure ({connection}, options, callback)->
 
@@ -96,13 +99,20 @@ module.exports = class JOldUser extends jraphical.Module
       callback null, "You are not authorized to do this."
       console.error "Not authorized request from", connection.delegate?.profile?.nickname
     else
+
+      if @_migrateDelayTimer
+        callback null, "Migrate in progress, please stop the old one first."
+        return no
+
       limit = options.limit or 10
+      delay = options.delay or 0
+      delay *= 1000
 
-      JOldUser.some {status: "unregistered"}, {limit}, (err, old_users)->
+      JOldUser.some {status: "unregistered"}, {limit}, (err, old_users)=>
 
-        accounts = []
-        errors   = []
-        register = (users, index, cb)->
+        @_accounts = []
+        @_errors   = []
+        register = (users, index, delay, cb)=>
           user = users[index]
           if not user then cb()
           else
@@ -117,9 +127,9 @@ module.exports = class JOldUser extends jraphical.Module
               agree           : "on"
               inviteCode      : "twitterfriends"
               silence         : yes
-            , (error, account, token)->
+            , (error, account, token)=>
               if not err and account
-                accounts.push account
+                @_accounts.push account
                 user.update $set: status: 'registered', ->
                 JUser.one {username : user.nickname}, (_err, new_user)->
                   JPasswordRecovery.create client,
@@ -132,18 +142,23 @@ module.exports = class JOldUser extends jraphical.Module
                     lastName  : user.lastName
                   , (err)-> console.error if err
               else
-                errors.push {error, user}
+                @_errors.push {error, user}
+                user.update $set: status: 'failed', ->
 
               if index < users.length
-                register users, index+1, cb
+                @_migrateDelayTimer = setTimeout =>
+                  register users, index+1, delay, cb
+                , delay
               else
+                clearTimeout @_migrateDelayTimer
+                @_migrateDelayTimer = null
                 cb()
 
         if old_users.length is 0
           callback null, "There is no unregistered users left in KodingenUsers collection."
         else
-          register old_users, 0, ->
-            callback errors, "From #{old_users.length} unregistered Kodingen user, #{accounts.length} account created."
+          register old_users, 0, delay, =>
+            callback @_errors, "From #{old_users.length} unregistered Kodingen user, #{@_accounts.length} account created."
 
   @__currentState = secure (client, callback)->
 
@@ -156,12 +171,26 @@ module.exports = class JOldUser extends jraphical.Module
         if err then callback err
         else callback "There are #{unregistered} not migrated Kodingen members."
 
+  @__stopMigrate = secure (client, callback)->
+
+    {connection} = client
+    unless connection.delegate?.can? 'migrate-kodingen-users'
+      callback "You are not authorized to do this."
+      console.error "Not authorized request from", connection.delegate?.profile?.nickname
+    else
+      if @_migrateDelayTimer
+        clearTimeout @_migrateDelayTimer
+        @_migrateDelayTimer = null
+        callback @_errors, "Migrate operation cancelled."
+      else
+        callback @_errors, "No such migrate in progress."
+
   @getSubject = -> '[Koding] A new Koding account created for an old friend!'
 
   @getTextBody = ({requestedAt, url, firstName, lastName, nickname})->
     """
     Hello,
-    
+
     TL;DR: Your KODINGEN account is now a brand new KODING account - and it is ready for you!
 
 
@@ -178,8 +207,8 @@ module.exports = class JOldUser extends jraphical.Module
     Your username: #{nickname} (you've registered this to Kodingen)
     #{url}
 
-    
-    Now, go, code, share and have fun! 
+
+    Now, go, code, share and have fun!
     (Please take a look at http://wiki.koding.com for the things you can do)
 
     Whole Koding Team welcomes you,
@@ -194,27 +223,7 @@ module.exports = class JOldUser extends jraphical.Module
     - if you want to change your username, just send yourself an invite from the platform, and register a new account.
 
     - IMPORTANT: We did NOT migrate your files or databases at Kodingen just yet, we will provide an app for that soon, or you can do it yourself (ftp, ftps, curl, wget etc.)
-    
+
     *if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
 
-
-
     """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    

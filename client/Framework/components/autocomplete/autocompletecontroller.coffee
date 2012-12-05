@@ -290,8 +290,9 @@ class KDAutoCompleteController extends KDViewController
     @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
+
     data or= item?.getData()
-    return unless data
+    return unless data or item?.getOptions().userInput
 
     {itemDataPath,form,submitValuesAsText} = @getOptions()
 

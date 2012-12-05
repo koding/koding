@@ -100,7 +100,7 @@ class KDWindowController extends KDController
 
       if isInternalLink
         e.preventDefault()
-        {href} = e.target
+        href = $(e.target).attr 'href'
         KD.getSingleton('router').handleRoute href  unless /^#/.test href
     , yes
 

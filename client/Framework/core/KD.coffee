@@ -33,9 +33,21 @@ KD.warn  = warn  = noop
 KD.error = error = noop
 
 @KD = $.extend (KD), do ->
-
   # private member for tracking z-indexes
   zIndexContexts  = {}
+
+  create = (constructorName, options, data)->
+    konstructor = @classes[constructorName] \
+                ? @classes["KD#{constructorName}"]
+    new konstructor options, data  if konstructor?
+
+  create    : create
+  new       : create
+
+  testKDML:->
+    {KDMLParser} = Bongo.KDML
+    kdml = new KDMLParser @classes
+
   debugStates     : {}
   instances       : {}
   singletons      : {}
@@ -55,7 +67,15 @@ KD.error = error = noop
 
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
 
-  checkFlag:(flag, account = KD.whoami())-> account.globalFlags and flag in account.globalFlags
+  checkFlag:(flagToCheck, account = KD.whoami())->
+    if account.globalFlags
+      if 'string' is typeof flagToCheck
+        return flagToCheck in account.globalFlags
+      else
+        for flag in flagToCheck
+          if flag in account.globalFlags
+            return yes
+    no
 
   requireLogin:(errMsg, callback)->
 
@@ -169,7 +189,7 @@ KD.error = error = noop
     oldConsole = window.console
     window.console = {}
     console[method] = noop  for method in ['log','warn','error','trace']
-    
+
     enableLogs =->
       window.console = oldConsole
       KD.log   = log   = if console?.log   then console.log.bind(console)   else noop

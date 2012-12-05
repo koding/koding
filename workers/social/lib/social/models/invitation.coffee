@@ -306,7 +306,7 @@ module.exports = class JInvitation extends jraphical.Module
       else
         emails.forEach (email)=>          
           JInvitation.one {"inviteeEmail":email},(err,inv)=>
-            unless err
+            if inv
               @sendInviteEmail inv,client,customMessage,limit,callback
             else
               code = crypto

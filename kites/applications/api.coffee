@@ -109,7 +109,8 @@ module.exports = new Kite 'applications'
           fse.copyRecursive kpmAppPath, userAppPath, (err)->
             if err then callback new KodingError "Downloading app source failed."
             else
-              chownr {username, path: userAppPath}, callback
+              executeCommand {username, command:"rm -rf #{backupPath}"}, ->
+                chownr {username, path: userAppPath}, callback
 
   copyAppSkeleton:(options, callback)->
     {username, appPath, type} = options

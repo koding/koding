@@ -660,6 +660,8 @@ Includes =
 
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
+
+
         jqueryHash        : "./client/libs/jquery-hashchange.js"
         jqueryTimeAgo     : "./client/libs/jquery-timeago.js"
         jqueryDateFormat  : "./client/libs/date.format.js"
