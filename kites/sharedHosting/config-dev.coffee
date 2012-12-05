@@ -29,6 +29,7 @@ module.exports =
   minAllowedUid         : 600 # minumum allowed UID for OS commands
   debugApi              : true
   processBaseDir        : cwd
+  cagefsctl             : "/usr/sbin/cagefsctl"
   baseMountDir          : "RemoteDrive"
   usersMountsFile       : ".mounts"
   ftpfs                 :
