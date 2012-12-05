@@ -1,4 +1,4 @@
-class Viewer12345 extends KDViewController
+class ViewerAppController extends KDViewController
   initApp:(options,callback)=>
     @openDocuments = []
     # log 'init application called'
