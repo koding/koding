@@ -1,4 +1,4 @@
-class Ace12345 extends KDController
+class AceAppController extends KDController
 
   constructor:->
 

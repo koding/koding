@@ -1,4 +1,4 @@
-class Apps12345 extends AppController
+class AppsAppController extends AppController
   constructor:(options, data)->
     options = $.extend
       view : new AppsMainView

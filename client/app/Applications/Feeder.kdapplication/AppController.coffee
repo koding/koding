@@ -1,4 +1,4 @@
-class Feeder12345 extends KDController
+class FeederAppController extends KDController
 
   constructor:(options={}, data)->
     options.view = new KDView

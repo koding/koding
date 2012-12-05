@@ -1,4 +1,4 @@
-class Home12345 extends AppController
+class HomeAppController extends AppController
   constructor:(options = {}, data)->
     options.view = new KDView
     # options.view = new HomeMainView

@@ -1,4 +1,4 @@
-class Activity12345 extends AppController
+class ActivityAppController extends AppController
 
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
