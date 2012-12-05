@@ -29,6 +29,15 @@ module.exports =
   minAllowedUid         : 600 # minumum allowed UID for OS commands
   debugApi              : true
   processBaseDir        : cwd
+  baseMountDir          : "RemoteDrive"
+  usersMountsFile       : ".mounts"
+  ftpfs                 :
+    curlftpfs           : '/usr/bin/curlftpfs'
+    opts                : "connect_timeout=15,direct_io,allow_other"
+  sshfs                 :
+    sshfscmd            : '/usr/bin/sshfs'
+    opts                : 'UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,password_stdin,intr,allow_other,direct_io'
+    optsWithKey         : 'PubkeyAuthentication=yes,PasswordAuthentication=no,UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,intr,allow_other,direct_io'
   lsws                  :
     baseDir             : '/Users'
     controllerPath      : '/opt/lsws/bin/lswsctrl'

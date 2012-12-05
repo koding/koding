@@ -4,18 +4,17 @@ config = require './config'
 
 path   = require "path"
 fs     = require "fs"
+mkdirp = require 'mkdirp'
 _      = require "underscore"
 log4js = require 'log4js'
 log    = log4js.getLogger("[#{config.name}]")
 {exec} = require "child_process"
-{spawn}   = require "child_process"
+{spawn}= require "child_process"
 
+mounter =
 
-
-mounter = 
-  
   # this module provides functions for mount remote FTP and SSH servers with fuse-curlftpfs and fuse-sshfs
-  
+
   # usage:
   #
   # MOUNT methods
@@ -24,17 +23,17 @@ mounter =
   #      username: <string> # Koding account name
   #      remoteuser: <string> # user on ftp or ssh server
   #      remotepass: <sting> # plain text password for ftp/ssh user. Note: for ssh it can be ommited if ssh key exists, use sshkey: <bool> for this
-  #      remotehost: <string> # remote SSH/FTP hostname (FQDN) 
+  #      remotehost: <string> # remote SSH/FTP hostname (FQDN)
   #      sshkey: <bool> # set true for ssh mounts if ssh key exists
   #
   #   mountFtpDrive options,(err,res)->
   #   mountSshDrive options,(err,res)->
-  #   
+  #
 
   # UMOUNT methods
   #   options =
   #      username: <string> # Koding account name
-  #      remotehost: <string> # remote SSH/FTP hostname (FQDN) 
+  #      remotehost: <string> # remote SSH/FTP hostname (FQDN)
   #
   #   umountDrive options,(err,res)->
 
@@ -43,18 +42,18 @@ mounter =
   #      username: <string> # Koding account name
   #
   #   readMountInfo options,(err,res)->
-     
-  
+
+
   readMountInfo: (options, callback)->
      # this method will return user's mounts from mount config /Users/<username>/.mounts
-     
-     # return 
-     #   callback error 
+
+     # return
+     #   callback error
      #   callback null, array of objects
-     
-     # options = 
+
+     # options =
      #   username : String # koding username
-     
+
      {username} = options
 
      cfg = path.join config.usersPath, username, config.usersMountsFile
@@ -74,24 +73,24 @@ mounter =
 
 
   updateMountCfg : (options, callback)->
-     
+
      # this method update user's mount config file  /Users/<username>/.mounts
 
 
-     # return 
-     #   callback error 
+     # return
+     #   callback error
      #   callback null, result (information message)
 
-     # options = 
+     # options =
      #   username : String # koding username
      #   type : String # type of mount (ftp,ssh)
      #   remoteuser : String # FTP username
      #   remotehost : String # FTP server address
      #   mountpoint : String # mountpoint for remount drive
-     
+
      {username, type, remoteuser, remotehost, mountpoint} = options
-     
-     newConf = 
+
+     newConf =
        type: type
        remotehost: remotehost
        remoteuser: remoteuser
@@ -136,11 +135,11 @@ mounter =
 
 
   cleanMountConf: (options, callback)->
-    
+
     # this method will remove mount config related to remote host from user's mount config
 
-     # return 
-     #   callback error 
+     # return
+     #   callback error
      #   callback null, result (information message)
 
 
@@ -192,11 +191,11 @@ mounter =
 
   remountVE: (options, callback)->
 
-    # remount user's ve 
+    # remount user's ve
     # if remote drive umounted from main system , user's "container" should be reloaded to umount drive from it
 
-     # return 
-     #   callback error 
+     # return
+     #   callback error
      #   callback null, result (information message)
 
 
@@ -215,26 +214,26 @@ mounter =
 
 
    createMountpoint : (options, callback)->
-   
+
      # create mount point for remote resource
      # /Users/<username>/RemoteDrive/<remote_hostname>
- 
-     # return 
-     #   callback error 
+
+     # return
+     #   callback error
      #   callback null, result (information message)
 
-     
+
      # options =
      #  mountpoint : String # mountpoint for remount drive
 
      {mountpoint} = options
-     
+
      fs.stat mountpoint, (err,stats)->
        if stats
          log.info info = "[OK] #{mountpoint} already exists"
          callback null, info
        else
-         fs.mkdir mountpoint, '0755',(err)->
+         mkdirp mountpoint, '0755',(err)->
            if err?
              log.error error = "[ERROR] Couldn't create mountpoint #{mountpoint}: #{err.message}"
              callback error
@@ -246,12 +245,12 @@ mounter =
 
       # mount FTP to the users home directory
 
-      # return 
-      #   callback error 
+      # return
+      #   callback error
       #   callback null, result (information message)
 
 
-      # options = 
+      # options =
       #   username : String # koding username
       #   type: Sting # this value doesn't require for mounting. It is only for config files (can be "ssh" or "ftp")
       #   remoteuser  : String # FTP username
@@ -259,21 +258,23 @@ mounter =
       #   remotehost  : String # FTP server address
       #
       {username, remoteuser, remotepass, remotehost} = options
-      
+
       options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
-      
+
       # fetch user ID for curlftfs command
       @spawnWrapper '/usr/bin/id', ['-u',username], (err,res)=>
         if err?
           log.error error = "[ERROR] Can't find user ID: #{err}"
           callback error
         else
+          res = res.trim()
           log.info "[OK] user ID for user #{username} is #{res}"
           ftpfsopts = "#{config.ftpfs.opts},uid=#{res},gid=#{res},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
           @createMountpoint options,(err,res)=>
             if err
               callback err
             else
+              console.info config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint]
               @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
                 if err?
                   log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
@@ -285,16 +286,16 @@ mounter =
                     else
                       @updateMountCfg options,(err,res)->
                       callback null,res
-               
+
 
     mountSshDriveWithKey: (options, callback)->
       # mount SSHfs to the user's home directory
-   
-      # return 
-      #   callback error 
+
+      # return
+      #   callback error
       #   callback null, result (information message)
 
-   
+
       # options =
       #   username : String # koding username
       #   type : String # type of mount (ftp,ssh)
@@ -308,7 +309,7 @@ mounter =
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
       keyPath = path.join config.usersPath,username,'.ssh','koding.pem'
       sshopts = [ "-o", "ssh_command=/usr/bin/ssh -i #{keyPath} -o #{config.sshfs.optsWithKey},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
-      console.log sshopts  
+      console.log sshopts
       @createMountpoint options, (err, res)=>
         if err
           callback err
@@ -326,14 +327,14 @@ mounter =
                   callback null, res
 
     mountSshDriveWithPass : (options, callback)->
-      
+
       # mount SSHfs to the user's home directory
-   
-      # return 
-      #   callback error 
+
+      # return
+      #   callback error
       #   callback null, result (information message)
 
-   
+
       # options =
       #   username : String # koding username
       #   type : String # type of mount (ftp,ssh)
@@ -345,9 +346,9 @@ mounter =
       {username, remoteuser, remotepass, remotehost, sshkey} = options
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
-      
+
       sshopts = [ "-o", "ssh_command=/usr/bin/ssh -o #{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
-      console.log sshopts  
+      console.log sshopts
       @createMountpoint options, (err, res)=>
         if err
           callback err
@@ -363,12 +364,12 @@ mounter =
 
           pw.on "exit", (code) ->
             if code isnt 0
-              log.error pwcb = "[ERROR] pw process exited with code #{code}, #{pwerror}"  
+              log.error pwcb = "[ERROR] pw process exited with code #{code}, #{pwerror}"
               callback pwcb
 
           ssh.stdout.on "data", (data) ->
             log.info data
-          
+
           ssherror = ''
           ssh.stderr.on "data", (data) ->
             ssherror += "ssh stderr: #{data}"
@@ -377,7 +378,7 @@ mounter =
             if code isnt 0
               log.error  "[ERROR] ssh process exited with code #{code}: #{ssherror}"
               callback "[ERROR] couldn't mount ssh fs"
-            else      
+            else
               @remountVE options, (err,res)=>
                 if err
                   callback err
@@ -386,14 +387,14 @@ mounter =
                   callback null, res
 
     mountSshDrive: (options, callback)->
-      
+
       # mount SSHfs to the user's home directory
-   
-      # return 
-      #   callback error 
+
+      # return
+      #   callback error
       #   callback null, result (information message)
 
-   
+
       # options =
       #   username : String # koding username
       #   type : String # type of mount (ftp,ssh)
@@ -401,7 +402,7 @@ mounter =
       #   remotepass : String # SSH password
       #   remotehost : String # SSH server address
       #   sshkey     : Bool # auth with key true/false
-      
+
       {sshkey} = options
 
       if sshkey?
@@ -416,11 +417,11 @@ mounter =
 
 
     umountDrive : (options, callback)->
-      
+
       # umount FTP from user's home directory
 
-      # return 
-      #   callback error 
+      # return
+      #   callback error
       #   callback null, result (information message)
 
 

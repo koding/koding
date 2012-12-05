@@ -11,6 +11,7 @@ hat       = require 'hat'
 ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
 {bash}    = require 'koding-bash-user-glue'
+mounter   = require './mounter'
 
 createTmpDir = require './createtmpdir'
 
@@ -24,7 +25,8 @@ module.exports = new Kite 'sharedHosting'
 
   executeCommand: require './executecommand'
 
-  mounter: require './mounter'
+  readMountInfo: (options, callback)-> mounter.readMountInfo options, callback
+  mountFtpDrive: (options, callback)-> mounter.mountFtpDrive options, callback
 
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
