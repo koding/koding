@@ -61,6 +61,8 @@ class AdminNavigationLink extends NavigationLink
 
   click:(event)->
 
+    KD.testKDML();
+
     cb = @getData().callback
     cb.call @ if cb
 

@@ -30,7 +30,7 @@ class ApplicationManager extends KDObject
 
   quitApplication:(path)->
     app = @getAppInstance path
-    if typeof app.quit is "function"
+    if app and typeof app.quit is "function"
       app.quit? ->
         @removeAppInstance path
       setTimeout ->
