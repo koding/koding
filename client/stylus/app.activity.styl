@@ -2374,11 +2374,110 @@ div.tooltip-container
     vendor box-shadow, 0px 10px 20px 5px rgba(0,0,0,0.15)
 
   &.painted-above
-    div.tooltip-arrow
-      z-index 9001
+    div.tooltip-arrow-below
+      z-index 9002
       background-color transparent
       sprite()
       size 15px 15px
       margin-top:-10px
-      margin-left 5px
       background-position -220px -32px
+      margin-left 5px
+    div.tooltip-arrow-above
+      display none
+  &.painted-below
+    div.tooltip-arrow-above
+      z-index 9002
+      background-color transparent
+      sprite()
+      size 15px 15px
+      margin-top:-10px
+      margin-bottom -1px
+      margin-left 5px
+      background-position -200px -31px
+    div.tooltip-arrow-below
+      display none
+  &.painted-left
+    div.tooltip-arrow-above
+      margin-left 95%
+    div.tooltip-arrow-below
+      margin-left 95%
+
+  &.avatar-tooltip
+    max-width 450px
+    .tooltip-wrapper
+      div.rightcol
+        margin-left 90px
+        .profile-name
+          margin 10px 0px 0px 15px
+          &:hover
+            cursor pointer
+        .profilestats
+          padding               12px 0px 0px 10px
+          // border-bottom         1px solid #E2E2E2
+          // border-top            1px solid #E2E2E2
+          margin-top 5px
+          borderBox()
+          a
+            color               #222
+            font-size           14px
+            font-weight         700
+            margin-left         3px
+            display             inline-block
+            noTextDeco()
+            cite
+              margin-right      3px
+              size              20px,20px
+              sprite()
+              fl()
+            span
+              margin-right      6px
+              font-size         12px
+              line-height       20px
+              font-weight       300
+              color             #a5a5a5
+              fl()
+
+          > div
+            font-size           14px
+            font-weight         700
+            line-height         17px
+            display             inline-block
+            margin              0 30px 0 0
+            min-width           80px
+          .fing
+            a
+              cite
+                bg                position, -160px -580px
+              span.data
+                color             #4c4c4c
+                font-size         14px
+                font-weight       700
+          .fers
+            a
+              cite
+                bg                position, -180px -580px
+              span.data
+                color             #4c4c4c
+                font-size         14px
+                font-weight       700
+          .liks
+            a
+              cite
+                bg                position, -140px -580px
+              span.data
+                color             #4c4c4c
+                font-size         14px
+                font-weight       700
+
+          .contact
+            a
+              cite
+                bg                position, -200px -580px
+              span
+                color             #FF9200
+
+      div.leftcol
+        float left
+        .follow-btn
+          margin-top 5px
+

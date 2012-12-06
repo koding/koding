@@ -505,7 +505,9 @@ class KDView extends KDObject
 
   dblClick:(event)->   yes
 
-  click:(event)->      yes
+  click:(event)->
+    @hideTooltip()
+    yes
 
   contextMenu:(event)->yes
 
@@ -698,6 +700,7 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
+    o.viewCssClass or= null
 
     @on "viewAppended", =>
       # log "get rid of this timeout there should be an event after template update"
@@ -746,14 +749,19 @@ class KDView extends KDObject
     if isFirstTooltip
       @tooltipViewContainer = new KDView
         cssClass : 'tooltip-container hidden'
+      if o.viewCssClass
+        @tooltipViewContainer.setClass o.viewCssClass
       @tooltipWrapper = new KDView
         cssClass : 'tooltip-wrapper'
-      @tooltipArrow = new KDView
-        cssClass : 'tooltip-arrow'
+      @tooltipArrowBelow = new KDView
+        cssClass : 'tooltip-arrow-below'
+      @tooltipArrowAbove = new KDView
+        cssClass : 'tooltip-arrow-above'
 
       @tooltipWrapper.addSubView o.view
+      @tooltipViewContainer.addSubView @tooltipArrowAbove
       @tooltipViewContainer.addSubView @tooltipWrapper
-      @tooltipViewContainer.addSubView @tooltipArrow
+      @tooltipViewContainer.addSubView @tooltipArrowBelow
       @getSingleton('mainView').addSubView @tooltipViewContainer
 
     callback() # now that the view is in the DOM, prevent further insertion
@@ -773,23 +781,26 @@ class KDView extends KDObject
         selectorHeight = selector.height()
         selectorWidth = selector.width()
 
-
         # vertical placement defaults to above, so only paint below the
         # selector if specifically demanded or if there is not enough space
         if o.placement is 'below' or (o.placement is 'above' and selectorOffset.top-selectorHeight-containerHeight < 0)
           @tooltipViewContainer.setClass 'painted-below'
+          @tooltipViewContainer.unsetClass 'painted-above'
           container.css top : selectorOffset.top+selectorHeight+10
         else
           @tooltipViewContainer.setClass 'painted-above'
-          container.css top : selectorOffset.top-selectorHeight-containerHeight
+          @tooltipViewContainer.unsetClass 'painted-below'
+          container.css top : selectorOffset.top-containerHeight-10
 
         # horizontal placement defaults to right, will only paint left if
         # there is enough space for it.
-        if o.placement is 'left' or ( selectorOffset.left+containerWidth > screen.width)
+        if o.placement is 'left' or ( selectorOffset.left+containerWidth > window.innerWidth)
           @tooltipViewContainer.setClass 'painted-left'
+          @tooltipViewContainer.unsetClass 'painted-right'
           container.css left : selectorOffset.left-containerWidth+selectorWidth
         else
           @tooltipViewContainer.setClass 'painted-right'
+          @tooltipViewContainer.unsetClass 'painted-left'
           container.css left : selectorOffset.left
 
         @tooltipViewContainer.$().hover =>
@@ -797,7 +808,6 @@ class KDView extends KDObject
         ,=>
           @tooltipViewContainer.hide()
     ,o.delayIn
-
 
   getTooltip:(o = {})->
     o.selector or= null
@@ -812,6 +822,7 @@ class KDView extends KDObject
   hideTooltip:(o = {})->
     o.selector or= null
     @$(o.selector).tipsy "hide"
+    @tooltipViewContainer?.hide()
 
   listenWindowResize:->
 
