@@ -20,7 +20,7 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : [3001..3004]
+    port        : [3001..3002]
   mongo         : mongo
   runBroker     : no
   configureBroker: no
