@@ -160,8 +160,15 @@ mounter =
           if err
             callback err
           else
-            # @removeMount options,(err,res)->
-            callback null,res
+            fs.rmdir options.mountpoint, (err)->
+              # not a big issue
+              if err?
+                console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
+              else
+                console.log "mountpoint #{options.mountpoint} has been removed" 
+            @removeMountConf options,(err,res)->
+              callback err if err?
+              callback null,res
 
   # Safe
   readMountInfo: (options, callback)->
@@ -260,7 +267,7 @@ mounter =
             log.info info = "[ok] config successfully created"
             callback null, info
 
-  removeMount: (options, callback)->
+  removeMountConf: (options, callback)->
 
     # this method will remove mount config related to remote host from user's mount config
 
@@ -295,6 +302,7 @@ mounter =
           else
             log.info info = "[OK] config successfully updated"
             callback null, info
+
 
   mountSshDriveWithKey: (options, callback)->
     # mount SSHfs to the user's home directory
