@@ -405,8 +405,8 @@ class ActivityListController extends KDListViewController
 
     @_state = 'public'
 
-    @scrollView.$().scroll =>
-      if @scrollView.$().scrollTop() > 10
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
         @activityHeader.setClass "scrolling-up-outset"
       else
         @activityHeader.unsetClass "scrolling-up-outset"
