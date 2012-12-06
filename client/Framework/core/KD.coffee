@@ -48,10 +48,10 @@ KD.error = error = noop
     @remote.api.JAccount.impersonate username, (err)->
       if err then new KDNotificationView title: err.message
       else location.reload()
-
-  testKDML:->
-    {KDMLParser} = Bongo.KDML
-    kdml = new KDMLParser @classes
+#
+#  testKDML:->
+#    {KDMLParser} = Bongo.KDML
+#    kdml = new KDMLParser @classes
 
   debugStates     : {}
   instances       : {}
