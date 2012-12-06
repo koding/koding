@@ -7,140 +7,12 @@ Includes =
     Server:
       Stuff:
         config          : "./empty.coffee"
-        # dependencies    : "./server/dependencies.coffee"
-        # errors          : "./server/app/errors.coffee"
-        # initConfig      : "./server/app/initConfig.coffee"
-        # emailer         : "./server/app/emailer.coffee"
-        # base            : "./server/app/base.coffee"
-        # utils           : "./server/app/utils.coffee"
-        #jspath          : "./server/app/jspath.coffee"
-        # access_control  : "./server/app/access_control.coffee"
-        # output_filters  : "./server/app/output_filters.coffee"
-        # api             : "./server/app/api.coffee"
-        # auth            : "./server/app/auth.coffee"
-        # exec            : "./server/app/exec.coffee"
-        # ftp             : "./server/app/ftp.coffee"
-        # job             : "./server/app/job.coffee"
-        # jobq            : "./server/app/jobq.coffee"
-        # resource        : "./server/app/resource.coffee"
-        # server          : "./server/app/server.coffee"
-        # foreign_auth    : "./server/app/foreign_auth.coffee"
-        # shell           : "./server/app/shell.coffee"
-        # status          : "./server/app/status.coffee"
-        # team            : "./server/app/team.coffee"
-        # Irc             : "./server/app/irc.coffee"
-
-
-        #KiteController  : "./server/app/core/KiteController.coffee"
-        # archiver        : "./server/app/core/archiver.coffee"
-        # limit           : "./server/app/core/limit.coffee"
-        # allocation      : "./server/app/core/allocation.coffee"
-        # register        : "./server/app/core/register.coffee"
-        #localization    : "./server/app/core/localization.coffee"
-        # relationship    : "./server/app/core/relationship.coffee"
-        # permission      : "./server/app/core/permission.coffee"
-        # tag             : "./server/app/core/taxonomy.coffee"
-        # uniqueid        : "./server/app/core/uniqueid.coffee"
-        # module          : "./server/app/core/module.coffee"
-        # moduleSelection : "./server/app/core/module.selection.coffee"
-        # modulecapsule   : "./server/app/core/modulecapsule.coffee"
-        # notifier        : "./server/app/core/notifier.coffee"
-        # session         : "./server/app/core/session.coffee"
-        # message         : "./server/app/core/message.coffee"
-        # messageNotifier : "./server/app/core/message.notifier.coffee"
-        # cronJob         : "./server/app/core/cronjob.coffee"
-
-        # flag                        : "./server/app/metadata/flag.coffee"
-        # metadata                    : "./server/app/metadata/metadata.coffee"
-        # metadataUniqueView          : "./server/app/metadata/metadata.uniqueview.coffee"
-        # metadataVote                : "./server/app/metadata/metadata.vote.coffee"
-        # metadataInappropriate       : "./server/app/metadata/metadata.inappropriate.coffee"
-        # metadataLike                : "./server/app/metadata/metadata.like.coffee"
-        # metadataExperiencepoints    : "./server/app/metadata/metadata.experiencepoints.coffee"
-
-      #Models :
-        # jchannel                  : "./server/app/bongo/models/channel.coffee"
-        # jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
-        # jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
-        # # bongo models:
-        # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
-        # jreplyactivity            : "./server/app/bongo/models/activity/reply.coffee"
-        # jabstractActivity         : "./server/app/bongo/models/activity/abstract.coffee"
-        # jstatusactivity           : "./server/app/bongo/models/activity/status.coffee"
-        # jcodeactivity             : "./server/app/bongo/models/activity/code.coffee"
-        # jquestionactivity         : "./server/app/bongo/models/activity/question.coffee"
-        # jdiscussionactivity       : "./server/app/bongo/models/activity/discussion.coffee"
-        # jlinkactivity             : "./server/app/bongo/models/activity/link.coffee"
-
-        # activity redo:
-
-
-        # # abstractions
-        # followable                : "./server/app/bongo/abstractions/followable.coffee"
-        # filterable                : "./server/app/bongo/abstractions/filterable.coffee"
-        # taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
-        # notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
-        # notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
-        # flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-
-
-        # cactivity                 : "./server/app/bongo/models/activity.coffee"
-        # cbucket                   : "./server/app/bongo/models/bucket.coffee"
-
-        # jlimit                    : "./server/app/bongo/models/limit.coffee"
-        # jmount                    : "./server/app/bongo/models/mount.coffee"
-        # jrepo                     : "./server/app/bongo/models/repo.coffee"
-        # jdatabase                 : "./server/app/bongo/models/database.coffee"
-        # jappstorage               : "./server/app/bongo/models/appStorage.coffee"
-        # jaccount                  : "./server/app/bongo/models/account.coffee"
-        # jsession                  : "./server/app/bongo/models/session.coffee"
-        # juser                     : "./server/app/bongo/models/user.coffee"
-        # jguest                    : "./server/app/bongo/models/guest.coffee"
-        # jvisitor                  : "./server/app/bongo/models/visitor.coffee"
-        # jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-
-        # jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-
-        # # jterminal                  : "./server/app/bongo/models/terminal.coffee"
-
-        # fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
-
-        # jtag                      : "./server/app/bongo/models/tag.coffee"
-
-        # jcomment                  : "./server/app/bongo/models/messages/comment.coffee"
-        # jpost                     : "./server/app/bongo/models/messages/post.coffee"
-        # jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
-        # jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
-        # janswer                   : "./server/app/bongo/models/messages/answer.coffee"
-        # jquestion                 : "./server/app/bongo/models/messages/question.coffee"
-        # jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
-        # japp                      : "./server/app/bongo/models/app.coffee"
-        # jreview                   : "./server/app/bongo/models/messages/review.coffee"
-
-        # jinvitation               : "./server/app/bongo/models/invitation.coffee"
-        # jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
-        # jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        # jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
-        # jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
-
-
-      # OtherStuff :
-        # moduledata            : "./server/app/core/moduledata.coffee"
-        # moduledata_deprecated : "./server/app/core/moduledata_deprecated.coffee"
-        # defaultAllocations    : "./server/app/defaults/defaultallocations.coffee"
-        # defaultProducts       : "./server/app/defaults/defaultproducts.coffee"
-        # migrant               : "./server/migrate/migrant.coffee"
-        # mysqlMigrant          : "./server/migrate/mysqlmigrant.coffee"
-        # ohlohDump             : "./server/migrate/migrants/ohlohdump.coffee"
-        # userDump              : "./server/migrate/migrants/userdump.coffee"
-        # groupsDump            : "./server/migrate/migrants/groupsdump.coffee"
-        # postsDump             : "./server/migrate/migrants/postsdump.coffee"
-        # unwrapper             : "./server/migrate/migrants/unwrapper.coffee"
-        # main                  : "./server/app/main.coffee"
 
     Client:
       Framework :
-
+        sockjs                      : "./client/libs/sockjs-0.3-patched.js"
+        broker                      : "./node_modules/broker-client/browser/broker.js"
+        bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         # core
         __utils             : "./client/Framework/core/utils.coffee"
         KD                  : "./client/Framework/core/KD.coffee"
@@ -501,9 +373,6 @@ Includes =
         sharedRoutes                : "./routes/index.coffee"
         kodingrouter                : "./client/app/MainApp/kodingrouter.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
-        sockjs                      : "./client/libs/sockjs-0.3-patched.js"
-        broker                      : "./node_modules/broker-client/browser/broker.js"
-        bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
 
