@@ -264,7 +264,6 @@ class LoginView extends KDScrollView
     {kodingenUser} = formData
     formData.agree = 'on'
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-      log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
@@ -277,6 +276,7 @@ class LoginView extends KDScrollView
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
+        KD.getSingleton('router').clear()
         setTimeout =>
           @animateToForm "login"
           @registerForm.reset()

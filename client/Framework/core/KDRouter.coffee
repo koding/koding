@@ -36,7 +36,9 @@ class KDRouter extends KDObject
           shouldPushState   : no
           state             : state
 
-  clear:(route = '/', replaceState = yes)-> @handleRoute route, {replaceState}
+  clear:(route = '/', replaceState = yes)->
+    delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
+    @handleRoute route, {replaceState}
 
   startListening:->
     return no  if @isListening # make this action idempotent
