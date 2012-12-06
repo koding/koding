@@ -7,7 +7,7 @@
 /*
 ACE STYLES
 app.aceeditor.styl
-*/                        
+*/
 }
 
 .ace_editor
@@ -64,7 +64,7 @@ app.aceeditor.styl
     .kdtabhandle.active
       color               normal-text
       bg(color,#f2f2f2)
-  
+
 .application-page
   .file-container
     bg                    color, #eee
@@ -112,7 +112,7 @@ app.aceeditor.styl
         font-style      italic
 
   .header-buttons
-    position            relative
+    rel()
     overflow            hidden
     top                 0
     left                6px
@@ -142,7 +142,7 @@ app.aceeditor.styl
       border-left         1px solid #e2e2e2
       padding-top         2px
       fr()
-  
+
   &.disabled-subs
     .header-buttons
       display           none
@@ -156,7 +156,7 @@ app.aceeditor.styl
   background            -moz-radial-gradient(circle, #5C5853, #3B3631)
   background            -ms-radial-gradient(circle, #5C5853, #3B3631)
   > div
-    position            absolute
+    abs()
     size                100%,auto
     top                 50%
     margin              0
@@ -192,14 +192,14 @@ app.aceeditor.styl
 .mini-code-wrapper
   size(100%,100%)
 
-  
+
 .editor-bottom-bar
   bottom                0
   color                 #282828
   border                1px solid #e2e2e2
   border-top-color      #dadada
   gradient              #f9f9f9,#e7e7e7
-  position              absolute
+  abs()
   size                  100%,20px
   z-index               1000
   borderBox()
@@ -218,13 +218,13 @@ app.aceeditor.styl
     line-height         12px
     color               #282828
     size                auto,12px
-    fl()                
-    &.caret-position    
+    fl()
+    &.caret-position
       width             48px
       text-align        center
       color             #333
       margin            0
-      span              
+      span
         margin          0 2px
     &.command-line
       padding           0px
@@ -238,7 +238,7 @@ app.aceeditor.styl
         input.terminal
           color         green
       span.icon
-        position        absolute
+        abs()
         top             0
         left            0
         display         block
@@ -269,7 +269,7 @@ app.aceeditor.styl
   borderBox()
   form
     padding           0 10px 0 50px
-    
+
     button.kdbutton.to-right
       fr()
     button.kdbutton
@@ -286,7 +286,7 @@ app.aceeditor.styl
       .icon
         margin        0
         padding       0
-    
+
     input.kdinput
       margin          8px 0 0 10px
       clear           none
@@ -297,7 +297,7 @@ app.aceeditor.styl
 .terminal-tab
   border            1px solid #ddd
   borderBox()
-  
+
   input.kdinput.text
     color           #28fe14
     font-family     mono
@@ -330,7 +330,7 @@ app.aceeditor.styl
       bg              color,transparent
       bg              image,url("/images/blinking-cursor.gif")
       bg              repeat,no-repeat
-    
+
 .kdview.shell-output
   color           #28fe14
   font-family     mono
