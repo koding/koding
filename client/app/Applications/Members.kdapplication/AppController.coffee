@@ -1,4 +1,4 @@
-class Members12345 extends AppController
+class MembersAppController extends AppController
   constructor:(options, data)->
     options = $.extend
       view : mainView = (new MembersMainView cssClass : "content-page members")
