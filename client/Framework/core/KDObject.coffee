@@ -22,8 +22,7 @@ class KDObject extends KDEventEmitter
   else
     o:(o)->o
 
-  bound:(method, rest...)->
-    @["__bound__#{method}"] ?= => @[method] rest...
+  bound: Bongo.bound
 
   ready:(listener)->
     if @readyState > 0 then listener()

@@ -2,14 +2,14 @@
 @import "./client/stylus/appfn"
 
 @css {
-/*  
+/*
 KEYBOARD stylesheet
 app.keyboard.styl
 */
 }
 
 a.key-helper-modal-icon
-  position      absolute
+  abs()
   right         4px
   bottom        4px
   color         rgba(255,255,255,.8)
@@ -30,8 +30,8 @@ a.key-helper-modal-icon
     right               15px
     top                 15px
     z-index             1
-  
-  
+
+
 .kdlistview.keyboard-helper
   size          100%,auto
   background    #454545
@@ -64,13 +64,13 @@ a.key-helper-modal-icon
       font-size           12px
       line-height         20px
       font-weight         300
-      position            absolute
+      abs()
       left                140px
       top                 0
-      
+
     cite
       margin              0 3px 0 0
-        
+
     span.keyview
       font-size           9px
       padding             4px 0px 5px 0px
@@ -94,4 +94,3 @@ a.key-helper-modal-icon
       &.large
         width             40px
         text-transform    lowercase
-        

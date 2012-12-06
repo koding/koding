@@ -1,4 +1,4 @@
-class Demos12345 extends AppController
+class DemosAppController extends AppController
   constructor:(options = {}, data)->
     options.view = new DemosMainView
       cssClass : "content-page demos"
