@@ -45,7 +45,7 @@ class NFinderController extends KDViewController
 
 #    if @treeController.getOptions().useStorage
 #      appManager.on "AppManagerOpensAnApplication", (appInst)=>
-#        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
+#        if appInst instanceof StartTabAppController and not @defaultStructureLoaded
 #          @loadDefaultStructure()
 
     # if @treeController.getOptions().useStorage

@@ -1,4 +1,4 @@
-class Inbox12345 extends AppController
+class InboxAppController extends AppController
 
   {race} = Bongo
 

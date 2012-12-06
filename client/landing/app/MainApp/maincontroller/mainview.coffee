@@ -9,10 +9,6 @@ class MainView extends KDView
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
 
-    setTimeout =>
-      @putWhatYouShouldKnowLink()
-    ,5000
-
   addBook:->
     @addSubView new BookView
 
@@ -175,32 +171,3 @@ class MainView extends KDView
 
     {winHeight} = @windowController
     @panelWrapper.setHeight winHeight - 51
-
-  putWhatYouShouldKnowLink:->
-
-    @header.addSubView link = new KDCustomHTMLView
-      tagName     : "a"
-      domId       : "what-you-should-know-link"
-      attributes  :
-        href      : "#"
-      partial     : "What you should know about this beta...<span></span>"
-      click       : (event)=>
-        if $(event.target).is 'span'
-          link.hide()
-        else
-          $.ajax
-            # url       : KD.config.apiUri+'https://api.koding.com/1.0/logout'
-            url       : "/beta.txt"
-            success	  : (response)=>
-
-              modal = new KDModalView
-                title       : "Thanks for joining our beta."
-                cssClass    : "what-you-should-know-modal"
-                height      : "auto"
-                width       : 500
-                content     : response
-                buttons     :
-                  Close     :
-                    title   : 'Close'
-                    style   : 'modal-clean-gray'
-                    callback: -> modal.destroy()

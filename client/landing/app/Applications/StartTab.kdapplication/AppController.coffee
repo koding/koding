@@ -1,4 +1,4 @@
-class StartTab12345 extends AppController
+class StartTabAppController extends AppController
 
   constructor:->
     super
