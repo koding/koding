@@ -27,6 +27,7 @@ module.exports = new Kite 'sharedHosting'
 
   readMountInfo: (options, callback)-> mounter.readMountInfo options, callback
   mountFtpDrive: (options, callback)-> mounter.mountFtpDrive options, callback
+  mountDrive   : (options, callback)-> mounter.mountDrive    options, callback
   umountDrive  : (options, callback)-> mounter.umountDrive   options, callback
 
   fetchSafeFileName:(options,callback)->
