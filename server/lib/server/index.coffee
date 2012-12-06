@@ -113,9 +113,7 @@ else
     channel = req.query?.channel
     return res.send 'user error', 400 unless channel?
     clientId = req.cookies.clientId
-    console.log 'before'
     JSession.fetchSession clientId, (err, session)->
-      console.log 'after'
       if session? and clientId isnt session?.clientId
         res.cookie 'clientId', session.clientId
       if err
