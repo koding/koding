@@ -97,11 +97,11 @@ class AboutView extends JView
         nickname  : 'gokmen'
         job       : 'Software Engineer'
         image     : '../images/people/gokmen.jpg'
-      ,
-        name      : 'Son Tran-Nguyen'
-        nickname  : 'sntran'
-        job       : 'Software Engineer'
-        image     : '../images/people/son.jpg'
+      # ,
+      #   name      : 'Son Tran-Nguyen'
+      #   nickname  : 'sntran'
+      #   job       : 'Software Engineer'
+      #   image     : '../images/people/son.jpg'
       ,
         name      : 'Arvid Kahl'
         nickname  : 'arvidkahl'
@@ -134,7 +134,7 @@ class AboutMemberView extends KDCustomHTMLView
     """
       <img src="#{image}" />
       <p>
-        <a href='#!/member/#{nickname}'><strong>#{name}</strong></a>
+        <a href='/#{nickname}'><strong>#{name}</strong></a>
         #{job}
       </p>
     """

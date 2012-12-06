@@ -31,6 +31,7 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemData    = []
     @hiddenInputs        = {}
     @selectedItemCounter = 0
+    @readyToShowDropDown = yes
 
   reset:->
     subViews    = @itemWrapper.getSubViews().slice()
@@ -61,6 +62,7 @@ class KDAutoCompleteController extends KDViewController
           @submitAutoComplete autoCompleteView.getValue()
           event.stopPropagation()
           event.preventDefault()
+          @readyToShowDropDown = no
           return no
         else
           return yes
@@ -82,6 +84,8 @@ class KDAutoCompleteController extends KDViewController
           event.preventDefault()
           return no
         # @getView().$input().blur()
+      else
+        @readyToShowDropDown = yes
     no
 
   getPrefix:()->
@@ -129,6 +133,9 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper.$().fadeOut 75
 
   showDropdown:->
+
+    return unless @readyToShowDropDown
+
     windowController = @getSingleton('windowController')
     dropdownWrapper = @dropdown.getView()
     dropdownWrapper.unsetClass "hidden"
@@ -283,7 +290,9 @@ class KDAutoCompleteController extends KDViewController
     @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
-    data or= item.getData()
+
+    data or= item?.getData()
+    return unless data or item?.getOptions().userInput
 
     {itemDataPath,form,submitValuesAsText} = @getOptions()
 
@@ -320,7 +329,6 @@ class KDAutoCompleteController extends KDViewController
 
     @addSelectedItemData data
     @addSelectedItem itemName, data
-    # debugger
     @getView().setValue @dropdownPrefix = ""
 
   removeFromSubmitQueue:(item, data)->

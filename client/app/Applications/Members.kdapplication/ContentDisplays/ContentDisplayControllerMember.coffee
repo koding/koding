@@ -12,14 +12,19 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView header = new HeaderViewSection type : "big", title : "Profile"
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+    subHeader.addSubView backLink = new KDCustomHTMLView
+        tagName : "a"
+        partial : "<span>&laquo;</span> Back"
+        click: -> console.log history; history.back(); no
 
     contentDisplayController = @getSingleton "contentDisplayController"
 
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
-      callback : ()=>
+      callback : (pubInst, event)=>
+        event.stopPropagation()
+        event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     # FIX THIS GG
@@ -114,7 +119,7 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type = $in: [
               'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
-              'CDiscussionActivity'
+              'CDiscussionActivity',"CTutorialActivity"
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data

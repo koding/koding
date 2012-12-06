@@ -35,29 +35,27 @@ class CommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment/review owner
-         loggedInId is activity.originId or   # if activity/app owner
-         KD.checkFlag "super-admin", account  # if super-admin
-        @deleteLink.unsetClass "hidden"
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteComment data
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or           # if comment/review owner
+       loggedInId is activity.originId or       # if activity/app owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
+      @deleteLink.unsetClass "hidden"
+      @listenTo
+        KDEventTypes       : "click"
+        listenedToInstance : @deleteLink
+        callback           : => @confirmDeleteComment data
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 
   applyTooltips:->
-    @$("p.comment-body > span.data > a").each (i,element)=>
+    @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
-      unless /^(#!)/.test href
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
 
-      element
+      if $(element).attr("target") is "_blank"
+        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
 
   render:->
     if @getData().getAt 'deletedAt'
@@ -85,7 +83,8 @@ class CommentListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
+          # appManager.tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
     {type} = @getOptions()

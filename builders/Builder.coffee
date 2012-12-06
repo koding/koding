@@ -14,9 +14,12 @@ ProgressBar       = require './node_modules/progress'
 
 module.exports = class Builder
 
-  constructor:(@options,@middleware,fileList="deprecated")->
+  constructor:(builderOptions,@middleware,fileList="deprecated")->
     # exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes[\\""b[2]"\\"]="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
     exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes."b[2]"="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
+
+    @options              = builderOptions.config
+    @commandLineOptions   = builderOptions.commandLine
 
     @watcher = new Watcher @options.includesFile
 
@@ -65,13 +68,9 @@ module.exports = class Builder
     cclient += @watcher.getSubSectionConcatenated "Client","ApplicationPageViews"
     cclient = kdjs = @wrapWithJSClosure cclient
 
-    if options.pistachios
-      compilePistachios = require 'pistachio-compiler'
-      kdjs = cclient = compilePistachios(cclient)
-
     libraries  = clibraries
 
-    @middleware @options, {libraries, kdjs}, (err,finalCode)=>
+    @middleware @options, @commandLineOptions, {libraries, kdjs}, (err,finalCode)=>
       fs.writeFile @options.js, finalCode, (err) =>
         log.info "Client code is re-compiled and saved."
         callback? null

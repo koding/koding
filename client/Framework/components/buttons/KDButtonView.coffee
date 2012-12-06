@@ -21,7 +21,7 @@ class KDButtonView extends KDView
     @setCallback options.callback
     @setTitle options.title
     @setIconClass options.iconClass if options.iconClass
-    @unhideIcon()                   if options.icon
+    @showIcon()                     if options.icon
     @setIconOnly options.iconOnly   if options.iconOnly
     @disable()                      if options.disabled
 
@@ -47,10 +47,13 @@ class KDButtonView extends KDView
 
   getCallback:()-> @buttonCallback
 
-  unhideIcon:()->
+  showIcon:()->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
 
+  hideIcon:()->
+    @unsetClass "with-icon"
+    @$('span.icon').addClass 'hidden'
 
   setIconClass:(iconClass)->
     @$('.icon').attr 'class','icon'
@@ -89,12 +92,16 @@ class KDButtonView extends KDView
     @loader.hide()
 
   showLoader:->
+    {icon, iconOnly} = @getOptions()
     @setClass "loading"
     @loader.show()
+    @hideIcon() if icon and not iconOnly
 
   hideLoader:->
+    {icon, iconOnly} = @getOptions()
     @unsetClass "loading"
     @loader.hide()
+    @showIcon() if icon and not iconOnly
 
   disable:-> @$().attr "disabled",yes
 
@@ -155,7 +162,7 @@ class KDToggleButton extends KDButtonView
     @state      = states[index]
     @decorateState name
 
-    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
+    @setCallback states[index + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
 

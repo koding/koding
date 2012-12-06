@@ -1,4 +1,4 @@
-class Activity12345 extends AppController
+class ActivityAppController extends AppController
 
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
@@ -13,8 +13,8 @@ class Activity12345 extends AppController
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # 'CDiscussionActivity'
-      # 'CTutorialActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
       # 'CLinkActivity'
       # 'CCodeShareActivity'
       'CInstallerBucketActivity'
@@ -49,22 +49,22 @@ class Activity12345 extends AppController
   bringToFront:()->
     super name : 'Activity'
 
-  initAndBringToFront:(options,callback)->
-    @environment = options.environment
-    super
-
   loadView:(mainView)->
 
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
 
+    # mainController.popupController = new VideoPopupController
+
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"
-        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
-        subtitle  : ""
+        title     : if KD.isLoggedIn() then\
+          "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+          "Welcome to the Koding Public Beta!<br>"
+        subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
-    unless account instanceof KD.remote.api.JGuest
+    if KD.isLoggedIn()
         # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
@@ -139,7 +139,7 @@ class Activity12345 extends AppController
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
-      itemClass      : ActivityListItemView
+      itemClass         : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
@@ -199,7 +199,7 @@ class Activity12345 extends AppController
             callback null, data
 
   fetchTeasers:(selector,options,callback)->
-    type = @activityListController._state
+    type = @activityListController?._state
     @performFetchingTeasers type, selector, options, (err, data) ->
       KD.remote.reviveFromSnapshots data, (err, instances)->
         callback instances
@@ -245,8 +245,8 @@ class Activity12345 extends AppController
           'CNewMemberBucket'
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-          # 'CDiscussionActivity'
-          # 'CTutorialActivity'
+          'CDiscussionActivity'
+          'CTutorialActivity'
           # 'CLinkActivity'
           # 'CCodeShareActivity'
           'CInstallerBucketActivity'
@@ -320,8 +320,8 @@ class Activity12345 extends AppController
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-        # 'CDiscussionActivity'
-        # 'CTutorialActivity'
+        'CDiscussionActivity'
+        'CTutorialActivity'
         # 'CLinkActivity'
         # 'CCodeShareActivity'
         'CInstallerBucketActivity'
@@ -339,8 +339,8 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # when "JTutorial"     then @createTutorialContentDisplay activity
+      when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JTutorial"     then @createTutorialContentDisplay activity
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
       # when "JLink"         then @createLinkContentDisplay activity
 
@@ -404,6 +404,13 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
+
+    @scrollView.$().scroll =>
+      if @scrollView.$().scrollTop() > 10
+        @activityHeader.setClass "scrolling-up-outset"
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity from your followings."

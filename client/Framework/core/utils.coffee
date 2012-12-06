@@ -42,7 +42,8 @@ __utils =
     if prefix? then "#{prefix}#{id}" else id
 
   getRandomRGB :()->
-    "rgb(#{@getRandomNumber(255)},#{@getRandomNumber(255)},#{@getRandomNumber(255)})"
+    {getRandomNumber} = @
+    "rgb(#{getRandomNumber(255)},#{getRandomNumber(255)},#{getRandomNumber(255)})"
 
   getRandomHex : ->
     # hex = (Math.random()*0xFFFFFF<<0).toString(16)
@@ -55,21 +56,20 @@ __utils =
 
   curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
 
+  parseQuery:do->
+    params  = /([^&=]+)=?([^&]*)/g    # for chunking the key-val pairs
+    plusses = /\+/g                   # for converting plus signs to spaces
+    decode  = (str)-> decodeURIComponent str.replace plusses, " "
+    parseQuery = (queryString = location.search.substring 1)->
+      result = {}
+      result[decode m[1]] = decode m[2]  while m = params.exec queryString
+      result
 
-  getUrlParams:(tag)->
-    tag ?= window.location.search
-    hashParams = {};
-
-    a = /\+/g  # Regex for replacing addition symbol with a space
-    r = /([^&;=]+)=?([^&;]*)/g
-    d = (s)->
-      decodeURIComponent s.replace a, " "
-    q = tag.substring 1
-
-    while e = r.exec q
-      hashParams[d e[1] ] = d e[2]
-
-    hashParams
+  stringifyQuery:do->
+    spaces = /\s/g
+    encode =(str)-> encodeURIComponent str.replace spaces, "+"
+    stringifyQuery = (obj)->
+      Object.keys(obj).map((key)-> "#{encode key}=#{encode obj[key]}").join('&').trim()
 
   capAndRemovePeriods:(path)->
     newPath = for arg in path.split "."
@@ -103,25 +103,31 @@ __utils =
       gfm: true
       pedantic: false
       sanitize: true
-      highlight:(text)->
-        # log "highlight callback called"
-        # if hljs?
-        #   requirejs (['js/highlightjs/highlight.js']), ->
-        #     requirejs (["highlightjs/languages/javascript"]), ->
-        #       try
-        #         hljs.compileModes()
-        #         _text = hljs.highlightAuto text
-        #         log "hl",_text,text
-        #         return _text.value
-        #       catch err
-        #         log "Error applying highlightjs syntax", err
-        # else
-        #   log "hljs not found"
-          return text
+      highlight:(text,lang)->
+        if hljs.LANGUAGES[lang]?
+          hljs.highlight(lang,text).value
+        else
+          text
 
-    text = Encoder.htmlDecode text
+    text = marked Encoder.htmlDecode text
 
-    text = marked text
+    sanitizeText = $(text)
+
+    # Proxify images
+
+    proxify = (str, p1, offset, s)=>
+      @proxifyUrl str
+
+    sanitizeText.find("img").each (i,element) =>
+      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+
+    # Give all outbound links a target blank
+    sanitizeText.find("a").each (i,element) =>
+      unless /^(#!)/.test $(element).attr("href")
+        $(element).attr("target", "_blank")
+
+    text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
+
 
   applyLineBreaks: (text)->
     return null unless text
@@ -129,10 +135,20 @@ __utils =
 
   applyTextExpansions: (text, shorten)->
     return null unless text
-    # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
+
     text = text.replace /&#10;/g, ' '
+
+    # Expand URLs with intention to replace them after putShowMore
+    {links,text} = @expandUrls text, yes
+
     text = __utils.putShowMore text if shorten
-    @expandUrls @expandUsernames text
+
+    # Reinsert URLs into text
+    if links? then for link,i in links
+      text = text.replace "[tempLink#{i}]", link
+
+    text = @expandUsernames text
+    return text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
@@ -153,7 +169,7 @@ __utils =
     if not sensitiveTo
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
-        u.link "#!/member/#{username}"
+        u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
@@ -162,7 +178,7 @@ __utils =
           if $(element).html()?
             replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
-              u.link "#!/member/#{username}"
+              u.link "/#{username}"
             $(element).html replacedText
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
@@ -173,14 +189,36 @@ __utils =
       tag = t.replace "#", ""
       "<a href='#!/topic/#{tag}' class='ttag'><span>#{tag}</span></a>"
 
-  expandUrls: (text) ->
+  expandUrls: (text,replaceAndYieldLinks=no) ->
     return null unless text
-    text.replace /([A-Za-z]+:\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+
+    links = []
+    linkCount = 0
+
+    urlGrabber = ///
+    (?!\s)                                                      # leading spaces
+    ([a-zA-Z]+://)                                              # protocol
+    (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
+    ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
+    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d]?)     # domain
+    \.                                                          # dot
+    ([a-zA-Z]{2,4})                                             # top-level-domain
+    (:\d+|)                                                     # :port
+    (/\S*|)                                                     # rest of url
+    (?!\S)
+    ///g
+
+
+    # This will change the original string to either a fully replaced version
+    # or a version with temporary replacement strings that will later be replaced
+    # with the expanded html tags
+    text = text.replace urlGrabber, (url) ->
+
+      url = url.trim()
       originalUrl = url
 
       # remove protocol and trailing path
       visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
-
       checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
 
       if not /[A-Za-z]+:\/\//.test url
@@ -188,29 +226,46 @@ __utils =
         # url has no protocol
         url = '//'+url
 
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+      # Just yield a placeholder string for replacement later on
+      # this is needed if the text should get shortened, add expanded
+      # string to array at corresponding index
+      if replaceAndYieldLinks
+        links.push "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+        "[tempLink#{linkCount++}]"
+      else
+        # yield the replacement inline (good for non-shortened text)
+        "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+
+    if replaceAndYieldLinks
+      {
+        links
+        text
+      }
+    else
+      text
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
-      suffix    : ' '
+      suffix    : ''
 
-    text = if text.length > shortenedText.length
-      morePart  = "<span class='collapsedtext hide'>"
+    # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
+    text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
+      morePart = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
-      morePart += text.substr shortenedText.length
+      morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
       morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
       morePart += "</span>"
-      shortenedText + morePart
+      Encoder.htmlEncode(shortenedText) + morePart
     else
-      shortenedText
+      Encoder.htmlEncode shortenedText
 
   shortenText:do ->
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
-        longText.split(optimalBreak).slice(0, -1).join(optimalBreak) + (suffix ? optimalBreak)
+        "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
@@ -218,23 +273,32 @@ __utils =
       suffix    = options.suffix     ? '...'
 
       longTextLength  = Encoder.htmlDecode(longText).length
-      # longTextLength  = longText.length
-
-      return longText if longTextLength < minLength or longTextLength < maxLength
-
       longText = Encoder.htmlDecode longText
-      longText = longText.substr 0, maxLength
+
+      tempText = longText.slice 0, maxLength
+      lastClosingTag = tempText.lastIndexOf "]"
+      lastOpeningTag = tempText.lastIndexOf "["
+
+      if lastOpeningTag <= lastClosingTag
+        finalMaxLength = maxLength
+      else
+        finalMaxLength = lastOpeningTag
+
+      return longText if longText.length < minLength or longText.length < maxLength
+
+      longText = longText.substr 0, finalMaxLength
 
       # prefer to end the teaser at the end of a sentence (a period).
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
 
-      if candidate?.length > minLength
-        Encoder.htmlEncode candidate
-        # candidate
-      else
-        Encoder.htmlEncode longText
-        # longText
+      # Encoder.htmlDecode Encoder.htmlEncode \
+      #   if candidate?.length > minLength then candidate
+      #   else longText
+
+      return \
+        if candidate?.length > minLength then candidate
+        else longText
 
   getMonthOptions : ()->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
@@ -308,7 +372,6 @@ __utils =
     fullname.split(' ')[0]
 
   getParentPath :(path)->
-
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
     parentPath = path.split('/')
     parentPath.pop()
@@ -327,12 +390,24 @@ __utils =
       duration = 0
     setTimeout fn, duration
 
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    if window?.postMessage and window.addEventListener
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          do queue.shift()  if queue.length > 0
+      ), yes
+      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 1
+
   killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
     cancelled = no
-    kallback = (rest...)->
-      callback rest... unless cancelled
+    kallback = (rest...)-> callback rest...  unless cancelled
     kallback.cancel = -> cancelled = yes
     kallback
 

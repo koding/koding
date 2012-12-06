@@ -7,9 +7,10 @@ class FinderBottomControlsListItem extends KDListItemView
     super options, data
 
   click:(event)->
-
-    if @getData().path?
-      appManager.openApplication @getData().path if @getData().path?
+    {appPath} = @getData()
+    event.preventDefault()
+    if appPath?
+      appManager.openApplication appPath  if appPath?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else
@@ -21,7 +22,7 @@ class FinderBottomControlsListItem extends KDListItemView
     super
 
     data = @getData()
-    unless data.path or data.action
+    unless data.appPath or data.action
       @$().twipsy
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "right"

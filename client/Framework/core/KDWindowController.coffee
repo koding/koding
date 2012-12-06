@@ -90,16 +90,56 @@ class KDWindowController extends KDController
       @redirectMouseMoveEvent e if @dragView
     , yes
 
+    # internal links (including "#") should prevent default, so we don't end
+    # up with duplicate entries in history: e.g. /Activity and /Activity#
+    # also so that we don't redirect the browser
+    document.body.addEventListener 'click', (e)->
+      isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\   # html nodenames are uppercase, so lowercase this.
+                       e.target.target isnt '_blank'                  # target _blank links should work as normal.
+      if isInternalLink
+        e.preventDefault()
+        href = $(e.target).attr 'href'
+        if href and not /^#/.test href
+          KD.getSingleton('router').handleRoute href
+    , yes
+
     # unless window.location.hostname is 'localhost'
-    window.onbeforeunload = (event) =>
+    window.addEventListener 'beforeunload', (event) =>
       # fixme: fix this with appmanager
-      if @getSingleton('mainView')?.mainTabView?.panes
-        for pane in @getSingleton('mainView').mainTabView.panes
+      mainTabView = @getSingleton('mainView')?.mainTabView
+      if mainTabView?.panes
+        for pane in mainTabView.panes
+          msg = no
+
+          # For open Tabs (apps, editors)
           if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
-            event or= window.event
             msg = "Please make sure that you saved all your work."
-            event.returnValue = msg if event # For IE and Firefox prior to version 4
-            return msg
+
+          # This cssClass needs to be added to the KDInputView OR
+          # to the wrapper (for ace)
+          pane.data.$(".warn-on-unsaved-data").each (i,element) =>
+
+            checkForUnsavedData = (el)=>
+              foundUnsavedData = no
+
+              # ACE-specific content check
+              $(el).find(".ace_editor div.ace_line > span").each (i,e)=>
+                if $(e).text()
+                  foundUnsavedData = yes
+
+              foundUnsavedData
+
+            # If the View is a KDInputview, we don"t need to look
+            # further than the .val(). For ACE and others, we call
+            # the checkForUnsavedData function above
+            if ($(element).hasClass("kdinput") and $(element).val() or checkForUnsavedData(element))
+              msg = "You may lose some input that you filled in."
+
+
+      if msg # has to be created in the above checks
+        event or= window.event
+        event.returnValue = msg if event # For IE and Firefox prior to version 4
+        return msg
 
   setDragInAction:(action = no)->
 
@@ -162,9 +202,7 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
-    # debugger
     # unless newKeyView
-    #   debugger
     # log newKeyView, "newKeyView" if newKeyView
 
     @unregisterKeyCombos()

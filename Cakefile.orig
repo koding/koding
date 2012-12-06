@@ -232,11 +232,8 @@ pipeStd =(children...)->
     child.stderr.pipe process.stderr
 
 run =(options)->
-<<<<<<< HEAD
   invoke 'checkModules'
-=======
 
->>>>>>> 76604c27142ea6a9ffe6a80bb84daede56ac8a4b
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 

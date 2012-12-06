@@ -13,7 +13,7 @@ class KDNotificationView extends KDView
     @notificationSetCloseHandle options.closeManually
     @notificationDisplay()
 
-  #OVERRIDE KDView
+  # OVERRIDE KDView
   setDomElement:(cssClass = '')->
     @domElement = $ "<div class='kdnotification #{cssClass}'>
         <a class='kdnotification-close hidden'></a>
@@ -31,7 +31,7 @@ class KDNotificationView extends KDView
 
   viewAppended:()-> @notificationSetPositions()
 
-  #OWN METHODS
+  # OWN METHODS
   notificationSetDefaults:(options)->
     options.duration      ?= 1500
     if options.duration > 2999 or options.duration is 0
@@ -124,7 +124,6 @@ class KDNotificationView extends KDView
       @notificationTimerDiv.text next
     ,1000
 
-
   notificationShowTimer:()->
     @notificationTimerDiv.removeClass "hidden"
     @getDomElement().bind "mouseenter",()=>
@@ -156,5 +155,3 @@ class KDNotificationView extends KDView
       @getOptions().container.addSubView @
     else
       KDView.appendToDOMBody @
-
-

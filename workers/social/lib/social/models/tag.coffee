@@ -2,20 +2,32 @@
 jraphical = require 'jraphical'
 CActivity = require './activity'
 JAccount  = require './account'
+KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
+  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
-
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  @trait __dirname, '../traits/protected'
+  @trait __dirname, '../traits/slugifiable'
 
   @share()
 
   @set
+    slugifyFrom     : 'title'
+    slugTemplate    : 'Topics/#{slug}'
+    permissions     : [
+      'create tags'
+      'edit tags'
+      'delete tags'
+      'edit own tags'
+      'delete own tags'
+    ]
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
@@ -26,8 +38,9 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        "one","on","some","all","create",
+        'one','on','some','create' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
+        'cursor','cursorWithRelationship','fetchMyFollowees'
         ]
     schema          :
       title         :
@@ -78,7 +91,7 @@ module.exports = class JTag extends jraphical.Module
 
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
-    if delegate.checkFlag 'super-admin'
+    if delegate.checkFlag ['super-admin', 'editor']
       modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
       JTag.one modifiedTag, (err, tag)=>
         if tag

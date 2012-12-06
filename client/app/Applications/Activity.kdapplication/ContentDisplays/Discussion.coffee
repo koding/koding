@@ -2,6 +2,11 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
   constructor:(options = {}, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options.tooltip or=
       title     : "Discussion"
       offset    : 3
@@ -20,18 +25,20 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @author = new ProfileLinkView {origin:origin}
 
-    @opinionBox = new OpinionView null, data
+    @commentBox = new CommentView {}, data
+
+    @opinionBox = new OpinionView {}, data
 
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "opinion-box-header"
-      partial  : @opinionHeaderCountString data.repliesCount
+      partial  : @opinionHeaderCountString data.opinionCount
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionForm = new OpinionFormView
       preview         :
@@ -40,8 +47,9 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         showInitially : no
       cssClass        : "opinion-container"
       callback        : (data)=>
-        @getData().reply data, (err, opinion) =>
+        @getData().replyOpinion data, (err, opinion) =>
           callback? err, opinion
+          @opinionForm.reset()
           @opinionForm.submitOpinionBtn.hideLoader()
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
@@ -50,43 +58,6 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     , data
 
     @newAnswers = 0
-
-    # Links to easily navigate to the bottom/top of the page
-    # These are useful since the opinions can be quite long, even when shortened
-    # visually, and the ease of access to the form at the bottom is
-    # paramount
-
-    # @jumpToReplyLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Reply Box"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
-
-    # @jumpToTopLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Top"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
-
-    ###
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
-    </div>
-    ###
-
-    # The static link box will be useful when we have implemented actual
-    # routing to the single ContentTypes
-
-    # @staticLinkBox = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Static Link"
-    #   attributes  :
-    #     href      : "/discussion/"+@utils.slugify data.title
 
     @actionLinks = new DiscussionActivityActionsView
       delegate    : @opinionBox.opinionList
@@ -113,50 +84,50 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         loggedInId is activity.originId or   # if activity owner
-         KD.checkFlag "super-admin", account  # if super-admin
 
-        @listenTo
-          KDEventTypes        : "click"
-          listenedToInstance  : @editDiscussionLink
-          callback            : =>
-            if @editDiscussionForm?
-              @editDiscussionForm?.destroy()
-              delete @editDiscussionForm
-              @$(".discussion-body .data").show()
-            else
-              @editDiscussionForm = new DiscussionFormView
-                title         : "edit-discussion"
-                cssClass      : "edit-discussion-form"
-                callback      : (data)=>
-                  @getData().modify data, (err, discussion) =>
-                    callback? err, opinion
-                    if err
-                      new KDNotificationView
-                        title : "Your changes weren't saved."
-                        type  : "mini"
-                    else
-                      @emit "DiscussionWasEdited", discussion
-                      @editDiscussionForm.setClass "hidden"
-                      @$(".discussion-body .data").show()
-              , data
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if discussion owner
+       loggedInId is activity.originId or   # if activity owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
-              @addSubView @editDiscussionForm, "p.discussion-body", yes
-              @$(".discussion-body .data").hide()
+      @editDiscussionLink.on "click", =>
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteDiscussionLink
-          callback           : => @confirmDeleteDiscussion data
+        if @editDiscussionForm?
+          @editDiscussionForm?.destroy()
+          delete @editDiscussionForm
+          @$(".discussion-body .data").show()
 
-        @editDiscussionLink.unsetClass "hidden"
-        @deleteDiscussionLink.unsetClass "hidden"
+        else
+          @editDiscussionForm = new DiscussionFormView
+            preview       :
+              language      : "markdown"
+              autoUpdate    : yes
+              showInitially : yes
+            title         : "edit-discussion"
+            cssClass      : "edit-discussion-form"
+            callback      : (data)=>
+              @getData().modify data, (err, discussion) =>
+                callback? err, opinion
+                @editDiscussionForm.reset()
+                if err
+                  new KDNotificationView
+                    title : "Your changes weren't saved."
+                    type  : "mini"
+                else
+                  @editDiscussionForm.setClass "hidden"
+                  @$(".discussion-body .data").show()
+          , data
+
+          @addSubView @editDiscussionForm, "p.discussion-body", yes
+          @$(".discussion-body .data").hide()
+
+      @deleteDiscussionLink.on "click", =>
+        @confirmDeleteDiscussion data
+
+      @editDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.unsetClass "hidden"
 
     activity.on 'ReplyIsAdded',(reply)=>
-
       if data.bongo_.constructorName is "JDiscussion"
 
         # Why this workaround, you ask?
@@ -197,24 +168,39 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
-        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.opinionCount
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
     activity.on "OpinionWasRemoved",(args)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
     activity.on "ReplyIsRemoved", (replyId)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
       for item,i in @opinionBox.opinionList.items
         if item.getData()._id is replyId
           item.hide()
           item.destroy()
+
+    if activity.repliesCount > 0 and not activity.replies?
+      activity.commentsByRange                   # so we fetch them manually
+        from : 0
+        to : 5
+      , (err, comments)=>
+        if err
+         log err
+        else                    # set the data in the appropriate places
+          comments = comments.reverse()           # take care of sorting
+          activity.replies = comments
+          @commentBox.setData comments
+          for comment in comments       # and add them to the commentBox
+            @commentBox.commentList.addItem comment
+
 
   opinionHeaderCountString:(count)=>
     if count is 0
@@ -244,21 +230,24 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'DiscussionIsDeleted'
-                @destroy()
+                @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                @utils.wait 2000, =>
+                  @destroy()
+
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  hightlightCode:=>
-    @$("pre").addClass "prettyprint"
+  highlightCode:=>
+    # @$("pre").addClass "prettyprint"
     @$("p.discussion-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
   render:->
     super()
-    @hightlightCode()
+    @highlightCode()
+    @prepareExternalLinks()
 
   viewAppended:()->
     super()
@@ -266,9 +255,13 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    @hightlightCode()
+    @highlightCode()
+    @prepareExternalLinks()
 
-    @$(".discussion-body .data").addClass "has-markdown"
+    # @$(".discussion-body .data").addClass "has-markdown"
+
+  prepareExternalLinks:->
+    @$('p.discussion-body a[href^=http]').attr "target", "_blank"
 
   pistachio:->
     """
@@ -293,7 +286,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            {{> @commentBox}}
           </div>
         </div>
       </div>

@@ -26,7 +26,7 @@ mkdirp      = require './builders/node_modules/mkdirp'
 commander     = require './builders/node_modules/commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes       = new (require "processes") main:true
+processes       = new (require "processes") main : true
 closureCompile  = require 'koding-closure-compiler'
 {daisy}         = require 'sinkrow'
 fs            = require "fs"
@@ -36,7 +36,6 @@ nodePath      = require 'path'
 Watcher       = require "koding-watcher"
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
-
 
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
 console.log "###############################################################"
@@ -75,50 +74,58 @@ mkdirp.sync "./.build/.cache"
 # else
 #   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
-clientFileMiddleware  = (options, code, callback)->
+compilePistachios = require 'pistachio-compiler'
+
+clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
-  {libraries,kdjs} = code
-  {minify}         = options
-
+  {libraries,kdjs}      = code
+  {minify, pistachios}  = options
 
 
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
+  if commandLineOptions.pistachios or pistachios
+    console.log "[PISTACHIO] compiler started."
+    kdjs = compilePistachios kdjs
+    console.log "[PISTACHIO] compiler finished."
+
+  js = "#{libraries}#{kdjs}"
+
   if minify
-    closureCompile (libraries+kdjs),(err,data)->
+    closureCompile js,(err,data)->
       unless err
-        callback null,data
+        callback null, data
       else
         # if error just provide the original file. so site isn't down until this is fixed.
-        callback null,(libraries+kdjs)
+        callback null, js
   else
-    callback null,(libraries+kdjs)
+    callback null, js
+
+pipeStd =(children...)->
+  for child in children when child?
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
+  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(options, callback=->)->
-  # try
-  #   config = require configFile
-  # catch e
-  #   console.log 'hello', e
-  # builder = new Builder config.client, clientFileMiddleware, ""
-  # builder.watcher.initialize()
-  # builder.watcher.on 'initDidComplete', ->
-  #   builder.buildClient "", ->
-  #     builder.buildCss "", ->
-  #       builder.buildIndex "", ->
-  #         callback null
 
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   console.log config
-  builder = new Builder config.client,clientFileMiddleware,""
+
+  builderOptions =
+    config      : config.client
+    commandLine : options
+
+  builder = new Builder builderOptions,clientFileMiddleware,""
 
 
   builder.watcher.initialize()
@@ -137,13 +144,13 @@ buildClient =(options, callback=->)->
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
     if changes.Client? and not changes.StylusFiles
-      builder.buildClient "",()->
-        builder.buildIndex "",()->
+      builder.buildClient options,()->
+        builder.buildIndex {},()->
           # log.debug "client build is complete"
 
     if changes.Client?.StylusFiles?
-      builder.buildCss "", ->
-        builder.buildIndex "", ->
+      builder.buildCss {}, ->
+        builder.buildIndex {}, ->
     if changes.Cake
       log.debug "Cakefile changed.."
       builder.watcher.reInitialize()
@@ -195,10 +202,11 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  vhosts = "{vhosts,["+
-    (options.vhosts or []).
-    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
-    join(',')+"]}"
+  
+  vhosts = "{vhosts,[" + (config.mq.vhosts or []).
+    map(({rule, vhost})-> """{"#{rule}",<<"#{vhost}">>}""").
+    join(',') +
+    "]}"
 
   brokerConfig = """
   {application, broker,
@@ -226,7 +234,7 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
-  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
+  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src", brokerConfig
   callback null
 
 task 'buildforproduction','set correct flags, and get ready to run in production servers.',(options)->
@@ -247,17 +255,16 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     else
       process.exit()
 
+task 'deleteCache',(options)->
+  exec "rm -rf #{__dirname}/.build/.cache",->
+    console.log "Cache is pruned."
+
 task 'configureBroker',(options)->
   configureBroker options
 
 task 'buildBroker', (options)->
   configureBroker options, ->
     pipeStd(spawn './broker/build.sh')
-
-pipeStd =(children...)->
-  for child in children when child?
-    child.stdout.pipe process.stdout
-    child.stderr.pipe process.stderr
 
 run =(options)->
 
@@ -268,10 +275,8 @@ run =(options)->
 
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
-  debug = if options.debug then ' -D' else ''
-
   if config.runGoBroker
-    processes.run
+    processes.spawn
       name  : 'goBroker'
       cmd   : "./go/bin/broker -c #{options.configFile}"
       restart: yes
@@ -281,48 +286,48 @@ run =(options)->
       verbose : yes
 
   if config.guests
-    processes.run
+    processes.fork
       name  : 'guestCleanup'
-      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      cmd   : "./workers/guestcleanup/index -c #{configFile}"
       restart: yes
       restartInterval: 100
       stdout: process.stdout
       stderr: process.stderr
-      verbose: no
+      verbose: yes
 
-  processes.run
-    name    : 'socialCake'
-    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
+  # processes.run
+  #   name    : 'social'
+  #   cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+  #   restart : yes
+  #   restartInterval : 1000
+  #   stdout  : process.stdout
+  #   stderr  : process.stderr
+  #   verbose : yes
+
+  processes.fork
+    name    : 'social'
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-  processes.run
-    name    : 'serverCake'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
+        
+  processes.fork
+    name    : 'server'
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-  # pipeStd(
-  #   processes.get "server"
-  #   processes.get "social"
-  # )
-  if config.social.watch? is yes
+
+
+  if config.social.watch?
     watcher = new Watcher
-      groups:
-        social :
-          folders : ['./workers/social']
-          onChange : (path) ->
-            processes.kill "socialCake"
-        server :
-          folders : ['./server']
-          onChange : (path)->
-            console.log "changed",path
-            processes.kill "serverCake"
+      groups        :
+        social      :
+          folders   : ['./workers/social']
+          onChange  : (path) ->
+            processes.kill "social"
+        server      :
+          folders   : ['./server']
+          onChange  : ->
+            processes.kill "server"
 
 assureVhost =(uri, vhost, vhostFile, callback)->
   addVhost uri, vhost, (res)->
@@ -375,8 +380,7 @@ task 'run', (options)->
     queue.push ->
       # we need to clear the cache so that other modules will get the
       # config that reflects our latest changes to the .rabbitvhost file:
-      configModulePath = require.resolve configFile
-      delete require.cache[configModulePath]
+      delete require.cache[require.resolve configFile]
       queue.next()
 
   if options.buildClient ? config.buildClient

@@ -18,7 +18,9 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     else
       @$('.count').addClass "in"
 
-  click:->
+  click:(event)->
+    event.preventDefault()
+    event.stopPropagation()
     popup = @getDelegate()
     popup.show()
 
@@ -33,10 +35,6 @@ class AvatarAreaIconMenu extends KDView
     sidebar  = @getDelegate()
     @setClass "invisible" unless KD.isLoggedIn()
 
-    mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
-      cssClass : "status-update"
-      delegate : sidebar
-
     mainView.addSubView @avatarNotificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
       delegate : sidebar
@@ -45,11 +43,9 @@ class AvatarAreaIconMenu extends KDView
       cssClass : "messages"
       delegate : sidebar
 
-    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
-      cssClass   : 'status-update'
-      attributes :
-        title    : 'Status Update'
-      delegate   : @avatarStatusUpdatePopup
+    mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
+      cssClass : "status-update"
+      delegate : sidebar
 
     @addSubView @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications'
@@ -62,6 +58,12 @@ class AvatarAreaIconMenu extends KDView
       attributes :
         title    : 'Messages'
       delegate   : @avatarMessagesPopup
+
+    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
+      cssClass   : 'status-update'
+      attributes :
+        title    : 'Status Update'
+      delegate   : @avatarStatusUpdatePopup
 
     @attachListeners()
 

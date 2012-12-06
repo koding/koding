@@ -29,6 +29,7 @@ module.exports = class JGuest extends jraphical.Module
         default     : 'pristine'
       clientId      : String
       leaseId       : String
+      leasedAt      : Date
       profile       :
         nickname    :
           type      : String
@@ -60,31 +61,49 @@ module.exports = class JGuest extends jraphical.Module
 
   recycle:-> @constructor.recycle this # YAGNI?
 
-  @obtain = secure (client, clientId, callback)->
-    [callback, clientId] = [clientId, callback] unless callback
-    JAccount = require './account'
-    createId = require 'hat'
-    {delegate} = client?.connection
-    if delegate instanceof JAccount
-      callback error 'Logged in user cannot obtain a guest account!'
-    else
-      leaseId = createId()
-      @update {status: 'pristine'}, $set:{status: 'leasing', leaseId}, (err)=>
-        if err then callback error err
-        else
-          @one {leaseId}, (err, guest)=>
-            if err then callback error err
-            else unless guest?
-              callback error "We've reached maximum occupancy for guests.  Please try again later."
-            else
-              @update {_id:guest.getId()}, {
-                $unset    :
-                  leaseId : 1
-                $set      :
-                  status  : 'in use'
-              }, (err)->
-                if err then callback error err
-                else callback null, guest
+  @obtain = do->
+    obtaining = {}
+    secure (client, clientId, callback)->
+      console.log 'guest.obtain is called', clientId
+      [callback, clientId] = [clientId, callback] unless callback
+      JAccount = require './account'
+      createId = require 'hat'
+      if clientId?
+        if obtaining[clientId]
+          console.log 'already obtaining', clientId
+          @once "ready.#{clientId}", (guest)-> console.log 'finally got', clientId; callback null, guest
+          return
+        obtaining[clientId] = yes
+      {delegate} = client?.connection
+      if delegate instanceof JAccount
+        callback error 'Logged in user cannot obtain a guest account!'
+      else
+        leaseId = createId()
+        @update {status: 'pristine'}, $set:{
+          status    : 'leasing'
+          leasedAt  : new Date
+          leaseId
+        }, (err)=>
+          if err then callback error err
+          else
+            @one {leaseId}, (err, guest)=>
+              console.log guest?.prune()
+              if err then callback error err
+              else unless guest?
+                callback error "We've reached maximum occupancy for guests.  Please try again later."
+              else
+                @update {_id:guest.getId()}, {
+                  $unset    :
+                    leaseId : 1
+                  $set      :
+                    status  : 'in use'
+                }, (err)=>
+                  if err then callback error err
+                  else
+                    console.log 'successfully obtained', clientId
+                    @emit "ready.#{clientId}", guest
+                    delete obtaining[clientId]
+                    callback null, guest
 
   fetchStorage: secure (client, options, callback)->
     JAppStorage = require './appstorage'

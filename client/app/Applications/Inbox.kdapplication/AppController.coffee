@@ -1,4 +1,4 @@
-class Inbox12345 extends AppController
+class InboxAppController extends AppController
 
   {race} = Bongo
 
@@ -13,14 +13,6 @@ class Inbox12345 extends AppController
       options :
         name : 'Inbox'
       data : @mainView
-
-  initAndBringToFront:(options,callback)->
-    initApplication options, ->
-      @bringToFront()
-      callback()
-
-  initApplication:(options, callback)->
-    callback()
 
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback

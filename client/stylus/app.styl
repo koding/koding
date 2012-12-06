@@ -19,13 +19,13 @@ body
 
   >.kdloader
     display           block
-    position          absolute
+    abs()
     left              50%
     top               50%
     margin            -200px 0 0 -200px
 
   .user-item.drag-helper
-    position          absolute
+    abs()
     background-color  #5a9ae3
     padding           2px 8px
     font-size         11px
@@ -63,7 +63,7 @@ body
 .main-loading
   vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
   ul
-    position        absolute
+    abs()
     top             50%
     left            50%
     margin          -75px 0 0 -57px
@@ -111,7 +111,7 @@ body
     #what-you-should-know-link
       color           #999
       font-size       10px
-      position        absolute
+      abs()
       top             10px
       right           10px
       display         none
@@ -149,7 +149,7 @@ body.loggedIn
     line-height         1.7em
 
 #koding-logo
-  position            absolute
+  abs()
   display             block
   top                 12px
   left                16px
@@ -159,13 +159,13 @@ body.loggedIn
   sprite()
 
 #sidebar-panel
-  position            absolute
+  abs()
   top                 0
   left                0
   z-index             0
 
 #content-panel
-  position            absolute
+  abs()
   top                 0
   left                0
   width               100%
@@ -238,7 +238,7 @@ body.loggedIn
 
 .kdview.kdlistview-footer-menu
   size                  100%, 30px
-  position              absolute
+  abs()
   bottom                0
   left                  0
 
@@ -271,14 +271,14 @@ body.loggedIn
   borderBox()
   margin-bottom         23px
   .avatar-image-wrapper
-    position            relative
+    rel()
     bg                  size, 160px auto
     bg                  position,center center
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
     h3
-      position          absolute
+      abs()
       left              0
       top               -24px
       color             hsla(355, 100%, 100%, 0.8)
@@ -426,7 +426,7 @@ span.main-nav-icon
   bg              color, white
 
 #main-tab-handle-holder
-  position            absolute
+  abs()
   top                 0
   left                0
   padding             0
@@ -522,7 +522,7 @@ span.main-nav-icon
       display         none
 
     .chevron
-      position        absolute
+      abs()
       left            2px
       top             2px
       size            20px,20px
@@ -535,7 +535,7 @@ span.main-nav-icon
 .avatararea-popup
   height                auto
   border                none
-  position              absolute
+  abs()
   overflow              visible
   top                   153px
   left                  0
@@ -557,7 +557,7 @@ span.main-nav-icon
   .tab
     border              1px solid #d2d2d2
     border-bottom       none
-    position            relative
+    rel()
     top                 -26px
     text-align          center
     z-index             1
@@ -579,7 +579,7 @@ span.main-nav-icon
     borderBox()
 
   &.status-update
-    left                -1px
+    left                105px
     .tab
       span
         bg(position,-100px -540px)
@@ -594,13 +594,13 @@ span.main-nav-icon
         borderBox()
 
   &.notifications
-    left                52px
+    left                -1px
     .tab
       span
         bg(position,-120px -540px)
 
   &.messages
-    left                105px
+    left                52px
     .tab
       span
         bg(position,-140px -540px)
@@ -641,7 +641,7 @@ span.main-nav-icon
     cursor              default
     borderBox()
     span.icon
-      position          absolute
+      abs()
       top               33px
       left              35px
       size              20px, 20px
@@ -709,7 +709,7 @@ span.main-nav-icon
 
 #sidebar
   #main-nav
-    position          relative
+    rel()
     size              160px,auto
     min-height        100%
     overflow          hidden
@@ -731,7 +731,7 @@ span.main-nav-icon
     a.notifications,
     a.messages,
     a.profile
-      position          relative
+      rel()
       border-right      1px solid #403d37
       text-align        center
       display           block
@@ -755,7 +755,7 @@ span.main-nav-icon
         span.icon
           bg(position,-100px -540px)
     .count
-      position          absolute
+      abs()
       top               -16px
       left              0
       width             100%
@@ -817,7 +817,7 @@ span.main-nav-icon
 
 
 .kdview.kdlistitemview
-  position            relative
+  rel()
   clear               both
   &:last-child
     border-bottom   none
@@ -826,7 +826,7 @@ span.main-nav-icon
         display     block
 
   .list-item-arrow
-    position absolute
+    abs()
     display none
     text-decoration none
     color #ddd
@@ -845,7 +845,7 @@ span.main-nav-icon
     font-size         12px
     color             #444
     padding           6px 0
-    position          relative
+    rel()
     min-width         9px
 
   div.member-title
@@ -907,7 +907,7 @@ span.main-nav-icon
     fl()
   .header-search-input.hitenterview.active
     font-size           12px
-    position            absolute
+    abs()
     right               24px
     top                 24px
     padding             5px 24px 5px 10px
@@ -915,7 +915,7 @@ span.main-nav-icon
     line-height         20px
     bg                  image, none
   .header-search-input-icon
-    position            absolute
+    abs()
     top                 30px
     right               30px
     display             block
@@ -927,7 +927,7 @@ span.main-nav-icon
 
 // Coming soon pages
 .coming-soon-page.comingsoon-overlay
-  position            absolute
+  abs()
   left                0
   top                 0
   width               100%!important
@@ -978,9 +978,9 @@ span.main-nav-icon
 
 
 .ui-resizable
-  position: relative
+  rel()
 .ui-resizable-handle
-  position: absolute
+  abs()
   font-size: 0.1px
   z-index: 99999
   display: block
@@ -1067,7 +1067,7 @@ span.main-nav-icon
     sprite()
     fl()
   .invite-hint
-    position      absolute
+    abs()
     size          auto, 27px
     line-height   27px
     overflow      visible

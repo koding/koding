@@ -2,8 +2,13 @@ class TutorialActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options = $.extend
-      cssClass    : "activity-item discussion"
+      cssClass    : "activity-item tutorial"
       tooltip     :
         title     : "Tutorial"
         offset    : 3
@@ -25,60 +30,22 @@ class TutorialActivityItemView extends ActivityItemChild
       tagName : "img"
       cssClass : "tutorial-preview-image"
       attributes:
-        src: data.link?.link_embed.images[0].url or ""
-        title:"Show the Tutorial"
-        alt:"Show the tutorial"
+        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title:"View the full Tutorial"
+        alt:"View the full tutorial"
         "data-paths":"preview"
 
-    @previewImage.hide() unless data.link?
-
-    # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
-    # with the object references to author/origin and so on in the reply
-    # argument. if the new reply is supposed to be added to the client data
-    # structure, then it must be created as a new  JOpinion and then populated
-    # by the data on the reply.opinionData field (JSON of the actual object)
+    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
     data.on 'ReplyIsAdded', (reply)=>
-
       if data.bongo_.constructorName is "JTutorial"
-
-        # This would add the actual items to the views once posted
-        #
-        # Why this workaround, you ask?
-        #
-        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
-        #  without JSONifying it locks up the UI for up to 10 seconds.
-
-        # Create new JOpinion and convert JSON into Object
-
-        # newOpinion = new bongo.api.JOpinion
-        # opinionData = JSON.parse(reply.opinionData)
-
-        # Copy JSON data to the newly created JOpinion
-
-        # for variable of opinionData
-        #   newOpinion[variable] = opinionData[variable]
-
-        # Updating the local data object, then adding the item to the box
-        # and increasing the count box
-
-        # if data.opinions?
-        #   unless data.opinions.indexOf newOpinion is -1
-        #     data.opinions.push newOpinion
-        # else
-        #   data.opinions = [newOpinion]
-
-        # The following line would add the new Opinion to the View
-        # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
-
-        # unless reply.replier.id is KD.whoami().getId()
         @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
     @opinionBox = new TutorialActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
     , data
 
-    # When an opinion gets deleted, then the removeReply method of JDiscussion
+    # When an opinion gets deleted, then the removeReply method of JTutorial
     # will emit this event. This is a workaround for the OpinionIsDeleted
     # event not being caught for opinions that are loaded to the client data
     # structure after the snapshot is loaded
@@ -96,29 +63,136 @@ class TutorialActivityItemView extends ActivityItemChild
           item.hide()
           item.destroy()
 
+    @scrollAreaOverlay = new KDView
+      cssClass : "enable-scroll-overlay"
+      partial  : ""
+
+    # @scrollAreaList = new KDButtonGroupView
+    #   buttons:
+    #     "Allow Scrolling here":
+    #       callback:=>
+    #         @$("div.tutorial-body-container div.body").addClass "scrollable-y"
+    #         @$("div.tutorial-body-container div.body").removeClass "no-scroll"
+
+    #         @scrollAreaOverlay.hide()
+    #     "View the full Tutorial":
+    #       callback:=>
+    #         appManager.tell "Activity", "createContentDisplay", @getData()
+
+    # @scrollAreaOverlay.addSubView @scrollAreaList
+
+  highlightCode:=>
+    @$("div.body span.data pre").each (i,element)=>
+      hljs.highlightBlock element
+
+  prepareExternalLinks:->
+    @$('div.body a[href^=http]').attr "target", "_blank"
+
+  prepareScrollOverlay:->
+    @utils.wait =>
+
+      body = @$("div.activity-content-container.tutorial div.body")
+      container = @$("div.activity-content-container.tutorial")
+
+      if body.height() < parseInt container.css("max-height"), 10
+        @scrollAreaOverlay.hide()
+      else
+        container.addClass "scrolling-down"
+        cachedHeight = body.height()
+        body.scroll =>
+
+          percentageTop    = 100*body.scrollTop()/body[0].scrollHeight
+          percentageBottom = 100*(cachedHeight+body.scrollTop())/body[0].scrollHeight
+
+          distanceTop      = body.scrollTop()
+          distanceBottom   = body[0].scrollHeight-(cachedHeight+body.scrollTop())
+
+          triggerValues    =
+            top            :
+              percentage   : 0.5
+              distance     : 15
+            bottom         :
+              percentage   : 99.5
+              distance     : 15
+
+          if percentageTop < triggerValues.top.percentage or\
+             distanceTop < triggerValues.top.distance
+
+            container.addClass "scrolling-down"
+            container.removeClass "scrolling-both"
+            container.removeClass "scrolling-up"
+
+          if percentageBottom > triggerValues.bottom.percentage or\
+             distanceBottom < triggerValues.bottom.distance
+
+            container.addClass "scrolling-up"
+            container.removeClass "scrolling-both"
+            container.removeClass "scrolling-down"
+
+          if percentageTop >= triggerValues.top.percentage and\
+             percentageBottom <= triggerValues.bottom.percentage and\
+             distanceBottom > triggerValues.bottom.distance and\
+             distanceTop > triggerValues.top.distance
+
+            container.addClass "scrolling-both"
+            container.removeClass "scrolling-up"
+            container.removeClass "scrolling-down"
+
+    @$("div.activity-content-container").hover (event)=>
+
+      @transitionStart = setTimeout =>
+        @scrollAreaOverlay.$().css top:"100%"
+      , 500
+      unless @scrollAreaOverlay.$().hasClass "hidden"
+        @checkForCompleteAnimationInterval = window.setInterval =>
+          if (parseInt(@scrollAreaOverlay.$().css("top"),10)+@$("div.tutorial div.body").scrollTop()) >= @scrollAreaOverlay.$().height()
+            @scrollAreaOverlay.hide()
+            @$("div.tutorial").addClass "scroll-highlight"
+            @$("div.tutorial div.body").addClass "scrollable-y"
+            @$("div.tutorial div.body").removeClass "no-scroll"
+            clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        ,50
+    , (event)=>
+      unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+        clearTimeout @transitionStart if @transitionStart?
+        clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        @scrollAreaOverlay.$().css top:"0px"
+        @$("div.tutorial").removeClass "scroll-highlight"
+        @$("div.tutorial div.body").removeClass "scrollable-y"
+        @$("div.tutorial div.body").addClass "no-scroll"
+        @scrollAreaOverlay.show()
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
+
     @setTemplate @pistachio()
     @template.update()
 
-    # Here, the maxheight-reliant "View full discussion"-bar is toggled.
-    # The shortened text is not sufficient since it can contain 500 line breaks
-    # or <code> with very high whitespace amount. This keeps the snapshot view
-    # clean.
+    @highlightCode()
+    @prepareExternalLinks()
+    @prepareScrollOverlay()
 
-    if @$("p.comment-body").height() >= 250
-      @$("div.view-full-discussion").show()
-    else
-      @$("div.view-full-discussion").hide()
 
   render:->
     super()
+    @highlightCode()
+    @prepareExternalLinks()
+    @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=title]") # or\
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+         # appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=preview]")
+
+      @videoPopup = new VideoPopup
+        delegate : @previewImage
+        title : @getData().link?.link_embed?.title or "Untitled Video"
+        thumb : @getData().link?.link_embed?.images?[0]?.url
+      ,@getData().link?.link_embed?.object?.html
+
+      @videoPopup.openVideoPopup()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -131,28 +205,30 @@ class TutorialActivityItemView extends ActivityItemChild
 
     return str
 
-      # {{> @opinionBox}}
   pistachio:->
     """
-  <div class="tutorial-badge"></div>
-  <div class="activity-discussion-container activity-tutorial-container">
-    <span class="avatar">{{> @avatar}}</span>
-    <div class='activity-item-right-col'>
-      {{> @settingsButton}}
-      <h3 class='hidden'></h3>
-      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
-      <div class="preview_image">
-      {{> @previewImage}}
-      </div>
-      <footer class='clearfix'>
-        <div class='type-and-time'>
-          <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-          {{> @tags}}
+    <div class="activity-tutorial-container">
+      <span class="avatar">{{> @avatar}}</span>
+      <div class='activity-item-right-col'>
+        {{> @settingsButton}}
+        <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
+        <p class="hidden comment-title"></p>
+        <div class="activity-content-container tutorial">
+          {{> @previewImage}}
+          <div class="body has-markdown force-small-markdown no-scroll">
+            {{@utils.applyMarkdown #(body)}}
+          </div>
+          {{> @scrollAreaOverlay}}
         </div>
-        {{> @actionLinks}}
-      </footer>
+        <footer class='clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> by {{> @author}}
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+      </div>
     </div>
-  </div>
     """
 

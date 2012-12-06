@@ -7,7 +7,6 @@ class MainController extends KDController
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
-    options.startPage = "Activity"      # start page path
 
     super options, data
 
@@ -21,10 +20,12 @@ class MainController extends KDController
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
-      KD.registerSingleton "bottomPanelController", new BottomPanelController
+      #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
     @setFailTimer()
     @putGlobalEventListeners()
+
+    @accountReadyState = 0
 
   appReady:do ->
     applicationIsReady = no
@@ -39,7 +40,32 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue.length = 0
 
+  getUserArea:-> @userArea
+
+  setUserArea:(userArea)->
+    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
+    @userArea = userArea
+
+  getGroup:-> @userArea?.group
+
+  setGroup:(group)->
+    @emit 'GroupChanged', group
+    @setUserArea {
+      group, user: KD.whoami().getAt('profile.nickname')
+    }
+
+  resetUserArea:()->
+    @setUserArea {
+      group: 'koding', user: KD.whoami().profile.nickname
+    }
+
+  accountReady:(fn)->
+    console.log 'args', arguments
+    if @accountReadyState > 0 then fn()
+    else @once 'AccountChanged', fn
+
   accountChanged:(account)->
+    @accountReadyState = 1
 
     connectedState.connected = yes
 
@@ -47,8 +73,8 @@ class MainController extends KDController
     @emit "AccountChanged", account
 
     @userAccount = account
+    @resetUserArea()
 
-    KDRouter.init()
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
@@ -57,14 +83,18 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
+    unless @router?
+      @router = new KodingRouter location.pathname
+      KD.registerSingleton 'router', @router
+
     if KD.checkFlag 'super-admin'
       $('body').addClass 'super'
     else
       $('body').removeClass 'super'
 
     if @isUserLoggedIn()
-      appManager.quitAll =>
-        @createLoggedInState account
+      # appManager.quitAll =>
+      @createLoggedInState account
     else
       @createLoggedOutState account
 
@@ -84,38 +114,56 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
-
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication @getOptions().startPage, yes
+      #appManager.openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
-  goToPage:(pageInfo)=>
+  doJoin:->
+    @loginScreen.animateToForm 'lr'
 
-    path = pageInfo.appPath
-    if path is "Login"
-      @loginScreen.slideDown()
-    else
-      appManager.openApplication path, yes
+  doRegister:->
+    @loginScreen.animateToForm 'register'
+
+  doGoHome:->
+    @loginScreen.animateToForm 'home'
+
+  doLogin:->
+    @loginScreen.animateToForm 'login'
+
+  doRecover:->
+    @loginScreen.animateToForm 'recover'
+
+  doLogout:->
+    KD.logout()
+    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+      $.cookie 'clientId', replacementToken if replacementToken
+      @accountChanged account
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Come back soon!"
+        duration  : 2000
+      # fixme: get rid of reload, clean up ui on account change
+      # tightly related to application manager refactoring
+      @utils.wait 2000, -> location.reload yes
+
+  # goToPage:(pageInfo)=>
+  #   console.log 'go to page'
+  #   path = pageInfo.appPath
+  #   if path is "Login"
+  #     @loginScreen.slideDown()
+  #   else
+  #     appManager.openApplication path, yes
 
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.pageName is 'Logout'
-        KD.remote.api.JUser.logout (err, account, replacementToken)=>
-          $.cookie 'clientId', replacementToken if replacementToken
-          @accountChanged account
-          new KDNotificationView
-            cssClass  : "login"
-            title     : "<span></span>Come back soon!"
-            duration  : 2000
-          # fixme: get rid of reload, clean up ui on account change
-          # tightly related to application manager refactoring
-          @utils.wait 2000, -> location.reload yes
-      else
-        @goToPage pageInfo
+      if pageInfo.path
+        @router.handleRoute pageInfo.path
+      else if pageInfo.isWebTerm
+        appManager.openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
@@ -167,7 +215,6 @@ class MainController extends KDController
             color    : "#ffffff"
             diameter : 16
           callback   : =>
-            # debugger
             kallback = (acc)=>
               acc.flagAccount "exempt", (err, res)->
                 if err then warn err

@@ -8,6 +8,7 @@ module.exports = class JReview extends Reply
   {log} = console
 
   @trait __dirname, '../../../traits/likeable'
+  @trait __dirname, '../../../traits/protected'
   @trait __dirname, '../../../traits/notifying'
 
   @share()
@@ -19,6 +20,15 @@ module.exports = class JReview extends Reply
   @getDefaultRole =-> 'review'
 
   @set
+    permissions     : [
+      'read reviews'
+      'create reviews'
+      'edit reviews'
+      'delete reviews'
+      'edit own reviews'
+      'delete own reviews'
+      'reply to reviews'
+    ]
     sharedMethods  :
       static       : ['fetchRelated']
       instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']

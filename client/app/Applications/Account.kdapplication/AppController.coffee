@@ -1,4 +1,4 @@
-class Account12345 extends AppController
+class AccountAppController extends AppController
   constructor:(options={},data)->
     options.view = new KDView {cssClass : "content-page" }
     super options, data
