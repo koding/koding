@@ -64,6 +64,10 @@ class ActivityAppController extends AppController
           "Welcome to the Koding Public Beta!<br>"
         subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
+    if KD.isLoggedIn()
+        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
+        # ... where have you been?!" # not relevant for now
+
       mainView.addSubView updateWidget = new ActivityUpdateWidget
         cssClass: 'activity-update-widget-wrapper'
 
@@ -400,8 +404,6 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
-
-    @scrollView.setClass "scrollable"
 
     @scrollView.$().scroll =>
       if @scrollView.$().scrollTop() > 10
