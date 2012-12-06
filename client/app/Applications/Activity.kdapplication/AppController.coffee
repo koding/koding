@@ -64,9 +64,11 @@ class ActivityAppController extends AppController
           "Welcome to the Koding Public Beta!<br>"
         subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
-    if KD.isLoggedIn()
-        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
-        # ... where have you been?!" # not relevant for now
+    putWidget = (account)=>
+      if account
+        log "account changed"
+      else
+        log "already logged in"
 
       mainView.addSubView updateWidget = new ActivityUpdateWidget
         cssClass: 'activity-update-widget-wrapper'
@@ -79,6 +81,11 @@ class ActivityAppController extends AppController
         listener      : @
         callback      : (pubInst,activity)=>
           @ownActivityArrived activity
+
+    if KD.isLoggedIn()
+      putWidget()
+    else
+      @getSingleton("mainController").once "AccountChanged", putWidget
 
     # mainView.addSubView new CommonFeedMessage
     #   title           : "<p> Since you're new to Koding, so we've prepared these helper boxes to introduce you to the system. This is your Activity Feed. It displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community.</p>"
