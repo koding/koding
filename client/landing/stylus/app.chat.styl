@@ -1,15 +1,15 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
- 
+
 @css {
-/*  
+/*
 IRC CHAT stylesheet
 app.chat.styl
 */
 }
 
 .irc-chat-module
-  position                    absolute
+  abs()
   right                       0
   bottom                      0
   z-index                     1
@@ -20,7 +20,7 @@ app.chat.styl
   gradient(#f7f7f6,#c2c2c2)
 
   .friends-teams-container
-    position                  absolute
+    abs()
     left                      370px
     top                       -256px
     z-index                   0
@@ -28,15 +28,15 @@ app.chat.styl
     size(220px,255px)
 
   .channels-container
-    position                  absolute
+    abs()
     left                      710px
     top                       -256px
     z-index                   0
     overflow                  hidden
     size(220px,255px)
-  
+
   .chat-container
-    position                  absolute
+    abs()
     right                     60px
     top                       -256px
     z-index                   2
@@ -45,22 +45,22 @@ app.chat.styl
 
   .friends-container
     border-bottom         1px solid #dcdcdc
-    
+
     .teams-container
       height          auto
 
   .channels-list
-    position                relative
+    rel()
 
   .grouped-sidebar
-    position                  absolute
+    abs()
     overflow fidden
 
-    /* 
+    /*
         there can be a bug for cross-browser wise
-        we are overriding KDView's position:relative 
-        with position:absolute but inner elements behaves
-        like we have position relative
+        we are overriding KDView's rel()
+        with abs() but inner elements behaves
+        like we have rel()
      */
 
     right                     0
@@ -70,14 +70,14 @@ app.chat.styl
     size(520px,630px)
 
     .left-shadow
-      position            absolute
+      abs()
       left                -12px
       width               12px
       bg(color,transparent)
       shadow(0 0 15px rgba(0,0,0,0.3))
 
     .left-pane
-      position            absolute
+      abs()
       left                12px
       top                 12px
       width               306px
@@ -85,27 +85,27 @@ app.chat.styl
       > div
         height            auto
         bg(color,#fff)
-        
+
     .right-pane
       width               190px
-      position            absolute
+      abs()
       right               0
       // border              1px solid lightBlue
       bg(color,#eeeeec)
       shadow(0 0 15px rgba(0,0,0,0.3))
       > div
         height            auto
-    
+
     .chat-header-container
       border              1px solid #eeeeec !important
       border-top          1px solid white !important
-    
+
     .search-container
       height          30px
       bottom          5
       form.input-with-extras
         margin        1px 10px
-    
+
     .grouped-sidebar-item
       > div
         padding-bottom       40px
@@ -119,7 +119,7 @@ app.chat.styl
     > span, > cite
       height              auto
       font-style          normal
-      position            static
+      sta()
       margin-top          10px
       float               left
       font-size           12px
@@ -130,7 +130,7 @@ app.chat.styl
       margin-left         15px
     > span
       margin              9px 5px 0 0
-  
+
   .chat-body
     margin                0 10px
     width                 auto
@@ -179,7 +179,7 @@ app.chat.styl
       width               84%
     &:last-child
       border-bottom       none
-      
+
   .chat-header-container
     width                   auto
     height                  28px
@@ -195,7 +195,7 @@ app.chat.styl
       border-bottom         none
       span
         margin              0
-      
+
     .indicator
       float         left
       margin        5px -8px 0 7px
@@ -213,13 +213,13 @@ app.chat.styl
       overflow              visible
       cursor                pointer
       color                 #000
-      position              relative
+      rel()
       strong
         margin-top          1px
         font-weight         normal
         blockMid()
       .group-status
-        position      absolute
+        abs()
         height        20px
         width         20px
         right         0
@@ -228,7 +228,7 @@ app.chat.styl
         sprite()
         bg(position,-140px -440px)
 
-  .active-box 
+  .active-box
     .chat-header-container
       border            1px solid white
       bg(color,#E5E5E5)
@@ -236,23 +236,23 @@ app.chat.styl
       font-size         12px !important
       font-weight       bold
       color             #000 !important
-      
+
   .active-box.flyoutBox > div
       bg(color,#fff)
 
   .flyoutBox > div
     margin                  15px 15px 0 15px
-    position                relative
+    rel()
     rounded(3px,3px,3px,3px)
     size(auto,255px)
     shadow(0px 0px 18px 0px rgba(0, 0, 0, 0.4))
     bg(color,#eee)
-  
+
   .flyoutBox .chat-header-container
     rounded(3px,3px,0,0)
 
   .search-container
-    position              absolute
+    abs()
     left                  0
     bottom                10px
     height                39px
@@ -286,7 +286,7 @@ app.chat.styl
       color               #949494
       font-size           14px
       text-shadow         0 1px 1px white
-  
+
   .new-message
     .status
       margin-right    10px
@@ -301,13 +301,13 @@ app.chat.styl
     border-bottom         1px solid #dcdcdc
     .status
       top                   2px
-      position              relative
+      rel()
       margin-right          6px
-        
+
   .irc-channels.offline-list
     .status
       top                   2px
-      position              relative
+      rel()
       margin-right          6px
 
   .chat-actions
@@ -332,8 +332,8 @@ app.chat.styl
       size(20px,20px)
       blockMid()
       sprite()
-      bg(position,-180px -480px)  
-    
+      bg(position,-180px -480px)
+
 
 
 

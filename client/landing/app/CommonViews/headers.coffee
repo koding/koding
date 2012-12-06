@@ -41,19 +41,36 @@ class WelcomeHeader extends KDHeaderView
     @setClass "notification-header"
 
   click:(event)->
-    if $(event.target).is "a"
+    if $(event.target).is "i"
       localStorage.welcomeMessageClosed = yes
       @remove()
+    else if $(event.target).is "a"
+      $.ajax
+        # url       : KD.config.apiUri+'https://api.koding.com/1.0/logout'
+        url       : "/beta.txt"
+        success   : (response)=>
+          modal = new KDModalView
+            title       : "Thanks for joining our beta."
+            cssClass    : "what-you-should-know-modal"
+            height      : "auto"
+            width       : 500
+            content     : response
+            buttons     :
+              Close     :
+                title   : 'Close'
+                style   : 'modal-clean-gray'
+                callback: -> modal.destroy()
+
+
 
   remove:(callback)->
     h = @getHeight()
     @$().animate marginTop : -h, 100, ()=>
       @destroy()
-      @notifyResizeListeners()
-      # after half an hour try i didn't understand why it didnt work at one call, so have the second :)
-      # fix this if you see it again.
-      @notifyResizeListeners()
+      @utils.wait @notifyResizeListeners.bind @
 
   setTitle:()->
     {title, subtitle} = @getOptions()
-    @$().append "<div><span>#{title}</span><cite>#{subtitle}</cite></div><a href='#'> </a>"
+    @$().append "<div><span>#{title}</span><cite>#{subtitle}</cite></div><i/>"
+
+

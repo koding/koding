@@ -1,4 +1,4 @@
-class Topics12345 extends AppController
+class TopicsAppController extends AppController
 
   constructor:(options, data)->
     options = $.extend

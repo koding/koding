@@ -30,13 +30,13 @@ app.activity.styl
   border-bottom         1px solid #E5E5E5!important
   div
     display             inline-block
-    margin              19px 10px 10px 25px
-  a
-    position            absolute
+    margin              11px 10px 10px 25px
+  i
     right               20px
     display             inline-block
     top                 30px
     size                18px,18px
+    abs()
     bg                  position, -480px -100px
     sprite()
   span
@@ -46,10 +46,19 @@ app.activity.styl
     font-weight         300
     text-shadow         0px 1px 0px rgba(255, 255, 255, 1)
   cite
+    top                 34px
+    left                26px
     font-weight         300
     font-style          normal
-    color               #888
     font-size           12px
+    display             block
+    font-style          normal
+    // noTextDeco()
+    abs()
+    a
+      color               #ff9200
+      &:hover
+        color             #27a3c9
 
 .activity-content
   scrollbars()
@@ -248,7 +257,7 @@ app.activity.styl
       vendor            transition, opacity .1s ease-out
       size              21px, 18px
       opacity           .2
-      position          absolute
+      abs()
       top               0
       right             20px
       z-index           10
@@ -287,7 +296,7 @@ app.activity.styl
 .activity-item-right-col
   padding-right   20px
   color           #797979
-  position        relative
+  rel()
   overflow        visible
   margin-left     64px
   // margin-top      3px
@@ -465,7 +474,7 @@ button.kdbutton.dark
 
   form.update-options
     display               block
-    position              relative
+    rel()
     .form-actions-mask
       width               100%
       z-index             10
@@ -513,7 +522,7 @@ button.kdbutton.dark
 
 
   .formline
-    position                relative
+    rel()
     width                   100%
     padding                 0 16px 18px 16px
     border-bottom           none
@@ -542,7 +551,7 @@ button.kdbutton.dark
       overflow              visible
 
     div.kdselectbox
-      position              absolute
+      abs()
       bottom                5px
       right                 5px
       background            rgb(36,36,36)
@@ -563,7 +572,7 @@ button.kdbutton.dark
 
 
   .formline.submit
-    position                relative
+    rel()
     background              rgb(244,244,244)
     border-top              1px solid rgb(229,229,229)
     height                  55px
@@ -616,7 +625,7 @@ form.status-widget
     margin                0
 
 .code-snip-holder
-  position                  relative
+  rel()
   padding                   10px
   bg                        color,rgba(51,51,51,1)
   rounded                   4px
@@ -666,7 +675,7 @@ form.status-widget
     width             100%
     padding           10px 0px
     border            1px solid #dedede
-    position          relative
+    rel()
     left              -1px
     rounded(0,0,4px,4px)
     shadow(0 2px 1px 0 #ebebeb)
@@ -691,7 +700,7 @@ form.status-widget
 
 
 .kdbuttongroup.activity-group
-  position            absolute
+  abs()
   top                 20px
   left                16px
   z-index             4
@@ -767,7 +776,7 @@ button.activity-status-context
 
 .activity-update-widget-wrapper
   height                auto
-  position              absolute
+  abs()
   overflow              visible
   z-index               100
   .first-label
@@ -782,7 +791,7 @@ button.activity-status-context
 
 // .activity-update-widget-wrapper-folded
 //   height                auto
-//   position              absolute
+//   abs()
 //   overflow              visible
 //   z-index               100
 //   hidden()
@@ -804,7 +813,7 @@ button.activity-status-context
   // .widget-back
   //   width               100%
   //   height              74px
-  //   position            absolute
+  //   abs()
   //   bg                  color, white
   //   left                0
   //   top                 0
@@ -836,7 +845,7 @@ button.activity-status-context
       gradient              rgb(255,255,255),rgb(242,242,242)
 
 .activity-status-context.kdbuttonwithmenu-wrapper
-  position                  absolute
+  abs()
   top                       23px
   left                      16px
   z-index                   4
@@ -923,7 +932,7 @@ button.activity-status-context
 // // Activity Item for Discussions
 
 .activity-discussion-container
-  position:relative
+  rel()
 
   &:hover
     div.view-full-discussion
@@ -941,7 +950,7 @@ button.activity-status-context
     //   content: " ";
     //   width: 100%;
     //   height: 100px;
-    //   position: absolute;
+    //   abs();
     //   z-index: 100;
     //   top: 178px;
     //   left: 0;
@@ -1034,7 +1043,7 @@ div.show-more-opinions
       font-weight       600
 
   span.small-loader
-    position            absolute
+    abs()
     right               15px
     top                 11px
 
@@ -1045,7 +1054,7 @@ div.show-more-opinions
     padding-right         2px
     font-weight           600
     color                 white
-    position              relative
+    rel()
     bg                    color, #FF9200
     border                1px solid #FF9200
     rounded(3px 3px 3px 3px)
@@ -1061,7 +1070,7 @@ div.show-more-opinions
     content               " "
     height                0
     width                 0
-    position              absolute
+    abs()
     pointer-events        none
 
   .new-items:after
@@ -1128,7 +1137,7 @@ div.discussion-widget-content
 
 div.kdview.link-embed-box
   borderBox()
-  position relative
+  rel()
 
   vendor transition, opacity .1s linear
 
@@ -1162,7 +1171,7 @@ div.kdview.link-embed-box
 
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
-    position absolute
+    abs()
     top 4px
     right 3px
     size 20px,20px
@@ -1189,11 +1198,11 @@ div.kdview.link-embed-box
     vendor            transition, opacity .1s ease-out
     size              21px, 18px
     opacity           .2
-    position          absolute
+    abs()
     top               0
     right             20px
     z-index           10
-    position absolute
+    abs()
     right 0px
     top 0px
     margin 0px
@@ -1226,7 +1235,7 @@ div.kdview.link-embed-box
       span.icon
         display block
         float left
-        position relative
+        rel()
         background-repeat no-repeat
         background-color transparent
         background-image url("../images/_kd.sprites.png")
@@ -1246,7 +1255,7 @@ div.kdview.link-embed-box
       display         none
 
   span.embed-loader
-    position absolute
+    abs()
     left 50%
     right 50%
     top 40%
@@ -1448,7 +1457,7 @@ div.kdview.link-embed-box
           max-width 100px
           min-width 50px
           overflow visible
-          position relative
+          rel()
           text-align center
           // width auto
 
@@ -1482,7 +1491,7 @@ div.kdview.link-embed-box
               padding 0
 
         > div.preview_link_pager
-          // position absolute
+          // abs()
           // left 14px
           // bottom 12px
           padding-top 2px
@@ -1693,7 +1702,7 @@ div.modal-fullscreen-text
     float           left
 
   div.kdinputwithpreview.input_preview
-    position        absolute
+    abs()
     top             5px
     right           8px
     borderBox()
@@ -1711,7 +1720,7 @@ div.kdinputwithpreview.input_preview
   margin              0 0 0px 0
   padding             5px 0 0 0
   min-height          40px
-  position            relative
+  rel()
   overflow            auto
 
   & textarea
@@ -1722,7 +1731,7 @@ div.kdinputwithpreview.input_preview
 
   div.preview_switch
     borderBox()
-    position          absolute
+    abs()
     right             1px
     top               6px
     float             none
@@ -1946,7 +1955,7 @@ div.protocol-info-box
 
 
   > button.kdbutton.hide-info-box
-    position absolute
+    abs()
     top 4px
     right 3px
     size 20px,20px
@@ -1970,7 +1979,7 @@ div.protocol-info-box
       opacity 1
 
 // div.preview_image
-//   position relative
+//   rel()
 div.tutorial-preview-image-box
   float left
   width auto
@@ -2000,7 +2009,7 @@ div.activity-item.tutorial.selectable.selected
   background-color #eee
 
 playButton(distance=25px)
-  position absolute
+  abs()
   bottom distance
   left distance
   width 40px
@@ -2085,7 +2094,7 @@ div.show-tutorial-embed
     vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
 
 div.activity-content-container
-  position relative
+  rel()
   overflow-y hidden
   rounded 4px
   border 1px solid black
@@ -2107,7 +2116,7 @@ div.activity-content-container
     // padding-bottom 10px
     max-height 200px
     overflow-y hidden
-    position relative
+    rel()
 
     .body
       display block
@@ -2132,7 +2141,7 @@ div.activity-content-container
   //     border-top 1px solid rgba(0,0,0,.2)
 
   // div.enable-scroll-hint
-  //   position absolute
+  //   abs()
   //   bottom 0px
   //   left 0px
   //   right 0px
@@ -2149,7 +2158,7 @@ div.activity-content-container
   div.enable-scroll-overlay
     width 100%
     height 100%
-    position absolute
+    abs()
     left 0px
     right 0px
     bottom 0px
@@ -2167,7 +2176,7 @@ div.activity-content-container
   line-height 150%
 
 .video-popup-button.kdbutton.with-icon
-  position absolute
+  abs()
   top -25px
   right 0px
   z-index: 10
@@ -2233,7 +2242,7 @@ div.activity-content-container
   border-top transparent
   border-right transparent
   background-color white
-  position: absolute
+  abs()
   top 0px
   right 0px
   z-index 1005
@@ -2279,7 +2288,7 @@ div.activity-content-container
         max-height 100px
 
   .video-popup-list-item
-    position: relative
+    rel()
     margin 0px 5px
     width auto
     display inline-block
@@ -2292,7 +2301,7 @@ div.activity-content-container
     .overlay-bar
       vertical-align middle
       cursor pointer
-      position absolute
+      abs()
       top 0px
       bottom 0px
       display inline-block
