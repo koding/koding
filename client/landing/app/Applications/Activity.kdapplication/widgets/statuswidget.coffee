@@ -11,7 +11,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'dummy'
       style         : 'input-with-extras'
-      focus         : => @switchToLargeView()
+      focus         : @bound 'switchToLargeView'
       validate      :
         rules       :
           maxLength : 2000
