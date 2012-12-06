@@ -731,7 +731,7 @@ class KDView extends KDObject
               # after adding to DOM, prevent further additions of the same
               # view
               @isFirstTooltip = no
-          ,=>
+          , =>
             @hasLeftSelector = yes
 
             # give the user some time to focus the tooltip

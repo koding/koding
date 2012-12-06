@@ -11,6 +11,7 @@ class AvatarView extends LinkView
       height           : 50
     options.noTooltip ?= no
 
+    # this needs to be pre-super
     unless options.noTooltip
       @avatarPreview = new AvatarTooltipView
         delegate : @
@@ -18,12 +19,13 @@ class AvatarView extends LinkView
       ,data
 
     options.tooltip  or=
-      view             : if @avatarPreview? then @avatarPreview else null
+      view             : unless options.noTooltip then @avatarPreview else null
       viewCssClass     : 'avatar-tooltip'
     options.cssClass = "avatarview #{options.cssClass}"
 
     super options,data
 
+    # this needs to be post-super
     if @avatarPreview?
       @on "OriginLoadComplete", (newData)=>
         @avatarPreview.updateData newData
@@ -31,8 +33,6 @@ class AvatarView extends LinkView
         @avatarPreview.updateData @getData() if @getData()?.profile.nickname?
 
     @bgImg = null
-
-
 
   click:(event)->
     event.stopPropagation()
@@ -86,7 +86,7 @@ class AvatarTooltipView extends KDView
         {{#(profile.firstName)+' '+#(profile.lastName)}}
         </h2>
       """
-    ,data
+    , data
 
     @staticAvatar = new AvatarStaticView
       cssClass  : 'avatar-static'
@@ -97,7 +97,7 @@ class AvatarTooltipView extends KDView
       origin    : origin
     , data
 
-    defaultState  = if @getData()?.followee then "Unfollow" else "Follow"
+    defaultState  = "Follow"
 
     @followButton = new MemberFollowToggleButton
       style           : "follow-btn"
@@ -160,10 +160,13 @@ class AvatarTooltipView extends KDView
 
     @sendMessageLink = new MemberMailLink {}, @getData()
 
-  viewAppended: ->
+  viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
+
+  click:(event)->
+    @getDelegate()?.hideTooltip()
 
   decorateFollowButton:(data)->
 
@@ -188,7 +191,7 @@ class AvatarTooltipView extends KDView
 
   updateData:(data={})->
 
-    # lazy loading data is spoonfed to the individuals
+    # lazy loading data is spoonfed to the individual views
     @setData data
 
     @decorateFollowButton data
