@@ -59,12 +59,10 @@ class ActivityAppController extends AppController
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"
-        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
-        subtitle  : ""
-
-    unless account instanceof KD.remote.api.JGuest
-        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
-        # ... where have you been?!" # not relevant for now
+        title     : if KD.isLoggedIn() then\
+          "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+          "Welcome to the Koding Public Beta!<br>"
+        subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
       mainView.addSubView updateWidget = new ActivityUpdateWidget
         cssClass: 'activity-update-widget-wrapper'
