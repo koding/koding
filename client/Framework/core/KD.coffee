@@ -5,7 +5,7 @@ Function::bind or= do ->
     if 1 < arguments.length
       args = slice.call arguments, 1
       return -> func.apply context, if arguments.length then args.concat slice.call arguments else args
-    -> if arguments.z then func.apply context, arguments else func.call context
+    -> if arguments.length then func.apply context, arguments else func.call context
 
 Function::swiss = (parent, names...)->
   for name in names
@@ -48,10 +48,10 @@ KD.error = error = noop
     @remote.api.JAccount.impersonate username, (err)->
       if err then new KDNotificationView title: err.message
       else location.reload()
-#
-#  testKDML:->
-#    {KDMLParser} = Bongo.KDML
-#    kdml = new KDMLParser @classes
+
+  # testKDML:->
+  #   {KDMLParser} = Bongo.KDML
+  #   kdml = new KDMLParser @classes
 
   debugStates     : {}
   instances       : {}
@@ -193,7 +193,7 @@ KD.error = error = noop
   enableLogs:do->
     oldConsole = window.console
     window.console = {}
-    console[method] = noop  for method in ['log','warn','error','trace']
+    console[method] = noop  for method in ['log','warn','error','trace','time','timeEnd']
 
     enableLogs =->
       window.console = oldConsole
