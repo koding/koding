@@ -40,7 +40,7 @@ module.exports = class JTag extends jraphical.Module
       static        : [
         'one','on','some','create' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
-        'cursor','cursorWithRelationship','fetchMyFollowees'
+        'cursor','cursorWithRelationship','fetchMyFollowees','each'
         ]
     schema          :
       title         :
