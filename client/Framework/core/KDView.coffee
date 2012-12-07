@@ -709,105 +709,23 @@ class KDView extends KDObject
         # tooltips that are just strings will be handled by t(w)ipsy
         unless o.view
           @$(o.selector)[o.engine] o
+        # tooltips that provide a view will have their KDTooltip
         else
-
-          # tooltips that provide a view will add their view + container
-          # to the dom on first hover and reuse that view from then on
-
-          # it will only be added to the DOM once
-          @isFirstTooltip = yes
-
-          @$(o.selector).hover =>
-
-            # bridge variables for the mouse movement from the selector
-            # towards and onto the tooltip
-            @hasLeftSelector = no
-            @hasMovedToTooltip = no
-
-            # preparation is either adding to DOM or just reusing the
-            # prepared view
-            @prepareTooltip o, @isFirstTooltip, =>
-
-              # after adding to DOM, prevent further additions of the same
-              # view
-              @isFirstTooltip = no
-          , =>
-            @hasLeftSelector = yes
-
-            # give the user some time to focus the tooltip
+          mouseOver = no
+          @$(o.selector).on 'mouseenter',=>
+            mouseOver = yes
+            unless @tooltip?
+              tooltipOptions = $.extend {}, o,
+                delegate : @
+              @tooltip = new KDTooltip tooltipOptions, {}
+              @getSingleton('mainView').addSubView @tooltip
             setTimeout =>
-              if not @hasMovedToTooltip
-                if o.fade
-                  @tooltipViewContainer?.$().fade o.delayOut, =>
-                    @tooltipViewContainer?.hide()
-                else
-                  @tooltipViewContainer?.hide()
-            ,500
+              if mouseOver then @tooltip.display()
+            ,200
+          @$(o.selector).on 'mouseleave',=>
+            mouseOver = no
+            @tooltip.delayedHide()
 
-  prepareTooltip:(o = {}, isFirstTooltip = no, callback = noop)->
-
-    if isFirstTooltip
-      @tooltipViewContainer = new KDView
-        cssClass : 'tooltip-container hidden'
-      if o.viewCssClass
-        @tooltipViewContainer.setClass o.viewCssClass
-      @tooltipWrapper = new KDView
-        cssClass : 'tooltip-wrapper'
-      @tooltipArrowBelow = new KDView
-        cssClass : 'tooltip-arrow-below'
-      @tooltipArrowAbove = new KDView
-        cssClass : 'tooltip-arrow-above'
-
-      @tooltipWrapper.addSubView o.view
-      @tooltipViewContainer.addSubView @tooltipArrowAbove
-      @tooltipViewContainer.addSubView @tooltipWrapper
-      @tooltipViewContainer.addSubView @tooltipArrowBelow
-      @getSingleton('mainView').addSubView @tooltipViewContainer
-
-    callback() # now that the view is in the DOM, prevent further insertion
-
-    setTimeout =>
-
-      # prevent instant popup when just moving/scrolling
-      unless @hasLeftSelector
-        @tooltipViewContainer.show()
-
-        # measure the distance for proper placement
-        container = @tooltipViewContainer.$()
-        containerHeight = container.height()
-        containerWidth = container.width()
-        selector = @$(o.selector)
-        selectorOffset = selector.offset()
-        selectorHeight = selector.height()
-        selectorWidth = selector.width()
-
-        # vertical placement defaults to above, so only paint below the
-        # selector if specifically demanded or if there is not enough space
-        if o.placement is 'below' or (o.placement is 'above' and selectorOffset.top-selectorHeight-containerHeight < 0)
-          @tooltipViewContainer.setClass 'painted-below'
-          @tooltipViewContainer.unsetClass 'painted-above'
-          container.css top : selectorOffset.top+selectorHeight+10
-        else
-          @tooltipViewContainer.setClass 'painted-above'
-          @tooltipViewContainer.unsetClass 'painted-below'
-          container.css top : selectorOffset.top-containerHeight-10
-
-        # horizontal placement defaults to right, will only paint left if
-        # there is enough space for it.
-        if o.placement is 'left' or ( selectorOffset.left+containerWidth > window.innerWidth)
-          @tooltipViewContainer.setClass 'painted-left'
-          @tooltipViewContainer.unsetClass 'painted-right'
-          container.css left : selectorOffset.left-containerWidth+selectorWidth
-        else
-          @tooltipViewContainer.setClass 'painted-right'
-          @tooltipViewContainer.unsetClass 'painted-left'
-          container.css left : selectorOffset.left
-
-        @tooltipViewContainer.$().hover =>
-          @hasMovedToTooltip = yes
-        ,=>
-          @tooltipViewContainer.hide()
-    ,o.delayIn
 
   getTooltip:(o = {})->
     o.selector or= null
@@ -822,7 +740,7 @@ class KDView extends KDObject
   hideTooltip:(o = {})->
     o.selector or= null
     @$(o.selector).tipsy "hide"
-    @tooltipViewContainer?.hide()
+    @tooltip?.hide()
 
   listenWindowResize:->
 

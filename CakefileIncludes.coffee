@@ -116,6 +116,7 @@ Includes =
 
         #tooltip
         KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
+        KDTooltip             : "./client/Framework/components/tooltip/KDTooltip.coffee"
 
         # autocomplete
         KDAutoCompleteC       : "./client/Framework/components/autocomplete/autocompletecontroller.coffee"
