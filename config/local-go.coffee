@@ -27,7 +27,7 @@ module.exports = deepFreeze
   runGoBroker   : yes
   social        :
     login       : 'social'
-    numberOfWorkers: 1
+    numberOfWorkers: 10
     watch       : yes
   feeder        :
     queueName   : "koding-feeder"
