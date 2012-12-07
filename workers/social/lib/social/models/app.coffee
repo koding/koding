@@ -32,7 +32,7 @@ module.exports = class JApp extends jraphical.Module
   @set
 
     slugifyFrom     : 'title'
-    slugTemplate    : '/Apps/#{slug}'
+    slugTemplate    : 'Apps/#{slug}'
 
     indexes         :
       title         : 'ascending'

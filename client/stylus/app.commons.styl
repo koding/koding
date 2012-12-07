@@ -73,7 +73,7 @@ p.warning
 
 .input-with-extras
   border                1px solid #c3c3c3
-  position              relative
+  rel()
   // margin                10px 0
   size                  auto,34px
   rounded               5px
@@ -83,7 +83,7 @@ p.warning
   &.validation-error
     border-color        red
   > span.icon
-    position            absolute
+    abs()
     display             block
     top                 6px
     left                9px
@@ -109,7 +109,7 @@ p.warning
       shadow            none
 
   button.kdbutton
-    position            absolute
+    abs()
     right               7px
     top                 6px
     margin              0
@@ -123,7 +123,7 @@ p.warning
     &.with-icon
       padding           0 2px
     span.icon
-      position          relative
+      rel()
       display           block
       padding           0
       margin            0
@@ -193,7 +193,7 @@ button.kdbutton.icon-only
     sprite()
     bg(position,20px 20px)
     size(20px,20px)
-    position        relative
+    rel()
 
     &.cog
       bg            position,-60px -300px
@@ -298,7 +298,7 @@ button.editor-button
       left            0
       margin          0
       padding         0
-      position        absolute
+      abs()
       size            17px,17px
       top             0
 
@@ -321,7 +321,7 @@ button.editor-button
   display           inline-block
   size              auto,auto
   span.icon
-    position        absolute
+    abs()
     top             2px
     right           18px
     sprite()
@@ -449,12 +449,12 @@ button.editor-button
 //
 //   .kdautocompletewrapper
 //     button
-//       position        absolute
+//       abs()
 //       right           2px
 //       top             2px
 //
 //     a.add-tag-link
-//       position        absolute
+//       abs()
 //       right           5px
 //       top             5px
 //       color           linkColor1
@@ -852,14 +852,14 @@ button.cancel-edit-button
   overflow        hidden
 
 .avatarview
-  position        relative
+  rel()
   display         block
   min-width       10px
   min-height      10px
   bg              position,center center
   bg              repeat,no-repeat
   cite
-    position      absolute
+    abs()
     bottom        -2px
     right         -2px
     size          20px,20px
@@ -945,7 +945,7 @@ button.cancel-edit-button
     .modal-clean-gray,.modal-clean-red,.modal-clean-green,.modal-cancel
       margin            10px 10px 7px -2px
   .kdmodal.with-buttons
-    position            relative !important
+    rel() !important
     top                 -43px
   .modalformline
     border-bottom       1px solid #e5e5e5
@@ -1068,7 +1068,7 @@ button.cancel-edit-button
       span
         margin              0
       .arrow
-        position            absolute
+        abs()
         top                 0
         right               0
         size                20px,20px
@@ -1123,7 +1123,7 @@ button.cancel-edit-button
   .actions-sort.active,.actions-tags.active
     height              auto
   .help-box
-    position            absolute
+    abs()
     bottom              10px
   > button
     display             block
@@ -1158,7 +1158,7 @@ button.cancel-edit-button
 
 .kdsplitview-panel.toggling
   .generic-menu-toggler
-    position          absolute
+    abs()
     right             2px
     top               3px
     z-index           2
@@ -1234,7 +1234,7 @@ button.cancel-edit-button
 
 
 figure.code-container
-  position              relative
+  rel()
   margin-bottom         10px
   pre
     padding             10px
@@ -1252,7 +1252,7 @@ figure.code-container
       padding           6px
       bg                color, transparent
   > strong
-    position          absolute
+    abs()
     right             -1px
     top               7px
     color             #fff
@@ -1264,7 +1264,7 @@ figure.code-container
     text-transform    uppercase
     shadow            0 1px 1px rgba(0, 0, 0, 0.54)
   .button-bar
-    position          absolute
+    abs()
     bg                color,transparent
     bottom            -30px
     right             6px
@@ -1320,7 +1320,7 @@ figure.code-container
     height              20px
     vertical-align      middle
     width               20px
-    position            absolute
+    abs()
     right               20px
     top                 10px
 

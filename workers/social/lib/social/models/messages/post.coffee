@@ -121,7 +121,8 @@ module.exports = class JPost extends jraphical.Message
             if err
               callback err
             else
-              status.slug = slug
+              status.slug   = slug
+              status.slug_  = slug
               queue.next()
         ->
           status

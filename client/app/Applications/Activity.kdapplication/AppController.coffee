@@ -1,4 +1,4 @@
-class Activity12345 extends AppController
+class ActivityAppController extends AppController
 
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
@@ -57,26 +57,17 @@ class Activity12345 extends AppController
     # mainController.popupController = new VideoPopupController
 
     unless localStorage.welcomeMessageClosed?
-      mainView.addSubView header = new WelcomeHeader
+      mainView.addSubView mainView.header = new WelcomeHeader
         type      : "big"
-        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
-        subtitle  : ""
+        title     : if KD.isLoggedIn() then\
+          "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+          "Welcome to the Koding Public Beta!<br>"
+        subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
-    unless account instanceof KD.remote.api.JGuest
-        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
-        # ... where have you been?!" # not relevant for now
-
-      mainView.addSubView updateWidget = new ActivityUpdateWidget
-        cssClass: 'activity-update-widget-wrapper'
-
-      updateWidgetController = new ActivityUpdateWidgetController
-        view : updateWidget
-
-      updateWidgetController.registerListener
-        KDEventTypes  : "OwnActivityHasArrived"
-        listener      : @
-        callback      : (pubInst,activity)=>
-          @ownActivityArrived activity
+    if KD.isLoggedIn()
+      @putWidget()
+    else
+      @getSingleton("mainController").once "AccountChanged", @putWidget.bind @
 
     # mainView.addSubView new CommonFeedMessage
     #   title           : "<p> Since you're new to Koding, so we've prepared these helper boxes to introduce you to the system. This is your Activity Feed. It displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community.</p>"
@@ -87,14 +78,16 @@ class Activity12345 extends AppController
       cssClass : "maincontent-tabs feeder-tabs"
     @activityTabView.hideHandleContainer()
 
-    activitySplitView = @activitySplitView = new ActivitySplitView
+    mainView.activitySplit = new ActivitySplitView
       views     : [activityInnerNavigation,@activityTabView]
       sizes     : [139,null]
       minimums  : [10,null]
       resizable : no
+      delegate  : mainView
+
 
     # ADD SPLITVIEW
-    mainView.addSubView activitySplitView
+    mainView.addSubView mainView.activitySplit
 
     @createFollowedAndPublicTabs()
 
@@ -106,7 +99,7 @@ class Activity12345 extends AppController
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
-      # activitySplitView._windowDidResize()
+      # @getView().activitySplit._windowDidResize()
       mainView.notifyResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
@@ -121,6 +114,25 @@ class Activity12345 extends AppController
 
     activityInnerNavigation.on "NavItemReceivedClick", (data)=>
       @filter data.type, loadIfMoreItemsIsNecessary
+
+  putWidget : ->
+
+    mainView = @getView()
+
+    mainView.addSubView mainView.widget = new ActivityUpdateWidget
+      cssClass: 'activity-update-widget-wrapper'
+
+    updateWidgetController = new ActivityUpdateWidgetController
+      view : mainView.widget
+
+    updateWidgetController.registerListener
+      KDEventTypes  : "OwnActivityHasArrived"
+      listener      : @
+      callback      : (pubInst,activity)=>
+        @ownActivityArrived activity
+
+    return updateWidgetController
+
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -141,8 +153,9 @@ class Activity12345 extends AppController
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
-    @activitySplitView.on "ViewResized", =>
-      newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
+    {activitySplit} = @getView()
+    activitySplit.on "ViewResized", ->
+      newHeight = activitySplit.getHeight() - 28 # HEIGHT OF THE HEADER
       activityListController.scrollView.setHeight newHeight
 
     controller = @
@@ -402,8 +415,6 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
-
-    @scrollView.setClass "scrollable"
 
     @scrollView.$().scroll =>
       if @scrollView.$().scrollTop() > 10

@@ -25,6 +25,8 @@ class MainController extends KDController
     @setFailTimer()
     @putGlobalEventListeners()
 
+    @accountReadyState = 0
+
   appReady:do ->
     applicationIsReady = no
     queue = []
@@ -57,7 +59,12 @@ class MainController extends KDController
       group: 'koding', user: KD.whoami().profile.nickname
     }
 
+  accountReady:(fn)->
+    if @accountReadyState > 0 then fn()
+    else @once 'AccountChanged', fn
+
   accountChanged:(account)->
+    @accountReadyState = 1
 
     connectedState.connected = yes
 
@@ -75,7 +82,7 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
-    unless @router? then do =>
+    unless @router?
       @router = new KodingRouter location.pathname
       KD.registerSingleton 'router', @router
 

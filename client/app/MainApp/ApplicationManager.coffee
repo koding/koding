@@ -22,7 +22,8 @@ class ApplicationManager extends KDObject
 
   forceQuit:(path)->
     app = @getAppInstance path
-    for view in (@getAppViews path).slice 0
+    views = (@getAppViews path)?.slice 0
+    for view in views ? []
       app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
       view.destroy()
     @removeAppInstance path
@@ -121,18 +122,18 @@ class ApplicationManager extends KDObject
 
   fakeRequire:(path)->
     classes =
-      "./client/app/Applications/Activity.kdapplication"    : Activity12345
-      "./client/app/Applications/Topics.kdapplication"      : Topics12345
-      "./client/app/Applications/Feeder.kdapplication"      : Feeder12345
-      "./client/app/Applications/Members.kdapplication"     : Members12345
-      "./client/app/Applications/StartTab.kdapplication"    : StartTab12345
-      "./client/app/Applications/Home.kdapplication"        : Home12345
-      "./client/app/Applications/Account.kdapplication"     : Account12345
-      "./client/app/Applications/Apps.kdapplication"        : Apps12345
-      "./client/app/Applications/Inbox.kdapplication"       : Inbox12345
-      "./client/app/Applications/Demos.kdapplication"       : Demos12345
-      "./client/app/Applications/Ace.kdapplication"         : Ace12345
-      "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
+      "./client/app/Applications/Activity.kdapplication"    : ActivityAppController
+      "./client/app/Applications/Topics.kdapplication"      : TopicsAppController
+      "./client/app/Applications/Feeder.kdapplication"      : FeederAppController
+      "./client/app/Applications/Members.kdapplication"     : MembersAppController
+      "./client/app/Applications/StartTab.kdapplication"    : StartTabAppController
+      "./client/app/Applications/Home.kdapplication"        : HomeAppController
+      "./client/app/Applications/Account.kdapplication"     : AccountAppController
+      "./client/app/Applications/Apps.kdapplication"        : AppsAppController
+      "./client/app/Applications/Inbox.kdapplication"       : InboxAppController
+      "./client/app/Applications/Demos.kdapplication"       : DemosAppController
+      "./client/app/Applications/Ace.kdapplication"         : AceAppController
+      "./client/app/Applications/Viewer.kdapplication"      : ViewerAppController
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
       "./client/app/Applications/Groups.kdapplication"      : GroupsController
     if classes[path]?

@@ -110,7 +110,7 @@ class KodingRouter extends KDRouter
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
-    ({name, topicSlug}, state, route)=>
+    ({params:{name, slug}}, state, route)=>
       contentDisplay = @openRoutes[route]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
@@ -120,7 +120,7 @@ class KodingRouter extends KDRouter
         if state?
           @openContent name, section, state, route
         else
-          @loadContent name, section, topicSlug, route
+          @loadContent name, section, slug, route
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -147,17 +147,36 @@ class KodingRouter extends KDRouter
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
+    clear = @bound 'clear'
+
+    requireLogin =(fn)->
+      mainController.accountReady ->
+        # console.log 'faafafaf'
+        if KD.isLoggedIn() then fn()
+        else clear()
+
+    requireLogout =(fn)->
+      mainController.accountReady ->
+        # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
+        unless KD.isLoggedIn() then fn()
+        else clear()
+
     routes =
 
       '/' : handleRoot
       ''  : handleRoot
 
       # verbs
-      '/:name?/Login'     : ({params:{name}})-> mainController.doLogin name
-      '/:name?/Logout'    : ({params:{name}})-> mainController.doLogout name; @clear()
-      '/:name?/Register'  : ({params:{name}})-> mainController.doRegister name
-      '/:name?/Join'      : ({params:{name}})-> mainController.doJoin name
-      '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
+      '/:name?/Login'     : ({params:{name}})->
+        requireLogout -> mainController.doLogin name
+      '/:name?/Logout'    : ({params:{name}})->
+        requireLogin => mainController.doLogout name; @clear()
+      '/:name?/Register'  : ({params:{name}})->
+        requireLogout -> mainController.doRegister name
+      '/:name?/Join'      : ({params:{name}})->
+        requireLogout -> mainController.doJoin name
+      '/:name?/Recover'   : ({params:{name}})->
+        requireLogout -> mainController.doRecover name
 
       # nouns
       # '/:name?/Groups'                  : nouns.Groups
@@ -170,9 +189,9 @@ class KodingRouter extends KDRouter
       '/:name?/Inbox'                   : nouns.Inbox
 
       # content displays:
-      '/:name?/Topics/:topicSlug'       : content.Topics
-      '/:name?/Activity/:activitySlug'  : content.Activity
-      '/:name?/Apps/:appSlug'           : content.Apps
+      '/:name?/Topics/:slug'            : content.Topics
+      '/:name?/Activity/:slug'          : content.Activity
+      '/:name?/Apps/:slug'              : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return if recoveryToken is 'Password'

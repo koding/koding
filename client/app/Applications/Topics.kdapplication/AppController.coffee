@@ -1,4 +1,4 @@
-class Topics12345 extends AppController
+class TopicsAppController extends AppController
 
   constructor:(options, data)->
     options = $.extend
@@ -39,7 +39,8 @@ class Topics12345 extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               JTag.byRelevance @_searchValue, options, callback
             else
-              JTag.streamModels selector, options, callback
+              #JTag.streamModels selector, options, callback
+              JTag.some selector, options, callback
           dataEnd           : ({resultsController}, ids)->
             JTag.fetchMyFollowees ids, (err, followees)->
               if err then error err
