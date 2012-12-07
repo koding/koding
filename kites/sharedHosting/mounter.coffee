@@ -107,22 +107,71 @@ mounter =
       else
         uid = res.trim()
         log.info "[OK] user ID for user #{username} is #{uid}"
-        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
+        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost}"
         @createMountpoint options, (err,res)=>
           if err
             callback err
           else
-            @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
+            options.install = true
+            @tmpNetrc options,(err,res)=>
               if err?
-                log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
-                callback error
+                callback err
               else
-                @remountVE options, (err,res)=>
+                HOME = process.env.HOME
+                process.env.HOME = path.join config.usersPath, username
+                console.log "tmp home for .netrc is #{process.env.HOME}"
+                @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
+                  process.env.HOME = HOME
+                  console.log "home changed back to #{process.env.HOME}"
+                  options.install = false
+                  @tmpNetrc options,(err,res)=>
                   if err?
-                    callback err
+                    log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
+                    callback error
                   else
-                    @updateMountCfg options,(err,res)->
-                    callback null,res
+                    @remountVE options, (err,res)=>
+                      if err?
+                        callback err
+                      else
+                        @updateMountCfg options,(err,res)->
+                        callback null,res
+
+  tmpNetrc : (options,callback)->
+    
+    # this method will create .netrc file for curlftpfs
+
+    #
+    #
+
+    {username, remotehost,remoteuser,remotepass, install} = options
+    rcPath = escapePath path.join config.usersPath, usersname, '.netrc'
+
+    unless safeForUser username, rcPath
+      console.error "User [#{username}] is trying to make something bad: ", cfg
+      callback "You are not authorized to do this."
+      return no
+    if install
+      conf = "machine #{remotehost} login #{remoteuser} password #{remotepass}"
+      fs.writeFile rcPath, conf, 'utf-8', (err)->
+        if err?
+          console.error error = "[error] couldn't write .netrc file #{rcPath}: #{err.message}"
+          callback error
+        else
+          console.log info = "[ok] .netc #{rcPath} installed"
+          callback null, info
+    else
+      fs.unlink rcPath, (err)->
+        if err?
+          console.err error = "[ERROR] couldn't remove .netrc file #{rcPath}: #{err.message}"
+          callback error
+        else
+          console.log info = "[OK] .netrc file #{rcPath} has been removed"
+          callback null, info
+      
+      
+    
+
+
 
   # Safe
   umountDrive : (options, callback)->
@@ -160,8 +209,15 @@ mounter =
           if err
             callback err
           else
-            # @removeMount options,(err,res)->
-            callback null,res
+            fs.rmdir options.mountpoint, (err)->
+              # not a big issue
+              if err?
+                console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
+              else
+                console.log "mountpoint #{options.mountpoint} has been removed" 
+            @removeMountConf options,(err,res)->
+              callback err if err?
+              callback null,res
 
   # Safe
   readMountInfo: (options, callback)->
@@ -260,7 +316,7 @@ mounter =
             log.info info = "[ok] config successfully created"
             callback null, info
 
-  removeMount: (options, callback)->
+  removeMountConf: (options, callback)->
 
     # this method will remove mount config related to remote host from user's mount config
 
@@ -295,6 +351,7 @@ mounter =
           else
             log.info info = "[OK] config successfully updated"
             callback null, info
+
 
   mountSshDriveWithKey: (options, callback)->
     # mount SSHfs to the user's home directory
