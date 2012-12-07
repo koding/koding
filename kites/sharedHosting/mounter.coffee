@@ -136,6 +136,7 @@ mounter =
                         @updateMountCfg options,(err,res)->
                         callback null,res
 
+  # Safe
   tmpNetrc : (options,callback)->
 
     # this method will create .netrc file for curlftpfs
@@ -144,7 +145,7 @@ mounter =
     rcPath = escapePath path.join config.usersPath, username, '.netrc'
 
     unless safeForUser username, rcPath
-      console.error "User [#{username}] is trying to make something bad: ", cfg
+      console.error "User [#{username}] is trying to make something bad: ", rcPath
       callback "You are not authorized to do this."
       return no
 
@@ -270,8 +271,6 @@ mounter =
       callback "You are not authorized to do this."
       return no
 
-    console.log newConf
-
     fs.stat cfg, (err,stats)=>
       if stats
         @readMountInfo options, (err, res)->
@@ -307,6 +306,7 @@ mounter =
             log.info info = "[ok] config successfully created"
             callback null, info
 
+  # Safe
   removeMount: (options, callback)->
 
     # this method will remove mount config related to remote host from user's mount config
@@ -342,7 +342,6 @@ mounter =
           else
             log.info info = "[OK] config successfully updated"
             callback null, info
-
 
   mountSshDriveWithKey: (options, callback)->
     # mount SSHfs to the user's home directory
@@ -552,6 +551,5 @@ mounter =
               else
                 log.error "An error occured:", err
                 callback err
-
 
 module.exports = mounter
