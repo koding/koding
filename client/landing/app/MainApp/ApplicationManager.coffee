@@ -22,7 +22,8 @@ class ApplicationManager extends KDObject
 
   forceQuit:(path)->
     app = @getAppInstance path
-    for view in (@getAppViews path).slice 0
+    views = (@getAppViews path)?.slice 0
+    for view in views ? []
       app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
       view.destroy()
     @removeAppInstance path
