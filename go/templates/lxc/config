@@ -24,8 +24,8 @@ lxc.id_map = G 1000000 0 1000
 lxc.id_map = G {{.Uid}} 1000 256
 
 lxc.cgroup.cpu.shares = 1000
-lxc.cgroup.memory.limit_in_bytes = 60M
-lxc.cgroup.memory.memsw.limit_in_bytes = 1G
+#lxc.cgroup.memory.limit_in_bytes = 60M
+#lxc.cgroup.memory.memsw.limit_in_bytes = 1G
 
 lxc.cgroup.devices.deny = a
 # Allow any mknod (but not using the node)
