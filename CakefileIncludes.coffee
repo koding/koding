@@ -600,6 +600,7 @@ Includes =
         kdScrollView        : "./client/Framework/themes/default/kd.scrollview.styl"
         kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
         kdFormView          : "./client/Framework/themes/default/kd.form.styl"
+        kdTooltip           : "./client/Framework/themes/default/kd.tooltip.styl"
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"

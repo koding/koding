@@ -2359,60 +2359,7 @@ div.copy-url-wrapper
     display inline-block
     min-width 233px
 
-div.tooltip-container
-  background-color transparent
-  borderBox()
-  position: absolute
-  top 0
-  left 0
-  width auto
-  height auto
-  min-width 200px
-  min-height 50px
-  overflow visible
-  // z-index 9000
-
-  div.tooltip-wrapper
-    padding 5px
-    border 1px solid rgba(0,0,0,0.275)
-    background-color white
-    width 100%
-    height 100%
-    position relative
-    min-height 50px
-    min-width 200px
-    z-index 9001
-    vendor box-shadow, 0px 10px 20px 5px rgba(0,0,0,0.15)
-
-  &.painted-above
-    div.tooltip-arrow-below
-      z-index 9002
-      background-color transparent
-      sprite()
-      size 15px 15px
-      margin-top:-10px
-      background-position -220px -32px
-      margin-left 5px
-    div.tooltip-arrow-above
-      display none
-  &.painted-below
-    div.tooltip-arrow-above
-      z-index 9002
-      background-color transparent
-      sprite()
-      size 15px 15px
-      margin-top:-10px
-      margin-bottom -1px
-      margin-left 5px
-      background-position -200px -31px
-    div.tooltip-arrow-below
-      display none
-  &.painted-left
-    div.tooltip-arrow-above
-      margin-left 95%
-    div.tooltip-arrow-below
-      margin-left 95%
-
+div.kdtooltip
   &.avatar-tooltip
     max-width 450px
     .tooltip-wrapper
