@@ -4,7 +4,6 @@ class AvatarView extends LinkView
 
   constructor:(options = {},data)->
 
-
     options.cssClass or= ""
     options.size     or=
       width            : 50
@@ -13,10 +12,16 @@ class AvatarView extends LinkView
 
     # this needs to be pre-super
     unless options.noTooltip
-      @avatarPreview = new AvatarTooltipView
-        delegate : @
-        origin : options.origin
-      ,data
+      @avatarPreview =
+        constructorName : AvatarTooltipView
+        options :
+          delegate : @
+          origin : options.origin
+        data : data
+      # @avatarPreview = new AvatarTooltipView
+      #   delegate : @
+      #   origin : options.origin
+      # ,data
 
     options.tooltip  or=
       view             : unless options.noTooltip then @avatarPreview else null
@@ -27,10 +32,8 @@ class AvatarView extends LinkView
 
     # this needs to be post-super
     if @avatarPreview?
-      @on "OriginLoadComplete", (newData)=>
-        @avatarPreview.updateData newData
-      @utils.wait =>
-        @avatarPreview.updateData @getData() if @getData()?.profile.nickname?
+      @on 'TooltipReady', =>
+        @tooltip.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
     @bgImg = null
 
