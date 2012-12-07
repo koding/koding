@@ -16,14 +16,18 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : 3000
+    port        : 3000#[3001..3002]
     login       : 'webserver'
+    clusterSize : 4
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
   mongo         : mongo
   buildClient   : no
   runGoBroker   : yes
   social        :
     login       : 'social'
-    numberOfWorkers: 1
+    numberOfWorkers: 4
     watch       : yes
   feeder        :
     queueName   : "koding-feeder"

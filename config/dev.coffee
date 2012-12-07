@@ -20,7 +20,8 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : [3001..3004]
+    port        : 3000
+    clusterSize : 4
   mongo         : mongo
   runBroker     : no
   configureBroker: no
@@ -37,9 +38,9 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  loadBalancer  :
-    port        : 3000
-    heartbeat   : 5000
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo 
   bitly :

@@ -170,10 +170,11 @@ class KodingRouter extends KDRouter
       '/:name?/Login'     : ({params:{name}})->
         requireLogout -> mainController.doLogin name
       '/:name?/Logout'    : ({params:{name}})->
-        requireLogin -> mainController.doLogout name; @clear()
+        requireLogin => mainController.doLogout name; @clear()
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.doRegister name
-      # '/:name?/Join'      : ({params:{name}})-> mainController.doJoin name
+      '/:name?/Join'      : ({params:{name}})->
+        requireLogout -> mainController.doJoin name
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.doRecover name
 
