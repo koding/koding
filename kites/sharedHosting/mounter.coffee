@@ -137,19 +137,17 @@ mounter =
                         callback null,res
 
   tmpNetrc : (options,callback)->
-    
+
     # this method will create .netrc file for curlftpfs
 
-    #
-    #
-
-    {username, remotehost,remoteuser,remotepass, install} = options
-    rcPath = escapePath path.join config.usersPath, usersname, '.netrc'
+    {username, remotehost, remoteuser, remotepass, install} = options
+    rcPath = escapePath path.join config.usersPath, username, '.netrc'
 
     unless safeForUser username, rcPath
       console.error "User [#{username}] is trying to make something bad: ", cfg
       callback "You are not authorized to do this."
       return no
+
     if install
       conf = "machine #{remotehost} login #{remoteuser} password #{remotepass}"
       fs.writeFile rcPath, conf, 'utf-8', (err)->
@@ -167,11 +165,6 @@ mounter =
         else
           console.log info = "[OK] .netrc file #{rcPath} has been removed"
           callback null, info
-      
-      
-    
-
-
 
   # Safe
   umountDrive : (options, callback)->
@@ -214,7 +207,7 @@ mounter =
               if err?
                 console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
               else
-                console.log "mountpoint #{options.mountpoint} has been removed" 
+                console.log "mountpoint #{options.mountpoint} has been removed"
             @removeMountConf options,(err,res)->
               callback err if err?
               callback null,res
