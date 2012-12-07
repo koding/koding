@@ -443,17 +443,15 @@ class KDView extends KDObject
 
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
-    @listenTo
-      KDEventTypes: 'scroll'
-      listenedToInstance: @
-      callback: do ->
-        lastRatio = 0
-        (publishingInstance, event)->
-          el = @$()[0]
-          ratio = (el.scrollTop+@getHeight()) / el.scrollHeight
-          if ratio > lastRatio and ratio > threshold
-            @handleEvent {type: 'LazyLoadThresholdReached', ratio}
-          lastRatio = ratio
+    view = @
+    @on 'scroll', do ->
+      lastRatio = 0
+      (event)->
+        el = view.$()[0]
+        ratio = (el.scrollTop + view.getHeight()) / el.scrollHeight
+        if ratio > lastRatio and ratio > threshold
+          @emit 'LazyLoadThresholdReached', {ratio}
+        lastRatio = ratio
 
   # counter = 0
   bindEvents:($elm)->

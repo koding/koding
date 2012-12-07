@@ -253,9 +253,9 @@ __utils =
     # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
     text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
       morePart = "<span class='collapsedtext hide'>"
-      morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
+      morePart += "<a href='#' class='more-link' title='Show more...'>Show more...</a>"
       morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
-      morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
+      morePart += "<a href='#' class='less-link' title='Show less...'>...show less</a>"
       morePart += "</span>"
       Encoder.htmlEncode(shortenedText) + morePart
     else

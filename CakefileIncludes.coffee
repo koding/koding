@@ -174,7 +174,7 @@ Includes =
       ApplicationPageViews :
 
         # ACTIVITY VIEWS
-
+        ActivityListController      : "./client/app/Applications/Activity.kdapplication/activitylistcontroller.coffee"
         # Activity commons
         actActions                  : "./client/app/Applications/Activity.kdapplication/views/activityactions.coffee"
         activityinnernavigation     : "./client/app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee"
