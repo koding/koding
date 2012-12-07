@@ -208,9 +208,7 @@ mounter =
                 console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
               else
                 console.log "mountpoint #{options.mountpoint} has been removed"
-            @removeMountConf options,(err,res)->
-              callback err if err?
-              callback null,res
+              callback null
 
   # Safe
   readMountInfo: (options, callback)->
@@ -309,7 +307,7 @@ mounter =
             log.info info = "[ok] config successfully created"
             callback null, info
 
-  removeMountConf: (options, callback)->
+  removeMount: (options, callback)->
 
     # this method will remove mount config related to remote host from user's mount config
 

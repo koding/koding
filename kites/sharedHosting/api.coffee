@@ -25,7 +25,12 @@ module.exports = new Kite 'sharedHosting'
 
   executeCommand: require './executecommand'
 
-  readMountInfo: (options, callback)->
+  mountDrive    : (options, callback)-> mounter.mountDrive      options, callback
+  umountDrive   : (options, callback)-> mounter.umountDrive     options, callback
+  removeMount   : (options, callback)-> mounter.removeMount     options, callback
+  mountFtpDrive : (options, callback)-> mounter.mountFtpDrive   options, callback
+
+  readMountInfo : (options, callback)->
     mounter.readMountInfo options, (err, res)->
       if err then callback err
       else
@@ -33,10 +38,6 @@ module.exports = new Kite 'sharedHosting'
           delete mount.remotepass
           res[i] = mount
         callback err, res
-
-  mountFtpDrive: (options, callback)-> mounter.mountFtpDrive options, callback
-  mountDrive   : (options, callback)-> mounter.mountDrive    options, callback
-  umountDrive  : (options, callback)-> mounter.umountDrive   options, callback
 
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
