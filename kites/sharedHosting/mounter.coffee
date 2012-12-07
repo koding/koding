@@ -107,65 +107,22 @@ mounter =
       else
         uid = res.trim()
         log.info "[OK] user ID for user #{username} is #{uid}"
-        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost}"
+        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}" 
         @createMountpoint options, (err,res)=>
           if err
             callback err
           else
-            options.install = true
-            @tmpNetrc options,(err,res)=>
+            @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
               if err?
-                callback err
+                log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
+                callback error
               else
-                HOME = process.env.HOME
-                process.env.HOME = path.join config.usersPath, username
-                console.log "tmp home for .netrc is #{process.env.HOME}"
-                @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
-                  process.env.HOME = HOME
-                  console.log "home changed back to #{process.env.HOME}"
-                  options.install = false
-                  @tmpNetrc options,(err,res)=>
+                @remountVE options, (err,res)=>
                   if err?
-                    log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
-                    callback error
+                    callback err
                   else
-                    @remountVE options, (err,res)=>
-                      if err?
-                        callback err
-                      else
-                        @updateMountCfg options,(err,res)->
-                        callback null,res
-
-  # Safe
-  tmpNetrc : (options,callback)->
-
-    # this method will create .netrc file for curlftpfs
-
-    {username, remotehost, remoteuser, remotepass, install} = options
-    rcPath = escapePath path.join config.usersPath, username, '.netrc'
-
-    unless safeForUser username, rcPath
-      console.error "User [#{username}] is trying to make something bad: ", rcPath
-      callback "You are not authorized to do this."
-      return no
-
-    if install
-      conf = "machine #{remotehost} login #{remoteuser} password #{remotepass}"
-      fs.writeFile rcPath, conf, 'utf-8', (err)->
-        if err?
-          console.error error = "[error] couldn't write .netrc file #{rcPath}: #{err.message}"
-          callback error
-        else
-          console.log info = "[ok] .netc #{rcPath} installed"
-          callback null, info
-    else
-      fs.unlink rcPath, (err)->
-        if err?
-          console.err error = "[ERROR] couldn't remove .netrc file #{rcPath}: #{err.message}"
-          callback error
-        else
-          console.log info = "[OK] .netrc file #{rcPath} has been removed"
-          callback null, info
+                    @updateMountCfg options,(err,res)->
+                    callback null,res 
 
   # Safe
   umountDrive : (options, callback)->
@@ -553,3 +510,4 @@ mounter =
                 callback err
 
 module.exports = mounter
+ 
