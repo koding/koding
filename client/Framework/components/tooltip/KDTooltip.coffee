@@ -14,13 +14,11 @@ class KDTooltip extends KDView
 
     # Wrapper for the view and/or content of the tooltip
     @wrapper = new KDView
-      cssClass : 'tooltip-wrapper'
+      cssClass : 'wrapper'
 
-    # Arrow Containers for Tooltip design arrows
-    @arrowBelow = new KDView
-      cssClass : 'tooltip-arrow-below'
-    @arrowAbove = new KDView
-      cssClass : 'tooltip-arrow-above'
+    # Arrow Container for Tooltip design arrows
+    @arrow = new KDView
+      cssClass : 'arrow'
 
     @hide()
 
@@ -56,100 +54,148 @@ class KDTooltip extends KDView
     @show()
     @setPosition(o)
 
-  getPositionCoordinates:(o={},positionValues,callback=noop)->
-    container = @$()
+  getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
+    # values that can/will be used in all the submethods
+    container       = @$()
     containerHeight = container.height()
-    containerWidth = container.width()
-    selector = @getDelegate().$(o.selector)
-    selectorOffset = selector.offset()
-    selectorHeight = selector.height()
-    selectorWidth = selector.width()
+    containerWidth  = container.width()
+    selector        = @getDelegate().$(o.selector)
+    selectorOffset  = selector.offset()
+    selectorHeight  = selector.height()
+    selectorWidth   = selector.width()
+
+    # will return an object with the amount of clipped pixels
+    boundaryViolations = (coordinates,width,height)=>
+      violations = {}
+      if coordinates.left < 0
+        violations.left = -(coordinates.left)
+      if coordinates.top < 0
+        violations.top = -(coordinates.top)
+      if coordinates.left+width > window.innerWidth
+        violations.right = coordinates.left+width-window.innerWidth
+      if coordinates.top+height > window.innerHeight
+        violations.bottom = coordinates.top+height-window.innerHeight
+      violations
+
+    # get default coordinates for tooltip placement
+    getCoordsFromPositionValues = (placement,direction)=>
+      switch placement
+        when 'top'
+          switch direction
+            when 'right'
+              top : selectorOffset.top-containerHeight-10
+              left : selectorOffset.left
+            when 'left'
+              top : selectorOffset.top-containerHeight-10
+              left : selectorOffset.left-containerWidth+selectorWidth
+            when 'center','top','bottom'
+              top : selectorOffset.top-containerHeight-10
+              left : selectorOffset.left+(selectorWidth-containerWidth)/2
+        when 'bottom'
+          switch direction
+            when 'right'
+              top : selectorOffset.top+selectorHeight+10
+              left : selectorOffset.left
+            when 'left'
+              top : selectorOffset.top+selectorHeight+10
+              left : selectorOffset.left-containerWidth+selectorWidth
+            when 'center','top','bottom'
+              top : selectorOffset.top+selectorHeight+10
+              left : selectorOffset.left+(selectorWidth-containerWidth)/2
+        when 'right'
+          switch direction
+            when 'top'
+              top : selectorOffset.top
+              left : selectorOffset.left+selectorWidth+10
+            when 'bottom'
+              top : selectorOffset.top+selectorHeight-containerHeight
+              left : selectorOffset.left+selectorWidth+10
+            when 'center','right','left'
+              top : selectorOffset.top+(selectorHeight-containerHeight)/2
+              left : selectorOffset.left+selectorWidth+10
+        when 'left'
+          switch direction
+            when 'top'
+              top : selectorOffset.top
+              left : selectorOffset.left-containerWidth-25
+            when 'bottom'
+              top : selectorOffset.top+selectorHeight-containerHeight
+              left : selectorOffset.left-containerWidth-25
+            when 'center','right','left'
+              top : selectorOffset.top+(selectorHeight-containerHeight)/2
+              left : selectorOffset.left-containerWidth-25
 
     {placement,direction} = positionValues
-    coordinates = {}
 
-    coordinates = switch placement
-      when 'above'
-        switch direction
-          when 'right'
-            top : selectorOffset.top-containerHeight-10
-            left : selectorOffset.left
-          when 'left'
-            top : selectorOffset.top-containerHeight-10
-            left : selectorOffset.left-containerWidth+selectorWidth
-          when 'center','top','bottom'
-            top : selectorOffset.top-containerHeight-10
-            left : selectorOffset.left+(selectorWidth-containerWidth)/2
-      when 'below'
-        switch direction
-          when 'right'
-            top : selectorOffset.top+selectorHeight+10
-            left : selectorOffset.left
-          when 'left'
-            top : selectorOffset.top+selectorHeight+10
-            left : selectorOffset.left-containerWidth+selectorWidth
-          when 'center','top','bottom'
-            top : selectorOffset.top+selectorHeight+10
-            left : selectorOffset.left+(selectorWidth-containerWidth)/2
-      when 'right'
-        switch direction
-          when 'top'
-            top : selectorOffset.top
-            left : selectorOffset.left+selectorWidth+10
-          when 'bottom'
-            top : selectorOffset.top+selectorHeight-containerHeight
-            left : selectorOffset.left+selectorWidth+10
-          when 'center','right','left'
-            top : selectorOffset.top+(selectorHeight-containerHeight)/2
-            left : selectorOffset.left+selectorWidth+10
-      when 'left'
-        switch direction
-          when 'top'
-            top : selectorOffset.top
-            left : selectorOffset.left-containerWidth-10
-          when 'bottom'
-            top : selectorOffset.top+selectorHeight-containerHeight
-            left : selectorOffset.left-containerWidth-10
-          when 'center','right','left'
-            top : selectorOffset.top+(selectorHeight-containerHeight)/2
-            left : selectorOffset.left-containerWidth-10
+    # check the default values for overlapping boundaries, then
+    # recalculate if there are overlaps
+    v = boundaryViolations getCoordsFromPositionValues(placement, direction), containerWidth, containerHeight
 
-    callback coordinates
-    return coordinates
+    unless v is {}
+
+      if v.top and v.left
+        placement = 'bottom'
+        direction = 'right'
+      else if v.top and v.right
+        placement = 'bottom'
+        direction = 'left'
+      else if v.top
+        if placement in ['left','right']
+          direction = placement
+        placement = 'bottom'
+      else if v.bottom and v.left
+        placement = 'top'
+        direction = 'right'
+      else if v.bottom and v.right
+        placement = 'top'
+        direction = 'left'
+      else if v.bottom
+        if placement in ['left','right']
+          direction = placement
+        placement = 'top'
+      else if v.left
+        if placement is 'top'
+          direction = 'top'
+        else if placement is 'bottom'
+          direction = 'bottom'
+        placement = 'right'
+      else if v.right
+        if placement is 'top'
+          direction = 'top'
+        else if  placement is 'bottom'
+          direction = 'bottom'
+        placement = 'left'
+
+    correctValues =
+      coords : getCoordsFromPositionValues placement, direction
+      placement : placement
+      direction : direction
+
+    callback correctValues
+    return correctValues
 
   setPosition:(o={})->
-    # measure the distance for proper placement
-    container = @$()
-    containerHeight = container.height()
-    containerWidth = container.width()
-    selector = @getDelegate().$(o.selector)
-    selectorOffset = selector.offset()
-    selectorHeight = selector.height()
-    selectorWidth = selector.width()
 
-    placement = o.placement or 'above'
+    placement = o.placement or 'top'
     direction = o.direction or 'right'
 
+    # Correct impossible combinations
     direction =
-      if placement in ['above','below'] and direction in ['top','bottom']
+      if placement in ['top','bottom'] and direction in ['top','bottom']
         'center'
       else if placement in ['left','right'] and direction in ['left','right']
          'center'
         else direction
 
-    log placement,direction
+    # fetch corrected placement and coordinated for positioning
+    {coords,placement,direction} = @getCorrectPositionCoordinates o,{placement,direction}
 
-    # Sanity check here
-    if placement is 'below' or (placement is 'above' and selectorOffset.top-selectorHeight-containerHeight < 0)
-      placement = 'below'
-
-    coords = @getPositionCoordinates o,{placement,direction}
-
-    container.css
+    @$().css
       left : coords.left
       top : coords.top
 
-    for placement_ in ['above','below','left','right']
+    # css classes for arrow positioning
+    for placement_ in ['top','bottom','left','right']
       if placement is placement_
         @setClass 'placement-'+placement_
       else
@@ -160,31 +206,6 @@ class KDTooltip extends KDView
         @setClass 'direction-'+direction_
       else
         @unsetClass 'direction-'+direction_
-
-
-
-    # vertical placement defaults to above, so only paint below the
-    # selector if specifically demanded or if there is not enough space
-    # if o.placement is 'below' or (o.placement is 'above' and selectorOffset.top-selectorHeight-containerHeight < 0)
-    #   @setClass 'painted-below'
-    #   @unsetClass 'painted-above'
-    #   # container.css top : selectorOffset.top+selectorHeight+10
-    # else
-    #   if o.placement is 'above'
-    #     @setClass 'painted-above'
-    #     @unsetClass 'painted-below'
-    #     # container.css top : selectorOffset.top-containerHeight-10
-
-    # # horizontal placement defaults to right, will only paint left if
-    # # there is enough space for it.
-    # if o.direction is 'left' or ( selectorOffset.left+containerWidth > window.innerWidth)
-    #   @setClass 'direction-left'
-    #   @unsetClass 'direction-right'
-    #   # container.css left : selectorOffset.left-containerWidth+selectorWidth
-    # else
-    #   @setClass 'direction-right'
-    #   @unsetClass 'direction-left'
-    #   # container.css left : selectorOffset.left
 
   viewAppended:->
     super()
@@ -200,7 +221,6 @@ class KDTooltip extends KDView
 
   pistachio:->
     """
-     {{> @arrowAbove}}
+     {{> @arrow}}
      {{> @wrapper}}
-     {{> @arrowBelow}}
     """

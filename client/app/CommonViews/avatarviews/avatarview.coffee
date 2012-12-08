@@ -26,7 +26,7 @@ class AvatarView extends LinkView
     options.tooltip  or=
       view             : unless options.noTooltip then @avatarPreview else null
       viewCssClass     : 'avatar-tooltip'
-      placement         :['above','below','right','left'][Math.floor(Math.random()*4)]
+      placement         :['top','bottom','right','left'][Math.floor(Math.random()*4)]
       direction         :['left','right','center','top','bottom'][Math.floor(Math.random()*5)]
     options.cssClass = "avatarview #{options.cssClass}"
 

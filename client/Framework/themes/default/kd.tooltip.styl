@@ -11,62 +11,84 @@ div.kdtooltip
   min-width 200px
   min-height 50px
   overflow visible
-  // z-index 9000
+  z-index 9000
 
-  div.tooltip-wrapper
+  div.arrow
+    abs()
+    sprite()
+    z-index 9002
+    background-color transparent
+    size 15px 15px
+
+  div.wrapper
     padding 5px
     border 1px solid rgba(0,0,0,0.275)
     background-color white
     width 100%
     height 100%
-    position relative
+    rel()
     min-height 50px
     min-width 200px
     z-index 9001
     vendor box-shadow, 0px 10px 20px 5px rgba(0,0,0,0.15)
 
-  &.placement-above
-    div.tooltip-arrow-below
-      sprite()
-      z-index 9002
-      background-color transparent
-      size 15px 15px
-      margin-top:-10px
+  &.placement-top
+    div.arrow
+      bottom -5px
       background-position -220px -32px
 
     &.direction-right
-      div.tooltip-arrow-below
-        margin-left 5px
+      div.arrow
+        left 5px
     &.direction-left
-      div.tooltip-arrow-below
-        margin-left 95%
+      div.arrow
+        right 5px
     &.direction-center
-      div.tooltip-arrow-below
-        margin-left 48%
+      div.arrow
+        margin-left -8px
+        left 50%
 
-    div.tooltip-arrow-above
-      display none
-
-  &.placement-below
-    div.tooltip-arrow-above
-      sprite()
-      z-index 9002
-      background-color transparent
-      size 15px 15px
-      margin-top:-10px
-      margin-bottom -1px
-      margin-left 5px
+  &.placement-bottom
+    div.arrow
+      top -14px
       background-position -200px -31px
     &.direction-right
-      div.tooltip-arrow-above
-        margin-left 5px
+      div.arrow
+        left 5px
     &.direction-left
-      div.tooltip-arrow-above
-        margin-left 95%
+      div.arrow
+        right 5px
     &.direction-center
-      div.tooltip-arrow-above
-        margin-left 48%
+      div.arrow
+        margin-left -8px
+        left 50%
 
-    div.tooltip-arrow-below
-      display none
+  &.placement-left
+    div.arrow
+      right -26px
+      background-position -200px -58px
+    &.direction-top
+      div.arrow
+        top 5px
+    &.direction-bottom
+      div.arrow
+        bottom 5px
+    &.direction-center
+      div.arrow
+        top 50%
+        margin-top -8px
 
+  &.placement-right
+    div.arrow
+      left -6px
+      background-position -220px -58px
+    &.direction-top
+      div.arrow
+        top 5px
+    &.direction-bottom
+      div.arrow
+        bottom 5px
+    &.direction-center
+      div.arrow
+        top 50%
+        margin-top -8px
