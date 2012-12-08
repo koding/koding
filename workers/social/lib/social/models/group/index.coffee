@@ -30,7 +30,7 @@ module.exports = class JGroup extends Module
     indexes         :
       slug          : 'unique'
     sharedMethods   :
-      static        : ['one','create','byRelevance','someWithRelationship','__resetAllGroups']
+      static        : ['one','create','each','byRelevance','someWithRelationship','__resetAllGroups']
       instance      : ['join','leave','fetchPermissions','updatePermissions','modify']
     schema          :
       title         :

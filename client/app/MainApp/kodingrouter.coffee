@@ -136,14 +136,14 @@ class KodingRouter extends KDRouter
     mainController = KD.getSingleton 'mainController'
 
     content = createLinks(
-      # 'Activity Apps Groups Members Topics'
-      'Activity Apps Members Topics'
+      'Activity Apps Groups Members Topics'
+      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
-    nouns = createLinks(
-      # 'Account Activity Apps Groups Members StartTab Topics'
-      'Account Activity Apps Inbox Members StartTab Topics'
+    sections = createLinks(
+      'Account Activity Apps Groups Inbox Members StartTab Topics'
+      # 'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -179,19 +179,20 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.doRecover name
 
       # nouns
-      # '/:name?/Groups'                  : nouns.Groups
-      '/:name?/Activity'                : nouns.Activity
-      '/:name?/Members'                 : nouns.Members
-      '/:name?/Topics'                  : nouns.Topics
-      '/:name?/Develop'                 : nouns.StartTab
-      '/:name?/Apps'                    : nouns.Apps
-      '/:name?/Account'                 : nouns.Account
-      '/:name?/Inbox'                   : nouns.Inbox
+      '/:name?/Groups'                  : sections.Groups
+      '/:name?/Activity'                : sections.Activity
+      '/:name?/Members'                 : sections.Members
+      '/:name?/Topics'                  : sections.Topics
+      '/:name?/Develop'                 : sections.StartTab
+      '/:name?/Apps'                    : sections.Apps
+      '/:name?/Account'                 : sections.Account
+      '/:name?/Inbox'                   : sections.Inbox
 
       # content displays:
       '/:name?/Topics/:slug'            : content.Topics
       '/:name?/Activity/:slug'          : content.Activity
       '/:name?/Apps/:slug'              : content.Apps
+      '/:name?/Groups/:slug'            : content.Groups
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return if recoveryToken is 'Password'
@@ -252,7 +253,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            # when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
             when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 

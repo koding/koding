@@ -40,7 +40,8 @@ class GroupsController extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               KD.remote.api.JGroup.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JGroup.someWithRelationship selector, options, callback
+              KD.remote.api.JGroup.streamModels selector, options, callback
+          dataEnd           :-> console.log 'data end', arguments
         following           :
           title             : "Following"
           dataSource        : (selector, options, callback)=>
