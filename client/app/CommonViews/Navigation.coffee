@@ -4,7 +4,6 @@ class NavigationController extends KDListViewController
     previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
-    console.log previousSelection
     @selectItemByName name  for {name} in previousSelection
 
   selectItemByName:(name)->

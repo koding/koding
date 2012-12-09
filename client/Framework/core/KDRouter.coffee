@@ -27,16 +27,14 @@ class KDRouter extends KDObject
         replaceState      : yes
     @startListening()
 
-  popState:do->
-    # TODO: don't think this will work in FF: (C.T.)
-    (event)=> # fat-arrow binding makes this handler easier to remove.
-      revive event.state, (err, state)=>
-        if err?
-          new KDNotificationView title: 'An unknown error has occurred.'
-        else
-          @handleRoute "#{location.pathname}#{location.search}",
-            shouldPushState   : no
-            state             : state
+  popState:(event)=> # fat-arrow binding makes this handler easier to remove.
+    revive event.state, (err, state)=>
+      if err?
+        new KDNotificationView title: 'An unknown error has occurred.'
+      else
+        @handleRoute "#{location.pathname}#{location.search}",
+          shouldPushState   : no
+          state             : state
 
   clear:(route = '/', replaceState = yes)-> @handleRoute route, {replaceState}
 
@@ -56,7 +54,7 @@ class KDRouter extends KDObject
 
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
-  getTitle:(path)-> path
+  getCurrentPath:-> @currentPath
 
   handleNotFound:(route)->
     console.trace()
@@ -95,12 +93,12 @@ class KDRouter extends KDObject
 
     {shouldPushState, replaceState, state} = options
     shouldPushState ?= yes
-    
+
     objRef = createObjectRef state
 
     node = @tree
     params = {}
-    
+
     isRooted = '/' is frag[0]
 
     frag = frag.split '/'
@@ -119,7 +117,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, @getTitle(path), "/#{path}"
+      history[method] objRef, path, "/#{path}"
 
     for edge in frag
       if node[edge]
