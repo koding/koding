@@ -139,18 +139,14 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     @$("div.activity-content-container").hover (event)=>
 
-      # @scrollAreaHint.$().css opacity:"1"
       @transitionStart = setTimeout =>
         @scrollAreaOverlay.$().css top:"100%"
       , 500
       unless @scrollAreaOverlay.$().hasClass "hidden"
         @checkForCompleteAnimationInterval = setInterval =>
-          # log "INTERVAL RUNNING"
-          if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
-            # log "END FOUND"
+          if (parseInt(@scrollAreaOverlay.$().css("top"),10)+@$("div.discussion").scrollTop()) >= @scrollAreaOverlay.$().height()
             @scrollAreaOverlay.hide()
-            # @scrollAreaHint.$().css opacity:"0"
-            @$("div.discussion").addClass "scrollable-y"
+            @$("div.discussion").addClass "scrollable-y scroll-highlight"
             @$("div.discussion").removeClass "no-scroll"
             clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         ,50
@@ -158,8 +154,11 @@ class DiscussionActivityItemView extends ActivityItemChild
       unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
         clearTimeout @transitionStart if @transitionStart?
         clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
-        # @scrollAreaHint.$().css opacity:"0"
         @scrollAreaOverlay.$().css top:"0px"
+        @$("div.discussion").removeClass "scrollable-y scroll-highlight"
+        @$("div.discussion").addClass "no-scroll"
+        @scrollAreaOverlay.show()
+
   render:->
     super()
     @highlightCode()

@@ -1,4 +1,4 @@
-class Apps12345 extends AppController
+class AppsAppController extends AppController
   constructor:(options, data)->
     options = $.extend
       view : new AppsMainView
@@ -95,7 +95,6 @@ class Apps12345 extends AppController
       @getView().addSubView controller.getView()
       @feedController = controller
       @emit 'ready'
-      console.log 'emitting ready'
       # @putAddAnAppButton()
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->

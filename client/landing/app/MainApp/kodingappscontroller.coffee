@@ -39,10 +39,11 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  getAppPath = (manifest)->
+  getAppPath:(manifest)->
 
     {profile} = KD.whoami()
-    path = if /^~/.test manifest.path then "/Users/#{profile.nickname}#{manifest.path.substr(1)}" else manifest.path
+    path = if 'string' is typeof manifest then manifest else manifest.path
+    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
     return path.replace /(\/+)$/, ""
 
   @getManifestFromPath = getManifestFromPath = (path)->
@@ -63,6 +64,8 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
+
+    appManager.addAppInstance "KodingAppsController", @
 
   # #
   # FETCHERS
@@ -137,7 +140,7 @@ class KodingAppsController extends KDController
           callback new Error "There are no apps in the app storage."
 
       if not shortcuts
-        @putDefaultShortcutsToAppStorage =>
+        @putDefaultShortcutsBack =>
           justFetchApps()
       else
         justFetchApps()
@@ -145,7 +148,7 @@ class KodingAppsController extends KDController
   fetchCompiledApp:(manifest, callback)->
 
     {name} = manifest
-    appPath = getAppPath manifest
+    appPath = @getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
       callback err, response
@@ -171,7 +174,7 @@ class KodingAppsController extends KDController
       @appStorage.setValue 'shortcuts', shortcuts, (err)=>
         callback err
 
-  putDefaultShortcutsToAppStorage:(callback)->
+  putDefaultShortcutsBack:(callback)->
 
     shortcuts       =
       Ace           :
@@ -281,12 +284,28 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-          mainView = @getSingleton('mainView')
-          mainView.mainTabView.showPaneByView
-            name         : manifest.name
-            hiddenHandle : no
-            type         : "application"
-          , (appView = new KDView)
+          # mainView = @getSingleton('mainView')
+          # mainView.mainTabView.showPaneByView
+          #   name         : manifest.name
+          #   hiddenHandle : no
+          #   type         : "application"
+          # , (appView = new KDView)
+
+          @propagateEvent
+            KDEventType     : 'ApplicationWantsToBeShown'
+            globalEvent     : yes
+          ,
+            options         :
+              name          : manifest.name
+              hiddenHandle  : no
+              type          : 'application'
+            data            : appView = new KDView
+
+          appView.on 'ViewClosed', =>
+            @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : appView
+            appManager.removeOpenTab appView
+            appView.destroy()
+
           try
             # security please!
             do (appView)->
@@ -324,7 +343,7 @@ class KodingAppsController extends KDController
     @getAppScript manifest, (appScript)=>
 
       manifest        = @constructor.manifests[appName]
-      userAppPath     = getAppPath manifest
+      userAppPath     = @getAppPath manifest
       options         =
         kiteName      : "applications"
         method        : "publishApp"
@@ -387,7 +406,7 @@ class KodingAppsController extends KDController
 
     compileOnServer = (app)=>
       return warn "#{name}: No such application!" unless app
-      appPath = getAppPath app
+      appPath = @getAppPath app
 
       loader = new KDNotificationView
         duration : 18000
@@ -434,7 +453,7 @@ class KodingAppsController extends KDController
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
-      @kiteController.run "test -d #{escapeFilePath getAppPath @constructor.manifests[name]}", (err)=>
+      @kiteController.run "test -d #{escapeFilePath @getAppPath @constructor.manifests[name]}", (err)=>
         if err
           new KDNotificationView
             title    : "App list is out-dated, refreshing apps..."
@@ -472,7 +491,7 @@ class KodingAppsController extends KDController
                   method        : "installApp"
                   withArgs      :
                     owner       : acc.profile.nickname
-                    appPath     : getAppPath app.manifest
+                    appPath     : @getAppPath app.manifest
                     appName     : app.manifest.name
                     version     : version
                 # log "asking kite to install", options
@@ -523,7 +542,7 @@ class KodingAppsController extends KDController
                   name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
                   manifestStr = defaultManifest type, name
                   manifest    = JSON.parse manifestStr
-                  appPath     = getAppPath manifest
+                  appPath     = @getAppPath manifest
 
                   FSItem.doesExist appPath, (err, exists)=>
                     if exists
@@ -570,7 +589,7 @@ class KodingAppsController extends KDController
     name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
     manifestStr = defaultManifest type, name
     manifest    = JSON.parse manifestStr
-    appPath     = getAppPath manifest
+    appPath     = @getAppPath manifest
     # log manifestStr
 
     FSItem.create appPath, "folder", (err, fsFolder)=>
@@ -635,7 +654,7 @@ class KodingAppsController extends KDController
         withArgs    :
           owner     : manifest.authorNick
           appName   : manifest.name
-          appPath   : getAppPath manifest
+          appPath   : @getAppPath manifest
           version   : manifest.version
       , (err, res)=>
         if err

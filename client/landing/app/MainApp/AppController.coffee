@@ -13,4 +13,4 @@ class AppController extends KDViewController
     @showContentDisplay tag, callback
 
   handleQuery:(query)->
-    @feedController?.handleQuery? query
+    @ready => @feedController?.handleQuery? query

@@ -264,7 +264,6 @@ class LoginView extends KDScrollView
     {kodingenUser} = formData
     formData.agree = 'on'
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-      log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
@@ -277,6 +276,7 @@ class LoginView extends KDScrollView
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
+        KD.getSingleton('router').clear()
         setTimeout =>
           @animateToForm "login"
           @registerForm.reset()
@@ -335,14 +335,14 @@ class LoginView extends KDScrollView
 
   headBannerShowRecovery:(recoveryToken)->
 
-    @showHeadBanner "Hi, it seems you have a recovery token for your account. <span>Just click here when you ready!</span>", =>
+    @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
       @getSingleton('router').clear '/Recover/Password'
       @headBanner.updatePartial "You can now create a new password for your account"
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
   headBannerShowInvitation:(invite)->
-    @showHeadBanner "Great, you received an invite! <span>Just click here when you ready</span>", =>
+    @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
       @getSingleton('router').clear '/Register'
       $('body').removeClass 'recovery'

@@ -19,16 +19,17 @@ class StatusActivityItemView extends ActivityItemChild
     else
       @embedBox = new KDView
 
-  attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body > span.data > a").each (i,element)=>
+  attachTooltipAndEmbedInteractivity:->
+    @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      unless /^(#!)/.test href
+      if $(element).attr("target") is "_blank"
         $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
       element
+
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -97,10 +98,8 @@ class StatusActivityItemView extends ActivityItemChild
 
     super
 
-    # if $(event.target).is("[data-paths~=body]")
     # if $(event.target).is("span.type-icon")
     #   KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-      #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
 

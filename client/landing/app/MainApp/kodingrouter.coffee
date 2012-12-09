@@ -75,7 +75,7 @@ class KodingRouter extends KDRouter
 
   getDefaultRoute:-> '/Activity'
 
-  setPageTitle:(title="Koding")-> document.title = title
+  setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
   getContentTitle:(model)->
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
@@ -110,7 +110,7 @@ class KodingRouter extends KDRouter
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
-    ({name, topicSlug}, state, route)=>
+    ({params:{name, slug}}, state, route)=>
       contentDisplay = @openRoutes[route]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
@@ -120,7 +120,7 @@ class KodingRouter extends KDRouter
         if state?
           @openContent name, section, state, route
         else
-          @loadContent name, section, topicSlug, route
+          @loadContent name, section, slug, route
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -136,14 +136,30 @@ class KodingRouter extends KDRouter
     mainController = KD.getSingleton 'mainController'
 
     content = createLinks(
-      'Activity Apps Groups Members Topics'
+      # 'Activity Apps Groups Members Topics'
+      'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
     section = createLinks(
-      'Account Activity Apps Groups Members StartTab Topics'
+      # 'Account Activity Apps Groups Members StartTab Topics'
+      'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
+
+    clear = @bound 'clear'
+
+    requireLogin =(fn)->
+      mainController.accountReady ->
+        # console.log 'faafafaf'
+        if KD.isLoggedIn() then fn()
+        else clear()
+
+    requireLogout =(fn)->
+      mainController.accountReady ->
+        # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
+        unless KD.isLoggedIn() then fn()
+        else clear()
 
     routes =
 
@@ -151,11 +167,16 @@ class KodingRouter extends KDRouter
       ''  : handleRoot
 
       # verbs
-      '/:name?/Login'     : ({params:{name}})-> mainController.doLogin name
-      '/:name?/Logout'    : ({params:{name}})-> mainController.doLogout name; @clear()
-      '/:name?/Register'  : ({params:{name}})-> mainController.doRegister name
-      '/:name?/Join'      : ({params:{name}})-> mainController.doJoin name
-      '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
+      '/:name?/Login'     : ({params:{name}})->
+        requireLogout -> mainController.doLogin name
+      '/:name?/Logout'    : ({params:{name}})->
+        requireLogin -> mainController.doLogout name; clear()
+      '/:name?/Register'  : ({params:{name}})->
+        requireLogout -> mainController.doRegister name
+      '/:name?/Join'      : ({params:{name}})->
+        requireLogout -> mainController.doJoin name
+      '/:name?/Recover'   : ({params:{name}})->
+        requireLogout -> mainController.doRecover name
 
       # section
       '/:name?/Groups'                  : section.Groups
@@ -230,7 +251,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            when 'JGroup'   then content.Groups  routeInfo, model
+            # when 'JGroup'   then content.Groups  routeInfo, model
             when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 

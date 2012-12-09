@@ -20,10 +20,12 @@ class MainController extends KDController
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
-      KD.registerSingleton "bottomPanelController", new BottomPanelController
+      #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
     @setFailTimer()
     @putGlobalEventListeners()
+
+    @accountReadyState = 0
 
   appReady:do ->
     applicationIsReady = no
@@ -57,7 +59,12 @@ class MainController extends KDController
       group: 'koding', user: KD.whoami().profile.nickname
     }
 
+  accountReady:(fn)->
+    if @accountReadyState > 0 then fn()
+    else @once 'AccountChanged', fn
+
   accountChanged:(account)->
+    @accountReadyState = 1
 
     connectedState.connected = yes
 
@@ -75,7 +82,7 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
-    unless @router? then do =>
+    unless @router?
       @router = new KodingRouter location.pathname
       KD.registerSingleton 'router', @router
 
@@ -152,7 +159,6 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      console.log pageInfo
       if pageInfo.path
         @router.handleRoute pageInfo.path
       else if pageInfo.isWebTerm

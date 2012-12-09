@@ -4,14 +4,12 @@ class ProfileLinkView extends LinkView
 
     super options, data
 
-    # nickname = data?.profile?.nickname
-    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
   render:->
 
     nickname = @getData().profile?.nickname
-    @$().attr "href","/#!/member/#{nickname}"  if nickname
+    @$().attr "href", "/#{nickname}"  if nickname
     super
 
   pistachio:->
