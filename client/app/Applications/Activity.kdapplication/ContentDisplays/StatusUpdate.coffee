@@ -42,17 +42,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
-  attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body > span.data > a").each (i,element)=>
-      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
-
-      twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
-
-      unless /^(#!)/.test href
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
-      element
-
+  attachTooltipAndEmbedInteractivity: CommentListItemView::attachTooltipAndEmbedInteractivity
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -105,21 +95,21 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
         commentController.instantiateListItems comments
 
   applyTextExpansions:(str = "")->
-    link = @getData().link?.link_url
-    if link
+    # link = @getData().link?.link_url
+    # if link
 
-      links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      if links?
-        hasManyLinks = links.length > 1
-      else
-        hasManyLinks = no
+    #   links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+    #   if links?
+    #     hasManyLinks = links.length > 1
+    #   else
+    #     hasManyLinks = no
 
-      isJustOneLink = str.trim() is link
-      endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
-      startsWithLink = str.trim().indexOf(link) is 0
+    #   isJustOneLink = str.trim() is link
+    #   endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
+    #   startsWithLink = str.trim().indexOf(link) is 0
 
-      if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
-        str = str.replace link, ""
+    #   if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
+    #     str = str.replace link, ""
 
     str = @utils.applyTextExpansions str, yes
 

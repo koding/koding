@@ -1,4 +1,4 @@
-class Ace12345 extends KDController
+class AceAppController extends KDController
 
   constructor:->
 
@@ -32,11 +32,11 @@ class Ace12345 extends KDController
 
   openFile:(file)->
 
-    unless @isFileOpen file
-      @bringToFront new AceView {}, file
-    else
+    if @isFileOpen file
       # check if this is possible with appManager
       @getSingleton("mainView").mainTabView.showPane @aceViews[file.path].parent
+    else
+      @bringToFront new AceView {}, file
 
 
   removeOpenDocument:(doc)->
@@ -49,11 +49,7 @@ class Ace12345 extends KDController
 
   setViewListeners:(view)->
 
-    @listenTo
-      KDEventTypes       : 'ViewClosed',
-      listenedToInstance : view
-      callback           : (doc)=> @removeOpenDocument doc
-
+    view.on 'ViewClosed', => @removeOpenDocument view
     @setFileListeners view.getData()
 
   setFileListeners:(file)->
@@ -61,7 +57,6 @@ class Ace12345 extends KDController
     view = @aceViews[file.path]
 
     file.on "fs.saveAs.finished", (newFile, oldFile)=>
-
       if @aceViews[oldFile.path]
         view = @aceViews[oldFile.path]
         @clearFileRecords view

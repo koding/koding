@@ -2,6 +2,7 @@
 jraphical = require 'jraphical'
 CActivity = require './activity'
 JAccount  = require './account'
+KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
 
@@ -39,7 +40,7 @@ module.exports = class JTag extends jraphical.Module
       static        : [
         'one','on','some','create' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
-        'cursor','cursorWithRelationship','fetchMyFollowees'
+        'cursor','cursorWithRelationship','fetchMyFollowees','each'
         ]
     schema          :
       title         :
@@ -90,7 +91,7 @@ module.exports = class JTag extends jraphical.Module
 
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
-    if delegate.checkFlag 'super-admin'
+    if delegate.checkFlag ['super-admin', 'editor']
       modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
       JTag.one modifiedTag, (err, tag)=>
         if tag

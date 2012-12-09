@@ -43,7 +43,8 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion'
+        'byRelevance', 'fetchVersion','reserveNames'
+        'impersonate'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -161,6 +162,37 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @impersonate = secure (client, nickname, callback)->
+    {connection:{delegate}, sessionToken} = client
+    unless delegate.can 'administer accounts'
+      callback new KodingError 'Access denied!'
+    else
+      JSession = require './session'
+      JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
+
+  @reserveNames =(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+    options.limit ?= 100
+    options.skip ?= 0
+    JName = require './name'
+    @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
+      if err then callback err
+      else
+        count = 0
+        cursor.each (err, account)=>
+          if err then callback err
+          else if account?
+            {nickname} = account.profile
+            JName.claim nickname, 'JUser', 'profile.nickname', (err, name)=>
+              count++
+              if err then callback err
+              else
+                callback err, nickname
+                if count is options.limit
+                  options.skip += options.limit
+                  @reserveNames options, callback
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
@@ -337,9 +369,16 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flag)->
+  checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
-    flags and (flag in flags)
+    if flags
+      if 'string' is typeof flag
+        return flagToCheck in flags
+      else
+        for flag in flagToCheck
+          if flag in flags
+            return yes
+    no
 
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
 
@@ -351,7 +390,7 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users'
+      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users', 'administer accounts'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->

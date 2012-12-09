@@ -1,0 +1,4 @@
+#!/bin/sh
+PHP_FCGI_MAX_REQUESTS=250
+export PHP_FCGI_MAX_REQUESTS
+exec /usr/bin/php-cgi

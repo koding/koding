@@ -1,7 +1,0 @@
-#!/bin/sh
-
-cwd=`pwd`
-
-cd "`dirname "$0"`"
-/usr/bin/env php tests/runner.php --verbose pbsSystemProcessTests tests/systemProcessTests.php
-cd "$cwd"

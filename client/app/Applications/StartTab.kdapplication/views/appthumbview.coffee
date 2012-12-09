@@ -69,16 +69,53 @@ class StartTabAppThumbView extends KDCustomHTMLView
           """
       click    : -> no
 
-    @delete = new KDView
+    @delete = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon delete"
+      tooltip  :
+        title  : "Click to delete"
+      click    : =>
+        @delete.hideTooltip()
+        @deleteModal = new KDModalView
+          title          : "Delete App"
+          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Delete       :
+              style      : "modal-clean-red"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : => @appDeleteCall manifest
 
     @setClass "dev-mode" if @getData().devMode
+
+  appDeleteCall:(manifest)->
+    finder = @getSingleton("finderController").treeController
+    apps   = @getSingleton("kodingAppsController")
+    path   = FSHelper.escapeFilePath apps.getAppPath manifest.path
+
+    # Re-write this with Finder when we make Finder a bit powerful
+    @getSingleton("kiteController").run "rm -r #{path}"
+    , (err, res)=>
+      unless err
+        finder.refreshFolder finder.nodes["/Users/#{KD.whoami().profile.nickname}/Applications"]
+        apps.refreshApps =>
+          @deleteModal.destroy()
+      else
+        new KDNotificationView
+          title    : "An error occured while deleting the App!"
+          type     : 'mini'
+          cssClass : 'error'
+        @deleteModal.destroy()
 
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
 
-  click : (event)->
+  click:(event)->
 
     return if $(event.target).closest('.icon-container').length > 0
     manifest = @getData()
@@ -121,6 +158,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
     @img.$().attr "src", "/images/icn-appcatalog.png"
 
     @compile = new KDView
+    @delete = new KDView
 
   click : (event)->
 
@@ -143,33 +181,16 @@ class AppShortcutButton extends StartTabAppThumbView
     @img.$().attr "src", "/images/#{data.icon}"
 
     @compile = new KDView
-    @delete  = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "icon delete"
-      tooltip  :
-        title  : "Click to delete"
-      click    : =>
-        @delete.hideTooltip()
-        modal = new KDModalView
-          title          : "Delete App"
-          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Delete       :
-              style      : "modal-clean-red"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                @showLoader()
-                @getSingleton("kodingAppsController").removeShortcut data.name, (err)=>
-                  modal.buttons.Delete.hideLoader()
-                  modal.destroy()
-                  @hideLoader()
-                  if not err then @destroy()
 
-  click : (event)->
+  appDeleteCall:({name})->
+    @showLoader()
+    @getSingleton("kodingAppsController").removeShortcut name, (err)=>
+      @deleteModal.buttons.Delete.hideLoader()
+      @deleteModal.destroy()
+      @hideLoader()
+      if not err then @destroy()
+
+  click:(event)->
 
     return if $(event.target).closest('.icon-container').length > 0
 
@@ -179,7 +200,5 @@ class AppShortcutButton extends StartTabAppThumbView
     if type is 'koding-app'
       @showLoader()
       appManager.openApplication path, => @hideLoader()
-    # else if type is 'comingsoon'
-    #   new KDNotificationView
-    #     title : 'Coming Soon!'
+
     return no

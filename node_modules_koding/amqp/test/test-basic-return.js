@@ -14,7 +14,7 @@ connection.addListener('ready', function () {
       clearTimeout(fire);
       followup();
     });
-    exchange.publish("", "hello", { mandatory: true, immediate: true });
+    exchange.publish("", "hello", { mandatory: true });
   });
 });
 

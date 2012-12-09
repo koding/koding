@@ -39,8 +39,8 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
-  mixpanel:
-    key : KONFIG.mixpanel.key
+  # mixpanel:
+  #   key : KONFIG.mixpanel.key
 
 koding = new Bongo
   root        : __dirname
@@ -68,13 +68,25 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect ->
+  if KONFIG.misc?.claimGlobalNamesForUsers
+    require('./models/account').reserveNames console.log
+
   if KONFIG.misc?.updateAllSlugs
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'
-      require './models/messages/statusupdate'
+      require './models/app'
       require './models/messages/codesnip'
       require './models/messages/discussion'
       require './models/messages/tutorial'
     ]
+
+  if KONFIG.misc?.debugConnectionErrors then
+    # console.log 'ffaafafafaf'
+    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+    # koding.disconnect ->
+    #   console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+    #   setTimeout ->
+    #     process.exit()
+    #   ,10*1000
 
 console.log 'Koding Social Worker has started.'

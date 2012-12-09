@@ -121,7 +121,8 @@ module.exports = class JPost extends jraphical.Message
             if err
               callback err
             else
-              status.slug = slug
+              status.slug   = slug
+              status.slug_  = slug
               queue.next()
         ->
           status
@@ -218,8 +219,8 @@ module.exports = class JPost extends jraphical.Message
         => @remove -> queue.fin()
       ]
       dash queue, =>
-        @emit 'PostIsDeleted', 1
         callback null
+        @emit 'PostIsDeleted', 1
     else
       callback new KodingError 'Access denied!'
 

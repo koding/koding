@@ -182,6 +182,9 @@ class EmbedBox extends KDView
   getEmbedHiddenItems:->
     @embedHiddenItems
 
+  isHidden:->
+    "embed" in @getEmbedHiddenItems()
+
   setEmbedCache:(cache)->
     unless @embedCache? then @embedCache = []
     for item in cache
@@ -211,7 +214,7 @@ class EmbedBox extends KDView
     if not (item in @embedHiddenItems) then @embedHiddenItems.push item
 
   removeEmbedHiddenItem:(item)->
-    if (item in @getEmbedHiddenItems()) then delete @embedHiddenItems[@embedHiddenItems.indexOf item]
+    if (item in @getEmbedHiddenItems()) then @embedHiddenItems.splice [@embedHiddenItems.indexOf item],1
 
   getRichEmbedWhitelist:->
     [
@@ -289,6 +292,7 @@ class EmbedBox extends KDView
     # if the whole embed should be hidden, no content needs to be prepared
     if ("embed" in @getEmbedHiddenItems())
       unless (options.forceShow is yes)
+        @emit "EmbedIsHidden"
         @hide()
         return no
     else

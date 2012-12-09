@@ -1,4 +1,4 @@
-class Members12345 extends AppController
+class MembersAppController extends AppController
   constructor:(options, data)->
     options = $.extend
       view : mainView = (new MembersMainView cssClass : "content-page members")
@@ -59,6 +59,7 @@ class Members12345 extends AppController
     }, (controller)=>
       @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
+      @emit 'ready'
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'
           @setCurrentViewHeader count

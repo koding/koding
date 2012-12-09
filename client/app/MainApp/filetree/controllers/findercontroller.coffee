@@ -32,18 +32,26 @@ class NFinderController extends KDViewController
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
 
   loadView:(mainView)->
+
     mainView.addSubView @treeController.getView()
     @reset()
+    @viewLoaded = yes
+    @utils.killWait @loadDefaultStructureTimer
+
+
+    # temp hack, if page opens in develop section.
+    @utils.wait 2500, =>
+      @getSingleton("mainView").sidebar._windowDidResize()
 
 #    if @treeController.getOptions().useStorage
 #      appManager.on "AppManagerOpensAnApplication", (appInst)=>
-#        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
+#        if appInst instanceof StartTabAppController and not @defaultStructureLoaded
 #          @loadDefaultStructure()
 
-    if @treeController.getOptions().useStorage
-      @loadDefaultStructure()
+    # if @treeController.getOptions().useStorage
+    #   @loadDefaultStructure()
 
-  reset:->
+  reset:()->
 
     delete @_storage
     {initialPath} = @treeController.getOptions() # not used, fix this
@@ -63,7 +71,10 @@ class NFinderController extends KDViewController
     @treeController.initTree [@mount]
 
     if @treeController.getOptions().useStorage
-      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+      unless @viewLoaded
+        @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+          @loadDefaultStructure()
+      else
         @loadDefaultStructure()
 
   loadDefaultStructure:->
