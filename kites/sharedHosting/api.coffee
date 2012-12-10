@@ -34,10 +34,19 @@ module.exports = new Kite 'sharedHosting'
     mounter.readMountInfo options, (err, res)->
       if err then callback err
       else
-        for mount,i in res
-          delete mount.remotepass
-          res[i] = mount
-        callback err, res
+        updateEntries = (entries, index)=>
+          if index == entries.length
+            callback err, entries
+          else
+            delete entries[index].remotepass
+            mounter.checkMountPoint
+              username   : options.username
+              remotehost : entries[index].remotehost
+            , (error, state)->
+              entries[index].mounted = if error then error else state.mounted
+              updateEntries entries, index + 1
+
+        updateEntries res, 0
 
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
