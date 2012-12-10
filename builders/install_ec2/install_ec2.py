@@ -53,18 +53,18 @@ def getVolumeStatus(id):
         return id
 
 def getInstanceStatus(id):
-    reservations = ec2.get_all_instances()
-    instances = [i for r in reservations for i in r.instances]
-    for i in instances:
-        if i.id == id:
-            if i._state.name != 'running':
-                #sys.stdout.write('deploying...\n')
-                sleep(1)
-                getInstanceStatus(id)
-            else:
-                #sys.stdout.write(i.__dict__['public_dns_name']+"\n")
-                #sys.stdout.write(i.__dict__['private_ip_address']+"\n")
-                return True
+    reservations = ec2.get_all_instances(filters={"instance-id":id})
+    instance = [i for r in reservations for i in r.instances][0]
+    while True:
+        if instance.state != 'running':
+            sys.stdout.write('deploying... %s\n' % instance.state)
+            sleep(1)
+            instance.update()
+            continue
+        else:
+            #sys.stdout.write(i.__dict__['public_dns_name']+"\n")
+            #sys.stdout.write(i.__dict__['private_ip_address']+"\n")
+            return True
 
 def getSystemAddr(id):
 
