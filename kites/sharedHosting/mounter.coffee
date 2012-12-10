@@ -107,7 +107,7 @@ mounter =
       else
         uid = res.trim()
         log.info "[OK] user ID for user #{username} is #{uid}"
-        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}" 
+        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
         @createMountpoint options, (err,res)=>
           if err
             callback err
@@ -122,20 +122,19 @@ mounter =
                     callback err
                   else
                     @updateMountCfg options,(err,res)->
-                    callback null,res 
+                    callback null,res
 
-  checkMountpoint : (options, callback)->
+  checkMountPoint : (options, callback)->
     #
     # this method checks if remount host mounted (it doesn't check for availability)
     #
     #
-    
+
     #
     # return =
     #   mounted: Bool # true/false
     #   remotehost: String # remote FTP/SFTP hostname
     #   mountpoint: Strint # full path to the mountpoint
-
 
     {username, remotehost} = options
 
@@ -159,15 +158,14 @@ mounter =
           mounted: true
           remotehost: remotehost
           mountpoint: options.mountpoint
-        callback res
+        callback null, res
       else
         console.log error = "[ERROR] mountpoing #{options.mountpoint} is not mounted"
         res =
           mounted: false
           remotehost: remotehost
           mountpoint: options.mountpoint
-        callback res
-
+        callback null, res
 
   # Safe
   umountDrive : (options, callback)->
