@@ -1,94 +1,100 @@
 @import "./client/Framework/themes/default/kdfn"
 
 div.kdtooltip
-  background-color transparent
   borderBox()
-  position: absolute
-  top 0
-  left 0
-  width auto
-  height auto
-  min-width 200px
-  min-height 50px
-  overflow visible
-  z-index 9000
+  abs()
+  bg                          color, transparent
+  top                         0
+  left                        0
+  width                       auto
+  height                      auto
+  min-width                   200px
+  min-height                  50px
+  overflow                    visible
+  z-index                     9000
+  vendor                      transition, opacity 0.1s ease-out
 
   div.arrow
     abs()
     sprite()
-    z-index 9002
-    background-color transparent
-    size 15px 15px
+    bg                        color, transparent
+    z-index                   9002
+    size                      15px 15px
 
   div.wrapper
-    padding 5px
-    border 1px solid rgba(0,0,0,0.275)
-    background-color white
-    width 100%
-    height 100%
     rel()
-    min-height 50px
-    min-width 200px
-    z-index 9001
-    vendor box-shadow, 0px 10px 20px 5px rgba(0,0,0,0.15)
+    bg                        color, white
+    vendor box-shadow,        0px 10px 20px 5px rgba(0,0,0,0.15)
+    padding                   5px
+    border                    1px solid rgba(0,0,0,0.275)
+    width                     100%
+    height                    100%
+    min-height                50px
+    min-width                 200px
+    z-index                   9001
 
   &.placement-top
     div.arrow
-      bottom -5px
-      background-position -220px -32px
-
+      bg                      position, -220px -32px
+      bottom                  -5px
     &.direction-right
       div.arrow
-        left 5px
+        left                  5px
     &.direction-left
       div.arrow
-        right 5px
+        right                 5px
     &.direction-center
       div.arrow
-        margin-left -8px
-        left 50%
+        margin-left           -8px
+        left                  50%
 
   &.placement-bottom
     div.arrow
-      top -14px
-      background-position -200px -31px
+      bg                      position, -200px -31px
+      top                     -14px
     &.direction-right
       div.arrow
-        left 5px
+        left                  5px
     &.direction-left
       div.arrow
-        right 5px
+        right                 5px
     &.direction-center
       div.arrow
-        margin-left -8px
-        left 50%
+        margin-left           -8px
+        left                  50%
 
   &.placement-left
     div.arrow
-      right -26px
-      background-position -200px -58px
+      bg                      position, -200px -58px
+      right                   -26px
     &.direction-top
       div.arrow
-        top 5px
+        bottom                5px
     &.direction-bottom
       div.arrow
-        bottom 5px
+        top                   5px
     &.direction-center
       div.arrow
-        top 50%
-        margin-top -8px
+        top                   50%
+        margin-top            -8px
 
   &.placement-right
     div.arrow
-      left -6px
-      background-position -220px -58px
+      bg                      position, -220px -58px
+      left                    -6px
     &.direction-top
       div.arrow
-        top 5px
+        bottom                5px
     &.direction-bottom
       div.arrow
-        bottom 5px
+        top                   5px
     &.direction-center
       div.arrow
-        top 50%
-        margin-top -8px
+        top                   50%
+        margin-top            -8px
+
+  &.out
+    opacity 0
+
+  &.in
+    opacity 1

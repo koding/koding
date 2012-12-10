@@ -709,33 +709,46 @@ class KDView extends KDObject
         # tooltips that are just strings will be handled by t(w)ipsy
         unless o.view
           @$(o.selector)[o.engine] o
+
         # tooltips that provide a view will have their KDTooltip
         else
           mouseOver = no
           @$(o.selector).on 'mouseenter',=>
             mouseOver = yes
-            unless @tooltip?
-              tooltipOptions = $.extend {}, o,
-                delegate : @
-              @tooltip = new KDTooltip tooltipOptions, {}
-              @getSingleton('mainView').addSubView @tooltip
+
+            tooltipOptions = $.extend {}, o,
+              delegate : @
+            @tooltip = new KDTooltip tooltipOptions, {}
+            KDView.appendToDOMBody @tooltip
+
             setTimeout =>
-              if mouseOver then @tooltip.display()
+              if mouseOver
+                @tooltip.display()
+              else
+                @tooltip?.delayedDestroy()
             ,200
+
           @$(o.selector).on 'mouseleave',=>
             mouseOver = no
-            @tooltip.delayedHide()
+            @tooltip.delayedDestroy()
 
 
   getTooltip:(o = {})->
-    o.selector or= null
-    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+    if @tooltip?
+      return @tooltip
+    else
+      o.selector or= null
+      return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
 
-  updateTooltip:(o = {})->
-    o.selector or= null
-    o.title    or= ""
-    @$(o.selector)[0].setAttribute "original-title", o.title
-    @$(o.selector).tipsy "update"
+  updateTooltip:(o = {},view = null)->
+    unless view
+      o.selector or= null
+      o.title    or= ""
+      @$(o.selector)[0].setAttribute "original-title", o.title
+      @$(o.selector).tipsy "update"
+    else
+      if @tooltip?
+        @tooltip.setView view
 
   hideTooltip:(o = {})->
     o.selector or= null

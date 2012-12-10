@@ -26,6 +26,7 @@ class AvatarView extends LinkView
     options.tooltip  or=
       view             : unless options.noTooltip then @avatarPreview else null
       viewCssClass     : 'avatar-tooltip'
+      animate          : yes
       placement         :['top','bottom','right','left'][Math.floor(Math.random()*4)]
       direction         :['left','right','center','top','bottom'][Math.floor(Math.random()*5)]
     options.cssClass = "avatarview #{options.cssClass}"
@@ -158,7 +159,7 @@ class AvatarTooltipView extends KDView
       attributes  :
         href      : '#'
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
-      click       : (event)->
+      click       : (event)=>
         return if @getData().counts.following is 0
         appManager.tell "Members", "createLikedContentDisplay", @getData()
     , @getData()
@@ -171,7 +172,7 @@ class AvatarTooltipView extends KDView
     @template.update()
 
   click:(event)->
-    @getDelegate()?.hideTooltip()
+    # @getDelegate()?.hideTooltip()
 
   decorateFollowButton:(data)->
 

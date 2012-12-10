@@ -1,3 +1,18 @@
+###
+
+  KDTooltip
+
+  A tooltip has a position and a direction, relative to the delegate
+  element it is attached to.
+
+  Valid positioning types are 'top','bottom','left' and 'right'
+  Valid direction types are 'top','bottom','left','right' and 'center'
+
+  Should a tooltip move off-screen, it will be relocated to be fully
+  visible.
+
+###
+
 class KDTooltip extends KDView
   constructor:(options,data)->
 
@@ -13,14 +28,17 @@ class KDTooltip extends KDView
     @setClass options.viewCssClass if options.viewCssClass?
 
     # Wrapper for the view and/or content of the tooltip
-    @wrapper = new KDView
-      cssClass : 'wrapper'
+    @wrapper    = new KDView
+      cssClass  : 'wrapper'
 
     # Arrow Container for Tooltip design arrows
     @arrow = new KDView
       cssClass : 'arrow'
 
-    @hide()
+    if @options.animate
+      @setClass 'out'
+    else
+      @hide()
 
     @mouseOver = no
 
@@ -29,7 +47,7 @@ class KDTooltip extends KDView
 
     @on 'mouseleave', =>
       @mouseOver = no
-      @delayedHide()
+      @delayedDestroy()
 
   setView:(newView)->
     return unless newView
@@ -44,14 +62,25 @@ class KDTooltip extends KDView
   getView:->
     @view
 
-  delayedHide:(timeout=500)->
+  delayedDestroy:(timeout=500)->
     setTimeout =>
       unless @mouseOver
-        @hide()
+        if @options.animate
+          @unsetClass 'in'
+          setTimeout =>
+            @destroy()
+          ,2000
+        else
+          @hide()
+          @destroy()
     ,timeout
 
   display:(o=@options)->
-    @show()
+    if o.animate
+      @show()
+      @setClass 'in'
+    else
+      @show()
     @setPosition(o)
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
@@ -68,62 +97,52 @@ class KDTooltip extends KDView
     boundaryViolations = (coordinates,width,height)=>
       violations = {}
       if coordinates.left < 0
-        violations.left = -(coordinates.left)
-      if coordinates.top < 0
-        violations.top = -(coordinates.top)
+        violations.left   = -(coordinates.left)
+      if coordinates.top  < 0
+        violations.top    = -(coordinates.top)
       if coordinates.left+width > window.innerWidth
-        violations.right = coordinates.left+width-window.innerWidth
+        violations.right  = coordinates.left+width-window.innerWidth
       if coordinates.top+height > window.innerHeight
         violations.bottom = coordinates.top+height-window.innerHeight
       violations
 
     # get default coordinates for tooltip placement
     getCoordsFromPositionValues = (placement,direction)=>
+
+      c =
+        top  : selectorOffset.top
+        left : selectorOffset.left
+
       switch placement
         when 'top'
+          c.top       -= containerHeight+10
           switch direction
-            when 'right'
-              top : selectorOffset.top-containerHeight-10
-              left : selectorOffset.left
             when 'left'
-              top : selectorOffset.top-containerHeight-10
-              left : selectorOffset.left-containerWidth+selectorWidth
-            when 'center','top','bottom'
-              top : selectorOffset.top-containerHeight-10
-              left : selectorOffset.left+(selectorWidth-containerWidth)/2
+              c.left  += selectorWidth-containerWidth
+            when 'center'
+              c.left  += (selectorWidth-containerWidth)/2
         when 'bottom'
+          c.top       += selectorHeight+10
           switch direction
-            when 'right'
-              top : selectorOffset.top+selectorHeight+10
-              left : selectorOffset.left
             when 'left'
-              top : selectorOffset.top+selectorHeight+10
-              left : selectorOffset.left-containerWidth+selectorWidth
-            when 'center','top','bottom'
-              top : selectorOffset.top+selectorHeight+10
-              left : selectorOffset.left+(selectorWidth-containerWidth)/2
+              c.left  += selectorWidth-containerWidth
+            when 'center'
+              c.left  += (selectorWidth-containerWidth)/2
         when 'right'
+          c.left      += selectorWidth+10
           switch direction
             when 'top'
-              top : selectorOffset.top
-              left : selectorOffset.left+selectorWidth+10
-            when 'bottom'
-              top : selectorOffset.top+selectorHeight-containerHeight
-              left : selectorOffset.left+selectorWidth+10
-            when 'center','right','left'
-              top : selectorOffset.top+(selectorHeight-containerHeight)/2
-              left : selectorOffset.left+selectorWidth+10
+              c.top   += selectorHeight-containerHeight
+            when 'center'
+              c.top   += (selectorHeight-containerHeight)/2
         when 'left'
+          c.left      -= containerWidth+25
           switch direction
             when 'top'
-              top : selectorOffset.top
-              left : selectorOffset.left-containerWidth-25
-            when 'bottom'
-              top : selectorOffset.top+selectorHeight-containerHeight
-              left : selectorOffset.left-containerWidth-25
-            when 'center','right','left'
-              top : selectorOffset.top+(selectorHeight-containerHeight)/2
-              left : selectorOffset.left-containerWidth-25
+              c.top   += selectorHeight-containerHeight
+            when 'center'
+              c.top   += (selectorHeight-containerHeight)/2
+      return c
 
     {placement,direction} = positionValues
 
@@ -132,39 +151,40 @@ class KDTooltip extends KDView
     v = boundaryViolations getCoordsFromPositionValues(placement, direction), containerWidth, containerHeight
 
     unless v is {}
-
       if v.top and v.left
-        placement = 'bottom'
-        direction = 'right'
+        placement     = 'bottom'
+        direction     = 'right'
       else if v.top and v.right
-        placement = 'bottom'
-        direction = 'left'
+        placement     = 'bottom'
+        direction     = 'left'
+      else if v.bottom and v.left
+        placement     = 'top'
+        direction     = 'right'
+      else if v.bottom and v.right
+        placement     = 'top'
+        direction     = 'left'
       else if v.top
         if placement in ['left','right']
-          direction = placement
-        placement = 'bottom'
-      else if v.bottom and v.left
-        placement = 'top'
-        direction = 'right'
-      else if v.bottom and v.right
-        placement = 'top'
-        direction = 'left'
+          direction   = placement
+        placement     = 'bottom'
       else if v.bottom
         if placement in ['left','right']
-          direction = placement
-        placement = 'top'
+          direction   = placement
+        placement     = 'top'
       else if v.left
         if placement is 'top'
-          direction = 'top'
-        else if placement is 'bottom'
-          direction = 'bottom'
-        placement = 'right'
+          direction   = 'right'
+        else
+          if placement is 'bottom'
+            direction = 'bottom'
+          placement   = 'right'
       else if v.right
         if placement is 'top'
-          direction = 'top'
-        else if  placement is 'bottom'
-          direction = 'bottom'
-        placement = 'left'
+          direction   = 'left'
+        else
+          if  placement is 'bottom'
+            direction = 'bottom'
+          placement   = 'left'
 
     correctValues =
       coords : getCoordsFromPositionValues placement, direction
@@ -190,10 +210,6 @@ class KDTooltip extends KDView
     # fetch corrected placement and coordinated for positioning
     {coords,placement,direction} = @getCorrectPositionCoordinates o,{placement,direction}
 
-    @$().css
-      left : coords.left
-      top : coords.top
-
     # css classes for arrow positioning
     for placement_ in ['top','bottom','left','right']
       if placement is placement_
@@ -206,6 +222,10 @@ class KDTooltip extends KDView
         @setClass 'direction-'+direction_
       else
         @unsetClass 'direction-'+direction_
+
+    @$().css
+      left : coords.left
+      top : coords.top
 
   viewAppended:->
     super()
