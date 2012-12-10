@@ -20,19 +20,6 @@ import config
 
 
 
-#centos_id     = 'ami-c49030ad' # koding ami (centos)
-centos_id     = 'ami-2f219746' # koding ami (centos)
-
-cloudlinux_id = 'ami-dd02b4b4' # CloudLinux
-#cloudlinux_id = 'ami-7422981d'# HVM
-key_name      = 'koding'
-zone          = 'us-east-1c'
-placement     = 'us-east-1'
-#instance_type = 'm1.small'
-#instance_type = 'm1.large'
-security_groups = ['hosting','admin','nfs']
-#security_groups = ['internal']
-#security_groups = ['smtp']
 
 syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
@@ -42,7 +29,7 @@ syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 #    if r.__dict__['name'] == placement:
 #        location = r
 #        break
-location = get_region(placement,aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
+location = get_region(config.placement,aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
 ec2 = EC2Connection(config.aws_access_key_id, config.aws_secret_access_key,region=location)
 
 
@@ -91,7 +78,7 @@ def getSystemAddr(id):
         return False
 
 def createVolume(size,fqdn):
-    r = ec2.create_volume(size,zone)
+    r = ec2.create_volume(size,config.zone)
     getVolumeStatus(r.id)
     ec2.create_tags([r.id],{"Name":fqdn})
     return  r.id
@@ -109,7 +96,7 @@ def attachVolume(volumeID,instanceID):
 
 
 
-def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
+def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
 
     reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
     if type == "hosting":
@@ -119,11 +106,11 @@ def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
 
     reservation = ec2.run_instances(
         image_id = ami_id,
-        key_name = key_name,
+        key_name = config.key_name,
         instance_type = instance_type,
-        security_groups = security_groups,
+        security_groups = config.security_groups,
         user_data  = user_data,
-        placement = zone,
+        placement = config.zone,
         #block_device_map = bdm,
     )
     ec2.create_tags([reservation.instances[0].id],{"Name":fqdn})
@@ -158,7 +145,7 @@ if __name__ == "__main__":
     if args.type == "hosting":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.type, args.ec2type, cloudlinux_id)
+        id = launchInstance(fqdn, args.type, args.ec2type, config.cloudlinux_id)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
     elif args.type == "webserver" or args.type == "proxy":
