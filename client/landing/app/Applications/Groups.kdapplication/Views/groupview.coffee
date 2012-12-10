@@ -49,7 +49,7 @@ class GroupView extends JView
         # debugger
         event.stopPropagation()
         event.preventDefault()
-        KD.getSingleton('router').handleRoute "#{data.slug}/Activity"
+        KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     , data
 
   pistachio:->
