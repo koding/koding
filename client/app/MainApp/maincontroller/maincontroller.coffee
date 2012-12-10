@@ -15,6 +15,7 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
+    KD.registerSingleton "groupsController", new GroupsController this
 
     @appReady ->
 
@@ -84,6 +85,7 @@ class MainController extends KDController
 
     unless @router?
       @router = new KodingRouter location.pathname
+      @router.on 'GroupChanged', @bound 'setGroup'
       KD.registerSingleton 'router', @router
 
     if KD.checkFlag 'super-admin'

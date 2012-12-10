@@ -27,6 +27,13 @@ class Sidebar extends JView
       mouseenter   : => @animateLeftNavIn()
       mouseleave   : => @animateLeftNavOut()
 
+    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+
+    @currentGroup = new KDCustomHTMLView
+      cssClass    : 'current-group-indicator'
+      pistachio   : "{{#(title)}}"
+    , currentGroupData
+
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -204,6 +211,7 @@ class Sidebar extends JView
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
+      {{> @currentGroup}}
       {{> @nav}}
       <hr>
       {{> @accNav}}

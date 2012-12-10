@@ -20,7 +20,7 @@ module.exports = class CActivity extends jraphical.Capsule
     #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','teasers',
+        'one','some','all','someData','teasers','each'
         'captureSortCounts','addGlobalListener'
       ]
       instance        : ['fetchTeaser']

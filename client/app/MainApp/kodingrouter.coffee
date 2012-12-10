@@ -1,15 +1,15 @@
 class KodingRouter extends KDRouter
+
   constructor:(@defaultRoute)->
     @openRoutes = {}
     @openRoutesById = {}
-    KD.getSingleton('contentDisplayController')
-      .on 'ContentDisplayIsDestroyed', @cleanupRoute.bind @
+    @getSingleton('contentDisplayController')
+      .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
-    # @utils.defer => 
     unless @userRoute
       @handleRoute defaultRoute,
         shouldPushState: yes
@@ -52,6 +52,7 @@ class KodingRouter extends KDRouter
     unless group?
       appManager.openApplication app
     else
+      @emit 'GroupChanged', group
       appManager.tell app, 'setGroup', group
     appManager.tell app, 'handleQuery', query
 
@@ -170,7 +171,7 @@ class KodingRouter extends KDRouter
       '/:name?/Login'     : ({params:{name}})->
         requireLogout -> mainController.doLogin name
       '/:name?/Logout'    : ({params:{name}})->
-        requireLogin => mainController.doLogout name; @clear()
+        requireLogin  -> mainController.doLogout name; clear()
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.doRegister name
       '/:name?/Join'      : ({params:{name}})->

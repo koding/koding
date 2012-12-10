@@ -1,4 +1,4 @@
-class GroupsController extends AppController
+class GroupsAppController extends AppController
 
   constructor:(options, data)->
     options = $.extend

@@ -215,35 +215,6 @@ class ActivityAppController extends AppController
       KD.remote.reviveFromSnapshots data, (err, instances)->
         callback instances
 
-    # # Old code
-    #
-    # appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
-    #   if err
-    #     log '>> error fetching app storage', err
-    #   else
-    #     options.collection = 'activities'
-    #     flags = KD.whoami().globalFlags
-    #     exempt = flags?.indexOf 'exempt'
-    #     exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-    #     $.ajax KD.apiUri+'/1.0'
-    #       data      :
-    #         t       : if exempt then 1 else undefined
-    #         data    : JSON.stringify(_.extend options, selector)
-    #         env     : KD.config.env
-    #       dataType  : 'jsonp'
-    #       success   : (data)->
-    #         KD.remote.reviveFromSnapshots data, (err, instances)->
-    #           # log instances
-    #           callback instances
-
-    # # Unused code from before
-    #
-    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
-    #   if not err and activities?
-    #     callback? activities
-    #   else
-    #     callback()
-
   fetchFeedForHomePage:(callback)->
     # devrim's api
     # should make the selector work
