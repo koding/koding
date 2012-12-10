@@ -16,6 +16,7 @@ import argparse
 import sys
 import route53
 import config
+import os
 
 
 
@@ -113,7 +114,11 @@ def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
         placement = config.zone,
         #block_device_map = bdm,
     )
-    ec2.create_tags([reservation.instances[0].id],{"Name":fqdn})
+    if os.environ.has_key("BUILD_ID"):
+        tags = {"Name":fqdn,"JENKINS_BUILD_ID":os.environ["BUILD_ID"]}
+    else:
+        tags = {"Name":fqdn}
+    ec2.create_tags([reservation.instances[0].id], tags)
     getInstanceStatus(reservation.instances[0].id)
     return reservation.instances[0].id
 
