@@ -107,65 +107,67 @@ mounter =
       else
         uid = res.trim()
         log.info "[OK] user ID for user #{username} is #{uid}"
-        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost}"
+        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}" 
         @createMountpoint options, (err,res)=>
           if err
             callback err
           else
-            options.install = true
-            @tmpNetrc options,(err,res)=>
+            @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
               if err?
-                callback err
+                log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
+                callback error
               else
-                HOME = process.env.HOME
-                process.env.HOME = path.join config.usersPath, username
-                console.log "tmp home for .netrc is #{process.env.HOME}"
-                @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
-                  process.env.HOME = HOME
-                  console.log "home changed back to #{process.env.HOME}"
-                  options.install = false
-                  @tmpNetrc options,(err,res)=>
+                @remountVE options, (err,res)=>
                   if err?
-                    log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
-                    callback error
+                    callback err
                   else
-                    @remountVE options, (err,res)=>
-                      if err?
-                        callback err
-                      else
-                        @updateMountCfg options,(err,res)->
-                        callback null,res
+                    @updateMountCfg options,(err,res)->
+                    callback null,res 
 
-  # Safe
-  tmpNetrc : (options,callback)->
+  checkMountpoint : (options, callback)->
+    #
+    # this method checks if remount host mounted (it doesn't check for availability)
+    #
+    #
+    
+    #
+    # return =
+    #   mounted: Bool # true/false
+    #   remotehost: String # remote FTP/SFTP hostname
+    #   mountpoint: Strint # full path to the mountpoint
 
-    # this method will create .netrc file for curlftpfs
 
-    {username, remotehost, remoteuser, remotepass, install} = options
-    rcPath = escapePath path.join config.usersPath, username, '.netrc'
+    {username, remotehost} = options
 
-    unless safeForUser username, rcPath
-      console.error "User [#{username}] is trying to make something bad: ", rcPath
+    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remotehost
+
+    unless safeForUser username, options.mountpoint
+      console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
       callback "You are not authorized to do this."
       return no
 
-    if install
-      conf = "machine #{remotehost} login #{remoteuser} password #{remotepass}"
-      fs.writeFile rcPath, conf, 'utf-8', (err)->
-        if err?
-          console.error error = "[error] couldn't write .netrc file #{rcPath}: #{err.message}"
-          callback error
-        else
-          console.log info = "[ok] .netc #{rcPath} installed"
-          callback null, info
-    else
-      fs.unlink rcPath, (err)->
-        if err?
-          console.err error = "[ERROR] couldn't remove .netrc file #{rcPath}: #{err.message}"
-          callback error
-        else
-          console.log info = "[OK] .netrc file #{rcPath} has been removed"
-          callback null, info
+    rs = fs.createReadStream '/proc/mounts', flags: 'r'
+    rs.setEncoding()
+    rs.on 'error', (err)->
+      console.error error = "Unexpected error : couldn't retrieve mount info: #{err.message}"
+      callback error
+    rs.on 'data',(data)->
+      if data.indexOf(options.mountpoint) isnt -1
+        console.log "[OK] #{remotehost} is mounted for user #{username}"
+        rs.destroy()
+        res =
+          mounted: true
+          remotehost: remotehost
+          mountpoint: options.mountpoint
+        callback res
+      else
+        console.log error = "[ERROR] mountpoing #{options.mountpoint} is not mounted"
+        res =
+          mounted: false
+          remotehost: remotehost
+          mountpoint: options.mountpoint
+        callback res
+
 
   # Safe
   umountDrive : (options, callback)->
@@ -192,24 +194,24 @@ mounter =
       console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
       callback "You are not authorized to do this."
       return no
-
-    @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
-      if err?
-        log.error error = "[ERROR] can't umount #{options.mountpoint}: #{err}"
-        callback error
-      else
-        log.info info = "[OK] directory #{options.mountpoint} umounted"
-        @remountVE options,(err,res)=>
-          if err
-            callback err
-          else
-            fs.rmdir options.mountpoint, (err)->
-              # not a big issue
-              if err?
-                console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
-              else
-                console.log "mountpoint #{options.mountpoint} has been removed"
-              callback null
+    @spawnWrapper '/sbin/fuser', ['-mk',options.mountpoint],(err,res)=>
+      @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
+        if err?
+          log.error error = "[ERROR] can't umount #{options.mountpoint}: #{err}"
+          callback error
+        else
+          log.info info = "[OK] directory #{options.mountpoint} umounted"
+          @remountVE options,(err,res)=>
+            if err
+              callback err
+            else
+              fs.rmdir options.mountpoint, (err)->
+                # not a big issue
+                if err?
+                  console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
+                else
+                  console.log "mountpoint #{options.mountpoint} has been removed"
+                callback null
 
   # Safe
   readMountInfo: (options, callback)->
@@ -503,11 +505,11 @@ mounter =
 
     wrapper.on 'exit',(code)->
       if code isnt 0
-        log.error err = "[ERROR] command error: #{wrapperErr}"
+        log.error err = "[ERROR] command #{command} error: #{wrapperErr}"
         callback err
       else
         log.info res = wrapperData.toString("utf-8", 0, 12)
-        log.info info = "[OK] command executed successfully output: #{res}"
+        log.info info = "[OK] command #{command} executed successfully output: #{res}"
         callback null, res
 
   # Safe
@@ -553,3 +555,4 @@ mounter =
                 callback err
 
 module.exports = mounter
+
