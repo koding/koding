@@ -715,23 +715,18 @@ class KDView extends KDObject
           mouseOver = no
           @$(o.selector).on 'mouseenter',=>
             mouseOver = yes
+            unless @tooltip?
 
-            tooltipOptions = $.extend {}, o,
-              delegate : @
-            @tooltip = new KDTooltip tooltipOptions, {}
-            KDView.appendToDOMBody @tooltip
-
-            setTimeout =>
-              if mouseOver
-                @tooltip.display()
-              else
-                @tooltip?.delayedDestroy()
-            ,200
+              # create the tooltip and add to body, invisible
+              tooltipOptions  = $.extend {}, o,
+                delegate      : @
+              @tooltip = new KDTooltip tooltipOptions, {}
+              KDView.appendToDOMBody @tooltip
+            @tooltip?.emit 'MouseEnteredAnchor'
 
           @$(o.selector).on 'mouseleave',=>
             mouseOver = no
-            @tooltip.delayedDestroy()
-
+            @tooltip?.emit 'MouseLeftAnchor'
 
   getTooltip:(o = {})->
     if @tooltip?
@@ -754,6 +749,14 @@ class KDView extends KDObject
     o.selector or= null
     @$(o.selector).tipsy "hide"
     @tooltip?.hide()
+
+  removeTooltip:(instance)->
+    if instance
+      @removeSubView instance
+      @tooltip = null
+      delete @tooltip
+    else
+      log 'There was nothing to remove.'
 
   listenWindowResize:->
 

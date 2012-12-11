@@ -41,12 +41,21 @@ class KDTooltip extends KDView
       @hide()
 
     @mouseOver = no
+    @mouseOverAnchor = no
 
     @on 'mouseenter', =>
       @mouseOver = yes
 
     @on 'mouseleave', =>
       @mouseOver = no
+      @delayedDestroy()
+
+    @on 'MouseEnteredAnchor', =>
+      @mouseOverAnchor = yes
+      @delayedDisplay()
+
+    @on 'MouseLeftAnchor', =>
+      @mouseOverAnchor = no
       @delayedDestroy()
 
   setView:(newView)->
@@ -62,17 +71,25 @@ class KDTooltip extends KDView
   getView:->
     @view
 
+  delayedDisplay:(timeout=500)->
+    setTimeout =>
+      if @mouseOverAnchor
+        @display()
+      else
+        @delayedDestroy()
+    ,timeout
+
   delayedDestroy:(timeout=500)->
     setTimeout =>
-      unless @mouseOver
+      unless @mouseOver or @mouseOverAnchor
         if @options.animate
           @unsetClass 'in'
           setTimeout =>
-            @destroy()
+            @getDelegate().removeTooltip @
           ,2000
         else
           @hide()
-          @destroy()
+          @getDelegate().removeTooltip @
     ,timeout
 
   display:(o=@options)->
