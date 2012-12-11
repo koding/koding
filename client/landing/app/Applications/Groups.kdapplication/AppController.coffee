@@ -36,12 +36,21 @@ class GroupsAppController extends AppController
           title             : "All groups"
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
+            {JGroup} = KD.remote.api
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              KD.remote.api.JGroup.byRelevance @_searchValue, options, callback
+              JGroup.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JGroup.streamModels selector, options, callback
-          dataEnd           :-> console.log 'data end', arguments
+              JGroup.streamModels selector, options, callback
+          dataEnd           :({resultsController}, ids)->
+            {JGroup} = KD.remote.api
+            JGroup.fetchMyMemberships ids, (err, groups)->
+              if err then error err
+              else
+                {everything} = resultsController.listControllers
+                everything.forEachItemByIndex groups, ({joinButton})->
+                  joinButton.setState 'Leave'
+                  joinButton.redecorateState()
         following           :
           title             : "Following"
           dataSource        : (selector, options, callback)=>
