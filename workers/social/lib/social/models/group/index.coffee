@@ -15,6 +15,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/joinable'
 
   @share()
 
@@ -30,7 +31,10 @@ module.exports = class JGroup extends Module
     indexes         :
       slug          : 'unique'
     sharedMethods   :
-      static        : ['one','create','each','byRelevance','someWithRelationship','__resetAllGroups']
+      static        : [
+        'one','create','each','byRelevance','someWithRelationship'
+        '__resetAllGroups', 'fetchMyMemberships'
+      ]
       instance      : ['join','leave','fetchPermissions','updatePermissions','modify']
     schema          :
       title         :
@@ -180,8 +184,18 @@ module.exports = class JGroup extends Module
       @update {$set:formData}, callback
   )
 
-  join: secure (client, callback)->
-    callback new KodingError 'JGroup#join is unimplemented'
+  # attachEnvironment:(name, callback)->
+  #   [callback, name] = [name, callback]  unless callback
+  #   name ?= @title
+  #   JEnvironment.one {name}, (err, env)->
+  #     if err then callback err
+  #     else if env?
+  #       @addEnvironment
+  #       callback null, env
+  #     else
+  #       env = new JEnvironment {name}
+  #       env.save (err)->
+  #         if err then callback err
+  #         else callback null
 
-  leave: secure (client, callback)->
-    callback new KodingError 'JGroup#leave is unimplemented'
+

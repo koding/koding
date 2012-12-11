@@ -13,7 +13,7 @@ class GroupView extends JView
       attributes  :
         src       : "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
-    @joinButton = new KDToggleButton
+    @joinButton = new JoinButton
       style           : if data.member then "follow-btn following-topic" else "follow-btn"
       title           : "Join"
       dataPath        : "member"

@@ -241,6 +241,7 @@ Includes =
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
         # GROUPS VIEWS
+        joinButton                    : "./client/app/Applications/Groups.kdapplication/Views/joinbutton.coffee"
         groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
         groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
