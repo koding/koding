@@ -14,6 +14,7 @@
 ###
 
 class KDTooltip extends KDView
+
   constructor:(options,data)->
 
     options = $.extend {}, options,
@@ -21,7 +22,9 @@ class KDTooltip extends KDView
 
     super options,data
 
-    @options = options
+    tooltipInstance = @
+
+    @avoidDestroy = no
 
     # Container for positioning in the viewport
     @setClass 'kdtooltip'
@@ -35,28 +38,31 @@ class KDTooltip extends KDView
     @arrow = new KDView
       cssClass : 'arrow'
 
-    if @options.animate
+    if @getOptions().animate
       @setClass 'out'
     else
       @hide()
 
-    @mouseOver = no
-    @mouseOverAnchor = no
-
     @on 'mouseenter', =>
-      @mouseOver = yes
+      @avoidDestroy = yes
 
     @on 'mouseleave', =>
-      @mouseOver = no
+      @avoidDestroy = no
       @delayedDestroy()
 
     @on 'MouseEnteredAnchor', =>
-      @mouseOverAnchor = yes
+      @avoidDestroy = yes
       @delayedDisplay()
 
     @on 'MouseLeftAnchor', =>
-      @mouseOverAnchor = no
+      @avoidDestroy = no
       @delayedDestroy()
+
+    @on 'ReceivedClickElsewhere', =>
+      @delayedDestroy 0
+
+    KDView.appendToDOMBody @
+    @getSingleton('windowController').addLayer @
 
   setView:(newView)->
     return unless newView
@@ -72,17 +78,18 @@ class KDTooltip extends KDView
     @view
 
   delayedDisplay:(timeout=500)->
-    setTimeout =>
-      if @mouseOverAnchor
+    @utils.killWait @displayTimer
+    @displayTimer = @utils.wait timeout, =>
+      if @avoidDestroy
         @display()
       else
         @delayedDestroy()
-    ,timeout
 
   delayedDestroy:(timeout=500)->
-    setTimeout =>
-      unless @mouseOver or @mouseOverAnchor
-        if @options.animate
+    @utils.killWait @deleteTimer
+    @deleteTimer = @utils.wait timeout, =>
+      unless @avoidDestroy
+        if @getOptions().animate
           @unsetClass 'in'
           setTimeout =>
             @getDelegate().removeTooltip @
@@ -90,9 +97,10 @@ class KDTooltip extends KDView
         else
           @hide()
           @getDelegate().removeTooltip @
-    ,timeout
 
-  display:(o=@options)->
+  display:(o)->
+    unless o
+      o = @getOptions()
     if o.animate
       @show()
       @setClass 'in'
@@ -246,7 +254,7 @@ class KDTooltip extends KDView
 
   viewAppended:->
     super()
-    @setView @options.view
+    @setView @getOptions().view
 
     @setTemplate @pistachio()
     @template.update()

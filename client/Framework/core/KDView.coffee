@@ -482,6 +482,14 @@ class KDView extends KDObject
 
     eventsToBeBound
 
+  bindEvent:($elm, eventName)->
+    [eventName, $elm] = [$elm, @$()] unless eventName
+
+    $elm.bind eventName, (event)=>
+      willPropagateToDOM = @handleEvent event
+      event.stopPropagation() unless willPropagateToDOM
+      yes
+
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
@@ -700,6 +708,7 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
+    o.delegate  or= @ if o.view
     o.viewCssClass or= null
 
     @on "viewAppended", =>
@@ -712,21 +721,21 @@ class KDView extends KDObject
 
         # tooltips that provide a view will have their KDTooltip
         else
-          mouseOver = no
-          @$(o.selector).on 'mouseenter',=>
-            mouseOver = yes
-            unless @tooltip?
+          @bindTooltipEvents o
 
-              # create the tooltip and add to body, invisible
-              tooltipOptions  = $.extend {}, o,
-                delegate      : @
-              @tooltip = new KDTooltip tooltipOptions, {}
-              KDView.appendToDOMBody @tooltip
-            @tooltip?.emit 'MouseEnteredAnchor'
+  bindTooltipEvents:(o)->
+    @bindEvent name for name in ['mouseenter','mouseleave']
 
-          @$(o.selector).on 'mouseleave',=>
-            mouseOver = no
-            @tooltip?.emit 'MouseLeftAnchor'
+    @on 'mouseenter',(event)=>
+      return if o.selector and not $(event.target).is o.selector
+
+      @tooltip ?= new KDTooltip o, {}
+
+      @tooltip?.emit 'MouseEnteredAnchor'
+
+    @on 'mouseleave', (event)=>
+      return if o.seletor and not $(event.target).is o.selector
+      @tooltip?.emit 'MouseLeftAnchor'
 
   getTooltip:(o = {})->
     if @tooltip?
@@ -752,7 +761,8 @@ class KDView extends KDObject
 
   removeTooltip:(instance)->
     if instance
-      @removeSubView instance
+      @getSingleton('windowController').removeLayer instance
+      instance.destroy()
       @tooltip = null
       delete @tooltip
     else

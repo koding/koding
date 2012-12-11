@@ -36,7 +36,8 @@ class AvatarView extends LinkView
     # this needs to be post-super
     if @avatarPreview?
       @on 'TooltipReady', =>
-        @tooltip.getView()?.updateData @getData() if @getData()?.profile.nickname?
+        @utils.wait =>
+          @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
     @bgImg = null
 
