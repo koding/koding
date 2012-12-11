@@ -30,7 +30,7 @@ module.exports =
   debugApi              : true
   processBaseDir        : cwd
   cagefsctl             : "/usr/sbin/cagefsctl"
-  baseMountDir          : "RemoteDrive"
+  baseMountDir          : "RemoteDrives"
   usersMountsFile       : ".mounts"
   ftpfs                 :
     curlftpfs           : '/usr/bin/curlftpfs'
