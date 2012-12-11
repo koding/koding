@@ -101,29 +101,36 @@ mounter =
 
     # fetch user ID for curlftfs command
     @spawnWrapper '/usr/bin/id', ['-u', username], (err,res)=>
-      if err?
+      if err
         log.error error = "[ERROR] Can't find user ID: #{err}"
         callback error
       else
-        uid = res.trim()
-        log.info "[OK] user ID for user #{username} is #{uid}"
-        ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-        @createMountpoint options, (err,res)=>
-          if err
-            callback err
+        @checkMountPoint options, (err, state)=>
+          if state.mounted
+            callback "Mountpoint #{state.mountpoint} already exists"
           else
-            @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
-              if err?
-                log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
-                callback error
+            uid = res.trim()
+            log.info "[OK] user ID for user #{username} is #{uid}"
+            ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
+            @createMountpoint options, (err, res)=>
+              if err
+                callback err
               else
-                @remountVE options, (err,res)=>
-                  if err?
-                    callback err
+                @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
+                  if err
+                    log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
+                    fs.rmdir options.mountpoint, (err)->
+                      log.error err if err
+                      callback error
                   else
-                    @updateMountCfg options,(err,res)->
-                    callback null,res
+                    @remountVE options, (err,res)=>
+                      if err
+                        callback err
+                      else
+                        @updateMountCfg options, (err,res)->
+                        callback null, res
 
+  # Safe
   checkMountPoint : (options, callback)->
     #
     # this method checks if remount host mounted (it doesn't check for availability)
@@ -147,10 +154,12 @@ mounter =
 
     rs = fs.createReadStream '/proc/mounts', flags: 'r'
     rs.setEncoding()
+
     rs.on 'error', (err)->
       console.error error = "Unexpected error : couldn't retrieve mount info: #{err.message}"
       callback error
-    rs.on 'data',(data)->
+
+    rs.on 'data', (data)->
       if data.indexOf(options.mountpoint) isnt -1
         console.log "[OK] #{remotehost} is mounted for user #{username}"
         rs.destroy()
@@ -160,7 +169,7 @@ mounter =
           mountpoint: options.mountpoint
         callback null, res
       else
-        console.log error = "[ERROR] mountpoing #{options.mountpoint} is not mounted"
+        console.log error = "[ERROR] mount point #{options.mountpoint} is not mounted"
         res =
           mounted: false
           remotehost: remotehost
@@ -195,10 +204,10 @@ mounter =
     @spawnWrapper '/sbin/fuser', ['-mk',options.mountpoint],(err,res)=>
       @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
         if err?
-          log.error error = "[ERROR] can't umount #{options.mountpoint}: #{err}"
+          log.error error = "Can't umount #{options.mountpoint}: #{err}"
           callback error
         else
-          log.info info = "[OK] directory #{options.mountpoint} umounted"
+          log.info info = "Directory #{options.mountpoint} umounted"
           @remountVE options,(err,res)=>
             if err
               callback err
@@ -209,7 +218,7 @@ mounter =
                   console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
                 else
                   console.log "mountpoint #{options.mountpoint} has been removed"
-                callback null
+                callback null, info
 
   # Safe
   readMountInfo: (options, callback)->
@@ -287,23 +296,23 @@ mounter =
               jsonConf = JSON.stringify res
               fs.writeFile cfg, jsonConf, 'utf-8',(err)->
                 if err?
-                  log.error error = "[error] couldn't update config #{cfg}: #{err.message}"
+                  log.error error = "Couldn't update config #{cfg}: #{err.message}"
                   callback error
                 else
-                  log.info info = "[ok] config successfully updated"
+                  log.info info = "Config successfully updated"
                   callback null, info
             else
-              log.warn warn = "[WARN] config for #{remotehost} already exists"
+              log.warn warn = "Config for #{remotehost} already exists"
               callback null, warn
       else
         jsonConf = JSON.stringify [newConf]
         fs.writeFile cfg, jsonConf, 'utf-8',(err)->
           if err?
-            log.error error = "[error] couldn't update config #{cfg}: #{err.message}"
+            log.error error = "Couldn't update config #{cfg}: #{err.message}"
             callback error
           else
             fs.chmod cfg,'0600',(err)->
-            log.info info = "[ok] config successfully created"
+            log.info info = "Config successfully created"
             callback null, info
 
   # Safe
@@ -337,10 +346,10 @@ mounter =
         jsonConf = JSON.stringify res
         fs.writeFile cfg, jsonConf, 'utf-8',(err)->
           if err?
-            log.error error = "[ERROR] Couldn't update config #{cfg}: #{err.message}"
+            log.error error = "Couldn't update config #{cfg}: #{err.message}"
             callback error
           else
-            log.info info = "[OK] config successfully updated"
+            log.info info = "Config successfully updated"
             callback null, info
 
   mountSshDriveWithKey: (options, callback)->
@@ -486,10 +495,10 @@ mounter =
     args = ['-m', username]
     @spawnWrapper config.cagefsctl, args ,(err, res)->
       if err?
-        log.error error = "[ERROR] Couldn't remount user's VE - username #{username}: #{stderr}"
+        log.error error = "Couldn't remount user's VE - username #{username}: #{stderr}"
         callback error
       else
-        log.info info = "[OK] user's VE #{username} remounted"
+        log.info info = "User: #{username} virtual environment remounted."
         callback null, info
 
   spawnWrapper : (command, args , callback)->
@@ -503,18 +512,18 @@ mounter =
 
     wrapper.on 'exit',(code)->
       if code isnt 0
-        log.error err = "[ERROR] command #{command} error: #{wrapperErr}"
-        callback err
+        log.error err = "Command #{command} error: #{wrapperErr}"
+        callback wrapperErr.toString("utf-8", 0, 12)
       else
         log.info res = wrapperData.toString("utf-8", 0, 12)
-        log.info info = "[OK] command #{command} executed successfully output: #{res}"
+        log.info info = "Command #{command} executed successfully output: #{res}"
         callback null, res
 
   # Safe
   createMountpoint : (options, callback)->
 
     # create mount point for remote resource
-    # /Users/<username>/RemoteDrive/<remote_hostname>
+    # /Users/<username>/RemoteDrives/<remote_hostname>
 
     # return
     #   callback error
@@ -536,17 +545,17 @@ mounter =
 
     fs.stat mountpoint, (err,stats)->
       if stats
-        log.info info = "[OK] #{mountpoint} already exists"
+        log.info info = "Mountpoint #{mountpoint} already exists"
         callback null, info
       else
         mkdirp mountpoint, 0o0755, (err)->
           if err?
-            log.error error = "[ERROR] Couldn't create mountpoint #{mountpoint}: #{err.message}"
+            log.error error = "Couldn't create mountpoint #{mountpoint}: #{err.message}"
             callback error
           else
             chownr {username, path:mountpoint}, (err)->
               unless err
-                log.info info = "[OK] mountpoint #{mountpoint} created"
+                log.info info = "Mountpoint #{mountpoint} created"
                 callback null, info
               else
                 log.error "An error occured:", err
