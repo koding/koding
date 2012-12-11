@@ -27,13 +27,17 @@ module.exports = new Kite 'sharedHosting'
 
   mountDrive    : (options, callback)-> mounter.mountDrive      options, callback
   umountDrive   : (options, callback)-> mounter.umountDrive     options, callback
-  removeMount   : (options, callback)-> mounter.removeMount     options, callback
   mountFtpDrive : (options, callback)-> mounter.mountFtpDrive   options, callback
+
+  removeMount   : (options, callback)->
+    mounter.umountDrive options, (error, res)->
+      mounter.removeMount options, callback
 
   readMountInfo : (options, callback)->
     mounter.readMountInfo options, (err, res)->
       if err then callback err
       else
+        # Check each entry's mount state and remove password
         updateEntries = (entries, index)=>
           if index == entries.length
             callback err, entries
