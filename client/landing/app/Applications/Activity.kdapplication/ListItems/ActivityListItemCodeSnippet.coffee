@@ -122,6 +122,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "save"
+      tooltip   :
+        title   : 'Save'
       callback  : ->
         new KDNotificationView
           title     : "Currently disabled!"
@@ -136,6 +138,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "open"
+      tooltip   :
+        title   : 'Open'
       callback  : ->
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
@@ -149,6 +153,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "select-all"
+      tooltip   :
+        title   : 'Select All'
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
@@ -161,12 +167,7 @@ class CodeSnippetView extends KDCustomHTMLView
 
   applySyntaxColoring:( syntax = @getData().syntax)->
 
-    # result = hljs.highlightAuto @codeView.getData().content
-    # markup = hljs.fixMarkup result.value, '  '
-    # @codeView.updatePartial markup
-
     snipView  = @
-    # hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     try
       hljs.highlightBlock snipView.codeView.$()[0], '  '
@@ -179,13 +180,6 @@ class CodeSnippetView extends KDCustomHTMLView
     @template.update()
 
     @applySyntaxColoring()
-
-    twOptions = (title) ->
-      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
-
-    @saveButton.$().twipsy twOptions("Save")
-    @copyButton.$().twipsy twOptions("Select all")
-    @openButton.$().twipsy twOptions("Open")
 
   pistachio:->
     """
