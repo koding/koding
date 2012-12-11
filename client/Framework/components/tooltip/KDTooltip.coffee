@@ -22,8 +22,6 @@ class KDTooltip extends KDView
 
     super options,data
 
-    tooltipInstance = @
-
     @avoidDestroy = no
 
     # Container for positioning in the viewport

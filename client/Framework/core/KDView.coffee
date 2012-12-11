@@ -728,9 +728,7 @@ class KDView extends KDObject
 
     @on 'mouseenter',(event)=>
       return if o.selector and not $(event.target).is o.selector
-
       @tooltip ?= new KDTooltip o, {}
-
       @tooltip?.emit 'MouseEnteredAnchor'
 
     @on 'mouseleave', (event)=>
