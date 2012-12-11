@@ -94,7 +94,65 @@ div.kdtooltip
         margin-top            -8px
 
   &.out
-    opacity 0
+    opacity                   0
 
   &.in
-    opacity 1
+    opacity                   1
+
+  &.just-text
+    min-height                5px
+    min-width                 20px
+    max-width                 300px
+    bg                        color, transparent
+
+    div.arrow
+      bg                      color, transparent
+
+    div.wrapper
+      vendor box-shadow,      0 3px 7px rgba(0, 0, 0, 0.25)
+      rounded                 3px
+      bg                      color, rgba(0,0,0,0.85)
+      min-height              5px
+      min-width               20px
+
+      border                  1px solid rgba(0,0,0,0.85)
+      color                   white
+
+      white-space             pre-wrap
+      text-align              center
+
+      font-size               12px
+      font-weight             300
+
+    &.placement-right
+      div.arrow
+        bg                    position, -185px -562px
+        left                  -6px
+      &.direction-center
+        div.arrow
+          top                 50%
+          margin-top          -8px
+    &.placement-left
+      div.arrow
+        bg                    position, -147px -562px
+        right                 -26px
+      &.direction-center
+        div.arrow
+          top                 50%
+          margin-top          -8px
+    &.placement-bottom
+      div.arrow
+        bg                    position, -162px -562px
+        top                   -10px
+      &.direction-center
+        div.arrow
+          margin-left         0px
+          left                50%
+    &.placement-top
+      div.arrow
+        bg                    position, -122px -568px
+        bottom                -13px
+      &.direction-center
+        div.arrow
+          margin-left         0px
+          left                50%

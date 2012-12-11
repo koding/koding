@@ -70,14 +70,16 @@ class KDTooltip extends KDView
     if @wrapper.view?
       @wrapper.removeSubView @wrapper.view
 
-    viewOptions = $.extend {},newView.options, {delegate:@getDelegate()}
-    @view = new newView.constructorName viewOptions, newView.data
+    {options, data, constructorName} = newView
+
+    options.delegate ?= @getDelegate()
+    @view = new constructorName options, data
     @wrapper.addSubView @view
 
   getView:->
     @view
 
-  delayedDisplay:(timeout=500)->
+  delayedDisplay:(timeout = 500)->
     @utils.killWait @displayTimer
     @displayTimer = @utils.wait timeout, =>
       if @avoidDestroy
@@ -85,27 +87,74 @@ class KDTooltip extends KDView
       else
         @delayedDestroy()
 
-  delayedDestroy:(timeout=500)->
+  delayedDestroy:(timeout = 500)->
     @utils.killWait @deleteTimer
     @deleteTimer = @utils.wait timeout, =>
       unless @avoidDestroy
+
         if @getOptions().animate
           @unsetClass 'in'
-          setTimeout =>
+
+          @utils.killWait @animatedDeleteTimer
+          @animatedDeleteTimer = @utils.wait 2000, =>
+
             @getDelegate().removeTooltip @
-          ,2000
+
         else
-          @hide()
           @getDelegate().removeTooltip @
 
-  display:(o)->
-    unless o
-      o = @getOptions()
+  translateCompassDirections:(o)->
+    unless o.placement and o.direction
+      switch o.placement
+        when 'above'
+          o.placement = 'top'
+          switch o.gravity
+            when 'n','s'
+              o.direction = 'center'
+            when 'e','ne','se'
+              o.direction = 'left'
+            when 'w','nw','sw'
+              o.direction = 'right'
+        when 'below'
+          o.placement = 'bottom'
+          switch o.gravity
+            when 'n','s'
+              o.direction = 'center'
+            when 'e','ne','se'
+              o.direction = 'left'
+            when 'w','nw','sw'
+              o.direction = 'right'
+        when 'left'
+          switch o.gravity
+            when 'n','nw','ne'
+              o.direction = 'top'
+            when 'e','w'
+              o.direction = 'left'
+            when 's','sw','se'
+              o.direction = 'bottom'
+        when 'right'
+          switch o.gravity
+            when 'n','ne','nw'
+              o.direction = 'top'
+            when 'e','w'
+              o.direction = 'right'
+            when 'w','se','sw'
+              o.direction = 'bottom'
+    return o
+
+  display:(o = @getOptions())->
+
+    # converts NESW-Values to topbottomleftright and retains them in
+    # @getOptions
+    o = @translateCompassDirections o
+
     if o.animate
       @show()
       @setClass 'in'
+
     else
       @show()
+
     @setPosition(o)
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
@@ -252,9 +301,18 @@ class KDTooltip extends KDView
       left : coords.left
       top : coords.top
 
+  setTitle:(title)->
+    @wrapper.updatePartial title
+
   viewAppended:->
     super()
-    @setView @getOptions().view
+    o = @getOptions()
+
+    if o.view?
+      @setView o.view
+    else
+      @setClass 'just-text'
+      @setTitle o.title
 
     @setTemplate @pistachio()
     @template.update()
@@ -262,7 +320,7 @@ class KDTooltip extends KDView
     if @getDelegate()?
       @getDelegate().emit 'TooltipReady'
     else
-      @parent.emit 'TooltipReady'
+      @parent?.emit 'TooltipReady'
 
   pistachio:->
     """

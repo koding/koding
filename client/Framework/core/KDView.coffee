@@ -708,7 +708,7 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
-    o.delegate  or= @ if o.view
+    o.delegate  or= @
     o.viewCssClass or= null
 
     @on "viewAppended", =>
@@ -716,11 +716,11 @@ class KDView extends KDObject
       @utils.wait =>
 
         # tooltips that are just strings will be handled by t(w)ipsy
-        unless o.view
-          @$(o.selector)[o.engine] o
+        # unless o.view
+        #   @$(o.selector)[o.engine] o
 
-        # tooltips that provide a view will have their KDTooltip
-        else
+        # # tooltips that provide a view will have their KDTooltip
+        # else
           @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
@@ -744,12 +744,14 @@ class KDView extends KDObject
       o.selector or= null
       return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
 
-  updateTooltip:(o = {},view = null)->
+  updateTooltip:(o = @getOptions().tooltip,view = null)->
     unless view
       o.selector or= null
       o.title    or= ""
-      @$(o.selector)[0].setAttribute "original-title", o.title
-      @$(o.selector).tipsy "update"
+      @getOptions().tooltip.title = o.title
+      if @tooltip?
+        @tooltip.setTitle o.title
+        @tooltip.display @getOptions().tooltip
     else
       if @tooltip?
         @tooltip.setView view
