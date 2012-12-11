@@ -106,6 +106,7 @@ class KodingRouter extends KDRouter
         slug = stripTemplate route, konstructor
         selector[usedAsPath] = slug
         konstructor?.one selector, (err, model)=>
+          error err  if err?
           @openContent name, section, model, route
       else
         @handleNotFound route
@@ -142,9 +143,9 @@ class KodingRouter extends KDRouter
       (sec)=> @createContentDisplayHandler sec
     )
 
-    sections = createLinks(
-      'Account Activity Apps Groups Inbox Members StartTab Topics'
-      # 'Account Activity Apps Inbox Members StartTab Topics'
+    section = createLinks(
+      # 'Account Activity Apps Groups Members StartTab Topics'
+      'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -179,24 +180,22 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.doRecover name
 
-      # nouns
-      '/:name?/Groups'                  : sections.Groups
-      '/:name?/Activity'                : sections.Activity
-      '/:name?/Members'                 : sections.Members
-      '/:name?/Topics'                  : sections.Topics
-      '/:name?/Develop'                 : sections.StartTab
-      '/:name?/Apps'                    : sections.Apps
-      '/:name?/Account'                 : sections.Account
-      '/:name?/Inbox'                   : sections.Inbox
+      # section
+      '/:name?/Groups'                  : section.Groups
+      '/:name?/Activity'                : section.Activity
+      '/:name?/Members'                 : section.Members
+      '/:name?/Topics'                  : section.Topics
+      '/:name?/Develop'                 : section.StartTab
+      '/:name?/Apps'                    : section.Apps
+      '/:name?/Account'                 : section.Account
 
-      # content displays:
-      '/:name?/Topics/:slug'            : content.Topics
-      '/:name?/Activity/:slug'          : content.Activity
-      '/:name?/Apps/:slug'              : content.Apps
-      '/:name?/Groups/:slug'            : content.Groups
+      # content
+      '/:name?/Topics/:topicSlug'       : content.Topics
+      '/:name?/Activity/:activitySlug'  : content.Activity
+      '/:name?/Apps/:appSlug'           : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
-        return if recoveryToken is 'Password'
+        return  if recoveryToken is 'Password'
         mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'
