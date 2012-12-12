@@ -77,7 +77,7 @@ class KDTooltip extends KDView
   getView:->
     @view
 
-  delayedDisplay:(timeout = 500)->
+  delayedDisplay:(timeout = @getOptions().delayIn)->
     @utils.killWait @displayTimer
     @displayTimer = @utils.wait timeout, =>
       if @avoidDestroy
@@ -85,11 +85,11 @@ class KDTooltip extends KDView
       else
         @delayedDestroy()
 
-  delayedDestroy:(timeout = 500)->
+  delayedDestroy:(timeout = @getOptions().delayOut)->
     @utils.killWait @deleteTimer
     @deleteTimer = @utils.wait timeout, =>
       unless @avoidDestroy
-
+        # return 1
         if @getOptions().animate
           @unsetClass 'in'
 
@@ -271,6 +271,10 @@ class KDTooltip extends KDView
     placement = o.placement or 'top'
     direction = o.direction or 'right'
 
+    offset =
+      top : o.offset?.top or o.offset or 0
+      left : o.offset?.left or 0
+
     # Correct impossible combinations
     direction =
       if placement in ['top','bottom'] and direction in ['top','bottom']
@@ -296,8 +300,8 @@ class KDTooltip extends KDView
         @unsetClass 'direction-'+direction_
 
     @$().css
-      left : coords.left
-      top : coords.top
+      left : coords.left+offset.left
+      top : coords.top+offset.top
 
   setTitle:(title)->
     @wrapper.updatePartial title

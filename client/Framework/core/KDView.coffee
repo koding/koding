@@ -695,12 +695,13 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
-    o.placement or= "above"
+    o.placement or= "top"
+    o.direction or= "center"
     o.offset    or= 0
     o.delayIn   or= 300
     o.delayOut  or= 300
     o.html      or= yes
-    o.animate   or= no
+    o.animate   or= yes
     o.opacity   or= 0.9
     o.selector  or= null
     o.engine    or= "tipsy" # we still can use twipsy
