@@ -239,7 +239,7 @@ mounter =
     fs.readFile cfg,(err,data)->
       if err?
         log.error error = "[ERROR] Couldn't read config file #{cfg}: #{err.message}"
-        callback error
+        callback null, []
       else
         try
           currentConf = JSON.parse data
@@ -337,13 +337,8 @@ mounter =
         callback err
       else
         index = 0
-        for elem in res
-          if elem.remotehost is not remotehost
-            index+=1
-          else
-            res.splice(index,1)
-            break
-        jsonConf = JSON.stringify res
+        filteredMounts = [mount for mount in res when mount.remotehost isnt remotehost][0]
+        jsonConf = JSON.stringify filteredMounts or ''
         fs.writeFile cfg, jsonConf, 'utf-8',(err)->
           if err?
             log.error error = "Couldn't update config #{cfg}: #{err.message}"
