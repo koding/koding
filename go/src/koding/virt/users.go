@@ -21,6 +21,54 @@ type Group struct {
 	Users map[string]bool
 }
 
+func (vm *VM) MergePasswdFile() {
+	passwdFile := vm.File("overlayfs-upperdir/etc/passwd")
+	users, _ := ReadPasswd(passwdFile) // error ignored
+
+	lowerUsers, err := ReadPasswd("/var/lib/lxc/vmroot/rootfs/etc/passwd")
+	if err != nil {
+		panic(err)
+	}
+	for uid, user := range lowerUsers {
+		users[uid] = user
+	}
+
+	users[1000] = &User{vm.Username(), 1000, "", "/home/" + vm.Username(), "/bin/bash"}
+	err = WritePasswd(users, passwdFile)
+	if err != nil {
+		panic(err)
+	}
+	os.Chown(passwdFile, VMROOT_ID, VMROOT_ID)
+}
+
+func (vm *VM) MergeGroupFile() {
+	groupFile := vm.File("overlayfs-upperdir/etc/group")
+	groups, _ := ReadGroup(groupFile) // error ignored
+
+	lowerGroups, err := ReadGroup("/var/lib/lxc/vmroot/rootfs/etc/group")
+	if err != nil {
+		panic(err)
+	}
+	for gid, group := range lowerGroups {
+		if groups[gid] != nil {
+			for user := range groups[gid].Users {
+				group.Users[user] = true
+			}
+		}
+		if group.Name == "sudo" {
+			group.Users[vm.Username()] = true
+		}
+		groups[gid] = group
+	}
+
+	groups[1000] = &Group{vm.Username(), map[string]bool{vm.Username(): true}}
+	err = WriteGroup(groups, groupFile)
+	if err != nil {
+		panic(err)
+	}
+	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
+}
+
 func ReadPasswd(fileName string) (map[int]*User, error) {
 	f, err := os.Open(fileName)
 	if err != nil {

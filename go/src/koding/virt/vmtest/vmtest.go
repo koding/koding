@@ -20,7 +20,7 @@ func main() {
 	//vm.WritePasswd(users, "out")
 
 	vm.Prepare()
-	vm.Start()
+	//vm.Start()
 	//vm.Stop()
 	//vm.Shutdown()
 }

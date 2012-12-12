@@ -76,6 +76,8 @@ func (vm *VM) File(path string) string {
 	return fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
 }
 
+var DPKG_INFO_EXTENSIONS = []string{".conffiles", ".list", ".md5sums", ".postinst", ".postrm", ".preinst", ".prerm", ".shlibs", ".symbols", ".templates"}
+
 func (vm *VM) Prepare() {
 	// create directories
 	vm.Mkdir("", false)
@@ -96,55 +98,13 @@ func (vm *VM) Prepare() {
 	if err != nil {
 		panic(err)
 	}
-	hostname.Write([]byte(vm.Username() + ".koding.com"))
+	hostname.Write([]byte(vm.Username() + ".koding.com\n"))
 	hostname.Close()
 	os.Chown(hostnameFile, VMROOT_ID, VMROOT_ID)
 
-	// write passwd file
-	passwdFile := vm.File("overlayfs-upperdir/etc/passwd")
-	users, _ := ReadPasswd(passwdFile) // error ignored
-
-	lowerUsers, err := ReadPasswd("/var/lib/lxc/vmroot/rootfs/etc/passwd")
-	if err != nil {
-		panic(err)
-	}
-	for uid, user := range lowerUsers {
-		users[uid] = user
-	}
-
-	users[1000] = &User{vm.Username(), 1000, "", "/home/" + vm.Username(), "/bin/bash"}
-	err = WritePasswd(users, passwdFile)
-	if err != nil {
-		panic(err)
-	}
-	os.Chown(passwdFile, VMROOT_ID, VMROOT_ID)
-
-	// write group file
-	groupFile := vm.File("overlayfs-upperdir/etc/group")
-	groups, _ := ReadGroup(groupFile) // error ignored
-
-	lowerGroups, err := ReadGroup("/var/lib/lxc/vmroot/rootfs/etc/group")
-	if err != nil {
-		panic(err)
-	}
-	for gid, group := range lowerGroups {
-		if groups[gid] != nil {
-			for user := range groups[gid].Users {
-				group.Users[user] = true
-			}
-		}
-		if group.Name == "sudo" {
-			group.Users[vm.Username()] = true
-		}
-		groups[gid] = group
-	}
-
-	groups[1000] = &Group{vm.Username(), map[string]bool{vm.Username(): true}}
-	err = WriteGroup(groups, groupFile)
-	if err != nil {
-		panic(err)
-	}
-	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
+	vm.MergePasswdFile()
+	vm.MergeGroupFile()
+	vm.MergeDpkgDatabase()
 }
 
 func (vm *VM) Mkdir(path string, chown bool) {
