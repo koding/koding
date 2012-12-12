@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -19,12 +20,16 @@ func main() {
 	utils.RunStatusLogger()
 
 	utils.AmqpAutoReconnect("broker", func(consumeConn, publishConn *amqp.Connection) {
+		consumeChannel := utils.CreateAmqpChannel(consumeConn)
+		defer consumeChannel.Close()
+
+		routeMap := make(map[string]([]chan<- interface{}))
+		var routeMapMutex sync.RWMutex
+
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
 
 			socketId := fmt.Sprintf("%x", rand.Int63())
-			clientQueue := "broker-client-" + socketId
-			exchanges := make([]string, 0)
 
 			utils.ChangeNumClients <- 1
 			log.Debug("Client connected: " + socketId)
@@ -33,78 +38,53 @@ func main() {
 				log.Debug("Client disconnected: " + socketId)
 			}()
 
+			addToRouteMap := func(routingKeyPrefix string) {
+				routeMapMutex.Lock()
+				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], sendChan)
+				routeMapMutex.Unlock()
+			}
+			removeFromRouteMap := func(routingKeyPrefix string) {
+				routeMapMutex.Lock()
+				channels := routeMap[routingKeyPrefix]
+				for i, channel := range channels {
+					if channel == sendChan {
+						channels[i] = channels[len(channels)-1]
+						routeMap[routingKeyPrefix] = channels[:len(channels)-1]
+						break
+					}
+				}
+				routeMapMutex.Unlock()
+			}
+
+			subscriptions := make(map[string]bool)
+
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
 
-			err := controlChannel.ExchangeDeclare("private-broker", "topic", true, false, false, false, nil)
+			body, err := json.Marshal(map[string]string{"event": "connected", "socketId": socketId})
 			if err != nil {
 				panic(err)
 			}
-
-			body, err := json.Marshal(map[string]string{"socket_id": socketId})
+			// inform auth endpoint
+			err = controlChannel.Publish("authEndpoint", "connected", false, false, amqp.Publishing{Body: body})
 			if err != nil {
 				panic(err)
 			}
-			err = controlChannel.Publish("private-broker", "connected", false, false, amqp.Publishing{Body: body})
-			if err != nil {
-				panic(err)
-			}
+			// inform client
+			sendChan <- body
 
 			defer func() {
-				body, err = json.Marshal(map[string]interface{}{"socket_id": socketId, "exchanges": exchanges})
+				for routingKeyPrefix := range subscriptions {
+					removeFromRouteMap(routingKeyPrefix)
+				}
+				// inform auth endpoint
+				body, err = json.Marshal(map[string]interface{}{"event": "disconnected", "socketId": socketId})
 				if err != nil {
 					panic(err)
 				}
-				err = controlChannel.Publish("private-broker", "disconnected", false, false, amqp.Publishing{Body: body})
+				err = controlChannel.Publish("authEndpoint", "disconnected", false, false, amqp.Publishing{Body: body})
 				if err != nil {
 					panic(err)
-				}
-				body, err = json.Marshal(map[string]interface{}{"socket_id": socketId})
-				if err != nil {
-					panic(err)
-				}
-				for _, exchange := range exchanges {
-					err = controlChannel.Publish(exchange, "disconnected", false, false, amqp.Publishing{Body: body})
-					if err != nil {
-						panic(err)
-					}
-				}
-			}()
-
-			consumeChannel := utils.CreateAmqpChannel(consumeConn)
-			defer consumeChannel.Close()
-			consumerFinished := make(chan bool)
-			defer close(consumerFinished)
-
-			_, err = consumeChannel.QueueDeclare(clientQueue, false, true, false, false, nil)
-			if err != nil {
-				panic(err)
-			}
-
-			stream, err := consumeChannel.Consume(clientQueue, "", true, false, false, false, nil)
-			if err != nil {
-				panic(err)
-			}
-
-			go func() {
-				defer log.RecoverAndLog()
-				defer func() { consumerFinished <- true }()
-
-				for message := range stream {
-					func() {
-						defer log.RecoverAndLog()
-
-						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "exchange": message.Exchange, "payload": string(message.Body)})
-						if err != nil {
-							panic(err)
-						}
-						select {
-						case sendChan <- string(body):
-							// successful
-						default:
-							log.Warn("Dropped message for client " + socketId)
-						}
-					}()
 				}
 			}()
 
@@ -126,60 +106,42 @@ func main() {
 					}
 					log.Debug(message)
 
-					event := message["event"]
-					exchange := message["exchange"]
-					routingKey := message["routingKey"]
-					if routingKey == "" {
-						routingKey = "#"
-					}
+					action := message["action"]
+					switch action {
+					case "subscribe":
+						routingKeyPrefix := message["routingKeyPrefix"]
+						addToRouteMap(routingKeyPrefix)
+						subscriptions[routingKeyPrefix] = true
 
-					switch event {
-					case "client-bind":
-						err = controlChannel.QueueBind(clientQueue, routingKey, exchange, false, nil)
-						if err != nil {
-							panic(err)
-						}
-						exchanges = append(exchanges, exchange)
-
-						body, err = json.Marshal(map[string]string{"event": "broker:bind_succeeded", "exchange": exchange, "routingKey": routingKey})
+						body, err = json.Marshal(map[string]string{"event": "subscribed", "routingKeyPrefix": routingKeyPrefix})
 						if err != nil {
 							panic(err)
 						}
 						sendChan <- string(body)
 
-					case "client-unbind":
-						err = controlChannel.QueueUnbind(clientQueue, routingKey, exchange, nil)
-						if err != nil {
-							panic(err)
-						}
-						for i, e := range exchanges {
-							if e == exchange {
-								exchanges[i] = exchanges[len(exchanges)-1]
-								exchanges = exchanges[:len(exchanges)-1]
-								break
-							}
-						}
+					case "unsubscribe":
+						routingKeyPrefix := message["routingKeyPrefix"]
+						removeFromRouteMap(routingKeyPrefix)
+						delete(subscriptions, routingKeyPrefix)
 
-					case "client-presence":
-
-					default:
-						if strings.HasPrefix(event, "client-") && strings.HasPrefix(exchange, "secret-") {
-							err := controlChannel.Publish(exchange, event, false, false, amqp.Publishing{Body: []byte(message["payload"])})
+					case "publish":
+						exchange := message["exchange"]
+						routingKey := message["routingKey"]
+						if strings.HasPrefix(routingKey, "client.") {
+							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{Body: []byte(message["payload"])})
 							if err != nil {
 								panic(err)
 							}
-						} else if message["vhost"] != "" {
-							// ignored
 						} else {
-							log.Warn(fmt.Sprintf("Invalid message: %v", message))
+							log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
 						}
+
+					default:
+						log.Warn(fmt.Sprintf("Invalid action: %v", message))
 
 					}
 				}()
 			}
-
-			consumeChannel.Close()
-			<-consumerFinished
 		})
 		defer service.Close()
 
@@ -192,22 +154,45 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		defer listener.Close()
 
 		go func() {
-			for _ = range consumeConn.NotifyClose(make(chan *amqp.Error)) {
-				listener.Close()
+			err = server.Serve(listener)
+			if err != nil {
+				log.Warn("Server error: " + err.Error())
 			}
+			consumeConn.Close()
 		}()
 
-		go func() {
-			for _ = range publishConn.NotifyClose(make(chan *amqp.Error)) {
-				listener.Close()
+		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
+		for message := range stream {
+			routingKey := message.RoutingKey
+			body, err := json.Marshal(map[string]string{"event": routingKey, "exchange": message.Exchange, "payload": string(message.Body)})
+			if err != nil {
+				panic(err)
 			}
-		}()
+			bodyStr := string(body)
 
-		err = server.Serve(listener)
-		if err != nil {
-			log.Warn("Server error: " + err.Error())
+			pos := 0
+			for {
+				index := strings.IndexRune(routingKey[pos:], '.')
+				if index == -1 {
+					break
+				}
+				pos += index
+				prefix := routingKey[:pos]
+				routeMapMutex.RLock()
+				channels := routeMap[prefix]
+				routeMapMutex.RUnlock()
+				for _, channel := range channels {
+					select {
+					case channel <- bodyStr:
+						// successful
+					default:
+						log.Warn("Dropped message")
+					}
+				}
+			}
 		}
 	})
 }
