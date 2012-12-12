@@ -164,40 +164,35 @@ func main() {
 			consumeConn.Close()
 		}()
 
-		utils.DeclareAmqpExchange(consumeChannel, "broker")
-		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "", "#", "broker", true)
+		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
 		for message := range stream {
-			func() {
-				defer log.RecoverAndLog()
+			routingKey := message.RoutingKey
+			body, err := json.Marshal(map[string]string{"event": routingKey, "exchange": message.Exchange, "payload": string(message.Body)})
+			if err != nil {
+				panic(err)
+			}
+			bodyStr := string(body)
 
-				routingKey := message.RoutingKey
-				body, err := json.Marshal(map[string]string{"event": routingKey, "exchange": message.Exchange, "payload": string(message.Body)})
-				if err != nil {
-					panic(err)
+			pos := 0
+			for {
+				index := strings.IndexRune(routingKey[pos:], '.')
+				if index == -1 {
+					break
 				}
-				bodyStr := string(body)
-
-				pos := 0
-				for {
-					index := strings.IndexRune(routingKey[pos:], '.')
-					if index == -1 {
-						break
-					}
-					pos += index
-					prefix := routingKey[:pos]
-					routeMapMutex.RLock()
-					channels := routeMap[prefix]
-					routeMapMutex.RUnlock()
-					for _, channel := range channels {
-						select {
-						case channel <- bodyStr:
-							// successful
-						default:
-							log.Warn("Dropped message for client")
-						}
+				pos += index
+				prefix := routingKey[:pos]
+				routeMapMutex.RLock()
+				channels := routeMap[prefix]
+				routeMapMutex.RUnlock()
+				for _, channel := range channels {
+					select {
+					case channel <- bodyStr:
+						// successful
+					default:
+						log.Warn("Dropped message")
 					}
 				}
-			}()
+			}
 		}
 	})
 }
