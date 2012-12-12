@@ -76,7 +76,13 @@ func (vm *VM) File(path string) string {
 	return fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
 }
 
-var DPKG_INFO_EXTENSIONS = []string{".conffiles", ".list", ".md5sums", ".postinst", ".postrm", ".preinst", ".prerm", ".shlibs", ".symbols", ".templates"}
+func (vm *VM) UpperdirFile(path string) string {
+	return vm.File("overlayfs-upperdir/" + path)
+}
+
+func LowerdirFile(path string) string {
+	return "/var/lib/lxc/vmroot/rootfs/" + path
+}
 
 func (vm *VM) Prepare() {
 	// create directories
@@ -93,7 +99,7 @@ func (vm *VM) Prepare() {
 	vm.GenerateFile("fstab", false)
 
 	// write hostname file
-	hostnameFile := vm.File("overlayfs-upperdir/etc/hostname")
+	hostnameFile := vm.UpperdirFile("/etc/hostname")
 	hostname, err := os.Create(hostnameFile)
 	if err != nil {
 		panic(err)

@@ -22,10 +22,10 @@ type Group struct {
 }
 
 func (vm *VM) MergePasswdFile() {
-	passwdFile := vm.File("overlayfs-upperdir/etc/passwd")
+	passwdFile := vm.UpperdirFile("/etc/passwd")
 	users, _ := ReadPasswd(passwdFile) // error ignored
 
-	lowerUsers, err := ReadPasswd("/var/lib/lxc/vmroot/rootfs/etc/passwd")
+	lowerUsers, err := ReadPasswd(LowerdirFile("/etc/passwd"))
 	if err != nil {
 		panic(err)
 	}
@@ -42,10 +42,10 @@ func (vm *VM) MergePasswdFile() {
 }
 
 func (vm *VM) MergeGroupFile() {
-	groupFile := vm.File("overlayfs-upperdir/etc/group")
+	groupFile := vm.UpperdirFile("/etc/group")
 	groups, _ := ReadGroup(groupFile) // error ignored
 
-	lowerGroups, err := ReadGroup("/var/lib/lxc/vmroot/rootfs/etc/group")
+	lowerGroups, err := ReadGroup(LowerdirFile("/etc/group"))
 	if err != nil {
 		panic(err)
 	}

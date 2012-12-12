@@ -3,6 +3,7 @@ package virt
 import (
 	"bufio"
 	"crypto/md5"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,8 +15,24 @@ type Package struct {
 	Values map[string]string
 }
 
+var DPKG_INFO_EXTENSIONS = []string{"conffiles", "list", "md5sums", "postinst", "postrm", "preinst", "prerm", "shlibs", "symbols", "templates"}
+
+func (pkg *Package) ID() string {
+	name := strings.TrimSpace(pkg.Values["Package"])
+	multiArch := strings.TrimSpace(pkg.Values["Multi-Arch"])
+	if multiArch == "same" {
+		arch := strings.TrimSpace(pkg.Values["Architecture"])
+		return name + ":" + arch
+	}
+	return name
+}
+
+func (pkg *Package) InfoFile(extension string) string {
+	return fmt.Sprintf("/var/lib/dpkg/info/%s.%s", pkg.ID(), extension)
+}
+
 func (vm *VM) MergeDpkgDatabase() {
-	dpkgStatusFile := vm.File("overlayfs-upperdir/var/lib/dpkg/status")
+	dpkgStatusFile := vm.UpperdirFile("/var/lib/dpkg/status")
 	upperPackages, err := ReadDpkgStatus(dpkgStatusFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -25,7 +42,7 @@ func (vm *VM) MergeDpkgDatabase() {
 		}
 	}
 
-	lowerPackages, err := ReadDpkgStatus("/var/lib/lxc/vmroot/rootfs/var/lib/dpkg/status")
+	lowerPackages, err := ReadDpkgStatus(LowerdirFile("/var/lib/dpkg/status"))
 	if err != nil {
 		panic(err)
 	}
@@ -34,52 +51,63 @@ func (vm *VM) MergeDpkgDatabase() {
 	for name, lowerPkg := range lowerPackages {
 		upperPkg, found := upperPackages[name]
 		if found && upperPkg.Values["Version"] != lowerPkg.Values["Version"] {
-			trimmedName := strings.TrimSpace(name)
 			conffiles := make(map[string]string)
 
-			//upperPkg["Conffiles"]
-
-			// delete package files from overlay
-			list, err := ioutil.ReadFile(vm.File("overlayfs-upperdir/var/lib/dpkg/info/" + trimmedName + ".list"))
-			if err != nil {
-				panic(err)
-			} else {
-				files := strings.Split(string(list), "\n")
-				for _, file := range files {
-					originalHash, found := conffiles[file]
-					if found {
-						hash := md5.New()
-						f, err := os.Open(file)
-						if err != nil {
-							panic(err)
-						}
-						io.Copy(hash, f)
-						f.Close()
-						if string(hash.Sum(nil)) != originalHash {
-							// config file was changes, do not delete from overlay
-							continue
-						}
-					}
-					os.Remove(file)
+			lines := strings.Split(upperPkg.Values["Conffiles"], "\n")
+			for _, line := range lines {
+				parts := strings.Split(strings.TrimSpace(line), " ")
+				if len(parts) == 2 {
+					conffiles[parts[0]] = parts[1]
 				}
 			}
 
-			// delete informations from overlay
+			// delete package files from upperdir
+			listFile := upperPkg.InfoFile("list")
+			list, err := ioutil.ReadFile(vm.UpperdirFile(listFile))
+			if err != nil {
+				list, err = ioutil.ReadFile(LowerdirFile(listFile))
+				if err != nil {
+					panic(err)
+				}
+			}
+			files := strings.Split(string(list), "\n")
+			for _, file := range files {
+				upperdirFile := vm.UpperdirFile(file)
+				originalHash, found := conffiles[file]
+				if found {
+					hash := md5.New()
+					f, err := os.Open(upperdirFile)
+					if err != nil {
+						if os.IsNotExist(err) {
+							continue // file not found in upperdir
+						}
+						panic(err)
+					}
+					io.Copy(hash, f)
+					f.Close()
+					if string(hash.Sum(nil)) != originalHash {
+						continue // config file was changed, do not delete from upperdir
+					}
+				}
+				os.Remove(upperdirFile)
+			}
+
+			// delete informations from upperdir
 			for _, ext := range DPKG_INFO_EXTENSIONS {
-				os.Remove(vm.File("overlayfs-upperdir/var/lib/dpkg/info/" + trimmedName + ext))
+				os.Remove(vm.UpperdirFile(upperPkg.InfoFile(ext)))
 			}
 		}
 		upperPackages[name] = lowerPkg
 	}
 
 	// delete packages that were removed in lower
-	for name := range upperPackages {
+	for name, upperPkg := range upperPackages {
 		if _, found := lowerPackages[name]; found {
 			continue // still in lower
 		}
-		_, err := os.Stat(vm.File("overlayfs-upperdir/var/lib/dpkg/info/" + name + ".list"))
+		_, err := os.Stat(vm.UpperdirFile(upperPkg.InfoFile("list")))
 		if err == nil {
-			continue // files in overlay
+			continue // files in upperdir
 		}
 		delete(upperPackages, name)
 	}
@@ -114,7 +142,7 @@ func ReadDpkgStatus(fileName string) (map[string]*Package, error) {
 			pkg.Fields = append(pkg.Fields, field)
 			pkg.Values[field] = value
 		}
-		packages[pkg.Values["Package"]] = pkg
+		packages[pkg.ID()] = pkg
 	}
 	return packages, nil
 }
