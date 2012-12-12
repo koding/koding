@@ -2,20 +2,31 @@ class FooterMenuItem extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.tooltip = switch data.title.toLowerCase()
-      when "chat"
-        title   : "Chat"
-        gravity : "se"
-        offset  : -3
-      when "about"
-        title : "About Koding"
-        offset  : -3
-      when "help"
-        title   : "Instructions Book"
-        gravity : "sw"
-        offset  : -3
-
     super options, data
+
+    @icon = new KDCustomHTMLView
+      tagName : 'span'
+      tooltip : switch data.title.toLowerCase()
+        when "chat"
+          title   : "Chat"
+          placement : 'top'
+          direction : 'left'
+          offset  :
+            top   : 3
+            left : -5
+        when "about"
+          title : "About Koding"
+          placement : 'top'
+          direction : 'center'
+          offset  :
+            top   : 3
+            left  : -8
+        when "help"
+          title   : "Instructions Book"
+          placement : 'top'
+          direction : 'right'
+          offset  :
+            top   : 3
 
     @setClass "#{@utils.slugify @getData().title.toLowerCase()}"
 
@@ -24,8 +35,15 @@ class FooterMenuItem extends KDListItemView
     cb = @getData().callback
     cb.call @ if cb
 
-  partial:->
-    "<span></span>"
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+     {{> @icon}}
+    """
 
   showAboutDisplay:->
 
