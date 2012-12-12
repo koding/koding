@@ -98,7 +98,7 @@ else
     else
       koding.mq
 
-  koding.mq.connection.on 'ready', -> console.log 'message broker is ready'
+  koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403

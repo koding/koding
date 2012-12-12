@@ -46,7 +46,7 @@ koding = new Bongo
   root        : __dirname
   mongo       : mongo
   models      : './models'
-  queueName   : 'koding-social'
+  queueName   : social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
     [callback, context] = [context, callback] unless callback
