@@ -48,6 +48,10 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 
 					channel := make(chan []byte, 1024)
 					routeMapMutex.Lock()
+					if _, found := routeMap[routingKey]; found {
+						routeMapMutex.Unlock()
+						continue // duplicate key
+					}
 					routeMap[routingKey] = channel
 					routeMapMutex.Unlock()
 
@@ -119,8 +123,11 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 					json.Unmarshal(message.Body, &arguments)
 					routingKey := arguments["routingKey"].(string)
 					routeMapMutex.Lock()
-					close(routeMap[routingKey])
-					delete(routeMap, routingKey)
+					channel, found := routeMap[routingKey]
+					if found {
+						close(channel)
+						delete(routeMap, routingKey)
+					}
 					routeMapMutex.Unlock()
 
 				default:
