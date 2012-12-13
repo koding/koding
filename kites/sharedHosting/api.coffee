@@ -42,6 +42,9 @@ module.exports = new Kite 'sharedHosting'
           if index == entries.length
             callback err, entries
           else
+            entries[index].haspass = no
+            if entries[index].remotepass
+              entries[index].haspass = yes
             delete entries[index].remotepass
             mounter.checkMountPoint
               username   : options.username
