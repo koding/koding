@@ -384,11 +384,21 @@ __utils =
       if not err
         kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
 
-  wait: (duration, fn) ->
+  wait: (duration, fn)->
     if "function" is typeof duration
       fn = duration
       duration = 0
     setTimeout fn, duration
+
+  killWait:(id)-> clearTimeout id
+
+  repeat: (duration, fn)->
+    if "function" is typeof duration
+      fn = duration
+      duration = 500
+    setInterval fn, duration
+
+  killRepeat:(id)-> clearInterval id
 
   defer:do ->
     # this was ported from browserify's implementation of "process.nextTick"
@@ -403,7 +413,6 @@ __utils =
     else
       (fn) -> setTimeout fn, 1
 
-  killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
     cancelled = no

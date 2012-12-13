@@ -245,6 +245,8 @@ class MainController extends KDController
             callback  : ()->
               modal.destroy()
               location.reload yes
+      if location.hostname is "localhost"
+        KD.utils.wait 5000, -> location.reload yes
 
     checkConnectionState = ->
       fail() unless connectedState.connected

@@ -19,7 +19,7 @@ class LoginView extends KDScrollView
     registerHandler   = handler.bind null, '/Register'
     joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
-    
+
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"

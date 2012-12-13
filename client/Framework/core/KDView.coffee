@@ -170,23 +170,21 @@ class KDView extends KDObject
   defaultInit:(options,data)->
     @setDomElement options.cssClass
     @setDataId()
-    @setDomId options.domId                       if options.domId
-    @setDomAttributes options.attributes          if options.attributes
-    @setSize options.size                         if options.size
-    @setPosition options.position                 if options.position
-    @setPartial options.partial                   if options.partial
+    @setDomId options.domId               if options.domId
+    @setDomAttributes options.attributes  if options.attributes
+    @setSize options.size                 if options.size
+    @setPosition options.position         if options.position
+    @setPartial options.partial           if options.partial
     @addEventHandlers options
 
     if options.pistachio
       @setTemplate options.pistachio, options.pistachioParams
       @template.update()
 
-    @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
+    @setLazyLoader options.lazyLoadThreshold  if options.lazyLoadThreshold
 
-
-    @setTooltip options.tooltip if options.tooltip
-    @setDraggable options.draggable if options.draggable
-
+    @setTooltip options.tooltip      if options.tooltip
+    @setDraggable options.draggable  if options.draggable
 
     @bindEvents()
 
@@ -337,7 +335,7 @@ class KDView extends KDObject
     w = @getDomElement().width()
 
   setWidth:(w)->
-    @getDomElement()[0].style.width = "#{w}px"
+    @getElement().style.width = "#{w}px"
     # @getDomElement().width w
     @emit "ViewResized", newWidth : w
 
@@ -346,7 +344,7 @@ class KDView extends KDObject
     @getDomElement().outerHeight(no)
 
   setHeight:(h)->
-    @getDomElement()[0].style.height = "#{h}px"
+    @getElement().style.height = "#{h}px"
     # @getDomElement().height h
     @emit "ViewResized", newHeight : h
 
