@@ -239,7 +239,7 @@ class AvatarPopupNotifications extends AvatarPopup
     super
 
   hide:->
-    KD.whoami().glanceActivities =>
+    KD.whoami()?.glanceActivities =>
       for item in @listController.itemsOrdered
         item.unsetClass 'unread'
       @noNotification.show()
