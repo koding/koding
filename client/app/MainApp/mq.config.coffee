@@ -4,6 +4,9 @@ KD.remote = new Bongo
 
   getSessionToken:-> $.cookie('clientId')
 
+  createRoutingKey:(service, event)->
+    "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
+
   fetchName:do->
     cache = {}
     (nameStr, callback)->

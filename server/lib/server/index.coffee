@@ -108,54 +108,55 @@ else
     res.redirect 302, '/'
 
   app.get '/Auth', (req, res)->
-    crypto = require 'crypto'
-    {JSession} = koding.models
-    channel = req.query?.channel
-    return res.send 'user error', 400 unless channel?
-    clientId = req.cookies.clientId
-    JSession.fetchSession clientId, (err, session)->
-      if session? and clientId isnt session?.clientId
-        res.cookie 'clientId', session.clientId
-      if err
-        authenticationFailed(res, err)
-      else
-        [priv, type, pubName] = channel.split '-'
-        if /^bongo\./.test type
-          privName = 'secret-bongo-'+hat()+'.private'
-          koding.mq.funnel privName, koding.queueName
-          res.send privName
-        else unless session?
-          authenticationFailed(res)
-        else if type is 'kite'
-          {username} = session
-          cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
-          cipher.update(
-            ''+pubName+req.cookies.clientid+Date.now()+Math.random()
-          )
-          privName = ['secret', 'kite', "#{cipher.final('hex')}.#{username}"].join '-'
-          privName += '.private'
+    res.send 'This is gone'
+    # crypto = require 'crypto'
+    # {JSession} = koding.models
+    # channel = req.query?.channel
+    # return res.send 'user error', 400 unless channel?
+    # clientId = req.cookies.clientId
+    # JSession.fetchSession clientId, (err, session)->
+    #   if session? and clientId isnt session?.clientId
+    #     res.cookie 'clientId', session.clientId
+    #   if err
+    #     authenticationFailed(res, err)
+    #   else
+    #     [priv, type, pubName] = channel.split '-'
+    #     if /^bongo\./.test type
+    #       privName = 'secret-bongo-'+hat()+'.private'
+    #       koding.mq.funnel privName, koding.queueName
+    #       res.send privName
+    #     else unless session?
+    #       authenticationFailed(res)
+    #     else if type is 'kite'
+    #       {username} = session
+    #       cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
+    #       cipher.update(
+    #         ''+pubName+req.cookies.clientid+Date.now()+Math.random()
+    #       )
+    #       privName = ['secret', 'kite', "#{cipher.final('hex')}.#{username}"].join '-'
+    #       privName += '.private'
 
-          bindKiteQueue = (binding, callback) ->
-            kiteBroker.bindQueue(
-              privName, privName, binding,
-              {queueDurable:no, queueExclusive:no},
-              callback
-              )
+    #       bindKiteQueue = (binding, callback) ->
+    #         kiteBroker.bindQueue(
+    #           privName, privName, binding,
+    #           {queueDurable:no, queueExclusive:no},
+    #           callback
+    #           )
 
-          bindKiteQueue "client-message", (kiteCmQueue1, exchangeName)->
-            kiteCmQueue1.close() # this will get opened back up?
-            bindKiteQueue "disconnected", (kiteCmQueue2, exchangeName) ->
-              kiteBroker.emit(channel, 'join', {user: username, queue: privName})
+    #       bindKiteQueue "client-message", (kiteCmQueue1, exchangeName)->
+    #         kiteCmQueue1.close() # this will get opened back up?
+    #         bindKiteQueue "disconnected", (kiteCmQueue2, exchangeName) ->
+    #           kiteBroker.emit(channel, 'join', {user: username, queue: privName})
 
-              kiteBroker.connection.on 'error', console.log
-              kiteBroker.createQueue '', (dcQueue)->
-                dcQueue.bind exchangeName, 'disconnected'
-                dcQueue.subscribe ->
-                  dcQueue.destroy()#.addCallback -> dcQueue.close()
-                  setTimeout ->
-                    kiteCmQueue2.destroy()#.addCallback -> kiteCmQueue.close()
-                  , kites?.disconnectTimeout ? 5000
-              return res.send privName
+    #           kiteBroker.connection.on 'error', console.log
+    #           kiteBroker.createQueue '', (dcQueue)->
+    #             dcQueue.bind exchangeName, 'disconnected'
+    #             dcQueue.subscribe ->
+    #               dcQueue.destroy()#.addCallback -> dcQueue.close()
+    #               setTimeout ->
+    #                 kiteCmQueue2.destroy()#.addCallback -> kiteCmQueue.close()
+    #               , kites?.disconnectTimeout ? 5000
+    #           return res.send privName
 
 
   if uploads?.enableStreamingUploads
