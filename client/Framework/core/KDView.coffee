@@ -697,14 +697,14 @@ class KDView extends KDObject
     o.title     or= ""
     o.placement or= "top"
     o.direction or= "center"
-    o.offset    or= 0
+    o.offset    or=
+      top         : 0
+      left        : 0
     o.delayIn   or= 300
     o.delayOut  or= 300
     o.html      or= yes
     o.animate   or= yes
-    o.opacity   or= 0.9
     o.selector  or= null
-    o.engine    or= "tipsy" # we still can use twipsy
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
     o.fallback  or= o.title
@@ -713,28 +713,36 @@ class KDView extends KDObject
     o.viewCssClass or= null
 
     @on "viewAppended", =>
-      # log "get rid of this timeout there should be an event after template update"
-      @utils.wait =>
-
-        # tooltips that are just strings will be handled by t(w)ipsy
-        # unless o.view
-        #   @$(o.selector)[o.engine] o
-
-        # # tooltips that provide a view will have their KDTooltip
-        # else
-          @bindTooltipEvents o
+      @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']
 
     @on 'mouseenter',(event)=>
-      return if o.selector and not $(event.target).is o.selector
-      @tooltip ?= new KDTooltip o, {}
-      @tooltip?.emit 'MouseEnteredAnchor'
+      if o.selector
+        selectorEntered = no
+        @bindEvent 'mousemove'
+
+        @on 'mousemove', (mouseEvent)=>
+          if $(mouseEvent.target).is(o.selector) and selectorEntered is no
+            selectorEntered = yes
+            @createTooltip o
+            @tooltip?.emit 'MouseEnteredAnchor'
+          if not $(mouseEvent.target).is(o.selector) and selectorEntered
+            selectorEntered = no
+            @tooltip?.emit 'MouseLeftAnchor'
+      else
+        return if o.selector and not $(event.target).is o.selector
+        @createTooltip o
+        @tooltip?.emit 'MouseEnteredAnchor'
 
     @on 'mouseleave', (event)=>
       return if o.seletor and not $(event.target).is o.selector
       @tooltip?.emit 'MouseLeftAnchor'
+      @off 'mousemove'
+
+  createTooltip:(o = {})->
+    @tooltip ?= new KDTooltip o, {}
 
   getTooltip:(o = {})->
     if @tooltip?

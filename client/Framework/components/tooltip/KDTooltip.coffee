@@ -102,49 +102,54 @@ class KDTooltip extends KDView
           @getDelegate().removeTooltip @
 
   translateCompassDirections:(o)->
-    unless o.placement and o.direction
-      switch o.placement
-        when 'above'
-          o.placement = 'top'
-          switch o.gravity
-            when 'n','s'
-              o.direction = 'center'
-            when 'e','ne','se'
-              o.direction = 'left'
-            when 'w','nw','sw'
-              o.direction = 'right'
-        when 'below'
-          o.placement = 'bottom'
-          switch o.gravity
-            when 'n','s'
-              o.direction = 'center'
-            when 'e','ne','se'
-              o.direction = 'left'
-            when 'w','nw','sw'
-              o.direction = 'right'
-        when 'left'
-          switch o.gravity
-            when 'n','nw','ne'
-              o.direction = 'top'
-            when 'e','w'
-              o.direction = 'left'
-            when 's','sw','se'
-              o.direction = 'bottom'
-        when 'right'
-          switch o.gravity
-            when 'n','ne','nw'
-              o.direction = 'top'
-            when 'e','w'
-              o.direction = 'right'
-            when 'w','se','sw'
-              o.direction = 'bottom'
+
+    {placement,gravity} = o
+    o.placement = placementMap[placement]
+    o.direction = directionMap(o.placement, gravity)
+
+    # unless o.placement and o.direction
+    #   switch o.placement
+    #     when 'above'
+    #       o.placement = 'top'
+    #       switch o.gravity
+    #         when 'n','s'
+    #           o.direction = 'center'
+    #         when 'e','ne','se'
+    #           o.direction = 'left'
+    #         when 'w','nw','sw'
+    #           o.direction = 'right'
+    #     when 'below'
+    #       o.placement = 'bottom'
+    #       switch o.gravity
+    #         when 'n','s'
+    #           o.direction = 'center'
+    #         when 'e','ne','se'
+    #           o.direction = 'left'
+    #         when 'w','nw','sw'
+    #           o.direction = 'right'
+    #     when 'left'
+    #       switch o.gravity
+    #         when 'n','nw','ne'
+    #           o.direction = 'top'
+    #         when 'e','w'
+    #           o.direction = 'left'
+    #         when 's','sw','se'
+    #           o.direction = 'bottom'
+    #     when 'right'
+    #       switch o.gravity
+    #         when 'n','ne','nw'
+    #           o.direction = 'top'
+    #         when 'e','w'
+    #           o.direction = 'right'
+    #         when 'w','se','sw'
+    #           o.direction = 'bottom'
     return o
 
   display:(o = @getOptions())->
 
     # converts NESW-Values to topbottomleftright and retains them in
     # @getOptions
-    o = @translateCompassDirections o
+    o = @translateCompassDirections o if o.gravity
 
     if o.animate
       @show()
@@ -185,6 +190,8 @@ class KDTooltip extends KDView
         top  : selectorOffset.top
         left : selectorOffset.left
 
+
+
       switch placement
         when 'top'
           c.top       -= containerHeight+10
@@ -220,43 +227,29 @@ class KDTooltip extends KDView
 
     # check the default values for overlapping boundaries, then
     # recalculate if there are overlaps
-    v = boundaryViolations getCoordsFromPositionValues(placement, direction), containerWidth, containerHeight
 
-    unless v is {}
-      if v.top and v.left
-        placement     = 'bottom'
-        direction     = 'right'
-      else if v.top and v.right
-        placement     = 'bottom'
-        direction     = 'left'
-      else if v.bottom and v.left
-        placement     = 'top'
-        direction     = 'right'
-      else if v.bottom and v.right
-        placement     = 'top'
-        direction     = 'left'
-      else if v.top
-        if placement in ['left','right']
-          direction   = placement
-        placement     = 'bottom'
-      else if v.bottom
-        if placement in ['left','right']
-          direction   = placement
-        placement     = 'top'
-      else if v.left
-        if placement is 'top'
-          direction   = 'right'
-        else
-          if placement is 'bottom'
-            direction = 'bottom'
-          placement   = 'right'
-      else if v.right
-        if placement is 'top'
-          direction   = 'left'
-        else
-          if  placement is 'bottom'
-            direction = 'bottom'
-          placement   = 'left'
+    violations = boundaryViolations getCoordsFromPositionValues(placement, direction), containerWidth, containerHeight
+
+    if Object.keys(violations).length > 0
+      variants = [
+        ['top','left']
+        ['top','center']
+        ['top','right']
+        ['right','top']
+        ['right','center']
+        ['right','bottom']
+        ['bottom','right']
+        ['bottom','center']
+        ['bottom','left']
+        ['left','bottom']
+        ['left','center']
+        ['left','top']
+      ]
+
+      for variant in variants
+        if Object.keys(boundaryViolations(getCoordsFromPositionValues(variant[0],variant[1]), containerWidth, containerHeight)).length is 0
+          [placement,direction] = variant
+          break
 
     correctValues =
       coords : getCoordsFromPositionValues placement, direction
@@ -272,8 +265,11 @@ class KDTooltip extends KDView
     direction = o.direction or 'right'
 
     offset =
-      top : o.offset?.top or o.offset or 0
-      left : o.offset?.left or 0
+      if Number is typeof o.offset
+        top   : o.offset
+        left  : 0
+      else
+        o.offset
 
     # Correct impossible combinations
     direction =
@@ -303,8 +299,11 @@ class KDTooltip extends KDView
       left : coords.left+offset.left
       top : coords.top+offset.top
 
-  setTitle:(title)->
-    @wrapper.updatePartial title
+  setTitle:(title,o={})->
+    unless o.html is no
+      @wrapper.updatePartial title
+    else
+      @wrapper.updatePartial Encoder.htmlEncode title
 
   viewAppended:->
     super()
@@ -314,7 +313,7 @@ class KDTooltip extends KDView
       @setView o.view
     else
       @setClass 'just-text'
-      @setTitle o.title
+      @setTitle o.title, o
 
     @setTemplate @pistachio()
     @template.update()
@@ -329,3 +328,19 @@ class KDTooltip extends KDView
      {{> @arrow}}
      {{> @wrapper}}
     """
+
+  directionMap = (placement, gravity)->
+    if placement in ["top", "bottom"]
+      if /e/.test gravity then "left"
+      else if /w/.test gravity then "right"
+      else "center"
+    else if placement in ["left", "right"]
+      if /n/.test gravity then "top"
+      else if /s/.test gravity then "bottom"
+      else placement
+
+  placementMap =
+    above   : "top"
+    below   : "bottom"
+    left    : "left"
+    right   : "right"
