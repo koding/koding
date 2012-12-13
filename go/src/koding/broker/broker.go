@@ -1,13 +1,14 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/log"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
-	"math/rand"
 	"net"
 	"net/http"
 	"strings"
@@ -29,7 +30,9 @@ func main() {
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
 
-			socketId := fmt.Sprintf("%x", rand.Int63())
+			r := make([]byte, 128)
+			rand.Read(r)
+			socketId := base64.StdEncoding.EncodeToString(r)
 
 			utils.ChangeNumClients <- 1
 			log.Debug("Client connected: " + socketId)
@@ -61,28 +64,16 @@ func main() {
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
 
-			body, err := json.Marshal(map[string]string{"event": "connected", "socketId": socketId})
+			err := controlChannel.Publish("authEndpoint", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 			if err != nil {
 				panic(err)
 			}
-			// inform auth endpoint
-			err = controlChannel.Publish("authEndpoint", "connected", false, false, amqp.Publishing{Body: body})
-			if err != nil {
-				panic(err)
-			}
-			// inform client
-			sendChan <- body
 
 			defer func() {
 				for routingKeyPrefix := range subscriptions {
 					removeFromRouteMap(routingKeyPrefix)
 				}
-				// inform auth endpoint
-				body, err = json.Marshal(map[string]interface{}{"event": "disconnected", "socketId": socketId})
-				if err != nil {
-					panic(err)
-				}
-				err = controlChannel.Publish("authEndpoint", "disconnected", false, false, amqp.Publishing{Body: body})
+				err := controlChannel.Publish("authEndpoint", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err != nil {
 					panic(err)
 				}
@@ -113,7 +104,7 @@ func main() {
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
 
-						body, err = json.Marshal(map[string]string{"event": "subscribed", "routingKeyPrefix": routingKeyPrefix})
+						body, err := json.Marshal(map[string]string{"event": "subscribed", "routingKeyPrefix": routingKeyPrefix})
 						if err != nil {
 							panic(err)
 						}
@@ -128,7 +119,7 @@ func main() {
 						exchange := message["exchange"]
 						routingKey := message["routingKey"]
 						if strings.HasPrefix(routingKey, "client.") {
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{Body: []byte(message["payload"])})
+							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"])})
 							if err != nil {
 								panic(err)
 							}
@@ -173,13 +164,13 @@ func main() {
 			}
 			bodyStr := string(body)
 
-			pos := 0
+			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 			for {
-				index := strings.IndexRune(routingKey[pos:], '.')
+				index := strings.IndexRune(routingKey[pos+1:], '.')
 				if index == -1 {
 					break
 				}
-				pos += index
+				pos += 1 + index
 				prefix := routingKey[:pos]
 				routeMapMutex.RLock()
 				channels := routeMap[prefix]
