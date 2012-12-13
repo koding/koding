@@ -28,6 +28,7 @@ class KDFormViewWithFields extends KDFormView
     {itemClass, title} = data
     itemClass     or= KDInputView
     data.cssClass or= ""
+    data.name     or= title
     field or= new KDView cssClass : "formline #{data.name} #{data.cssClass}"
     field.addSubView label = data.label = @createLabel(data) if data.label
     field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
@@ -50,7 +51,7 @@ class KDFormViewWithFields extends KDFormView
       title    : data.label
       cssClass : @utils.slugify data.label
 
-  createInput:(itemClass,options)->
+  createInput:(itemClass, options)->
     @inputs[options.title] = input = new itemClass options
     return input
 
