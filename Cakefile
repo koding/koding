@@ -295,15 +295,6 @@ run =(options)->
       stderr: process.stderr
       verbose: yes
 
-  # processes.run
-  #   name    : 'social'
-  #   cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
-  #   restart : yes
-  #   restartInterval : 1000
-  #   stdout  : process.stdout
-  #   stderr  : process.stderr
-  #   verbose : yes
-
   processes.fork
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
