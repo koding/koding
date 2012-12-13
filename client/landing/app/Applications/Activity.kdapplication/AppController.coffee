@@ -88,19 +88,14 @@ class ActivityAppController extends AppController
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, mainView.notifyResizeListeners.bind @
 
-    loadIfMoreItemsIsNecessary = =>
-      {scrollView} = activityListController
-      if scrollView.getScrollHeight() <= scrollView.getHeight()
-        @continueLoadingTeasers()
-
-    @filter 'public', loadIfMoreItemsIsNecessary
+    @filter 'public'
 
     @getSingleton('activityController').on 'ActivitiesArrived', (activities)=>
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
     activityInnerNavigation.on "NavItemReceivedClick", (data)=>
-      @filter data.type, loadIfMoreItemsIsNecessary
+      @filter data.type
 
   putWidget : ->
 
@@ -244,6 +239,14 @@ class ActivityAppController extends AppController
           callback? activities
         else
           callback?()
+        @teasersLoaded()
+
+  teasersLoaded:->
+    @activityListController.teasersLoaded()
+    {scrollView} = @activityListController
+    if scrollView.getScrollHeight() <= scrollView.getHeight()
+      @continueLoadingTeasers()
+
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     KD.remote.api.Relationship.within sourceIds, options, (err, rels)->

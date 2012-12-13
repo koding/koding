@@ -23,7 +23,7 @@ class ActivitySplitView extends SplitView
     welcomeHeaderHeight = if header then header.getHeight() else 0
     updateWidgetHeight  = if widget then widget.getHeight() else 0
 
-    widget.$().css
+    widget?.$().css
       top       : welcomeHeaderHeight
 
     @$().css

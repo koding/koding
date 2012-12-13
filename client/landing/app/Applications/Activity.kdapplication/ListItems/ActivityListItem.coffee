@@ -11,6 +11,7 @@ class ActivityListItemView extends KDListItemView
     JTutorial           : TutorialActivityItemView
     # THIS WILL DISABLE CODE SHARES
     JCodeShare            : CodeShareActivityItemView
+    NewMemberBucketData   : NewMemberBucketView
 
   getActivityChildCssClass = ->
 
@@ -23,6 +24,7 @@ class ActivityListItemView extends KDListItemView
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
     CInstallerBucketActivity  : "system-message"
+    NewMemberBucketData       : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
@@ -57,7 +59,8 @@ class ActivityListItemView extends KDListItemView
 
     childConstructor =
       if /CNewMemberBucket$/.test constructorName
-        NewMemberBucketItemView
+        # NewMemberBucketItemView
+        KDView
       else if /Bucket$/.test constructorName
         getBucketMap()[data.sourceName]
       else

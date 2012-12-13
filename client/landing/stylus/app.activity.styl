@@ -152,6 +152,8 @@ app.activity.styl
       width               auto
       margin              2px 0 2px 33px
       padding             2px 0 0 0
+      &.new-member
+        overflow          visible
 
 
     .ttag
@@ -162,6 +164,16 @@ app.activity.styl
       sprite()
       size(20px,20px)
       blockMid()
+      &.fx
+        vendor            transition, opacity .3s ease-in\, left .3s ease-in
+        top               2px
+        opacity           1
+        left              0
+        abs()
+      &.out
+        opacity           .5
+        left              -50px
+
     a
       color               #5F5F5F
       font-weight         600

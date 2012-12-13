@@ -1,7 +1,8 @@
 class ActivityListController extends KDListViewController
 
-  hiddenItems     = []
-  hiddenItemCount = 0
+  hiddenItems               = []
+  hiddenNewMemberItemGroups = [[]]
+  hiddenItemCount           = 0
 
   constructor:(options,data)->
 
@@ -21,6 +22,46 @@ class ActivityListController extends KDListViewController
       partial  : "There is no activity from your followings."
 
     @noActivityItem.hide()
+    u  = @utils
+    gr = u.getRandomNumber
+    gp = u.generatePassword
+
+    unless KD.isLoggedIn()
+      @utils.wait 5000, =>
+        # bucket = new KD.remote.api.CNewMemberBucket
+        #   anchor     : KD.whoami()
+        #   sourceName : 'JAccount'
+
+        # @utils.repeat 2500, =>
+          # @newActivityArrived bucket
+
+        uniqueness = (Date.now()+"").slice(6)
+        formData   =
+          agree           : "on"
+          email           : "#{uniqueness}@sinanyasar.com"
+          firstName       : gp(gr(10), yes)
+          inviteCode      : "twitterfriends"
+          lastName        : gp(gr(10), yes)
+          password        : "123123123"
+          passwordConfirm : "123123123"
+          username        : uniqueness
+
+        @utils.wait 5000, =>
+          KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
+            location.reload yes
+    # else
+
+      # @utils.repeat 90000, =>
+      #   status = dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT");
+      #   KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+      #     unless err
+      #       appManager.tell 'Activity', 'ownActivityArrived', reply
+      #     else
+      #       new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
+    # @utils.repeat 10000, =>
+
+
 
   loadView:(mainView)->
 
@@ -39,12 +80,27 @@ class ActivityListController extends KDListViewController
           unhideNewHiddenItems hiddenItems
     super
 
-  ownActivityArrived:(activity)->
+  teasersLoaded:->
 
-    view = @getListView().addHiddenItem activity, 0
-    view.addChildView activity, ()=>
-      @scrollView.scrollTo {top : 0, duration : 200}, ->
-        view.slideIn()
+    for group in hiddenNewMemberItemGroups
+
+      if group.length > 0
+        activity = new NewMemberBucketData {}, group.map (view)-> view.getData()
+        for item, i in @itemsOrdered
+          a = new Date(activity.buckets[0].meta.createdAt).getTime()
+          b = new Date(item.getData().meta.createdAt).getTime()
+          if a > b
+            @addItem activity, i
+            break
+
+      item.destroy() for item in group
+
+    hiddenNewMemberItemGroups = [[]]
+
+
+  isMine:(activity)->
+    id = KD.whoami().getId()
+    id? and id in [activity.originId, activity.anchor?.id]
 
   followedActivityArrived: (activity) ->
 
@@ -52,44 +108,67 @@ class ActivityListController extends KDListViewController
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
 
-  isMine:(activity)->
-    id = KD.whoami().getId()
-    id? and id in [activity.originId, activity.anchor?.id]
-
   newActivityArrived:(activity)->
 
     return unless @_state is 'public'
-
     unless @isMine activity
-      view = @addHiddenItem activity, 0
-      @activityHeader.newActivityArrived()
-
+      if activity instanceof KD.remote.api.CNewMemberBucketActivity
+        activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+        KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
+          for item in @itemsOrdered
+            if item.getData() instanceof NewMemberBucketData
+              data = item.getData()
+              data.buckets.unshift bucket
+              item.destroySubViews()
+              item.addChildView data
+              break
+      else
+        view = @addHiddenItem activity, 0
+        @activityHeader.newActivityArrived()
     else
+      {CFolloweeBucket} = KD.remote.api
       switch activity.constructor
-        when KD.remote.api.CFolloweeBucket
+        when CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
 
+  ownActivityArrived:(activity)->
+
+    view = @getListView().addHiddenItem activity, 0
+    view.addChildView activity, ()=>
+      @scrollView.scrollTo {top : 0, duration : 200}, ->
+        view.slideIn()
+
   addHiddenItem:(activity, index, animation = null)->
 
+    # log "addHiddenItem"
+
     instance = @getListView().addHiddenItem activity, index, animation
-    hiddenItems.push instance
+
+    if activity instanceof KD.remote.api.CNewMemberBucket
+      hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].push instance
+    else
+      hiddenItems.push instance
+      if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
+        hiddenNewMemberItemGroups.push []
+
     return instance
 
   addItem:(activity, index, animation = null) ->
 
-    # log activity
+    # log "addItem"
     # return if activity instanceof KD.remote.api.CNewMemberBucket
 
     @noActivityItem.hide()
-    @getListView().addItem activity, index, animation
+    if activity instanceof KD.remote.api.CNewMemberBucket
+      @addHiddenItem activity, index, animation
+    else
+      @getListView().addItem activity, index, animation
+      if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
+        hiddenNewMemberItemGroups.push []
 
   unhideNewHiddenItems = (hiddenItems)->
 
-    interval = setInterval ->
+    repeater = KD.utils.repeat 177, ->
       item = hiddenItems.shift()
-      if item
-        item.show()
-      else
-        clearInterval interval
-    , 177
+      if item then item.show() else KD.utils.killRepeat repeater
