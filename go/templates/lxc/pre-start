@@ -1,4 +1,12 @@
 #!/bin/sh
+mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
+if [ $? -ne 0 ]; then
+	rbd create {{.}} --size 1200
+	rbd map {{.}} --pool rbd
+	mkfs.ext4 /dev/rbd/rbd/{{.}}
+	mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
+fi
+
 mount --no-mtab -t overlayfs -o lowerdir=/var/lib/lxc/vmroot/rootfs,upperdir=/var/lib/lxc/{{.}}/overlayfs-upperdir overlayfs /var/lib/lxc/{{.}}/rootfs
 mkdir -p /var/lib/lxc/{{.}}/rootfs/home/{{.Username}}
-mount --bind /home/{{.Username}} /var/lib/lxc/{{.}}/rootfs/home/{{.Username}}
+
