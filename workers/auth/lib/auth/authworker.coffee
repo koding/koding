@@ -18,7 +18,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   requireSession:(clientId, routingKey, callback)->
     {JSession} = @bongo.models
-    JSession.fetchSession clientId, (err, session)->
+    JSession.fetchSession clientId, (err, session)=>
       if err? or not session? then @rejectClient routingKey
       else
         tokenHasChanged = session.clientId isnt clientId
@@ -34,6 +34,7 @@ module.exports = class AuthWorker extends EventEmitter
   getNextServiceName:(serviceType)->
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
+    return  unless servicesOfType
     serviceName = servicesOfType[count % servicesOfType.length - 1]
     @counts[serviceType] += 1
     return serviceName
@@ -65,8 +66,8 @@ module.exports = class AuthWorker extends EventEmitter
 
   joinKiteClient:(messageData, routingKey, socketId)->
     {channel} = messageData
-    @authenticate messageData, routingKey, (session)->
-      @bongo.mq.connection.exchange @getNextServiceName(channel), (exchange)->
+    @authenticate messageData, routingKey, (session)=>
+      @bongo.mq.connection.exchange @getNextServiceName(channel), (exchange)=>
         exchange.publish 'auth.join', {
           username    : session.username
           routingKey  : routingKey
@@ -81,7 +82,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   joinClient:(data, socketId)->
     {channel, routingKey, serviceType} = data
-    @addRoutingKeyBySocketId socketId, routingKey
+    # @addRoutingKeyBySocketId socketId, routingKey
     switch serviceType
       when 'bongo' then @joinBongoClient data, routingKey, socketId
       when 'kite'  then @joinKiteClient data, routingKey, socketId
@@ -94,7 +95,7 @@ module.exports = class AuthWorker extends EventEmitter
       }
 
   cleanUpAfterDisconnect:(socketId)->
-    @getClients(socketId).forEach @bound 'cleanUpClient'
+    @getClients(socketId)?.forEach @bound 'cleanUpClient'
 
     # TODO: implement cleanup
 
