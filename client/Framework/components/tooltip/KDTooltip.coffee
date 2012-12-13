@@ -41,6 +41,11 @@ class KDTooltip extends KDView
     else
       @hide()
 
+    KDView.appendToDOMBody @
+    @getSingleton('windowController').addLayer @
+    @addListeners()
+
+  addListeners:->
     @on 'mouseenter', =>
       @avoidDestroy = yes
 
@@ -59,8 +64,6 @@ class KDTooltip extends KDView
     @on 'ReceivedClickElsewhere', =>
       @delayedDestroy 0
 
-    KDView.appendToDOMBody @
-    @getSingleton('windowController').addLayer @
 
   setView:(newView)->
     return unless newView
@@ -151,13 +154,8 @@ class KDTooltip extends KDView
     # @getOptions
     o = @translateCompassDirections o if o.gravity
 
-    if o.animate
-      @show()
-      @setClass 'in'
-
-    else
-      @show()
-
+    @setClass 'in' if o.animate
+    @show()
     @setPosition(o)
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
