@@ -31,7 +31,7 @@ module.exports = deepFreeze
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName
-    authResourceName: 'koding-auth'
+    authResourceName: 'auth'
     numberOfWorkers: 1
   social        :
     login       : 'social'

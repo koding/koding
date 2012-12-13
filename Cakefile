@@ -278,12 +278,22 @@ run =(options)->
   if config.runGoBroker
     processes.spawn
       name  : 'goBroker'
-      cmd   : "./go/bin/broker -c #{options.configFile}"
+      cmd   : "./go/bin/broker -c #{options.configFile} -v -l=7"
       restart: yes
       restartInterval: 100
       stdout  : process.stdout
       stderr  : process.stderr
       verbose : yes
+
+  if config.authWorker
+    processes.fork
+      name  : 'authWorker'
+      cmd   : "#{KODING_CAKE} ./workers/auth -c #{configFile} -n #{config.authWorker.numberOfWorkers} run"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: yes
 
   if config.guests
     processes.fork

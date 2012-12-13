@@ -64,7 +64,7 @@ func main() {
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
 
-			err := controlChannel.Publish("authEndpoint", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+			err := controlChannel.Publish("auth", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 			if err != nil {
 				panic(err)
 			}
@@ -73,7 +73,7 @@ func main() {
 				for routingKeyPrefix := range subscriptions {
 					removeFromRouteMap(routingKeyPrefix)
 				}
-				err := controlChannel.Publish("authEndpoint", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err != nil {
 					panic(err)
 				}
