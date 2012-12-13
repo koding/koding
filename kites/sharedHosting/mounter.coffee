@@ -36,7 +36,7 @@ mounter =
     #   callback error
     #   callback null, result (information message)
 
-    {username, remotehost, remotepass, remotetype} = options
+    {username, remotehost, remotepass, remotetype, storepass} = options
 
     @readMountInfo options, (err,res)=>
       if err?
@@ -56,9 +56,10 @@ mounter =
 
         mount = mounts[0]
 
-        mount.username  = options.username
-        mount.storepass = options.storepass
-        mount.mountonly = yes
+        mount.username   = username
+        mount.storepass  = storepass
+        mount.mountonly  = yes
+        mount.remotepass = remotepass if remotepass
 
         switch mount.remotetype
           when "ftp"
