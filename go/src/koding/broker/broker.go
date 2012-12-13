@@ -90,17 +90,13 @@ func main() {
 						}
 					}()
 
-					var message map[string]string
-					err := json.Unmarshal([]byte(data.(string)), &message)
-					if err != nil {
-						panic(err)
-					}
+					message := data.(map[string]interface{})
 					log.Debug(message)
 
 					action := message["action"]
 					switch action {
 					case "subscribe":
-						routingKeyPrefix := message["routingKeyPrefix"]
+						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
 
@@ -111,15 +107,15 @@ func main() {
 						sendChan <- string(body)
 
 					case "unsubscribe":
-						routingKeyPrefix := message["routingKeyPrefix"]
+						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						removeFromRouteMap(routingKeyPrefix)
 						delete(subscriptions, routingKeyPrefix)
 
 					case "publish":
-						exchange := message["exchange"]
-						routingKey := message["routingKey"]
+						exchange := message["exchange"].(string)
+						routingKey := message["routingKey"].(string)
 						if strings.HasPrefix(routingKey, "client.") {
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"])})
+							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
 							if err != nil {
 								panic(err)
 							}
