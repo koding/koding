@@ -53,7 +53,7 @@ func handleConnection(source net.Conn) {
 		}
 	}
 
-	vm, err := virt.FromUsername(name)
+	vm, err := virt.FindByName(name)
 	if err != nil {
 		source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: http://www.koding.com/notfound.html\r\n\r\n"))
 		return
@@ -61,7 +61,7 @@ func handleConnection(source net.Conn) {
 
 	c := make(chan *net.TCPConn)
 	go func() {
-		target, _ := net.DialTCP("tcp", nil, &net.TCPAddr{vm.IP, 80})
+		target, _ := net.DialTCP("tcp", nil, &net.TCPAddr{vm.IP(), 80})
 		c <- target
 	}()
 

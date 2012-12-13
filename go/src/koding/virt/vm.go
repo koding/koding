@@ -2,6 +2,8 @@ package virt
 
 import (
 	"fmt"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
 	"os/user"
@@ -10,13 +12,14 @@ import (
 )
 
 type VM struct {
-	IP  net.IP
-	MAC net.HardwareAddr
+	ID   int    "_id"
+	Name string "name"
 }
 
 const VMROOT_ID = 1000000
 
 var templates *template.Template
+var vmDB *mgo.Collection
 
 func init() {
 	var err error
@@ -24,40 +27,56 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2")
+	if err != nil {
+		panic(err)
+	}
+	vmDB = session.DB("koding_dev2").C("jVMs")
 }
 
-func FromIP(a, b, c, d byte) (*VM, error) {
+func Find(query interface{}) (*VM, error) {
+	var vm VM
+	err := vmDB.Find(query).One(&vm)
+	if err != nil {
+		return nil, err
+	}
+	return &vm, nil
+}
+
+func FindById(id int) (*VM, error) {
+	return Find(bson.M{"_id": id})
+}
+
+func FindByIP(a, b, c, d byte) (*VM, error) {
 	if a != 10 || b == 0 {
 		return nil, fmt.Errorf("Illegal VM address: %d.%d.%d.%d", a, b, c, d)
 	}
-	return &VM{
-		IP:  net.IPv4(a, b, c, d),
-		MAC: net.HardwareAddr([]byte{0, 0, a, b, c, d}),
-	}, nil
+	return FindById(int(b)<<16 + int(c)<<8 + int(d)<<0)
 }
 
-func FromUid(uid int) (*VM, error) {
-	return FromIP(10, byte(uid>>24), byte(uid>>16), byte(uid>>8))
+func FindByUid(uid int) (*VM, error) {
+	return FindById(uid >> 8)
 }
 
-func FromUsername(username string) (*VM, error) {
-	u, err := user.Lookup(username)
-	if err != nil {
-		return nil, err
-	}
-	uid, err := strconv.Atoi(u.Uid)
-	if err != nil {
-		return nil, err
-	}
-	return FromUid(uid)
+func FindByName(name string) (*VM, error) {
+	return Find(bson.M{"name": name})
 }
 
 func (vm *VM) String() string {
-	return vm.IP.String()
+	return vm.IP().String()
+}
+
+func (vm *VM) IP() net.IP {
+	return net.IPv4(10, byte(vm.ID>>16), byte(vm.ID>>8), byte(vm.ID>>0))
+}
+
+func (vm *VM) MAC() net.HardwareAddr {
+	return net.HardwareAddr([]byte{0, 0, 10, byte(vm.ID >> 16), byte(vm.ID >> 8), byte(vm.ID >> 0)})
 }
 
 func (vm *VM) Uid() int {
-	return int(vm.IP[13])<<24 + int(vm.IP[14])<<16 + int(vm.IP[15])<<8
+	return vm.ID << 8
 }
 
 func (vm *VM) Username() string {
