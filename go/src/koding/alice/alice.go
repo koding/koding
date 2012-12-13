@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/bobappleyard/readline"
 	"io"
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"sort"
 	"strconv"
@@ -44,18 +44,24 @@ var listEntries []Entry = nil
 var listKind string
 var entryPathPrefix string
 
-func main() {
-	readline.CatchSigint = false
-	readline.Completer = func(query, ctx string) []string {
-		completions := make([]string, 0)
-		for command := range commands {
-			if strings.HasPrefix(command, query) {
-				completions = append(completions, command)
-			}
-		}
-		return completions
-	}
+func WithStdin(cmd *exec.Cmd) *exec.Cmd {
+	cmd.Stdin = os.Stdin
+	return cmd
+}
 
+func completionFuncition(text string, start, end int) []string {
+	fmt.Println(text, start, end)
+
+	completions := make([]string, 0)
+	//    for command := range commands {
+	//      if strings.HasPrefix(command, query) {
+	//        completions = append(completions, command)
+	//      }
+	//    }
+	return completions
+}
+
+func main() {
 	go func() {
 		signals := make(chan os.Signal, 2)
 		signal.Notify(signals, syscall.SIGINT)
@@ -64,20 +70,53 @@ func main() {
 		}
 	}()
 
+	oldStty, err := WithStdin(exec.Command("/bin/stty", "-g")).Output()
+	if err != nil {
+		panic(err)
+	}
+	defer WithStdin(exec.Command("/bin/stty", string(oldStty[:len(oldStty)-1]))).Run()
+	WithStdin(exec.Command("/bin/stty", "raw", "opost", "-echo")).Run()
+
 	for !exit {
-		input, err := readline.String(readline.EscapePrompt("\x1b[1malice " + vhost + " > \x1b[0m"))
-		if err == io.EOF {
-			fmt.Println()
-			break
+		input := ""
+		inputDone := false
+		pos := 0
+		for {
+			fmt.Printf("\x1b[G\x1b[1malice %s > \x1b[0m%s\x1b[K", vhost, input)
+			if inputDone {
+				break
+			}
+
+			b := make([]byte, 1)
+			_, err := os.Stdin.Read(b)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println(b[0])
+			switch b[0] {
+			case 4: // Ctrl+D
+				fmt.Println()
+				return
+			case 13: // return
+				inputDone = true
+			case 127: // backspace
+				if pos > 0 {
+					input = input[:pos-1] + input[pos:]
+					pos -= 1
+				}
+			default:
+				input = input[:pos] + string(b[0]) + input[pos:]
+				pos += 1
+			}
 		}
-		if err != nil {
-			panic(err)
-		}
+		fmt.Println()
+
 		input = strings.TrimSpace(input)
 		if input == "" {
 			continue
 		}
-		readline.AddHistory(input)
+		//readline.AddHistory(input)
 
 		parts := strings.Split(input, " ")
 		command := commands[parts[0]]

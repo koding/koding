@@ -25,9 +25,6 @@ module.exports = class JSession extends Model
     lastAccess    :
       type        : Date
       get         : -> new Date
-    nonce         : String
-    nonces        : [String]
-    tokens        : [JToken]
   
   @cycleSession =(clientId, callback=->)->
     @remove {clientId}, (err)=>

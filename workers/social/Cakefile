@@ -11,8 +11,8 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   configPath ?= '../../config/dev'
   {logger, configNumberOfWorkers} = require configPath
   numberOfWorkers ?= configNumberOfWorkers ? 1
- 
-  for i in Array numberOfWorkers
+
+  for _, i in Array +numberOfWorkers
     processes.fork
       name  : "socialWorker-#{i}"
       cmd   : "./index -c #{configPath}"
