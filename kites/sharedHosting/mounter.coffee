@@ -1,15 +1,13 @@
 # mount remote filesystem kites
 
-config   = require './config'
+config  = require './config'
 
-path     = require "path"
-fs       = require "fs"
-mkdirp   = require 'mkdirp'
-_        = require "underscore"
-log4js   = require 'log4js'
-log      = log4js.getLogger("[#{config.name}]")
-{exec}   = require "child_process"
-{spawn}  = require "child_process"
+path    = require "path"
+fs      = require "fs"
+mkdirp  = require 'mkdirp'
+log4js  = require 'log4js'
+log     = log4js.getLogger("[#{config.name}]")
+{spawn} = require "child_process"
 
 # Utilities
 {normalizeUserPath,
@@ -60,6 +58,7 @@ mounter =
 
         mount.username  = options.username
         mount.storepass = options.storepass
+        mount.mountonly = yes
 
         switch mount.remotetype
           when "ftp"
@@ -86,7 +85,7 @@ mounter =
     options.storepass    = yes if options.remotepass is 'anonymous'
     options.remotetype   = 'ftp'
 
-    {username, remoteuser, remotepass, remotehost, storepass} = options
+    {username, remoteuser, remotepass, remotehost, storepass, mountonly} = options
 
     unless remotehost
       callback "Remote host is not provided"
@@ -109,26 +108,34 @@ mounter =
           if state.mounted
             callback "Mountpoint #{state.mountpoint} already exists"
           else
-            uid = res.trim()
-            log.info "[OK] user ID for user #{username} is #{uid}"
-            ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-            @createMountpoint options, (err, res)=>
-              if err
+            @readMountInfo options, (err, mountlist)=>
+              if err?
                 callback err
               else
-                @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
-                  if err
-                    log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
-                    fs.rmdir options.mountpoint, (err)->
-                      log.error err if err
-                      callback error
-                  else
-                    @remountVE options, (err,res)=>
-                      if err
-                        callback err
-                      else
-                        @updateMountCfg options, (err,res)->
-                        callback null, res
+                mounts = [mount for mount in mountlist when mount.remotehost is remotehost][0]
+                if mounts.length > 0 and not mountonly
+                  callback "Remotedrive #{remotehost} already exists."
+                else
+                  uid = res.trim()
+                  log.info "[OK] user ID for user #{username} is #{uid}"
+                  ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
+                  @createMountpoint options, (err, res)=>
+                    if err
+                      callback err
+                    else
+                      @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
+                        if err
+                          log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
+                          fs.rmdir options.mountpoint, (err)->
+                            log.error err if err
+                            callback error
+                        else
+                          @remountVE options, (err,res)=>
+                            if err
+                              callback err
+                            else
+                              @updateMountCfg options, (err,res)->
+                              callback null, res
 
   # Safe
   checkMountPoint : (options, callback)->
@@ -286,12 +293,8 @@ mounter =
           if err?
             callback err
           else
-            trigger = 0
-            for obj in res
-              if _.isEqual obj, newConf
-                trigger += 1
-                break
-            if trigger is 0
+            filteredMounts = [mount for mount in res when mount.remotehost is options.remotehost][0]
+            if filteredMounts.length is 0
               res.push newConf
               jsonConf = JSON.stringify res
               fs.writeFile cfg, jsonConf, 'utf-8',(err)->
@@ -336,7 +339,6 @@ mounter =
       if err?
         callback err
       else
-        index = 0
         filteredMounts = [mount for mount in res when mount.remotehost isnt remotehost][0]
         jsonConf = JSON.stringify filteredMounts or ''
         fs.writeFile cfg, jsonConf, 'utf-8',(err)->
