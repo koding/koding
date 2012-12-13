@@ -4,31 +4,12 @@ import (
 	"fmt"
 	"github.com/hsoj/asn1-ber"
 	"io"
-	"labix.org/v2/mgo"
-	//"labix.org/v2/mgo/bson"
+	"koding/virt"
 	"net"
 	"strconv"
 )
 
-type User struct {
-	Name string
-	ID   int
-}
-
-var userDB *mgo.Collection
-
-var TEMPORARY_NAME_MAP = map[string]User{"neelance": User{"neelance", 16777216}}
-var TEMPORARY_ID_MAP = map[string]User{"16777216": User{"neelance", 16777216}}
-
 func main() {
-	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	userDB = session.DB("koding_dev2").C("jUsers")
-
 	ln, err := net.Listen("tcp", ":389")
 	if err != nil {
 		fmt.Println(err)
@@ -85,40 +66,34 @@ func lookupUser(filter *ber.Packet, messageID uint64, conn net.Conn) bool {
 	var attributes map[string]string
 	switch findAttributeInFilter(filter, "objectClass") {
 	case "posixAccount":
-		var user User
+		var vm *virt.VM
+		var err error
 		if name := findAttributeInFilter(filter, "uid"); name != "" {
-			user = TEMPORARY_NAME_MAP[name]
-		} else if id := findAttributeInFilter(filter, "uidNumber"); name != "" {
-			user = TEMPORARY_ID_MAP[id]
+			vm, err = virt.FindByName(name)
+			if err != nil {
+				return true
+			}
+		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
+			uid, _ := strconv.Atoi(uidStr)
+			vm, err = virt.FindById(uid >> 8)
+			if err != nil {
+				return true
+			}
 		} else {
 			return false
 		}
 
-		if user.Name == "" {
-			return true
-		}
-
 		attributes = map[string]string{
-			"uid":           user.Name,
+			"uid":           vm.Name,
 			"userPassword":  "",
-			"uidNumber":     strconv.Itoa(user.ID),
-			"gidNumber":     strconv.Itoa(user.ID),
-			"cn":            user.Name,
-			"homeDirectory": "/home/" + user.Name,
+			"uidNumber":     strconv.Itoa(vm.ID << 8),
+			"gidNumber":     strconv.Itoa(vm.ID << 8),
+			"cn":            vm.Name,
+			"homeDirectory": "/home/" + vm.Name,
 			"loginShell":    "/bin/bash",
 			"gecos":         "",
 			"description":   "",
 		}
-
-		/*var result User
-		  err := userDB.Find(bson.M{"username": name}).One(&result)
-		  if err != nil {
-		    if err == mgo.ErrNotFound {
-		      return
-		    }
-		    panic(err)
-		  }
-		  fmt.Println(result)*/
 
 	case "posixGroup":
 		if findAttributeInFilter(filter, "memberUid") != "" {
@@ -126,17 +101,22 @@ func lookupUser(filter *ber.Packet, messageID uint64, conn net.Conn) bool {
 			return true
 		}
 
-		id := findAttributeInFilter(filter, "gidNumber")
-		if id == "" {
+		gidStr := findAttributeInFilter(filter, "gidNumber")
+		if gidStr == "" {
 			return false
+		}
+		gid, _ := strconv.Atoi(gidStr)
+		vm, err := virt.FindById(gid >> 8)
+		if err != nil {
+			return true
 		}
 
 		attributes = map[string]string{
-			"cn":           TEMPORARY_ID_MAP[id].Name,
+			"cn":           vm.Name,
 			"userPassword": "",
 			"memberUid":    "",
 			"uniqueMember": "",
-			"gidNumber":    id,
+			"gidNumber":    gidStr,
 		}
 	default:
 		return false

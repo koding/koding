@@ -7,7 +7,7 @@ import (
 
 func main() {
 	//vm, err := virt.FromIP(10, 1, 0, 0)
-	vm, err := virt.FromUsername("neelance")
+	vm, err := virt.FindByName("neelance")
 	if err != nil {
 		fmt.Println(err)
 		return
