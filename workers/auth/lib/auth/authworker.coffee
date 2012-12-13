@@ -21,8 +21,8 @@ module.exports = class AuthWorker extends EventEmitter
     JSession.fetchSession clientId, (err, session)->
       if err? or not session? then @rejectClient routingKey
       else
-        if session.clientId isnt clientId
-          @updateSessionToken session.clientId, routingKey
+        tokenHasChanged = session.clientId isnt clientId
+        @updateSessionToken session.clientId, routingKey  if tokenHasChanged
         callback session
 
   updateSessionToken:(clientId, routingKey)->
