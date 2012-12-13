@@ -44,6 +44,7 @@ module.exports = class JAccount extends jraphical.Module
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
         'byRelevance', 'fetchVersion','reserveNames'
+        'impersonate'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -161,6 +162,14 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @impersonate = secure (client, nickname, callback)->
+    {connection:{delegate}, sessionToken} = client
+    unless delegate.can 'administer accounts'
+      callback new KodingError 'Access denied!'
+    else
+      JSession = require './session'
+      JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
   @reserveNames =(options, callback)->
     [callback, options] = [options, callback]  unless callback
@@ -381,7 +390,7 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users'
+      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users', 'administer accounts'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->

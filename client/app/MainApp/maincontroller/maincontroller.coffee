@@ -60,7 +60,6 @@ class MainController extends KDController
     }
 
   accountReady:(fn)->
-    console.log 'args', arguments
     if @accountReadyState > 0 then fn()
     else @once 'AccountChanged', fn
 
