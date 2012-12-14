@@ -102,38 +102,24 @@ func (vm *VM) Prepare() {
 	// create directories
 	vm.Mkdir("", false)
 	vm.Mkdir("overlayfs-upperdir", true)
-
-	// mount ceph
-	err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
-	if err != nil {
-		err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run()
-		if err != nil {
-			panic(err)
-		}
-		err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run()
-		if err != nil {
-			panic(err)
-		}
-		err = exec.Command("/sbin/mkfs.ext4", "/dev/rbd/rbd/"+vm.String()).Run()
-		if err != nil {
-			panic(err)
-		}
-		err = exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	// create more directories
-	vm.Mkdir("overlayfs-upperdir/etc", true)
-	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
 	vm.Mkdir("rootfs", true)
 
 	// write LXC files
 	vm.GenerateFile("config", false)
 	vm.GenerateFile("pre-start", true)
 	vm.GenerateFile("post-stop", true)
+	vm.GenerateFile("mount-rbd", true)
 	vm.GenerateFile("fstab", false)
+
+	// mount rbd/ceph
+	err := exec.Command(vm.File("mount-rbd")).Run()
+	if err != nil {
+		panic(err)
+	}
+
+	// create directories in upperdir
+	vm.Mkdir("overlayfs-upperdir/etc", true)
+	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
 
 	// write hostname file
 	hostnameFile := vm.UpperdirFile("/etc/hostname")
