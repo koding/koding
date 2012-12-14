@@ -30,7 +30,7 @@ func main() {
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
 
-			r := make([]byte, 128)
+			r := make([]byte, 128/8)
 			rand.Read(r)
 			socketId := base64.StdEncoding.EncodeToString(r)
 
