@@ -1,7 +1,7 @@
 class ProfileLinkView extends LinkView
 
   constructor:(options = {}, data)->
-    options.noTooltip ?= no
+    options.noTooltip ?= yes
 
     # this needs to be pre-super
     unless options.noTooltip

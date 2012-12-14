@@ -8,7 +8,7 @@ class AvatarView extends LinkView
     options.size     or=
       width            : 50
       height           : 50
-    options.noTooltip ?= no
+    options.noTooltip ?= yes
 
     # this needs to be pre-super
     unless options.noTooltip
