@@ -9,4 +9,5 @@ if [ $? -ne 0 ]; then
   done
   mkfs.ext4 /dev/rbd/rbd/{{.}}
   mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
+  chown -R 1000000:1000000 /var/lib/lxc/{{.}}/overlayfs-upperdir
 fi

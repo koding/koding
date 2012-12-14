@@ -138,9 +138,15 @@ func (vm *VM) Prepare() {
 
 func (vm *VM) Mkdir(path string, chown bool) {
 	fullPath := vm.File(path)
-	os.Mkdir(fullPath, 0755)
+	err := os.Mkdir(fullPath, 0755)
+	if err != nil {
+		panic(err)
+	}
 	if chown {
-		os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
+		err := os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -157,8 +163,11 @@ func (vm *VM) GenerateFile(name string, executable bool) {
 	}
 
 	if executable {
-		file.Chmod(0755)
+		err = file.Chmod(0755)
 	} else {
-		file.Chmod(0644)
+		err = file.Chmod(0644)
+	}
+	if err != nil {
+		panic(err)
 	}
 }
