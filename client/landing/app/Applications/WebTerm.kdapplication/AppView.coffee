@@ -1,8 +1,23 @@
 class WebTermView extends KDView
+
+  setDefaultStyle:->
+    @container.unsetClass font.value for font in __webtermSettings.fonts
+    @container.unsetClass theme.value for theme in __webtermSettings.themes
+    @container.setClass @appStorage.getValue('font')
+    @container.setClass @appStorage.getValue('theme')
+    @container.$().css fontSize:@appStorage.getValue('fontSize')
+
   viewAppended: ->
+
+    @appStorage = new AppStorage 'WebTerm', '1.0'
+
+    @appStorage.fetchStorage (storage)=>
+      @setDefaultStyle()
+
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
     @addSubView @container
+
 
     @sessionBox = new KDView
       cssClass: "kddialogview"
@@ -38,6 +53,19 @@ class WebTermView extends KDView
     @sessionBox.addSubView createSessionButton
 
     @terminal = new WebTerm.Terminal @container.$()
+
+    @advancedSettings = new KDButtonViewWithMenu
+      style         : 'editor-advanced-settings-menu'
+      icon          : yes
+      iconOnly      : yes
+      iconClass     : "cog"
+      type          : "contextmenu"
+      delegate      : @
+      itemClass     : WebtermSettingsView
+      click         : (pubInst, event)-> @contextMenu event
+      menu          : @getAdvancedSettingsMenuItems.bind @
+
+    @addSubView @advancedSettings
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -114,6 +142,14 @@ class WebTermView extends KDView
 
   _windowDidResize: (event) ->
     @terminal.windowDidResize()
+
+  getAdvancedSettingsMenuItems:->
+
+    settings      :
+      type        : 'customView'
+      view        : new WebtermSettingsView
+        delegate  : @
+
 
 class WebTermSessionItem extends KDListItemView
   constructor: (options = {},data) ->
