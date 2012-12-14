@@ -99,7 +99,7 @@ func main() {
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
 
-						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "routingKeyPrefix": routingKeyPrefix})
+						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 						if err != nil {
 							panic(err)
 						}
