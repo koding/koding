@@ -11,14 +11,15 @@ import (
 )
 
 type VM struct {
-	ID   int    "_id"
+	Id   int    "_id"
 	Name string "name"
+	Used bool
 }
 
 const VMROOT_ID = 1000000
 
 var templates *template.Template
-var vmDB *mgo.Collection
+var VMs *mgo.Collection
 
 func init() {
 	var err error
@@ -31,12 +32,12 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	vmDB = session.DB("koding_dev2").C("jVMs")
+	VMs = session.DB("koding_dev2").C("jVMs")
 }
 
 func Find(query interface{}) (*VM, error) {
 	var vm VM
-	err := vmDB.Find(query).One(&vm)
+	err := VMs.Find(query).One(&vm)
 	if err != nil {
 		return nil, err
 	}
@@ -67,15 +68,15 @@ func (vm *VM) String() string {
 }
 
 func (vm *VM) IP() net.IP {
-	return net.IPv4(10, byte(vm.ID>>16), byte(vm.ID>>8), byte(vm.ID>>0))
+	return net.IPv4(10, byte(vm.Id>>16), byte(vm.Id>>8), byte(vm.Id>>0))
 }
 
 func (vm *VM) MAC() net.HardwareAddr {
-	return net.HardwareAddr([]byte{0, 0, 10, byte(vm.ID >> 16), byte(vm.ID >> 8), byte(vm.ID >> 0)})
+	return net.HardwareAddr([]byte{0, 0, 10, byte(vm.Id >> 16), byte(vm.Id >> 8), byte(vm.Id >> 0)})
 }
 
 func (vm *VM) Uid() int {
-	return vm.ID << 8
+	return vm.Id << 8
 }
 
 func (vm *VM) Username() string {
@@ -100,27 +101,25 @@ func LowerdirFile(path string) string {
 
 func (vm *VM) Prepare() {
 	// create directories
-	vm.Mkdir("", false)
-	vm.Mkdir("overlayfs-upperdir", true)
-	vm.Mkdir("rootfs", true)
+	vm.Mkdir("", 0)
+	vm.Mkdir("overlayfs-upperdir", VMROOT_ID)
+	vm.Mkdir("rootfs", VMROOT_ID)
 
 	// write LXC files
 	vm.GenerateFile("config", false)
 	vm.GenerateFile("pre-start", true)
 	vm.GenerateFile("post-stop", true)
-	vm.GenerateFile("mount-rbd", true)
 	vm.GenerateFile("fstab", false)
 
 	// mount rbd/ceph
-	err := exec.Command(vm.File("mount-rbd")).Run()
-	if err != nil {
+	if err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile("")).Run(); err != nil {
 		panic(err)
 	}
 
 	// create directories in upperdir
-	vm.Mkdir("overlayfs-upperdir/etc", true)
-	vm.Mkdir("overlayfs-upperdir/home", true)
-	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
+	vm.Mkdir("overlayfs-upperdir/etc", VMROOT_ID)
+	vm.Mkdir("overlayfs-upperdir/home", VMROOT_ID)
+	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), vm.Uid())
 
 	// write hostname file
 	hostnameFile := vm.UpperdirFile("/etc/hostname")
@@ -137,14 +136,14 @@ func (vm *VM) Prepare() {
 	vm.MergeDpkgDatabase()
 }
 
-func (vm *VM) Mkdir(path string, chown bool) {
+func (vm *VM) Mkdir(path string, id int) {
 	fullPath := vm.File(path)
 	err := os.Mkdir(fullPath, 0755)
 	if err != nil && !os.IsExist(err) {
 		panic(err)
 	}
-	if chown {
-		err := os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
+	if id != 0 {
+		err := os.Chown(fullPath, id, id)
 		if err != nil {
 			panic(err)
 		}

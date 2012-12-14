@@ -86,8 +86,8 @@ func lookupUser(filter *ber.Packet, messageID uint64, conn net.Conn) bool {
 		attributes = map[string]string{
 			"uid":           vm.Name,
 			"userPassword":  "",
-			"uidNumber":     strconv.Itoa(vm.ID << 8),
-			"gidNumber":     strconv.Itoa(vm.ID << 8),
+			"uidNumber":     strconv.Itoa(vm.Id << 8),
+			"gidNumber":     strconv.Itoa(vm.Id << 8),
 			"cn":            vm.Name,
 			"homeDirectory": "/home/" + vm.Name,
 			"loginShell":    "/bin/bash",
