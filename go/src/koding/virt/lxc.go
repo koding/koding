@@ -32,8 +32,7 @@ func (vm *VM) Shutdown() error {
 	if err != nil {
 		return err
 	}
-	err = process.Signal(syscall.SIGPWR)
-	if err != nil {
+	if err := process.Signal(syscall.SIGPWR); err != nil {
 		return err
 	}
 	return nil

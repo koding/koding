@@ -88,8 +88,7 @@ func main() {
 
 func FindMaxId() int {
 	var vm virt.VM
-	err := virt.VMs.Find(bson.M{}).Sort("-_id").One(&vm)
-	if err != nil {
+	if err := virt.VMs.Find(bson.M{}).Sort("-_id").One(&vm); err != nil {
 		if err == mgo.ErrNotFound {
 			return 1<<16 - 1
 		}

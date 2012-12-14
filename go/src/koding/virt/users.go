@@ -62,8 +62,7 @@ func (vm *VM) MergeGroupFile() {
 	}
 
 	groups[1000] = &Group{vm.Username(), map[string]bool{vm.Username(): true}}
-	err = WriteGroup(groups, groupFile)
-	if err != nil {
+	if err := WriteGroup(groups, groupFile); err != nil {
 		panic(err)
 	}
 	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
@@ -107,8 +106,7 @@ func WritePasswd(users map[int]*User, fileName string) error {
 
 	for _, uid := range uids {
 		user := users[uid]
-		_, err := fmt.Fprintf(f, "%s:x:%d:%d:%s:%s:%s\n", user.Name, uid, user.Gid, user.Description, user.Home, user.Shell)
-		if err != nil {
+		if _, err := fmt.Fprintf(f, "%s:x:%d:%d:%s:%s:%s\n", user.Name, uid, user.Gid, user.Description, user.Home, user.Shell); err != nil {
 			return err
 		}
 	}
@@ -160,8 +158,7 @@ func WriteGroup(groups map[int]*Group, fileName string) error {
 			}
 			users += user
 		}
-		_, err := fmt.Fprintf(f, "%s:x:%d:%s\n", group.Name, gid, users)
-		if err != nil {
+		if _, err := fmt.Fprintf(f, "%s:x:%d:%s\n", group.Name, gid, users); err != nil {
 			return err
 		}
 	}

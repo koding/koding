@@ -37,8 +37,7 @@ func init() {
 
 func Find(query interface{}) (*VM, error) {
 	var vm VM
-	err := VMs.Find(query).One(&vm)
-	if err != nil {
+	if err := VMs.Find(query).One(&vm); err != nil {
 		return nil, err
 	}
 	return &vm, nil
@@ -138,13 +137,11 @@ func (vm *VM) Prepare() {
 
 func (vm *VM) Mkdir(path string, id int) {
 	fullPath := vm.File(path)
-	err := os.Mkdir(fullPath, 0755)
-	if err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(fullPath, 0755); err != nil && !os.IsExist(err) {
 		panic(err)
 	}
 	if id != 0 {
-		err := os.Chown(fullPath, id, id)
-		if err != nil {
+		if err := os.Chown(fullPath, id, id); err != nil {
 			panic(err)
 		}
 	}
@@ -157,8 +154,7 @@ func (vm *VM) GenerateFile(name string, executable bool) {
 	}
 	defer file.Close()
 
-	err = templates.ExecuteTemplate(file, name, vm)
-	if err != nil {
+	if err := templates.ExecuteTemplate(file, name, vm); err != nil {
 		panic(err)
 	}
 

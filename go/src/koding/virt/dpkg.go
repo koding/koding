@@ -112,8 +112,7 @@ func (vm *VM) MergeDpkgDatabase() {
 		delete(upperPackages, name)
 	}
 
-	err = WriteDpkgStatus(upperPackages, dpkgStatusFile)
-	if err != nil {
+	if err = WriteDpkgStatus(upperPackages, dpkgStatusFile); err != nil {
 		panic(err)
 	}
 }
