@@ -119,6 +119,7 @@ func (vm *VM) Prepare() {
 
 	// create directories in upperdir
 	vm.Mkdir("overlayfs-upperdir/etc", true)
+	vm.Mkdir("overlayfs-upperdir/home", true)
 	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
 
 	// write hostname file
