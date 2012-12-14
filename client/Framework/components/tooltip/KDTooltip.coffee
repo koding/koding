@@ -114,8 +114,7 @@ class KDTooltip extends KDView
 
   display:(o = @getOptions())->
 
-    # converts NESW-Values to topbottomleftright and retains them in
-    # @getOptions
+    # converts NESW-Values to topbottomleftright and retains them in @getOptions
     o = @translateCompassDirections o if o.gravity
     o.gravity = null
 
@@ -136,80 +135,15 @@ class KDTooltip extends KDView
         height  : selector.height()
         width   : selector.width()
 
-    # get default coordinates for tooltip placement
-    getCoordsFromPositionValues = (placement,direction)=>
-
-      c = # coordinates
-        top  : d.selector.offset.top
-        left : d.selector.offset.left
-
-      cDiff = (dimensions,type,center=no)->
-        (dimensions.selector[type]-dimensions.container[type])/(1+center)
-        # if center then diff/2 else diff
-
-      getCoordsFromPlacement = (coordinates,dimensions,placement,direction)->
-        [staticAxis,dynamicAxis,staticC,dynamicC,exclusion] =
-          if /o/.test placement then ['height','width','top','left','right']
-          else ['width','height','left','top','bottom']
-        coordinates[staticC]+= unless placement.length<5
-            (dimensions.selector[staticAxis]+10)
-          else -(dimensions.container[staticAxis]+10)
-        unless direction is exclusion
-          coordinates[dynamicC]+=cDiff(dimensions,dynamicAxis,direction is 'center')
-        return coordinates
-
-      return getCoordsFromPlacement c,d,placement,direction
-
-      # return c
-
-      # switch placement
-      #   when 'top'
-      #     c.top       -= d.container.height+10
-      #     unless direction is 'right'
-      #       c.left += cDiff(d,'width',direction is 'center')
-      #   when 'bottom'
-      #     c.top       += d.selector.height+10
-      #     unless direction is 'right'
-      #       c.left  += cDiff(d,'width',direction is 'center')
-      #   when 'right'
-      #     c.left      += d.selector.width+10
-      #     unless direction is 'bottom'
-      #       c.top   += cDiff(d,'height',direction is 'center')
-      #   when 'left'
-      #     c.left      -= d.container.width+10
-      #     unless direction is 'bottom'
-      #       c.top   += cDiff(d,'height',direction is 'center')
-
-          # switch direction
-          #   when 'left'
-          #     c.left  += cDiff(d,'width')
-          #   when 'center'
-          #     c.left  += cDiff(d,'width',yes)
-          # switch direction
-          #   when 'left'
-          #     c.left  += cDiff(d,'width')
-          #   when 'center'
-          #     c.left  += cDiff(d,'width',yes)
-          # switch direction
-          #   when 'top'
-          #     c.top   += cDiff(d,'height')
-          #   when 'center'
-          #     c.top   += cDiff(d,'height',yes)
-          # switch direction
-          #   when 'top'
-          #     c.top   += cDiff(d,'height')
-          #   when 'center'
-          #     c.top   += cDiff(d,'height',yes)
-      # return c
-
     {placement,direction} = positionValues
 
     # check the default values for overlapping boundaries, then
     # recalculate if there are overlaps
 
-    violations = boundaryViolations getCoordsFromPositionValues(placement, direction), d.container.width, d.container.height
+    violations = boundaryViolations getCoordsFromPlacement(d, placement, direction),\
+    d.container.width, d.container.height
 
-    if Object.keys(violations).length > 0
+    if Object.keys(violations).length > 0 # check for possible alternatives
       variants = [
         ['top','right']
         ['right','top']
@@ -226,12 +160,13 @@ class KDTooltip extends KDView
       ]
 
       for variant in variants
-        if Object.keys(boundaryViolations(getCoordsFromPositionValues(variant[0],variant[1]), d.container.width, d.container.height)).length is 0
+        if Object.keys(boundaryViolations(getCoordsFromPlacement(d,variant[0],variant[1]),\
+        d.container.width, d.container.height)).length is 0
           [placement,direction] = variant
           break
 
     correctValues =
-      coords : getCoordsFromPositionValues placement, direction
+      coords : getCoordsFromPlacement d, placement, direction
       placement : placement
       direction : direction
 
@@ -326,7 +261,7 @@ class KDTooltip extends KDView
     left    : "left"
     right   : "right"
 
-# will return an object with the amount of clipped pixels
+  # will return an object with the amount of clipped pixels
   boundaryViolations = (coordinates,width,height)=>
     violations = {}
     if coordinates.left < 0
@@ -338,3 +273,21 @@ class KDTooltip extends KDView
     if coordinates.top+height > window.innerHeight
       violations.bottom = coordinates.top+height-window.innerHeight
     violations
+
+  getCoordsDiff = (dimensions,type,center=no)->
+    diff = dimensions.selector[type]-dimensions.container[type]
+    if center then diff/2 else diff
+
+  getCoordsFromPlacement = (dimensions,placement,direction)->
+    coordinates =
+      top  : dimensions.selector.offset.top
+      left : dimensions.selector.offset.left
+    [staticAxis,dynamicAxis,staticC,dynamicC,exclusion] =
+      if /o/.test placement then ['height','width','top','left','right']
+      else ['width','height','left','top','bottom']
+    coordinates[staticC]+= unless placement.length<5
+        (dimensions.selector[staticAxis]+10)
+      else -(dimensions.container[staticAxis]+10)
+    unless direction is exclusion
+      coordinates[dynamicC]+=getCoordsDiff(dimensions,dynamicAxis,direction is 'center')
+    return coordinates
