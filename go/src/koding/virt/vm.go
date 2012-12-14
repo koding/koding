@@ -140,7 +140,7 @@ func (vm *VM) Prepare() {
 func (vm *VM) Mkdir(path string, chown bool) {
 	fullPath := vm.File(path)
 	err := os.Mkdir(fullPath, 0755)
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		panic(err)
 	}
 	if chown {
