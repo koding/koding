@@ -108,6 +108,8 @@ class WebTermView extends KDView
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
 
+    @bindEvent 'contextmenu'
+
     KD.singletons.kiteController.run
       kiteName: 'webterm',
       method: 'createServer',
@@ -139,6 +141,39 @@ class WebTermView extends KDView
 
   keyUp: (event) ->
     @terminal.keyUp event
+
+  contextMenu: (event) ->
+    # invisible textarea will be placed under the cursor when rightclick
+    @createInvisibleTextarea event
+    event
+
+  createInvisibleTextarea:(eventData)->
+
+    # Get selected Text for cut/copy
+    if window.getSelection
+        selectedText = window.getSelection()
+    else if document.getSelection
+        selectedText = document.getSelection()
+    else if document.selection
+        selectedText = document.selection.createRange().text
+    textarea = $(document.createElement("textarea"))
+    textarea.css
+      position  : "absolute"
+      opacity   : 0
+      width     : "30px"
+      height    : "30px"
+      top       : eventData.offsetY-10
+      left      : eventData.offsetX-10
+    @$().append textarea
+
+    if selectedText
+      textarea.val(selectedText.toString())
+      textarea.select()
+    textarea.focus()
+
+    #remove 5sec later
+    @utils.wait 5000, =>
+      textarea.remove()
 
   _windowDidResize: (event) ->
     @terminal.windowDidResize()
