@@ -99,7 +99,7 @@ func main() {
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
 
-						body, err := json.Marshal(map[string]string{"event": "subscribed", "routingKeyPrefix": routingKeyPrefix})
+						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "routingKeyPrefix": routingKeyPrefix})
 						if err != nil {
 							panic(err)
 						}
@@ -159,7 +159,7 @@ func main() {
 		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
 		for message := range stream {
 			routingKey := message.RoutingKey
-			body, err := json.Marshal(map[string]string{"event": routingKey, "exchange": message.Exchange, "payload": string(message.Body)})
+			body, err := json.Marshal(map[string]string{"routingKey": routingKey, "payload": string(message.Body)})
 			if err != nil {
 				panic(err)
 			}
