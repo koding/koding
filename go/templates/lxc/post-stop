@@ -1,3 +1,2 @@
 #!/bin/sh
-umount /var/lib/lxc/{{.}}/rootfs/home/{{.Username}}
 umount /var/lib/lxc/{{.}}/rootfs

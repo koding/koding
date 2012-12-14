@@ -6,8 +6,7 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
-	"os/user"
-	"strconv"
+	"os/exec"
 	"text/template"
 )
 
@@ -80,11 +79,7 @@ func (vm *VM) Uid() int {
 }
 
 func (vm *VM) Username() string {
-	u, err := user.LookupId(strconv.Itoa(vm.Uid()))
-	if err != nil {
-		return "nobody"
-	}
-	return u.Username
+	return vm.Name
 }
 
 func (vm *VM) Hostname() string {
@@ -107,6 +102,20 @@ func (vm *VM) Prepare() {
 	// create directories
 	vm.Mkdir("", false)
 	vm.Mkdir("overlayfs-upperdir", true)
+
+	// mount ceph
+	err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
+	if err != nil {
+		exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run()
+		exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd")
+		exec.Command("/sbin/mkfs.ext4", "/dev/rbd/rbd/"+vm.String())
+		err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// create more directories
 	vm.Mkdir("overlayfs-upperdir/etc", true)
 	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
 	vm.Mkdir("rootfs", true)
@@ -133,7 +142,7 @@ func (vm *VM) Prepare() {
 }
 
 func (vm *VM) Mkdir(path string, chown bool) {
-	fullPath := fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
+	fullPath := vm.File(path)
 	os.Mkdir(fullPath, 0755)
 	if chown {
 		os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
