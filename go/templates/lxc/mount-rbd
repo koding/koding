@@ -1,3 +1,4 @@
+#!/bin/sh
 mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
 if [ $? -ne 0 ]; then
   rbd create {{.}} --size 1200
