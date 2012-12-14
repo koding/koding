@@ -140,7 +140,7 @@ class KDTooltip extends KDView
     # check the default values for overlapping boundaries, then
     # recalculate if there are overlaps
 
-    violations = boundaryViolations getCoordsFromPlacement(d, placement, direction),\
+    violations = getBoundaryViolations getCoordsFromPlacement(d, placement, direction),\
     d.container.width, d.container.height
 
     if Object.keys(violations).length > 0 # check for possible alternatives
@@ -160,7 +160,7 @@ class KDTooltip extends KDView
       ]
 
       for variant in variants
-        if Object.keys(boundaryViolations(getCoordsFromPlacement(d,variant[0],variant[1]),\
+        if Object.keys(getBoundaryViolations(getCoordsFromPlacement(d,variant[0],variant[1]),\
         d.container.width, d.container.height)).length is 0
           [placement,direction] = variant
           break
@@ -262,7 +262,7 @@ class KDTooltip extends KDView
     right   : "right"
 
   # will return an object with the amount of clipped pixels
-  boundaryViolations = (coordinates,width,height)=>
+  getBoundaryViolations = (coordinates,width,height)=>
     violations = {}
     if coordinates.left < 0
       violations.left   = -(coordinates.left)
@@ -282,12 +282,15 @@ class KDTooltip extends KDView
     coordinates =
       top  : dimensions.selector.offset.top
       left : dimensions.selector.offset.left
+
     [staticAxis,dynamicAxis,staticC,dynamicC,exclusion] =
       if /o/.test placement then ['height','width','top','left','right']
       else ['width','height','left','top','bottom']
+
     coordinates[staticC]+= unless placement.length<5
         (dimensions.selector[staticAxis]+10)
       else -(dimensions.container[staticAxis]+10)
+
     unless direction is exclusion
       coordinates[dynamicC]+=getCoordsDiff(dimensions,dynamicAxis,direction is 'center')
     return coordinates
