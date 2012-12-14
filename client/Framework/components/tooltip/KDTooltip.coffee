@@ -110,42 +110,6 @@ class KDTooltip extends KDView
     o.placement = placementMap[placement]
     o.direction = directionMap(o.placement, gravity)
 
-    # unless o.placement and o.direction
-    #   switch o.placement
-    #     when 'above'
-    #       o.placement = 'top'
-    #       switch o.gravity
-    #         when 'n','s'
-    #           o.direction = 'center'
-    #         when 'e','ne','se'
-    #           o.direction = 'left'
-    #         when 'w','nw','sw'
-    #           o.direction = 'right'
-    #     when 'below'
-    #       o.placement = 'bottom'
-    #       switch o.gravity
-    #         when 'n','s'
-    #           o.direction = 'center'
-    #         when 'e','ne','se'
-    #           o.direction = 'left'
-    #         when 'w','nw','sw'
-    #           o.direction = 'right'
-    #     when 'left'
-    #       switch o.gravity
-    #         when 'n','nw','ne'
-    #           o.direction = 'top'
-    #         when 'e','w'
-    #           o.direction = 'left'
-    #         when 's','sw','se'
-    #           o.direction = 'bottom'
-    #     when 'right'
-    #       switch o.gravity
-    #         when 'n','ne','nw'
-    #           o.direction = 'top'
-    #         when 'e','w'
-    #           o.direction = 'right'
-    #         when 'w','se','sw'
-    #           o.direction = 'bottom'
     return o
 
   display:(o = @getOptions())->
@@ -153,6 +117,7 @@ class KDTooltip extends KDView
     # converts NESW-Values to topbottomleftright and retains them in
     # @getOptions
     o = @translateCompassDirections o if o.gravity
+    o.gravity = null
 
     @setClass 'in' if o.animate
     @show()
@@ -161,82 +126,98 @@ class KDTooltip extends KDView
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
     # values that can/will be used in all the submethods
     container       = @$()
-    containerHeight = container.height()
-    containerWidth  = container.width()
     selector        = @getDelegate().$(o.selector)
-    selectorOffset  = selector.offset()
-    selectorHeight  = selector.height()
-    selectorWidth   = selector.width()
-
-    # will return an object with the amount of clipped pixels
-    boundaryViolations = (coordinates,width,height)=>
-      violations = {}
-      if coordinates.left < 0
-        violations.left   = -(coordinates.left)
-      if coordinates.top  < 0
-        violations.top    = -(coordinates.top)
-      if coordinates.left+width > window.innerWidth
-        violations.right  = coordinates.left+width-window.innerWidth
-      if coordinates.top+height > window.innerHeight
-        violations.bottom = coordinates.top+height-window.innerHeight
-      violations
+    d = # dimensions
+      container :
+        height  : container.height()
+        width   : container.width()
+      selector  :
+        offset  : selector.offset()
+        height  : selector.height()
+        width   : selector.width()
 
     # get default coordinates for tooltip placement
     getCoordsFromPositionValues = (placement,direction)=>
 
-      c =
-        top  : selectorOffset.top
-        left : selectorOffset.left
+      c = # coordinates
+        top  : d.selector.offset.top
+        left : d.selector.offset.left
 
+      cDiff = (dimensions,type,center=no)->
+        (dimensions.selector[type]-dimensions.container[type])/(1+center)
+        # if center then diff/2 else diff
 
+      getCoordsFromPlacement = (coordinates,dimensions,placement,direction)->
+        [staticAxis,dynamicAxis,staticC,dynamicC,exclusion] =
+          if /o/.test placement then ['height','width','top','left','right']
+          else ['width','height','left','top','bottom']
+        coordinates[staticC]+= unless placement.length<5
+            (dimensions.selector[staticAxis]+10)
+          else -(dimensions.container[staticAxis]+10)
+        unless direction is exclusion
+          coordinates[dynamicC]+=cDiff(dimensions,dynamicAxis,direction is 'center')
+        return coordinates
 
-      switch placement
-        when 'top'
-          c.top       -= containerHeight+10
-          switch direction
-            when 'left'
-              c.left  += selectorWidth-containerWidth
-            when 'center'
-              c.left  += (selectorWidth-containerWidth)/2
-        when 'bottom'
-          c.top       += selectorHeight+10
-          switch direction
-            when 'left'
-              c.left  += selectorWidth-containerWidth
-            when 'center'
-              c.left  += (selectorWidth-containerWidth)/2
-        when 'right'
-          c.left      += selectorWidth+10
-          switch direction
-            when 'top'
-              c.top   += selectorHeight-containerHeight
-            when 'center'
-              c.top   += (selectorHeight-containerHeight)/2
-        when 'left'
-          c.left      -= containerWidth+25
-          switch direction
-            when 'top'
-              c.top   += selectorHeight-containerHeight
-            when 'center'
-              c.top   += (selectorHeight-containerHeight)/2
-      return c
+      return getCoordsFromPlacement c,d,placement,direction
+
+      # return c
+
+      # switch placement
+      #   when 'top'
+      #     c.top       -= d.container.height+10
+      #     unless direction is 'right'
+      #       c.left += cDiff(d,'width',direction is 'center')
+      #   when 'bottom'
+      #     c.top       += d.selector.height+10
+      #     unless direction is 'right'
+      #       c.left  += cDiff(d,'width',direction is 'center')
+      #   when 'right'
+      #     c.left      += d.selector.width+10
+      #     unless direction is 'bottom'
+      #       c.top   += cDiff(d,'height',direction is 'center')
+      #   when 'left'
+      #     c.left      -= d.container.width+10
+      #     unless direction is 'bottom'
+      #       c.top   += cDiff(d,'height',direction is 'center')
+
+          # switch direction
+          #   when 'left'
+          #     c.left  += cDiff(d,'width')
+          #   when 'center'
+          #     c.left  += cDiff(d,'width',yes)
+          # switch direction
+          #   when 'left'
+          #     c.left  += cDiff(d,'width')
+          #   when 'center'
+          #     c.left  += cDiff(d,'width',yes)
+          # switch direction
+          #   when 'top'
+          #     c.top   += cDiff(d,'height')
+          #   when 'center'
+          #     c.top   += cDiff(d,'height',yes)
+          # switch direction
+          #   when 'top'
+          #     c.top   += cDiff(d,'height')
+          #   when 'center'
+          #     c.top   += cDiff(d,'height',yes)
+      # return c
 
     {placement,direction} = positionValues
 
     # check the default values for overlapping boundaries, then
     # recalculate if there are overlaps
 
-    violations = boundaryViolations getCoordsFromPositionValues(placement, direction), containerWidth, containerHeight
+    violations = boundaryViolations getCoordsFromPositionValues(placement, direction), d.container.width, d.container.height
 
     if Object.keys(violations).length > 0
       variants = [
-        ['top','left']
-        ['top','center']
         ['top','right']
         ['right','top']
-        ['right','center']
         ['right','bottom']
         ['bottom','right']
+        ['top','left']
+        ['top','center']
+        ['right','center']
         ['bottom','center']
         ['bottom','left']
         ['left','bottom']
@@ -245,7 +226,7 @@ class KDTooltip extends KDView
       ]
 
       for variant in variants
-        if Object.keys(boundaryViolations(getCoordsFromPositionValues(variant[0],variant[1]), containerWidth, containerHeight)).length is 0
+        if Object.keys(boundaryViolations(getCoordsFromPositionValues(variant[0],variant[1]), d.container.width, d.container.height)).length is 0
           [placement,direction] = variant
           break
 
@@ -338,7 +319,22 @@ class KDTooltip extends KDView
       else placement
 
   placementMap =
+    top     : "top"
     above   : "top"
     below   : "bottom"
+    bottom  : "bottom"
     left    : "left"
     right   : "right"
+
+# will return an object with the amount of clipped pixels
+  boundaryViolations = (coordinates,width,height)=>
+    violations = {}
+    if coordinates.left < 0
+      violations.left   = -(coordinates.left)
+    if coordinates.top  < 0
+      violations.top    = -(coordinates.top)
+    if coordinates.left+width > window.innerWidth
+      violations.right  = coordinates.left+width-window.innerWidth
+    if coordinates.top+height > window.innerHeight
+      violations.bottom = coordinates.top+height-window.innerHeight
+    violations
