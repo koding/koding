@@ -3,6 +3,10 @@ mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
 if [ $? -ne 0 ]; then
   rbd create {{.}} --size 1200
   rbd map {{.}} --pool rbd
+  while [ ! -e /dev/rbd/rbd/{{.}} ]
+  do
+    sleep 1
+  done
   mkfs.ext4 /dev/rbd/rbd/{{.}}
   mount /dev/rbd/rbd/{{.}} /var/lib/lxc/{{.}}/overlayfs-upperdir
 fi
