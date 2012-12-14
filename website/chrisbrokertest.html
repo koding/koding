@@ -7,7 +7,12 @@
 <script src="./js/broker.js"></script>
 <script>
 
-var broker = new Broker('http://localhost:8008/subscribe');
+var Broker, Channel, broker;
+
+Broker = KDBroker.Broker;
+Channel = KDBroker.Channel;
+
+broker = new Broker('http://localhost:8008/subscribe');
 
 console.log(broker);
 
