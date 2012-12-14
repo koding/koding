@@ -165,6 +165,8 @@ Includes =
         # webterm
         WebTermController     : "./client/app/Applications/WebTerm.kdapplication/AppController.coffee"
         WebTermView           : "./client/app/Applications/WebTerm.kdapplication/AppView.coffee"
+        WebtermSettingsView   : "./client/app/Applications/WebTerm.kdapplication/webtermsettingsview.coffee"
+        WebtermSettings       : "./client/app/Applications/WebTerm.kdapplication/webtermsettings.coffee"
         WebTerm1              : "./client/app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee"
         WebTerm2              : "./client/app/Applications/WebTerm.kdapplication/src/Cursor.coffee"
         WebTerm3              : "./client/app/Applications/WebTerm.kdapplication/src/InputHandler.coffee"
