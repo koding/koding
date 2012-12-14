@@ -73,22 +73,21 @@ func main() {
 				for routingKeyPrefix := range subscriptions {
 					removeFromRouteMap(routingKeyPrefix)
 				}
-				err := controlChannel.Publish("authEndpoint", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-				if err != nil {
-					panic(err)
+				for {
+					err := controlChannel.Publish("authEndpoint", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+					if err != nil {
+						log.LogError(err)
+						controlChannel.Close()
+						controlChannel = utils.CreateAmqpChannel(publishConn)
+					} else {
+						break
+					}
 				}
 			}()
 
 			for data := range receiveChan {
 				func() {
-					defer func() {
-						err := recover()
-						if err != nil {
-							log.LogError(err)
-							controlChannel.Close()
-							controlChannel = utils.CreateAmqpChannel(publishConn)
-						}
-					}()
+					defer log.RecoverAndLog()
 
 					message := data.(map[string]interface{})
 					log.Debug(message)
@@ -115,9 +114,15 @@ func main() {
 						exchange := message["exchange"].(string)
 						routingKey := message["routingKey"].(string)
 						if strings.HasPrefix(routingKey, "client.") {
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-							if err != nil {
-								panic(err)
+							for {
+								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
+								if err != nil {
+									log.LogError(err)
+									controlChannel.Close()
+									controlChannel = utils.CreateAmqpChannel(publishConn)
+								} else {
+									break
+								}
 							}
 						} else {
 							log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
