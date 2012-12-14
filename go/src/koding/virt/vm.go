@@ -106,10 +106,19 @@ func (vm *VM) Prepare() {
 	// mount ceph
 	err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
 	if err != nil {
-		exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run()
-		exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd")
-		exec.Command("/sbin/mkfs.ext4", "/dev/rbd/rbd/"+vm.String())
-		err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
+		err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run()
+		if err != nil {
+			panic(err)
+		}
+		err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run()
+		if err != nil {
+			panic(err)
+		}
+		err = exec.Command("/sbin/mkfs.ext4", "/dev/rbd/rbd/"+vm.String()).Run()
+		if err != nil {
+			panic(err)
+		}
+		err = exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile(".")).Run()
 		if err != nil {
 			panic(err)
 		}
