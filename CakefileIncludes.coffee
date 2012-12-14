@@ -11,7 +11,7 @@ Includes =
     Client:
       Framework :
         sockjs                      : "./client/libs/sockjs-0.3-patched.js"
-        broker                      : "./node_modules/broker-client/browser/broker.js"
+        broker                      : "./node_modules/koding-broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         # core
         __utils             : "./client/Framework/core/utils.coffee"

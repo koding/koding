@@ -10,6 +10,10 @@ module.exports = class AuthWorker extends EventEmitter
     @counts   = {}
     @routingKeysBySocketId = {}
 
+    @addService
+      serviceType : 'kite-webterm'
+      serviceName : 'kite-webterm1'
+
   bound: require 'koding-bound'
 
   authenticate:(messageData, routingKey, callback)->
@@ -34,8 +38,9 @@ module.exports = class AuthWorker extends EventEmitter
   getNextServiceName:(serviceType)->
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
-    return  unless servicesOfType
-    serviceName = servicesOfType[count % servicesOfType.length - 1]
+    console.log {servicesOfType, serviceType}
+    return  unless servicesOfType?.length
+    serviceName = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
     return serviceName
 
@@ -66,35 +71,43 @@ module.exports = class AuthWorker extends EventEmitter
 
   joinKiteClient:(messageData, routingKey, socketId)->
     {channel} = messageData
+    console.log {channel}
     @authenticate messageData, routingKey, (session)=>
-      @bongo.mq.connection.exchange @getNextServiceName(channel), (exchange)=>
-        exchange.publish 'auth.join', {
-          username    : session.username
-          routingKey  : routingKey
-        }
-        exchange.close() # don't leak a channel
-        @addClient socketId, exchange.name, routingKey
+      console.log session
+      serviceName = @getNextServiceName channel
+      unless serviceName
+        @rejectClient routingKey
+      else
+        @bongo.mq.connection.exchange serviceName, (exchange)=>
+          exchange.publish 'auth.join', {
+            username    : session.username
+            routingKey  : routingKey
+          }
+          exchange.close() # don't leak a channel
+          @addClient socketId, exchange.name, routingKey
 
   # TODO: authenticate the kite client
 
-  rejectClient:(routingKey)->
-    @bongo.respondToClient routingKey, {error: 'Access denied'}
+  rejectClient:(routingKey, message)->
+    console.log 'rejecting client', arguments
+    @bongo.respondToClient routingKey, {error: message ? 'Access denied'}
 
   joinClient:(data, socketId)->
     {channel, routingKey, serviceType} = data
-    # @addRoutingKeyBySocketId socketId, routingKey
     switch serviceType
       when 'bongo' then @joinBongoClient data, routingKey, socketId
       when 'kite'  then @joinKiteClient data, routingKey, socketId
       else              @rejectClient routingKey
 
   cleanUpClient:(client)->
+    console.log 'got a client'
     @bongo.mq.connection.exchange client.exchange, (exchange)->
       exchange.publish 'auth.leave', {
         routingKey: client.routingKey
       }
 
   cleanUpAfterDisconnect:(socketId)->
+    console.log 'd/c', socketId, this
     @getClients(socketId)?.forEach @bound 'cleanUpClient'
 
     # TODO: implement cleanup
@@ -125,5 +138,6 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'client.auth'
                   @joinClient messageData, socketId
+                when 'client.killAuth' then process.kill()
                 else
                   @rejectClient routingKey

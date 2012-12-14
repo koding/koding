@@ -317,10 +317,13 @@ run =(options)->
     restart : yes
     restartInterval : 1000
 
-
   if config.social.watch?
     watcher = new Watcher
       groups        :
+        auth        :
+          folders   : ['./workers/auth']
+          onChange  : (path) ->
+            processes.kill "authWorker"
         social      :
           folders   : ['./workers/social']
           onChange  : (path) ->
