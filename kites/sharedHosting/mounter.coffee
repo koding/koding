@@ -499,7 +499,7 @@ mounter =
     args = ['-m', username]
     @spawnWrapper config.cagefsctl, args ,(err, res)->
       if err?
-        log.error error = "Couldn't remount user's VE - username #{username}: #{stderr}"
+        log.error error = "Couldn't remount user's VE - username #{username}: #{err}"
         callback error
       else
         log.info info = "User: #{username} virtual environment remounted."
