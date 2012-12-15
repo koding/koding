@@ -1,4 +1,4 @@
-# mount remote filesystem kites
+
 
 config  = require './config'
 
@@ -172,7 +172,8 @@ mounter =
     rs.on 'data', (data)->
       mounts = [mount.split(' ', 2) for mount in data.split('\n') when startsWith mount, remotehost][0]
       if mounts.length > 0
-        state = [line for line in mounts when endsWith line[1], "#{remoteuser}@#{remotehost}"][0]
+        state = [line for line in mounts when (startsWith(line[1], "/Users/#{username}/") and \
+                                               endsWith(  line[1], "#{remoteuser}@#{remotehost}"))][0]
         if state.length > 0
           [remote, mountpoint] = state[0]
           console.log "[OK] #{remotehost} is mounted for user #{username} to #{mountpoint}"
