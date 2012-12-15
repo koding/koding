@@ -166,12 +166,13 @@ func main() {
 			bodyStr := string(body)
 
 			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
-			for {
+			for pos != -1 && pos < len(routingKey) {
 				index := strings.IndexRune(routingKey[pos+1:], '.')
 				if index == -1 {
-					break
+					pos = len(routingKey)
+				} else {
+					pos += 1 + index
 				}
-				pos += 1 + index
 				prefix := routingKey[:pos]
 				routeMapMutex.RLock()
 				channels := routeMap[prefix]

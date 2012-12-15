@@ -128,6 +128,7 @@ Includes =
         registry              : "./client/Framework/classregistry.coffee"
 
       Applications :
+        KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
