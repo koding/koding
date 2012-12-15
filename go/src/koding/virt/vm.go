@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"text/template"
+	"time"
 )
 
 type VM struct {
@@ -16,10 +17,15 @@ type VM struct {
 	Used bool   "used"
 }
 
+type Counter struct {
+	Value int "v"
+}
+
 const VMROOT_ID = 1000000
 
 var templates *template.Template
 var VMs *mgo.Collection
+var Counters *mgo.Collection
 
 func init() {
 	var err error
@@ -32,7 +38,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	VMs = session.DB("koding_dev2").C("jVMs")
+	db := session.DB("koding_dev2")
+	VMs = db.C("jVMs")
+	Counters = db.C("jCounters")
 }
 
 func Find(query interface{}) (*VM, error) {
@@ -58,12 +66,6 @@ func FindByUid(uid int) (*VM, error) {
 
 func FindByName(name string) (*VM, error) {
 	return Find(bson.M{"name": name})
-}
-
-func FetchUnused() (*VM, error) {
-	var vm VM
-	_, err := VMs.Find(bson.M{"used": false}).Limit(1).Apply(mgo.Change{Update: bson.M{"used": true}, ReturnNew: true}, &vm)
-	return &vm, err
 }
 
 func (vm *VM) String() string {
@@ -104,6 +106,50 @@ func (vm *VM) UpperdirFile(path string) string {
 
 func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
+}
+
+func FetchUnused() *VM {
+	var vm VM
+	_, err := VMs.Find(bson.M{"used": false}).Limit(1).Apply(mgo.Change{Update: bson.M{"used": true}, ReturnNew: true}, &vm)
+	if err == nil {
+		return &vm // existing unused VM found
+	}
+	if err != mgo.ErrNotFound {
+		panic(err)
+	}
+
+	// create new vm
+	var c Counter
+	if _, err := Counters.FindId("vmId").Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"v": 1}}}, &c); err != nil {
+		panic(err)
+	}
+	vm = VM{Id: c.Value, Used: true}
+
+	// create disk and map to pool
+	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
+		panic(err)
+	}
+	if err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+		panic(err)
+	}
+
+	// wait for device to appear
+	for {
+		_, err := os.Stat(vm.RbdDevice())
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		time.Sleep(time.Second / 2)
+	}
+
+	if err := VMs.Insert(vm); err != nil {
+		panic(err)
+	}
+
+	return &vm
 }
 
 func (vm *VM) Prepare(format bool) {
