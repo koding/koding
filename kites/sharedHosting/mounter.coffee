@@ -36,13 +36,13 @@ mounter =
     #   callback error
     #   callback null, result (information message)
 
-    {username, remotehost, remotepass, remotetype, storepass} = options
+    {username, remotehost, remotepass, remotetype, remoteuser, storepass} = options
 
     @readMountInfo options, (err,res)=>
       if err?
         callback err
       else
-        mounts = [mount for mount in res when mount.remotehost is remotehost][0]
+        mounts = [mount for mount in res when (mount.remotehost is remotehost and mount.remoteuser is remoteuser)][0]
 
         if mounts.length is 0 or res.length is 0
           callback "No such remote registered with '#{remotehost}' name."
@@ -83,7 +83,7 @@ mounter =
 
     options.remoteuser or= 'anonymous'
     options.remotepass or= 'anonymous'
-    options.storepass    = yes if options.remotepass is 'anonymous'
+    options.storepass  or= yes if options.remotepass is 'anonymous'
     options.remotetype   = 'ftp'
 
     {username, remoteuser, remotepass, remotehost, storepass, mountonly} = options
@@ -92,7 +92,8 @@ mounter =
       callback "Remote host is not provided"
       return no
 
-    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remotehost
+    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remoteuser
+    options.mountpoint+= "@#{escapePath remotehost}"
 
     unless safeForUser username, options.mountpoint
       console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
@@ -107,36 +108,28 @@ mounter =
       else
         @checkMountPoint options, (err, state)=>
           if state.mounted
-            callback "Mountpoint #{state.mountpoint} already exists"
+            callback "Remote host is already mounted to #{state.mountpoint}"
           else
-            @readMountInfo options, (err, mountlist)=>
-              if err?
+            uid = res.trim()
+            log.info "[OK] user ID for user #{username} is #{uid}"
+            ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
+            @createMountpoint options, (err, res)=>
+              if err
                 callback err
               else
-                mounts = [mount for mount in mountlist when mount.remotehost is remotehost][0]
-                if mounts.length > 0 and not mountonly
-                  callback "Remotedrive #{remotehost} already exists."
-                else
-                  uid = res.trim()
-                  log.info "[OK] user ID for user #{username} is #{uid}"
-                  ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-                  @createMountpoint options, (err, res)=>
-                    if err
-                      callback err
-                    else
-                      @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
-                        if err
-                          log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
-                          fs.rmdir options.mountpoint, (err)->
-                            log.error err if err
-                            callback error
-                        else
-                          @remountVE options, (err,res)=>
-                            if err
-                              callback err
-                            else
-                              @updateMountCfg options, (err,res)->
-                              callback null, res
+                @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
+                  if err
+                    log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
+                    fs.rmdir options.mountpoint, (err)->
+                      log.error err if err
+                      callback error
+                  else
+                    @remountVE options, (err,res)=>
+                      if err
+                        callback err
+                      else
+                        @updateMountCfg options, (err,res)->
+                        callback null, res
 
   # Safe
   checkMountPoint : (options, callback)->
@@ -149,16 +142,25 @@ mounter =
     # return =
     #   mounted: Bool # true/false
     #   remotehost: String # remote FTP/SFTP hostname
+    #   remoteuser: String # remote FTP/SFTP username
     #   mountpoint: Strint # full path to the mountpoint
 
-    {username, remotehost} = options
+    {username, remoteuser, remotehost, mountpoint} = options
 
-    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remotehost
+    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remoteuser
+    options.mountpoint+= "@#{escapePath remotehost}"
+
+    console.log options
 
     unless safeForUser username, options.mountpoint
       console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
       callback "You are not authorized to do this."
       return no
+
+    startsWith = (str, part)-> str.trim().indexOf(part) is 0
+    endsWith   = (str, part)-> str.trim().indexOf(part, str.trim().length - part?.length) isnt -1
+
+    res = {mounted : false, remotehost, mountpoint : options.mountpoint}
 
     rs = fs.createReadStream '/proc/mounts', flags: 'r'
     rs.setEncoding()
@@ -168,21 +170,18 @@ mounter =
       callback error
 
     rs.on 'data', (data)->
-      if data.indexOf(options.mountpoint) isnt -1
-        console.log "[OK] #{remotehost} is mounted for user #{username}"
-        rs.destroy()
-        res =
-          mounted: true
-          remotehost: remotehost
-          mountpoint: options.mountpoint
-        callback null, res
-      else
-        console.log error = "[ERROR] mount point #{options.mountpoint} is not mounted"
-        res =
-          mounted: false
-          remotehost: remotehost
-          mountpoint: options.mountpoint
-        callback null, res
+      mounts = [mount.split(' ', 2) for mount in data.split('\n') when startsWith mount, remotehost][0]
+      if mounts.length > 0
+        state = [line for line in mounts when endsWith line[1], "#{remoteuser}@#{remotehost}"][0]
+        if state.length > 0
+          [remote, mountpoint] = state[0]
+          console.log "[OK] #{remotehost} is mounted for user #{username} to #{mountpoint}"
+          res = {mounted: true, remotehost, mountpoint}
+
+      console.log res
+      rs.destroy()
+
+      callback null, res
 
   # Safe
   umountDrive : (options, callback)->
@@ -195,20 +194,24 @@ mounter =
 
     # options =
     #   username   : String # koding username
+    #   remoteuser : String # FTP username
     #   remotehost : String # FTP server address
 
-    {username, remotehost} = options
+    {username, remotehost, remoteuser, mountpoint} = options
 
-    unless remotehost
-      callback "Remote host is not given"
+    if not remotehost or not remoteuser
+      callback "Remote host/user is not given"
       return no
 
-    options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remotehost
+    unless mountpoint
+      options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remoteuser
+      options.mountpoint+= "@#{escapePath remotehost}"
 
     unless safeForUser username, options.mountpoint
       console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
       callback "You are not authorized to do this."
       return no
+
     @spawnWrapper '/sbin/fuser', ['-mk',options.mountpoint],(err,res)=>
       @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
         if err?
@@ -294,7 +297,7 @@ mounter =
           if err?
             callback err
           else
-            filteredMounts = [mount for mount in res when mount.remotehost is options.remotehost][0]
+            filteredMounts = [mount for mount in res when (mount.remotehost is options.remotehost and mount.remoteuser is options.remoteuser)][0]
             if filteredMounts.length is 0
               res.push newConf
               jsonConf = JSON.stringify res
@@ -332,7 +335,7 @@ mounter =
     #   remotehost : String # remote server address
     #   username   : String # koding username
 
-    {remotehost, username} = options
+    {username, mountpoint} = options
 
     cfg = path.join config.usersPath, username, config.usersMountsFile
 
@@ -340,7 +343,7 @@ mounter =
       if err?
         callback err
       else
-        filteredMounts = [mount for mount in res when mount.remotehost isnt remotehost][0]
+        filteredMounts = [mount for mount in res when mount.mountpoint isnt mountpoint][0]
         jsonConf = JSON.stringify filteredMounts or ''
         fs.writeFile cfg, jsonConf, 'utf-8',(err)->
           if err?
@@ -368,8 +371,9 @@ mounter =
 
     {username, remoteuser, remotepass, remotehost, sshkey} = options
 
-    options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
-    keyPath = path.join config.usersPath,username,'.ssh','koding.pem'
+    options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remoteuser
+    options.mountpoint+= "@#{escapePath remotehost}"
+
     sshopts = [ "-o", "ssh_command=/usr/bin/ssh -i #{keyPath} -o #{config.sshfs.optsWithKey},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
     console.log sshopts
     @createMountpoint options, (err, res)=>
@@ -407,7 +411,8 @@ mounter =
 
     {username, remoteuser, remotepass, remotehost, sshkey} = options
 
-    options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
+    options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remoteuser
+    options.mountpoint+= "@#{escapePath remotehost}"
 
     sshopts = [ "-o", "ssh_command=/usr/bin/ssh -o #{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
     console.log sshopts
@@ -530,7 +535,10 @@ mounter =
     # options =
     #  mountpoint : String # mountpoint for remount drive
 
-    {mountpoint, username} = options
+    {remoteuser, remotehost, username} = options
+
+    mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remoteuser
+    mountpoint+= "@#{escapePath remotehost}"
 
     unless mountpoint
       callback "Mountpoint is not provided"

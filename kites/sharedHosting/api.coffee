@@ -48,9 +48,12 @@ module.exports = new Kite 'sharedHosting'
             delete entries[index].remotepass
             mounter.checkMountPoint
               username   : options.username
+              remoteuser : entries[index].remoteuser
               remotehost : entries[index].remotehost
             , (error, state)->
-              entries[index].mounted = if error then error else state.mounted
+              unless error
+                entries[index].mounted    = state.mounted
+                entries[index].mountpoint = state.mountpoint if state.mounted
               updateEntries entries, index + 1
 
         updateEntries res, 0
