@@ -17,6 +17,9 @@ __webtermSettings =
       value: 12
       title: '12px'
     ,
+      value: 13
+      title: '13px'
+    ,
       value: 14
       title: '14px'
     ,

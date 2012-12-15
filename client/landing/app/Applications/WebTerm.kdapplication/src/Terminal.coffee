@@ -107,8 +107,8 @@ class WebTerm.Terminal
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @inSession
 
-  updateSize: ->
-    return if @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
+  updateSize: (force=no) ->
+    return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
     @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
     @pixelWidth = @container.prop("clientWidth")
     @pixelHeight = @container.prop("clientHeight")

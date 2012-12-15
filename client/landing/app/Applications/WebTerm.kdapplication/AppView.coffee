@@ -5,19 +5,18 @@ class WebTermView extends KDView
     @container.unsetClass theme.value for theme in __webtermSettings.themes
     @container.setClass @appStorage.getValue('font')
     @container.setClass @appStorage.getValue('theme')
-    @container.$().css fontSize:@appStorage.getValue('fontSize')
-
+    @container.$().css fontSize:@appStorage.getValue('fontSize')+'px'
   viewAppended: ->
 
     @appStorage = new AppStorage 'WebTerm', '1.0'
 
-    @appStorage.fetchStorage (storage)=>
-      @setDefaultStyle()
 
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
     @addSubView @container
 
+    @appStorage.fetchStorage (storage)=>
+      @setDefaultStyle()
 
     @sessionBox = new KDView
       cssClass: "kddialogview"
@@ -167,6 +166,8 @@ class WebTermView extends KDView
       # height    : "30px"
       # top       : eventData.offsetY-10
       # left      : eventData.offsetX-10
+      width       : "100%"
+      height      : "100%"
       top         : 0
       left        : 0
       right       : 0
