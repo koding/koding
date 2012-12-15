@@ -1,11 +1,13 @@
 KD.remote = new Bongo
 
+  resourceName: KD.config.resourceName ? 'koding-social'
+
   getUserArea:-> KD.getSingleton('mainController').getUserArea()
 
   getSessionToken:-> $.cookie('clientId')
 
-  createRoutingKey:(service, event)->
-    "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
+  # createRoutingKey:(service, event)->
+    # "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
 
   fetchName:do->
     cache = {}
