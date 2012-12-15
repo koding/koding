@@ -19,7 +19,9 @@ class WebtermSettingsView extends KDTreeItemView
         webtermView.container.$().css
           fontSize:value+"px"
         webtermView.terminal.setFontSize value
-        # webtermView.terminal.windowDidResize()
+        webtermView.terminal.updateSize yes
+        @utils.wait =>
+          webtermView.terminal.scrollToBottom()
 
     @theme          = new KDSelectBox
       selectOptions : __webtermSettings.themes
