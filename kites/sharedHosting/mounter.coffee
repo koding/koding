@@ -63,7 +63,6 @@ mounter =
 
         switch mount.remotetype
           when "ftp"
-            console.log "Calling....."
             @mountFtpDrive mount, callback
 
   # Safe
@@ -150,8 +149,6 @@ mounter =
     options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remoteuser
     options.mountpoint+= "@#{escapePath remotehost}"
 
-    console.log options
-
     unless safeForUser username, options.mountpoint
       console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
       callback "You are not authorized to do this."
@@ -179,7 +176,6 @@ mounter =
           console.log "[OK] #{remotehost} is mounted for user #{username} to #{mountpoint}"
           res = {mounted: true, remotehost, mountpoint}
 
-      console.log res
       rs.destroy()
 
       callback null, res
@@ -213,24 +209,29 @@ mounter =
       callback "You are not authorized to do this."
       return no
 
-    @spawnWrapper '/sbin/fuser', ['-mk',options.mountpoint],(err,res)=>
-      @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
-        if err?
-          log.error error = "Can't umount #{options.mountpoint}: #{err}"
-          callback error
-        else
-          log.info info = "Directory #{options.mountpoint} umounted"
-          @remountVE options,(err,res)=>
-            if err
-              callback err
+    @checkMountPoint options, (err, state)=>
+      if not state.mounted
+        callback "Its already unmounted."
+      else
+        # This is too dangerous
+        @spawnWrapper '/sbin/fuser', ['-mk', options.mountpoint], (err, res)=>
+          @spawnWrapper '/bin/umount', [options.mountpoint], (err, res)=>
+            if err?
+              log.error error = "Can't umount #{options.mountpoint}: #{err}"
+              callback error
             else
-              fs.rmdir options.mountpoint, (err)->
-                # not a big issue
-                if err?
-                  console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
+              log.info info = "Directory #{options.mountpoint} umounted"
+              @remountVE options,(err,res)=>
+                if err
+                  callback err
                 else
-                  console.log "mountpoint #{options.mountpoint} has been removed"
-                callback null, info
+                  fs.rmdir options.mountpoint, (err)->
+                    # not a big issue
+                    if err?
+                      console.warn "Couldn't remove mountpoint #{options.mountpoint}: #{err.message}"
+                    else
+                      console.log "mountpoint #{options.mountpoint} has been removed"
+                    callback null, info
 
   # Safe
   readMountInfo: (options, callback)->
@@ -505,7 +506,7 @@ mounter =
         log.info info = "User: #{username} virtual environment remounted."
         callback null, info
 
-  spawnWrapper : (command, args , callback)->
+  spawnWrapper : (command, args, callback)->
     wrapper = spawn command,args
     wrapperErr = ""
     wrapper.stderr.on 'data',(data)->
