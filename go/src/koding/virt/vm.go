@@ -13,7 +13,7 @@ import (
 type VM struct {
 	Id   int    "_id"
 	Name string "name"
-	Used bool
+	Used bool   "used"
 }
 
 const VMROOT_ID = 1000000
@@ -37,10 +37,8 @@ func init() {
 
 func Find(query interface{}) (*VM, error) {
 	var vm VM
-	if err := VMs.Find(query).One(&vm); err != nil {
-		return nil, err
-	}
-	return &vm, nil
+	err := VMs.Find(query).One(&vm)
+	return &vm, err
 }
 
 func FindById(id int) (*VM, error) {
@@ -60,6 +58,12 @@ func FindByUid(uid int) (*VM, error) {
 
 func FindByName(name string) (*VM, error) {
 	return Find(bson.M{"name": name})
+}
+
+func FetchUnused() (*VM, error) {
+	var vm VM
+	_, err := VMs.Find(bson.M{"used": false}).Limit(1).Apply(mgo.Change{Update: bson.M{"used": true}, ReturnNew: true}, &vm)
+	return &vm, err
 }
 
 func (vm *VM) String() string {
@@ -86,6 +90,10 @@ func (vm *VM) Hostname() string {
 	return "koding-" + vm.Username()
 }
 
+func (vm *VM) RbdDevice() string {
+	return "/dev/rbd/rbd/" + vm.String()
+}
+
 func (vm *VM) File(path string) string {
 	return fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
 }
@@ -98,27 +106,34 @@ func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-func (vm *VM) Prepare() {
-	// create directories
-	vm.Mkdir("", 0)
-	vm.Mkdir("overlayfs-upperdir", VMROOT_ID)
-	vm.Mkdir("rootfs", VMROOT_ID)
+func (vm *VM) Prepare(format bool) {
+	// prepare directories
+	vm.PrepareDir(vm.File(""), 0)
+	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
+	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)
 
 	// write LXC files
 	vm.GenerateFile("config", false)
-	vm.GenerateFile("pre-start", true)
-	vm.GenerateFile("post-stop", true)
 	vm.GenerateFile("fstab", false)
 
+	if format {
+		// create file system
+		if err := exec.Command("mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
+			panic(err)
+		}
+	}
+
 	// mount rbd/ceph
-	if err := exec.Command("/bin/mount", "/dev/rbd/rbd/"+vm.String(), vm.UpperdirFile("")).Run(); err != nil {
+	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
 		panic(err)
 	}
 
-	// create directories in upperdir
-	vm.Mkdir("overlayfs-upperdir/etc", VMROOT_ID)
-	vm.Mkdir("overlayfs-upperdir/home", VMROOT_ID)
-	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), vm.Uid())
+	// prepare directories in upperdir
+	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
+	vm.PrepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
+	vm.PrepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
+	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
+	vm.PrepareDir(vm.UpperdirFile("/home/"+vm.Username()), vm.Uid())
 
 	// write hostname file
 	hostnameFile := vm.UpperdirFile("/etc/hostname")
@@ -133,15 +148,29 @@ func (vm *VM) Prepare() {
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
 	vm.MergeDpkgDatabase()
+
+	// mount overlayfs
+	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).Run(); err != nil {
+		panic(err)
+	}
 }
 
-func (vm *VM) Mkdir(path string, id int) {
-	fullPath := vm.File(path)
-	if err := os.Mkdir(fullPath, 0755); err != nil && !os.IsExist(err) {
+func (vm *VM) Unprepare() {
+	exec.Command("/bin/umount", vm.File("rootfs")).Run()
+	exec.Command("/bin/umount", vm.UpperdirFile("")).Run()
+	os.Remove(vm.File("config"))
+	os.Remove(vm.File("fstab"))
+	os.Remove(vm.File("rootfs"))
+	os.Remove(vm.UpperdirFile("/"))
+	os.Remove(vm.File(""))
+}
+
+func (vm *VM) PrepareDir(path string, id int) {
+	if err := os.Mkdir(path, 0755); err != nil && !os.IsExist(err) {
 		panic(err)
 	}
 	if id != 0 {
-		if err := os.Chown(fullPath, id, id); err != nil {
+		if err := os.Chown(path, id, id); err != nil {
 			panic(err)
 		}
 	}

@@ -16,12 +16,12 @@ func main() {
 	nextId := FindMaxId() + 1
 
 	for {
-		available, err := virt.VMs.Find(virt.VM{Used: false}).Count()
+		available, err := virt.VMs.Find(bson.M{"used": false}).Count()
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(available)
+		fmt.Printf("available: %d\n", available)
 		for i := 0; i < THRESHOLD-available; i++ {
 			newId := nextId
 			nextId++
@@ -37,9 +37,8 @@ func main() {
 				}
 
 				// wait for device to appear
-				device := "/dev/rbd/rbd/" + vm.String()
 				for {
-					_, err := os.Stat(device)
+					_, err := os.Stat(vm.RbdDevice())
 					if err == nil {
 						break
 					}
@@ -50,35 +49,10 @@ func main() {
 				}
 				time.Sleep(3)
 
-				// create file system
-				if err = exec.Command("mkfs.ext4", device).Run(); err != nil {
-					panic(err)
-				}
-
-				// mount, change user and umount
-				tmpDir := fmt.Sprintf("/tmp/rbdcreator%d", newId)
-				if err := os.Mkdir(tmpDir, 0755); err != nil {
-					panic(err)
-				}
-				defer os.Remove(tmpDir)
-
-				if err := exec.Command("/bin/mount", device, tmpDir).Run(); err != nil {
-					panic(err)
-				}
-				defer exec.Command("/bin/umount", tmpDir).Run()
-
-				if err := os.Chown(tmpDir, virt.VMROOT_ID, virt.VMROOT_ID); err != nil {
-					panic(err)
-				}
-				if err := os.Remove(tmpDir + "/lost+found"); err != nil {
-					panic(err)
-				}
-
 				// insert into database
 				if err := virt.VMs.Insert(vm); err != nil {
 					panic(err)
 				}
-				fmt.Println("created", newId)
 			}()
 		}
 
@@ -88,7 +62,7 @@ func main() {
 
 func FindMaxId() int {
 	var vm virt.VM
-	if err := virt.VMs.Find(bson.M{}).Sort("-_id").One(&vm); err != nil {
+	if err := virt.VMs.Find(nil).Sort("-_id").One(&vm); err != nil {
 		if err == mgo.ErrNotFound {
 			return 1<<16 - 1
 		}

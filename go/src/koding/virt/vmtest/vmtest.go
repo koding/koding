@@ -1,25 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"koding/virt"
+	"labix.org/v2/mgo"
+	"os"
 )
 
 func main() {
-	//vm, err := virt.FromIP(10, 1, 0, 0)
-	vm, err := virt.FindByName("neelance")
-	if err != nil {
-		fmt.Println(err)
-		return
+	name := os.Args[1]
+
+	vm, err := virt.FindByName(name)
+	format := false
+	if err == mgo.ErrNotFound {
+		vm, err = virt.FetchUnused()
+		if err != nil {
+			panic(err)
+		}
+		vm.Name = name
+		if err := virt.VMs.UpdateId(vm.Id, vm); err != nil {
+			panic(err)
+		}
+		format = true
 	}
 
-	//packages := vm.ReadDpkgStatus("/var/lib/dpkg/status")
-	//vm.WriteDpkgStatus(packages, "out")
-
-	//users := vm.ReadPasswd("/etc/passwd")
-	//vm.WritePasswd(users, "out")
-
-	vm.Prepare()
+	vm.Prepare(format)
 	//vm.Start()
 	//vm.Stop()
 	//vm.Shutdown()

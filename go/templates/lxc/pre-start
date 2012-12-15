@@ -1,2 +1,0 @@
-#!/bin/sh
-mount --no-mtab -t overlayfs -o lowerdir=/var/lib/lxc/vmroot/rootfs,upperdir=/var/lib/lxc/{{.}}/overlayfs-upperdir overlayfs /var/lib/lxc/{{.}}/rootfs
