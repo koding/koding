@@ -173,8 +173,8 @@ class ManageRemotesModal extends KDModalViewWithForms
       callback?()
 
   mountRemote:(mount, callback)=>
-    {remotehost, haspass, remotepass} = mount
-    args = {remotehost}
+    {remotehost, haspass, remotepass, remoteuser} = mount
+    args = {remotehost, remoteuser}
     args.remotepass = remotepass unless haspass
     log args
     @hideMessages()
@@ -189,11 +189,11 @@ class ManageRemotesModal extends KDModalViewWithForms
         @refreshRemoteDrives remotehost
       callback? err
 
-  umountRemote:({remotehost}, callback)=>
+  umountRemote:({remotehost, remoteuser, mountpoint}, callback)=>
     @hideMessages()
     @kc.run
       method   : 'umountDrive'
-      withArgs : {remotehost}
+      withArgs : {remotehost, remoteuser, mountpoint}
     , (err, res)=>
       log err, res
       if err
@@ -224,12 +224,10 @@ class ManageRemotesModal extends KDModalViewWithForms
           @modalTabs.forms['Create a new Remote'].reset()
       log arguments
 
-  removeMount:(data)=>
-    log "Deleting this:", data
+  removeMount:({remoteuser, remotehost, mountpoint})=>
     @kc.run
       method       : 'removeMount'
-      withArgs     :
-        remotehost : data.remotehost
+      withArgs     : {remoteuser, remotehost, mountpoint}
     , (err)=>
       @refreshRemoteDrives()
       @refreshMountList()
@@ -270,16 +268,15 @@ class RemoteListItem extends KDListItemView
           unless data.haspass
             @mountToggle.hideLoader()
             new AskForPassword "Password required to mount #{data.remotehost}", (password)=>
-              log password
               data.remotepass = password
               @mountToggle.showLoader()
               @changeMountState {state : 'mount', data}, callback
           else
             @changeMountState {state : 'mount', data}, callback
-        "Umount", (callback)=>
+        "Unmount", (callback)=>
           @changeMountState {state : 'umount', data}, callback
       ]
-      defaultState : if data.mounted then "Umount" else "Mount"
+      defaultState : if data.mounted then "Unmount" else "Mount"
     , data
 
     @deleteRemote = new KDButtonView
@@ -306,7 +303,10 @@ class RemoteListItem extends KDListItemView
               callback   : =>
                 @mountToggle.disable()
                 @deleteRemote.showLoader()
-                @getDelegate().emit "DeleteRemote", data
+                @getDelegate().emit "DeleteRemote",
+                  mountpoint : @mountpoint
+                  remotehost : data.remotehost
+                  remoteuser : data.remoteuser
                 modal.destroy()
 
   viewAppended:->
