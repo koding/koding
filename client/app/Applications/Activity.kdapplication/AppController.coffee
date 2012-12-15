@@ -133,8 +133,37 @@ class ActivityAppController extends AppController
 
     return updateWidgetController
 
+  createFakeDataStructure:(constructorName,activity)->
+    fakePost  = new KD.remote.api[constructorName] {},activity
+    fakePost  = $.extend {},fakePost,
+      slug        : 'fakeActivity'
+      title       : activity.title or activity.body
+      body        : activity.body
+      counts      :
+        followers : 0
+        following : 0
+      meta        :
+        createdAt : (new Date (Date.now())).toISOString() #'2012-12-15T02:22:50.719'
+        likes     : 0
+        modifiedAt: (new Date (Date.now())).toISOString()
+      origin      : KD.whoami()
+      link        : activity
+      repliesCount: 0
+      originId    : KD.whoami()._id
+      originType  : 'JAccount'
+      _id         : 'fakeId'
 
-  ownActivityArrived:(activity)->
+  ownActivityArrived:(activity,fake=no)->
+    unless activity.bongo_
+      # fake data!
+      log 'Creating fake data for', activity
+      @fake = activity = @createFakeDataStructure 'JStatusUpdate', activity
+    else
+      if @fake
+        log 'Removing fake item',@fake
+        @activityListController.removeItem @fake, @fake
+        @fake = null
+    log 'Adding item',activity
     @activityListController.ownActivityArrived activity
 
   createFollowedAndPublicTabs:->

@@ -175,6 +175,8 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
+      log 'emitting activity to controller'
+      @propagateEvent (KDEventType:"OwnActivityHasArrived"), data
       KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err

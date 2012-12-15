@@ -14,7 +14,7 @@ class ActivityActionsView extends KDView
         title     : "Show all"
       click       : (event)=>
         # event.preventDefault()
-        @getDelegate().emit "CommentCountClicked"
+        @getDelegate().emit "CommentCountClicked" unless activity._id is 'fakeId'
     , activity
 
     @shareLink    = new ActivityActionLink
