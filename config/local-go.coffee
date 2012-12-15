@@ -56,6 +56,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      resourceName: socialQueueName
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :

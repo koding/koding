@@ -4,6 +4,8 @@ module.exports = class AuthWorker extends EventEmitter
 
   AuthedClient = require './authedclient'
 
+  authExchangeOptions = {type: 'fanout', autoDelete: yes}
+
   constructor:(@bongo, @resourceName)->
     @services = {}
     @clients  = {}
@@ -61,24 +63,9 @@ module.exports = class AuthWorker extends EventEmitter
   getClients:(socketId)-> @clients[socketId]
 
   joinBongoClient:(messageData, routingKey, socketId)->
-    @authenticate messageData, routingKey, (session)->
-      {exchange} = @bongo.mq
-      exchange.publish 'auth.join', {
-        username    : session.username
-        routingKey  : routingKey
-      }
-      @addClient socketId, exchange.name, routingKey
-
-  joinKiteClient:(messageData, routingKey, socketId)->
-    {channel} = messageData
-    console.log {channel}
     @authenticate messageData, routingKey, (session)=>
-      console.log session
-      serviceName = @getNextServiceName channel
-      unless serviceName
-        @rejectClient routingKey
-      else
-        @bongo.mq.connection.exchange serviceName, (exchange)=>
+      @bongo.mq.connection.exchange messageData.name, authExchangeOptions,
+        (exchange)=>
           exchange.publish 'auth.join', {
             username    : session.username
             routingKey  : routingKey
@@ -86,22 +73,37 @@ module.exports = class AuthWorker extends EventEmitter
           exchange.close() # don't leak a channel
           @addClient socketId, exchange.name, routingKey
 
+  joinKiteClient:(messageData, routingKey, socketId)->
+    {channel} = messageData
+    @authenticate messageData, routingKey, (session)=>
+      serviceName = @getNextServiceName channel
+      unless serviceName
+        @rejectClient routingKey
+      else
+        @bongo.mq.connection.exchange serviceName, authExchangeOptions,
+          (exchange)=> console.log {exchange}
+            # exchange.publish 'auth.join', {
+            #   username    : session.username
+            #   routingKey  : routingKey
+            # }
+            # exchange.close() # don't leak a channel
+            # @addClient socketId, exchange.name, routingKey
+
   # TODO: authenticate the kite client
 
   rejectClient:(routingKey, message)->
     console.log 'rejecting client', arguments
     @bongo.respondToClient routingKey, {error: message ? 'Access denied'}
 
-  joinClient:(data, socketId)->
-    {channel, routingKey, serviceType} = data
+  joinClient:(messageData, socketId)->
+    {channel, routingKey, serviceType} = messageData
     switch serviceType
-      when 'bongo' then @joinBongoClient data, routingKey, socketId
-      when 'kite'  then @joinKiteClient data, routingKey, socketId
+      when 'bongo' then @joinBongoClient messageData, routingKey, socketId
+      when 'kite'  then @joinKiteClient messageData, routingKey, socketId
       else              @rejectClient routingKey
 
   cleanUpClient:(client)->
-    console.log 'got a client'
-    @bongo.mq.connection.exchange client.exchange, (exchange)->
+    @bongo.mq.connection.exchange client.exchange, authExchangeOptions, (exchange)->
       exchange.publish 'auth.leave', {
         routingKey: client.routingKey
       }
@@ -109,10 +111,6 @@ module.exports = class AuthWorker extends EventEmitter
   cleanUpAfterDisconnect:(socketId)->
     console.log 'd/c', socketId, this
     @getClients(socketId)?.forEach @bound 'cleanUpClient'
-
-    # TODO: implement cleanup
-
-  authExchangeOptions = {type: 'fanout', autoDelete: yes}
 
   connect:->
     {bongo} = this
