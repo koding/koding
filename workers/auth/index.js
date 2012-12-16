@@ -1,2 +1,2 @@
 require('coffee-script');
-module.exports = require('./lib/auth');
+module.exports = require('./lib/auth/main');

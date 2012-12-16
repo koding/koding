@@ -6,7 +6,6 @@ class GroupData extends KDEventEmitter
     @data = title: currentGroup
 
   getAt:(path)->
-    console.log 'getAt', path, @data
     JsPath.getAt @data, path
 
   setGroup:(group)->

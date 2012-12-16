@@ -4,7 +4,7 @@ class KiteChannel
     return KD.remote.mq.subscribe @getName kiteName
 
   getName:(kiteName)->
-    username = KD.whoami()?.profile?.nickname ? 'unknown'
-    "#{Bongo.createId 128}.#{username}.kite-#{kiteName}"
+    nickname = KD.whoami()?.profile?.nickname ? 'unknown'
+    "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
 
 window.KiteChannel = KiteChannel

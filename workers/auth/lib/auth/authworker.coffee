@@ -4,13 +4,12 @@ module.exports = class AuthWorker extends EventEmitter
 
   AuthedClient = require './authedclient'
 
-  authExchangeOptions = {type: 'fanout', autoDelete: yes}
+  exchangeOptions = {type: 'fanout', autoDelete: yes}
 
   constructor:(@bongo, @resourceName)->
     @services = {}
     @clients  = {}
     @counts   = {}
-    @routingKeysBySocketId = {}
 
     @addService
       serviceType : 'kite-webterm'
@@ -41,7 +40,7 @@ module.exports = class AuthWorker extends EventEmitter
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
     console.log {servicesOfType, serviceType}
-    return  unless servicesOfType?.length
+    return serviceType  unless servicesOfType?.length
     serviceName = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
     return serviceName
@@ -56,38 +55,25 @@ module.exports = class AuthWorker extends EventEmitter
     servicesOfType.splice index, 1
 
   addClient:(socketId, exchange, routingKey)->
-    clientsBySocketId = @clients[socketId]
-    clientsBySocketId = @clients[socketId] = []  unless clientsBySocketId?
+    clientsBySocketId = @clients[socketId] ?= []
     clientsBySocketId.push new AuthedClient {routingKey, socketId, exchange}
 
   getClients:(socketId)-> @clients[socketId]
 
-  joinBongoClient:(messageData, routingKey, socketId)->
-    @authenticate messageData, routingKey, (session)=>
-      @bongo.mq.connection.exchange messageData.name, authExchangeOptions,
-        (exchange)=>
-          exchange.publish 'auth.join', {
-            username    : session.username
-            routingKey  : routingKey
-          }
-          exchange.close() # don't leak a channel
-          @addClient socketId, exchange.name, routingKey
-
-  joinKiteClient:(messageData, routingKey, socketId)->
-    {channel} = messageData
+  joinClient_ = (messageData, routingKey, socketId)->
     @authenticate messageData, routingKey, (session)=>
       serviceName = @getNextServiceName channel
       unless serviceName
         @rejectClient routingKey
       else
-        @bongo.mq.connection.exchange serviceName, authExchangeOptions,
-          (exchange)=> console.log {exchange}
-            # exchange.publish 'auth.join', {
-            #   username    : session.username
-            #   routingKey  : routingKey
-            # }
-            # exchange.close() # don't leak a channel
-            # @addClient socketId, exchange.name, routingKey
+        @bongo.mq.connection.exchange messageData.name, exchangeOptions,
+          (exchange)=>
+            exchange.publish 'auth.join', {
+              username    : session.username
+              routingKey  : routingKey
+            }
+            exchange.close() # don't leak a channel
+            @addClient socketId, exchange.name, routingKey
 
   # TODO: authenticate the kite client
 
@@ -98,25 +84,24 @@ module.exports = class AuthWorker extends EventEmitter
   joinClient:(messageData, socketId)->
     {channel, routingKey, serviceType} = messageData
     switch serviceType
-      when 'bongo' then @joinBongoClient messageData, routingKey, socketId
-      when 'kite'  then @joinKiteClient messageData, routingKey, socketId
-      else              @rejectClient routingKey
+      when 'bongo', 'kite'
+        joinClient_.call this, messageData, routingKey, socketId
+      else @rejectClient routingKey
 
   cleanUpClient:(client)->
-    @bongo.mq.connection.exchange client.exchange, authExchangeOptions, (exchange)->
+    @bongo.mq.connection.exchange client.exchange, exchangeOptions, (exchange)->
       exchange.publish 'auth.leave', {
         routingKey: client.routingKey
       }
 
   cleanUpAfterDisconnect:(socketId)->
-    console.log 'd/c', socketId, this
     @getClients(socketId)?.forEach @bound 'cleanUpClient'
 
   connect:->
     {bongo} = this
     bongo.mq.ready =>
       {connection} = bongo.mq
-      connection.exchange @resourceName, authExchangeOptions, (authExchange)=>
+      connection.exchange @resourceName, exchangeOptions, (authExchange)=>
         connection.queue  @resourceName, (authQueue)=>
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
@@ -136,6 +121,5 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'client.auth'
                   @joinClient messageData, socketId
-                when 'client.killAuth' then process.kill()
                 else
                   @rejectClient routingKey
