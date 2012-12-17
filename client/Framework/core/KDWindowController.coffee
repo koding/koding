@@ -245,8 +245,11 @@ class KDWindowController extends KDController
     # else
     @keyView?.handleEvent event
 
-  allowScrolling:(shouldAllowScrolling)->
-    @scrollingEnabled = shouldAllowScrolling
+  enableScroll:->
+    @scrollingEnabled = yes
+
+  disableScroll:->
+    @scrollingEnabled = no
 
   registerWindowResizeListener:(instance)->
     @windowResizeListeners[instance.id] = instance
