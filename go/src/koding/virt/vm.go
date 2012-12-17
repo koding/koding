@@ -12,9 +12,9 @@ import (
 )
 
 type VM struct {
-	Id   int    "_id"
-	Name string "name"
-	Used bool   "used"
+	Id    int    "_id"
+	Name  string "name"
+	Users []int  "users"
 }
 
 type Counter struct {
@@ -108,9 +108,9 @@ func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-func FetchUnused() *VM {
+func FetchUnused(user int) *VM {
 	var vm VM
-	_, err := VMs.Find(bson.M{"used": false}).Limit(1).Apply(mgo.Change{Update: bson.M{"used": true}, ReturnNew: true}, &vm)
+	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user}}, ReturnNew: true}, &vm)
 	if err == nil {
 		return &vm // existing unused VM found
 	}
@@ -123,7 +123,7 @@ func FetchUnused() *VM {
 	if _, err := Counters.FindId("vmId").Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"v": 1}}}, &c); err != nil {
 		panic(err)
 	}
-	vm = VM{Id: c.Value, Used: true}
+	vm = VM{Id: c.Value, Users: []int{user}}
 
 	// create disk and map to pool
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
@@ -164,7 +164,7 @@ func (vm *VM) Prepare(format bool) {
 
 	if format {
 		// create file system
-		if err := exec.Command("mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
+		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
 			panic(err)
 		}
 	}

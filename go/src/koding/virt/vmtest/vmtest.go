@@ -12,7 +12,7 @@ func main() {
 	vm, err := virt.FindByName(name)
 	format := false
 	if err == mgo.ErrNotFound {
-		vm = virt.FetchUnused()
+		vm = virt.FetchUnused(100)
 		vm.Name = name
 		if err := virt.VMs.UpdateId(vm.Id, vm); err != nil {
 			panic(err)
