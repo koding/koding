@@ -175,13 +175,14 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      log 'emitting activity to controller'
-      @propagateEvent (KDEventType:"OwnActivityHasArrived"), data
+      # log 'emitting activity to controller'
+      @emit 'OwnActivityHasArrived', data, 'JStatusUpdate'
       KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
         else
+          @emit 'OwnActivityHasFailed', data
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->

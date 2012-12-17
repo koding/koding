@@ -131,11 +131,19 @@ class ActivityAppController extends AppController
       callback      : (pubInst,activity)=>
         @ownActivityArrived activity
 
+    updateWidgetController.on 'OwnActivityHasArrived', (activity,constructorName)=>
+      @ownActivityArrived activity, constructorName
+
+    updateWidgetController.on 'OwnActivityHasFailed', (activity)=>
+      @ownActivityArrived activity, constructorName
+      @activityListController.removeItem activity, activity
+
     return updateWidgetController
 
-  createFakeDataStructure:(constructorName,activity)->
+  createFakeDataStructureForOwner:(constructorName,activity)->
+    oldActivity = activity
     fakePost  = new KD.remote.api[constructorName] {},activity
-    fakePost  = $.extend {},fakePost,
+    fakePost  = $.extend yes,{},fakePost,
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
@@ -147,22 +155,22 @@ class ActivityAppController extends AppController
         likes     : 0
         modifiedAt: (new Date (Date.now())).toISOString()
       origin      : KD.whoami()
-      link        : activity
+      link        : oldActivity
       repliesCount: 0
       originId    : KD.whoami()._id
       originType  : 'JAccount'
       _id         : 'fakeId'
 
-  ownActivityArrived:(activity,fake=no)->
+
+  ownActivityArrived:(activity,constructorName='JStatusUpdate')->
     unless activity.bongo_
       # fake data!
       log 'Creating fake data for', activity
-      @fake = activity = @createFakeDataStructure 'JStatusUpdate', activity
+      @fake = activity = @createFakeDataStructureForOwner constructorName, activity
     else
       if @fake
         log 'Removing fake item',@fake
         @activityListController.removeItem @fake, @fake
-        @fake = null
     log 'Adding item',activity
     @activityListController.ownActivityArrived activity
 
