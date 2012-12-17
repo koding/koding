@@ -27,29 +27,32 @@ app.starttab.styl
 
   .app-button-holder
     height                33px
-    width                 100%
+    left                  5px
+    right                 5px
     border-bottom         1px solid #CDCDCD
-    bg                    color,rgba(255,255,255,.2)
-    gradient              rgba(0,0,0,.11),rgba(255,255,255,.04)
+    bg                    color,rgba(255,255,255,.5)
+    gradient              rgba(0,0,0,.11),rgba(255,255,255,.08)
+    abs()
 
     .new-app-button
     .refresh-apps-button
-      abs()
-      top                 9px
+      top                 4px
       line-height         10px
       padding-left        22px
+      z-index             100
+      abs()
 
       span.icon
-        abs()
         padding           0px
         top               1px
         left              6px
+        abs()
 
     .new-app-button
-      left                9px
+      left                5px
 
     .refresh-apps-button
-      right               9px
+      right               5px
 
 // .start-tab-app-container
 //   overflow-y      visible
