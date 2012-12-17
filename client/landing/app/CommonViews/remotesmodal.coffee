@@ -186,7 +186,7 @@ class ManageRemotesModal extends KDModalViewWithForms
       if err
         @showMessage null, err
       else
-        @refreshRemoteDrives remotehost
+        @refreshRemoteDrives "#{remoteuser}@#{remotehost}"
       callback? err
 
   umountRemote:({remotehost, remoteuser, mountpoint}, callback)=>
@@ -215,7 +215,7 @@ class ManageRemotesModal extends KDModalViewWithForms
         @refreshMountList =>
           @modalTabs.showNextPane()
           @hideMessages
-          @refreshRemoteDrives formData.remotehost
+          @refreshRemoteDrives "#{formData.remoteuser}@#{formData.remotehost}"
           new KDNotificationView
             title    : "New remote created sucessfully."
             type     : "mini"
@@ -238,6 +238,7 @@ class ManageRemotesModal extends KDModalViewWithForms
 
   refreshRemoteDrives:(finalPath = '', destroy = no)=>
     {nickname} = KD.whoami().profile
+    log finalPath
     tc = KD.getSingleton("finderController").treeController
     tc.navigateTo "/Users/#{nickname}/RemoteDrives", =>
       if finalPath
@@ -341,8 +342,8 @@ class RemoteListItem extends KDListItemView
       callback? err
 
   click:(event)->
-    {mounted, remotehost} = @getData()
-    @getDelegate().emit "RefreshFolder", @getData().remotehost, yes if mounted
+    {mounted, remoteuser, remotehost} = @getData()
+    @getDelegate().emit "RefreshFolder", "#{remoteuser}@#{remotehost}", yes if mounted
 
 class KDYesNoSwitch extends KDOnOffSwitch
   constructor:(options = {}, data)->
