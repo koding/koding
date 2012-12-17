@@ -14,6 +14,8 @@ coffee    = require 'coffee-script'
 nodePath  = require 'path'
 {exec}    = require 'child_process'
 
+crypto    = require 'crypto'
+
 # Custom Auth Error
 class AuthorizationError extends Error
   constructor:(username, message)->
@@ -90,6 +92,52 @@ slugify = (title = "")->
     .replace(/[-]+/g, "-")        # replace multiple instances of the hyphen with a single instance
     .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
 
+# Encrypt / Decrypt usage taken from http://stackoverflow.com/a/10550004/1370271
+
+encrypt = (input, password) ->
+
+  md5 = crypto.createHash("md5")
+  md5.update password
+
+  key = md5.digest("hex")
+  md5 = crypto.createHash("md5")
+  md5.update password + key
+
+  iv = md5.digest("hex")
+
+  data      = new Buffer(input, "utf8").toString("binary")
+  cipher    = crypto.createCipheriv("aes-256-cbc", key, iv.slice(0, 16))
+  encrypted = cipher.update(data, "binary") + cipher.final("binary")
+
+  new Buffer(encrypted, "binary").toString("base64")
+
+decrypt = (input, password) ->
+
+  # Convert urlsafe base64 to normal base64
+  input = input.replace(/\-/g, "+").replace(/_/g, "/")
+
+  # Convert from base64 to binary string
+  edata = new Buffer(input, "base64").toString("binary")
+
+  # Create key from password
+  md5 = crypto.createHash("md5")
+  md5.update password
+  key = md5.digest("hex")
+
+  # Create iv from password and key
+  md5 = crypto.createHash("md5")
+  md5.update password + key
+  iv = md5.digest("hex")
+
+  # Decipher encrypted data
+  decipher = crypto.createDecipheriv("aes-256-cbc", key, iv.slice(0, 16))
+  decrypted = decipher.update(edata, "binary") + decipher.final("binary")
+  new Buffer(decrypted, "binary").toString("utf8")
+
+# console.log "Encrypting..."
+# console.log "Encoded:", encoded = encrypt("gokmen", "askldfhlaksd")
+# console.log "Decoded:", decrypt(encoded, "askldfhlaksd")
+
 # Export them'all
 exports.normalizeUserPath  = normalizeUserPath
 exports.safeForUser        = safeForUser
@@ -99,6 +147,8 @@ exports.chownr             = chownr
 exports.getIds             = getIds
 exports.makedirp           = makedirp
 exports.slugify            = slugify
+exports.encrypt            = encrypt
+exports.decrypt            = decrypt
 
 # Errors
 exports.KodingError        = KodingError
