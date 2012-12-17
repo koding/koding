@@ -16,6 +16,8 @@ log     = log4js.getLogger("[#{config.name}]")
  makedirp,
  slugify,
  chownr,
+ encrypt,
+ decrypt,
  getIds,
  KodingError,
  AuthorizationError} = require '../applications/utils.coffee'
@@ -59,7 +61,11 @@ mounter =
         mount.username   = username
         mount.storepass  = storepass
         mount.mountonly  = yes
-        mount.remotepass = remotepass if remotepass
+
+        if mount.remotepass?
+          mount.remotepass = decrypt mount.remotepass, "#{config.encryptKey}==#{username}"
+        else
+          mount.remotepass = remotepass if remotepass
 
         switch mount.remotetype
           when "ftp"
@@ -128,7 +134,7 @@ mounter =
                         callback err
                       else
                         @updateMountCfg options, (err,res)->
-                        callback null, res
+                          callback null, res
 
   # Safe
   checkMountPoint : (options, callback)->
@@ -263,7 +269,7 @@ mounter =
           callback error
 
   # Safe
-  updateMountCfg : (options, callback)->
+  updateMountCfg:(options, callback)->
 
     # this method update user's mount config file  /Users/<username>/.mounts
 
@@ -284,7 +290,7 @@ mounter =
     newConf = {remotetype, remotehost, remoteuser, mountpoint}
 
     if storepass
-      newConf.remotepass = options.remotepass
+      newConf.remotepass = encrypt options.remotepass, "#{config.encryptKey}==#{username}"
 
     cfg = escapePath path.join config.usersPath, username, config.usersMountsFile
 
@@ -293,7 +299,7 @@ mounter =
       callback "You are not authorized to do this."
       return no
 
-    fs.stat cfg, (err,stats)=>
+    fs.stat cfg, (err, stats)=>
       if stats
         @readMountInfo options, (err, res)->
           if err?

@@ -32,6 +32,7 @@ module.exports =
   cagefsctl             : "/usr/sbin/cagefsctl"
   baseMountDir          : "RemoteDrives"
   usersMountsFile       : ".cagefs/.mounts"
+  encryptKey            : "aljhbvohebrfupoyeqbrpvuyq38047f08q3740r8y34bfokjberfaldsjbfh"
   ftpfs                 :
     curlftpfs           : '/usr/bin/curlftpfs'
     opts                : "connect_timeout=15,direct_io,allow_other"
