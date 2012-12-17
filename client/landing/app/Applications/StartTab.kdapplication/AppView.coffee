@@ -106,7 +106,7 @@ class StartTabMainView extends JView
   pistachio:->
     """
     <div class='app-list-wrapper'>
-      <div class='app-button-holder hidden1'>
+      <div class='app-button-holder'>
         {{> @addAnAppButton}}
         {{> @refreshButton}}
       </div>
