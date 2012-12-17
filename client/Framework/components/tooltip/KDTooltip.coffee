@@ -95,6 +95,7 @@ class KDTooltip extends KDView
         # return 1
         if @getOptions().animate
           @unsetClass 'in'
+          @getSingleton('windowController').enableScroll()
 
           @utils.killWait @animatedDeleteTimer
           @animatedDeleteTimer = @utils.wait 2000, =>
@@ -102,6 +103,7 @@ class KDTooltip extends KDView
             @getDelegate().removeTooltip @
 
         else
+          @getSingleton('windowController').enableScroll()
           @getDelegate().removeTooltip @
 
   translateCompassDirections:(o)->
@@ -120,6 +122,7 @@ class KDTooltip extends KDView
 
     @setClass 'in' if o.animate
     @show()
+    @getSingleton('windowController').disableScroll()
     @setPosition(o)
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
