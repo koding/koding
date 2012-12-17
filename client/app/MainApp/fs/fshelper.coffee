@@ -2,7 +2,7 @@ class FSHelper
 
   systemFilesRegExp =
     ///
-    \s\.cagefs|\s\.tmp|\s\.mounts
+    \s\.cagefs|\s\.tmp
     ///
 
   parseFile = (parentPath, outputLine) ->
