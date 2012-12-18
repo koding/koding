@@ -44,28 +44,6 @@ class EmbedBox extends KDView
 
     else
       @settingsButton = new KDView
-      # @settingsButton = new KDButtonView
-      #   cssClass    : "report-embed"
-      #   icon        : yes
-      #   iconOnly    : yes
-      #   iconClass   : "report"
-      #   title       : "report"
-      #   callback    :=>
-      #     modal = new KDModalView
-      #       title          : "Report inappropriate content"
-      #       content        : "<div class='modalformline'>Are you sure you want to report this content?</div>"
-      #       height         : "auto"
-      #       overlay        : yes
-      #       buttons        :
-      #         Report       :
-      #           style      : "modal-clean-red"
-      #           loader     :
-      #             color    : "#ffffff"
-      #             diameter : 16
-      #           callback   : =>
-      #             log "Your report should have been sent now."
-      #             modal.destroy()
-
 
     @setClass "link-embed-box"
 
