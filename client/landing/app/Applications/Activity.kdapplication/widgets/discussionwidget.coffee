@@ -100,9 +100,14 @@ class ActivityDiscussionWidget extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-  switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit discussion"
-    @addCustomData "activity", activity
+  switchToEditView:(activity,fake=no)->
+
+    unless fake
+      @submitBtn.setTitle "Edit Discussion"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle 'Submit again'
+
     {title, body, tags} = activity
 
     @tagController.reset()
