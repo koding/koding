@@ -26,6 +26,9 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
+	bound := false
+	var vm *virt.VM
+
 	for {
 		packet, err := ber.ReadPacket(conn)
 		if err != nil {
@@ -40,21 +43,39 @@ func handleConnection(conn net.Conn) {
 
 		switch request.Tag {
 		case ApplicationBindRequest:
-			response := createLDAPMessage(messageID)
-			response.AppendChild(createLDAPResponse(ApplicationBindResponse, LDAPResultSuccess))
-			conn.Write(response.Bytes())
+			name := request.Children[1].Value.(string)
+			password := request.Children[2].Data.String()
 
-		case ApplicationUnbindRequest:
-			// ignored
-
-		case ApplicationSearchRequest:
-			if !lookupUser(request.Children[6], messageID, conn) {
-				// ber.PrintPacket(packet)
+			if name != "" {
+				id, err := strconv.Atoi(name)
+				if err == nil {
+					conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
+					continue
+				}
+				vm, err = virt.FindVMById(id)
+				if err != nil || password != vm.LdapPassword {
+					conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
+					continue
+				}
 			}
 
-			response := createLDAPMessage(messageID)
-			response.AppendChild(createLDAPResponse(ApplicationSearchResultDone, LDAPResultSuccess))
-			conn.Write(response.Bytes())
+			bound = true
+			conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultSuccess).Bytes())
+
+		case ApplicationUnbindRequest:
+			bound = false
+
+		case ApplicationSearchRequest:
+			if !bound {
+				conn.Write(createSimpleResponse(messageID, ApplicationSearchResultDone, LDAPResultInsufficientAccessRights).Bytes())
+				continue
+			}
+
+			if !lookupUser(request.Children[6], messageID, vm, conn) {
+				// ber.PrintPacket(packet) // for debugging
+			}
+
+			conn.Write(createSimpleResponse(messageID, ApplicationSearchResultDone, LDAPResultSuccess).Bytes())
 
 		default:
 			panic("Unsupported LDAP command")
@@ -62,34 +83,31 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func lookupUser(filter *ber.Packet, messageID uint64, conn net.Conn) bool {
+func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn) bool {
 	var attributes map[string]string
 	switch findAttributeInFilter(filter, "objectClass") {
 	case "posixAccount":
-		var vm *virt.VM
+		var user *virt.User
 		var err error
 		if name := findAttributeInFilter(filter, "uid"); name != "" {
-			vm, err = virt.FindByName(name)
-			if err != nil {
-				return true
-			}
+			user, err = virt.FindUserByName(name)
 		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
 			uid, _ := strconv.Atoi(uidStr)
-			vm, err = virt.FindById(uid >> 8)
-			if err != nil {
-				return true
-			}
+			user, err = virt.FindUserById(uid)
 		} else {
 			return false
 		}
+		if err != nil || !vm.HasUser(user) {
+			return true
+		}
 
 		attributes = map[string]string{
-			"uid":           vm.Name,
+			"uid":           user.Name,
 			"userPassword":  "",
-			"uidNumber":     strconv.Itoa(vm.Id << 8),
-			"gidNumber":     strconv.Itoa(vm.Id << 8),
-			"cn":            vm.Name,
-			"homeDirectory": "/home/" + vm.Name,
+			"uidNumber":     strconv.Itoa(user.Id),
+			"gidNumber":     strconv.Itoa(user.Id),
+			"cn":            user.Name,
+			"homeDirectory": "/home/" + user.Name,
 			"loginShell":    "/bin/bash",
 			"gecos":         "",
 			"description":   "",
@@ -106,13 +124,13 @@ func lookupUser(filter *ber.Packet, messageID uint64, conn net.Conn) bool {
 			return false
 		}
 		gid, _ := strconv.Atoi(gidStr)
-		vm, err := virt.FindById(gid >> 8)
-		if err != nil {
+		user, err := virt.FindUserById(gid)
+		if err != nil || !vm.HasUser(user) {
 			return true
 		}
 
 		attributes = map[string]string{
-			"cn":           vm.Name,
+			"cn":           user.Name,
 			"userPassword": "",
 			"memberUid":    "",
 			"uniqueMember": "",
@@ -164,6 +182,12 @@ func createLDAPResponse(tag uint8, resultCode uint64) *ber.Packet {
 	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimative, ber.TagOctetString, "", "matchedDN"))
 	packet.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimative, ber.TagOctetString, "", "errorMessage"))
 	return packet
+}
+
+func createSimpleResponse(messageID uint64, tag uint8, resultCode uint64) *ber.Packet {
+	response := createLDAPMessage(messageID)
+	response.AppendChild(createLDAPResponse(tag, resultCode))
+	return response
 }
 
 func createAttribute(name, value string) *ber.Packet {

@@ -53,7 +53,7 @@ func handleConnection(source net.Conn) {
 		}
 	}
 
-	vm, err := virt.FindByName(name)
+	vm, err := virt.FindVMByName(name)
 	if err != nil {
 		source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: http://www.koding.com/notfound.html\r\n\r\n"))
 		return

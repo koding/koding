@@ -2,6 +2,7 @@ package virt
 
 import (
 	"fmt"
+	"koding/tools/db"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -12,20 +13,16 @@ import (
 )
 
 type VM struct {
-	Id    int    "_id"
-	Name  string "name"
-	Users []int  "users"
-}
-
-type Counter struct {
-	Value int "v"
+	Id           int    "_id"
+	Name         string "name"
+	Users        []int  "users"
+	LdapPassword string "ldapPassword"
 }
 
 const VMROOT_ID = 1000000
 
 var templates *template.Template
-var VMs *mgo.Collection
-var Counters *mgo.Collection
+var VMs *mgo.Collection = db.Collection("jVMs")
 
 func init() {
 	var err error
@@ -33,39 +30,27 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2")
-	if err != nil {
-		panic(err)
-	}
-	db := session.DB("koding_dev2")
-	VMs = db.C("jVMs")
-	Counters = db.C("jCounters")
 }
 
-func Find(query interface{}) (*VM, error) {
+func FindVM(query interface{}) (*VM, error) {
 	var vm VM
 	err := VMs.Find(query).One(&vm)
 	return &vm, err
 }
 
-func FindById(id int) (*VM, error) {
-	return Find(bson.M{"_id": id})
+func FindVMById(id int) (*VM, error) {
+	return FindVM(bson.M{"_id": id})
 }
 
-func FindByIP(a, b, c, d byte) (*VM, error) {
+func FindVMByIP(a, b, c, d byte) (*VM, error) {
 	if a != 10 || b == 0 {
 		return nil, fmt.Errorf("Illegal VM address: %d.%d.%d.%d", a, b, c, d)
 	}
-	return FindById(int(b)<<16 + int(c)<<8 + int(d)<<0)
+	return FindVMById(int(b)<<16 + int(c)<<8 + int(d)<<0)
 }
 
-func FindByUid(uid int) (*VM, error) {
-	return FindById(uid >> 8)
-}
-
-func FindByName(name string) (*VM, error) {
-	return Find(bson.M{"name": name})
+func FindVMByName(name string) (*VM, error) {
+	return FindVM(bson.M{"name": name})
 }
 
 func (vm *VM) String() string {
@@ -80,16 +65,8 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, 10, byte(vm.Id >> 16), byte(vm.Id >> 8), byte(vm.Id >> 0)})
 }
 
-func (vm *VM) Uid() int {
-	return vm.Id << 8
-}
-
-func (vm *VM) Username() string {
-	return vm.Name
-}
-
 func (vm *VM) Hostname() string {
-	return "koding-" + vm.Username()
+	return vm.Name + ".koding.com"
 }
 
 func (vm *VM) RbdDevice() string {
@@ -104,13 +81,23 @@ func (vm *VM) UpperdirFile(path string) string {
 	return vm.File("overlayfs-upperdir/" + path)
 }
 
+func (vm *VM) HasUser(user *User) bool {
+	for _, uid := range vm.Users {
+		if uid == user.Id {
+			return true
+		}
+	}
+	return false
+}
+
 func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-func FetchUnused(user int) *VM {
+// may panic
+func FetchUnusedVM(user *User) *VM {
 	var vm VM
-	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user}}, ReturnNew: true}, &vm)
+	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}}, ReturnNew: true}, &vm)
 	if err == nil {
 		return &vm // existing unused VM found
 	}
@@ -119,11 +106,7 @@ func FetchUnused(user int) *VM {
 	}
 
 	// create new vm
-	var c Counter
-	if _, err := Counters.FindId("vmId").Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"v": 1}}}, &c); err != nil {
-		panic(err)
-	}
-	vm = VM{Id: c.Value, Users: []int{user}}
+	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}}
 
 	// create disk and map to pool
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
@@ -152,6 +135,7 @@ func FetchUnused(user int) *VM {
 	return &vm
 }
 
+// may panic
 func (vm *VM) Prepare(format bool) {
 	// prepare directories
 	vm.PrepareDir(vm.File(""), 0)
@@ -159,8 +143,8 @@ func (vm *VM) Prepare(format bool) {
 	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)
 
 	// write LXC files
-	vm.GenerateFile("config", false)
-	vm.GenerateFile("fstab", false)
+	vm.GenerateFile(vm.File("config"), "config", 0, false)
+	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
 
 	if format {
 		// create file system
@@ -179,18 +163,17 @@ func (vm *VM) Prepare(format bool) {
 	vm.PrepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
 	vm.PrepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
 	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
-	vm.PrepareDir(vm.UpperdirFile("/home/"+vm.Username()), vm.Uid())
-
-	// write hostname file
-	hostnameFile := vm.UpperdirFile("/etc/hostname")
-	hostname, err := os.Create(hostnameFile)
-	if err != nil {
-		panic(err)
+	for _, userId := range vm.Users {
+		user, err := FindUserById(userId)
+		if err != nil {
+			panic(err)
+		}
+		vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id)
 	}
-	hostname.Write([]byte(vm.Username() + ".koding.com\n"))
-	hostname.Close()
-	os.Chown(hostnameFile, VMROOT_ID, VMROOT_ID)
 
+	// generate upperdir files
+	vm.GenerateFile(vm.UpperdirFile("/etc/hostname"), "hostname", VMROOT_ID, false)
+	vm.GenerateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", VMROOT_ID, false)
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
 	vm.MergeDpkgDatabase()
@@ -211,6 +194,7 @@ func (vm *VM) Unprepare() {
 	os.Remove(vm.File(""))
 }
 
+// may panic
 func (vm *VM) PrepareDir(path string, id int) {
 	if err := os.Mkdir(path, 0755); err != nil && !os.IsExist(err) {
 		panic(err)
@@ -222,17 +206,23 @@ func (vm *VM) PrepareDir(path string, id int) {
 	}
 }
 
-func (vm *VM) GenerateFile(name string, executable bool) {
-	file, err := os.Create(vm.File(name))
+// may panic
+func (vm *VM) GenerateFile(path, template string, id int, executable bool) {
+	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
-	if err := templates.ExecuteTemplate(file, name, vm); err != nil {
+	if err := templates.ExecuteTemplate(file, template, vm); err != nil {
 		panic(err)
 	}
 
+	if id != 0 {
+		if err := file.Chown(id, id); err != nil {
+			panic(err)
+		}
+	}
 	if executable {
 		err = file.Chmod(0755)
 	} else {

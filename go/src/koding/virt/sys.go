@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type User struct {
+type SysUser struct {
 	Name        string
 	Gid         int
 	Description string
@@ -16,7 +16,7 @@ type User struct {
 	Shell       string
 }
 
-type Group struct {
+type SysGroup struct {
 	Name  string
 	Users map[string]bool
 }
@@ -33,7 +33,6 @@ func (vm *VM) MergePasswdFile() {
 		users[uid] = user
 	}
 
-	users[1000] = &User{vm.Username(), 1000, "", "/home/" + vm.Username(), "/bin/bash"}
 	err = WritePasswd(users, passwdFile)
 	if err != nil {
 		panic(err)
@@ -55,30 +54,26 @@ func (vm *VM) MergeGroupFile() {
 				group.Users[user] = true
 			}
 		}
-		if group.Name == "sudo" {
-			group.Users[vm.Username()] = true
-		}
 		groups[gid] = group
 	}
 
-	groups[1000] = &Group{vm.Username(), map[string]bool{vm.Username(): true}}
 	if err := WriteGroup(groups, groupFile); err != nil {
 		panic(err)
 	}
 	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
 }
 
-func ReadPasswd(fileName string) (map[int]*User, error) {
+func ReadPasswd(fileName string) (map[int]*SysUser, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
-		return make(map[int]*User, 0), err
+		return make(map[int]*SysUser, 0), err
 	}
 	defer f.Close()
 	r := bufio.NewReader(f)
 
-	users := make(map[int]*User, 0)
+	users := make(map[int]*SysUser, 0)
 	for !atEndOfFile(r) {
-		user := User{}
+		user := SysUser{}
 		user.Name = readUntil(r, ':')
 		readUntil(r, ':') // skip
 		uid := atoi(readUntil(r, ':'))
@@ -91,7 +86,7 @@ func ReadPasswd(fileName string) (map[int]*User, error) {
 	return users, nil
 }
 
-func WritePasswd(users map[int]*User, fileName string) error {
+func WritePasswd(users map[int]*SysUser, fileName string) error {
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
@@ -114,17 +109,17 @@ func WritePasswd(users map[int]*User, fileName string) error {
 	return nil
 }
 
-func ReadGroup(fileName string) (map[int]*Group, error) {
+func ReadGroup(fileName string) (map[int]*SysGroup, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
-		return make(map[int]*Group, 0), err
+		return make(map[int]*SysGroup, 0), err
 	}
 	defer f.Close()
 	r := bufio.NewReader(f)
 
-	groups := make(map[int]*Group, 0)
+	groups := make(map[int]*SysGroup, 0)
 	for !atEndOfFile(r) {
-		group := Group{Users: make(map[string]bool)}
+		group := SysGroup{Users: make(map[string]bool)}
 		group.Name = readUntil(r, ':')
 		readUntil(r, ':') // skip
 		gid := atoi(readUntil(r, ':'))
@@ -136,7 +131,7 @@ func ReadGroup(fileName string) (map[int]*Group, error) {
 	return groups, nil
 }
 
-func WriteGroup(groups map[int]*Group, fileName string) error {
+func WriteGroup(groups map[int]*SysGroup, fileName string) error {
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
