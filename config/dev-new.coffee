@@ -20,6 +20,7 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    login       : 'webserver'
     port        : 3000
     clusterSize : 4
   mongo         : mongo
@@ -46,6 +47,7 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   social        :
+    login       : 'social'
     numberOfWorkers: 1
     watch       : yes
   feeder        :
@@ -73,7 +75,7 @@ module.exports = deepFreeze
         #sockJS  : 'https://d.koding.com/subscribe'
         sockJS  : 'http://dmq.koding.com:8008/subscribe'
         auth    : 'http://localhost:3000/Auth'
-        vhost   : rabbitVhost
+        # vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -81,11 +83,11 @@ module.exports = deepFreeze
     host        : 'dmq.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
-    vhost       : rabbitVhost
-    vhosts      : [
-      rule      : '^secret-kite-'
-      vhost     : 'kite'
-    ]
+    # vhost       : rabbitVhost
+    # vhosts      : [
+      # rule      : '^secret-kite-'
+      # vhost     : 'kite'
+    # ]
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
@@ -105,17 +107,17 @@ module.exports = deepFreeze
       host          : 'dmq.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
-      vhost         : rabbitVhost
-  vhostConfigurator:
-    explanation :\
-      """
-      Important!  because the dev rabbitmq instance is shared, you
-      need to choose a name for your vhost.  You appear not to
-      have a vhost associated with this repository. Generally
-      speaking, your first name is a good choice.
-      """.replace /\n/g, ' '
-    uri         : 'http://dmq.koding.com:3008/resetVhost'
-    webPort     : 3008
+      # vhost         : rabbitVhost
+  # vhostConfigurator:
+  #   explanation :\
+  #     """
+  #     Important!  because the dev rabbitmq instance is shared, you
+  #     need to choose a name for your vhost.  You appear not to
+  #     have a vhost associated with this repository. Generally
+  #     speaking, your first name is a good choice.
+  #     """.replace /\n/g, ' '
+  #   uri         : 'http://dmq.koding.com:3008/resetVhost'
+  #   webPort     : 3008
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
