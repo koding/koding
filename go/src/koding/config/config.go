@@ -25,7 +25,7 @@ var configs = map[string]Config{
 
 	"dev-new": {
 		AmqpHost:     "localhost:5672",
-		AmqpUser:     "guest",
+		AmqpUser:     "broker",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
