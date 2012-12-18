@@ -21,7 +21,7 @@ module.exports = deepFreeze
     port        : 3000#[3001..3002]
     login       : 'webserver'
     clusterSize : 4
-    queueName   : socialQueueName
+    queueName   : socialQueueName+'web'
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
@@ -30,7 +30,7 @@ module.exports = deepFreeze
   runGoBroker   : yes
   authWorker    :
     login       : 'authWorker'
-    queueName   : socialQueueName
+    queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
   social        :
