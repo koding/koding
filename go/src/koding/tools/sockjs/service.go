@@ -23,6 +23,7 @@ type Service struct {
 
 	iFrameContent      []byte
 	iFrameETag         string
+	active             bool
 	sessions           map[string]*session
 	sessionsMutex      sync.Mutex
 	lastSessionCleanup time.Time
@@ -38,19 +39,35 @@ func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Dur
 		streamLimit = 128 * 1024
 	}
 
-	return &Service{
+	s := &Service{
 		Websocket:    websocket,
 		CookieNeeded: cookieNeeded,
 		Timeout:      timeout,
 		StreamLimit:  streamLimit,
 		Callback:     callback,
 
-		iFrameContent:      iFrameContent,
-		iFrameETag:         iFrameETag,
-		sessions:           make(map[string]*session),
-		sessionsMutex:      sync.Mutex{},
-		lastSessionCleanup: time.Now(),
+		iFrameContent: iFrameContent,
+		iFrameETag:    iFrameETag,
+		active:        true,
+		sessions:      make(map[string]*session),
+		sessionsMutex: sync.Mutex{},
 	}
+
+	go func() {
+		for s.active {
+			s.sessionsMutex.Lock()
+			for key, session := range s.sessions {
+				if session.Broken || session.LastActivity.Add(s.Timeout).Before(time.Now()) {
+					session.Close()
+					delete(s.sessions, key)
+				}
+			}
+			s.sessionsMutex.Unlock()
+			time.Sleep(s.Timeout)
+		}
+	}()
+
+	return s
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -126,14 +143,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sessionsMutex.Lock()
-	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
-		for key, session := range s.sessions {
-			if session.Broken || session.LastActivity.Add(s.Timeout).Before(time.Now()) {
-				session.Close()
-				delete(s.sessions, key)
-			}
-		}
-		s.lastSessionCleanup = time.Now()
+	if !s.active {
+		s.sessionsMutex.Unlock()
+		return
 	}
 	session := s.sessions[parts[1]]
 	if session == nil {
@@ -274,7 +286,8 @@ func (s *Service) Close() {
 	for _, session := range s.sessions {
 		session.Close()
 	}
-	s.sessions = make(map[string]*session)
+	s.active = false
+	s.sessions = nil
 }
 
 func (s *Service) newSession() *session {
