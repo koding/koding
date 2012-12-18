@@ -61,18 +61,15 @@ func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {
 }
 
 func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
-	err := channel.ExchangeDeclare(exchange, kind, false, true, false, false, nil)
-	if err != nil {
+	if err := channel.ExchangeDeclare(exchange, kind, false, true, false, false, nil); err != nil {
 		panic(err)
 	}
 
-	_, err = channel.QueueDeclare("", false, true, false, false, nil)
-	if err != nil {
+	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
 
-	err = channel.QueueBind("", key, exchange, false, nil)
-	if err != nil {
+	if err := channel.QueueBind("", key, exchange, false, nil); err != nil {
 		panic(err)
 	}
 
