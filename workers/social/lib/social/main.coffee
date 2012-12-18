@@ -41,8 +41,6 @@ processMonitor = (require 'processes-monitor').start
     #     ,10*1000
     middlewareTimeout : 15000
   statsd: KONFIG.statsd
-  # mixpanel:
-  #   key : KONFIG.mixpanel.key
 
 koding = new Bongo
   root        : __dirname

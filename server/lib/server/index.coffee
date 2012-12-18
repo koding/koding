@@ -26,7 +26,6 @@ else
       after: "non-overlapping, random, 3 digits prime-number of minutes"
       middleware : (name,callback) -> koding.disconnect callback
       middlewareTimeout : 5000
-    fnord: KONFIG.fnord
     statsd: KONFIG.statsd
   
 
