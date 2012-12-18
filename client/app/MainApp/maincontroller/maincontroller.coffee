@@ -65,6 +65,7 @@ class MainController extends KDController
     else @once 'AccountChanged', fn
 
   accountChanged:(account)->
+    console.trace()
     @accountReadyState = 1
 
     connectedState.connected = yes

@@ -109,7 +109,7 @@ module.exports = class AuthWorker extends EventEmitter
       }
 
   cleanUpAfterDisconnect:(socketId)->
-    console.log 'd/c', socketId, this
+    delete @clients[socketId]
     @getClients(socketId)?.forEach @bound 'cleanUpClient'
 
   connect:->

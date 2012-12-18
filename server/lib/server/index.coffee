@@ -90,15 +90,15 @@ else
     # throw err
     # console.trace()
 
-  koding = require './bongo'
+  # koding = require './bongo'
 
-  kiteBroker =\
-    if kites?.vhost?
-      new Broker extend {}, mq, vhost: kites.vhost
-    else
-      koding.mq
+  # kiteBroker =\
+  #   if kites?.vhost?
+  #     new Broker extend {}, mq, vhost: kites.vhost
+  #   else
+  #     koding.mq
 
-  koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
+  # koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403

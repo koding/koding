@@ -64,13 +64,11 @@ module.exports = class JGuest extends jraphical.Module
   @obtain = do->
     obtaining = {}
     secure (client, clientId, callback)->
-      console.log 'guest.obtain is called', clientId
       [callback, clientId] = [clientId, callback] unless callback
       JAccount = require './account'
       createId = require 'hat'
       if clientId?
         if obtaining[clientId]
-          console.log 'already obtaining', clientId
           @once "ready.#{clientId}", (guest)-> console.log 'finally got', clientId; callback null, guest
           return
         obtaining[clientId] = yes
@@ -87,7 +85,6 @@ module.exports = class JGuest extends jraphical.Module
           if err then callback error err
           else
             @one {leaseId}, (err, guest)=>
-              console.log guest?.prune()
               if err then callback error err
               else unless guest?
                 callback error "We've reached maximum occupancy for guests.  Please try again later."
@@ -100,7 +97,6 @@ module.exports = class JGuest extends jraphical.Module
                 }, (err)=>
                   if err then callback error err
                   else
-                    console.log 'successfully obtained', clientId
                     @emit "ready.#{clientId}", guest
                     delete obtaining[clientId]
                     callback null, guest
