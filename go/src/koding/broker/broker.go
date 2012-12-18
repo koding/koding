@@ -149,11 +149,12 @@ func main() {
 		defer listener.Close()
 
 		go func() {
-			err = server.Serve(listener)
-			if err != nil {
-				log.Warn("Server error: " + err.Error())
+			for {
+				err = server.Serve(listener)
+				if err != nil {
+					log.Warn("Server error: " + err.Error())
+				}
 			}
-			consumeConn.Close()
 		}()
 
 		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
