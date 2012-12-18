@@ -45,6 +45,7 @@ class ManageRemotesModal extends KDModalViewWithForms
                 callback      : (state)=>
                   if state then @savePasswordWarning.show()
                   else @savePasswordWarning.hide()
+                  @setPositions()
             buttons           :
               "Create & Mount":
                 style         : "modal-clean-green"
@@ -117,10 +118,12 @@ class ManageRemotesModal extends KDModalViewWithForms
     @modalTabs.panes[0].on "KDTabPaneInactive", =>
       @hideMessages()
       @savePasswordWarning.hide()
+      @setPositions()
 
     @modalTabs.panes[0].on "KDTabPaneActive", =>
       @hideMessages()
       @savePasswordWarning.show() if newRemoteForm.inputs.storepass.getValue()
+      @setPositions()
 
     @statusText1 = new KDView
       cssClass  : "status-hint fl"
