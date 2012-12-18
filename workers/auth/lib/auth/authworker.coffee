@@ -103,10 +103,11 @@ module.exports = class AuthWorker extends EventEmitter
       else              @rejectClient routingKey
 
   cleanUpClient:(client)->
-    @bongo.mq.connection.exchange client.exchange, authExchangeOptions, (exchange)->
-      exchange.publish 'auth.leave', {
-        routingKey: client.routingKey
-      }
+    @bongo.mq.connection.exchange client.exchange, authExchangeOptions,
+      (exchange)->
+        exchange.publish 'auth.leave', {
+          routingKey: client.routingKey
+        }
 
   cleanUpAfterDisconnect:(socketId)->
     delete @clients[socketId]
