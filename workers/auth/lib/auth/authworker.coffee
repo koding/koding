@@ -62,7 +62,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   joinClient_ = (messageData, routingKey, socketId)->
     @authenticate messageData, routingKey, (session)=>
-      serviceName = @getNextServiceName channel
+      serviceName = @getNextServiceName messageData.name
       unless serviceName
         @rejectClient routingKey
       else
@@ -106,7 +106,6 @@ module.exports = class AuthWorker extends EventEmitter
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
             authQueue.subscribe (message, headers, deliveryInfo)=>
-              console.log {deliveryInfo}
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
               messageStr = "#{message.data}"
