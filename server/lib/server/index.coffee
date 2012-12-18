@@ -13,28 +13,22 @@ if cluster.isMaster
     cluster.fork()
 else
 
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  #   die :
-  #     after: "non-overlapping, random, 3 digits prime-number of minutes"
-  #     middleware : (name,callback) -> koding.disconnect callback
-  #     middlewareTimeout : 5000
-    # mixpanel:
-    #   key : KONFIG.mixpanel.key
+  processMonitor = (require 'processes-monitor').start
+    name : "webServer on port #{webPort}"
+    statsd_id: "webserver." + cluster.worker.id
+    interval : 60000
+    limits  :
+      memory   : 300
+      callback : ->
+        console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+        process.exit()
+    die :
+      after: "non-overlapping, random, 3 digits prime-number of minutes"
+      middleware : (name,callback) -> koding.disconnect callback
+      middlewareTimeout : 5000
+    fnord: KONFIG.fnord
+    statsd: KONFIG.statsd
+  
 
   # if webPort is 3002
   #   foo = []
