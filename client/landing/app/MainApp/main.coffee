@@ -62,6 +62,7 @@ do ->
   ###
 
   KD.remote.on 'loggedInStateChanged', (account)->
+    console.log {account}
     KD.socketConnected()
     mainController.accountChanged account
     AccountMixin.init(KD.remote.api)
