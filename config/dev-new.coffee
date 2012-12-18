@@ -23,9 +23,8 @@ module.exports = deepFreeze
     port        : 3000
     clusterSize : 4
   mongo         : mongo
-  runBroker     : no
-  configureBroker: no
-  buildClient   : no
+  runGoBroker   : yes
+  buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
