@@ -2,12 +2,10 @@ package main
 
 import (
 	"bytes"
-	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
-	"koding/tools/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -24,29 +22,6 @@ type WebtermServer struct {
 	currentSecond    int64
 	messageCounter   int
 	lineFeeedCounter int
-}
-
-func main() {
-	utils.Startup("webterm kite", true)
-
-	if config.Current.UseWebsockets {
-		runWebsocket()
-		return
-	}
-
-	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
-		if method == "createServer" {
-			remote, err := args.Map()
-			if err != nil {
-				return nil, err
-			}
-			server := &WebtermServer{session: session}
-			server.remote = remote
-			session.CloseOnDisconnect(server)
-			return server, nil
-		}
-		return nil, &kite.UnknownMethodError{method}
-	})
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
@@ -168,3 +143,41 @@ func (server *WebtermServer) Close() error {
 	}
 	return nil
 }
+
+//func runWebsocket() {
+//	fmt.Println("WebSocket server started. Please open terminal.html in your browser.")
+//	http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
+//		fmt.Printf("WebSocket opened: %p\n", ws)
+//
+//		server := &WebtermServer{session: kite.NewSession(config.Current.User)}
+//		defer server.Close()
+//
+//		d := dnode.New()
+//		defer d.Close()
+//		d.SendRemote(server)
+//		d.OnRemote = func(remote dnode.Remote) {
+//			server.remote = remote
+//		}
+//
+//		go func() {
+//			for data := range d.SendChan {
+//				websocket.Message.Send(ws, data)
+//			}
+//		}()
+//
+//		for {
+//			var data []byte
+//			err := websocket.Message.Receive(ws, &data)
+//			if err != nil {
+//				break
+//			}
+//			d.ProcessMessage(data)
+//		}
+//
+//		fmt.Printf("WebSocket closed: %p\n", ws)
+//	}))
+//	err := http.ListenAndServe(":8080", nil)
+//	if err != nil {
+//		panic(err)
+//	}
+//}

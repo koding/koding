@@ -81,8 +81,8 @@ class WebTermView extends KDView
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
 
     KD.singletons.kiteController.run
-      kiteName: 'webterm',
-      method: 'createServer',
+      kiteName: 'os',
+      method: 'createWebtermServer',
       withArgs: @terminal.clientInterface
     , (err, remote) =>
       @terminal.server = remote

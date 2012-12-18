@@ -3,6 +3,7 @@ package virt
 import (
 	"fmt"
 	"koding/tools/db"
+	"koding/tools/utils"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -97,7 +98,7 @@ func LowerdirFile(path string) string {
 // may panic
 func FetchUnusedVM(user *User) *VM {
 	var vm VM
-	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}}, ReturnNew: true}, &vm)
+	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}, "ldapPassword": utils.RandomString()}, ReturnNew: true}, &vm)
 	if err == nil {
 		return &vm // existing unused VM found
 	}
@@ -106,7 +107,7 @@ func FetchUnusedVM(user *User) *VM {
 	}
 
 	// create new vm
-	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}}
+	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}, LdapPassword: utils.RandomString()}
 
 	// create disk and map to pool
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {

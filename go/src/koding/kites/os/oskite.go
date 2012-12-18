@@ -70,6 +70,16 @@ func main() {
 			}
 
 			return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
+
+		case "createWebtermServer":
+			remote, err := args.Map()
+			if err != nil {
+				return nil, err
+			}
+			server := &WebtermServer{session: session}
+			server.remote = remote
+			session.CloseOnDisconnect(server)
+			return server, nil
 		}
 
 		return nil, &kite.UnknownMethodError{method}

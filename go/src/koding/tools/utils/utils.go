@@ -1,6 +1,8 @@
 package utils
 
 import (
+	cryptorand "crypto/rand"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"koding/config"
@@ -71,4 +73,10 @@ func RunStatusLogger() {
 			time.Sleep(60 * time.Second)
 		}
 	}()
+}
+
+func RandomString() string {
+	r := make([]byte, 128/8)
+	cryptorand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
 }
