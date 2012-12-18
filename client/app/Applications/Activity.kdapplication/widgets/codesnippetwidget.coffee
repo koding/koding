@@ -143,8 +143,12 @@ class ActivityCodeSnippetWidget extends KDFormView
     @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'
 
   switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit code snippet"
-    @addCustomData "activity", activity
+    unless fake
+      @submitBtn.setTitle "Edit code snippet"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle 'Submit again'
+
     {title, body, tags} = activity
     {syntax, content} = activity.attachments[0]
 

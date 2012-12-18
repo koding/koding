@@ -184,9 +184,14 @@ class ActivityTutorialWidget extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-  switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit Tutorial"
-    @addCustomData "activity", activity
+  switchToEditView:(activity,fake=no)->
+
+    unless fake
+      @submitBtn.setTitle "Edit Tutorial"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle 'Submit again'
+
     {title, body, tags, link} = activity
 
     @tagController.reset()
