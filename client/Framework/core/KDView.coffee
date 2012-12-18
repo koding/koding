@@ -20,7 +20,8 @@ class KDView extends KDObject
     contextmenu|
     scroll|
     paste|
-    error
+    error|
+    load
     )$
     ///
 
@@ -502,6 +503,8 @@ class KDView extends KDObject
     willPropagateToDOM = result
 
   scroll:(event)->     yes
+
+  load:(event)->       yes
 
   error:(event)->      yes
 
