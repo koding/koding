@@ -1,36 +1,28 @@
 nodePath = require 'path'
 # configuration
-cwd = process.cwd()
 
 module.exports =
   name                  : "sharedhosting"
   pidPath               : "/var/run/node/SharedHosting.pid"
   logFile               : "/var/log/node/SharedHosting.log"
-  # port                  : 4566
   amqp                  :
     host                : 'zb.koding.com'
     username            : 'guest'
     password            : 's486auEkPzvUjYfeFTMQ'
     vhost               : 'kite'
-  # pusher                :
-  #   appId               : 22120
-  #   key                 : 'a6f121a130a44c7f5325'
-  #   secret              : '9a2f248630abaf977547'
-  # requestHandler        :
-  #   isEnabled           : no
   apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
   suspendDir            : '/var/www/suspended_vhosts/'
-  defaultVhostFiles     : nodePath.join cwd, '..', 'sharedHosting', 'defaultVhostFiles'
+  defaultVhostFiles     : nodePath.join process.cwd(), '..', 'sharedHosting', 'defaultVhostFiles'
   freeUsersGroup        : 'freeusers'
   liteSpeedUser         : 'lsws'
   defaultDomain         : 'koding.com'
   minAllowedUid         : 600 # minumum allowed UID for OS commands
   debugApi              : true
-  processBaseDir        : cwd
+  processBaseDir        : process.cwd()
   cagefsctl             : "/usr/sbin/cagefsctl"
-  baseMountDir          : "RemoteDrives"
+  baseMountDir          : 'RemoteDrives'
   usersMountsFile       : ".cagefs/.mounts"
   encryptKey            : "aljhbvohebrfupoyeqbrpvuyq38047f08q3740r8y34bfokjberfaldsjbfh"
   ftpfs                 :
