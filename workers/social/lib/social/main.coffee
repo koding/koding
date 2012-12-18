@@ -70,8 +70,9 @@ koding.on 'authenticateUser', (client, callback)->
 #     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
       
 #     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
-
+console.log 'preconnect'
 koding.connect ->
+  console.log 'postconnect'
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
 

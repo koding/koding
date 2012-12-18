@@ -40,7 +40,6 @@ module.exports = class AuthWorker extends EventEmitter
   getNextServiceName:(serviceType)->
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
-    console.log {servicesOfType, serviceType}
     return  unless servicesOfType?.length
     serviceName = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
