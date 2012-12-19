@@ -23,7 +23,6 @@ class ManageRemotesModal extends KDModalViewWithForms
                   { title : "FTP",  value : "ftp" }
                   # { title : "SFTP", value : "sftp" }
                 ]
-                # callback      : -> log arguments
               remotehost      :
                 label         : "Hostname"
                 placeholder   : "provide remote address without protocol"
@@ -139,8 +138,44 @@ class ManageRemotesModal extends KDModalViewWithForms
           @detailsHint.show()
           @statusText2.hide()
 
-    @modalTabs.panes[0].form.buttonField.addSubView @statusText1, null, yes
-    @modalTabs.panes[1].form.buttonField.addSubView @statusText2, null, yes
+    @havingTrouble = new KDView
+      cssClass  : "status-hint fl"
+      partial   : "Having trouble with remotes? Try to <span>clean-up</span>."
+      click     : (event)=>
+        modal = new KDModalView
+          title          : "Clean up all remote drives?"
+          content        : """
+                            <div class='modalformline'><p>
+                             This action will <strong>kill all running processes,
+                             remove lock-files and unmounts all of your remote
+                             drives</strong>. Settings will be kept, you can re-mount
+                             them after the process safely.</p><br />
+                             <p>Are you sure you want to <strong>kill all of your
+                             running processes on Koding Servers and clean-up locks
+                             </strong>?</p>
+                            </div>
+                           """
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            "Clean Up"   :
+              style      : "modal-clean-red"
+              loader     :
+                color    : "#FFF"
+                diameter : 16
+              callback   : =>
+                @kc.run
+                  method : 'clearLocks'
+                , (info)=>
+                  @refreshMountList =>
+                    @refreshRemoteDrives '', no, yes
+                    new KDNotificationView
+                      title : "Done!"
+                    modal.destroy()
+
+    @modalTabs.panes[0].form.buttonField.addSubView @statusText1  , null, yes
+    @modalTabs.panes[1].form.buttonField.addSubView @statusText2  , null, yes
+    @modalTabs.panes[1].form.buttonField.addSubView @havingTrouble, null, yes
 
     @hideMessages()
     @refreshMountList()
@@ -149,6 +184,7 @@ class ManageRemotesModal extends KDModalViewWithForms
     @detailsHint.hide()
     @statusText1.hide()
     @statusText2.hide()
+    @havingTrouble.hide()
 
   showMessage:(message, details = '')->
     message = "<strong>An error occured!</strong> <span>Click</span> here for details." unless message
@@ -157,6 +193,7 @@ class ManageRemotesModal extends KDModalViewWithForms
     @statusText1.show()
     @statusText2.updatePartial message
     @statusText2.show()
+    @havingTrouble.hide()
     @detailsHint.updatePartial "<p>#{details}</p><span class='close-icon'></span>"
 
   refreshMountList:(callback)->
@@ -165,13 +202,14 @@ class ManageRemotesModal extends KDModalViewWithForms
     @kc.run
       method : 'readMountInfo'
     , (err, mounts)=>
-      log mounts
+      @hideMessages()
       if not err and mounts?.length == 0
         @mountController.scrollView.addSubView @noRemoteFoundItem = new KDCustomHTMLView
           cssClass: "no-remote-found"
           partial : "There is no remote drive attached to your Virtual Environment."
       else
         @mountController.instantiateListItems mounts unless err
+        @havingTrouble.show()
       error err if err
       callback?()
 
@@ -179,16 +217,15 @@ class ManageRemotesModal extends KDModalViewWithForms
     {remotehost, haspass, remotepass, remoteuser} = mount
     args = {remotehost, remoteuser}
     args.remotepass = remotepass unless haspass
-    log args
     @hideMessages()
     @kc.run
       method   : 'mountDrive'
       withArgs : args
     , (err, res)=>
-      log err, res
       if err
         @showMessage null, err
       else
+        remoteuser or= 'anonymous'
         @refreshRemoteDrives "#{remoteuser}@#{remotehost}"
       callback? err
 
@@ -198,7 +235,6 @@ class ManageRemotesModal extends KDModalViewWithForms
       method   : 'umountDrive'
       withArgs : {remotehost, remoteuser, mountpoint}
     , (err, res)=>
-      log err, res
       if err
         @showMessage null, err
       else
@@ -218,14 +254,13 @@ class ManageRemotesModal extends KDModalViewWithForms
         @refreshMountList =>
           @modalTabs.showNextPane()
           @hideMessages
-          @refreshRemoteDrives "#{formData.remoteuser}@#{formData.remotehost}"
+          remoteuser = formData.remoteuser or 'anonymous'
+          @refreshRemoteDrives "#{remoteuser}@#{formData.remotehost}"
           new KDNotificationView
             title    : "New remote created sucessfully."
             type     : "mini"
             cssClass : "success"
-
           @modalTabs.forms['Create a new Remote'].reset()
-      log arguments
 
   removeMount:({remoteuser, remotehost, mountpoint})=>
     @kc.run
@@ -239,10 +274,10 @@ class ManageRemotesModal extends KDModalViewWithForms
         type     : "mini"
         cssClass : "success"
 
-  refreshRemoteDrives:(finalPath = '', destroy = no)=>
+  refreshRemoteDrives:(finalPath = '', destroy = no, force = no)=>
     {nickname}  = KD.whoami().profile
     remotesPath = "/Users/#{nickname}/RemoteDrives"
-
+    log finalPath
     tc = KD.getSingleton("finderController").treeController
     navTo = =>
       tc.navigateTo remotesPath, =>
@@ -253,7 +288,7 @@ class ManageRemotesModal extends KDModalViewWithForms
         else
           @destroy() if destroy
 
-    unless remotesPath of tc.nodes
+    unless (remotesPath of tc.nodes) or force
       tc.refreshFolder tc.nodes["/Users/#{nickname}"], =>
         navTo()
     else
@@ -313,7 +348,7 @@ class RemoteListItem extends KDListItemView
             Delete       :
               style      : "modal-clean-red"
               callback   : =>
-                @mountToggle.disable()
+                @getDelegate().emit "OperationInProgress"
                 @deleteRemote.showLoader()
                 @getDelegate().emit "DeleteRemote",
                   mountpoint : @mountpoint
@@ -321,12 +356,19 @@ class RemoteListItem extends KDListItemView
                   remoteuser : data.remoteuser
                 modal.destroy()
 
+    @getDelegate().on "OperationInProgress", =>
+      @mountToggle.disable()
+      @deleteRemote.disable()
+
+    @getDelegate().on "OperationCompleted", =>
+      @mountToggle.enable()
+      @deleteRemote.enable()
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-
     """
     <span class='remote-type'>{{#(remotetype)}}</span>
     <div class='remote-details'>
@@ -340,7 +382,7 @@ class RemoteListItem extends KDListItemView
   changeMountState:(options, callback)->
     {state, data} = options
     signal = if state is 'mount' then "MountRemote" else "UmountRemote"
-    @deleteRemote.disable()
+    @getDelegate().emit "OperationInProgress"
     @getDelegate().emit signal, data, (err)=>
       @mountToggle.hideLoader()
       if not err
@@ -349,7 +391,7 @@ class RemoteListItem extends KDListItemView
         data.mounted = state is 'mount'
         @setData data
         @template.update()
-      @deleteRemote.enable()
+      @getDelegate().emit "OperationCompleted"
       callback? err
 
   click:(event)->
@@ -372,7 +414,6 @@ class AskForPassword extends KDModalViewWithForms
       overlay                 : yes
       width                   : 500
       height                  : "auto"
-      # cssClass                : "remotes-modal"
       tabs                    :
         navigable             : no
         goToNextFormOnSubmit  : no
@@ -383,11 +424,6 @@ class AskForPassword extends KDModalViewWithForms
                 label         : "Password"
                 placeholder   : "enter password or leave it blank"
                 type          : "password"
-                # validate      :
-                #   rules       :
-                #     required  : yes
-                #    messages   :
-                #     required  : "Password required"
             buttons           :
               Continue        :
                 style         : "modal-clean-green"
