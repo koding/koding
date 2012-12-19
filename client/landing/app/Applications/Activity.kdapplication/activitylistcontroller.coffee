@@ -4,6 +4,16 @@ class ActivityListController extends KDListViewController
   hiddenNewMemberItemGroups = [[]]
   hiddenItemCount           = 0
 
+  prepareNewMemberGroup = ->
+
+    # this is a bit tricky here
+    # if the previous member group isn't empty
+    # create a new group for later new member items
+    if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
+      hiddenNewMemberItemGroups.push []
+
+  resetNewMemberGroups = -> hiddenNewMemberItemGroups = [[]]
+
   constructor:(options,data)->
 
     viewOptions = options.viewOptions or {}
@@ -22,46 +32,6 @@ class ActivityListController extends KDListViewController
       partial  : "There is no activity from your followings."
 
     @noActivityItem.hide()
-    u  = @utils
-    gr = u.getRandomNumber
-    gp = u.generatePassword
-
-    unless KD.isLoggedIn()
-      @utils.wait 5000, =>
-        # bucket = new KD.remote.api.CNewMemberBucket
-        #   anchor     : KD.whoami()
-        #   sourceName : 'JAccount'
-
-        # @utils.repeat 2500, =>
-          # @newActivityArrived bucket
-
-        uniqueness = (Date.now()+"").slice(6)
-        formData   =
-          agree           : "on"
-          email           : "#{uniqueness}@sinanyasar.com"
-          firstName       : gp(gr(10), yes)
-          inviteCode      : "twitterfriends"
-          lastName        : gp(gr(10), yes)
-          password        : "123123123"
-          passwordConfirm : "123123123"
-          username        : uniqueness
-
-        @utils.wait 5000, =>
-          KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-            location.reload yes
-    # else
-
-      # @utils.repeat 90000, =>
-      #   status = dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT");
-      #   KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
-      #     unless err
-      #       appManager.tell 'Activity', 'ownActivityArrived', reply
-      #     else
-      #       new KDNotificationView type : "mini", title : "There was an error, try again later!"
-
-    # @utils.repeat 10000, =>
-
-
 
   loadView:(mainView)->
 
@@ -80,8 +50,48 @@ class ActivityListController extends KDListViewController
           unhideNewHiddenItems hiddenItems
     super
 
-  teasersLoaded:->
+  isMine:(activity)->
+    id = KD.whoami().getId()
+    id? and id in [activity.originId, activity.anchor?.id]
 
+  prepareToStream:(overview)->
+
+    if overview.length > 0
+      ids = (overview.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+      selector = _id : $in : ids
+
+      for group in overview
+        if group.type is "CNewMemberBucketActivity"
+          @addItem new NewMemberBucketData
+            type  : group.type
+            ids   : group.ids
+            count : group.count
+        else
+          for id in group.ids
+            @addItem type : group.type, ids : [id]
+
+      @teasersLoaded()
+
+      {length} = ids
+      KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
+        if err then callback err
+        else
+          unless model is null
+            @itemsOrdered.forEach (item)->
+              if item.getData().type isnt "CNewMemberBucketActivity" and\
+                 model[0]._id is item.getData().ids[0]
+                item.setModel model[0]
+          if length-- is 0
+            @isLoading = no
+            @teasersLoaded()
+          else
+            @isLoading = yes
+    else
+      @teasersLoaded()
+
+  teasersLoaded:->
+    @emit "teasersLoaded"
+    return
     for group in hiddenNewMemberItemGroups
 
       if group.length > 0
@@ -95,12 +105,24 @@ class ActivityListController extends KDListViewController
 
       item.destroy() for item in group
 
-    hiddenNewMemberItemGroups = [[]]
+    resetNewMemberGroups()
 
 
-  isMine:(activity)->
-    id = KD.whoami().getId()
-    id? and id in [activity.originId, activity.anchor?.id]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   followedActivityArrived: (activity) ->
 
@@ -112,25 +134,35 @@ class ActivityListController extends KDListViewController
 
     return unless @_state is 'public'
     unless @isMine activity
+      # if realtime update is newmember item
+      # instead of adding a new item we update the
+      # latest inserted member bucket or create a new one
       if activity instanceof KD.remote.api.CNewMemberBucketActivity
-        activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
-        KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
-          for item in @itemsOrdered
-            if item.getData() instanceof NewMemberBucketData
-              data = item.getData()
-              data.buckets.unshift bucket
-              item.destroySubViews()
-              item.addChildView data
-              break
+        @updateNewMemberBucket activity
       else
         view = @addHiddenItem activity, 0
         @activityHeader.newActivityArrived()
     else
+      # i don't know what this does
       {CFolloweeBucket} = KD.remote.api
       switch activity.constructor
         when CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
+
+  updateNewMemberBucket:(activity)->
+
+    return unless activity.snapshot?
+
+    activity.snapshot = activity.snapshot.replace /&quot;/g, '"'
+    KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
+      for item in @itemsOrdered
+        if item.getData() instanceof NewMemberBucketData
+          data = item.getData()
+          data.buckets.unshift bucket
+          item.destroySubViews()
+          item.addChildView data
+          break
 
   ownActivityArrived:(activity)->
 
@@ -141,31 +173,27 @@ class ActivityListController extends KDListViewController
 
   addHiddenItem:(activity, index, animation = null)->
 
-    # log "addHiddenItem"
-
     instance = @getListView().addHiddenItem activity, index, animation
 
+    # if the item is a new member bucket
+    # (don't let the name mislead you it is not a bucket, contains only one member)
+    # we make a separate group of new member groups
     if activity instanceof KD.remote.api.CNewMemberBucket
       hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].push instance
     else
       hiddenItems.push instance
-      if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
-        hiddenNewMemberItemGroups.push []
+      prepareNewMemberGroup()
 
     return instance
 
-  addItem:(activity, index, animation = null) ->
+  # addItem:(activity, index, animation = null) ->
 
-    # log "addItem"
-    # return if activity instanceof KD.remote.api.CNewMemberBucket
-
-    @noActivityItem.hide()
-    if activity instanceof KD.remote.api.CNewMemberBucket
-      @addHiddenItem activity, index, animation
-    else
-      @getListView().addItem activity, index, animation
-      if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
-        hiddenNewMemberItemGroups.push []
+  #   @noActivityItem.hide()
+  #   if activity instanceof KD.remote.api.CNewMemberBucket
+  #     @addHiddenItem activity, index, animation
+  #   else
+  #     @getListView().addItem activity, index, animation
+  #     prepareNewMemberGroup()
 
   unhideNewHiddenItems = (hiddenItems)->
 

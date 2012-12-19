@@ -14,6 +14,8 @@ class ActivityUpdateWidgetController extends KDViewController
 
   loadView:(mainView)->
 
+    activityController = @getSingleton('activityController')
+
     mainView.addWidgetPane
       paneName    : "update"
       mainContent : updateWidget = new ActivityStatusUpdateWidget
@@ -178,7 +180,7 @@ class ActivityUpdateWidgetController extends KDViewController
       KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
-          @emit "OwnActivityHasArrived", activity
+          activityController.emit "OwnActivityHasArrived", activity
         else
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
@@ -201,7 +203,7 @@ class ActivityUpdateWidgetController extends KDViewController
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @emit "OwnActivityHasArrived", codesnip
+          activityController.emit "OwnActivityHasArrived", codesnip
 
   # THIS WILL DISABLE CODE SHARES
 
@@ -225,7 +227,7 @@ class ActivityUpdateWidgetController extends KDViewController
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @emit "OwnActivityHasArrived", codeshare
+          activityController.emit "OwnActivityHasArrived", codeshare
 
 
 
@@ -258,7 +260,7 @@ class ActivityUpdateWidgetController extends KDViewController
           log err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @emit "OwnActivityHasArrived", link
+          activityController.emit "OwnActivityHasArrived", link
 
   # linkWidgetSubmit:(data)->
   #   log 'sharing link', data
@@ -331,7 +333,7 @@ class ActivityUpdateWidgetController extends KDViewController
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @emit "OwnActivityHasArrived", tutorial
+          activityController.emit "OwnActivityHasArrived", tutorial
 
   discussionWidgetSubmit:(data, callback)->
     if data.activity
@@ -352,5 +354,5 @@ class ActivityUpdateWidgetController extends KDViewController
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @emit "OwnActivityHasArrived", discussion
+          activityController.emit "OwnActivityHasArrived", discussion
 
