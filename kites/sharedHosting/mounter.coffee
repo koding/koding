@@ -1,12 +1,12 @@
 
-
 config  = require './config'
-
 path    = require "path"
 fs      = require "fs"
 mkdirp  = require 'mkdirp'
 log4js  = require 'log4js'
 log     = log4js.getLogger("[#{config.name}]")
+
+{exec}  = require 'child_process'
 {spawn} = require "child_process"
 
 # Utilities
@@ -22,7 +22,13 @@ log     = log4js.getLogger("[#{config.name}]")
  KodingError,
  AuthorizationError} = require '../applications/utils.coffee'
 
-mounter =
+# Dummy-Admins
+# dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvidkahl"]
+
+startsWith = (str, part)-> str.trim().indexOf(part) is 0
+endsWith   = (str, part)-> str.trim().indexOf(part, str.trim().length - part?.length) isnt -1
+
+mounter    =
 
   mountDrive : (options, callback)->
 
@@ -160,9 +166,6 @@ mounter =
       callback "You are not authorized to do this."
       return no
 
-    startsWith = (str, part)-> str.trim().indexOf(part) is 0
-    endsWith   = (str, part)-> str.trim().indexOf(part, str.trim().length - part?.length) isnt -1
-
     res = {mounted : false, remotehost, mountpoint : options.mountpoint}
 
     rs = fs.createReadStream '/proc/mounts', flags: 'r'
@@ -227,7 +230,7 @@ mounter =
               callback error
             else
               log.info info = "Directory #{options.mountpoint} umounted"
-              @remountVE options,(err,res)=>
+              @remountVE options, (err,res)=>
                 if err
                   callback err
                 else
@@ -513,21 +516,23 @@ mounter =
         callback null, info
 
   spawnWrapper : (command, args, callback)->
-    wrapper = spawn command,args
+    wrapper = spawn command, args
+
     wrapperErr = ""
     wrapper.stderr.on 'data',(data)->
       wrapperErr += data
+
     wrapperData = ""
     wrapper.stdout.on 'data',(data)->
       wrapperData += data
 
     wrapper.on 'exit',(code)->
       if code isnt 0
-        log.error err = "Command #{command} error: #{wrapperErr}"
-        callback wrapperErr.toString("utf-8", 0, 12)
+        log.error err = "Command #{command} error: (code: #{code}) #{wrapperErr}" if wrapperErr
+        callback wrapperErr.toString("utf-8", 0, 12) or yes
       else
-        log.info res = wrapperData.toString("utf-8", 0, 12)
-        log.info info = "Command #{command} executed successfully output: #{res}"
+        res = wrapperData.toString("utf-8", 0, 12)
+        log.info info = "Command #{command} executed successfully output: #{res}" if res
         callback null, res
 
   # Safe
@@ -574,6 +579,65 @@ mounter =
               else
                 log.error "An error occured:", err
                 callback err
+
+  clearLocks:(options, callback)->
+
+    {username}  = options
+    remotesPath = "/Users/#{username}/#{config.baseMountDir}"
+
+    # console.log "CLEAR LOCKS CALLED FOR #{username}"
+
+    cleanUpRemotesDir = (cb)=>
+      tmpBlackHole = "/Users/#{username}/.tmp/.BlackHole/.zz#{(Date.now()+'').substr(-6)}"
+
+      # console.log "CLEANUP REMOTES DIR"
+      # console.log remotesPath
+      # console.log tmpBlackHole
+
+      fs.exists remotesPath, (exists)=>
+        # console.log "REMOTES DIR EXISTS?", exists
+        unless exists then cb()
+        else
+          exec "/bin/rm -rf #{remotesPath}/*", (err)=>
+            unless err then cb()
+            else
+              mkdirp tmpBlackHole, 0o0755, (err)=>
+                if err then cb()
+                else
+                  exec "/bin/mv #{remotesPath} #{tmpBlackHole}", (err)=>
+                    console.log "RemoteDrive folder moved to BlackHole for #{username}"
+                    cb()
+
+    getIds username, (err, ids)=>
+      if err or not ids
+        # console.error err
+        callback "Failed to authenticate."
+      else
+        # console.log "HAS ID #{ids.uid}"
+        # Kill all process belongs to that user
+        exec "/usr/bin/pgrep -U #{ids.uid}", (err)=>
+          unless err
+            exec "/usr/bin/pkill -9 -U #{ids.uid}", (err)->
+              console.log "Process tree cleaned-up for #{username}" unless err
+          # else
+          #   console.log "NO SUCH PROCESS BELONGS TO USER #{username}"
+
+        # FIXME This is just for curlftpfs
+        # Kill all mount process points to user home
+        args = "-u root -f '^/usr/bin/curlftpfs.* /Users/#{username}/'"
+        exec "/usr/bin/pgrep #{args}", (err, res)=>
+          unless err
+            exec "/usr/bin/pkill #{args}", (err)=>
+              # console.log "KILLING THEM ALL"
+              console.log "Mount procceses killed for #{username}" unless err
+              cleanUpRemotesDir =>
+                mkdirp remotesPath, 0o0755, (err)->
+                  callback "Process tree cleaned-up and RemoteDrives re-created."
+              # callback()
+          else
+            cleanUpRemotesDir =>
+              callback "Process tree cleaned-up."
+            # callback()
 
 module.exports = mounter
 
