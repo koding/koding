@@ -134,7 +134,7 @@ module.exports = class CActivity extends jraphical.Capsule
     # StatsD activities
     if KONFIG.statsd?.run
       KONFIG.statsd.instance.increment('page.activity')
-    jraphical.Capsule::save.apply this, rest...
+    jraphical.Capsule::save.apply this, rest
 
   fetchTeaser:(callback)->
     @fetchSubject (err, subject)->
