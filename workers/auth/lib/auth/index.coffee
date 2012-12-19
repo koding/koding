@@ -9,3 +9,6 @@ AuthWorker = require './authworker'
 
 authWorker = new AuthWorker koding, authWorker.authResourceName
 authWorker.connect()
+
+
+console.log {authWorker}
