@@ -176,7 +176,9 @@ class KDTooltip extends KDView
     callback correctValues
     return correctValues
 
-  setPosition:(o={})->
+  setPosition:(o = @getOptions(),animate = no)->
+
+    @setClass 'animate-movement' if animate
 
     placement = o.placement or 'top'
     direction = o.direction or 'right'
@@ -215,6 +217,8 @@ class KDTooltip extends KDView
     @$().css
       left : coords.left+offset.left
       top : coords.top+offset.top
+
+    @utils.wait 500, => @unsetClass 'animate-movement'
 
   setTitle:(title,o={})->
     unless o.html is no
