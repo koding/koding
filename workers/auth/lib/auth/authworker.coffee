@@ -45,13 +45,13 @@ module.exports = class AuthWorker extends EventEmitter
     @counts[serviceType] += 1
     return serviceName
 
-  addService:({serviceType, serviceName})->
-    servicesOfType = @services[serviceType] ?= []
-    servicesOfType.push serviceName
+  addService:({serviceGenericName, serviceUniqueName})->
+    servicesOfType = @services[serviceGenericName] ?= []
+    servicesOfType.push serviceUniqueName
 
-  removeService:({serviceType, serviceName})->
-    servicesOfType = @services[serviceType]
-    index = servicesOfType.indexOf serviceName
+  removeService:({serviceGenericName, serviceUniqueName})->
+    servicesOfType = @services[serviceGenericName]
+    index = servicesOfType.indexOf serviceUniqueName
     servicesOfType.splice index, 1
 
   addClient:(socketId, exchange, routingKey)->
@@ -63,6 +63,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   rejectClient:(routingKey, message)->
     console.log 'rejecting client', arguments
+    console.trace()
     @bongo.respondToClient routingKey, {error: message ? 'Access denied'}
 
   joinClient: do ->
