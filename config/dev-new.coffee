@@ -92,6 +92,7 @@ module.exports = deepFreeze
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
+    heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
