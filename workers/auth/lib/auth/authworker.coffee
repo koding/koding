@@ -90,7 +90,6 @@ module.exports = class AuthWorker extends EventEmitter
           @rejectClient routingKey
 
   cleanUpClient:(client)->
-    console.log 'clean up client', client
     @bongo.mq.connection.exchange client.exchange, authExchangeOptions,
       (exchange)->
         exchange.publish 'auth.leave', {
@@ -113,7 +112,7 @@ module.exports = class AuthWorker extends EventEmitter
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
               messageStr = "#{message.data}"
-              messageData = try JSON.parse messageStr
+              messageData = (try JSON.parse messageStr) or message
               switch routingKey
                 when 'broker.clientConnected' then # ignore
                 when 'broker.clientDisconnected'
