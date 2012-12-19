@@ -31,6 +31,14 @@ var configs = map[string]Config{
 		UseLVE:       true,
 	},
 
+	"cl3-new": {
+		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
+		AmqpUser:     "guest",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
 	"stage": {
 		AmqpHost:     "web0.beta.system.aws.koding.com",
 		AmqpUser:     "STAGE-sg46lU8J17UkVUq",
