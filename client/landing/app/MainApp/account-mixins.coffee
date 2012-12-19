@@ -2,38 +2,6 @@ AccountMixin = do ->
   init:(api)->
     {JAccount, JGuest} = api
 
-    JGuest::fetchNonce = ->
-
-    nonces = []
-
-    fetchNonces = (callback)->
-      KD.whoami().fetchNonces (err, moreNonces)->
-        if err
-          new KDNotificationView
-            title: 'Could not authorize this client.'
-        else
-          nonces = nonces.concat moreNonces
-        callback nonces
-
-    fetchNonce = (callback)->
-      nonce = nonces.shift()
-      if nonce? then callback nonce
-      else fetchNonces -> fetchNonce callback
-
-    JAccount::fetchNonce = fetchNonce
-
-    # JAccount::fetchKiteChannelName = (kiteId, callback)->
-    #   console.log 'kiteId', kiteId
-    #   @_kiteChannels or= {}
-    #   kiteChannelId = @_kiteChannels[kiteId]
-    #   return callback null, kiteChannelId if kiteChannelId?
-    #   @fetchKiteChannelId kiteId, (err, kiteChannelId)=>
-    #     if err
-    #       callback err
-    #     else
-    #       @_kiteChannels[kiteId] = kiteChannelId
-    #       callback null, kiteChannelId
-
     JAccount::tellKite = do->
       {Scrubber, Store} = Bongo.dnodeProtocol
 
@@ -44,12 +12,6 @@ AccountMixin = do ->
 
       channels = {}
 
-      KD.remote.mq.subscribe('public-status').on 'processIsDead', (data = {})->
-        {processName} = data
-        kiteName = "private-kite-#{processName}"
-        delete KD.remote.mq.channels[kiteName]
-        delete channels[kiteName]
-
       scrub = (method, args, callback) ->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
@@ -59,11 +21,11 @@ AccountMixin = do ->
 
       request =(kiteName, method, args, onMethod='on')-> 
         scrub method, args, (scrubbed) ->
-          declaredBefore = channels[getChannelName(kiteName)]
+          # declaredBefore = channels[getChannelName(kiteName)]
           fetchChannel kiteName, (channel)->
             unless declaredBefore?
-              channel[onMethod](
-                "reply-client-message",
+              channel.on(
+                "message",
                 messageHandler.bind null, kiteName
               )
             channel.emit "client-message", JSON.stringify(scrubbed)
@@ -83,39 +45,24 @@ AccountMixin = do ->
           remoteStore.get callbackId
         callback.apply @, unscrubbed
 
-      getChannelName =(kiteName)-> "private-kite-#{kiteName}"
-
-      # A helper to delay a call until some condition is met
-      # Types:
-      #  condition = func() -> boolean
-      #  delay = integer (optional), default is 100ms.
-      #  callback = func()
-      waitUntil = (condition, delay, callback) ->
-        unless callback
-          callback = delay
-          delay = 100
-        g = ->
-          if condition()
-            callback()
-            clearInterval h
-        h = setInterval g, delay
+      getChannelName =(kiteName)->
+        delegate  = KD.whoami()
+        nickname  = delegate?.profile.nickname ?
+                    if delegate.guestId then "Guest #{delegate.guestId}" ?
+                    'unknown'
+        return "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
 
       fetchChannel =(kiteName, callback)-> 
         channelName = getChannelName(kiteName)
         unless channels[channelName]
-          # Use a cheap hack to ensure the next immediate call to
-          # this will not fetch channel again
-          channels[channelName] = true
-          KD.remote.fetchChannel channelName, (channel) ->
-            channels[channelName] = channel
-            callback channel
-        else
-          # Because we set channels[channelName] to true when there
-          # are consecutive calls to this, we want it to be a Channel
-          # instead, so we wait until the first call is finish.
-          condition = -> channels[channelName] instanceof Channel
-          waitUntil condition, ->
-            callback channels[channelName]
+          channel = KD.remote.mq.subscribe channelName
+          channels[channelName] = channel
+          channel.on 'broker.subscribed', -> callback channel
+          channel.exchange = kiteName
+          channel.setAuthenticationInfo
+            serviceType : 'kite'
+            name        : "kite-#{kiteName}"
+            clientId    : KD.remote.getSessionToken()
 
       (options, callback=->)->
         scrubber = new Scrubber localStore
