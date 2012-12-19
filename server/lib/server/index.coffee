@@ -13,28 +13,21 @@ if cluster.isMaster
     cluster.fork()
 else
 
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  #   die :
-  #     after: "non-overlapping, random, 3 digits prime-number of minutes"
-  #     middleware : (name,callback) -> koding.disconnect callback
-  #     middlewareTimeout : 5000
-    # mixpanel:
-    #   key : KONFIG.mixpanel.key
+  processMonitor = (require 'processes-monitor').start
+    name : "webServer on port #{webPort}"
+    statsd_id: "webserver." + cluster.worker.id
+    interval : 60000
+    limits  :
+      memory   : 300
+      callback : ->
+        console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+        process.exit()
+    die :
+      after: "non-overlapping, random, 3 digits prime-number of minutes"
+      middleware : (name,callback) -> koding.disconnect callback
+      middlewareTimeout : 5000
+    statsd: KONFIG.statsd
+  
 
   # if webPort is 3002
   #   foo = []
@@ -159,7 +152,7 @@ else
 
 
   if uploads?.enableStreamingUploads
-    
+
     s3 = require('./s3') uploads.s3
 
     app.post '/Upload', s3..., (req, res)->
@@ -203,14 +196,13 @@ else
 
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
-    
+
     obj =
       processName : req.params.kiteName
       # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
-    
+
     koding.mq.emit 'public-status', req.params.event, obj
     res.send "got it."
-
 
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
@@ -223,7 +215,7 @@ else
         state = account.checkFlag('super-admin') or account.checkFlag(flag)
       res.end "#{state}"
 
-  getAlias =do->
+  getAlias = do->
     caseSensitiveAliases = ['auth']
     (url)->
       rooted = '/' is url.charAt 0

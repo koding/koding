@@ -372,7 +372,7 @@ module.exports = class JAccount extends jraphical.Module
   checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
     if flags
-      if 'string' is typeof flag
+      if 'string' is typeof flagToCheck
         return flagToCheck in flags
       else
         for flag in flagToCheck

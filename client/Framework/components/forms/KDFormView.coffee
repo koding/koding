@@ -69,9 +69,14 @@ class KDFormView extends KDView
 
   getData: ->
     formData = $.extend {},@getCustomData()
-
     @serializeFormData formData
+    formData
 
+  getFormData: ->
+    inputs   = KDFormView.findChildInputs @
+    formData = @getCustomData() or {}
+    inputs.forEach (input)->
+      formData[input.getName()] = input.getValue() if input.getName()
     formData
 
   focusFirstElement:-> KDFormView.findChildInputs(@)[0].$().trigger "focus"

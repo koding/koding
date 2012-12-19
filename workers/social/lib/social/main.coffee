@@ -22,7 +22,8 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  interval : 1000
+  statsd_id: "worker.social." + argv.workerid
+  interval : 60000
   limits  :
     memory   : 300
     callback : (name,msg,details)->
@@ -39,8 +40,7 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
-  # mixpanel:
-  #   key : KONFIG.mixpanel.key
+  statsd: KONFIG.statsd
 
 koding = new Bongo
   root        : __dirname

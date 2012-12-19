@@ -11,6 +11,7 @@ hat       = require 'hat'
 ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
 {bash}    = require 'koding-bash-user-glue'
+mounter   = require './mounter'
 
 createTmpDir = require './createtmpdir'
 
@@ -23,6 +24,40 @@ module.exports = new Kite 'sharedHosting'
     setInterval (-> callback null, interval), interval
 
   executeCommand: require './executecommand'
+
+  mountDrive    : (options, callback)-> mounter.mountDrive      options, callback
+  umountDrive   : (options, callback)-> mounter.umountDrive     options, callback
+  mountFtpDrive : (options, callback)-> mounter.mountFtpDrive   options, callback
+  clearLocks    : (options, callback)-> mounter.clearLocks      options, callback
+
+  removeMount   : (options, callback)->
+    mounter.umountDrive options, (error, res)->
+      mounter.removeMount options, callback
+
+  readMountInfo : (options, callback)->
+    mounter.readMountInfo options, (err, res)->
+      if err then callback err
+      else
+        # Check each entry's mount state and remove password
+        updateEntries = (entries, index)=>
+          if index == entries.length
+            callback err, entries
+          else
+            entries[index].haspass = no
+            if entries[index].remotepass
+              entries[index].haspass = yes
+            delete entries[index].remotepass
+            mounter.checkMountPoint
+              username   : options.username
+              remoteuser : entries[index].remoteuser
+              remotehost : entries[index].remotehost
+            , (error, state)->
+              unless error
+                entries[index].mounted    = state.mounted
+                entries[index].mountpoint = state.mountpoint if state.mounted
+              updateEntries entries, index + 1
+
+        updateEntries res, 0
 
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
