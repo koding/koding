@@ -22,7 +22,7 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  statsd_id: "worker.social"
+  statsd_id: "worker.social." + argv.workerid
   interval : 60000
   limits  :
     memory   : 300
