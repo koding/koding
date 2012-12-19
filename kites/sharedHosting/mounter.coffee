@@ -630,9 +630,10 @@ mounter    =
             exec "/usr/bin/pkill #{args}", (err)=>
               # console.log "KILLING THEM ALL"
               console.log "Mount procceses killed for #{username}" unless err
-              cleanUpRemotesDir =>
-                mkdirp remotesPath, 0o0755, (err)->
-                  callback "Process tree cleaned-up and RemoteDrives re-created."
+              @remountVE {username}, =>
+                cleanUpRemotesDir =>
+                  mkdirp remotesPath, 0o0755, (err)->
+                    callback "Process tree cleaned-up and RemoteDrives re-created."
               # callback()
           else
             cleanUpRemotesDir =>
