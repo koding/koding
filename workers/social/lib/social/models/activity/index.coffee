@@ -130,6 +130,12 @@ module.exports = class CActivity extends jraphical.Capsule
                                  'sorts.likesCount'   : meta?.likes or 0
                               CActivity.update {_id}, op, -> queue.fin()
 
+  save: (rest...) ->
+    # StatsD activities
+    if KONFIG.statsd?.run
+      KONFIG.statsd.instance.increment('page.activity')
+    jraphical.Capsule::save.apply this, rest...
+
   fetchTeaser:(callback)->
     @fetchSubject (err, subject)->
       if err
