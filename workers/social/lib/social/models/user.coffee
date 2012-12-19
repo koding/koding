@@ -384,6 +384,10 @@ module.exports = class JUser extends jraphical.Module
                               if err
                                 callback err
                               else
+                                JAccount.count (err, count)->
+                                  # StatsD activities
+                                  if KONFIG.statsd?.run
+                                    KONFIG.statsd.instance.gauge "users.total", count
                                 user.addOwnAccount account, (err)->
                                   if err
                                     callback err
@@ -413,7 +417,6 @@ module.exports = class JUser extends jraphical.Module
                                               user.sendEmailConfirmation()
                                               JUser.grantInitialInvitations user.username
                                               createNewMemberActivity account
-                                              console.log replacementToken
                                               JAccount.emit "AccountAuthenticated", account
                                               callback null, account, replacementToken
 

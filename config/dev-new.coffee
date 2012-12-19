@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-StatsD = require 'node-statsd'
-
 deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
@@ -12,9 +10,12 @@ mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitVhost =\
+rabbitPrefix = (
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then "/"
+  catch e then ""
+).trim()
+
+socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
   uri           :
@@ -22,12 +23,13 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    login       : 'webserver'
     port        : 3000
     clusterSize : 4
+    queueName   : socialQueueName+'web'
   mongo         : mongo
-  runBroker     : no
-  configureBroker: no
-  buildClient   : no
+  runGoBroker   : no
+  buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -48,9 +50,16 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  social        :
+  authWorker    :
+    login       : 'authWorker'
+    queueName   : socialQueueName+'auth'
+    authResourceName: 'auth'
     numberOfWorkers: 1
+  social        :
+    login       : 'social'
+    numberOfWorkers: 4
     watch       : yes
+    queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -68,27 +77,22 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      resourceName: socialQueueName
       suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://zb.koding.com:8008/subscribe'
-        auth    : 'http://localhost:3000/Auth'
-        vhost   : rabbitVhost
+        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'zb.koding.com'
+    host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
-    vhost       : rabbitVhost
-    vhosts      : [
-      rule      : '^secret-kite-'
-      vhost     : 'kite'
-    ]
-    pidFile     : '/var/run/broker.pid'
+    vhost       : '/'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -104,28 +108,12 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'zb.koding.com'
+      host          : 'web0.dev.system.aws.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
-      vhost         : rabbitVhost
-  vhostConfigurator:
-    explanation :\
-      """
-      Important!  because the dev rabbitmq instance is shared, you
-      need to choose a name for your vhost.  You appear not to
-      have a vhost associated with this repository. Generally
-      speaking, your first name is a good choice.
-      """.replace /\n/g, ' '
-    uri         : 'http://zb.koding.com:3008/resetVhost'
-    webPort     : 3008
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
-  statsd:
-    run: yes
-    address: "localhost"
-    port: 8125
-    instance: new StatsD.StatsD("localhost", 8125)
   crypto :
     encrypt: (str,key=Math.floor(Date.now()/1000/60))->
       crypto = require "crypto"

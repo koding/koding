@@ -15,7 +15,7 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "socialWorker-#{i}"
-      cmd   : "./index -c #{configPath}"
+      cmd   : "./index -c #{configPath} --workerid #{i+1}"
       restart : yes
       restartInterval : 1000
 

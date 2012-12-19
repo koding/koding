@@ -161,6 +161,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
+  console.log {options}
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -193,7 +194,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage","local-go"
+    when "dev","prod","local","stage","local-go","dev-new"
       long = "./config/#{short}.coffee"
     else
       short
@@ -267,13 +268,11 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
-
+  console.log {options}
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 
   fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
-
-  pipeStd(spawn './broker/start.sh') if options.runBroker
 
   if config.runGoBroker
     processes.spawn
@@ -304,6 +303,8 @@ run =(options)->
       stdout: process.stdout
       stderr: process.stderr
       verbose: yes
+
+  console.log "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
 
   processes.fork
     name    : 'social'

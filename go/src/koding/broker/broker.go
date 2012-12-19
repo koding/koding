@@ -149,14 +149,22 @@ func main() {
 		defer listener.Close()
 
 		go func() {
-			err = server.Serve(listener)
-			if err != nil {
-				log.Warn("Server error: " + err.Error())
+			for {
+				err = server.Serve(listener)
+				if err != nil {
+					log.Warn("Server error: " + err.Error())
+				}
 			}
-			consumeConn.Close()
 		}()
 
 		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
+		if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, true, false, false, nil); err != nil {
+			panic(err)
+		}
+		if err := consumeChannel.ExchangeBind("broker", "", "updateInstances", false, nil); err != nil {
+			panic(err)
+		}
+
 		for message := range stream {
 			routingKey := message.RoutingKey
 			body, err := json.Marshal(map[string]string{"routingKey": routingKey, "payload": string(message.Body)})
