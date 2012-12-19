@@ -24,6 +24,14 @@ var configs = map[string]Config{
 	},
 
 	"dev-new": {
+		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
+		AmqpUser:     "broker",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"dev-new-web0": {
 		AmqpHost:     "localhost:5672",
 		AmqpUser:     "broker",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
