@@ -299,6 +299,8 @@ class EmbedBoxImageView extends KDView
     @options      = options
     @loader       = new KDLoaderView
 
+    # @getDelegate().setClass 'condensed'
+
     # @imageTooltip =
     #   constructorName : KDCustomHTMLView
     #   options         :
@@ -337,9 +339,11 @@ class EmbedBoxImageView extends KDView
     @setData data
     @options = data.link_options
 
-    if data.link_embed?.images?[0]?.url
+    url = data.link_embed?.images?[0]?.url
+
+    if url
       @image.setDomAttributes
-        'data-src' : @utils.proxifyUrl data.link_embed.images[0].url
+        'data-src' : @utils.proxifyUrl url
 
     @setTemplate @pistachio()
     @template.update()
