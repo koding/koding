@@ -9,7 +9,7 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
-    # @utils.defer => 
+    # @utils.defer =>
     unless @userRoute
       @handleRoute defaultRoute,
         shouldPushState: yes

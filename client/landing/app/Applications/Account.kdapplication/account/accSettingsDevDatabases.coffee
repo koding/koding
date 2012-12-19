@@ -110,7 +110,7 @@ class AccountDatabaseListController extends KDListViewController
   deleteDatabase:(listItem)->
     data     = listItem.getData()
     @talkToKite
-      method     : @commands[data.dbType].remove
+      method   : @commands[data.dbType].remove
       withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
@@ -130,7 +130,7 @@ class AccountDatabaseListController extends KDListViewController
     log "Requested DB Type", data
 
     @talkToKite
-      method          : @commands[data.dbType].update
+      method        : @commands[data.dbType].update
       withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
