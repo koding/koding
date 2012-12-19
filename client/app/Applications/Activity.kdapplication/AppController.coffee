@@ -1,24 +1,24 @@
 class ActivityAppController extends AppController
 
+  allowedActivityTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CNewMemberBucketActivity'
+    'CFollowerBucketActivity'
+    'CInstallerBucketActivity'
+    # 'CLinkActivity'
+    # 'CCodeShareActivity'
+  ]
+
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
     super options
     CodeSnippetView.on 'CodeSnippetWantsSave', (data)=>
       @saveCodeSnippet data.title, Encoder.htmlDecode data.content
 
-    @currentFilter = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      # 'CLinkActivity'
-      # 'CCodeShareActivity'
-      'CInstallerBucketActivity'
-    ]
+    @currentFilter = allowedActivityTypes
 
   saveCodeSnippet:(title, content)->
     # This custom method is used because FS,
@@ -343,23 +343,10 @@ class ActivityAppController extends AppController
   fetchFeedForHomePage:(callback)->
     # devrim's api
     # should make the selector work
-    selector =
-      type      :
-        $in     : [
-          'CStatusActivity'
-          'CCodeSnipActivity'
-          'CFolloweeBucketActivity'
-          'CNewMemberBucket'
-          # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-          'CDiscussionActivity'
-          'CTutorialActivity'
-          # 'CLinkActivity'
-          # 'CCodeShareActivity'
-          'CInstallerBucketActivity'
-        ]
-
-    options =
+    selector        =
+      type          :
+        $in         : allowedActivityTypes
+    options         =
       limit         : 7
       skip          : 0
       sort          :
@@ -420,19 +407,7 @@ class ActivityAppController extends AppController
       controller._state = 'public'
 
     else
-      @currentFilter = if show? then [show] else [
-        'CStatusActivity'
-        'CCodeSnipActivity'
-        'CFollowerBucketActivity'
-        'CNewMemberBucketActivity'
-        # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-        'CDiscussionActivity'
-        'CTutorialActivity'
-        # 'CLinkActivity'
-        # 'CCodeShareActivity'
-        'CInstallerBucketActivity'
-      ]
+      @currentFilter = if show? then [show] else allowedActivityTypes
 
     controller.removeAllItems()
     controller.showLazyLoader no
