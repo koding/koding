@@ -308,6 +308,9 @@ class EmbedBoxImageView extends KDView
     #     size:
     #       height : 300
     #       width : 300
+    #     bind : 'load'
+    #     load :=>
+    #       @image.tooltip.setPosition(undefined,yes)
     #     attributes :
     #       src  : (@utils.proxifyUrl @getData().link_embed?.images?[0]?.url)
     #     delegate      : @
@@ -319,10 +322,24 @@ class EmbedBoxImageView extends KDView
       #   view      : @imageTooltip
       tagName     : 'img'
       bind        : "error load"
-      load  : (event)=>
-        # @imageTooltip.options.size =
-        #   height : $(event.target).attr 'y'
-        #   width : $(event.target).attr 'x'
+      # load  : (event)=>
+
+      #   x = event.srcElement.naturalWidth
+      #   y = event.srcElement.naturalHeight
+
+
+      #   if y > (window.innerHeight*3/4) or x > (window.innerWidth*3/4)
+
+      #     factor = Math.max (window.innerWidth/x) ,(window.innerHeight/y)
+
+      #     x = factor * x 2
+      #     y = factor * y/2
+
+      #   @imageTooltip.options.size =
+      #     height : y
+      #     width : x
+
+
       error       : =>
         unless @getDelegate().getOptions().hasConfig # do not hide for widgets
           @getDelegate().hide()
