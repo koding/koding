@@ -28,7 +28,7 @@ module.exports = deepFreeze
     clusterSize : 4
     queueName   : socialQueueName+'web'
   mongo         : mongo
-  runGoBroker   : no
+  runGoBroker   : yes
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -89,7 +89,7 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'web0.dev.system.aws.koding.com'
+    host        : 'localhost'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : '/'
@@ -108,7 +108,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'web0.dev.system.aws.koding.com'
+      host          : 'localhost'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
