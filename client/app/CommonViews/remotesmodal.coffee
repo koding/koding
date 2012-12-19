@@ -240,16 +240,24 @@ class ManageRemotesModal extends KDModalViewWithForms
         cssClass : "success"
 
   refreshRemoteDrives:(finalPath = '', destroy = no)=>
-    {nickname} = KD.whoami().profile
-    log finalPath
+    {nickname}  = KD.whoami().profile
+    remotesPath = "/Users/#{nickname}/RemoteDrives"
+
     tc = KD.getSingleton("finderController").treeController
-    tc.navigateTo "/Users/#{nickname}/RemoteDrives", =>
-      if finalPath
-        tc.refreshFolder tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"], =>
-          tc.selectNode tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"]
+    navTo = =>
+      tc.navigateTo remotesPath, =>
+        if finalPath
+          tc.refreshFolder tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"], =>
+            tc.selectNode tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"]
+            @destroy() if destroy
+        else
           @destroy() if destroy
-      else
-        @destroy() if destroy
+
+    unless remotesPath of tc.nodes
+      tc.refreshFolder tc.nodes["/Users/#{nickname}"], =>
+        navTo()
+    else
+      navTo()
 
 class RemoteListItem extends KDListItemView
 
