@@ -447,6 +447,39 @@ __utils =
 
       return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
+  registerDummyUser:->
+
+    return if location.hostname isnt "localhost"
+
+    u  = KD.utils
+    gr = u.getRandomNumber
+    gp = u.generatePassword
+
+    uniqueness = (Date.now()+"").slice(6)
+    formData   =
+      agree           : "on"
+      email           : "#{uniqueness}@sinanyasar.com"
+      firstName       : gp(gr(10), yes)
+      inviteCode      : "twitterfriends"
+      lastName        : gp(gr(10), yes)
+      password        : "123123123"
+      passwordConfirm : "123123123"
+      username        : uniqueness
+
+    KD.remote.api.JUser.register formData, => location.reload yes
+
+  postDummyStatusUpdate:->
+
+    return if location.hostname isnt "localhost"
+
+    status = dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT");
+
+    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+      unless err
+        appManager.tell 'Activity', 'ownActivityArrived', reply
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
 
   ###
   //     Underscore.js 1.3.1

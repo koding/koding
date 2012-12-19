@@ -20,8 +20,9 @@ module.exports = class CActivity extends jraphical.Capsule
     #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','teasers',
-        'captureSortCounts','addGlobalListener'
+        'one','some','all','someData','each','cursor','teasers'
+        'captureSortCounts','addGlobalListener','fetchActivityOverview'
+        'createActivityCache'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -69,6 +70,144 @@ module.exports = class CActivity extends jraphical.Capsule
   #                   $addToSet:
   #                     snapshotIds: subject.getId()
   #                 , callback
+
+
+  @fetchCursor =(options = {}, callback)->
+
+    {to, from, lowQuality, types, limit, sort} = options
+
+    selector =
+      createdAt    :
+        $lte       : new Date to
+        $gte       : new Date from
+      type         :
+        $in        : types
+      isLowQuality :
+        $ne        : lowQuality
+
+    fields  =
+      type      : 1
+      createdAt : 1
+
+    options =
+      sort  : sort  or {createdAt: -1}
+      limit : limit or 1000
+
+    @someData selector, fields, options, (err, cursor)->
+      if err then callback err
+      else
+        callback cursor
+
+  @fetchActivityOverview = (options, callback)->
+    @fetchCursor options, (cursor)->
+      cursor.toArray (err, arr)->
+        if err then callback err
+        else
+          lastDocType = null
+          obj = arr.reduce (acc, doc)->
+            if doc.type is lastDocType
+              acc[acc.length-1].createdAt.push doc.createdAt
+
+              if /NewMemberBucket/.test doc.type
+                if acc[acc.length-1].count++ < 3
+                  acc[acc.length-1].ids.push doc._id
+              else
+                acc[acc.length-1].ids.push doc._id
+
+            else
+              acc.push
+                createdAt  : [doc.createdAt]
+                ids        : [doc._id]
+                type       : doc.type
+                count      : 1
+            lastDocType = doc.type
+            return acc
+          , []
+          callback null, obj
+
+  @fetchActivityCache =(options = {}, callback)->
+    @fetchCursor options, (cursor)->
+      cursor.toArray (err, arr)->
+        if err then callback err
+        else
+          lastDocType = null
+          cache = arr.reduce (acc, doc)->
+            if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
+              acc[acc.length-1].createdAt[1] = doc.createdAt
+              if acc[acc.length-1].count++ < 3
+                acc[acc.length-1].ids.push doc._id
+            else
+              acc.push
+                createdAt  : [doc.createdAt]
+                ids        : [doc._id]
+                type       : doc.type
+                count      : 1
+            lastDocType = doc.type
+            return acc
+          , []
+          callback null, cache
+
+
+  @createActivityCache = do ->
+
+    activityTypesToBeCached = [
+        'CStatusActivity'
+        'CCodeSnipActivity'
+        'CFollowerBucketActivity'
+        'CNewMemberBucketActivity'
+        'CDiscussionActivity'
+        'CTutorialActivity'
+        'CInstallerBucketActivity'
+      ]
+
+    allowedLengthPerFile = 50
+    timespan             = 1 * 60 *60 * 1000
+    lastTo               = null
+    lastFrom             = null
+
+    (options)->
+
+      now        = Date.now()
+      lastTo     = if lastTo   then lastFrom else now
+      lastFrom   = if lastFrom then lastFrom - timespan else now - timespan
+
+      options =
+        lowQuality : no
+        from       : options.from or lastFrom
+        to         : options.to   or lastTo
+        types      : activityTypesToBeCached
+        # limit      : 100
+
+      cachedItems = []
+
+      CActivity.fetchActivityCache options, (err, cache)=>
+        if err then console.warn err
+        else
+          console.log i, item.count, item.createdAt for item, i in cache
+
+          # if cache.length < 50
+
+
+
+
+          # totalLength = overview.length + cachedItems.length
+
+          # if totalLength is allowedLengthPerFile
+          #   console.log cachedItems
+
+          # else if totalLength < allowedLengthPerFile
+          #   cachedItems.concat overview
+          #   nextFrom = cachedItems[overview.length-1].createdAt[0]
+          #   nextTo   = cachedItems[overview.length-1].createdAt[1]
+
+          # else if totalLength > allowedLengthPerFile
+          #   remainderCount = cachedItemsPerFile - cachedItems.length
+          #   remainder      = overview[..remainderCount]
+          #   cachedItems.concat remainder
+
+
+
+  @on "feed-new", @createActivityCache.bind @
 
   @captureSortCounts =(callback)->
     selector = {

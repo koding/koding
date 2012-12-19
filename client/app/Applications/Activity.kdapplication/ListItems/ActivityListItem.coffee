@@ -37,28 +37,52 @@ class ActivityListItemView extends KDListItemView
 
     super options, data
 
-    data = @getData()
-
-    {constructorName} = data.bongo_
+    constructorName = data.type
     @setClass getActivityChildCssClass()[constructorName]
 
-    unless options.isHidden
-      if 'function' is typeof data.fetchTeaser
-        data.fetchTeaser? (err, teaser)=>
-          @addChildView teaser
-      else
-        @addChildView data
+  viewAppended:->
+    data = @getData()
+    @addSubView @loader = new KDLoaderView
+      size          :
+        width       : 20
+      loaderOptions :
+        color       : "#ff9200"
+        speed       : 2
+    @utils.wait 100, =>
+      @loader.show()
+    if data.type is "CNewMemberBucketActivity"
+      @addChildView @getData()
 
-    data.on 'ContentMarkedAsLowQuality', =>
+  setModel:(model)->
+    # unless @getOptions().isHidden
+      # if 'function' is typeof model.fetchTeaser
+      #   model.fetchTeaser? (err, teaser)=>
+      #     @loader.destroy()
+      #     @updatePartial ""
+      #     @addChildView teaser
+      # else
+    if model.snapshot
+      model.snapshot = model.snapshot.replace /&quot;/g, '"'
+      KD.remote.reviveFromSnapshots [model], (err, instances)=>
+        # log instances[0]
+        @loader?.destroy()
+        @addChildView instances[0]
+    else
+      @loader?.destroy()
+      @addChildView model
+
+
+    model.on 'ContentMarkedAsLowQuality', =>
       @hide() unless KD.checkFlag 'exempt'
-    data.on 'ContentUnmarkedAsLowQuality', => @show()
+    model.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
 
+    return unless data.bongo_
     {constructorName} = data.bongo_
 
     childConstructor =
-      if /CNewMemberBucket$/.test constructorName
+      if /^CNewMemberBucket$/.test constructorName
         # NewMemberBucketItemView
         KDView
       else if /Bucket$/.test constructorName
@@ -67,6 +91,7 @@ class ActivityListItemView extends KDListItemView
         getActivityChildConstructors()[constructorName]
 
     if childConstructor
+      @loader.destroy()
       childView = new childConstructor({}, data)
       @addSubView childView
       callback?()

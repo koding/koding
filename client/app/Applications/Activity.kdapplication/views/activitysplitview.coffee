@@ -20,8 +20,8 @@ class ActivitySplitView extends SplitView
 
     {header, widget} = @getDelegate()
     parentHeight        = @getDelegate().getHeight()
-    welcomeHeaderHeight = if header then header.getHeight() else 0
-    updateWidgetHeight  = if widget then widget.getHeight() else 0
+    welcomeHeaderHeight = if header.$().is ":visible" then header.getHeight() else 0
+    updateWidgetHeight  = if widget.$().is ":visible" then widget.getHeight() else 0
 
     widget?.$().css
       top       : welcomeHeaderHeight

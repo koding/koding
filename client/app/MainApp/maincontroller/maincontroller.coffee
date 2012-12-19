@@ -64,6 +64,7 @@ class MainController extends KDController
     else @once 'AccountChanged', fn
 
   accountChanged:(account)->
+    @userAccount = account
     @accountReadyState = 1
 
     connectedState.connected = yes
@@ -71,7 +72,6 @@ class MainController extends KDController
     @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
-    @userAccount = account
     @resetUserArea()
 
     unless @mainViewController
@@ -244,8 +244,8 @@ class MainController extends KDController
             callback  : ()->
               modal.destroy()
               location.reload yes
-      if location.hostname is "localhost"
-        KD.utils.wait 5000, -> location.reload yes
+      # if location.hostname is "localhost"
+      #   KD.utils.wait 5000, -> location.reload yes
 
     checkConnectionState = ->
       fail() unless connectedState.connected
