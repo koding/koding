@@ -164,6 +164,7 @@ class ManageRemotesModal extends KDModalViewWithForms
                 color    : "#FFF"
                 diameter : 16
               callback   : =>
+                @havingTrouble.hide()
                 @kc.run
                   method : 'clearLocks'
                 , (info)=>
