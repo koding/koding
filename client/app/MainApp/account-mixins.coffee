@@ -19,24 +19,33 @@ AccountMixin = do ->
           scrubbed.method or= method
           callback scrubbed
 
-      request =(kiteName, method, args, onMethod='on')-> 
+      request =(kiteName, method, args, onMethod='on')->
+        console.log {kiteName}
         scrub method, args, (scrubbed) ->
           # declaredBefore = channels[getChannelName(kiteName)]
           fetchChannel kiteName, (channel)->
             unless declaredBefore?
-              channel.on(
+              channel[onMethod](
                 "message",
-                messageHandler.bind null, kiteName
+                messageHandler.bind channel, kiteName
               )
-            channel.emit "client-message", JSON.stringify(scrubbed)
+            messageString = JSON.stringify(scrubbed)
+            console.log {messageString}
+            channel.emit "client-message", messageString
 
       response = (kiteName, method, args) ->
         scrub method, args, (scrubbed) ->
           fetchChannel kiteName, (channel)=>
             channel.emit "client-message", JSON.stringify(scrubbed)
 
+      ready =->
+        console.log 'ready', arguments
+
       messageHandler =(kiteName, args) ->
-        callback = localStore.get(args.method)
+        if args.method is 'ready'
+          callback = ready
+        else
+          callback = localStore.get(args.method)
         scrubber = new Scrubber localStore
         unscrubbed = scrubber.unscrub args, (callbackId)->
           unless remoteStore.has callbackId
