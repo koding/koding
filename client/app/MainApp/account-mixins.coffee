@@ -12,42 +12,32 @@ AccountMixin = do ->
 
       channels = {}
 
-      scrub = (method, args, callback) ->
+      scrub =(method, args, callback) ->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
           scrubbed = scrubber.toDnodeProtocol()
           scrubbed.method or= method
           callback scrubbed
 
-      request =(kiteName, method, args, onMethod='on')->
-        console.log {kiteName}
+      request =(kiteName, method, args)->
         scrub method, args, (scrubbed) ->
-          # declaredBefore = channels[getChannelName(kiteName)]
           fetchChannel kiteName, (channel)->
-            unless declaredBefore?
-              channel[onMethod](
-                "message",
-                messageHandler.bind channel, kiteName
-              )
             messageString = JSON.stringify(scrubbed)
-            onReady channel, ->
-              window.sss = channel
-              channel.publish messageString
+            channel.publish messageString
 
-      response = (kiteName, method, args) ->
+      response =(kiteName, method, args) ->
         scrub method, args, (scrubbed) ->
           fetchChannel kiteName, (channel)=>
-            channel.emit "client-message", JSON.stringify(scrubbed)
+            channel.publis "client-message", JSON.stringify(scrubbed)
 
       readyChannels = {}
 
-      onReady =
-        (channel, callback)->
-          {name} = channel
-          if readyChannels[name] then callback()
-          else
-            readyChannels[name] = channel
-            channel.once 'ready', callback
+      onReady = (channel, callback)->
+        {name} = channel
+        if readyChannels[name] then callback()
+        else
+          readyChannels[name] = channel
+          channel.once 'ready', callback
 
       ready =(resourceName)->
         @exchange = resourceName
@@ -66,13 +56,13 @@ AccountMixin = do ->
           remoteStore.get callbackId
         callback.apply this, unscrubbed
 
-      getChannelName =do ->
+      getChannelName = do ->
         namesCache = {}
         (kiteName)->
           return namesCache[kiteName]  if namesCache[kiteName]
           delegate  = KD.whoami()
           nickname  = delegate?.profile.nickname ?
-                      if delegate.guestId then "Guest #{delegate.guestId}" ?
+                      if delegate.guestId then "guest#{delegate.guestId}" ?
                       'unknown'
           channelName = "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
           namesCache[kiteName] = channelName
@@ -80,16 +70,18 @@ AccountMixin = do ->
 
       fetchChannel =(kiteName, callback)-> 
         channelName = getChannelName(kiteName)
-        unless channels[channelName]
-          channel = KD.remote.mq.subscribe channelName
-          channels[channelName] = channel
-          channel.on 'broker.subscribed', -> callback channel
-          channel.setAuthenticationInfo
-            serviceType : 'kite'
-            name        : "kite-#{kiteName}"
-            clientId    : KD.remote.getSessionToken()
+        return callback channels[channelName]  if channels[channelName]
+        channel = KD.remote.mq.subscribe channelName
+        channels[channelName] = channel
+        channel.on 'broker.subscribed', ->
+          onReady channel, -> callback channel
+        channel.setAuthenticationInfo
+          serviceType : 'kite'
+          name        : "kite-#{kiteName}"
+          clientId    : KD.remote.getSessionToken()
+        channel.on "message", messageHandler.bind channel, kiteName
 
-      (options, callback=->)->
+      tellKite =(options, callback=->)->
         scrubber = new Scrubber localStore
         args = [options, callback]
         {method} = options
