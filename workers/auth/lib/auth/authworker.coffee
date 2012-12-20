@@ -6,15 +6,11 @@ module.exports = class AuthWorker extends EventEmitter
 
   authExchangeOptions = {type: 'fanout', autoDelete: yes}
 
-  constructor:(@bongo, @resourceName)->
+  constructor:(@bongo, @resourceName, @presenceExchange='services-presence')->
     @services = {}
     @clients  = {}
     @counts   = {}
     @monitorServices()
-
-    # @addService
-    #   serviceType : 'kite-webterm'
-    #   serviceName : 'kite-webterm1'
 
   bound: require 'koding-bound'
 
@@ -115,10 +111,36 @@ module.exports = class AuthWorker extends EventEmitter
     @getClients(socketId)?.forEach @bound 'cleanUpClient'
     delete @clients[socketId]
 
+  parseServiceKey =(serviceKey)->
+    last = null
+    serviceInfo = serviceKey.split('.').reduce (acc, edge, i)->
+      if i % 2 then last = edge
+      else acc[last] = edge
+      return acc
+    isValidKey  = serviceInfo.serviceGenericName? and
+                  serviceInfo.serviceUniqueName?
+    throw {message: 'Bad service key!'}  unless isValidKey
+    return serviceInfo
+
+  monitorPresence:(connection)->
+    Presence = require 'koding-rabbit-presence'
+    @presence = new Presence {
+      connection
+      exchange  : @presenceExchange
+      member    : @resourceName
+    }
+    @presence.on 'join', (serviceKey)=>
+      try @addService parseServiceKey serviceKey
+    @presence.on 'leave', (serviceKey)=>
+      try @removeService parseServiceKey serviceKey
+    @presence.listen()
+    @presence.announce()
+
   connect:->
     {bongo} = this
     bongo.mq.ready =>
       {connection} = bongo.mq
+      @monitorPresence connection
       connection.exchange @resourceName, authExchangeOptions, (authExchange)=>
         connection.queue  @resourceName, (authQueue)=>
           authQueue.bind authExchange, ''

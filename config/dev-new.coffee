@@ -64,6 +64,8 @@ module.exports = deepFreeze
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
+  presence      :
+    exchange    : 'services-presence'
   client        :
     pistachios  : no
     version     : version
