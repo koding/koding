@@ -10,8 +10,21 @@ module.exports = class AuthWorker extends EventEmitter
     @services = {}
     @clients  = {}
     @counts   = {}
+    @monitorServices()
 
   bound: require 'koding-bound'
+
+  monitorServices: do ->
+    pingAll =(services)->
+      # for own servicesOfType of services
+      #   servicesOfType.forEach (service)->
+      # TODO: implement pingA       
+    monitorServicesHelper =->
+      console.log {@services}
+      pingAll @services
+    monitorServices =->
+      handler = monitorServicesHelper.bind this
+      setInterval handler, 10000
 
   authenticate:(messageData, routingKey, callback)->
     {clientId, channel, event} = messageData
@@ -41,13 +54,15 @@ module.exports = class AuthWorker extends EventEmitter
     @counts[serviceType] += 1
     return serviceName
 
-  addService:({serviceType, serviceName})->
-    servicesOfType = @services[serviceType] ?= []
-    servicesOfType.push serviceName
+  addService:({serviceGenericName, serviceUniqueName})->
+    console.log 'addService', {serviceGenericName, serviceUniqueName}
+    servicesOfType = @services[serviceGenericName] ?= []
+    servicesOfType.push serviceUniqueName
 
-  removeService:({serviceType, serviceName})->
-    servicesOfType = @services[serviceType]
-    index = servicesOfType.indexOf serviceName
+  removeService:({serviceGenericName, serviceUniqueName})->
+    console.log 'removeService', {serviceGenericName, serviceUniqueName}
+    servicesOfType = @services[serviceGenericName]
+    index = servicesOfType.indexOf serviceUniqueName
     servicesOfType.splice index, 1
 
   addClient:(socketId, exchange, routingKey)->
@@ -58,6 +73,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   rejectClient:(routingKey, message)->
     console.log 'rejecting client', arguments
+    console.trace()
     @bongo.respondToClient routingKey, {error: message ? 'Access denied'}
 
   joinClient: do ->
@@ -85,7 +101,6 @@ module.exports = class AuthWorker extends EventEmitter
           @rejectClient routingKey
 
   cleanUpClient:(client)->
-    console.log 'clean up client', client
     @bongo.mq.connection.exchange client.exchange, authExchangeOptions,
       (exchange)->
         exchange.publish 'auth.leave', {
@@ -108,7 +123,8 @@ module.exports = class AuthWorker extends EventEmitter
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
               messageStr = "#{message.data}"
-              messageData = try JSON.parse messageStr
+              messageData = (try JSON.parse messageStr) or message
+              console.log 'routingKey', routingKey
               switch routingKey
                 when 'broker.clientConnected' then # ignore
                 when 'broker.clientDisconnected'
@@ -118,6 +134,8 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.leave'
                   @removeService messageData
                 when 'client.auth'
+                  console.log 'in the client auth codepath'
                   @joinClient messageData, socketId
                 else
+                  console.log 'rejecting client', message, headers, deliveryInfo, ''+message.data
                   @rejectClient routingKey
