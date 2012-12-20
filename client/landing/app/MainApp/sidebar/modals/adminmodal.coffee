@@ -50,9 +50,9 @@ class AdminModal extends KDModalViewWithForms
                 label         : "Flags"
                 placeholder   : "no flags assigned"
               Invites         :
-                label         : "Invites"
+                label         : "Add Invites"
                 type          : "text"
-                placeholder   : "number of invites to give that user"
+                placeholder   : "number of invites to add"
                 validate      :
                   rules       :
                     regExp    : /\d+/i
@@ -186,8 +186,8 @@ class AdminModal extends KDModalViewWithForms
         account.fetchLimit? 'invite', (err, limit)=>
           current = 0
           if not err and limit
-             current = limit.quota - limit.usage
-          inputs.Invites.setValue current
+            current = limit.quota - limit.usage
+          inputs.Invites.setPlaceHolder "Currently has #{current} invites."
       else
         userRequestLineEdit.show()
         @hideConnectedFields()
@@ -213,5 +213,5 @@ class AdminModal extends KDModalViewWithForms
     fields.Impersonate.show()
     fields.Flags.show()
     fields.Invites.show()
-    inputs.Invites.setValue 'Loading...'
+    inputs.Invites.setPlaceHolder 'Loading...'
     buttons.Update.show()
