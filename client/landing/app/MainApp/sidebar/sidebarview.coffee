@@ -360,8 +360,8 @@ class Sidebar extends JView
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-      { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin",         loggedIn : yes, callback : -> new AdminModal }
+      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =
