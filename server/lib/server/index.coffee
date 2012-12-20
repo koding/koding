@@ -15,7 +15,7 @@ else
 
   processMonitor = (require 'processes-monitor').start
     name : "webServer on port #{webPort}"
-    statsd_id: "webserver." + cluster.worker.id
+    stats_id: "webserver." + cluster.worker.id
     interval : 60000
     limits  :
       memory   : 300
@@ -26,7 +26,7 @@ else
       after: "non-overlapping, random, 3 digits prime-number of minutes"
       middleware : (name,callback) -> koding.disconnect callback
       middlewareTimeout : 5000
-    statsd: KONFIG.statsd
+    librato: KONFIG.librato
   
 
   # if webPort is 3002
