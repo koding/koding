@@ -19,6 +19,8 @@ os = require 'os'
 # Mongo entry counts
 db_users = 0
 db_activities = 0
+db_mysql = 0
+db_mongo = 0
 
 # Mongo data collector
 mongoskin = require 'mongoskin'
@@ -62,12 +64,22 @@ get_stats = ->
   # Mongo stats
   print "Users: " + db_users
   print "Activities: " + db_activities
+  print "Mongo Databases: " + db_mongo
+  print "MySQL Databases: " + db_mysql
   total_users =
     name: 'users'
     value: db_users
   total_activities =
     name: 'activities'
     value: db_activities
+  total_mysql =
+    name: 'database'
+    source: 'mysql'
+    value: db_mysql
+  total_mongo =
+    name: 'database'
+    source: 'mongo'
+    value: db_mongo
   
   # Combine all stats
   stats =
@@ -82,7 +94,10 @@ get_stats = ->
       # Users
       total_users,
       # Activities
-      total_activities
+      total_activities,
+      # Databases
+      total_mysql,
+      total_mongo
     ]
   print ""
   stats
@@ -116,6 +131,16 @@ setInterval ->
   collector = db.collection 'cActivities'
   collector.count (err, count) ->
     db_activities = count
+
+  # Get total MySQL databases
+  collector = db.collection 'jDatabases'
+  collector.count {type: 'JDatabaseMySql'}, (err, count) ->
+    db_mysql = count
+
+  # Get total Mongo databases
+  collector = db.collection 'jDatabases'
+  collector.count {type: 'JDatabaseMongo'}, (err, count) ->
+    db_mongo = count
 
 , (librato.interval / 2)
 
