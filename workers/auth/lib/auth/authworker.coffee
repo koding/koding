@@ -117,9 +117,10 @@ module.exports = class AuthWorker extends EventEmitter
       if i % 2 then last = edge
       else acc[last] = edge
       return acc
+    , {}
     isValidKey  = serviceInfo.serviceGenericName? and
                   serviceInfo.serviceUniqueName?
-    throw {message: 'Bad service key!'}  unless isValidKey
+    throw message: 'Bad service key!'  unless isValidKey
     return serviceInfo
 
   monitorPresence:(connection)->
