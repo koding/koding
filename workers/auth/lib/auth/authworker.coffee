@@ -124,6 +124,7 @@ module.exports = class AuthWorker extends EventEmitter
     return serviceInfo
 
   monitorPresence:(connection)->
+    console.log 'monitorPresence'
     Presence = require 'koding-rabbit-presence'
     @presence = new Presence {
       connection
@@ -131,11 +132,12 @@ module.exports = class AuthWorker extends EventEmitter
       member    : @resourceName
     }
     @presence.on 'join', (serviceKey)=>
+      console.log serviceKey, 'joined'
       try @addService parseServiceKey serviceKey
     @presence.on 'leave', (serviceKey)=>
+      console.log serviceKey, 'left'
       try @removeService parseServiceKey serviceKey
     @presence.listen()
-    @presence.announce()
 
   connect:->
     {bongo} = this
