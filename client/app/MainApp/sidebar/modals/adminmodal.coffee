@@ -34,6 +34,30 @@ class AdminModal extends KDModalViewWithForms
                 label         : "Flags:"
                 name          : "flags"
                 placeholder   : "no flags assigned"
+              Impersonate     :
+                label         : "Switch to User"
+                itemClass     : KDButtonView
+                title         : "Impersonate"
+                callback      : =>
+                  modal = new KDModalView
+                    title          : "Switch to this user?"
+                    content        : "<div class='modalformline'>This action will reload Koding and log you in with this user.</div>"
+                    height         : "auto"
+                    overlay        : yes
+                    buttons        :
+                      Impersonate  :
+                        style      : "modal-clean-green"
+                        loader     :
+                          color    : "#FFF"
+                          diameter : 16
+                        callback   : =>
+                          accounts = @userController.getSelectedItemData()
+                          unless accounts.length is 0
+                            KD.impersonate accounts[0].profile.nickname, =>
+                              modal.destroy()
+                          else
+                            modal.destroy()
+
           "Migrate Kodingen Users" :
             buttons           :
               Migrate         :
