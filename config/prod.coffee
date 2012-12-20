@@ -44,7 +44,7 @@ module.exports = deepFreeze
    httpRedirect:
      port      : 80 # requires sudo on macs
   social        :
-    login:      : 'prod-social'
+    login       : 'prod-social'
     numberOfWorkers: 10
   feeder        :
     queueName   : "koding-feeder"
