@@ -30,20 +30,32 @@ AccountMixin = do ->
                 messageHandler.bind channel, kiteName
               )
             messageString = JSON.stringify(scrubbed)
-            console.log {messageString}
-            channel.emit "client-message", messageString
+            onReady channel, ->
+              window.sss = channel
+              channel.publish messageString
 
       response = (kiteName, method, args) ->
         scrub method, args, (scrubbed) ->
           fetchChannel kiteName, (channel)=>
             channel.emit "client-message", JSON.stringify(scrubbed)
 
-      ready =->
-        console.log 'ready', arguments
+      readyChannels = {}
+
+      onReady =
+        (channel, callback)->
+          {name} = channel
+          if readyChannels[name] then callback()
+          else
+            readyChannels[name] = channel
+            channel.once 'ready', callback
+
+      ready =(resourceName)->
+        @exchange = resourceName
+        @emit 'ready'
 
       messageHandler =(kiteName, args) ->
         if args.method is 'ready'
-          callback = ready
+          callback = ready.bind this
         else
           callback = localStore.get(args.method)
         scrubber = new Scrubber localStore
@@ -52,14 +64,19 @@ AccountMixin = do ->
             remoteStore.add callbackId, ->
               response kiteName, callbackId, [].slice.call(arguments)
           remoteStore.get callbackId
-        callback.apply @, unscrubbed
+        callback.apply this, unscrubbed
 
-      getChannelName =(kiteName)->
-        delegate  = KD.whoami()
-        nickname  = delegate?.profile.nickname ?
-                    if delegate.guestId then "Guest #{delegate.guestId}" ?
-                    'unknown'
-        return "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
+      getChannelName =do ->
+        namesCache = {}
+        (kiteName)->
+          return namesCache[kiteName]  if namesCache[kiteName]
+          delegate  = KD.whoami()
+          nickname  = delegate?.profile.nickname ?
+                      if delegate.guestId then "Guest #{delegate.guestId}" ?
+                      'unknown'
+          channelName = "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
+          namesCache[kiteName] = channelName
+          return channelName
 
       fetchChannel =(kiteName, callback)-> 
         channelName = getChannelName(kiteName)
@@ -67,7 +84,6 @@ AccountMixin = do ->
           channel = KD.remote.mq.subscribe channelName
           channels[channelName] = channel
           channel.on 'broker.subscribed', -> callback channel
-          channel.exchange = kiteName
           channel.setAuthenticationInfo
             serviceType : 'kite'
             name        : "kite-#{kiteName}"
