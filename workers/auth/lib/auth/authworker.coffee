@@ -10,13 +10,25 @@ module.exports = class AuthWorker extends EventEmitter
     @services = {}
     @clients  = {}
     @counts   = {}
-    @routingKeysBySocketId = {}
+    @monitorServices()
 
     # @addService
     #   serviceType : 'kite-webterm'
     #   serviceName : 'kite-webterm1'
 
   bound: require 'koding-bound'
+
+  monitorServices: do ->
+    pingAll =(services)->
+      # for own servicesOfType of services
+      #   servicesOfType.forEach (service)->
+      # TODO: implement pingA       
+    monitorServicesHelper =->
+      console.log {@services}
+      pingAll @services
+    monitorServices =->
+      handler = monitorServicesHelper.bind this
+      setInterval handler, 10000
 
   authenticate:(messageData, routingKey, callback)->
     {clientId, channel, event} = messageData
@@ -46,10 +58,12 @@ module.exports = class AuthWorker extends EventEmitter
     return serviceName
 
   addService:({serviceGenericName, serviceUniqueName})->
+    console.log 'addService', {serviceGenericName, serviceUniqueName}
     servicesOfType = @services[serviceGenericName] ?= []
     servicesOfType.push serviceUniqueName
 
   removeService:({serviceGenericName, serviceUniqueName})->
+    console.log 'removeService', {serviceGenericName, serviceUniqueName}
     servicesOfType = @services[serviceGenericName]
     index = servicesOfType.indexOf serviceUniqueName
     servicesOfType.splice index, 1
@@ -114,6 +128,7 @@ module.exports = class AuthWorker extends EventEmitter
               socketId = correlationId
               messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
+              console.log 'routingKey', routingKey
               switch routingKey
                 when 'broker.clientConnected' then # ignore
                 when 'broker.clientDisconnected'
@@ -123,7 +138,9 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.leave'
                   @removeService messageData
                 when 'client.auth'
+                  console.log 'in the client auth codepath'
                   @joinClient messageData, socketId
                 when 'client.killAuth' then process.kill()
                 else
+                  console.log 'rejecting client', message, headers, deliveryInfo, ''+message.data
                   @rejectClient routingKey
