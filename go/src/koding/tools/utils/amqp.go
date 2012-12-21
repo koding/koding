@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
 	"koding/config"
 	"koding/tools/log"
@@ -81,21 +82,17 @@ func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, kind, exchange, key stri
 	return stream
 }
 
-func XDeclareAmqpPresenceExchange(channel *amqp.Channel, exchange string, serviceType string, serviceGenericName string, serviceUniqueName string) {
-	err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil)
-	if err != nil {
+func DeclareAmqpPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string) {
+	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
 
-	state, err := channel.QueueDeclare("", false, true, true, false, nil)
-	if err != nil {
+	if _, err := channel.QueueDeclare("", false, true, true, false, nil); err != nil {
 		panic(err)
 	}
 
-	key := "serviceType." + serviceType + ".serviceGenericName." + serviceGenericName + ".serviceUniqueName." + serviceUniqueName
-
-	err = channel.QueueBind(state.Name, key, exchange, false, nil)
-	if err != nil {
+	routingKey := fmt.Sprintf("serviceType.%s.serviceGenericName.%s.serviceUniqueName.%s", serviceType, serviceGenericName, serviceUniqueName)
+	if err := channel.QueueBind("", routingKey, exchange, false, nil); err != nil {
 		panic(err)
 	}
 }
