@@ -68,7 +68,7 @@ func DeclareAmqpExchange(channel *amqp.Channel, exchange string) {
 }
 
 func XDeclareAmqpPresenceExchange(channel *amqp.Channel, exchange string, serviceType string, serviceGenericName string, serviceUniqueName string) {
-	err := channel.ExchangeDeclare(exchange, "x-presence", true, true, false, false, nil)
+	err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil)
 	if err != nil {
 		panic(err)
 	}
