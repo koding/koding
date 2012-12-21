@@ -60,20 +60,46 @@ func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {
 	return channel
 }
 
-func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
-	if err := channel.ExchangeDeclare(exchange, kind, false, true, false, false, nil); err != nil {
+func DeclareAmqpExchange(channel *amqp.Channel, exchange string) {
+	err := channel.ExchangeDeclare(exchange, "topic", true, true, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func XDeclareAmqpPresenceExchange(channel *amqp.Channel, exchange string, serviceType string, serviceGenericName string, serviceUniqueName string) {
+	err := channel.ExchangeDeclare(exchange, "x-presence", true, true, false, false, nil)
+	if err != nil {
 		panic(err)
 	}
 
-	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+	state, err := channel.QueueDeclare(queue, false, true, true, false, nil)
+	if err != nil {
 		panic(err)
 	}
 
-	if err := channel.QueueBind("", key, exchange, false, nil); err != nil {
+	key := "serviceType." + serviceType + ".serviceGenericName." + serviceGenericName + ".serviceUniqueName." + serviceUniqueName
+
+	err = channel.QueueBind(state.Name, key, exchange, false, nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, queue, key, exchange string, autodelete bool) <-chan amqp.Delivery {
+	DeclareAmqpExchange(channel, exchange)
+
+	_, err := channel.QueueDeclare(queue, false, autodelete, false, false, nil)
+	if err != nil {
 		panic(err)
 	}
 
-	stream, err := channel.Consume("", "", true, false, false, false, nil)
+	err = channel.QueueBind(queue, key, exchange, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	stream, err := channel.Consume(queue, "", true, false, false, false, nil)
 	if err != nil {
 		panic(err)
 	}
