@@ -44,4 +44,4 @@ module.exports =
     csv             : '0.0.17'
     embedly         : '0.6.0'
 
-    'node-statsd'   : '0.0.3'
+    'librato-metrics' : '0.0.6'

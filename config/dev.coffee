@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-StatsD = require 'node-statsd'
-
 deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
@@ -121,11 +119,11 @@ module.exports = deepFreeze
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
-  statsd:
-    run: yes
-    address: "localhost"
-    port: 8125
-    instance: new StatsD.StatsD("localhost", 8125)
+  librato:
+    push: no
+    email: ""
+    token: ""
+    interval: 10000
   crypto :
     encrypt: (str,key=Math.floor(Date.now()/1000/60))->
       crypto = require "crypto"

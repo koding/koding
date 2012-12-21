@@ -598,7 +598,7 @@ mounter    =
         # console.log "REMOTES DIR EXISTS?", exists
         unless exists then cb()
         else
-          exec "/bin/rm -rf #{remotesPath}/*", (err)=>
+          exec "/bin/rmdir #{remotesPath}/*", (err)=>
             unless err then cb()
             else
               mkdirp tmpBlackHole, 0o0755, (err)=>
@@ -630,9 +630,10 @@ mounter    =
             exec "/usr/bin/pkill #{args}", (err)=>
               # console.log "KILLING THEM ALL"
               console.log "Mount procceses killed for #{username}" unless err
-              cleanUpRemotesDir =>
-                mkdirp remotesPath, 0o0755, (err)->
-                  callback "Process tree cleaned-up and RemoteDrives re-created."
+              @remountVE {username}, =>
+                cleanUpRemotesDir =>
+                  mkdirp remotesPath, 0o0755, (err)->
+                    callback "Process tree cleaned-up and RemoteDrives re-created."
               # callback()
           else
             cleanUpRemotesDir =>
