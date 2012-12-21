@@ -27,7 +27,7 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 		joinStream := utils.DeclareBindConsumeAmqpQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 
 		presenceChannel := utils.CreateAmqpChannel(consumeConn)
-		utils.XDeclareAmqpPresenceExchange(presenceChannel, "services-presence", "kite", "kite-"+name, "webterm1")
+		utils.XDeclareAmqpPresenceExchange(presenceChannel, "services-presence", "kite", "kite-"+name, "private-kite-"+name)
 
 		for {
 			select {
