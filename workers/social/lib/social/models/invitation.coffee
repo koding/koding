@@ -24,7 +24,9 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','sendBetaInviteFromClient','grantInvitesFromClient','markAsSent']
+      static        : ['create','byCode','sendBetaInviteFromClient',
+                       'grantInvitesFromClient','markAsSent',
+                       'betaInviteCount']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -93,7 +95,7 @@ module.exports = class JInvitation extends jraphical.Module
           invitation.update $set:sent:true,(err)->
           callback null,"#{invitation.email} is marked as sent."
 
-  @sendBetaInviteFromClient = secure (client, options,callback)->
+  @sendBetaInviteFromClient = secure (client, options, callback)->
 
     unless client.connection.delegate?.can? 'send-invites'
       return callback new KodingError "not authorized"
@@ -101,10 +103,15 @@ module.exports = class JInvitation extends jraphical.Module
       JInvitationRequest = require "./invitationrequest"
       options.sort ?= 1
       if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort}, (err,emails)->
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort}, (err, emails)->
+
+          callback null, "Done." if emails.length == 0
+          counter = 0
           daisy queue = emails.map (item)->
             ->
               continueLooping = ->
+                counter += 1
+                callback null, "Done." if emails.length == counter
                 setTimeout (-> queue.next()), 50
 
               JInvitation.sendBetaInvite email:item.email,(err,res)->
@@ -121,6 +128,18 @@ module.exports = class JInvitation extends jraphical.Module
                     continueLooping()
       else
         JInvitation.sendBetaInvite options,callback
+
+  @betaInviteCount = secure (client, callback)->
+
+    {connection} = client
+    unless connection.delegate?.can? 'send-invites'
+      callback "You are not authorized to do this."
+      console.error "Not authorized request from", connection.delegate?.profile?.nickname
+    else
+      JInvitationRequest = require "./invitationrequest"
+      JInvitationRequest.count {sent:$ne:true}, (err, waitingInvite)->
+        if err then callback err
+        else callback "There are #{waitingInvite} people who is waiting for invite."
 
   betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
 
