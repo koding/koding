@@ -16,6 +16,7 @@ module.exports = class JInvitation extends jraphical.Module
   JAccount = require './account'
   JLimit = require './limit'
   JLimit = require './limit'
+  KodingError = require '../error'
 
   @share()
 
@@ -52,7 +53,7 @@ module.exports = class JInvitation extends jraphical.Module
       redeemer      :
         targetType  : JAccount
         as          : 'redeemer'
-  
+
   createBetaInvite = (options, callback)->
     {inviterUsername, inviteeEmail, inviteType} = options
     inviterUsername ?= "devrim"
@@ -87,23 +88,20 @@ module.exports = class JInvitation extends jraphical.Module
     else
       JInvitationRequest = require "./invitationrequest"
       options.sort ?= 1
-      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->
+      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort}, (err,arr)->
         arr.forEach (invitation)->
           invitation.update $set:sent:true,(err)->
           callback null,"#{invitation.email} is marked as sent."
 
-
-
   @sendBetaInviteFromClient = secure (client, options,callback)->
-    JInvitationRequest = require "./invitationrequest"
-    account = client.connection.delegate
-    # unless 'super-admin' in account.globalFlags
-    unless account?.profile?.nickname is 'devrim'
+
+    unless client.connection.delegate?.can? 'send-invites'
       return callback new KodingError "not authorized"
     else
+      JInvitationRequest = require "./invitationrequest"
       options.sort ?= 1
       if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort},(err,emails)->
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort}, (err,emails)->
           daisy queue = emails.map (item)->
             ->
               continueLooping = ->
@@ -121,11 +119,13 @@ module.exports = class JInvitation extends jraphical.Module
                       callback null,"#{item.email} is sent and marked as sent."
                       console.log "#{item.email} is sent and marked as sent."
                     continueLooping()
-
       else
         JInvitation.sendBetaInvite options,callback
-  betaTestersHTML   = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
+
+  betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
+
   @sendBetaInvite = (options,callback) ->
+
     Bitly = require 'bitly'
     bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
     protocol = 'http://'
@@ -170,23 +170,21 @@ module.exports = class JInvitation extends jraphical.Module
           else
             log "[JInvitation.sendBetaInvite] something got messed up."
 
-  @grantInvitesFromClient = secure (client, options,callback)->
-    account = client.connection.delegate
-    # unless 'super-admin' in account.globalFlags
-    unless account?.profile?.nickname is 'devrim'
+  @grantInvitesFromClient = secure (client, options, callback)->
+
+    unless client.connection.delegate?.can? 'grant-invites'
       return callback new KodingError "not authorized"
     else
       if options.batch?
         callback "not implemented yet"
       else
-        {username,quota} = options
+        {username, quota} = options
         quota = 3 if quota is ''
-        @grant {'profile.nickname':username},quota,(err)->
+        @grant {'profile.nickname':username}, quota, (err)->
           if err
             callback err
           else
             callback null, "#{quota} invites granted to #{username}"
-
 
   @grant =(selector, quota, callback)->
     unless quota > 0
@@ -224,9 +222,9 @@ module.exports = class JInvitation extends jraphical.Module
     #{url}
 
     If you reply to this email, it will go back to your friend who invited you.
-    
+
     Enjoy! :)
-    
+
     ------------------
     If you're curious, here is a bit about Koding, http://techcrunch.com/2012/07/24/koding-launch/
 
@@ -241,8 +239,8 @@ module.exports = class JInvitation extends jraphical.Module
     - take a look at http://wiki.koding.com for things you can do.
     - if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
 
-    Whole Koding Team welcomes you, 
-    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson    
+    Whole Koding Team welcomes you,
+    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson
     """
 
   @byCode = (code, callback)-> @one {code}, callback
@@ -304,7 +302,7 @@ module.exports = class JInvitation extends jraphical.Module
       else if !limit? or limit? and emails.length > limit.getValue()
         callback new KodingError "You don't have enough invitation quota"
       else
-        emails.forEach (email)=>          
+        emails.forEach (email)=>
           JInvitation.one {"inviteeEmail":email},(err,inv)=>
             if inv
               @sendInviteEmail inv,client,customMessage,limit,callback
@@ -325,10 +323,8 @@ module.exports = class JInvitation extends jraphical.Module
                 else
                   invite.addInvitedBy delegate, (err)=>
                     if err then callback err
-                    else 
+                    else
                       @sendInviteEmail invite,client,customMessage,limit,callback
-
-
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}
