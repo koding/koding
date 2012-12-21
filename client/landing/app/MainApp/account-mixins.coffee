@@ -11,6 +11,7 @@ AccountMixin = do ->
       listenerId = 0
 
       channels = {}
+      namesCache = {}
 
       scrub =(method, args, callback) ->
         scrubber = new Scrubber localStore
@@ -28,7 +29,7 @@ AccountMixin = do ->
       response =(kiteName, method, args) ->
         scrub method, args, (scrubbed) ->
           fetchChannel kiteName, (channel)=>
-            channel.publis "client-message", JSON.stringify(scrubbed)
+            channel.publish JSON.stringify(scrubbed)
 
       readyChannels = {}
 
@@ -43,11 +44,26 @@ AccountMixin = do ->
         @exchange = resourceName
         @emit 'ready'
 
+      error =(err)->
+        cycleChannel.call this
+        console.error err
+
+      cycleChannel =->
+        @off()
+        delete channels[@name]
+        delete namesCache[@authenticationInfo.name]
+
       messageHandler =(kiteName, args) ->
-        if args.method is 'ready'
-          callback = ready.bind this
-        else
-          callback = localStore.get(args.method)
+        {method} = args
+        callback = 
+          if method is 'ready'
+            ready.bind this
+          else if method is 'error'
+            error.bind this
+          else if method is 'cycleChannel'
+            cycleChannel.bind this
+          else
+            callback = localStore.get(args.method) ? ->
         scrubber = new Scrubber localStore
         unscrubbed = scrubber.unscrub args, (callbackId)->
           unless remoteStore.has callbackId
@@ -56,24 +72,22 @@ AccountMixin = do ->
           remoteStore.get callbackId
         callback.apply this, unscrubbed
 
-      getChannelName = do ->
-        namesCache = {}
-        (kiteName)->
-          return namesCache[kiteName]  if namesCache[kiteName]
-          delegate  = KD.whoami()
-          nickname  = delegate?.profile.nickname ?
-                      if delegate.guestId then "guest#{delegate.guestId}" ?
-                      'unknown'
-          channelName = "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
-          namesCache[kiteName] = channelName
-          return channelName
+      getChannelName =(kiteName)->
+        return namesCache[kiteName]  if namesCache[kiteName]
+        delegate  = KD.whoami()
+        nickname  = delegate?.profile.nickname ?
+                    if delegate.guestId then "guest#{delegate.guestId}" ?
+                    'unknown'
+        channelName = "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
+        namesCache[kiteName] = channelName
+        return channelName
 
       fetchChannel =(kiteName, callback)-> 
-        channelName = getChannelName(kiteName)
+        channelName = getChannelName "kite-#{kiteName}"
         return callback channels[channelName]  if channels[channelName]
         channel = KD.remote.mq.subscribe channelName
         channels[channelName] = channel
-        channel.on 'broker.subscribed', ->
+        channel.once 'broker.subscribed', ->
           onReady channel, -> callback channel
         channel.setAuthenticationInfo
           serviceType : 'kite'
