@@ -65,9 +65,20 @@ class ActivityAppController extends AppController
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @setFilter data.type
-      @fetchActivityOverview()
+    #   @fetchActivityOverview()
 
-    @fetchActivityOverview()
+    # @fetchActivityOverview()
+    @fetchCachedActivity()
+
+  fetchCachedActivity:(callback)->
+
+    # KD.remote.api.JActivityCache.latest (err, cache)->
+    $.ajax
+      url     : "/-/cache/test"
+      success : (cache)->
+        # log activities
+        log activity for activity in cache.activities
+
 
   fetchActivityOverview:(callback)->
 
@@ -104,11 +115,7 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-
-
-
   continueLoadingTeasers:->
-
     unless @listController.isLoading
       @listController.showLazyLoader()
       @fetchActivityOverview =>

@@ -1,4 +1,6 @@
-jraphical = require 'jraphical'
+jraphical      = require 'jraphical'
+fs             = require 'fs'
+JActivityCache = require './cache'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -145,7 +147,28 @@ module.exports = class CActivity extends jraphical.Capsule
             lastDocType = doc.type
             return acc
           , []
-          callback null, cache
+          memberBucket      = null
+          memberBucketIndex = 0
+          processedCache    = []
+          cache.forEach (item, i)->
+            if /NewMemberBucket/.test item.type
+              unless memberBucket
+                memberBucket      = item
+                processedCache[i] = memberBucket
+                memberBucketIndex = i
+              else
+                processedCache[memberBucketIndex].ids = processedCache[memberBucketIndex].ids.concat item.ids
+                processedCache[memberBucketIndex].count +=  item.count
+                processedCache[memberBucketIndex].createdAt[1] = item.createdAt[item.createdAt.length-1]
+            else
+              processedCache.push item
+
+          callback null, processedCache
+
+
+  # JActivityCache.latest (err, latestMeta)->
+  #   console.log latestMeta
+  #   return
 
 
   @createActivityCache = do ->
@@ -161,13 +184,20 @@ module.exports = class CActivity extends jraphical.Capsule
       ]
 
     allowedLengthPerFile = 50
-    timespan             = 1 * 60 *60 * 1000
+    timespan             = 120 * 60 *60 * 1000
     lastTo               = null
     lastFrom             = null
+    lastCachedBatch      = []
+    count                = 0
+    cachePath            = "#{__dirname}/../../../../../../website/activitycache/"
 
-    (options)->
+    (options, callback)->
 
+      count++
       now        = Date.now()
+
+      # check last saved cache file
+
       lastTo     = if lastTo   then lastFrom else now
       lastFrom   = if lastFrom then lastFrom - timespan else now - timespan
 
@@ -178,32 +208,95 @@ module.exports = class CActivity extends jraphical.Capsule
         types      : activityTypesToBeCached
         # limit      : 100
 
-      cachedItems = []
+      t = new Date options.to
+      f = new Date options.from
+      console.log "call # #{count} -------"
+      console.log "to  : #{t.toLocaleTimeString()}, #{t.toLocaleDateString()}"
+      console.log "from: #{f.toLocaleTimeString()}, #{f.toLocaleDateString()}"
+      console.log " "
 
-      CActivity.fetchActivityCache options, (err, cache)=>
+      @fetchActivityCache options, (err, cache)=>
         if err then console.warn err
         else
-          console.log i, item.count, item.createdAt for item, i in cache
+          lastCachedBatch = lastCachedBatch.concat cache
 
-          # if cache.length < 50
+          if lastCachedBatch.length < 50
+            delete options.to
+            delete options.from
+            @createActivityCache options
+            return
+          else
+            lastCachedBatch = lastCachedBatch[0...50]
+            lastItem        = lastCachedBatch[lastCachedBatch.length-1]
+            lastFrom        = lastItem.createdAt[lastItem.createdAt.length-1].getTime()
+            lastTo          = lastCachedBatch[0].createdAt[0].getTime()
+
+
+          console.log "cache size:", lastCachedBatch.length
+          # console.log " "
+          # console.log i, item.count, item.type for item, i in lastCachedBatch
+          # console.log " "
+          console.log "le finito", lastCachedBatch.length
+
+          # stream snapshots
+          ids = (lastCachedBatch.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+          selector = _id : $in : ids
+          {length} = lastCachedBatch
+
+          @some selector, {}, (err, res) =>
+            if err then callback err
+            else
+              console.log res.length
+              meta = new JActivityCache
+                # name       : fileName
+                to         : new Date lastTo
+                from       : new Date lastFrom
+                overview   : lastCachedBatch
+                isFull     : lastCachedBatch.length < 50
+                activities : res
+
+              meta.save()
+
+              # unless model is null
+              #   # put snapshot
+              #   log model
+
+              # if length-- is 0
+              #   # continue writing file
+              #   console.log "streming finished"
+
+
+          # writefile
+          # fileName = "#{cachePath}#{lastTo}.#{lastFrom}"
+
+
+          # fs.writeFile fileName, JSON.stringify(lastCachedBatch), (err)->
+          #   if err then console.warn err
+          #   else
+          #     console.log "#{fileName} is saved."
+          #     console.log "----------------"
+
+
+          count           = 0
+          lastCachedBatch = []
 
 
 
 
-          # totalLength = overview.length + cachedItems.length
+        # totalLength = overview.length + cachedItems.length
 
-          # if totalLength is allowedLengthPerFile
-          #   console.log cachedItems
+        # if totalLength is allowedLengthPerFile
+        #   console.log cachedItems
 
-          # else if totalLength < allowedLengthPerFile
-          #   cachedItems.concat overview
-          #   nextFrom = cachedItems[overview.length-1].createdAt[0]
-          #   nextTo   = cachedItems[overview.length-1].createdAt[1]
+        # else if totalLength < allowedLengthPerFile
+        #   cachedItems.concat overview
+        #   nextFrom = cachedItems[overview.length-1].createdAt[0]
+        #   nextTo   = cachedItems[overview.length-1].createdAt[1]
 
-          # else if totalLength > allowedLengthPerFile
-          #   remainderCount = cachedItemsPerFile - cachedItems.length
-          #   remainder      = overview[..remainderCount]
-          #   cachedItems.concat remainder
+        # else if totalLength > allowedLengthPerFile
+        #   remainderCount = cachedItemsPerFile - cachedItems.length
+        #   remainder      = overview[..remainderCount]
+        #   cachedItems.concat remainder
 
 
 

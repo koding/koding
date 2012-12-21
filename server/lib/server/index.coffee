@@ -55,13 +55,13 @@ else
 
 
   {extend} = require 'underscore'
-  express = require 'express'
-  Broker = require 'broker'
-  fs = require 'fs'
-  hat = require 'hat'
+  express  = require 'express'
+  Broker   = require 'broker'
+  fs       = require 'fs'
+  hat      = require 'hat'
   nodePath = require 'path'
 
-  app = express()
+  app      = express()
 
   # this is a hack so express won't write the multipart to /tmp
   #delete express.bodyParser.parse['multipart/form-data']
@@ -157,9 +157,22 @@ else
                   , kites?.disconnectTimeout ? 5000
               return res.send privName
 
+  app.get "/-/cache/:ids",(req,res)->
+
+    {ids}            = req.params
+    {JActivityCache} = koding.models
+
+    # console.log koding.models
+
+    JActivityCache.latest (err, cache)->
+      console.log "le callback"
+      if err then console.warn err
+      else
+        res.send cache
+
 
   if uploads?.enableStreamingUploads
-    
+
     s3 = require('./s3') uploads.s3
 
     app.post '/Upload', s3..., (req, res)->
@@ -203,11 +216,11 @@ else
 
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
-    
+
     obj =
       processName : req.params.kiteName
       # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
-    
+
     koding.mq.emit 'public-status', req.params.event, obj
     res.send "got it."
 
