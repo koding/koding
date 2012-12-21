@@ -204,6 +204,5 @@ module.exports = class AuthWorker extends EventEmitter
                   @removeService messageData
                 when 'client.auth'
                   @joinClient messageData, socketId
-                when 'client.killAuth' then process.kill()
                 else
                   @rejectClient routingKey

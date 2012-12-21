@@ -1,8 +1,8 @@
-nodePath = require 'path'
-Bongo = require 'bongo'
-Broker = require 'broker'
-{argv} = require 'optimist'
-{extend} = require 'underscore'
+nodePath    = require 'path'
+Bongo       = require 'bongo'
+Broker      = require 'broker'
+{argv}      = require 'optimist'
+{extend}    = require 'underscore'
 
 {mongo, mq, projectRoot, authWorker} = require argv.c
 
