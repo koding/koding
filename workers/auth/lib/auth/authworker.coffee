@@ -124,7 +124,6 @@ module.exports = class AuthWorker extends EventEmitter
               socketId = correlationId
               messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
-              console.log 'routingKey', routingKey
               switch routingKey
                 when 'broker.clientConnected' then # ignore
                 when 'broker.clientDisconnected'
@@ -134,8 +133,6 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.leave'
                   @removeService messageData
                 when 'client.auth'
-                  console.log 'in the client auth codepath'
                   @joinClient messageData, socketId
                 else
-                  console.log 'rejecting client', message, headers, deliveryInfo, ''+message.data
                   @rejectClient routingKey
