@@ -34,7 +34,7 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+name, "")
 
 		presenceChannel := utils.CreateAmqpChannel(consumeConn)
-		utils.XDeclareAmqpPresenceExchange(presenceChannel, "services-presence", "kite", "kite-"+name, "private-kite-"+name)
+		utils.XDeclareAmqpPresenceExchange(presenceChannel, "services-presence", "kite", "kite-"+name, "kite-"+name)
 
 		for {
 			select {
