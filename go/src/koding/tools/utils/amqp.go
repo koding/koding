@@ -73,7 +73,7 @@ func XDeclareAmqpPresenceExchange(channel *amqp.Channel, exchange string, servic
 		panic(err)
 	}
 
-	state, err := channel.QueueDeclare(queue, false, true, true, false, nil)
+	state, err := channel.QueueDeclare('', false, true, true, false, nil)
 	if err != nil {
 		panic(err)
 	}
