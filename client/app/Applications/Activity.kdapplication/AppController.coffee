@@ -80,16 +80,15 @@ class ActivityAppController extends AppController
 
     # KD.remote.api.JActivityCache.latest (err, cache)->
     $.ajax
-      url     : "/-/cache/test"
+      url     : "/-/cache/latest"
       error   : (err)->
         callback? err
       success : (cache)->
-        log cache.from
 
         window.xhr__ = Date.now()
         log "xhr returns:        #{xhr__ - init__}msecs!, total: #{xhr__ - init__}"
 
-        cache.activities.map (a)-> a.snapshot = a.snapshot.replace /&quot;/g, '"'
+        cache.activities.map (a)-> a.snapshot = a.snapshot?.replace /&quot;/g, '"'
 
         KD.remote.reviveFromSnapshots cache.activities, (err, instances)=>
 

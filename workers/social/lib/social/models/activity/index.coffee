@@ -191,7 +191,7 @@ module.exports = class CActivity extends jraphical.Capsule
     count                = 0
     cachePath            = "#{__dirname}/../../../../../../website/activitycache/"
 
-    (options, callback)->
+    (options = {}, callback)->
 
       count++
       now        = Date.now()
