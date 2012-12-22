@@ -169,7 +169,7 @@ module.exports = class CActivity extends jraphical.Capsule
   # JActivityCache.latest (err, latestMeta)->
   #   console.log latestMeta
   #   return
-
+  @refreshCache = ->
 
   @createActivityCache = do ->
 

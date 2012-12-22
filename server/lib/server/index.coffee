@@ -157,18 +157,45 @@ else
                   , kites?.disconnectTimeout ? 5000
               return res.send privName
 
-  app.get "/-/cache/:ids",(req,res)->
+  # fetchActivityCache = (req,res)->
 
-    {ids}            = req.params
+  #   urlArr = req.url.split "/"
+  #   slug   = if Object.keys(req.params).length is 0 then urlArr[urlArr.length-1] else null
+
+  #   console.log slug, req.params
+  #   res.send "le finito"
+
+
+  app.get "/-/cache/latest", (req, res)->
     {JActivityCache} = koding.models
-
-    # console.log koding.models
-
     JActivityCache.latest (err, cache)->
-      console.log "le callback"
       if err then console.warn err
       else
         res.send cache
+
+  app.get "/-/cache/next", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.next (err, cache)->
+      if err then console.warn err
+      else
+        res.send cache
+
+  app.get "/-/cache/prev", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.prev (err, cache)->
+      if err then console.warn err
+      else
+        res.send cache
+
+  app.get "/-/cache/id/:id", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.byId (err, cache)->
+      if err then console.warn err
+      else
+        res.send cache
+
+  app.get "/-/cache/time/:timestamp", (req, res)->
+    {JActivityCache} = koding.models
 
 
   if uploads?.enableStreamingUploads
@@ -236,7 +263,7 @@ else
         state = account.checkFlag('super-admin') or account.checkFlag(flag)
       res.end "#{state}"
 
-  getAlias =do->
+  getAlias = do->
     caseSensitiveAliases = ['auth']
     (url)->
       rooted = '/' is url.charAt 0

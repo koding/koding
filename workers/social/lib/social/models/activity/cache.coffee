@@ -25,18 +25,58 @@ module.exports = class JActivityCache extends jraphical.Module
       overview    : Object
       activities  : Array
 
+  latestFetched = null
+
+  o =
+    limit : 1
+    sort  : to  : 1
+
+  kallback = (err, cache, callback)->
+    if err
+      callback err
+    else if cache
+      latestFetched = if cache.data then cache.data
+      console.log latestFetched?.to
+      callback err, cache.data
+    else
+      callback null, null
+
+
   @latest = (callback)->
 
-    options =
-      sort  :
-        to  : 1
-      limit : 1
+    @one {}, o, (err, cache)-> kallback err, cache, callback
 
-    @one {}, options, (err, cache)->
-      if err then console.warn err
-      # delete cache.data
-      callback err, cache.data
+  @next = (callback)->
 
+    return @latest callback  unless latestFetched
+
+    selector =
+      to     : $gte : latestFetched.to
+
+    @one selector, o, (err, cache)-> kallback err, cache, callback
+
+  @prev = (callback)->
+
+    console.log latestFetched?.to, "<<<<<"
+
+    return @latest callback  unless latestFetched
+
+    selector =
+      to     : $lte : latestFetched.to
+
+    @one selector, o, (err, cache)-> kallback err, cache, callback
+
+  @byId = (id, callback)->
+
+    selector = _id : id
+
+    @one selector, o, (err, cache)-> kallback err, cache, callback
+
+  @containsTimestamp = (timestamp, callback)->
+
+    selector = to : $gte : timestamp
+
+    @one selector, o, (err, cache)-> kallback err, cache, callback
 
   # create initial cache folder
   # do ->

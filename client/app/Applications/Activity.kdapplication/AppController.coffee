@@ -47,37 +47,56 @@ class ActivityAppController extends AppController
     @listController    = controller
     activityController = @getSingleton('activityController')
 
-    @listController.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
-    @listController.on 'teasersLoaded', @teasersLoaded.bind @
+    controller.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
+    controller.on 'teasersLoaded', @teasersLoaded.bind @
 
-    activityController.on "OwnActivityHasArrived", (activity)=>
-      @listController.ownActivityArrived activity
+    activityController.on "OwnActivityHasArrived", (activity)->
+      controller.ownActivityArrived activity
 
-    activityController.on 'ActivitiesArrived', (activities)=>
+    activityController.on 'ActivitiesArrived', (activities)->
       for activity in activities when activity.constructor.name in @currentFilter
-        @listController.newActivityArrived activity
+        controller.newActivityArrived activity
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
         if activity.constructor.name in @currentFilter
           activity.snapshot?.replace /&quot;/g, '"'
-          @listController.followedActivityArrived activity
+          controller.followedActivityArrived activity
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @setFilter data.type
-    #   @fetchActivityOverview()
+      @populateActivity()
 
-    # @fetchActivityOverview()
-    @fetchCachedActivity()
+    @populateActivity()
+
+  populateActivity:->
+    window.init__ = Date.now()
+    @fetchCachedActivity (err, activities)=>
+      if err then warn err
+      else
+        @listController.listActivities activities
 
   fetchCachedActivity:(callback)->
 
     # KD.remote.api.JActivityCache.latest (err, cache)->
     $.ajax
       url     : "/-/cache/test"
+      error   : (err)->
+        callback? err
       success : (cache)->
-        # log activities
-        log activity for activity in cache.activities
+        log cache.from
+
+        window.xhr__ = Date.now()
+        log "xhr returns:        #{xhr__ - init__}msecs!, total: #{xhr__ - init__}"
+
+        cache.activities.map (a)-> a.snapshot = a.snapshot.replace /&quot;/g, '"'
+
+        KD.remote.reviveFromSnapshots cache.activities, (err, instances)=>
+
+          window.revive__ = Date.now()
+          log "reviving snapshots: #{revive__ - xhr__}msecs!, total: #{revive__ - init__}"
+
+          callback? null, instances
 
 
   fetchActivityOverview:(callback)->
