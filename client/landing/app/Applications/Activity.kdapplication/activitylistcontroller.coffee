@@ -27,15 +27,15 @@ class ActivityListController extends KDListViewController
 
     @_state = 'public'
 
-    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : "There is no activity from your followings."
+    # @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
+    #   cssClass : "lazy-loader"
+    #   partial  : "There is no activity from your followings."
 
-    @noActivityItem.hide()
+    # @noActivityItem.hide()
 
   loadView:(mainView)->
 
-    @noActivityItem.hide()
+    # @noActivityItem.hide()
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
@@ -54,40 +54,54 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  prepareToStream:(overview)->
+  listActivities:(activities)->
+    @addItem activity for activity in activities#[0...10]
+    window.list__ = Date.now()
+    log "list population:    #{list__ - revive__}msecs!, total: #{list__- init__}"
+      # if group.type is "CNewMemberBucket"
+      #   @addItem new NewMemberBucketData
+      #     type  : group.type
+      #     ids   : group.ids
+      #     count : group.count
+      # else
+        # for id in group.ids
+        #   @addItem type : group.type, ids : [id]
 
-    if overview.length > 0
-      ids = (overview.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
-      selector = _id : $in : ids
 
-      for group in overview
-        if group.type is "CNewMemberBucketActivity"
-          @addItem new NewMemberBucketData
-            type  : group.type
-            ids   : group.ids
-            count : group.count
-        else
-          for id in group.ids
-            @addItem type : group.type, ids : [id]
+  # prepareToStream:(overview)->
 
-      @teasersLoaded()
+  #   if overview.length > 0
+  #     ids = (overview.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+  #     selector = _id : $in : ids
 
-      {length} = ids
-      KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
-        if err then callback err
-        else
-          unless model is null
-            @itemsOrdered.forEach (item)->
-              if item.getData().type isnt "CNewMemberBucketActivity" and\
-                 model[0]._id is item.getData().ids[0]
-                item.setModel model[0]
-          if length-- is 0
-            @isLoading = no
-            @teasersLoaded()
-          else
-            @isLoading = yes
-    else
-      @teasersLoaded()
+  #     for group in overview
+  #       if group.type is "CNewMemberBucketActivity"
+  #         @addItem new NewMemberBucketData
+  #           type  : group.type
+  #           ids   : group.ids
+  #           count : group.count
+  #       else
+  #         for id in group.ids
+  #           @addItem type : group.type, ids : [id]
+
+  #     @teasersLoaded()
+
+  #     {length} = ids
+  #     KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
+  #       if err then callback err
+  #       else
+  #         unless model is null
+  #           @itemsOrdered.forEach (item)->
+  #             if item.getData().type isnt "CNewMemberBucketActivity" and\
+  #                model[0]._id is item.getData().ids[0]
+  #               item.setModel model[0]
+  #         if length-- is 0
+  #           @isLoading = no
+  #           @teasersLoaded()
+  #         else
+  #           @isLoading = yes
+  #   else
+  #     @teasersLoaded()
 
   teasersLoaded:->
     @emit "teasersLoaded"
