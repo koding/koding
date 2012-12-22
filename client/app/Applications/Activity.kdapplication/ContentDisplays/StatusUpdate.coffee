@@ -42,7 +42,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
-  attachTooltipAndEmbedInteractivity: CommentListItemView::attachTooltipAndEmbedInteractivity
+  attachTooltipAndEmbedInteractivity: CommentListItemView::applyTooltips
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
