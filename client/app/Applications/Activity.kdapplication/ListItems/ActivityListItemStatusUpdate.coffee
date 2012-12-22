@@ -6,7 +6,9 @@ class StatusActivityItemView extends ActivityItemChild
     options.tooltip  or=
       title            : "Status Update"
       selector         : "span.type-icon"
-      offset           : 3
+      offset           :
+        top            : 3
+        left           : -5
 
     super options,data
 

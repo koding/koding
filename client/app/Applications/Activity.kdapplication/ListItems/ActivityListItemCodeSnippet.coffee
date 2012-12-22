@@ -5,7 +5,9 @@ class CodesnipActivityItemView extends ActivityItemChild
       cssClass    : "activity-item codesnip"
       tooltip     :
         title     : "Code Snippet"
-        offset    : 3
+        offset    :
+          top     : 3
+          left    : -5
         selector  : "span.type-icon"
     ,options
     super options,data

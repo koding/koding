@@ -85,7 +85,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
       tooltip       :
         title       : "Click to edit"
         placement   : "left"
-        offset      : 5
+        direction   : 'center'
+        offset      :
+          top       : 0
+          left      : -5
     ,@memberData
 
     @attachListeners()
@@ -168,7 +171,10 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       tooltip            :
         title            : "Click to edit"
         placement        : "left"
-        offset           : 5
+        direction        : 'center'
+        offset           :
+          top            : 0
+          left           : -5
       defaultPlaceHolder : @defaultPlaceHolder
     , @memberData
 
@@ -248,7 +254,10 @@ class PersonalFormLocationView extends AbstractPersonalFormView
       tooltip       :
         title       : "Click to edit"
         placement   : "right"
-        offset      : 5
+        direction   : 'center'
+        offset      :
+          top       : 0
+          left      : -5
     ,@memberData
 
   pistachio:->
