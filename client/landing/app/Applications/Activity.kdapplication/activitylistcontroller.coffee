@@ -55,7 +55,7 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
-    @addItem activity for activity in activities#[0...10]
+    @addItem activity for activity in activities when activity
     window.list__ = Date.now()
     log "list population:    #{list__ - revive__}msecs!, total: #{list__- init__}"
       # if group.type is "CNewMemberBucket"
