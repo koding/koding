@@ -50,6 +50,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
       cssClass : "icon compile"
       tooltip  :
         title  : "Click to compile"
+        offset :
+          top  : 4
+          left : -5
       click    : =>
         @showLoader()
         @getSingleton("kodingAppsController").compileApp manifest.name, (err)=>
@@ -60,6 +63,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
       tagName  : "span"
       cssClass : "icon info"
       tooltip  :
+        offset :
+          top  : 4
+          left : -5
         title  : """
           <div class='app-tip'>
             <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
@@ -74,6 +80,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
       cssClass : "icon delete"
       tooltip  :
         title  : "Click to delete"
+        offset :
+          top  : 4
+          left : -5
       click    : =>
         @delete.hideTooltip()
         @deleteModal = new KDModalView
