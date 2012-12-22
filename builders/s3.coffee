@@ -1,7 +1,10 @@
 {nox,mox} = require "noxmox"
 fs = require "fs"
-log4js      = require "log4js"
-log         = log4js.getLogger("[S3]")
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
 gzip        = require "gzip"
 
 
