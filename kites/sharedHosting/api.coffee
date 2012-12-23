@@ -13,6 +13,8 @@ Kite      = require 'kite-amqp'
 {bash}    = require 'koding-bash-user-glue'
 mounter   = require './mounter'
 
+{safeForUser, escapePath} = require '../applications/utils.coffee'
+
 createTmpDir = require './createtmpdir'
 
 module.exports = new Kite 'sharedHosting'
@@ -24,6 +26,15 @@ module.exports = new Kite 'sharedHosting'
     setInterval (-> callback null, interval), interval
 
   executeCommand: require './executecommand'
+
+  exists : (options, callback)->
+    {username, path} = options
+    path = escapePath path
+    unless safeForUser username, path
+      console.error "User [#{username}] is trying to make something bad: ", path
+      callback false, "You are not authorized to do this."
+      return no
+    fs.exists path, callback
 
   mountDrive    : (options, callback)-> mounter.mountDrive      options, callback
   umountDrive   : (options, callback)-> mounter.umountDrive     options, callback
