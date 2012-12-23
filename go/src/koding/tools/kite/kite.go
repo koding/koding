@@ -72,9 +72,6 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 
 						d := dnode.New()
 						defer d.Close()
-						log.Debug("Trying to send")
-						d.Send("ready", nil)
-						log.Debug("After send")
 						d.OnRootMethod = func(method string, args *dnode.Partial) {
 							go func() {
 								defer log.RecoverAndLog()
@@ -115,6 +112,8 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 								}
 							}
 						}()
+
+						d.Send("ready", nil)
 
 						for message := range channel {
 							log.Debug("Read", routingKey, message)
