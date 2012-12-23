@@ -39,7 +39,7 @@ normalizeUserPath = (username, path)-> path?.replace(/\~/g, "/Users/#{username}"
 safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
 escapePath        = (path, keepSpaces = no)->
   if path
-    path = nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
+    path = nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-\_. ]/g, '')
     if keepSpaces then return path
     path.replace(/\\/g, '')
         .replace(/\s/g, '\\ ')
