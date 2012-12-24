@@ -111,36 +111,41 @@ mounter    =
       callback "You are not authorized to do this."
       return no
 
-    # fetch user ID for curlftfs command
-    @spawnWrapper '/usr/bin/id', ['-u', username], (err,res)=>
-      if err
-        log.error error = "[ERROR] Can't find user ID: #{err}"
-        callback error
-      else
-        @checkMountPoint options, (err, state)=>
-          if state.mounted
-            callback "Remote host is already mounted to #{state.mountpoint}"
-          else
-            uid = res.trim()
-            log.info "[OK] user ID for user #{username} is #{uid}"
-            ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-            @createMountpoint options, (err, res)=>
-              if err
-                callback err
-              else
-                @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err, res)=>
-                  if err
-                    log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
-                    fs.rmdir options.mountpoint, (err)->
-                      log.error err if err
-                      callback error
-                  else
-                    @remountVE options, (err,res)=>
-                      if err
-                        callback err
-                      else
-                        @updateMountCfg options, (err,res)->
-                          callback null, res
+    @getRemotesCount options, (count)=>
+      if count >= config.maxAllowedRemotes
+        callback "You've reached your limits for remote drives. Please remove one of remotes to add new one."
+        return no
+
+      # fetch user ID for curlftfs command
+      getIds username, (err, ids)=>
+        if err
+          log.error error = "[ERROR] Can't find user ID: #{err}"
+          callback error
+        else
+          @checkMountPoint options, (err, state)=>
+            if state.mounted
+              callback "Remote host is already mounted to #{state.mountpoint}"
+            else
+              {uid} = ids
+              log.info "[OK] user ID for user #{username} is #{uid}"
+              ftpfsopts = "#{config.ftpfs.opts},uid=#{uid},gid=#{uid},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
+              @createMountpoint options, (err)=>
+                if err
+                  callback err
+                else
+                  @spawnWrapper config.ftpfs.curlftpfs, ['-o', ftpfsopts, remotehost, options.mountpoint], (err)=>
+                    if err
+                      log.error error = "Couldn't mount remote FTP server #{remotehost}: #{err}"
+                      fs.rmdir options.mountpoint, (err)->
+                        log.error err if err
+                        callback error
+                    else
+                      @remountVE options, (err)=>
+                        if err
+                          callback err
+                        else
+                          @updateMountCfg options, (err, res)->
+                            callback null, res
 
   # Safe
   checkMountPoint : (options, callback)->
@@ -243,7 +248,7 @@ mounter    =
                     callback null, info
 
   # Safe
-  readMountInfo: (options, callback)->
+  readMountInfo:(options, callback)->
 
     # Return user's mounts from mount config /Users/<username>/.mounts
 
@@ -270,6 +275,14 @@ mounter    =
         catch error
           log.error error = "[ERROR] Couldn't parse config #{cfg}: #{error}"
           callback error
+
+  # Safe
+  getRemotesCount:(options, callback)->
+    @readMountInfo options, (err, content)->
+      unless err
+        callback content.length
+      else
+        callback 0
 
   # Safe
   updateMountCfg:(options, callback)->
