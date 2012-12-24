@@ -113,7 +113,7 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 							}
 						}()
 
-						d.Send("ready", nil)
+						d.Send("ready", "kite"+name)
 
 						for message := range channel {
 							log.Debug("Read", routingKey, message)
