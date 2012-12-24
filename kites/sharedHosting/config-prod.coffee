@@ -23,6 +23,7 @@ module.exports =
   processBaseDir        : process.cwd()
   cagefsctl             : "/usr/sbin/cagefsctl"
   baseMountDir          : 'RemoteDrives'
+  maxAllowedRemotes     : 5
   usersMountsFile       : ".cagefs/.mounts"
   encryptKey            : "aljhbvohebrfupoyeqbrpvuyq38047f08q3740r8y34bfokjberfaldsjbfh"
   ftpfs                 :
