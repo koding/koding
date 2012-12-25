@@ -1,0 +1,37 @@
+{
+  "name": "users",
+  "description": "Creates users from a databag search",
+  "long_description": "Description\n===========\n\nCreates users from a databag search.\n\nRequirements\n============\n\nPlatform\n--------\n\n* Debian, Ubuntu\n* CentOS, Red Hat, Fedora\n* FreeBSD\n\nA data bag populated with user objects must exist. The default data\nbag in this recipe is `users`. See USAGE.\n\nUsage\n=====\n\nTo include just the LWRPs in your cookbook, use:\n\n    include_recipe \"users\"\n\nOtherwise, this cookbook is specific for setting up `sysadmin` group and users with the sysadmins recipe for now.\n\n    include_recipe \"users::sysadmins\"\n\nUse knife to create a data bag for users.\n\n    knife data bag create users\n\nCreate a user in the data_bag/users/ directory.\n\nWhen using an\n[Omnibus ruby](http://tickets.opscode.com/browse/CHEF-2848), one can\nspecify an optional password hash. This will be used as the user's\npassword.\n\nThe hash can be generated with the following command.\n\n    openssl passwd -1 \"plaintextpassword\"\n\nNote: The ssh_keys attribute below can be either a String or an Array.\nHowever, we are recommending the use of an Array.\n\n    {\n      \"id\": \"bofh\",\n      \"ssh_keys\": \"ssh-rsa AAAAB3Nz...yhCw== bofh\",\n    }\n\n    {\n      \"id\": \"bofh\",\n      \"password\": \"$1$d...HgH0\",\n      \"ssh_keys\": [\n        \"ssh-rsa AAA123...xyz== foo\",\n        \"ssh-rsa AAA456...uvw== bar\"\n      ],\n      \"groups\": [ \"sysadmin\", \"dba\", \"devops\" ],\n      \"uid\": 2001,\n      \"shell\": \"\\/bin\\/bash\",\n      \"comment\": \"BOFH\",\n      \"nagios\": {\n        \"pager\": \"8005551212@txt.att.net\",\n        \"email\": \"bofh@example.com\"\n      },\n      \"openid\": \"bofh.myopenid.com\"\n    }\n\nRemove a user, johndoe1.\n\n    knife data bag users johndoe1\n    {\n      \"id\": \"johndoe1\",\n      \"groups\": [ \"sysadmin\", \"dba\", \"devops\" ],\n      \"uid\": 2002,\n      \"action\": \"remove\",\n      \"comment\": \"User quit, retired, or fired.\"\n    }\n\n* Note only user bags with the \"action : remove\" and a search-able\n  \"group\" attribute will be purged by the :remove action.\n\nThe sysadmins recipe makes use of the `users_manage` Lightweight\nResource Provider (LWRP), and looks like this:\n\n    users_manage \"sysadmin\" do\n      group_id 2300\n      action [ :remove, :create ]\n    end\n\nNote this LWRP searches the `users` data bag for the `sysadmin` group\nattribute, and adds those users to a Unix security group `sysadmin`.\nThe only required attribute is group_id, which represents the numeric\nUnix gid and *must* be unique. The default action for the LWRP is\n`:create` only.\n\nIf you have different requirements, for example:\n\n * You want to search a different data bag specific to a role such as\n   mail. You may change the data_bag searched.\n   - data_bag `mail`\n * You want to search for a different group attribute named\n   `postmaster`. You may change the search_group attribute. This\n   attribute defaults to the LWRP resource name.\n   - search_group `postmaster`\n * You want to add the users to a security group other than the\n   lightweight resource name. You may change the group_name attribute.\n   This attribute also defaults to the LWRP resource name.\n   - group_name `wheel`\n\nPutting these requirements together our recipe might look like this:\n\n    users_manage \"postmaster\" do\n      data_bag \"mail\"\n      group_name \"wheel\"\n      group_id 10\n    end\n\nThe latest version of knife supports reading data bags from a file and\nautomatically looks in a directory called +data_bags+ in the current\ndirectory. The \"bag\" should be a directory with JSON files of each\nitem. For the above:\n\n    mkdir data_bags/users\n    $EDITOR data_bags/users/bofh.json\n\nPaste the user's public SSH key into the ssh_keys value. Also make\nsure the uid is unique, and if you're not using bash, that the shell\nis installed. The default search, and Unix group is sysadmin.\n\nThe recipe, by default, will also create the sysadmin group. If you're\nusing the opscode sudo cookbook, they'll have sudo access in the\ndefault site-cookbooks template. They won't have passwords though, so\nthe sudo cookbook's template needs to be adjusted so the sysadmin\ngroup has NOPASSWD.\n\nThe sysadmin group will be created with GID 2300. This may become an\nattribute at a later date.\n\nThe Apache cookbook can set up authentication using OpenIDs, which is\nset up using the openid key here. See the Opscode 'apache2' cookbook\nfor more information about this.\n\nLicense and Author\n==================\n\nAuthor:: Joshua Timberman (<joshua@opscode.com>)\nAuthor:: Seth Chisamore (<schisamo@opscode.com>)\n\nCopyright:: 2009-2012, Opscode, Inc\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n",
+  "maintainer": "Opscode, Inc.",
+  "maintainer_email": "cookbooks@opscode.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "ubuntu": ">= 0.0.0",
+    "debian": ">= 0.0.0",
+    "redhat": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "freebsd": ">= 0.0.0"
+  },
+  "dependencies": {
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "users": "Empty recipe for including LWRPs",
+    "users::sysadmins": "Create and manage sysadmin group"
+  },
+  "version": "1.3.0"
+}
