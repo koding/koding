@@ -11,7 +11,9 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass    : "activity-item tutorial"
       tooltip     :
         title     : "Tutorial"
-        offset    : 3
+        offset    :
+          top     : 3
+          left    : -5
         selector  : "span.type-icon"
     ,options
 

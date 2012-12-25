@@ -8,52 +8,58 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
-exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
-  # can't run the program if this fails,
-  if a or b or c
-    console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
-    process.exit(0)
-
+# exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
+#   # can't run the program if this fails,
+#   if a or b or c
+#     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
+#     process.exit(0)
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
-log4js      = require "./builders/node_modules/log4js"
-log         = log4js.getLogger("[Main]")
-prompt      = require './builders/node_modules/prompt'
-hat         = require "./builders/node_modules/hat"
-mkdirp      = require './builders/node_modules/mkdirp'
-commander     = require './builders/node_modules/commander'
+# log4js      = require "./builders/node_modules/log4js"
+# log         = log4js.getLogger("[Main]")
+
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
+
+prompt    = require './builders/node_modules/prompt'
+hat       = require "./builders/node_modules/hat"
+mkdirp    = require './builders/node_modules/mkdirp'
+commander = require './builders/node_modules/commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes       = new (require "processes") main : true
-closureCompile  = require 'koding-closure-compiler'
-{daisy}         = require 'sinkrow'
-fs            = require "fs"
-http          = require 'http'
-url           = require 'url'
-nodePath      = require 'path'
-Watcher       = require "koding-watcher"
+processes          = new (require "processes") main : true
+closureCompile     = require 'koding-closure-compiler'
+{daisy}            = require 'sinkrow'
+fs                 = require "fs"
+http               = require 'http'
+url                = require 'url'
+nodePath           = require 'path'
+Watcher            = require "koding-watcher"
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
-console.log "###############################################################"
-console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    1- node_modules_koding is now where we store our node    #"
-console.log "#      modules. ./node_modules dir is completely ignored.     #"
-console.log "#      ./node_modules_koding is symlinked/mixed into          #"
-console.log "#      node_modules so you can use it as usual. Just don't    #"
-console.log "#      make a new one in ./node_modules, it will be ignored.  #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    2- `cake install` is now equivalent to `npm install`     #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    3- do NOT `npm install [module]` add to package.json     #"
-console.log "#      and do another `npm install` or you will mess deploy.  #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#                       questions and complaints 1-877-DEVRIM #"
-console.log "###############################################################"
+# console.log "###############################################################"
+# console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    1- node_modules_koding is now where we store our node    #"
+# console.log "#      modules. ./node_modules dir is completely ignored.     #"
+# console.log "#      ./node_modules_koding is symlinked/mixed into          #"
+# console.log "#      node_modules so you can use it as usual. Just don't    #"
+# console.log "#      make a new one in ./node_modules, it will be ignored.  #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    2- `cake install` is now equivalent to `npm install`     #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    3- do NOT `npm install [module]` add to package.json     #"
+# console.log "#      and do another `npm install` or you will mess deploy.  #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#                       questions and complaints 1-877-DEVRIM #"
+# console.log "###############################################################"
 # log =
 #   info  : console.log
 #   debug : console.log
@@ -62,17 +68,6 @@ console.log "###############################################################"
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-
-
-
-# get current version
-# version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
-# if process.argv[2] is 'buildForProduction'
-#   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
-#   rev[2]++
-#   version = rev.join(".")
-# else
-#   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
 compilePistachios = require 'pistachio-compiler'
 
@@ -256,6 +251,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     else
       process.exit()
 
+
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build/.cache",->
     console.log "Cache is pruned."
@@ -303,8 +299,6 @@ run =(options)->
       stdout: process.stdout
       stderr: process.stderr
       verbose: yes
-
-  console.log "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
 
   processes.fork
     name    : 'social'
@@ -378,7 +372,7 @@ task 'run', (options)->
   config = require configFile
 
   config.buildClient = yes if options.buildClient
-
+    
   queue = []
   if config.vhostConfigurator?
     queue.push -> configureVhost config, -> queue.next()

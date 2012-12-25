@@ -13,7 +13,7 @@ class Ace extends KDView
 
     super options, file
     @lastSavedContents = ""
-    @appStorage = new AppStorage 'Ace', '1.0'
+    @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Ace', '1.0'
 
   setDomElement:(cssClass)->
 

@@ -23,27 +23,27 @@ class WebTerm.Cursor
     @x = x
     lastY = @y
     @y = y
-    @terminal.screenBuffer.addLineToUpdate lastY if y isnt lastY
+    @terminal.screenBuffer.addLineToUpdate lastY if y < @terminal.sizeY and y isnt lastY
     @terminal.screenBuffer.addLineToUpdate y
-  
+
   savePosition: ->
     @savedX = @x
     @savedY = @y
-  
+
   restorePosition: ->
     @moveTo @savedX, @savedY
-  
+
   setVisibility: (value) ->
     return if @visible is value
     @visible = value
     @element = null
     @terminal.screenBuffer.addLineToUpdate @y
-  
+
   setFocused: (value) ->
     return if @focused is value
     @focused = value
     @resetBlink()
-  
+
   resetBlink: ->
     if @blinkInterval?
       window.clearInterval @blinkInterval

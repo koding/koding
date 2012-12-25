@@ -22,7 +22,7 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  statsd_id: "worker.social." + argv.workerid
+  stats_id: "worker.social." + argv.workerid
   interval : 60000
   limits  :
     memory   : 300
@@ -40,7 +40,7 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
-  statsd: KONFIG.statsd
+  librato: KONFIG.librato
 
 koding = new Bongo
   root        : __dirname

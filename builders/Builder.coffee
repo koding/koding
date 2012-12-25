@@ -8,8 +8,12 @@ stylus            = require 'stylus'
 cs                = require './node_modules/coffee-script'
 Watcher           = require './Watcher'
 ProcessMonitor    = require './ProcessMonitor'
-log4js            = require "./node_modules/log4js"
-log               = log4js.getLogger("[Builder]")
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
+  
 ProgressBar       = require './node_modules/progress'
 
 module.exports = class Builder

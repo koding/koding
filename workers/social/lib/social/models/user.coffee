@@ -384,10 +384,6 @@ module.exports = class JUser extends jraphical.Module
                               if err
                                 callback err
                               else
-                                JAccount.count (err, count)->
-                                  # StatsD activities
-                                  if KONFIG.statsd?.run
-                                    KONFIG.statsd.instance.gauge "users.total", count
                                 user.addOwnAccount account, (err)->
                                   if err
                                     callback err

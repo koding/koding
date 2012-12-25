@@ -1,24 +1,24 @@
 class ActivityAppController extends AppController
 
+  allowedActivityTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CNewMemberBucketActivity'
+    'CFollowerBucketActivity'
+    'CInstallerBucketActivity'
+    # 'CLinkActivity'
+    # 'CCodeShareActivity'
+  ]
+
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
     super options
     CodeSnippetView.on 'CodeSnippetWantsSave', (data)=>
       @saveCodeSnippet data.title, Encoder.htmlDecode data.content
 
-    @currentFilter = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      # 'CLinkActivity'
-      # 'CCodeShareActivity'
-      'CInstallerBucketActivity'
-    ]
+    @currentFilter = allowedActivityTypes
 
   saveCodeSnippet:(title, content)->
     # This custom method is used because FS,
@@ -131,11 +131,107 @@ class ActivityAppController extends AppController
       callback      : (pubInst,activity)=>
         @ownActivityArrived activity
 
+    updateWidgetController.on 'OwnActivityHasArrived', (activity,constructorName)=>
+      @ownActivityArrived activity, constructorName
+
+    updateWidgetController.on 'OwnActivityHasFailed', (activity)=>
+      # log 'this has failed:',activity
+      if @fake and @activityListController.fakeView?
+        @activityListController.fakeView.setClass 'hidden-item'
+
+        constructorToTab=
+          'JStatusUpdate':
+            tabName : 'update'
+            title : 'Status Update'
+          'JCodeSnip':
+            tabName : 'codesnip'
+            title : 'Code Snip'
+          'JDiscussion':
+            tabName : 'discussion'
+            title : 'Discussion'
+          'JTutorial':
+            tabName : 'tutorial'
+            title : 'Tutorial'
+
+        {tabName,title} = constructorToTab[@fake.fakeType]
+        mainView.widget.changeTab tabName, title
+        updateWidgetController.emit 'editFromFakeData', @fake
+        @utils.wait 600, =>
+          @activityListController.removeItem @fake, @fake
+
     return updateWidgetController
 
+  createFakeTags:(originalTags)->
 
-  ownActivityArrived:(activity)->
-    @activityListController.ownActivityArrived activity
+    # prepare fake tags
+    tags = []
+    for tag in originalTags
+      fakeTag       = new KD.remote.api.JTag {}, tag
+      fakeTag       = $.extend {},fakeTag,
+        title       : tag.title or tag.$suggest
+        body        : tag.title or tag.$suggest
+        counts      :
+          followers : 0
+          following : 0
+          tagged    : 0
+        slug        : @utils.slugify (tag.title or tag.$suggest)
+      tags.push fakeTag
+    tags
+
+  createFakeDataStructureForOwner:(constructorName,activity)->
+    oldActivity = activity
+
+    # prepare fake post
+    fakePost      = new KD.remote.api[constructorName] {},activity
+    fakePost      = $.extend yes,{},fakePost,
+      fake        : yes
+      fakeType    : constructorName
+      slug        : 'fakeActivity'
+      title       : activity.title or activity.body
+      body        : activity.body
+      counts      :
+        followers : 0
+        following : 0
+      meta        :
+        createdAt : (new Date (Date.now())).toISOString()
+        likes     : 0
+        modifiedAt: (new Date (Date.now())).toISOString()
+      origin      : KD.whoami()
+      link        : oldActivity.link or oldActivity
+      repliesCount: 0
+      opinionCount: 0
+      originId    : KD.whoami()._id
+      originType  : 'JAccount'
+      _id         : 'fakeIdfakeId' # 12bytes, as expected
+
+    if oldActivity?.meta?.tags
+      fakePost        = $.extend fakePost,
+        tags          : @createFakeTags oldActivity?.meta?.tags
+
+    if activity?.code
+      fakePost        = $.extend fakePost,
+        attachments   : [
+          description : activity.body
+          content     : activity.code
+          syntax      : activity.syntax
+        ]
+    fakePost
+
+  ownActivityArrived:(activity,constructorName='JStatusUpdate')->
+    unless activity.bongo_
+      # log 'Creating fake data for', activity
+      @fake = activity = @createFakeDataStructureForOwner constructorName, activity
+      @activityListController.ownActivityArrived activity
+    else
+      if @fake
+        # log 'Removing fake item',@fake
+        @activityListController.removeItem @fake, @fake
+        # log 'Adding item',activity
+
+      @activityListController.ownActivityArrived activity, (if @fake then yes else no)
+      @utils.wait =>
+        @fake = null
+        delete @fake
 
   createFollowedAndPublicTabs:->
     # FIRST TAB = FOLLOWED ACTIVITIES, SORT AND POST NEW
@@ -218,23 +314,10 @@ class ActivityAppController extends AppController
   fetchFeedForHomePage:(callback)->
     # devrim's api
     # should make the selector work
-    selector =
-      type      :
-        $in     : [
-          'CStatusActivity'
-          'CCodeSnipActivity'
-          'CFolloweeBucketActivity'
-          'CNewMemberBucket'
-          # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-          'CDiscussionActivity'
-          'CTutorialActivity'
-          # 'CLinkActivity'
-          # 'CCodeShareActivity'
-          'CInstallerBucketActivity'
-        ]
-
-    options =
+    selector        =
+      type          :
+        $in         : allowedActivityTypes
+    options         =
       limit         : 7
       skip          : 0
       sort          :
@@ -295,19 +378,7 @@ class ActivityAppController extends AppController
       controller._state = 'public'
 
     else
-      @currentFilter = if show? then [show] else [
-        'CStatusActivity'
-        'CCodeSnipActivity'
-        'CFollowerBucketActivity'
-        'CNewMemberBucketActivity'
-        # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-        'CDiscussionActivity'
-        'CTutorialActivity'
-        # 'CLinkActivity'
-        # 'CCodeShareActivity'
-        'CInstallerBucketActivity'
-      ]
+      @currentFilter = if show? then [show] else allowedActivityTypes
 
     controller.removeAllItems()
     controller.showLazyLoader no
@@ -387,8 +458,8 @@ class ActivityListController extends KDListViewController
 
     @_state = 'public'
 
-    @scrollView.$().scroll =>
-      if @scrollView.$().scrollTop() > 10
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
         @activityHeader.setClass "scrolling-up-outset"
       else
         @activityHeader.unsetClass "scrolling-up-outset"
@@ -445,8 +516,11 @@ class ActivityListController extends KDListViewController
   # isInFollowing:(activity)->
   #   activity.originId in @_following or activity.anchor?.id in @_following
 
-  ownActivityArrived:(activity)->
+  ownActivityArrived:(activity,forceNoAnimation=no)->
     view = @getListView().addHiddenItem activity, 0
+    @fakeView = view if view.getData().fake
+    if forceNoAnimation
+      view.$().removeClass 'hidden-item'
     view.addChildView activity, ()=>
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()

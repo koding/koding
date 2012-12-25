@@ -3,8 +3,11 @@ cs              = require './node_modules/coffee-script'
 stylus          = require './node_modules/stylus'
 nib             = require './node_modules/nib'
 fs              = require 'fs'
-log4js          = require "./node_modules/log4js"
-log             = log4js.getLogger("[Watcher]")
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
 unrequire       = (module) -> delete require.cache[require.resolve module]
 nodePath        = require "path"
 {spawn, exec}   = require 'child_process'
