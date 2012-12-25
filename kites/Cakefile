@@ -13,25 +13,25 @@ task 'cl3','runs dev kites',(options)->
   config = require '../config/dev'
   processes.fork
     name    : "sharedHosting cake"
-    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev-new run"
     restart : yes
     verbose : yes
 
   processes.fork
     name    : "applications cake"
-    cmd     : "#{KODING_CAKE} ./applications -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./applications -c config-dev-new run"
     restart : yes
     verbose : yes
 
   processes.spawn
     name    : 'webterm kite'
-    cmd     : "#{__dirname}/webterm -c dev"
+    cmd     : "#{__dirname}/webterm -c dev-new"
     restart : yes
     verbose : yes
 
   processes.fork
     name    : "databases cake"
-    cmd     : "#{KODING_CAKE} ./databases -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./databases -c config-dev-new run"
     restart : yes
     verbose : yes
 
