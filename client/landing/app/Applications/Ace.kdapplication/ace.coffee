@@ -30,7 +30,6 @@ class Ace extends KDView
           @prepareEditor()
           @utils.wait => @emit "ace.ready"
           @setContents contents if contents
-          @editor.setReadOnly no
           @editor.gotoLine 0
           @show()
 
