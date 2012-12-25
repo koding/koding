@@ -82,7 +82,9 @@ class OpinionListItemView extends KDListItemView
       cssClass : "opinion-comment-header"
     , data
 
-    @bodyView = new OpinionBodyView {}, data
+    @bodyView = new OpinionBodyView
+      cssClass : 'data-wrapper'
+    , data
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3

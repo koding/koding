@@ -296,12 +296,75 @@ class EmbedBoxLinkViewImageSwitch extends KDView
 class EmbedBoxImageView extends KDView
   constructor:(options,data)->
     super options,data
-    @options = options
+    @options      = options
+    @loader       = new KDLoaderView
+
+    # @getDelegate().setClass 'condensed'
+
+    # @imageTooltip =
+    #   constructorName : KDCustomHTMLView
+    #   options         :
+    #     tagName   : 'img'
+    #     size:
+    #       height : 300
+    #       width : 300
+    #     bind : 'load'
+    #     load :=>
+    #       @image.tooltip.setPosition(undefined,yes)
+    #     attributes :
+    #       src  : (@utils.proxifyUrl @getData().link_embed?.images?[0]?.url)
+    #     delegate      : @
+    #     origin        : options.origin
+    #   data            : data
+
+    @image        = new KDCustomHTMLView
+      # tooltip     :
+      #   view      : @imageTooltip
+      tagName     : 'img'
+      bind        : "error load"
+      # load  : (event)=>
+
+      #   x = event.srcElement.naturalWidth
+      #   y = event.srcElement.naturalHeight
+
+
+      #   if y > (window.innerHeight*3/4) or x > (window.innerWidth*3/4)
+
+      #     factor = Math.max (window.innerWidth/x) ,(window.innerHeight/y)
+
+      #     x = factor * x 2
+      #     y = factor * y/2
+
+      #   @imageTooltip.options.size =
+      #     height : y
+      #     width : x
+
+
+      error       : =>
+        unless @getDelegate().getOptions().hasConfig # do not hide for widgets
+          @getDelegate().hide()
+        else
+          new KDNotificationView
+            title : 'The image you are trying to embed can not be retrieved'
+            duration : 5000
+      attributes  :
+        src       : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+        "data-src": (@utils.proxifyUrl @getData().link_embed?.images?[0]?.url) or "https://koding.com/images/small-loader.gif"
+        title     : @getData().link_embed?.title or ""
 
   populate:(data)->
     @setData data
     @options = data.link_options
-    @viewAppended()
+
+    url = data.link_embed?.images?[0]?.url
+
+    if url
+      @image.setDomAttributes
+        'data-src' : @utils.proxifyUrl url
+
+    @setTemplate @pistachio()
+    @template.update()
+    @loadImages()
 
   render:->
     super()
@@ -309,26 +372,25 @@ class EmbedBoxImageView extends KDView
 
   viewAppended:->
     super()
-    @setTemplate @pistachio()
-    @template.update()
-
-    @loadImages()
+    @loader.show()
 
   loadImages:->
+    # defer the image load
     do =>
       @utils.wait =>
-        @$("img").each (i,element)->
-          if $(element).attr "data-src"
-            $(element).attr "src" : $(element).attr("data-src")
-            $(element).removeAttr "data-src"
-          element
 
+        @loader.hide()
+
+        if @image.$().attr "data-src"
+          @image.setDomAttributes
+            src : @image.$().attr("data-src")
+          @image.$().removeAttr "data-src"
 
   pistachio:->
     """
     <div class="embed embed-image-view custom-image">
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="#{(@utils.proxifyUrl @getData().link_embed?.images?[0]?.url) or "https://koding.com/images/small-loader.gif"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
+    {{> @image}}
     </a>
     </div>
 
@@ -376,6 +438,9 @@ class EmbedBoxLinkViewImage extends KDView
     @imageView = new KDCustomHTMLView
       tagName    : "img"
       cssClass   : "thumb"
+      bind       : 'error'
+      error       : =>
+        @hide() #unless @getDelegate().getOptions().hasConfig
       attributes :
         "data-src" : @imageLink
         src : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="

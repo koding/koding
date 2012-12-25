@@ -24,3 +24,8 @@ class DiscussionActivityOpinionView extends KDView
         @opinionList.addItem opinion unless i > 1
 
     @addSubView @opinionHeader = new OpinionViewHeader delegate: @opinionList, data
+
+  viewAppended:->
+    super
+    if @getData().fake
+      @hide()

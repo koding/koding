@@ -27,7 +27,7 @@ class ApplicationManager extends KDObject
       app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
       view.destroy()
     @removeAppInstance path
-    app.destroy()
+    app?.destroy()
 
   quitApplication:(path)->
     app = @getAppInstance path

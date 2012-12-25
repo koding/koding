@@ -365,6 +365,8 @@ span.main-nav-icon
     bg(position,0 -500px)
   &.demos
     bg(position,0 -100px)
+  &.admin-panel
+    bg(position,-80px -300px)
   &.invite-friends
     margin        1px 20px 1px 3px
     rounded       2px
@@ -1067,12 +1069,14 @@ span.main-nav-icon
       font-size   11px
       color       linkColor1
       font-style  normal
+
   span.invite-icon
     bg            position,-480px -80px
     size          40px,20px
     margin        15px 5px 15px -10px
     sprite()
     fl()
+
   .invite-hint
     abs()
     size          auto, 27px
@@ -1086,4 +1090,98 @@ span.main-nav-icon
       color       white
 
 
+// remotes modal
+.kdmodal.remotes-modal
+
+  button
+    span.icon
+      sprite()
+      &.delete
+        bg        position,-120px -420px
+
+  .no-remote-found
+    padding       15px
+
+  .mount-toggle
+    right         45px !important
+    height        26px
+
+  .mount-list
+    padding       0
+
+    .remote-details
+      padding       8px
+      margin-left  40px
+      cite
+        cursor    pointer
+        color     linkColor1
+
+    .remote-listitem
+      border-bottom 1px solid #CCC
+      h3
+        margin-bottom 2px
+        color         #666
+      button
+        top       10px
+        right     10px
+        abs()
+
+  span.remote-type
+    color         white
+    width         30px
+    height        30px
+    margin        7px
+    font-variant  small-caps
+    font-weight   bold
+    bg            color, linkColor1
+    border-radius 4px
+    abs()
+    > span
+      top       8px
+      left      8px
+      abs()
+
+  .kdinput
+    width         365px
+    &[readonly=readonly]
+      bg          color,#f5f5f5
+
+  textarea.kdinput
+    height        80px
+
+  .modal-hint
+    height        auto
+    gradient      #333333,#454546
+    p
+      color       white
+      margin      15px 20px 0
+      line-height 19px
+      &:last-child
+        margin    15px 20px
+    cite
+      font-size   11px
+      color       linkColor1
+      font-style  normal
+
+  .details-hint
+    p
+      color         #75DF75
+      padding       12px
+      font-family   Monospace
+      line-height   19px
+      bg            color, black
+
+    span.close-icon
+      top           12px
+      right         12px
+
+  .status-hint
+    abs()
+    size          auto, 27px
+    top           16px
+    overflow      visible
+    font-size     11px
+    span
+      color       linkColor1
+      cursor      pointer
 

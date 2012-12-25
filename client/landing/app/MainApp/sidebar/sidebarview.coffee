@@ -358,17 +358,18 @@ class Sidebar extends JView
     id : "finder-bottom-controls"
     items : [
       { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
+      { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
-      { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
     ]
 
   adminNavItems =
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-      { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin",         loggedIn : yes, callback : -> new AdminModal }
+      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =
