@@ -21,14 +21,17 @@ class Ace extends KDView
 
   viewAppended:->
 
+    @hide()
     @appStorage.fetchStorage (storage)=>
       require ['ace/ace'], (ace)=>
-        @editor = ace.edit "editor#{@getId()}"
-        @prepareEditor()
-        @utils.wait => @emit "ace.ready"
         @fetchContents (err, contents)=>
+          notification?.destroy()
+          @editor = ace.edit "editor#{@getId()}"
+          @prepareEditor()
+          @utils.wait => @emit "ace.ready"
           @setContents contents if contents
           @editor.gotoLine 0
+          @show()
 
   prepareEditor:->
 
@@ -94,6 +97,7 @@ class Ace extends KDView
 
     file = @getData()
     unless /localfile:/.test file.path
+      @notify "Loading...", null, null, 10000
       file.fetchContents callback
     else
       callback null, file.contents or ""
@@ -243,7 +247,7 @@ class Ace extends KDView
   ###
 
   notification = null
-  notify:(msg, style, details)->
+  notify:(msg, style, details, duration)->
 
     notification.destroy() if notification
 
@@ -254,7 +258,7 @@ class Ace extends KDView
       type      : "mini"
       cssClass  : "editor #{style}"
       container : @parent
-      duration  : if details then 5000 else 2500
+      duration  : duration or if details then 5000 else 2500
       details   : details
       click     : ->
         if notification.getOptions().details
