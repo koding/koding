@@ -6,7 +6,7 @@
 
 
 yum_repository "golang" do
-  description "Google GO lang repo"
-  url "http://golang.myinvisible.net/yum"
-  action :add
+    description "Google GO lang repo"
+    url "http://golang.myinvisible.net/yum"
+    action :add
 end
