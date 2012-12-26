@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 module.exports = class JEmailNotification extends Model
-  
+
   @setSchema
     timestamp :
       type    : Date
@@ -14,6 +14,6 @@ module.exports = class JEmailNotification extends Model
       type    : String
       default : 'queued'
       enum    : ['Invalid status',['queued','attempted']]
-    
+
   constructor:(email, receiver, event, contents)->
     super {email, receiver, event, contents}
