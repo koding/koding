@@ -198,7 +198,7 @@ class ActivityUpdateWidgetController extends KDViewController
     else
 
       @emit 'OwnActivityHasArrived', data, 'JStatusUpdate'
-      updateTimeout = @utils.wait 8000, =>
+      updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
         new KDNotificationView
           # type : "mini"
