@@ -53,7 +53,7 @@ task 'cl0', 'runs prod kites',(options)->
 
   processes.spawn
     name    : 'webterm'
-    cmd     : "#{__dirname}/webterm -c prod"
+    cmd     : "#{__dirname}/webterm -c prod-new"
     restart : yes
     verbose : yes
 
