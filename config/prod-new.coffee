@@ -85,12 +85,11 @@ module.exports = deepFreeze
       mainUri   : 'https://koding.com'
       broker    :
         sockJS  : 'https://mq.koding.com/subscribe'
-        vhost   : '/'
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'web0.prod.system.aws.koding.com'
+    host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
@@ -110,7 +109,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'web0.prod.system.aws.koding.com'
+      host          : 'localhost'
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
