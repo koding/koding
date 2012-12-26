@@ -230,9 +230,10 @@ module.exports = class JAccount extends jraphical.Module
       if err
         callback err
       else
+        current = user.getAt 'emailFrequency'
         Object.keys(prefs).forEach (granularity)->
-          prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
-        user.update {$set: emailFrequency: prefs}, callback
+          current[granularity] = if prefs[granularity] then 'instant' else 'never'
+        user.update {$set: emailFrequency: current}, callback
 
   glanceMessages: secure (client, callback)->
 
