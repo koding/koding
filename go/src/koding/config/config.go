@@ -63,6 +63,14 @@ var configs = map[string]Config{
 		UseLVE:       true,
 	},
 
+	"prod-new": {
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "Dtxym6fRJXx4GJz",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
 	"local-go": {
 		AmqpHost:     "localhost",
 		AmqpUser:     "guest",
