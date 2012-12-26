@@ -19,17 +19,17 @@ socialQueueName = "koding-social-prod"
 
 module.exports = deepFreeze
   uri           :
-    address     : "http://localhost:3000"
+    address     : "https://koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : 3000
+    port        : 3020
     clusterSize : 10
     queueName   : socialQueueName+'web'
   mongo         : mongo
-  runGoBroker   : no
-  buildClient   : yes
+  runGoBroker   : yes
+  buildClient   : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
