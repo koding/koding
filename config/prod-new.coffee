@@ -25,7 +25,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : 3000
-    clusterSize : 4
+    clusterSize : 10
     queueName   : socialQueueName+'web'
   mongo         : mongo
   runGoBroker   : no
@@ -57,7 +57,7 @@ module.exports = deepFreeze
     numberOfWorkers: 1
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
+    numberOfWorkers: 10
     watch       : yes
     queueName   : socialQueueName
   feeder        :
