@@ -3,7 +3,7 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.9" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
@@ -67,10 +67,10 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
+    pistachios  : yes
     version     : version
-    minify      : no
-    watch       : yes
+    minify      : yes
+    watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
@@ -80,11 +80,10 @@ module.exports = deepFreeze
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'https://mq.koding.com:8008/subscribe'
         vhost   : '/'
       apiUri    : 'https://api.koding.com'
