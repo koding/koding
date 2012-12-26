@@ -140,6 +140,7 @@ module.exports = class AuthWorker extends EventEmitter
         exchange.publish 'auth.leave', {
           routingKey: client.routingKey
         }
+        exchange.close() # don't leak a channel!
 
   cleanUpAfterDisconnect:(socketId)->
     @clients.bySocketId[socketId]?.forEach @bound 'cleanUpClient'
