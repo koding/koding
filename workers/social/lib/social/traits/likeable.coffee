@@ -23,6 +23,7 @@ module.exports = class Likeable
           callback err, no
 
   like: secure ({connection}, callback)->
+    EmailNotification = require '../emailnotification'
 
     {delegate} = connection
     {constructor} = @
@@ -60,6 +61,14 @@ module.exports = class Likeable
                     likesCount    : count
                     relationship  : docs[0]
                   }
+
+                  EmailNotification.send
+                    account : origin
+                    actor   : ObjectRef(delegate).data
+                    data    : @
+                  , (err)->
+                    console.error err if err
+
                 @flushOriginSnapshot constructor
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
