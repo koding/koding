@@ -84,7 +84,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : 'https://mq.koding.com:8008/subscribe'
+        sockJS  : 'https://mq.koding.com/subscribe'
         vhost   : '/'
       apiUri    : 'https://api.koding.com'
       # Is this correct?
