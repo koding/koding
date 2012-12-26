@@ -45,3 +45,5 @@ sftp-config.json
 /broker/apps/broker/src/broker.app.src
 
 *.orig
+
+.vagrant

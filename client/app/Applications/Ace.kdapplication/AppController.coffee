@@ -38,7 +38,6 @@ class AceAppController extends KDController
     else
       @bringToFront new AceView {}, file
 
-
   removeOpenDocument:(doc)->
 
     if doc
@@ -70,7 +69,7 @@ class AceAppController extends KDController
 
     file.on "fs.delete.finished", => @removeOpenDocument @aceViews[file.path]
 
-
   clearFileRecords:(view)->
     file = view.getData()
     delete @aceViews[file.path]
+
