@@ -23,6 +23,14 @@ var configs = map[string]Config{
 		UseLVE:       true,
 	},
 
+	"vagrant": {
+		AmqpHost:     "10.0.0.3",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "djfjfhgh4455__5",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
 	"dev-new": {
 		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
 		AmqpUser:     "broker",
