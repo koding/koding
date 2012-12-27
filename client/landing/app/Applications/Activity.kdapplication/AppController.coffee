@@ -136,28 +136,28 @@ class ActivityAppController extends AppController
 
     updateWidgetController.on 'OwnActivityHasFailed', (activity)=>
       # log 'this has failed:',activity
-      if @fake and @activityListController.fakeView?
-        @activityListController.fakeView.setClass 'hidden-item'
+      # if @fake and @activityListController.fakeView?
+      #   @activityListController.fakeView.setClass 'hidden-item'
 
-        constructorToTab=
-          'JStatusUpdate':
-            tabName : 'update'
-            title : 'Status Update'
-          'JCodeSnip':
-            tabName : 'codesnip'
-            title : 'Code Snip'
-          'JDiscussion':
-            tabName : 'discussion'
-            title : 'Discussion'
-          'JTutorial':
-            tabName : 'tutorial'
-            title : 'Tutorial'
+      #   constructorToTab=
+      #     'JStatusUpdate':
+      #       tabName : 'update'
+      #       title : 'Status Update'
+      #     'JCodeSnip':
+      #       tabName : 'codesnip'
+      #       title : 'Code Snip'
+      #     'JDiscussion':
+      #       tabName : 'discussion'
+      #       title : 'Discussion'
+      #     'JTutorial':
+      #       tabName : 'tutorial'
+      #       title : 'Tutorial'
 
-        {tabName,title} = constructorToTab[@fake.fakeType]
-        mainView.widget.changeTab tabName, title
-        updateWidgetController.emit 'editFromFakeData', @fake
-        @utils.wait 600, =>
-          @activityListController.removeItem @fake, @fake
+      #   {tabName,title} = constructorToTab[@fake.fakeType]
+      #   mainView.widget.changeTab tabName, title
+      #   updateWidgetController.emit 'editFromFakeData', @fake
+      #   @utils.wait 600, =>
+      #     @activityListController.removeItem @fake, @fake
 
     return updateWidgetController
 
