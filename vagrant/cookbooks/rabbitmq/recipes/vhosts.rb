@@ -1,6 +1,6 @@
 include_recipe "rabbitmq::default"
 
-vhosts = %w( logs slugs stage stage-logs )
+vhosts = %w( logs slugs )
 
 vhosts.each do |vhost|
 
