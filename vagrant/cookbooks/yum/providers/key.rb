@@ -25,11 +25,12 @@ end
 action :add do
   unless ::File.exists?("/etc/pki/rpm-gpg/#{new_resource.key}")
     Chef::Log.info "Adding #{new_resource.key} GPG key to /etc/pki/rpm-gpg/"
-
     if node['platform_version'].to_i <= 5
       package "gnupg"
     elsif node['platform_version'].to_i >= 6
-      package "gnupg2"
+      yum_package "gnupg2" do
+        action :install
+      end
     end
 
     execute "rpm --import /etc/pki/rpm-gpg/#{new_resource.key}" do

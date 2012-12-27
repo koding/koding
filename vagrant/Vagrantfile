@@ -14,6 +14,12 @@ roles_dir = "#{koding_git_dir}/vagrant/roles"
 
 File.new(private_ssh_key).chmod(0600)
 
+# start VMs only in the toplevel git directory
+toplevel = `/usr/bin/git rev-parse --show-toplevel`.chop.downcase
+unless toplevel.eql?(koding_git_dir.downcase)
+    STDERR.puts "you have to change directory to the git toplevel first"
+    exit 1
+end
 
 Vagrant::Config.run do |config|
     config.ssh.private_key_path = private_ssh_key
