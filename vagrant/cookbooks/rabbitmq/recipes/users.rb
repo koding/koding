@@ -36,6 +36,7 @@ root_logs_users = %w( PROD-k5it50s4676pO9O
                       prod-social
                       prod-webserver
                       prod-webterm-kite
+                      prod-auth-worker
                     )
 
 root_logs_users.each do |root_logs_user|
