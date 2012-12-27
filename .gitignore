@@ -24,7 +24,6 @@ ebin
 /go/pkg
 /go/src/code.google.com
 /go/src/github.com
-/kites/webterm
 /kites/os
 .project
 /kites/terminal/.tmp
