@@ -159,6 +159,7 @@ func main() {
 					if time.Now().Sub(lastErrorTime) < time.Second {
 						break
 					}
+					lastErrorTime = time.Now()
 				}
 			}
 		}()
