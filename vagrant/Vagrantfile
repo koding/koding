@@ -36,7 +36,7 @@ Vagrant::Config.run do |config|
           web_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           web_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 1024,
+                                    "--memory", 768,
                                     "--cpus", 2
                                   ]
 
