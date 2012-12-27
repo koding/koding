@@ -47,3 +47,7 @@ if node[:platform] == 'smartos'
   default['rabbitmq']['config'] = '/opt/local/etc/rabbitmq/rabbitmq'
   default['rabbitmq']['erlang_cookie_path'] = '/var/db/rabbitmq/.erlang.cookie'
 end
+
+
+# plugins location
+default['rabbitmq']['plugins_root'] = "/usr/lib/rabbitmq/lib/rabbitmq_server-#{default['rabbitmq']['version']}/plugins"
