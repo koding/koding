@@ -149,10 +149,17 @@ func main() {
 		defer listener.Close()
 
 		go func() {
+			defer log.RecoverAndLog()
+			defer consumeChannel.Close()
+			lastErrorTime := time.Now()
 			for {
-				err = server.Serve(listener)
+				err := server.Serve(listener)
 				if err != nil {
 					log.Warn("Server error: " + err.Error())
+					if time.Now().Sub(lastErrorTime) < time.Second {
+						break
+					}
+					lastErrorTime = time.Now()
 				}
 			}
 		}()

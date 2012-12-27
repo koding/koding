@@ -273,7 +273,7 @@ run =(options)->
   if config.runGoBroker
     processes.spawn
       name  : 'goBroker'
-      cmd   : "./go/bin/broker -c #{options.configFile} -v -l=7"
+      cmd   : "./go/bin/broker -c #{options.configFile}"
       restart: yes
       restartInterval: 100
       stdout  : process.stdout
