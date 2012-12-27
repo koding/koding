@@ -198,17 +198,18 @@ class ActivityUpdateWidgetController extends KDViewController
     else
 
       @emit 'OwnActivityHasArrived', data, 'JStatusUpdate'
-      updateTimeout = @utils.wait 8000, =>
+      updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
-        new KDNotificationView
-          # type : "mini"
-          title : "There was an error, please try again!"
+        # new KDNotificationView
+        #   # type : "mini"
+        #   title : "There was an error, please try again!"
 
       KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
           @utils.killWait updateTimeout
-          @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
+          # @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
+          @emit 'OwnActivityHasArrived',activity
         else
           @emit 'OwnActivityHasFailed', data
           new KDNotificationView
@@ -230,7 +231,7 @@ class ActivityUpdateWidgetController extends KDViewController
         return notifySubmissionStopped()
 
       @emit 'OwnActivityHasArrived', data, 'JCodeSnip'
-      updateTimeout = @utils.wait 8000, =>
+      updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
       KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
@@ -325,7 +326,7 @@ class ActivityUpdateWidgetController extends KDViewController
         return notifySubmissionStopped()
 
       @emit 'OwnActivityHasArrived', data, 'JTutorial'
-      updateTimeout = @utils.wait 8000, =>
+      updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
       KD.remote.api.JTutorial.create data, (err, tutorial) =>
@@ -355,7 +356,7 @@ class ActivityUpdateWidgetController extends KDViewController
         return notifySubmissionStopped()
 
       @emit 'OwnActivityHasArrived', data, 'JDiscussion'
-      updateTimeout = @utils.wait 8000, =>
+      updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
       KD.remote.api.JDiscussion.create data, (err, discussion) =>

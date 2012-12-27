@@ -16,21 +16,21 @@ module.exports = class AuthWorker extends EventEmitter
       byRoutingKey  : {}
     }
     @counts   = {}
-    @monitorServices()
+    # @monitorServices()
 
   bound: require 'koding-bound'
 
-  monitorServices: do ->
-    pingAll =(services)->
-      # for own servicesOfType of services
-      #   servicesOfType.forEach (service)->
-      # TODO: implement pingA       
-    monitorServicesHelper =->
-      console.log {@services, @clients}
-      pingAll @services
-    monitorServices =->
-      handler = monitorServicesHelper.bind this
-      setInterval handler, 10000
+  # monitorServices: do ->
+  #   pingAll =(services)->
+  #     # for own servicesOfType of services
+  #     #   servicesOfType.forEach (service)->
+  #     # TODO: implement pingA       
+  #   monitorServicesHelper =->
+  #     console.log {@services, @clients}
+  #     pingAll @services
+  #   monitorServices =->
+  #     handler = monitorServicesHelper.bind this
+  #     setInterval handler, 10000
 
   authenticate:(messageData, routingKey, callback)->
     {clientId, channel, event} = messageData
@@ -60,12 +60,10 @@ module.exports = class AuthWorker extends EventEmitter
     return serviceName
 
   addService:({serviceGenericName, serviceUniqueName})->
-    console.log 'addService', {serviceGenericName, serviceUniqueName}
     servicesOfType = @services[serviceGenericName] ?= []
     servicesOfType.push serviceUniqueName
 
   removeService:({serviceGenericName, serviceUniqueName})->
-    console.log 'removeService', {serviceGenericName, serviceUniqueName}
     servicesOfType = @services[serviceGenericName] 
     index = servicesOfType.indexOf serviceUniqueName
     servicesOfType.splice index, 1
@@ -99,8 +97,6 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange.push client
 
   rejectClient:(routingKey, message)->
-    console.log 'rejecting client', arguments
-    console.trace()
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: message ? 'Access denied']
@@ -144,6 +140,7 @@ module.exports = class AuthWorker extends EventEmitter
         exchange.publish 'auth.leave', {
           routingKey: client.routingKey
         }
+        exchange.close() # don't leak a channel!
 
   cleanUpAfterDisconnect:(socketId)->
     @clients.bySocketId[socketId]?.forEach @bound 'cleanUpClient'
