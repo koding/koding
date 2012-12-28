@@ -21,26 +21,35 @@ func init() {
 	Pid = os.Getpid()
 }
 
-func NewEvent(level int, message ...interface{}) url.Values {
-	messageStrings := make([]string, len(message))
-	for i, part := range message {
-		if bytes, ok := part.([]byte); ok {
-			messageStrings[i] = string(bytes)
-		} else {
-			messageStrings[i] = fmt.Sprint(part)
-		}
-	}
-	return url.Values{
+func NewEvent(level int, text string, data ...interface{}) url.Values {
+	event := url.Values{
 		"source": {fmt.Sprintf("%s %d on %s", Service, Pid, Hostname)},
 		"tags":   {LEVEL_TAGS[level] + " " + Service + " " + Profile},
-		"text":   {messageStrings[0]},
-		"data":   {strings.Join(messageStrings, "\n")},
+		"text":   {text},
 	}
+	if len(data) != 0 {
+		dataStrings := make([]string, len(data))
+		for i, part := range data {
+			if bytes, ok := part.([]byte); ok {
+				dataStrings[i] = string(bytes)
+			} else {
+				dataStrings[i] = fmt.Sprint(part)
+			}
+		}
+		event.Add("data", strings.Join(dataStrings, "\n"))
+	}
+	return event
 }
 
 func Send(event url.Values) {
 	if !LogToLoggr {
-		fmt.Printf("[%s] %s\n", event.Get("tags"), event.Get("data"))
+		tagPrefix := "[" + event.Get("tags") + "] "
+		data := event.Get("data")
+		if data != "" {
+			linePrefix := "\n" + strings.Repeat(" ", len(tagPrefix))
+			data = linePrefix + strings.Replace(data, "\n", linePrefix, -1)
+		}
+		fmt.Println(tagPrefix + event.Get("text") + data)
 		return
 	}
 
@@ -52,11 +61,11 @@ func Send(event url.Values) {
 	}
 }
 
-func Log(level int, Entry ...interface{}) {
+func Log(level int, text string, data ...interface{}) {
 	if level == DEBUG && !LogDebug {
 		return
 	}
-	Send(NewEvent(level, Entry...))
+	Send(NewEvent(level, text, data...))
 }
 
 const (
@@ -68,24 +77,24 @@ const (
 
 var LEVEL_TAGS = []string{"error", "warning", "info", "debug"}
 
-func Err(Entry ...interface{}) {
-	Log(ERR, Entry...)
+func Err(text string, data ...interface{}) {
+	Log(ERR, text, data...)
 }
 
-func Warn(Entry ...interface{}) {
-	Log(WARN, Entry...)
+func Warn(text string, data ...interface{}) {
+	Log(WARN, text, data...)
 }
 
-func Info(Entry ...interface{}) {
-	Log(INFO, Entry...)
+func Info(text string, data ...interface{}) {
+	Log(INFO, text, data...)
 }
 
-func Debug(Entry ...interface{}) {
-	Log(DEBUG, Entry...)
+func Debug(text string, data ...interface{}) {
+	Log(DEBUG, text, data...)
 }
 
 func LogError(err interface{}) {
-	Entry := []interface{}{err}
+	data := make([]interface{}, 0)
 	for i := 3; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
@@ -98,9 +107,9 @@ func LogError(err interface{}) {
 		} else {
 			name = "<unknown>"
 		}
-		Entry = append(Entry, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}
-	Log(ERR, Entry...)
+	Log(ERR, fmt.Sprint(err), data...)
 }
 
 func RecoverAndLog() {
