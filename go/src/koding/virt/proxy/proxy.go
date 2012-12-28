@@ -59,16 +59,18 @@ func handleConnection(source net.Conn) {
 		return
 	}
 
-	c := make(chan *net.TCPConn)
-	go func() {
-		target, _ := net.DialTCP("tcp", nil, &net.TCPAddr{vm.IP(), 80})
-		c <- target
-	}()
-
 	var target *net.TCPConn
-	select {
-	case target = <-c:
-	case <-time.After(5 * time.Second):
+	if vm.IP != nil {
+		c := make(chan *net.TCPConn)
+		go func() {
+			target, _ := net.DialTCP("tcp", nil, &net.TCPAddr{IP: vm.IP, Port: 80})
+			c <- target
+		}()
+
+		select {
+		case target = <-c:
+		case <-time.After(5 * time.Second):
+		}
 	}
 
 	if target == nil {

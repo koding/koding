@@ -3,11 +3,13 @@ package utils
 import (
 	cryptorand "crypto/rand"
 	"encoding/base64"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"koding/config"
 	"koding/tools/log"
 	"math/rand"
+	"net"
 	"os"
 	"runtime"
 	"time"
@@ -82,4 +84,39 @@ func RandomString() string {
 	r := make([]byte, 128/8)
 	cryptorand.Read(r)
 	return base64.StdEncoding.EncodeToString(r)
+}
+
+func NewIntPool(offset int) (<-chan int, chan<- int) {
+	fetchChan := make(chan int)
+	releaseChan := make(chan int)
+	go func() {
+		next := offset
+		tail := offset + 1
+		unused := make([]int, 0)
+		for {
+			select {
+			case fetchChan <- next:
+				if len(unused) != 0 {
+					next = unused[len(unused)-1]
+					unused = unused[:len(unused)-1]
+				} else {
+					next = tail
+					tail += 1
+				}
+			case i := <-releaseChan:
+				unused = append(unused, i)
+			}
+		}
+	}()
+	return fetchChan, releaseChan
+}
+
+func IntToIP(v int) net.IP {
+	ip := net.IPv4(0, 0, 0, 0)
+	binary.BigEndian.PutUint32(ip[12:16], uint32(v))
+	return ip
+}
+
+func IPToInt(ip net.IP) int {
+	return int(binary.BigEndian.Uint32(ip[12:16]))
 }

@@ -18,12 +18,14 @@ type VM struct {
 	Name         string "name"
 	Users        []int  "users"
 	LdapPassword string "ldapPassword"
+	IP           net.IP "ip"
 }
 
 const VMROOT_ID = 1000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
+var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 1)))
 
 func init() {
 	var err error
@@ -55,15 +57,11 @@ func FindVMByName(name string) (*VM, error) {
 }
 
 func (vm *VM) String() string {
-	return vm.IP().String()
-}
-
-func (vm *VM) IP() net.IP {
-	return net.IPv4(10, byte(vm.Id>>16), byte(vm.Id>>8), byte(vm.Id>>0))
+	return fmt.Sprintf("vm%d", vm.Id)
 }
 
 func (vm *VM) MAC() net.HardwareAddr {
-	return net.HardwareAddr([]byte{0, 0, 10, byte(vm.Id >> 16), byte(vm.Id >> 8), byte(vm.Id >> 0)})
+	return net.HardwareAddr([]byte{0, 0, byte(vm.Id >> 24), byte(vm.Id >> 16), byte(vm.Id >> 8), byte(vm.Id >> 0)})
 }
 
 func (vm *VM) Hostname() string {
@@ -138,6 +136,11 @@ func FetchUnusedVM(user *User) *VM {
 
 // may panic
 func (vm *VM) Prepare(format bool) {
+	if vm.IP != nil {
+		return
+	}
+	vm.IP = utils.IntToIP(<-ipPoolFetch)
+
 	// prepare directories
 	vm.PrepareDir(vm.File(""), 0)
 	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
@@ -193,6 +196,10 @@ func (vm *VM) Unprepare() {
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
+	if vm.IP != nil {
+		ipPoolRelease <- utils.IPToInt(vm.IP)
+		vm.IP = nil
+	}
 }
 
 // may panic

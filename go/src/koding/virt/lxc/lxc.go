@@ -1,8 +1,9 @@
-package virt
+package lxc
 
 import (
 	"fmt"
 	"io/ioutil"
+	"koding/virt"
 	"os"
 	"os/exec"
 	"syscall"
@@ -16,18 +17,18 @@ extern pid_t get_init_pid(const char *name);
 */
 import "C"
 
-func (vm *VM) Start() error {
+func (vm *virt.VM) Start() error {
 	return exec.Command("/usr/bin/unshare", "-m", "--", "/usr/bin/lxc-start", "-d", "-n", vm.String()).Run()
 }
 
-func (vm *VM) Stop() error {
+func (vm *virt.VM) Stop() error {
 	if C.lxc_stop(C.CString(vm.String())) != 0 {
 		return fmt.Errorf("stop failed")
 	}
 	return nil
 }
 
-func (vm *VM) Shutdown() error {
+func (vm *virt.VM) Shutdown() error {
 	process, err := vm.GetInitProcess()
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func (vm *VM) Shutdown() error {
 	return nil
 }
 
-func (vm *VM) GetInitProcess() (*os.Process, error) {
+func (vm *virt.VM) GetInitProcess() (*os.Process, error) {
 	pid := int(C.get_init_pid(C.CString(vm.String())))
 	if pid < 0 {
 		return nil, fmt.Errorf("VM not running")

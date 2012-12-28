@@ -3,7 +3,7 @@
 export GOPATH=$(cd "$(dirname "$0")"; pwd)
 
 ldflags="-X koding/tools/utils.version $(git rev-parse HEAD)"
-services=(koding/broker koding/kites/irc koding/alice)
+services=(koding/broker koding/kites/irc koding/virt/idshift koding/virt/ldapserver koding/virt/proxy koding/alice)
 if [ $(uname) == "Linux" ]; then
   services+=(koding/kites/os)
 fi
