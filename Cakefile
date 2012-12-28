@@ -189,7 +189,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage","local-go","dev-new","prod-new"
+    when "dev","prod","local","stage","local-go","dev-new","prod-new","vagrant"
       long = "./config/#{short}.coffee"
     else
       short
@@ -273,7 +273,7 @@ run =(options)->
   if config.runGoBroker
     processes.spawn
       name  : 'goBroker'
-      cmd   : "./go/bin/broker -c #{options.configFile} -v"
+      cmd   : "./go/bin/broker -c #{options.configFile}"
       restart: yes
       restartInterval: 100
       stdout  : process.stdout

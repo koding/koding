@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0",
+  "replacing": {
+  },
+  "conflicting": {
+  },
+  "maintainer": "YOUR_COMPANY_NAME",
+  "name": "base_packages",
+  "platforms": {
+  },
+  "suggestions": {
+  },
+  "dependencies": {
+  },
+  "description": "Installs/Configures base_packages",
+  "maintainer_email": "YOUR_EMAIL",
+  "attributes": {
+  },
+  "providing": {
+  },
+  "license": "All rights reserved",
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "groupings": {
+  },
+  "recipes": {
+  },
+  "recommendations": {
+  }
+}
