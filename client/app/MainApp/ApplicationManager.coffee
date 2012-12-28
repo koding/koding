@@ -1,11 +1,10 @@
 # uncomplicate this - Sinan 7/2012
 class ApplicationManager extends KDObject
   constructor: ->
-    @controllers            = {}
+    # @controllers            = {}
     @openedInstances        = {}
-    @appInstanceArray       = []
-    @appInitializationQueue = {}
-    @appViewsArray          = []
+    @appInstances           = []
+    @appViews2d             = []
     @openTabs               = []
     @activePath             = null
 
@@ -22,17 +21,18 @@ class ApplicationManager extends KDObject
     callback?()
 
   forceQuit:(path)->
-    appInstance = @getAppInstance path
-    for view in (@getAppViews path).slice 0
-      appInstance.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
+    app = @getAppInstance path
+    views = (@getAppViews path)?.slice 0
+    for view in views ? []
+      app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
       view.destroy()
     @removeAppInstance path
-    appInstance.destroy()
+    app?.destroy()
 
   quitApplication:(path)->
-    appInstance = @getAppInstance path
-    if typeof appInstance.quit is "function"
-      appInstance.quit? ->
+    app = @getAppInstance path
+    if app and typeof app.quit is "function"
+      app.quit? ->
         @removeAppInstance path
       setTimeout ->
         @forceQuit path
@@ -40,98 +40,107 @@ class ApplicationManager extends KDObject
     else
       @forceQuit path
 
-  setFrontApp:(appInstance)->
-    @frontApp = appInstance
+  setFrontApp:(app)-> @frontApp = app
 
   getFrontApp:-> @frontApp
 
-  expandApplicationPath:(path)->
+  expandApplicationPath = (path)->
+    path ?= KD.getSingleton('mainController').getOptions().startPage
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
-  openApplication:(path, doBringToFront, callback)->
-    switch arguments.length
-      when 1, 2
-        [path, callback] = arguments
-        doBringToFront = yes
+  isAppUnderDevelop:(appName)->
 
-    path = @expandApplicationPath path
-    appManager = @
+    appsWithCustomRoutes = [
+      'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
+      'Account','Chat','Demos'
+    ]
 
-    beforeCallback = (appInstance)->
-      appManager.emit "AppManagerOpensAnApplication", appInstance
+    return !(appName in appsWithCustomRoutes)
+
+  openApplication:do->
+
+    openAppHandler =(app, path, doBringToFront, callback)->
+      if 'function' is typeof callback then @utils.defer -> callback app
       if doBringToFront
         appManager.setFrontApp path
-      callback? appInstance
+        app.bringToFront()
 
-    #application already open or initialization in process
-    isOpenOrInitializing = (@waitForAppInitialization path, (appInstance)->
-      appInstance.bringToFront() if doBringToFront
-      beforeCallback appInstance)
-    #application needs opening
-    unless isOpenOrInitializing
-      @createAppInstance path, (appInstance)->
-        if doBringToFront
-          appManager.initializeAppInstance path, appInstance, 'initAndBringToFront', beforeCallback
-        else
-          if "function" is typeof appInstance.initApplication
-            appManager.initializeAppInstance path, appInstance, 'initApplication', beforeCallback
-          else
-            appManager.initializeAppInstance path, appInstance, beforeCallback
+        # # TODO: this is a quick hack
+        # appName = path.split(/(?:\/)|(?:\.kdapplication$)/).slice(-2,-1)[0]
 
-  replaceStartTabWithApplication:(applicationPath, tab)->
-    @openApplication applicationPath, no, (appInstance)->
-      appInstance.bringToFront()
+        # router = @getSingleton('router')
+        # appsWithCustomRoutes = [
+        #   'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
+        #   'Account','Chat','Demos'
+        # ]
+        # isBlacklisted = appName not in appsWithCustomRoutes
+        # if isBlacklisted and 'Develop' isnt router?.getCurrentPath()
+        #   router.handleRoute '/Develop', suppressListeners: yes
+
+    openApplication =(path, doBringToFront, callback)->
+      [callback, doBringToFront] = [doBringToFront, callback]  unless callback
+      doBringToFront ?= yes
+
+      path = expandApplicationPath path
+      app = @getAppInstance path
+
+      if app? then openAppHandler.call @, app, path, doBringToFront, callback
+      else # this is the first time the app is opened.
+        @createAppInstance path, (app)=>
+          handler = openAppHandler.bind @, app, path, doBringToFront, callback
+          @initApp path, app, handler
+
+  replaceStartTabWithApplication:(appPath, tab)->
+    @openApplication appPath, no, (app)->
+      app.bringToFront()
       tabDelegate = tab.getDelegate()
       tabDelegate.closeTab tab
 
   # replaceStartTabWithSplit:(splitType, tab)->
-  #   @openApplication 'Ace', no, (appInstance)->
-  #     appInstance.createFreshSplit splitType
+  #   @openApplication 'Ace', no, (app)->
+  #     app.createFreshSplit splitType
   #     tabDelegate = tab.getDelegate()
   #     tabDelegate.closeTab tab
 
   openFile:(file)->
     @openFileWithApplication file, 'Ace'
 
-  newFileWithApplication:(applicationPath)->
-    @openApplication applicationPath, no, (appInstance)->
-      appInstance.bringToFront()
-    # @openApplication applicationPath, no, (appInstance)->
-    #   appInstance.newFile()
+  newFileWithApplication:(appPath)->
+    @openApplication appPath, no, (app)->
+      app.bringToFront()
+    # @openApplication appPath, no, (app)->
+    #   app.newFile()
 
-  openFileWithApplication:(file, applicationPath)->
-    @openApplication applicationPath, no, (appInstance)->
-      # log appInstance, file
-      appInstance.openFile file
+  openFileWithApplication:(file, appPath)->
+    @openApplication appPath, no, (app)->
+      # log app, file
+      app.openFile file
 
   tell:(path, command, rest...)->
     @openApplication path, no, (app)-> app?[command]? rest...
 
   fakeRequire:(path)->
     classes =
-      "./client/app/Applications/Activity.kdapplication"    : Activity12345
-      "./client/app/Applications/Topics.kdapplication"      : Topics12345
-      "./client/app/Applications/Feeder.kdapplication"      : Feeder12345
-      "./client/app/Applications/Members.kdapplication"     : Members12345
-      "./client/app/Applications/StartTab.kdapplication"    : StartTab12345
-      "./client/app/Applications/Home.kdapplication"        : Home12345
-      "./client/app/Applications/Account.kdapplication"     : Account12345
-      "./client/app/Applications/Environment.kdapplication" : Environment12345
-      "./client/app/Applications/Apps.kdapplication"        : Apps12345
-      "./client/app/Applications/Inbox.kdapplication"       : Inbox12345
-      "./client/app/Applications/Demos.kdapplication"       : Demos12345
-      "./client/app/Applications/Ace.kdapplication"         : Ace12345
-      "./client/app/Applications/Shell.kdapplication"       : Shell12345
-      "./client/app/Applications/Chat.kdapplication"        : Chat12345
-      "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
+      "./client/app/Applications/Activity.kdapplication"    : ActivityAppController
+      "./client/app/Applications/Topics.kdapplication"      : TopicsAppController
+      "./client/app/Applications/Feeder.kdapplication"      : FeederAppController
+      "./client/app/Applications/Members.kdapplication"     : MembersAppController
+      "./client/app/Applications/StartTab.kdapplication"    : StartTabAppController
+      "./client/app/Applications/Home.kdapplication"        : HomeAppController
+      "./client/app/Applications/Account.kdapplication"     : AccountAppController
+      "./client/app/Applications/Apps.kdapplication"        : AppsAppController
+      "./client/app/Applications/Inbox.kdapplication"       : InboxAppController
+      "./client/app/Applications/Demos.kdapplication"       : DemosAppController
+      "./client/app/Applications/Ace.kdapplication"         : AceAppController
+      "./client/app/Applications/Viewer.kdapplication"      : ViewerAppController
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
-      "./client/app/Applications/GroupsFake.kdapplication"  : GroupsFakeController
+      "./client/app/Applications/Groups.kdapplication"      : GroupsAppController
     if classes[path]?
       new classes[path]
 
   setEnvironment:(@environment)->
-    appInstance.setEnvironment? @environment for own index, appInstance of @getAllAppInstances()
+    app.setEnvironment? @environment for own index, app of @getAllAppInstances()
 
   getEnvironment:()->
     @environment# or warn 'fdasfasdf'
@@ -143,93 +152,64 @@ class ApplicationManager extends KDObject
     appManager = @
 
     # fake require (code is concatenated in codebase)
-    if (appInstance = @fakeRequire path)?
-      @addAppInstance path, appInstance
-      callback appInstance
+    app = @fakeRequire path
+
+    if app?
+      @addAppInstance path, app
+      callback app
     else
-      #real require, module needs to be loaded
-      # @getEnvironment().getApplicationPath "KDApplications/#{path}/AppController.js", (appUrl, err)->
-      #   if err then warn err
-      #   else
-      #     requirejs [appUrl], (appInstance)->
-      #       callback appInstance
-      requirejs ["js/KDApplications/#{path}/AppController.js?#{KD.version}"], (appInstance)->
-        if appInstance
-          appManager.addAppInstance path, appInstance
-          callback appInstance
+      appSrc = "js/KDApplications/#{path}/AppController.js?#{KD.version}"
+      requirejs [appSrc], (app)->
+        if app
+          appManager.addAppInstance path, app
+          callback app
         else
-          callback new KDNotificationView
-            title : "Application does not exists!"
+          callback new Error "Application does not exist!"
+          new KDNotificationView title : "Application does not exist!"
 
-  initializeAppInstance:(path, appInstance, initFunctionName, callback)->
-    appManager = @
-    environment = @getEnvironment()
-    [path, appInstance, callback, initFunctionName] = arguments unless callback?
-    @createAppInitializationQueue path
+  initApp:(path, app, callback)->
+    if app.initApp? then app.initApp {}, callback
+    else callback()
 
-    initFunction = appInstance[initFunctionName] or -> arguments[1]()
-
-    initFunction.call appInstance, {environment}, ->
-      appManager.fireAppInitializationQueue.call appManager, path, appInstance
-      callback appInstance
-    appManager.passStorageToApp path, null, appInstance, ->
+    @passStorageToApp path, null, app
 
   addAppInstance:(path, instance)->
-    @appInstanceArray.push instance
-    @appViewsArray.push []
+    @appInstances.push instance
+    @appViews2d.push []
     @openedInstances[path] = instance
 
   getAppInstance: (path) ->
-    @openedInstances[path]
+    @openedInstances[expandApplicationPath path]
 
   removeAppInstance:(path)->
-    appInstance = @getAppInstance path
-    index = @appInstanceArray.indexOf appInstance
-    @appInstanceArray.splice index, 1
-    @appViewsArray.splice index, 1
+    app = @getAppInstance path
+    index = @appInstances.indexOf app
+    @appInstances.splice index, 1
+    @appViews2d.splice index, 1
     delete @openedInstances[path]
-    delete @appInitializationQueue[path]
-
-  createAppInitializationQueue:(path)->
-    @appInitializationQueue[path] = []
-
-  getAppInitializationQueue:(path)->
-    @appInitializationQueue[path]
-
-  waitForAppInitialization:(path, callback)->
-    if (callbackQueue = @getAppInitializationQueue path)?
-      callbackQueue.push (appInstance)->
-        callback appInstance
-      return yes
-    else if (appInstance = @getAppInstance path)?
-      callback appInstance
-      return yes
-    return no
-
-  fireAppInitializationQueue:(path, appInstance)->
-    if (queue = @getAppInitializationQueue path)?
-      for callback in queue
-        callback appInstance
-      delete @appInitializationQueue[path]
 
   getAppViews:(path)->
-    index = @appInstanceArray.indexOf @getAppInstance path
-    @appViewsArray[index]
+    index = @appInstances.indexOf @getAppInstance path
+    @appViews2d[index]
 
-  appShowedAView:(appInstance,{options,data})=>
-    index = @appInstanceArray.indexOf appInstance
-    @appViewsArray[index].push data
-    @emit 'ApplicationShowedAView', appInstance
+  appShowedAView:(app,{options,data})=>
+    if KD.isLoggedIn()
+      index = @appInstances.indexOf app
+      @appViews2d[index].push data
+      @emit 'ApplicationShowedAView', app
+    else
+      KD.getSingleton('router').handleRoute '/', replaceState: yes
 
-  appClosedAView:(appInstance,{options,data}) =>
-    index = @appInstanceArray.indexOf appInstance
-    (views = @appViewsArray[index]).splice (views.indexOf data), 1
 
-  passStorageToApp:(path, version, appInstance, callback)->
+  appClosedAView:(app,{options,data}) =>
+    index = @appInstances.indexOf app
+    (views = @appViews2d[index]).splice (views.indexOf data), 1
+
+  passStorageToApp:(path, version, app, callback)->
     @fetchStorage path, version, (error, storage)->
-      if error then console.warn 'error'
+      if error then warn 'error'
       else
-        appInstance.setStorage? storage
+        app.setStorage? storage
         callback?()
 
   fetchStorage: (appId, version, callback) ->

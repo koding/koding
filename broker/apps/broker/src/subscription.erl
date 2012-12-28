@@ -94,7 +94,12 @@ init([Connection, Client, Conn, Exchange]) ->
 
   Type = get_exchange_type(Exchange),
 
-  try subscribe(SendFun, Channel, Exchange, Type) of
+  {Durable, AutoDelete} = case Exchange of
+    <<"updateInstances">> -> {true, false};
+    _ -> {true, true}
+  end,
+
+  try subscribe(SendFun,Channel,Exchange,Type,Durable,AutoDelete) of
     ok -> {ok, State}
   catch
     error:precondition_failed ->
@@ -385,7 +390,7 @@ subscribe(Sender, Channel, Exchange, Type, Durable, AutoDelete) ->
 
   try amqp_channel:call(Channel, Declare) of
     #'exchange.declare_ok'{} -> 
-      Sender([<<"broker:subscription_succeeded">>, <<>>]),
+      Sender([<<"broker:bind_succeeded">>, <<>>]),
       ok
   catch
     exit:Error ->
@@ -454,7 +459,7 @@ broadcast(From, Channel, Exchange, Event, Data, Meta) ->
 
 send(Conn, Exchange, [Key, Payload]) ->
   Event = {<<"event">>, Key},
-  Channel = {<<"channel">>, Exchange},
+  Channel = {<<"exchange">>, Exchange},
   Data = {<<"payload">>, Payload},
   Conn:send(jsx:encode([Event, Channel, Data])).
 

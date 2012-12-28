@@ -32,7 +32,6 @@ class KDTokenizedInput extends JView
     @input.on "keyup", @keyUpOnInput.bind @
 
   keyDownOnInput:(event)->
-    log "asdasd"
     @decorateLayer()
     # @layer.setClass "hide-tokens"
 
@@ -43,7 +42,7 @@ class KDTokenizedInput extends JView
     @decorateLayer()
     # @layer.unsetClass "hide-tokens"
     {input} = @
-    log _oldMatches
+    # log _oldMatches
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())

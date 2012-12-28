@@ -39,7 +39,6 @@ class KDEventEmitter
     @_e = @KDEventEmitterEvents[@constructor.name] = {}
 
   emit : (event, args...)->
-
     @_e[event] ?= []
 
     listenerStack = []
@@ -73,7 +72,7 @@ class KDEventEmitter
     _callback = () =>
       args = [].slice.call arguments
       @unsubscribe event, _callback
-      callback.apply null, args
+      callback.apply @, args
 
     @on event, _callback
 

@@ -11,7 +11,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
-  @trait __dirname, '../traits/hasFeed'
 
   JAppStorage = require './appstorage'
   JTag = require './tag'
@@ -44,18 +43,19 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance'
+        'byRelevance', 'fetchVersion','reserveNames'
+        'impersonate'
       ]
       instance    : [
-        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
+        'modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount', 'getFeedByTitle',
-        'fetchFeeds', 'createFeed', 'addGlobalListener', 'isFollowing'
+        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
+        'fetchFeedByTitle', 'updateFlags'
       ]
     schema                  :
       skillTags             : [String]
@@ -93,7 +93,6 @@ module.exports = class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
-
         lastName            :
           type              : String
           default           : ''
@@ -107,7 +106,8 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           :
+    relationships           : ->
+      JPrivateMessage = require './messages/privatemessage'
 
       mount         :
         as          : 'owner'
@@ -135,7 +135,7 @@ module.exports = class JAccount extends jraphical.Module
 
       privateMessage:
         as          : ['recipient','sender']
-        targetType  : 'JPrivateMessage'
+        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'
@@ -149,13 +149,52 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
+      group         :
+        targetType  : require './group'
+        as          : require('./group').memberRoles
+
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]
-
+        targetType  : [
+          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
+          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
+        ]
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @impersonate = secure (client, nickname, callback)->
+    {connection:{delegate}, sessionToken} = client
+    unless delegate.can 'administer accounts'
+      callback new KodingError 'Access denied!'
+    else
+      JSession = require './session'
+      JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
+
+  @reserveNames =(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+    options.limit ?= 100
+    options.skip ?= 0
+    JName = require './name'
+    @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
+      if err then callback err
+      else
+        count = 0
+        cursor.each (err, account)=>
+          if err then callback err
+          else if account?
+            {nickname} = account.profile
+            JName.claim nickname, 'JUser', 'profile.nickname', (err, name)=>
+              count++
+              if err then callback err
+              else
+                callback err, nickname
+                if count is options.limit
+                  options.skip += options.limit
+                  @reserveNames options, callback
+
+  @fetchVersion =(callback)-> callback null, KONFIG.version
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -197,14 +236,21 @@ module.exports = class JAccount extends jraphical.Module
 
   glanceMessages: secure (client, callback)->
 
-  glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
-      if err
-        callback err
-      else
-        queue = activities.map (activity)->->
-          activity.mark client, 'glanced', -> queue.fin()
-        dash queue, callback
+  glanceActivities: secure (client, activityId, callback)->
+    [callback, activityId] = [activityId, callback] unless callback
+    {delegate} = client.connection
+    unless @equals delegate
+      callback new KodingError 'Access denied.'
+    else
+      selector = {'data.flags.glanced' : $ne : yes}
+      selector.targetId = activityId if activityId
+      @fetchActivities selector, (err, activities)->
+        if err
+          callback err
+        else
+          queue = activities.map (activity)->->
+            activity.mark client, 'glanced', -> queue.fin()
+          dash queue, callback
 
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
@@ -238,7 +284,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -260,7 +306,34 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
+  # Update broken counts for user
+  updateCounts:->
+
+    # Like count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+    , (err, count)=>
+      @update ($set: 'counts.likes': count), ->
+
+    # Member Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      @update ($set: 'counts.following': count), ->
+
+    # Tag Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JTag'
+    , (err, count)=>
+      @update ($set: 'counts.topics': count), ->
+
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -288,18 +361,55 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flag)->
+  updateFlags: secure (client, flags, callback)->
+    {delegate} = client.connection
+    JAccount.taint @getId()
+    if delegate.can 'flag', this
+      @update {$set: globalFlags: flags}, callback
+    else
+      callback new KodingError 'Access denied'
+
+  checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
-    flags and (flag in flags)
+    if flags
+      if 'string' is typeof flagToCheck
+        return flagToCheck in flags
+      else
+        for flag in flagToCheck
+          if flag in flags
+            return yes
+    no
 
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
 
   @getFlagRole =-> 'owner'
 
+  # WARNING! Be sure everything is safe when you change anything in this function
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests'
+      when 'delete'
+        # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
+      when 'flag', 'reset guests', 'reset groups', 'administer names', \
+           'administer url aliases', 'migrate-kodingen-users', \
+           'administer accounts', 'grant-invites', 'send-invites'
+        @profile.nickname in dummyAdmins
+
+  fetchRoles: (group, callback)->
+    Relationship.someData {
+      targetId: group.getId()
+      sourceId: @getId()
+    }, {as:1}, (err, cursor)->
+      if err
+        callback err
+      else
+        cursor.toArray (err, roles)->
+          if err
+            callback err
+          else
+            roles = (roles ? []).map (role)-> role.as
+            roles.push 'guest' unless roles.length
+            callback null, roles
 
   fetchRole: secure ({connection}, callback)->
 
@@ -327,11 +437,6 @@ module.exports = class JAccount extends jraphical.Module
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
-
-  addTags: secure (client, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)->
-      if err then callback err
-      else callback null
 
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
@@ -405,6 +510,14 @@ module.exports = class JAccount extends jraphical.Module
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
+
+  fetchFeedByTitle: secure (client, title, callback) ->
+    if @equals(client.connection.delegate)
+      @fetchFeeds (err, feeds) ->
+        for feed in feeds
+          if feed.title is title
+            return callback null, feed
+        return callback new KodingError 'Feed not found.'
 
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->

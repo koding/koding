@@ -10,6 +10,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @title = new KDInputView
       name          : "title"
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to your code snippet..."
       validate      :
         rules       :
@@ -23,6 +24,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @description = new KDInputView
       label         : @labelDescription
+      cssClass      : "warn-on-unsaved-data"
       name          : "body"
       placeholder   : "What is your code about?"
       validate      :
@@ -31,6 +33,9 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @labelContent = new KDLabelView
       title : "Code Snip:"
+
+    @hiddenAceInputClone = new KDInputView
+      cssClass : 'hidden invisible'
 
     @aceWrapper = new KDView
 
@@ -117,7 +122,11 @@ class ActivityCodeSnippetWidget extends KDFormView
   submit:=>
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
+
     super
+
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @submitBtn.setTitle "Share your Code Snippet"
@@ -130,10 +139,16 @@ class ActivityCodeSnippetWidget extends KDFormView
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
     @updateSyntaxTag 'javascript'
+    @hiddenAceInputClone.setValue ''
+    @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'
 
-  switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit code snippet"
-    @addCustomData "activity", activity
+  switchToEditView:(activity,fake=no)->
+    unless fake
+      @submitBtn.setTitle "Edit code snippet"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle 'Submit again'
+
     {title, body, tags} = activity
     {syntax, content} = activity.attachments[0]
 
@@ -144,6 +159,8 @@ class ActivityCodeSnippetWidget extends KDFormView
       @title.setValue Encoder.htmlDecode title
       @description.setValue Encoder.htmlDecode body
       @ace.setContents Encoder.htmlDecode content
+      @hiddenAceInputClone.setValue content
+      @hiddenAceInputClone.setClass 'warn-on-unsaved-data'
       @syntaxSelect.setValue Encoder.htmlDecode syntax
 
     if @ace?.editor
@@ -162,15 +179,27 @@ class ActivityCodeSnippetWidget extends KDFormView
     @loader.show()
 
     @aceWrapper.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
+    @aceDefaultContent = "//your code snippet goes here..."
 
     @ace.on "ace.ready", =>
       @loader.destroy()
       @ace.setShowGutter no
-      @ace.setContents "//your code snippet goes here..."
+      @ace.setContents @aceDefaultContent
       @ace.setTheme()
       @ace.setFontSize(12, no)
       @ace.setSyntax "javascript"
-      @ace.editor.getSession().on 'change', => @refreshEditorView()
+      @ace.editor.getSession().on 'change', =>
+
+        # Shadowing the Ace contents so the onbeforeunload catch-all does
+        # not need special jquery calls
+
+        @hiddenAceInputClone.setValue @ace.getContents()
+        unless @hiddenAceInputClone.getValue() in ['',@aceDefaultContent]
+          @hiddenAceInputClone.setClass "warn-on-unsaved-data"
+        else
+          @hiddenAceInputClone.unsetClass "warn-on-unsaved-data"
+
+        @refreshEditorView()
       @emit "codeSnip.aceLoaded"
 
   refreshEditorView:->
@@ -212,6 +241,7 @@ class ActivityCodeSnippetWidget extends KDFormView
           <div class="code-snip-holder">
             {{> @loader}}
             {{> @aceWrapper}}
+            {{> @hiddenAceInputClone}}
             {{> @syntaxSelect}}
           </div>
         </div>

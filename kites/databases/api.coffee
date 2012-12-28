@@ -3,7 +3,7 @@ mySQL     = require './mySQLApi'
 mongoDB   = require './mongodbApi'
 
 
-Kite      = require '../../node_modules/kite'
+Kite      = require '../../node_modules/kite-amqp'
 log4js    = require 'log4js'
 log       = log4js.getLogger("[#{config.name}]")
 

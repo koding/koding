@@ -1,14 +1,17 @@
-log4js    = require 'log4js'
-log       = log4js.getLogger('[SharedHostingApi]')
 
 fs = require 'fs'
 hat = require 'hat'
 {exec} = require 'child_process'
 
-config = require './config'
+config    = require './config'
+
+log4js    = require 'log4js'
+log       = log4js.getLogger("[#{config.name}]")
 
 # HELPERS
 createTmpDir = require './createtmpdir'
+
+safeUsers = []
 
 createTmpFile =(username, command, callback)->
   tmpFile = "/Users/#{username}/.tmp/tmp_#{hat()}.sh"
@@ -47,7 +50,6 @@ execute = (options,callback)->
     fs.unlink filename if unlink is yes
     log.debug "executed", truncateOutput execStr
 
-
 truncateOutput = (output)->
 
   if output.length > 300
@@ -63,7 +65,7 @@ respond = (options,callback)->
     {err,stdout,stderr} = options
 
   if err?
-    callback stderr,stdout
+    callback {code: err.code, message: err.message, stderr: stderr}, stdout
     if stdout
       log.warn "[WARNING]", err, truncateOutput(stderr), truncateOutput stdout
     else
@@ -90,6 +92,44 @@ createRegExp = do ->
       (char)-> char.replace special, (_, foundChar)-> '\\'+foundChar
     ).join('|')+')', flags
 
+checkUid = (options, createSystemUser, callback)->
+  #
+  # This methid will check user's uid
+  #
+  #
+  # options =
+  #   username : String  #username of the unix user
+  #
+  {username, nrOfRecursion} = options
+
+  if username in safeUsers
+    # log.info "Username '#{username}' is already safe"
+    callback? null
+  else
+    getuid = exec "/usr/bin/id -u #{username}", (err,stdout,stderr)=>
+      if err?
+        log.error "[ERROR] unable to get user's UID: #{stderr}"
+        if nrOfRecursion is 1
+          callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+        else
+          createSystemUser? {username,fullName:username,password:hat()},(err,res)=>
+            unless err
+              log.info "User is just created, run the command again, it will work this time."
+              checkUid {username,nrOfRecursion:1},callback
+            else
+              log.error "CANT CREATE THIS USER"
+              callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+
+
+      else if stdout < config.minAllowedUid
+        stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
+        log.error e = "[ERROR]  min UID for commands is #{config.minAllowedUid}, your #{stdout}"
+        callback? e
+      else
+        stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
+        log.debug "[OK] func:checkUid: user's #{username} UID #{stdout} allowed"
+        safeUsers.push username
+        callback? null
 
 module.exports =(options, callback)->
   #
@@ -112,7 +152,7 @@ module.exports =(options, callback)->
   {username,command} = options
 
   # log.debug "func:executeCommand: executing command #{command}"
-  @checkUid options, (error)->
+  checkUid options, @createSystemUser?.bind(@), (error)->
     if error?
       callback? error
     else
@@ -128,8 +168,3 @@ module.exports =(options, callback)->
       else
         execute {command,username},callback
         # log.debug "exec directly",command
-
-
-
-
-

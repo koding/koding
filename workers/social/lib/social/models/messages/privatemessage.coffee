@@ -1,4 +1,7 @@
-JPost = require './post'
+
+JPost       = require './post'
+JComment    = require './comment'
+KodingError = require '../../error'
 
 module.exports = class JPrivateMessage extends JPost
 
@@ -12,7 +15,7 @@ module.exports = class JPrivateMessage extends JPost
     sharedMethods     :
       static          : ['create','on']
       instance        : [
-        'on','reply','restComments','commentsByRange','like',
+        'reply','restComments','commentsByRange','like',
         'fetchLikedByes','disown','collectParticipants','mark',
         'unmark','fetchRelativeComments'
       ]
@@ -21,6 +24,7 @@ module.exports = class JPrivateMessage extends JPost
     relationships : JPost.relationships
 
   reply: secure (client, comment, callback)->
+    JComment = require './comment'
     JPost::reply.call @, client, JComment, comment, callback
 
   disown: secure ({connection}, callback)->
@@ -58,8 +62,14 @@ module.exports = class JPrivateMessage extends JPost
 
     secure (client, data, callback)->
       {delegate} = client.connection
-      {to, subject, body} = data
+
       JAccount = require '../account'
+
+      unless delegate instanceof JAccount
+        callback new KodingError 'Access denied.'
+        return no
+
+      {to, subject, body} = data
       if 'string' is typeof to
         to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.
       JAccount.all 'profile.nickname': $in: to, (err, recipients)->
@@ -86,6 +96,6 @@ module.exports = class JPrivateMessage extends JPost
                       callback err
                     else
                       callback null, pm
-                      unless delegate.profile.nickname in to
-                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
-                          channel.publish delegate, pm
+#                      unless delegate.profile.nickname in to
+#                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
+#                          channel.publish delegate, pm

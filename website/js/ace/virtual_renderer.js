@@ -1,40 +1,30 @@
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian@ajax.org>
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *      Julian Viereck <julian.viereck@gmail.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
 
@@ -54,7 +44,7 @@ var CursorLayer = require("./layer/cursor").Cursor;
 var ScrollBar = require("./scrollbar").ScrollBar;
 var RenderLoop = require("./renderloop").RenderLoop;
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
-var editorCss = require("ace/requirejs/text!./css/editor.css");
+var editorCss = require("./requirejs/text!./css/editor.css");
 
 dom.importCssString(editorCss, "ace_editor");
 
@@ -113,11 +103,7 @@ var VirtualRenderer = function(container, theme) {
 
     this.$markerFront = new MarkerLayer(this.content);
 
-    this.characterWidth = textLayer.getCharacterWidth();
-    this.lineHeight = textLayer.getLineHeight();
-
     this.$cursorLayer = new CursorLayer(this.content);
-    this.$cursorPadding = 8;
 
     // Indicates whether the horizontal scrollbar is visible
     this.$horizScroll = false;
@@ -146,12 +132,8 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this.$textLayer.addEventListener("changeCharacterSize", function() {
-        _self.characterWidth = textLayer.getCharacterWidth();
-        _self.lineHeight = textLayer.getLineHeight();
-        _self.$updatePrintMargin();
+        _self.updateCharacterSize();
         _self.onResize(true);
-
-        _self.$loop.schedule(_self.CHANGE_FULL);
     });
 
     this.$size = {
@@ -181,8 +163,8 @@ var VirtualRenderer = function(container, theme) {
     );
     this.$loop.schedule(this.CHANGE_FULL);
 
+    this.updateCharacterSize();
     this.setPadding(4);
-    this.$updatePrintMargin();
 };
 
 (function() {
@@ -201,9 +183,20 @@ var VirtualRenderer = function(container, theme) {
     this.CHANGE_H_SCROLL = 1024;
 
     oop.implement(this, EventEmitter);
+    
+    this.updateCharacterSize = function() {
+        if (this.$textLayer.allowBoldFonts != this.$allowBoldFonts) {
+            this.$allowBoldFonts = this.$textLayer.allowBoldFonts;
+            this.setStyle("ace_nobold", !this.$allowBoldFonts);
+        }
+        
+        this.characterWidth = this.$textLayer.getCharacterWidth();
+        this.lineHeight = this.$textLayer.getLineHeight();
+        this.$updatePrintMargin();
+    };
 
     /**
-    * VirtualRenderer.setSession(session) -> Void
+    * VirtualRenderer.setSession(session)
     * 
     * Associates an [[EditSession `EditSession`]].
     **/
@@ -222,7 +215,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateLines(firstRow, lastRow) -> Void
+    * VirtualRenderer.updateLines(firstRow, lastRow)
     * - firstRow (Number): The first row to update
     * - lastRow (Number): The last row to update
     *
@@ -255,7 +248,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateText() -> Void
+    * VirtualRenderer.updateText()
     *
     * Triggers a full update of the text, for all the rows.
     **/
@@ -264,7 +257,8 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateFull() -> Void
+    * VirtualRenderer.updateFull(force)
+    * - force (Boolean): If `true`, forces the changes through
     *
     * Triggers a full update of all the layers, for all the rows.
     **/
@@ -278,7 +272,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateFontSize() -> Void
+    * VirtualRenderer.updateFontSize()
     *
     * Updates the font size.
     **/
@@ -287,8 +281,11 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.onResize(force) -> Void
+    * VirtualRenderer.onResize(force, gutterWidth, width, height)
     * - force (Boolean): If `true`, recomputes the size, even if the height and width haven't changed
+    * - gutterWidth (Number): The width of the gutter in pixels
+    * - width (Number): The width of the editor in pixels
+    * - height (Number): The hiehgt of the editor, in pixels
     *
     * [Triggers a resize of the editor.]{: #VirtualRenderer.onResize}
     **/
@@ -342,7 +339,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.adjustWrapLimit() -> Void
+    * VirtualRenderer.adjustWrapLimit()
     *
     * Adjusts the wrap limit, which is the number of characters that can fit within the width of the edit area on screen.
     **/
@@ -353,7 +350,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setAnimatedScroll(shouldAnimate) -> Void
+    * VirtualRenderer.setAnimatedScroll(shouldAnimate)
     * - shouldAnimate (Boolean): Set to `true` to show animated scrolls
     *
     * Identifies whether you want to have an animated scroll or not.
@@ -373,7 +370,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setShowInvisibles(showInvisibles) -> Void
+    * VirtualRenderer.setShowInvisibles(showInvisibles)
     * - showInvisibles (Boolean): Set to `true` to show invisibles
     *
     * Identifies whether you want to show invisible characters or not.
@@ -458,7 +455,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setShowGutter(show) -> Void
+    * VirtualRenderer.setShowGutter(show)
     * - show (Boolean): Set to `true` to show the gutter
     *
     * Identifies whether you want to show the gutter or not.
@@ -490,7 +487,7 @@ var VirtualRenderer = function(container, theme) {
 
         if (!this.$gutterLineHighlight) {
             this.$gutterLineHighlight = dom.createElement("div");
-            this.$gutterLineHighlight.className = "ace_gutter_active_line";
+            this.$gutterLineHighlight.className = "ace_gutter-active-line";
             this.$gutter.appendChild(this.$gutterLineHighlight);
             return;
         }
@@ -511,18 +508,16 @@ var VirtualRenderer = function(container, theme) {
     };
     
     this.$updatePrintMargin = function() {
-        var containerEl;
-
         if (!this.$showPrintMargin && !this.$printMarginEl)
             return;
 
         if (!this.$printMarginEl) {
-            containerEl = dom.createElement("div");
-            containerEl.className = "ace_print_margin_layer";
+            var containerEl = dom.createElement("div");
+            containerEl.className = "ace_layer ace_print-margin-layer";
             this.$printMarginEl = dom.createElement("div");
-            this.$printMarginEl.className = "ace_print_margin";
+            this.$printMarginEl.className = "ace_print-margin";
             containerEl.appendChild(this.$printMarginEl);
-            this.content.insertBefore(containerEl, this.$textLayer.element);
+            this.content.insertBefore(containerEl, this.content.firstChild);
         }
 
         var style = this.$printMarginEl.style;
@@ -626,7 +621,7 @@ var VirtualRenderer = function(container, theme) {
     this.$padding = null;
 
     /**
-    * VirtualRenderer.setPadding(padding) -> Void
+    * VirtualRenderer.setPadding(padding)
     * - padding (Number): A new padding value (in pixels)
     * 
     * Sets the padding for all the layers.
@@ -652,7 +647,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setHScrollBarAlwaysVisible(alwaysVisible) -> Void
+    * VirtualRenderer.setHScrollBarAlwaysVisible(alwaysVisible)
     * - alwaysVisible (Boolean): Set to `true` to make the horizontal scroll bar visible
     *
     * Identifies whether you want to show the horizontal scrollbar or not. 
@@ -692,7 +687,7 @@ var VirtualRenderer = function(container, theme) {
             this.scrollLeft = scrollLeft;
             this.session.setScrollLeft(scrollLeft);
 
-            this.scroller.className = this.scrollLeft == 0 ? "ace_scroller" : "ace_scroller horscroll";
+            this.scroller.className = this.scrollLeft == 0 ? "ace_scroller" : "ace_scroller ace_scroll-left";
         }
 
         // full
@@ -735,12 +730,10 @@ var VirtualRenderer = function(container, theme) {
                 this.$gutterLayer.update(this.layerConfig);
         }
         else if (changes & this.CHANGE_LINES) {
-            if (this.$updateLines()) {
-                this.$updateScrollBar();
-                if (this.showGutter)
-                    this.$gutterLayer.update(this.layerConfig);
-            }
-        } else if (changes & this.CHANGE_GUTTER) {
+            if (this.$updateLines() || (changes & this.CHANGE_GUTTER) && this.showGutter)
+                this.$gutterLayer.update(this.layerConfig);
+        }
+        else if (changes & this.CHANGE_TEXT || changes & this.CHANGE_GUTTER) {
             if (this.showGutter)
                 this.$gutterLayer.update(this.layerConfig);
         }
@@ -869,7 +862,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateFrontMarkers() -> Void
+    * VirtualRenderer.updateFrontMarkers()
     *
     * Schedules an update to all the front markers in the document.
     **/
@@ -879,7 +872,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateBackMarkers() -> Void
+    * VirtualRenderer.updateBackMarkers()
     *
     * Schedules an update to all the back markers in the document.
     **/
@@ -888,32 +881,26 @@ var VirtualRenderer = function(container, theme) {
         this.$loop.schedule(this.CHANGE_MARKER_BACK);
     };
 
-    /**
-    * VirtualRenderer.addGutterDecoration(row, className) -> Void
-    * - row (Number): The row number
-    * - className (String): The class to add
+    /** deprecated
+    * VirtualRenderer.addGutterDecoration(row, className)
     *
-    * Adds `className` to the `row`, to be used for CSS stylings and whatnot.
+    * Deprecated; (moved to [[EditSession]])
     **/
     this.addGutterDecoration = function(row, className){
         this.$gutterLayer.addGutterDecoration(row, className);
-        this.$loop.schedule(this.CHANGE_GUTTER);
     };
 
-    /**
+    /** deprecated
     * VirtualRenderer.removeGutterDecoration(row, className)-> Void
-    * - row (Number): The row number
-    * - className (String): The class to add
     *
-    * Removes `className` from the `row`.
+    * Deprecated; (moved to [[EditSession]])
     **/
     this.removeGutterDecoration = function(row, className){
         this.$gutterLayer.removeGutterDecoration(row, className);
-        this.$loop.schedule(this.CHANGE_GUTTER);
     };
 
     /**
-    * VirtualRenderer.updateBreakpoints() -> Void
+    * VirtualRenderer.updateBreakpoints()
     *
     * Redraw breakpoints.
     **/
@@ -922,7 +909,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setAnnotations(annotations) -> Void
+    * VirtualRenderer.setAnnotations(annotations)
     * - annotations (Array): An array containing annotations
     *
     * Sets annotations for the gutter.
@@ -933,7 +920,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.updateCursor() -> Void
+    * VirtualRenderer.updateCursor()
     *
     * Updates the cursor icon.
     **/
@@ -942,7 +929,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.hideCursor() -> Void
+    * VirtualRenderer.hideCursor()
     *
     * Hides the cursor icon.
     **/
@@ -951,7 +938,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.showCursor() -> Void
+    * VirtualRenderer.showCursor()
     *
     * Shows the cursor icon.
     **/
@@ -966,7 +953,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.scrollCursorIntoView(cursor, offset) -> Void
+    * VirtualRenderer.scrollCursorIntoView(cursor, offset)
     *
     * Scrolls the cursor into the first visibile area of the editor
     **/
@@ -1038,7 +1025,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /** related to: EditSession.setScrollTop
-    * VirtualRenderer.scrollToRow(row) -> Void
+    * VirtualRenderer.scrollToRow(row)
     * - row (Number): A row id
     *
     * Gracefully scrolls the top of the editor to the row indicated.
@@ -1052,9 +1039,11 @@ var VirtualRenderer = function(container, theme) {
             cursor = {row: cursor, column: 0};
 
         var pos = this.$cursorLayer.getPixelPosition(cursor);
-        var offset = pos.top - this.$size.scrollerHeight * (alignment || 0);
+        var h = this.$size.scrollerHeight - this.lineHeight;
+        var offset = pos.top - h * (alignment || 0);
 
         this.session.setScrollTop(offset);
+        return offset;
     };
 
     this.STEPS = 8;
@@ -1074,7 +1063,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.scrollToLine(line, center, animate, callback) -> Void
+    * VirtualRenderer.scrollToLine(line, center, animate, callback)
     * - line (Number): A line number
     * - center (Boolean): If `true`, centers the editor the to indicated line
     * - animate (Boolean): If `true` animates scrolling
@@ -1156,7 +1145,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.scrollBy(deltaX, deltaY) -> Void
+    * VirtualRenderer.scrollBy(deltaX, deltaY)
     * - deltaX (Number): The x value to scroll by
     * - deltaY (Number): The y value to scroll by
     *
@@ -1228,7 +1217,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.visualizeFocus() -> Void
+    * VirtualRenderer.visualizeFocus()
     *
     * Focuses the current container.
     **/
@@ -1237,7 +1226,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.visualizeBlur() -> Void
+    * VirtualRenderer.visualizeBlur()
     *
     * Blurs the current container.
     **/
@@ -1246,7 +1235,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /** internal, hide
-    * VirtualRenderer.showComposition(position) -> Void
+    * VirtualRenderer.showComposition(position)
     * - position (Number):
     *
     **/
@@ -1264,7 +1253,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setCompositionText(text) -> Void
+    * VirtualRenderer.setCompositionText(text)
     * - text (String): A string of text to use
     *
     * Sets the inner text of the current composition to `text`.
@@ -1274,7 +1263,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.hideComposition() -> Void
+    * VirtualRenderer.hideComposition()
     *
     * Hides the current composition.
     **/
@@ -1296,7 +1285,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     /**
-    * VirtualRenderer.setTheme(theme) -> Void
+    * VirtualRenderer.setTheme(theme)
     * - theme (String): The path to a theme
     *
     * [Sets a new theme for the editor. `theme` should exist, and be a directory path, like `ace/theme/textmate`.]{: #VirtualRenderer.setTheme}
@@ -1334,18 +1323,19 @@ var VirtualRenderer = function(container, theme) {
                 _self.container.ownerDocument
             );
 
-            if (_self.$theme)
-                dom.removeCssClass(_self.container, _self.$theme);
+            if (_self.theme)
+                dom.removeCssClass(_self.container, _self.theme.cssClass);
 
-            _self.$theme = theme ? theme.cssClass : null;
+            // this is kept only for backwards compatibility
+            _self.$theme = theme.cssClass;
 
-            if (_self.$theme)
-                dom.addCssClass(_self.container, _self.$theme);
+            _self.theme = theme;
+            dom.addCssClass(_self.container, theme.cssClass);
+            dom.setCssClass(_self.container, "ace_dark", theme.isDark);
 
-            if (theme && theme.isDark)
-                dom.addCssClass(_self.container, "ace_dark");
-            else
-                dom.removeCssClass(_self.container, "ace_dark");
+            var padding = theme.padding || 4;
+            if (_self.$padding && padding != _self.$padding)
+                _self.setPadding(padding);
 
             // force re-measure of the gutter width
             if (_self.$size) {
@@ -1369,23 +1359,23 @@ var VirtualRenderer = function(container, theme) {
     // a certain mode that editor is in.
 
     /**
-    * VirtualRenderer.setStyle(style) -> Void
+    * VirtualRenderer.setStyle(style)
     * - style (String): A class name
     *
     * [Adds a new class, `style`, to the editor.]{: #VirtualRenderer.setStyle}
     **/
-    this.setStyle = function setStyle(style) {
-      dom.addCssClass(this.container, style);
+    this.setStyle = function setStyle(style, include) {
+        dom.setCssClass(this.container, style, include != false);
     };
 
     /**
-    * VirtualRenderer.unsetStyle(style) -> Void
+    * VirtualRenderer.unsetStyle(style)
     * - style (String): A class name
     *
     * [Removes the class `style` from the editor.]{: #VirtualRenderer.unsetStyle}
     **/
     this.unsetStyle = function unsetStyle(style) {
-      dom.removeCssClass(this.container, style);
+        dom.removeCssClass(this.container, style);
     };
 
     /**

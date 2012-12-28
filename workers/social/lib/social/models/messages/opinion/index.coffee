@@ -16,53 +16,23 @@ module.exports = class JOpinion extends JPost
 
   {log} = console
 
-  @share()
+  KodingError = require '../../../error'
 
-  schema = extend {}, Message.schema, {
-    isLowQuality  : Boolean
-    counts        :
-      followers   :
-        type      : Number
-        default   : 0
-      following   :
-        type      : Number
-        default   : 0
-    originType  :
-      type      : String
-      required  : yes
-    originId    :
-      type      : ObjectId
-      required  : yes
-    deletedAt   : Date
-    deletedBy   : ObjectRef
-    meta        : require 'bongo/bundles/meta'
-  }
+  @share()
 
   @set
     emitFollowingActivities: yes
-    taggedContentRole : 'reply'
+    taggedContentRole : 'content'
     tagRole           : 'tag'
-    sharedMethods : JPost.sharedMethods
-    schema        : schema
-    relationships     :
-      comment         :
-        type          : "JComment"
-        as            : 'reply'
-      participant     :
-        targetType    : "JAccount"
-        as            : ['author','commenter']
-      likedBy         :
-        targetType    : "JAccount"
-        as            : 'like'
-      repliesActivity :
-        targetType    : "CRepliesActivity"
-        as            : 'repliesActivity'
-      tag             :
-        targetType    : "JTag"
-        as            : 'tag'
-      follower        :
-        as            : 'follower'
-        targetType    : "JAccount"
+    sharedMethods     :
+      static          : ['create','one','updateAllSlugs',"fetchRelated"]
+      instance        : [
+        'reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
+      ]
+    schema        : JPost.schema
+    relationships : JPost.relationships
 
   @getActivityType =-> require './opinionactivity'
 
@@ -82,6 +52,19 @@ module.exports = class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
+
+  @fetchRelated = (targetId, callback)->
+    {Relationship} = require 'jraphical'
+    Relationship.one
+      as         : "opinion"
+      targetId   : targetId
+    , (err, rel)->
+      if not err and rel then rel.fetchSource callback
+      else callback err, null
+
+  reply: secure (client, comment, callback)->
+    JComment = require '../comment'
+    JPost::reply.call @, client, JComment, comment, callback
 
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
@@ -112,7 +95,7 @@ module.exports = class JOpinion extends JPost
               message = message_
               queue.next(err)
         ->
-          message.removeReply rel, (err)-> queue.next(err)
+          message.removeOpinion rel, (err)-> queue.next(err)
 
         getDeleteHelper {
           targetId    : id
@@ -144,6 +127,3 @@ module.exports = class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost::modify.call @, client, opinion, callback
-
-  reply: secure (client, comment, callback)->
-    JPost::reply.call @, client, JComment, comment, callback

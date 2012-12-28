@@ -3,8 +3,11 @@ cs              = require './node_modules/coffee-script'
 stylus          = require './node_modules/stylus'
 nib             = require './node_modules/nib'
 fs              = require 'fs'
-log4js          = require "./node_modules/log4js"
-log             = log4js.getLogger("[Watcher]")
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
 unrequire       = (module) -> delete require.cache[require.resolve module]
 nodePath        = require "path"
 {spawn, exec}   = require 'child_process'
@@ -133,82 +136,73 @@ class Watcher extends EventEmitter
             do (section,subSection,pkg,key,path) =>
               @watchlist.order.__watch[path] ?= {}
               file = @watchlist.order.__watch[path]
-              mtime = (Date.parse((fs.statSync(path).mtime)))/1000
-              file["path"]        = path
-              file["mtime"]       = mtime
-              file["lastCompile"] ?= 0 
-              file["contents"]    ?= ""
-              file["section"]     = section
-              file["subSection"]  = subSection
-              file["cache"] = "./.build/.cache/"+mtime+path.replace(/\//g,"_")+".txt" # .txt for easy error checking using mac finder.
-            
-              @getFile file,(passedFile,newFile)=>
-                bar.tick() if @watcher.isInitializing
-                build.totalCount--
-                if newFile?
-                  changes[section] or= {} 
-                  changes[section][subSection] or= []
-                  changes[section][subSection].push path:newFile.path
-                  @watchlist.order.__watch[passedFile.path] = newFile
-              
-                if build.totalCount is 0
-                  @watcher.isLooping = no
-                  if @watcher.isInitializing
-                    @emit "initDidComplete",changes
-                    log.info "Init complete..."
-                    callback? null   
-                    @watcher.isInitializing = no
-                  else
-                    for own change of changes
-                      @emit "changeDidHappen",changes
-                      callback? null
-                      break
-  
-  cacheFolderExists = false
-  writeCache: do ->
-    write = (file,cb)->
-      e = null
-      try
-        fs.writeFile file.cache,JSON.stringify file,'utf8',(err)->
-          if err
-            log.debug "couldn't cache: #{file.path} #{file.cache}",err
-      catch e
-        log.debug "couldn't cache: #{file.path} #{file.cache}"
-        log.debug e
-      finally        
-        cb e
-        
-    (file,callback)->
-      unless cacheFolderExists
-        fs.stat "./.build/.cache",(err,stat)->
-          if stat and stat.isDirectory()
-            cacheFolderExists = yes
-            write file,callback
-          else
-            fs.mkdir "./.build",(err1)->
-              fs.mkdir "./.build/.cache",(err2)->
-                unless err1 and err2
-                  cacheFolderExists = yes
-                  write file,callback
-      else
-        write file,callback
+              fs.stat path,(err,stat)=>
+                unless stat?
+                  throw new Error "File not found! #{path}"
+                mtime = Date.parse(stat.mtime)
+                cacheP = cacheFilePath(path)
+                fs.stat cacheP,(err,stat)=>              
+                  cacheMtime = unless err then Date.parse(stat.mtime) else 0
+                  file.path        = path
+                  file.mtime       = mtime
+                  file.lastCompile ?= 0 
+                  file.contents    ?= ""
+                  file.section     = section
+                  file.subSection  = subSection
+                  file.cacheMtime  = cacheMtime
+                  file.cachePath   = cacheP
+                  # file["cache"] = "./.build/.cache/"+mtime+path.replace(/\//g,"_")+".txt" # .txt for easy error checking using mac finder.
+                
+                  @getFile file, options, (passedFile,newFile)=>
+                    bar.tick() if @watcher.isInitializing
+                    build.totalCount--
+                    if newFile?
+                      changes[section] or= {} 
+                      changes[section][subSection] or= []
+                      changes[section][subSection].push path:newFile.path
+                      @watchlist.order.__watch[passedFile.path] = newFile
+                  
+                    if build.totalCount is 0
+                      @watcher.isLooping = no
+                      if @watcher.isInitializing
+                        @emit "initDidComplete",changes
+                        log.info "Init complete..."
+                        callback? null   
+                        @watcher.isInitializing = no
+                      else
+                        for own change of changes
+                          @emit "changeDidHappen",changes
+                          callback? null
+                          break
     
-  getFile:(file,callback)->
+  getFile:(file, options, callback)->
     if (file.mtime - file.lastCompile) > 0
-      # fs.readFile file.cache,'utf8',(err,data)=>
-      #   unless err
-      #     callback file,JSON.parse data
-      #   else
-      @compileFile file, (newFile)->      
-        newFile.lastCompile = Math.round(Date.now()/1000)            
-        # @writeCache newFile,(err)->              
-        callback file, newFile
+      # DEBUG # console.log file.cacheMtime,file.mtime,file.lastCompile, file.cacheMtime - file.mtime
+      if not file.cacheMtime or (file.cacheMtime - file.mtime) < 0
+        @compileFile file, options, (newFile)->     
+          newFile.lastCompile = Date.now()            
+          # @writeCache newFile,(err)->              
+          callback file, newFile
+      else
+        # console.log "reading"+file.path
+        fs.readFile file.cachePath,'utf8',(err,data)->
+          # console.log 'serving from cache',file.cachePath            
+          file.lastCompile = Date.now()
+          file.contents = data
+          callback file, null
     else
       callback file,null
 
 
-  compileFile: (file,callback)->
-    ext = file.path.split(".").pop()    
+  compilePistachios = require 'pistachio-compiler'
+  cacheFilePath = (path) ->
+     p = require('path').normalize(__dirname+"/../.build/.cache/"+path.replace(/\//g,"_"))
+  writeCacheFile = (path,content)->
+    fs.writeFile cacheFilePath(path),content,'utf8',(err,res)->
+      if err
+        console.log err
+  compileFile: (file, options, callback)->
+    ext = file.path.split(".").pop()
     newContent = fs.readFileSync file.path, 'utf-8' #,(err,newContent)=>
     # if err
     #   console.log err
@@ -220,6 +214,7 @@ class Watcher extends EventEmitter
         stylus(newContent).set('compress',true).use(nib()).render (err,css)=>
           unless err
             file.contents = css
+            writeCacheFile file.path,css
             callback file
           else
             log.info "error with styl file at #{file.path}"
@@ -232,6 +227,10 @@ class Watcher extends EventEmitter
           #   # log.debug file.contents
           # else          
           file.contents = cs.compile newContent,bare:yes
+          writeCacheFile file.path,file.contents                   
+
+
+
           #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
         catch error
           errd = yes

@@ -70,7 +70,7 @@ class KDTabViewController extends KDScrollView
       false
 
   removePane:(pane)->
-    pane.handleEvent type : "KDTabPaneDestroy"
+    pane.emit "KDTabPaneDestroy"
     index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
     @panes.splice(index,1)
@@ -125,6 +125,7 @@ class KDTabViewController extends KDScrollView
   getHandleByIndex:(index)-> @handles[index]
 
   getPaneIndex:(aPane)->
+    return unless aPane
     result = 0
     for pane,index in @panes
       result = index if pane is aPane

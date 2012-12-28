@@ -11,11 +11,12 @@ import (
 	"time"
 )
 
+var version string
 var numClients int = 0
 var ChangeNumClients chan int = make(chan int)
 var ShuttingDown bool = false
 
-func Startup(facility string, needRoot bool) {
+func Startup(serviceName string, needRoot bool) {
 	if needRoot && os.Getuid() != 0 {
 		fmt.Println("Must be run as root.")
 		os.Exit(1)
@@ -24,14 +25,26 @@ func Startup(facility string, needRoot bool) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
+	var profile string
+	flag.StringVar(&profile, "c", "", "Configuration profile")
+	flag.IntVar(&log.LogLevel, "l", 6, "Log level")
+
 	flag.Parse()
 	if flag.NArg() != 0 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	config.LoadConfig()
-	log.Facility = fmt.Sprintf("%s %d", facility, os.Getpid())
-	log.Info(fmt.Sprintf("Process '%v' started.", facility))
+	if profile == "" {
+		fmt.Println("Please specify a configuration profile (-c).")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	config.LoadConfig(profile)
+
+	log.LogToLoggly = config.Current.LogToLoggly
+	log.Service = fmt.Sprintf("%s %d", serviceName, os.Getpid())
+	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
 		for {
@@ -49,10 +62,10 @@ func BeginShutdown() {
 	ChangeNumClients <- 0
 }
 
-type statusMessage struct {
-	*log.GelfMessage
-	NumberOfClients    int `json:"_number_of_clients"`
-	NumberOfGoroutines int `json:"_number_of_goroutines"`
+type statusEntry struct {
+	*log.Entry
+	NumberOfClients    int
+	NumberOfGoroutines int
 }
 
 func RunStatusLogger() {
@@ -62,8 +75,8 @@ func RunStatusLogger() {
 			if ShuttingDown {
 				message = "Status: Shutting down, still %d clients."
 			}
-			log.Send(&statusMessage{
-				log.NewGelfMessage(log.INFO, "", 0, fmt.Sprintf(message, numClients)),
+			log.Send(&statusEntry{
+				log.NewEntry(log.INFO, fmt.Sprintf(message, numClients)),
 				numClients,
 				runtime.NumGoroutine(),
 			})

@@ -34,25 +34,67 @@ module.exports = class Followable
       else
         @constructor.count {}, callback
 
+  @fetchMyFollowees = secure (client, ids, callback)->
+    Relationship.someData {
+      sourceId  :
+        $in     : ids
+      targetId  : client.connection.delegate.getId()
+      as        : 'follower'
+    }, {sourceId:1}, (err, cursor)->
+      if err then callback err
+      else
+        cursor.toArray (err, docs)->
+          if err
+            callback err
+          else
+            callback null, (doc.sourceId for doc in docs)
+
+  @cursorWithRelationship =do->
+    wrapNextModelMethod = (nextObject, delegate, callback)->
+      nextObject (err, model)->
+        if err then callback err
+        else unless model?
+          callback err, null
+        else
+          Relationship.count {
+            targetId  : delegate.getId()
+            sourceId  : model.getId()
+            as        : 'follower'
+          }, (err, count)->
+            if err then callback err
+            else
+              model.followee = count > 0
+              callback null, model
+
+    cursorWithRelationship = secure (client, selector, options, callback)->
+      {delegate} = client.connection
+      @cursor selector, options, (err, cursor)->
+        if err then callback err
+        else
+          nextModel = wrapNextModelMethod.bind null, cursor.nextModel, delegate
+          cursor.nextModel = nextModel
+          callback null, cursor
+
   @someWithRelationship = secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
 
   @markFollowing = secure (client, followables, callback)->
     Relationship.all
+      sourceId  :
+        $in     : (followable.getId() for followable in followables)
       targetId  : client.connection.delegate.getId()
       as        : 'follower'
     , (err, relationships)->
-      for followable in followables
+      followables.forEach (followable)->
         followable.followee = no
-        for relationship, index in relationships
-          if followable.getId().equals relationship.sourceId
+        relationships.forEach (relationship)->
+          if relationship.sourceId.equals followable.getId()
             followable.followee = yes
-            relationships.splice index,1
-            break
       callback err, followables
 
   follow: secure (client, options, callback)->
+    JAccount = require '../models/account'
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
@@ -79,7 +121,6 @@ module.exports = class Followable
           else
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
-            # callback err, count
             action = "follow"
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')
@@ -87,7 +128,15 @@ module.exports = class Followable
               follower        : follower
               action          : action
 
+            JAccount.emit 'FollowingRelationshipChanged'
+              follower: follower.getId()
+              followee: @getId()
+              action  : action
+
             follower.updateFollowingCount @, action
+
+            callback err, count
+
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
@@ -96,13 +145,14 @@ module.exports = class Followable
                 if emitActivity
                   CBucket.addActivities relationship, @, follower, (err)->
                     if err
-                      # console.log "An Error occured: ", err
-                      callback err
-                    else
-                      callback null, count
-                else callback null, count
+                      console.log "An Error occured: ", err
+                      # callback err
+                #     else
+                #       callback null, count
+                # else callback null, count
 
   unfollow: secure (client,callback)->
+    JAccount = require '../models/account'
     follower = client.connection.delegate
     @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
@@ -117,6 +167,12 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           follower        : follower
           action          : action
+
+        JAccount.emit 'FollowingRelationshipChanged'
+          follower: follower.getId()
+          followee: @getId()
+          action  : action
+
         follower.updateFollowingCount @, action
 
   fetchFollowing: (query, page, callback)->
@@ -166,16 +222,18 @@ module.exports = class Followable
       Relationship.one selector, (err, rel) ->
         if rel? and not err?
           callback yes
-        else 
+        else
           callback no
 
-
   updateFollowingCount: (followee, action)->
-    Relationship.count targetId:@_id, as:'follower', (error, count)=>
-      Model::update.call @, $set: 'counts.following': count, (err)->
-        throw err if err
-      @emit 'FollowCountChanged'
-        followerCount   : @getAt('counts.followers')
-        followingCount  : @getAt('counts.following')
-        followee        : followee
-        action          : action
+    if @constructor.name is 'JAccount'
+      @updateCounts()
+    else
+      Relationship.count targetId:@_id, as:'follower', (error, count)=>
+        Model::update.call @, $set: 'counts.following': count, (err)->
+          throw err if err
+        @emit 'FollowCountChanged'
+          followerCount   : @getAt('counts.followers')
+          followingCount  : @getAt('counts.following')
+          followee        : followee
+          action          : action

@@ -18,7 +18,9 @@ class ContentDisplayControllerTopic extends KDViewController
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
-      callback : ()=>
+      callback : (pubInst, event)=>
+        event.stopPropagation()
+        event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden",mainView
 
     topicView = @addTopicView topic
@@ -26,6 +28,7 @@ class ContentDisplayControllerTopic extends KDViewController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
+      noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."
       limitPerPage        : 5
       filter              :
         content           :
@@ -45,6 +48,14 @@ class ContentDisplayControllerTopic extends KDViewController
             selector = {targetName: 'JCodeSnip'}
             topic.fetchContentTeasers options, selector, (err, teasers)->
               callback err, teasers
+        # Discussions Disabled
+        # discussions       :
+        #   title           : 'Discussions'
+        #   dataSource      : (selector, options, callback)->
+        #     selector = {targetName: 'JDiscussion'}
+        #     topic.fetchContentTeasers options, selector, (err, teasers)->
+        #       callback err, teasers
+
       sort                :
         'timestamp|new'   :
           title           : 'Latest activity'
@@ -95,6 +106,15 @@ class TopicView extends KDView
     , data
 
     super
+    unless data.followee
+      KD.whoami().isFollowing? data.getId(), "JTag", (following) =>
+        data.followee = following
+        if data.followee
+          @followButton.setClass 'following-btn following-topic'
+          @followButton.setState "Following"
+        else
+          @followButton.setState "Follow"
+          @followButton.unsetClass 'following-btn following-topic'
 
   viewAppended:->
     @setTemplate @pistachio()

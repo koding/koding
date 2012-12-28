@@ -5,7 +5,7 @@ Function::bind or= do ->
     if 1 < arguments.length
       args = slice.call arguments, 1
       return -> func.apply context, if arguments.length then args.concat slice.call arguments else args
-    -> if arguments.z then func.apply context, arguments else func.call context
+    -> if arguments.length then func.apply context, arguments else func.call context
 
 Function::swiss = (parent, names...)->
   for name in names
@@ -26,10 +26,33 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 # KD Global
 KD = @KD or {}
 
-@KD = $.extend (KD), do ->
+noop  = ->
 
+KD.log   = log   = noop
+KD.warn  = warn  = noop
+KD.error = error = noop
+
+@KD = $.extend (KD), do ->
   # private member for tracking z-indexes
   zIndexContexts  = {}
+
+  create = (constructorName, options, data)->
+    konstructor = @classes[constructorName] \
+                ? @classes["KD#{constructorName}"]
+    new konstructor options, data  if konstructor?
+
+  create    : create
+  new       : create
+
+  impersonate: (username)->
+    @remote.api.JAccount.impersonate username, (err)->
+      if err then new KDNotificationView title: err.message
+      else location.reload()
+
+  # testKDML:->
+  #   {KDMLParser} = Bongo.KDML
+  #   kdml = new KDMLParser @classes
+
   debugStates     : {}
   instances       : {}
   singletons      : {}
@@ -37,14 +60,27 @@ KD = @KD or {}
   classes         : {}
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
+  utils           : __utils
 
   whoami:-> KD.getSingleton('mainController').userAccount
+
+  logout:->
+    mainController = KD.getSingleton('mainController')
+    delete mainController?.userAccount
 
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
 
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
 
-  checkFlag:(flag, account = KD.whoami())-> account.globalFlags and flag in account.globalFlags
+  checkFlag:(flagToCheck, account = KD.whoami())->
+    if account.globalFlags
+      if 'string' is typeof flagToCheck
+        return flagToCheck in account.globalFlags
+      else
+        for flag in flagToCheck
+          if flag in account.globalFlags
+            return yes
+    no
 
   requireLogin:(errMsg, callback)->
 
@@ -87,9 +123,9 @@ KD = @KD or {}
     @subscriptions
 
   registerInstance : (anInstance)->
-    warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
+    warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
-    @classes[anInstance.constructor.name] ?= anInstance.constructor
+    # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->
     # warn "Instance being unregistered doesn't exist in registry!!", anInstance unless @instances[anInstance.id]
@@ -151,11 +187,26 @@ KD = @KD or {}
       dataType : 'jsonp'
       success : (data)->
         inflated = JSONH.unpack data
-        console.log 'success', inflated
-        console.log Date.now()-start
+        KD.log 'success', inflated
+        KD.log Date.now()-start
 
-noop  = ->
+  enableLogs:do->
+    oldConsole = window.console
+    window.console = {}
+    console[method] = noop  for method in ['log','warn','error','trace','time','timeEnd']
 
-KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-KD.error = error = if console?.error then console.error.bind(console) else noop
+    enableLogs =->
+      window.console = oldConsole
+      KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+      KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+      KD.error = error = if console?.error then console.error.bind(console) else noop
+      return "Logs are enabled now."
+
+  exportKDFramework:->
+    (window[item] = KD.classes[item] for item of KD.classes)
+    KD.exportKDFramework = -> "Already exported."
+    "KDFramework loaded successfully."
+
+KD.enableLogs() if not KD.config?.suppressLogs
+
+prettyPrint = noop

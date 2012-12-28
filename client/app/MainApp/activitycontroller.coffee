@@ -4,5 +4,5 @@ class ActivityController extends KDObject
 
     super
 
-    KD.remote.api.CActivity.addGlobalListener 'feed-new', (activities) =>
+    KD.remote.api.CActivity.on 'feed-new', (activities) =>
       @emit 'ActivitiesArrived', activities

@@ -22,6 +22,7 @@ module.exports = class JApp extends jraphical.Module
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/likeable'
+  @trait __dirname, '../traits/slugifiable'
   #
   {Inflector,JsPath,secure,daisy,ObjectId,ObjectRef} = require 'bongo'
   {Relationship} = jraphical
@@ -30,8 +31,12 @@ module.exports = class JApp extends jraphical.Module
 
   @set
 
+    slugifyFrom     : 'title'
+    slugTemplate    : 'Apps/#{slug}'
+
     indexes         :
       title         : 'ascending'
+      slug          : 'unique'
 
     sharedMethods   :
       instance      : [
@@ -43,7 +48,7 @@ module.exports = class JApp extends jraphical.Module
       ]
       static        : [
         "one","on","some","create","byRelevance",
-        "someWithRelationship"
+        "someWithRelationship",'updateAllSlugs'
       ]
 
     schema          :
@@ -81,6 +86,8 @@ module.exports = class JApp extends jraphical.Module
       repliesCount  :
         type        : Number
         default     : 0
+      slug          : String
+      slug_         : String
 
     relationships   :
       creator       :
@@ -247,7 +254,8 @@ module.exports = class JApp extends jraphical.Module
                               callback err
                             else
                               callback null
-            callback new KodingError 'App is not approved so activity is not created.'
+            else
+              callback new KodingError 'App is not approved so activity is not created.'
           else
             callback new KodingError 'Relationship already exists, App already installed'
 

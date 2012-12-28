@@ -24,30 +24,36 @@ class OpinionView extends KDView
     @addSubView @opinionList
     @addSubView @opinionHeader
 
-    @opinionList.on "OwnOpinionHasArrived", ->
+    @opinionList.on "OwnOpinionHasArrived", =>
+      @opinionHeader.updateRemainingText()
+
     @opinionList.on "OpinionIsDeleted", (data)->
 
-    @opinionList.on "DiscussionTeaserShouldRefresh", =>
+    @opinionList.on "RefreshTeaser", =>
       @opinionController.fetchTeaser ->
 
     if data.opinions
       for opinion, i in data.opinions when opinion? and 'object' is typeof opinion
         @opinionList.addItem opinion
 
+    if data.opinionCount and not data.opinions?
+      maxOpinions = (if data.opinionCount<=5 then data.opinionCount else 5)
+      @opinionController.fetchOpinionsByRange 0,maxOpinions, (err, opinions)=>
+        for opinion, i in opinions when (opinion? and 'object' is typeof opinion)
+          @opinionList.addItem opinion
+        @opinionHeader.updateRemainingText()
+
     @opinionList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-    # @listenTo
-    #   KDEventTypes : "DecorateActiveOpinionView"
-    #   listenedToInstance : @opinionList
-    #   callback : @decorateActiveCommentState
     @opinionList.on "DecorateActiveOpinionView", =>
-      log "stuff"
       @decorateActiveCommentState
 
     @opinionList.on "OpinionLinkReceivedClick", =>
       @parent?.opinionForm?.opinionBody?.setFocus()
 
+    @opinionList.on "CommentLinkReceivedClick", =>
+      @parent?.commentBox?.commentForm?.commentInput?.setFocus()
 
     @opinionList.on "OpinionCountClicked", =>
       @opinionList.emit "AllOpinionsLinkWasClicked"
@@ -59,7 +65,7 @@ class OpinionView extends KDView
 
   resetDecoration:->
     post = @getData()
-    if post.repliesCount is 0
+    if post.opinionCount is 0
       @decorateNoCommentState()
     else
       @decorateCommentedState()

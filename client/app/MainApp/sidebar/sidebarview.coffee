@@ -27,10 +27,17 @@ class Sidebar extends JView
       mouseenter   : => @animateLeftNavIn()
       mouseleave   : => @animateLeftNavOut()
 
+    # currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+
+    # @currentGroup = new KDCustomHTMLView
+    #   cssClass    : 'current-group-indicator'
+    #   pistachio   : "{{#(title)}}"
+    # , currentGroupData
+
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
-        itemClass : NavigationLink
+        itemClass    : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -44,7 +51,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account"
-        itemClass : NavigationLink
+        itemClass    : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -58,7 +65,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account admin"
-        itemClass : AdminNavigationLink
+        itemClass    : AdminNavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -70,7 +77,7 @@ class Sidebar extends JView
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
-        itemClass : FooterMenuItem
+        itemClass    : FooterMenuItem
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -312,42 +319,56 @@ class Sidebar extends JView
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
 
   navItems =
-    id    : "navigation"
-    title : "navigation"
-    items : [
-      { title : "Activity" }
-      { title : "Topics" }
-      { title : "Members" }
-      # { title : "Groups",  path : "GroupsFake" }
-      { title : "Develop", loggedIn : yes,  path : "StartTab" }
-      { title : "Apps" }
-    ]
+    # temp until groups are implemented
+    do ->
+      if location.hostname is "koding.com"
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Develop",    path: "/Develop", loggedIn: yes }
+          { title : "Apps",       path: "/Apps" }
+        ]
+      else
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Groups",     path: "/Groups" }
+          { title : "Develop",    path: "/Develop",  loggedIn: yes }
+          { title : "Apps",       path: "/Apps" }
+        ]
 
   accNavItems =
     id    : "acc-navigation"
     title : "acc-navigation"
     items : [
       { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes }
-      { title : "Logout",         loggedIn  : yes, action : "logout" }
-      { title : "Login",          loggedOut : yes, action : "login" }
+      { title : "Account",        loggedIn  : yes, path   : '/Account' }
+      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
+      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
     ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",    path : "WebTerm" }
+      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
+      { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
-      { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
     ]
 
   adminNavItems =
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-      { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin",         loggedIn : yes, callback : -> new AdminModal }
+      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =
@@ -357,8 +378,8 @@ class Sidebar extends JView
       { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
       { title : "About", callback : -> @showAboutDisplay() }
       { title : "Chat",  loggedIn : yes, callback : ->
-          @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-          unless location.hostname is "localhost"
-            new KDNotificationView title : "Coming soon..."
+        # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
+        # unless location.hostname is "localhost"
+        new KDNotificationView title : "Coming soon..."
       }
     ]

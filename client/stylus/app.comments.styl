@@ -81,7 +81,7 @@ app.comments.styl
   .delete-link
     display                 block
     size                    20px, 20px
-    position                absolute
+    abs()
     top                     5px
     right                   5px
     bg                      position, -80px -520px
@@ -109,8 +109,19 @@ app.comments.styl
       padding               10px
       width                 auto
 
+      // span
+      //   hidden()
       span
-        hidden()
+        size              30px,30px
+        border            1px solid #e3e3e3
+        padding           1px
+        margin-right      10px
+        fl()
+        a
+          display           block
+          size              30px,30px
+          background-size   cover
+          background-position center
 
       .item-add-comment-form
         width               auto
@@ -185,7 +196,7 @@ app.comments.styl
         font-weight       600
 
     span.small-loader
-      position            absolute
+      abs()
       right               15px
       top                 11px
 
@@ -196,7 +207,7 @@ app.comments.styl
       padding-right         2px
       font-weight           600
       color                 white
-      position              relative
+      rel()
       bg                    color, #FF9200
       border                1px solid #FF9200
       rounded(3px 3px 3px 3px)
@@ -212,7 +223,7 @@ app.comments.styl
       content               " "
       height                0
       width                 0
-      position              absolute
+      abs()
       pointer-events        none
 
     .new-items:after

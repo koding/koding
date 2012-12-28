@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -11,14 +12,18 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 	"unicode/utf8"
 )
 
 type WebtermServer struct {
-	session *kite.Session
-	remote  dnode.Remote
-	pty     *pty.PTY
-	process *os.Process
+	session          *kite.Session
+	remote           dnode.Remote
+	pty              *pty.PTY
+	process          *os.Process
+	currentSecond    int64
+	messageCounter   int
+	lineFeeedCounter int
 }
 
 func main() {
@@ -78,7 +83,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	command := []string{"/bin/bash"}
+	command := []string{"/bin/bash", "-l"}
 	// command = append(command, args...)
 
 	pty := pty.New()
@@ -117,6 +122,17 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 				}
 				pty.Master.Read(buf[n : n+1])
 				n += 1
+			}
+			s := time.Now().Unix()
+			if server.currentSecond != s {
+				server.currentSecond = s
+				server.messageCounter = 0
+				server.lineFeeedCounter = 0
+			}
+			server.messageCounter += 1
+			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+			if server.messageCounter > 100 || server.lineFeeedCounter > 300 {
+				time.Sleep(time.Second)
 			}
 			server.remote["output"].(dnode.Callback)(string(buf[:n]))
 			if err != nil {

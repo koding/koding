@@ -10,8 +10,6 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = 0
 
   updateCount:(newCount = 0)->
-    # if newCount > 0
-    #   log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
     @count = newCount
 
@@ -20,7 +18,9 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     else
       @$('.count').addClass "in"
 
-  click:->
+  click:(event)->
+    event.preventDefault()
+    event.stopPropagation()
     popup = @getDelegate()
     popup.show()
 
@@ -35,10 +35,6 @@ class AvatarAreaIconMenu extends KDView
     sidebar  = @getDelegate()
     @setClass "invisible" unless KD.isLoggedIn()
 
-    mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
-      cssClass : "status-update"
-      delegate : sidebar
-
     mainView.addSubView @avatarNotificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
       delegate : sidebar
@@ -47,11 +43,9 @@ class AvatarAreaIconMenu extends KDView
       cssClass : "messages"
       delegate : sidebar
 
-    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
-      cssClass   : 'status-update'
-      attributes :
-        title    : 'Status Update'
-      delegate   : @avatarStatusUpdatePopup
+    mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
+      cssClass : "status-update"
+      delegate : sidebar
 
     @addSubView @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications'
@@ -65,15 +59,24 @@ class AvatarAreaIconMenu extends KDView
         title    : 'Messages'
       delegate   : @avatarMessagesPopup
 
+    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
+      cssClass   : 'status-update'
+      attributes :
+        title    : 'Status Update'
+      delegate   : @avatarStatusUpdatePopup
+
     @attachListeners()
 
   attachListeners:->
 
-    @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
-      @notificationsIcon.updateCount @notificationsIcon.count + 1
-
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
-      @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+      # No need the following
+      # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+      if event is 'ActivityIsAdded'
+        @avatarNotificationsPopup.listController.fetchNotificationTeasers (notifications)=>
+          @avatarNotificationsPopup.noNotification.hide()
+          @avatarNotificationsPopup.listController.removeAllItems()
+          @avatarNotificationsPopup.listController.instantiateListItems notifications
 
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
@@ -91,9 +94,6 @@ class AvatarAreaIconMenu extends KDView
         @avatarMessagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
-    @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
-      @notificationsIcon.updateCount 0
-
   accountChanged:(account)->
     if KD.isLoggedIn()
       @unsetClass "invisible"
@@ -102,7 +102,7 @@ class AvatarAreaIconMenu extends KDView
       messagesPopup.listController.removeAllItems()
       notificationsPopup.listController.removeAllItems()
 
-      #do not remove the timeout it should give dom sometime before putting an extra load
+      # do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
         notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
           notificationsPopup.listController.instantiateListItems teasers
@@ -147,11 +147,8 @@ class AvatarPopup extends KDView
     @addSubView @avatarPopupContent = new KDView cssClass : 'content'
 
   setPopupListener:->
-    @listenTo
-      KDEventTypes        : 'click'
-      listenedToInstance  : @avatarPopupTab
-      callback:(pubInst, event)->
-        @hide()
+    @avatarPopupTab.on 'click', (event)=>
+      @hide()
 
   _windowDidResize:=>
     if @listController
@@ -163,27 +160,37 @@ class AvatarPopup extends KDView
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
 
-  # show:->
-  #   super()
-
-  #   if (visitor = KD.getSingleton('mainController').getVisitor())
-  #     {profile} = visitor.currentDelegate
-  #     if @statusField.getOptions().placeholder is ""
-  #       @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
-
   viewAppended:->
     super()
+
+    @loader = new KDLoaderView
+      cssClass      : "avatar-popup-status-loader"
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#ff9200"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
+
+    @avatarPopupContent.addSubView @loader
+
+    {profile} = KD.whoami()
 
     @avatarPopupContent.addSubView @statusField = new KDHitEnterInputView
       type          : "textarea"
       validate      :
         rules       :
           required  : yes
+      placeholder   : "What's new, #{Encoder.htmlDecode profile.firstName}?"
       callback      : (status)=> @updateStatus status
-
 
   updateStatus:(status)->
 
+    @loader.show()
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
@@ -193,16 +200,19 @@ class AvatarPopupShareStatus extends AvatarPopup
           title    : 'Message posted!'
           duration : 2000
         @statusField.setValue ""
-        @statusField.setPlaceHolder reply.body
+
+        @loader.hide()
+        # @statusField.setPlaceHolder reply.body
         @hide()
 
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        @loader.hide()
         @hide()
 
 # avatar popup box Notifications
 class AvatarPopupNotifications extends AvatarPopup
-  activitesArrived:-> console.log arguments
+  activitesArrived:-> log arguments
 
   viewAppended:->
     super()
@@ -243,11 +253,14 @@ class AvatarPopupNotifications extends AvatarPopup
 
   show:->
     super
-    @listController.fetchNotificationTeasers (notifications)=>
-      @listController.removeAllItems()
-      @listController.instantiateListItems notifications
 
-    KD.whoami().glanceActivities ->
+  hide:->
+    KD.whoami()?.glanceActivities =>
+      for item in @listController.itemsOrdered
+        item.unsetClass 'unread'
+      @noNotification.show()
+      @listController.emit 'NotificationCountDidChange', 0
+    super
 
 class AvatarPopupMessages extends AvatarPopup
 
@@ -297,7 +310,6 @@ class AvatarPopupMessages extends AvatarPopup
   show:->
     super
     @listController.fetchMessages()
-    KD.whoami().glanceMessages ->
 
 class PopupList extends KDListView
 
@@ -319,6 +331,14 @@ class PopupNotificationListItem extends NotificationListItem
 
     super options, data
 
+    @initializeReadState()
+
+  initializeReadState:->
+    if @getData().getFlagValue('glanced')
+      @unsetClass 'unread'
+    else
+      @setClass 'unread'
+
   pistachio:->
     """
       <span class='icon'></span>
@@ -335,8 +355,14 @@ class PopupNotificationListItem extends NotificationListItem
 
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    super
 
+    # If we need to use implement click to mark as read for notifications
+    # Just un-comment following 3 line. A friend from past.
+    # {_id} = @getData()
+    # KD.whoami().glanceActivities _id, (err)=>
+    #   if err then log "Error: ", err
+
+    super
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->

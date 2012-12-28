@@ -99,7 +99,3 @@ class LoadMoreMessagesItem extends KDListItemView
 
   partial:(data)->
     "Load more messages..."
-
-  click:(event)->
-    controller = @getDelegate()
-    controller.continueLoadingMessages @

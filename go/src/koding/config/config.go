@@ -1,33 +1,97 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"os"
 )
 
 var configs = map[string]Config{
 	"default": {
-		AmqpUri:    "amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "localhost",
+		AmqpUser:     "guest",
+		AmqpPassword: "guest",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"dev": {
-		AmqpUri:    "amqp://guest:s486auEkPzvUjYfeFTMQ@zb.koding.com/kite",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "zb.koding.com/kite",
+		AmqpUser:     "guest",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"vagrant": {
+		AmqpHost:     "10.0.0.3",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "djfjfhgh4455__5",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"dev-new": {
+		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
+		AmqpUser:     "broker",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"dev-new-web0": {
+		AmqpHost:     "localhost:5672",
+		AmqpUser:     "broker",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"cl3-new": {
+		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
+		AmqpUser:     "guest",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"stage": {
-		AmqpUri:    "amqp://test:test@web0.beta.system.aws.koding.com",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "STAGE-sg46lU8J17UkVUq",
+		AmqpPassword: "TV678S1WT221t1q",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"prod": {
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "Dtxym6fRJXx4GJz",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+		LogToLoggly:  true,
+	},
+
+	"prod-new": {
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "Dtxym6fRJXx4GJz",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+		LogToLoggly:  true,
+	},
+
+	"local-go": {
+		AmqpHost:     "localhost",
+		AmqpUser:     "guest",
+		AmqpPassword: "guest",
+		HomePrefix:   "/home/",
 	},
 
 	"local": {
-		AmqpUri:    "amqp://guest:guest@localhost",
-		HomePrefix: "/home/",
+		AmqpHost:     "localhost",
+		AmqpUser:     "guest",
+		AmqpPassword: "guest",
+		HomePrefix:   "/home/",
 	},
 
 	"websockets": {
@@ -38,27 +102,25 @@ var configs = map[string]Config{
 }
 
 type Config struct {
-	AmqpUri    string
-	HomePrefix string
-	UseLVE     bool
+	AmqpHost     string
+	AmqpUser     string
+	AmqpPassword string
+	HomePrefix   string
+	UseLVE       bool
+	LogToLoggly  bool
 
 	// for webterm's websockets mode
 	UseWebsockets bool
 	User          string
 }
 
-var Profile string
 var Current Config
 
-func init() {
-	flag.StringVar(&Profile, "c", "default", "Configuration profile")
-}
-
-func LoadConfig() {
+func LoadConfig(profile string) {
 	var ok bool
-	Current, ok = configs[Profile]
+	Current, ok = configs[profile]
 	if !ok {
-		fmt.Printf("Configuration not found: %v\n", Profile)
+		fmt.Printf("Configuration not found: %v\n", profile)
 		os.Exit(1)
 	}
 }

@@ -389,14 +389,15 @@ class NFinderTreeController extends JTreeViewController
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
-    kodingAppsController.compileApp manifest.name, =>
+    kodingAppsController.compileApp manifest.name, (err)=>
       folder.emit "fs.compile.finished"
-      @notify "App compiled!", "success"
-      callback?()
-      @utils.wait 500, =>
-        @refreshFolder nodeView, =>
-          @utils.wait =>
-            @selectNode @nodes["#{folder.path}/index.js"]
+      if not err
+        @notify "App compiled!", "success"
+        @utils.wait 500, =>
+          @refreshFolder nodeView, =>
+            @utils.wait =>
+              @selectNode @nodes["#{folder.path}/index.js"]
+      callback? err
 
   runApp:(nodeView, callback)->
 
@@ -439,17 +440,7 @@ class NFinderTreeController extends JTreeViewController
         @notify "Publish failed!", "error", err
 
   makeNewApp:(nodeView)->
-
-    folder = nodeView.getData()
-
-    folder.emit "fs.newAppCreation.started"
-    @getSingleton('kodingAppsController').makeNewApp (err)=>
-      folder.emit "fs.newAppCreation.finished"
-      @refreshFolder @nodes[folder.path]
-      unless err
-        @notify "App created!", "success"
-      else
-        @notify "App creation failed!", "error", err
+    @getSingleton('kodingAppsController').makeNewApp()
 
   downloadAppSource:(nodeView)->
 
@@ -463,6 +454,31 @@ class NFinderTreeController extends JTreeViewController
         @notify "Source downloaded!", "success"
       else
         @notify "Download failed!", "error", err
+
+  createCodeShare:({data})->
+
+    CodeShares = []
+    @notify "Fetching file list..."
+
+    data.fetchContents (items)=>
+      @notify "Fetching file contents..."
+      files = (file for file in items when file.constructor.name is 'FSFile')
+      count = 0
+      # Poor mans queue mechanism
+      for file in files
+        do (file)->
+          file.fetchContents (err, content)->
+            count+=1
+            if not err and content
+              CodeShare =
+                CodeShareItemOptions : {}
+                CodeShareItemSource  : content
+                CodeShareItemTitle   : file.name
+                CodeShareItemType    :
+                  syntax             : @utils.getFileExtension file.path
+              CodeShares.push CodeShare
+            if count == files.length
+              @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   ###
   CONTEXT MENU OPERATIONS
@@ -490,6 +506,7 @@ class NFinderTreeController extends JTreeViewController
   cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
   cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 

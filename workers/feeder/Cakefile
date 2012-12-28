@@ -1,0 +1,46 @@
+{fork} = require 'child_process'
+KodingLogger = require 'koding-logger'
+os = require 'os'
+processes = new (require 'processes')
+option '-c', '--configPath [CONFIG]', 'Which config file to use.'
+option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
+option '-s', '--silent', 'Set this flag to suppress stdout'
+option '-D', '--debug', 'Start the node project with the debugger'
+
+task 'run', ({numberOfWorkers, configPath, silent})->
+  configPath ?= '../../config/dev'
+  {logger, {feeder:{numberOfWorkers}}} = require configPath
+  numberOfWorkers ?= 1
+  #logger = new KodingLogger 'feeder', os.hostname(), logger.mq
+  #logger.tailTo process.stdout unless silent
+  i = 0
+  #logger.logAll process, 'supervisor'
+
+  processes.fork
+    name            : "feeder"
+    cmd             : "./index -c #{configPath}"
+    restart         : yes
+    restartInterval : 1000
+    verbose         : yes
+
+  while i < numberOfWorkers
+    # child = fork './index', ['-c', configPath], silent: yes
+    processes.fork
+      name            : "feedWorker-#{i}"
+      cmd             : "./worker -c #{configPath}"      
+      restart         : yes
+      restartInterval : 1000
+      verbose         : yes
+
+    #logger.logAll processes.get("feedWorker-#{i}"), "worker#{i}"
+    i++
+  return
+
+task 'e2e', ({configPath, silent}) ->
+  configPath ?= '../../../config/dev'
+  processes.fork
+    name      : "e2e-migrator"
+    cmd       : "./e2e_migrator -c #{configPath}"
+    restart   : no
+    verbose   : yes
+  return

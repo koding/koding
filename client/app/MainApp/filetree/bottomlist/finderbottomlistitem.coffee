@@ -6,33 +6,40 @@ class FinderBottomControlsListItem extends KDListItemView
 
     super options, data
 
-  click:(event)->
+    @title = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass : 'title'
+      partial : data.title
+      tooltip :
+        unless data.appPath or data.action
+          title : "<p class='login-tip'>Coming Soon</p>"
+          placement : "right"
+          direction : 'center'
 
-    if @getData().path?
-      appManager.openApplication @getData().path if @getData().path?
+  click:(event)->
+    {appPath} = @getData()
+    event.preventDefault()
+    if appPath?
+      appManager.openApplication appPath if appPath?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
+    else if @getData().action is "manageRemotes"
+      @getSingleton('mainController').emit 'ManageRemotesRequested'
     else
       new KDNotificationView
         title : "Coming Soon!"
         duration : 1000
 
   viewAppended:->
-    super
+    @setTemplate @pistachio()
+    @template.update()
 
-    data = @getData()
-    unless data.path or data.action
-      @$().twipsy
-        title     : "<p class='login-tip'>Coming Soon</p>"
-        placement : "right"
-        delayIn   : 300
-        html      : yes
-        animate   : yes
-        offset    : -60
-
-  partial:(data)->
+  pistachio:->
     """
-      <a href="#"><span class='icon #{data.icon}'></span>#{data.title}</a>
+      <a href="#">
+        <span class='icon #{@getData().icon}'></span>
+        {{>@title}}
+      </a>
     """
 
   showShortcuts:->

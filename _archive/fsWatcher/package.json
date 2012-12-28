@@ -1,0 +1,25 @@
+{
+    "name": "fsWatcher-kites",
+    "version": "0.0.1",
+    "description": "watching for FS changes for filetree",
+    "maintainers": [
+        {
+            "name": "Aleksey Mykhailov",
+            "email": "a@koding.com"
+        }
+    ],
+    "bugs": {
+        "mail": "a@koding.com"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "kodingen.beanstalkapp.com:/kfmjs.git"
+        }
+    ],
+    "dependencies": {
+        "log4js": "x",
+        "inotify":"x"
+    }
+}
+

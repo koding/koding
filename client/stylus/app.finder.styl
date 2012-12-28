@@ -78,7 +78,7 @@ dimmedNeighbor()
     margin-top 0px
 
   .chevron
-    position          absolute
+    abs()
     top               1px
     right             10px
     z-index           1
@@ -161,7 +161,7 @@ dimmedNeighbor()
     text-shadow       none
 
   a.cancel
-    position        absolute
+    abs()
     size            15px, 15px
     bg              position, -82px -222px
     right           5px
@@ -222,7 +222,7 @@ dimmedNeighbor()
 
 
 .drop-helper
-  position          absolute
+  abs()
   border            2px solid finderSelectedColor1
   rounded           4px
 
@@ -230,7 +230,7 @@ dimmedNeighbor()
 
 
 #finder-panel
-  position          absolute
+  abs()
   overflow          hidden
   size              208px,100%
   top               0
@@ -248,7 +248,7 @@ dimmedNeighbor()
 
   .finder-resize-handle
     cursor            ew-resize
-    position          absolute
+    abs()
     width             4px
     top               0!important
     right             0!important
@@ -256,7 +256,7 @@ dimmedNeighbor()
     overflow          visible
     span
       display         block
-      position        absolute
+      abs()
       height          45px
       width           14px
       bg              position, -55px -173px
@@ -276,7 +276,7 @@ dimmedNeighbor()
 
 
   // .finder-settings-border
-  //   position                relative
+  //   rel()
   //   margin                  0 auto
   //   width                   85%
   //   top                     1px
@@ -317,7 +317,7 @@ dimmedNeighbor()
 
 
 #finder-bottom-controls
-  position                  absolute
+  abs()
   bottom                    0
   margin                    0
   size                      100%,auto
@@ -342,7 +342,7 @@ dimmedNeighbor()
       text-decoration       none
       &:hover
         color               linkColor1
-      span
+      span:not(.title)
         sprite()
       span.terminal
         bg(position,-100px -300px)
@@ -352,6 +352,8 @@ dimmedNeighbor()
         bg(position,-140px -300px)
       span.shortcuts
         bg(position,-160px -300px)
+      span.remotes
+        bg(position,-280px -160px)
 
 /*
 **  Overriding Treeview STYLES
@@ -383,7 +385,7 @@ dimmedNeighbor()
 //         color         #222
 
 //     .chevron
-//       position      absolute
+//       abs()
 //       top           1px
 //       right         10px
 //       z-index       1
@@ -450,7 +452,7 @@ dimmedNeighbor()
 //       span.icon
 //         display         none
 //       label
-//         position        absolute
+//         abs()
 //         color           white
 //         font-size       12px
 //         top             2px
@@ -467,7 +469,7 @@ dimmedNeighbor()
 //         margin-right    10px
 
 //   .drop-helper
-//     position          absolute
+//     abs()
 //     border            2px solid finderSelectedColor1
 //     rounded           4px
 
@@ -565,7 +567,7 @@ dimmedNeighbor()
 
 
 .finder-drag-container
-  position          absolute
+  abs()
   width             208px
 
   .drag-helper

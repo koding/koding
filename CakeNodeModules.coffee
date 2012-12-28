@@ -3,7 +3,7 @@ module.exports =
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
     "kite-amqp","amqp","broker","koding-eventemitter2",'koding-cake','koding-deep-freeze','koding-log-tailer'
-    'koding-logger','koding-watcher'
+    'koding-logger','koding-watcher','koding-closure-compiler','broker-client'
   ]
 
   npm_modules :
@@ -14,13 +14,12 @@ module.exports =
     dropbox         : '0.3.3'
     everyauth       : '0.2.23'
     express         : '2.5.9'
-
     gzippo          : '0.1.4'
     hashish         : '0.0.4'
     hat             : '0.0.3'
     inspect         : '0.0.2'
-    colors          : '0.6.0-1'
-    commander       : '1.0.4'
+
+    # ldapjs          : '0.4.8' # sharedhosting kite req. moved to ./kites/sharedhosting
     log             : '1.2.0'
     log4js          : '0.4.1'
 
@@ -33,9 +32,9 @@ module.exports =
     nodemailer      : '0.3.21'
     nodeunit        : '0.5.3'
     optimist        : '0.3.1'
-    
+
     request			: '2.9.202'
-    stylus			: '0.21.2'
+    stylus			: '0.29.0'
     underscore	    : '1.2.3'
     url				: '0.4.9'
     validator	    : '0.2.0'
@@ -43,3 +42,6 @@ module.exports =
     jsonify         : '0.0.0'
     cron            : '0.3.4'
     csv             : '0.0.17'
+    embedly         : '0.6.0'
+
+    'librato-metrics' : '0.0.6'

@@ -23,6 +23,7 @@ class AceView extends JView
       menu          : @getSaveMenu.bind @
       callback      : ()=>
         @ace.requestSave()
+    @saveButton.disable()
 
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
@@ -41,7 +42,7 @@ class AceView extends JView
       itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
-
+    @advancedSettings.disable()
 
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
@@ -55,21 +56,37 @@ class AceView extends JView
         appManager.openFileWithApplication publicPath, "Viewer"
 
     @previewButton.hide() unless publicUrlCheck.test(@getData().path)
+    @previewButton.disable()
 
-    @compileButton = new KDButtonView
+    @compileAndRunButton = new KDButtonView
       style     : "editor-button"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "compile"
+      title     : "Compile & Run"
+      loader    :
+        color   : "#444444"
+        diameter: 12
       callback  : =>
-        @getSingleton('kodingAppsController').compileApp @getData().path, =>
-          @ace.notify "App compiled!", "success"
+        manifest = KodingAppsController.getManifestFromPath @getData().path
+        @ace.notify "Compiling...", null, yes
+        @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
+          if not err
+            @ace.notify "App compiled!", "success"
+          else
+            @ace.notify "Trying to run old version..."
+          @getSingleton('kodingAppsController').runApp manifest
+          @compileAndRunButton.hideLoader()
 
-    @compileButton.hide() unless /\.kdapp\//.test @getData().path
+    @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
+    @compileAndRunButton.disable()
 
     @setViewListeners()
 
   setViewListeners:->
+
+    @ace.on "ace.ready", =>
+      @saveButton.enable()
+      @advancedSettings.enable()
+      @previewButton.enable()
+      @compileAndRunButton.enable()
 
     @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
@@ -101,7 +118,7 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
-        {{> @compileButton}}
+        {{> @compileAndRunButton}}
         {{> @previewButton}}
         {{> @saveButton}}
       </div>
@@ -155,7 +172,7 @@ class AceView extends JView
             name   = @inputFileName.getValue()
 
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              @_message 'Wrong file name', "Please type valid file name"
+              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
 

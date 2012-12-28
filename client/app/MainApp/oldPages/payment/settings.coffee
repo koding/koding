@@ -138,7 +138,7 @@ class Payment_AddCreditCardView extends KDFormView
       addPaymentMethod  :
         params: formData
         middleware: (err, params, result)->
-          console.log arguments
+          log arguments
     no
 
 

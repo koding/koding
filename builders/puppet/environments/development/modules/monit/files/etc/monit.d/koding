@@ -1,0 +1,12 @@
+check process koding
+    with pidfile /var/run/node/koding.pid
+    start program = "/etc/monit.d/scripts/koding.sh start"
+        with timeout 30 seconds
+    stop program = "/etc/monit.d/scripts/koding.sh stop"
+        with timeout 30 seconds
+
+    if changed pid then alert
+    if totalcpu > 50% for 2 cycles then alert
+    if totalmem > 200 MB for 2 cycles then alert
+    #if totalmem > 400 MB for 3 cycles then restart
+    if 3 restarts within 5 cycles then timeout

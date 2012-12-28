@@ -54,11 +54,12 @@ class KiteController extends KDController
     options.method   or= "executeCommand"
     if command
       options.withArgs = {command}
+    # else if options.withArgs?.command
+      # options.withArgs = options.withArgs.command
     else
       options.withArgs or= {}
 
     # notify "Talking to #{options.kiteName} asking #{options.toDo}"
-    # debugger
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
@@ -108,7 +109,12 @@ class KiteController extends KDController
         callback? err, response
         warn "there were some errors parsing kite response:", err
     else if err
-      if err.kiteNotPresent
+      if err.code is 503
+        notification = notify
+          msg         : error.message
+          duration    : 0
+          click       : -> notification.destroy()
+      else if err.kiteNotPresent
         @handleKiteNotPresent {err, response}, options, callback
       else if /No\ssuch\suser/.test err
         _tempOptions  or= options
@@ -118,6 +124,9 @@ class KiteController extends KDController
         @utils.wait 5000, =>
           _attempt++
           @run _tempOptions, _tempCallback
+      else if err.message?
+        callback? err
+        warn "An error occured:", err.message
       else
         callback? err
         warn "parsing kite response: we dont handle this yet", err
@@ -157,7 +166,7 @@ class KiteController extends KDController
       notify _notifications.creatingEnv
 
     @run
-      method       : "createSystemUser"
+      method     : "createSystemUser"
       withArgs   :
         fullName : "#{KD.whoami().getAt 'profile.firstName'} #{KD.whoami().getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)

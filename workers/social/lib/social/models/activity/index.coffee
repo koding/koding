@@ -20,8 +20,8 @@ module.exports = class CActivity extends jraphical.Capsule
     #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','on','someData','teasers',
-        'captureSortCounts', 'addGlobalListener'
+        'one','some','all','someData','teasers','each'
+        'captureSortCounts','addGlobalListener'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -72,7 +72,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @captureSortCounts =(callback)->
     selector = {
-      type: {$in: ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']}
+      type: {$in: ['CStatusActivity','CLinkActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity','CCodeShareActivity','CTutorialActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}

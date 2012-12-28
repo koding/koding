@@ -1,4 +1,4 @@
-class Topics12345 extends AppController
+class TopicsAppController extends AppController
 
   constructor:(options, data)->
     options = $.extend
@@ -16,14 +16,12 @@ class Topics12345 extends AppController
         name : 'Topics'
       data : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   createFeed:(view)->
+    {JTag} = KD.remote.api
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass          : @listItemClass
+      itemClass             : @listItemClass
       limitPerPage          : 20
+      noItemFoundText       : "There is no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
@@ -39,11 +37,21 @@ class Topics12345 extends AppController
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              KD.remote.api.JTag.byRelevance @_searchValue, options, callback
+              JTag.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JTag.someWithRelationship selector, options, callback
+              JTag.streamModels selector, options, callback
+          dataEnd           : ({resultsController}, ids)->
+            JTag.fetchMyFollowees ids, (err, followees)->
+              if err then error err
+              else
+                {everything} = resultsController.listControllers
+                everything.forEachItemByIndex followees, ({followButton})->
+                  followButton.setState 'Following'
+                  followButton.redecorateState()
+
         following           :
           title             : "Following"
+          noItemFoundText   : "There is no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
               for item in items
@@ -64,9 +72,11 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
+      @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
+      @emit 'ready'
 
   loadView:(mainView, firstRun = yes)->
 
@@ -79,14 +89,13 @@ class Topics12345 extends AppController
 
       mainView.createCommons()
 
-    KD.whoami().fetchRole? (err, role) =>
-      if role is "super-admin"
-        @listItemClass = TopicsListItemViewEditable
-        if firstRun
-          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
-            @updateTopic topicItem
+    if KD.checkFlag ['super-admin', 'editor']
+      @listItemClass = TopicsListItemViewEditable
+      if firstRun
+        @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+          @updateTopic topicItem
 
-      @createFeed mainView
+    @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
   updateTopic:(topicItem)->
@@ -147,20 +156,20 @@ class Topics12345 extends AppController
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                defaultValue      : Encoder.htmlDecode topic.body or ""
+                defaultValue      : topic.body or ""
 
   fetchSomeTopics:(options = {}, callback)->
 
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or=
-      "counts.followers": -1
-    selector = options.selector or {}
+    options.limit or= 6
+    options.skip  or= 0
+    options.sort  or= "counts.followers": -1
+    selector        = options.selector
     delete options.selector if options.selector
+
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
     else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
+      KD.remote.api.JTag.some {}, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
@@ -169,9 +178,6 @@ class Topics12345 extends AppController
   #       warn err,"there was an error creating topic!"
   #     else
   #       log tag,"created topic #{tag.title}"
-
-  createContentDisplay:(tag,doShow = yes)->
-    @showContentDisplay tag
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -185,11 +191,12 @@ class Topics12345 extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

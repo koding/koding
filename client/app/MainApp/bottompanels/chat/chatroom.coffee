@@ -4,7 +4,7 @@ class BottomChatRoom extends JView
 
     super
 
-    @input = tokenInput = new KDTokenizedInput
+    @tokenInput = tokenInput = new BottomChatInput
       match                :
         topic              :
           regex            : /\B#\w.*/
@@ -54,8 +54,27 @@ class BottomChatRoom extends JView
     """
       <section>
         {{> @output}}
-        {{> @input}}
+        {{> @tokenInput}}
       </section>
       {{> @sidebar}}
     """
 
+class BottomChatInput extends KDTokenizedInput
+
+  click:->
+
+    @emit "chat.ui.inputReceivedClick"
+    no
+
+  keyDownOnInput:(e)->
+
+    #refactor here
+    #keypress is unavoidable at this point
+    if e.altKey and e.which is 78
+      @emit "chat.ui.splitPanel"
+      return no
+    else if e.altKey and e.metaKey and e.which in [37,39]
+      @emit "chat.ui.changeFocus", e.which
+      return no
+    else
+      super

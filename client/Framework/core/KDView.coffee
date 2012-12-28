@@ -20,7 +20,8 @@ class KDView extends KDObject
     contextmenu|
     scroll|
     paste|
-    error
+    error|
+    load
     )$
     ///
 
@@ -39,6 +40,7 @@ class KDView extends KDObject
     dragenter   : "dragEnter"
     dragleave   : "dragLeave"
     dragover    : "dragOver"
+    paste       : "paste"
 
 
   overrideAndMergeObjects = (objects)->
@@ -122,8 +124,10 @@ class KDView extends KDObject
             child.emit 'viewAppended', child
 
 
-  setTemplate:(tmpl)->
-    @template = new Pistachio(@, tmpl)
+  setTemplate:(tmpl, params)->
+    params ?= @getOptions()?.pistachioParams
+    options = if params? then {params}
+    @template = new Pistachio @, tmpl, options
     @updatePartial @template.html
     @template.embedSubViews()
 
@@ -132,7 +136,7 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      console.log "view:", @, "parent:", @parent
+      log "view:", @, "parent:", @parent
       error 'View already has a parent'
     else
       if defineProperty
@@ -176,7 +180,7 @@ class KDView extends KDObject
     @addEventHandlers options
 
     if options.pistachio
-      @setTemplate options.pistachio
+      @setTemplate options.pistachio, options.pistachioParams
       @template.update()
 
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
@@ -332,11 +336,8 @@ class KDView extends KDObject
     @$().css positionOptions
 
   getWidth:()->
-    # pre = Date.now()
-    # w = @getDomElement()[0].clientWidth
     w = @getDomElement().width()
-    # log Date.now() - pre,@,@id
-    # w
+
   setWidth:(w)->
     @getDomElement()[0].style.width = "#{w}px"
     # @getDomElement().width w
@@ -363,13 +364,11 @@ class KDView extends KDObject
 # #
 
   destroy:()->
-
     # instance destroys own subviews
     @destroySubViews() if @getSubViews().length > 0
 
     # instance drops itself from its parent's subviews array
     if @parent and @parent.subViews?
-      # log "parent subviews spliced"
       @parent.removeSubView @
 
     # instance removes itself from DOM
@@ -381,19 +380,13 @@ class KDView extends KDObject
     # call super to remove instance subscriptions
     # and delete instance from KD.instances registry
     super()
-    # log delete @listeners
-    # log delete @listeningTo
 
   destroySubViews:()->
     # (subView.destroy() for subView in @getSubViews())
 
     for subView in @getSubViews().slice()
-      # log "ASDSD","asd"
       if subView instanceof KDView
-        # log subView,subView.id.substring(0,5),"subView of:",@.id.substring(0,5)
         subView?.destroy?()
-        # log delete subView.listeners
-        # log delete subView.listeningTo
 
   addSubView:(subView,selector,shouldPrepend)->
     unless subView?
@@ -468,7 +461,7 @@ class KDView extends KDObject
   bindEvents:($elm)->
     $elm or= @getDomElement()
     # defaultEvents = "mousedown mouseup click dblclick dragstart dragenter dragleave dragover drop resize"
-    defaultEvents = "mousedown mouseup click dblclick"
+    defaultEvents = "mousedown mouseup click dblclick paste"
     instanceEvents = @getOptions().bind
 
     eventsToBeBound = if instanceEvents
@@ -491,12 +484,17 @@ class KDView extends KDObject
 
     eventsToBeBound
 
+  bindEvent:($elm, eventName)->
+    [eventName, $elm] = [$elm, @$()] unless eventName
+
+    $elm.bind eventName, (event)=>
+      willPropagateToDOM = @handleEvent event
+      event.stopPropagation() unless willPropagateToDOM
+      yes
+
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
-
-    # unless result
-    #   log @, result, event.type, "???"
 
     unless result is no
       @emit event.type, event
@@ -506,6 +504,8 @@ class KDView extends KDObject
     willPropagateToDOM = result
 
   scroll:(event)->     yes
+
+  load:(event)->       yes
 
   error:(event)->      yes
 
@@ -517,7 +517,9 @@ class KDView extends KDObject
 
   dblClick:(event)->   yes
 
-  click:(event)->      yes
+  click:(event)->
+    @hideTooltip()
+    yes
 
   contextMenu:(event)->yes
 
@@ -528,6 +530,8 @@ class KDView extends KDObject
   mouseLeave:(event)-> yes
 
   mouseUp:(event)->    yes
+
+  paste:(event)->      yes
 
   mouseDown:(event)->
     (@getSingleton "windowController").setKeyView null
@@ -553,17 +557,14 @@ class KDView extends KDObject
 
     event.preventDefault()
     event.stopPropagation()
-    no
+    # no
 
   submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
-    for key,value of options
-      if eventNames.test key
-        @listenTo
-          KDEventTypes       : key
-          listenedToInstance : @
-          callback           : value
+    for eventName, cb of options
+      if eventNames.test(eventName) and "function" is typeof cb
+        @on eventName, cb
 
   setDraggable:(options = {})->
 
@@ -698,36 +699,87 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
-    o.placement or= "above"
-    o.offset    or= 0
+    o.placement or= "top"
+    o.direction or= "center"
+    o.offset    or=
+      top         : 0
+      left        : 0
     o.delayIn   or= 300
+    o.delayOut  or= 300
     o.html      or= yes
-    o.animate   or= no
-    o.opacity   or= 0.9
+    o.animate   or= yes
     o.selector  or= null
-    o.engine    or= "tipsy" # we still can use twipsy
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
     o.fallback  or= o.title
+    o.view      or= null
+    o.delegate  or= @
+    o.viewCssClass or= null
 
     @on "viewAppended", =>
-      # log "get rid of this timeout there should be an event after template update"
-      @utils.wait =>
-        @$(o.selector)[o.engine] o
+      @bindTooltipEvents o
+
+  bindTooltipEvents:(o)->
+    @bindEvent name for name in ['mouseenter','mouseleave']
+
+    @on 'mouseenter',(event)=>
+      if o.selector
+        selectorEntered = no
+        @bindEvent 'mousemove'
+
+        @on 'mousemove', (mouseEvent)=>
+          if $(mouseEvent.target).is(o.selector) and selectorEntered is no
+            selectorEntered = yes
+            @createTooltip o
+            @tooltip?.emit 'MouseEnteredAnchor'
+          if not $(mouseEvent.target).is(o.selector) and selectorEntered
+            selectorEntered = no
+            @tooltip?.emit 'MouseLeftAnchor'
+      else
+        return if o.selector and not $(event.target).is o.selector
+        @createTooltip o
+        @tooltip?.emit 'MouseEnteredAnchor'
+
+    @on 'mouseleave', (event)=>
+      return if o.seletor and not $(event.target).is o.selector
+      @tooltip?.emit 'MouseLeftAnchor'
+      @off 'mousemove'
+
+  createTooltip:(o = {})->
+    @tooltip ?= new KDTooltip o, {}
 
   getTooltip:(o = {})->
-    o.selector or= null
-    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+    if @tooltip?
+      return @tooltip
+    else
+      o.selector or= null
+      return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
 
-  updateTooltip:(o = {})->
-    o.selector or= null
-    o.title    or= ""
-    @$(o.selector)[0].setAttribute "original-title", o.title
-    @$(o.selector).tipsy "update"
+  updateTooltip:(o = @getOptions().tooltip,view = null)->
+    unless view
+      o.selector or= null
+      o.title    or= ""
+      @getOptions().tooltip.title = o.title
+      if @tooltip?
+        @tooltip.setTitle o.title
+        @tooltip.display @getOptions().tooltip
+    else
+      if @tooltip?
+        @tooltip.setView view
 
   hideTooltip:(o = {})->
     o.selector or= null
     @$(o.selector).tipsy "hide"
+    @tooltip?.hide()
+
+  removeTooltip:(instance)->
+    if instance
+      @getSingleton('windowController').removeLayer instance
+      instance.destroy()
+      @tooltip = null
+      delete @tooltip
+    else
+      log 'There was nothing to remove.'
 
   listenWindowResize:->
 

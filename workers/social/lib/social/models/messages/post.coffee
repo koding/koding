@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 
 JAccount = require '../account'
 JComment = require './comment'
+
 JTag = require '../tag'
 CActivity = require '../activity'
 CRepliesActivity = require '../activity/repliesactivity'
@@ -15,6 +16,8 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
   @trait __dirname, '../../traits/likeable'
+  @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/slugifiable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -24,6 +27,8 @@ module.exports = class JPost extends jraphical.Message
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
+    slug          : String
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
     counts        :
       followers   :
         type      : Number
@@ -35,13 +40,26 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    slugifyFrom : 'title'
+    slugTemplate: 'Activity/#{slug}'
+    indexes     :
+      slug      : 'unique' 
+    permissions: [
+      'read posts'
+      'create posts'
+      'edit posts'
+      'delete posts'
+      'edit own posts'
+      'delete own posts'
+      'reply to posts'
+    ]
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','on','one']
+      static          : ['create','one','updateAllSlugs']
       instance        : [
-        'on','addGlobalListener', 'reply','restComments','commentsByRange'
+        'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
@@ -98,6 +116,14 @@ module.exports = class JPost extends jraphical.Message
       activity.originType = delegate.constructor.name
       teaser = null
       daisy queue = [
+        ->
+          status.createSlug (err, slug)->
+            if err
+              callback err
+            else
+              status.slug   = slug
+              status.slug_  = slug
+              queue.next()
         ->
           status
             .sign(delegate)
@@ -193,8 +219,8 @@ module.exports = class JPost extends jraphical.Message
         => @remove -> queue.fin()
       ]
       dash queue, =>
-        @emit 'PostIsDeleted', 1
         callback null
+        @emit 'PostIsDeleted', 1
     else
       callback new KodingError 'Access denied!'
 
@@ -278,7 +304,7 @@ module.exports = class JPost extends jraphical.Message
           else
             delegate.addContent comment, (err)->
               if err
-                log 'error adding content to delegate', err
+                log 'error adding content to delegate with err', err
             @addComment comment,
               flags:
                 isLowQuality    : exempt
@@ -305,7 +331,7 @@ module.exports = class JPost extends jraphical.Message
                           @fetchActivityId (err, id)->
                             CActivity.update {_id: id}, {
                               $set: 'sorts.repliesCount': count
-                            }, log
+                            }, (err)-> log err if err
                           @fetchOrigin (err, origin)=>
                             if err
                               console.log "Couldn't fetch the origin"

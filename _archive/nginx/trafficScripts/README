@@ -1,0 +1,50 @@
+1) create capped collection (100Mb) in the system mongo database:
+    use koding_sys;
+    db.createCollection("traffic", {capped:true, size:104857600,max:5000})
+
+2) configure nginx log format for shared hosting wildcard vhost:
+    log_format hostinglog   '{"vhostname":"$http_host",
+                                  "out":"$bytes_sent",
+                                  "request":"$request",
+                                  "date":"$time_local",
+                                  "iscounted":"false"}';
+        access_log  /var/log/nginx/hosting.traffic.log hostinglog;
+
+3) configure monit for logwriter.py process:
+    check process logwriter
+    	with pidfile /var/run/logwriter.pid
+    	start program = "/opt/kfmjs/kites/nginx/trafficScripts/monitScripts/logwriter.sh start"
+    		with timeout 30 seconds
+    	stop program = "/opt/kfmjs/kites/nginx/trafficScripts/monitScripts/logwriter.sh stop"
+    		with timeout 30 seconds
+
+    	if changed pid then alert
+    	if totalcpu > 15% for 2 cycles then alert
+    	if totalmem > 30 MB for 2 cycles then alert
+    	if 3 restarts within 5 cycles then timeout
+
+4) configure monit for traffic calculation daemon:
+    check process traffCalc
+    	with pidfile /var/run/traffCalc-daemon.pid
+    	start program = "/opt/kfmjs/kites/nginx/trafficScripts/traffCalc-daemon.py start"
+    		with timeout 30 seconds
+    	stop program = "/opt/kfmjs/kites/nginx/trafficScripts/traffCalc-daemon.py stop"
+    		with timeout 30 seconds
+
+    	if changed pid then alert
+    	if totalcpu > 10% for 2 cycles then alert
+    	if totalmem > 30 MB for 2 cycles then alert
+    	if 3 restarts within 5 cycles then timeout
+
+
+Log Files:
+    logwriter: /var/log/logwriter.log
+    traffCalc: /var/log/traffic-statistic.log
+
+databases:
+  traffic usage statistic will be stored in the koding_sys databases in pervhost_traff collection:
+    { "_id" : ObjectId("4f2155392197e959835c5c87"),
+            "dailyStat" : [ { "date" : "26/Jan/2012", "out" : 19203 } ],
+             "monthlyStat" : [ { "out" : 19203, "month" : "Jan" } ],
+              "vhostname" : "alekseymykhailov.beta.koding.com:82"
+    }

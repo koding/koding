@@ -1,4 +1,7 @@
 class MainTabView extends KDTabView
+
+  lastOpenPaneIndex = null
+
   constructor:(options,data)->
     @visibleHandles = []
     @totalSize      = 0
@@ -15,9 +18,15 @@ class MainTabView extends KDTabView
       callback     :(app, {options, data})->
         @removePaneByView data
 
-    @listenTo
-      KDEventTypes : 'FileChanged'
-      callback     : @fileChanged
+  # temp fix sinan 27 Nov 12
+  # not calling @removePane but @_removePane
+  handleClicked:(index,event)->
+    pane = @getPaneByIndex index
+    if $(event.target).hasClass "close-tab"
+      @removePane pane
+      return no
+
+    @showPane pane
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
@@ -28,6 +37,9 @@ class MainTabView extends KDTabView
     @handlesHidden = yes
 
   showPane:(pane)->
+
+    lastOpenPaneIndex = @getPaneIndex @getActivePane()
+
     super pane
 
     paneMainView = pane.getMainView()
@@ -40,22 +52,6 @@ class MainTabView extends KDTabView
 
     return pane
 
-  fileChanged: (appController, data) ->
-    # file        = data.file
-    # oldContent  = file.contents or ''
-    # newContent  = data.newContent
-    #
-    # changed = no
-    # if oldContent isnt newContent
-    #   changed = yes
-    #
-    # view        = data.appView
-    # pane        = @getPaneByView view
-    #
-    # newTitle    = (if changed then '*' else '') + file.name
-    # pane.setTitle newTitle
-
-
   _removePane: (pane) ->
     pane.handleEvent type : "KDTabPaneDestroy"
     index = @getPaneIndex pane
@@ -66,33 +62,38 @@ class MainTabView extends KDTabView
     handle = @getHandleByIndex index
     @handles.splice(index,1)
     handle.destroy()
-    if isActivePane
-      appPanes = []
-      for pane in @panes
-        appPanes.push pane if pane.options.type is "application"
 
-      if appPanes.length > 0
-        @showPane appPanes[0]
-      else
-        newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
-        @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
+    appPanes = []
+    for pane in @panes
+      appPanes.push pane if pane.options.type is "application"
+
+    if isActivePane
+      if @getPaneByIndex(lastOpenPaneIndex)?
+        @showPane @getPaneByIndex(lastOpenPaneIndex)
+      else if firstPane = @getPaneByIndex 0
+        @showPane firstPane
 
     @emit "PaneRemoved"
 
-  removePane:(pane)->
-    pane.getData().handleEvent type: 'ViewClosed'
-    # delete appManager.terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
+    if appPanes.length is 0
+      @emit "AllApplicationPanesClosed"
 
-  showPaneByView:(options,view)->
-    viewId = view
-    unless (@getPaneByView view)?
-      @createTabPane options,view
-    else
-      @showPane @getPaneByView view
+
+  removePane:(pane)->
+    pane.getData().emit 'ViewClosed'
+    # delete appManager.terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
 
   removePaneByView:(view)->
     return unless (pane = @getPaneByView view)
     @_removePane pane
+
+  showPaneByView:(options,view)->
+    viewId = view
+    pane = @getPaneByView view
+    if pane?
+      @showPane pane
+    else
+      @createTabPane options, view
 
   getPaneByView:(view)->
     if view then @paneViewIndex[view.id] else null
@@ -113,7 +114,6 @@ class MainTabView extends KDTabView
       class        : KDView
     ,options
     paneInstance = new MainTabPane options,mainView
-    # debugger
     # log 'options', options
     paneInstance.on "viewAppended", =>
       # if options.controller  #dont need that anymore as tabHandle could be controlled by application
@@ -146,13 +146,11 @@ class MainTabView extends KDTabView
       delegate : pane
       cssClass : "#{type}-page"
 
-
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
-
 
   resizeTabHandles:(event)->
 
@@ -183,8 +181,3 @@ class MainTabView extends KDTabView
       handle.$().css width : handleSize
       subtractor = if handle.$('span').length is 1 then 25 else 25 + (handle.$('span:not(".close-tab")').length * 25)
       handle.$('> b').css width : (handleSize - subtractor)
-
-
-
-
-

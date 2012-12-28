@@ -19,7 +19,7 @@ module.exports = class JFeed extends jraphical.Module
     relationships   :
       content       :
         as          : 'container'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JDiscussion", "JTutorial"]
 
     sharedMethods   :
       instance      : [
@@ -29,17 +29,18 @@ module.exports = class JFeed extends jraphical.Module
   saveFeedToAccount = (feed, account, callback) ->
     feed.save (err) ->
       if err then callback err
-      else 
+      else
         account.addFeed feed, (err) ->
           if err then callback err
           else callback null, feed
 
   @createFeed = (account, options, callback) ->
     {title, description} = options
+    description ?= ""
     feed = new JFeed {
       title
       description
-      owner: account._id
+      owner: account.getId()
     }
     saveFeedToAccount feed, account, callback
 
@@ -47,10 +48,11 @@ module.exports = class JFeed extends jraphical.Module
     JAccount = require './account'
     return unless account instanceof JAccount
     {title, description} = data
+    description ?= ""
     selectorOrInitializer =
       title: title
       description: description
-      owner: account._id
+      owner: account.getId()
     @assure selectorOrInitializer, (err, feed) ->
       if err then callback err
       else saveFeedToAccount feed, account, callback
@@ -60,7 +62,7 @@ module.exports = class JFeed extends jraphical.Module
     options or= {}
 
     {connection:{delegate}} = client
-    unless delegate._id.toString() is @owner.toString()
+    unless delegate.getId().equal @owner
       callback new KodingError 'Access denined.'
     else
       CActivity = require "./activity/index"

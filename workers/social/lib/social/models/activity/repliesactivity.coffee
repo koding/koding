@@ -2,6 +2,8 @@ CActivity = require './index'
 
 module.exports = class CRepliesActivity extends CActivity
 
+  @trait __dirname, '../../traits/flaggable'
+
   {Relationship} = require 'jraphical'
 
   @share()

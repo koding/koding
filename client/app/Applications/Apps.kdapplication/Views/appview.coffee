@@ -95,7 +95,6 @@ class AppView extends KDView
       else
         @likeButton.setState "Like"
 
-
     if app.versions?.length > 1
       menu = {}
 
@@ -175,11 +174,11 @@ class AppView extends KDView
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
       <div class="installerbar clearfix">
         {{> @installButton}}
-        <div class="versionstats updateddate">Version {{ #(manifest.version) or "---" }}<p>Updated: ---</p></div>
+        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
-          <div class="versionstats">{{#(counts.installed) or 0}}<p>INSTALLS</p></div>
-          <div class="versionstats">{{#(meta.likes) or 0}}<p>Likes</p></div>
-          <div class="versionstats">{{#(counts.followers) or 0}}<p>Followers</p></div>
+          <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
+          <div class="versionstats">{{#(meta.likes) || 0}}<p>Likes</p></div>
+          <div class="versionstats">{{#(counts.followers) || 0}}<p>Followers</p></div>
         </div>
         <div class="appfollowlike">
           {{> @followButton}}

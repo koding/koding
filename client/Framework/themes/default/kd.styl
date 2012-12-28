@@ -18,7 +18,7 @@ body.dragInAction
 */
 
 .kdview
-  position relative
+  rel()
   overflow hidden
   size(100%,100%)
 
@@ -82,14 +82,14 @@ h4.kdheaderview
 **  KDSplitView STYLES
 */
 .kdsplitview
-  position    relative
+  rel()
   size        100%,100%
   .kdsplitview-panel
     overflow auto
   >.kdsplitview-resizer
     left 0
     top 0
-    position absolute
+    abs()
     z-index 9999
     noTextSelection()
     &:hover
@@ -99,7 +99,7 @@ h4.kdheaderview
 
 .kdsplitview-vertical
   >.kdsplitview-panel
-    position absolute
+    abs()
     size(50%,100%)
   >.kdsplitview-resizer
     cursor ew-resize
@@ -108,7 +108,7 @@ h4.kdheaderview
 
 .kdsplitview-horizontal
   >.kdsplitview-panel
-    position absolute
+    abs()
     size(100%,50%)
   >.kdsplitview-resizer
     cursor ns-resize
@@ -122,7 +122,7 @@ h4.kdheaderview
 **  KDTabView STYLES
 */
 .kdview.kdhiddentab
-  position  absolute
+  abs()
   left      -10000px!important
 
 .kdtabhandlecontainer
@@ -133,7 +133,7 @@ h4.kdheaderview
   height 30px
 
   .kdtabhandle
-    position        relative
+    rel()
     color           k-orange
     line-height     30px
     padding         0 25px 0 15px
@@ -194,7 +194,7 @@ h4.kdheaderview
     overflow visible
     height 20px
     .kdtabhandle
-      position relative
+      rel()
       color k-orange
       line-height 20px
       padding 0 25px 0 15px
@@ -273,7 +273,7 @@ h4.kdheaderview
 **  KDAutoComplete STYLES
 */
 .kdautocomplete.listview-wrapper
-  position          absolute
+  abs()
   border            1px solid #ddd
   border            1px solid rgba(125,190,241,1)
   border-top        1px solid #f2f2f2
@@ -281,8 +281,8 @@ h4.kdheaderview
   z-index           20000
   size              auto,auto
   bg                color,white
-  shadow            0,3px,6px,rgba(0,0,0,.1)
-  rounded      0,0,5px,5px
+  shadow            0 3px 6px rgba(0,0,0,.1)
+  rounded           0 0 5px 5px
   .kdview.kdlistview.kdautocompletelist
     padding           5px 0
     .kdautocompletelistitem
@@ -295,17 +295,17 @@ h4.kdheaderview
     .kdautocompletelistitem.active
       color           white
       text-shadow     0 1px 0 rgba(0,0,0,.5)
-      bg(color,rgba(125,190,241,1))
-      shadow(0,0,1px,rgba(0,0,0,.2),inset)
+      bg              color,rgba(125,190,241,1)
+      shadow          0 0 1px rgba(0,0,0,.2) inset
 
 .kdautocompletewrapper
-  position            relative
+  rel()
   display             block
   background          #fff
   // border              1px solid #ccc
   outline             none
-  rounded(4px)
-  shadow(0,1px,0,white)
+  rounded             4px
+  shadow              0 1px 0 white
   borderBox()
   // &:hover
   //   border            1px solid #aaa
@@ -339,7 +339,7 @@ h4.kdheaderview
   rounded           3px
   fl()
   span.close-icon
-    position        absolute
+    abs()
     right           0
     top             0
     cursor          pointer
@@ -351,12 +351,12 @@ h4.kdheaderview
 **  KDNotification STYLES
 */
 .kdnotificationholder
-  position absolute
+  abs()
   left -9999px
   size(100%,100%)
 
 .kdnotification
-  position            absolute
+  abs()
   background-color    rgba(0,0,0,.4)
   padding             10px
   z-index             20001
@@ -378,7 +378,7 @@ h4.kdheaderview
     color             white
 
   .kdnotification-timer
-    position          absolute
+    abs()
     top               21px
     right             25px
     color             white
@@ -388,7 +388,7 @@ h4.kdheaderview
     size              20px,24px
 
   a.kdnotification-close
-    position              absolute
+    abs()
     cursor                pointer
     display               block
     top                   24px
@@ -487,7 +487,7 @@ h4.kdheaderview
 **  KDOverlay STYLES
 */
 .kdoverlay
-  position              absolute
+  abs()
   top                   0
   left                  0
   z-index               10000
@@ -510,7 +510,7 @@ h4.kdheaderview
   Global styles
 */
 span.close-tab,.close-icon
-  position      absolute
+  abs()
   display       block
   right         0
   top           2px
@@ -523,7 +523,7 @@ span.close-tab,.close-icon
     bg        position,-60px -240px
 
 span.close-btn-x
-  position      absolute
+  abs()
   display       block
   right         0
   top           2px

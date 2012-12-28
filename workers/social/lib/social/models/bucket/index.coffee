@@ -5,7 +5,7 @@ module.exports = class CBucket extends jraphical.Module
   {Base, Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
 
   @trait __dirname, '../../traits/notifying'
-  
+
   @set
     broadcastable   : yes
     schema          :
@@ -52,7 +52,7 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CLikeeBucket
           when 'target' then CLikerBucket
-      when 'reply'
+      when 'reply', 'opinion'
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
