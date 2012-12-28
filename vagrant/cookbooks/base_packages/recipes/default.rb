@@ -10,7 +10,7 @@
 packages = %w( make vim-enhanced screen mercurial )
 
 packages.each do |pkg|
-    package "#{pkg}" do
+    yum_package "#{pkg}" do
         action :install
     end
 end
