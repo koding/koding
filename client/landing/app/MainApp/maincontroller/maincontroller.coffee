@@ -10,22 +10,40 @@ class MainController extends KDController
 
     super options, data
 
+
     window.appManager = new ApplicationManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
+    # KD.registerSingleton "groupsController", new GroupsController this
 
-    @appReady ->
+    @appReady =>
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
+      # FIXME GG
+      @getAppStorageSingleton 'Ace', '1.0'
+
+    @on 'ManageRemotesRequested', -> new ManageRemotesModal
+
     @setFailTimer()
     @putGlobalEventListeners()
 
     @accountReadyState = 0
+
+    @appStorages = {}
+
+  getAppStorageSingleton:(appName, version)->
+    if @appStorages[appName]?
+      storage = @appStorages[appName]
+    else
+      storage = @appStorages[appName] = new AppStorage appName, version
+
+    storage.fetchStorage()
+    storage
 
   appReady:do ->
     applicationIsReady = no
@@ -84,6 +102,7 @@ class MainController extends KDController
 
     unless @router?
       @router = new KodingRouter location.pathname
+      @router.on 'GroupChanged', @bound 'setGroup'
       KD.registerSingleton 'router', @router
 
     if KD.checkFlag 'super-admin'

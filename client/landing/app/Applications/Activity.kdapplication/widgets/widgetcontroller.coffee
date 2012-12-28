@@ -126,6 +126,28 @@ class ActivityUpdateWidgetController extends KDViewController
           # log "Will add this data:", data
           codeShareWidget.setCodeShareData data
 
+    @on 'editFromFakeData', (fakeData)=>
+      switch fakeData.fakeType
+        when "JStatusUpdate"
+          mainView.showPane "update"
+          updateWidget.switchToEditView fakeData, yes
+        when "JCodeSnip"
+          mainView.showPane "codesnip"
+          codeWidget.switchToEditView fakeData, yes
+        when "JTutorial"
+          mainView.showPane "tutorial"
+          tutorialWidget.switchToEditView fakeData, yes
+        when "JDiscussion"
+          mainView.showPane "discussion"
+          discussionWidget.switchToEditView fakeData, yes
+        # THIS WILL DISABLE CODE SHARES
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToEditView fakeData, yes
+        when "JLink"
+          mainView.showPane "link"
+          linkWidget.switchToEditView Activity
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
       appManager.openApplication "Activity"
@@ -161,7 +183,6 @@ class ActivityUpdateWidgetController extends KDViewController
           codeShareWidget.switchToForkView activity
 
   updateWidgetSubmit:(data, callback)->
-
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -175,12 +196,25 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
+
+      @emit 'OwnActivityHasArrived', data, 'JStatusUpdate'
+      updateTimeout = @utils.wait 20000, =>
+        @emit 'OwnActivityHasFailed', data
+        # new KDNotificationView
+        #   # type : "mini"
+        #   title : "There was an error, please try again!"
+
       KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
-          @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
+          @utils.killWait updateTimeout
+          # @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
+          @emit 'OwnActivityHasArrived',activity
         else
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+          @emit 'OwnActivityHasFailed', data
+          new KDNotificationView
+            # type : "mini"
+            title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
     if data.activity
@@ -195,12 +229,19 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
+
+      @emit 'OwnActivityHasArrived', data, 'JCodeSnip'
+      updateTimeout = @utils.wait 20000, =>
+        @emit 'OwnActivityHasFailed', data
+
       KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
         stopSubmission()
         if err
+          @emit 'OwnActivityHasFailed', data
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
+          @utils.killWait updateTimeout
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
   # THIS WILL DISABLE CODE SHARES
@@ -275,24 +316,6 @@ class ActivityUpdateWidgetController extends KDViewController
       {activity} = data
       delete data.activity
       activity.modify data, (err, tutorial)=>
-        # if data.appendToList?
-        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
-        #       unless existingList
-        #         KD.remote.api.JTutorialList.create
-        #           title : "New List"
-        #           body  : ""
-        #         , (err, list)=>
-        #           if err then callback err
-        #           else
-        #             list.addItemById data.appendToList._id, (err)=>
-        #               if err then log err
-        #               list.addItemById tutorial._id, (err)=>
-        #                 if err then log err
-        #                 callback? err, tutorial, list
-        #       else
-        #         existingList.addItemById activity._id, (err,tutlist)=>
-        #           if err then log err
-        #           else callback? err, tutorial, tutlist
         callback? err, tutorial
         unless err
           new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
@@ -301,36 +324,21 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
+
+      @emit 'OwnActivityHasArrived', data, 'JTutorial'
+      updateTimeout = @utils.wait 20000, =>
+        @emit 'OwnActivityHasFailed', data
+
       KD.remote.api.JTutorial.create data, (err, tutorial) =>
-
-        # if data.appendToList?
-        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
-
-        #       unless existingList
-        #         KD.remote.api.JTutorialList.create
-        #           title : "New List"
-        #           body  : ""
-        #         , (err, list)=>
-        #           if err then callback err
-        #           else
-        #             list.addItemById data.appendToList._id, (err)=>
-        #               if err then log err
-        #               list.addItemById tutorial._id, (err)=>
-        #                 if err then log err
-        #                 callback? err, tutorial, list
-        #       else
-        #         existingList.addItemById tutorial._id, (err,tutlist)=>
-        #           if err then log err
-        #           else callback? err, tutorial, tutlist
-
-        # else
 
         callback? err, tutorial
         stopSubmission()
 
         if err
+          @emit 'OwnActivityHasFailed', data
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
+          @utils.killWait updateTimeout
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), tutorial
 
   discussionWidgetSubmit:(data, callback)->
@@ -346,11 +354,18 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
+
+      @emit 'OwnActivityHasArrived', data, 'JDiscussion'
+      updateTimeout = @utils.wait 20000, =>
+        @emit 'OwnActivityHasFailed', data
+
       KD.remote.api.JDiscussion.create data, (err, discussion) =>
         callback? err, discussion
         stopSubmission()
         if err
+          @emit 'OwnActivityHasFailed', data
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
+          @utils.killWait updateTimeout
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), discussion
 

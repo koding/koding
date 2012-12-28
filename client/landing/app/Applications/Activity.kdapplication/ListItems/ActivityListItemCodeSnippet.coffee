@@ -5,7 +5,9 @@ class CodesnipActivityItemView extends ActivityItemChild
       cssClass    : "activity-item codesnip"
       tooltip     :
         title     : "Code Snippet"
-        offset    : 3
+        offset    :
+          top     : 3
+          left    : -5
         selector  : "span.type-icon"
     ,options
     super options,data
@@ -55,13 +57,13 @@ class CodesnipActivityItemView extends ActivityItemChild
     @codeSnippetView.$().hover =>
       @enableScrolling = setTimeout =>
         @codeSnippetView.codeView.setClass 'scrollable-y'
-        @codeSnippetView.$("pre.subview").addClass 'scroll-highlight'
+        @codeSnippetView.setClass 'scroll-highlight out'
 
-      ,500
+      ,1000
     , =>
       clearTimeout @enableScrolling
       @codeSnippetView.codeView.unsetClass 'scrollable-y'
-      @codeSnippetView.$("pre.subview").removeClass 'scroll-highlight'
+      @codeSnippetView.unsetClass 'scroll-highlight out'
 
   pistachio:->
     # {{> @codeShareBoxView}}
@@ -122,6 +124,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "save"
+      tooltip   :
+        title   : 'Save'
       callback  : ->
         new KDNotificationView
           title     : "Currently disabled!"
@@ -136,6 +140,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "open"
+      tooltip   :
+        title   : 'Open'
       callback  : ->
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
@@ -149,16 +155,10 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "select-all"
+      tooltip   :
+        title   : 'Select All'
       callback  : =>
         @utils.selectText @codeView.$()[0]
-
-    @scrollEnableButton = new KDButtonView
-      title : "Allow Scrolling"
-      cssClass : "dark"
-      callback :=>
-        @codeView.setClass "scrollable-y scroll-highlight"
-        @scrollEnableButton.destroy()
-
 
   render:->
 
@@ -169,12 +169,7 @@ class CodeSnippetView extends KDCustomHTMLView
 
   applySyntaxColoring:( syntax = @getData().syntax)->
 
-    # result = hljs.highlightAuto @codeView.getData().content
-    # markup = hljs.fixMarkup result.value, '  '
-    # @codeView.updatePartial markup
-
     snipView  = @
-    # hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     try
       hljs.highlightBlock snipView.codeView.$()[0], '  '
@@ -186,25 +181,13 @@ class CodeSnippetView extends KDCustomHTMLView
     @setTemplate @pistachio()
     @template.update()
 
-    unless @codeView.getHeight() < @codeView.$()[0].scrollHeight
-      @scrollEnableButton?.hide()
-    else
-      @scrollEnableButton?.show()
-
     @applySyntaxColoring()
-
-    twOptions = (title) ->
-      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
-
-    @saveButton.$().twipsy twOptions("Save")
-    @copyButton.$().twipsy twOptions("Select all")
-    @openButton.$().twipsy twOptions("Open")
 
   pistachio:->
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @scrollEnableButton}}{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """

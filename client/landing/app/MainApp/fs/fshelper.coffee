@@ -115,9 +115,16 @@ class FSHelper
 
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 
+  @isEscapedPath = (path) ->
+    return /^\s\"/.test path
+
   @escapeFilePath = (name) ->
 
     return " \"#{name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"')}\" "
+
+  @unescapeFilePath = (name) ->
+
+    return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
 
   @fileTypes =
 

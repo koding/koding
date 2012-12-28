@@ -1,8 +1,22 @@
 class WebTermView extends KDView
+
+  setDefaultStyle:->
+    @container.unsetClass font.value for font in __webtermSettings.fonts
+    @container.unsetClass theme.value for theme in __webtermSettings.themes
+    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
+    @container.setClass @appStorage.getValue('theme') or 'black-on-white'
+    @container.$().css fontSize:@appStorage.getValue('fontSize')+'px' or '14px'
   viewAppended: ->
+
+    @appStorage = new AppStorage 'WebTerm', '1.0'
+
+
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
     @addSubView @container
+
+    @appStorage.fetchStorage (storage)=>
+      @setDefaultStyle()
 
     @sessionBox = new KDView
       cssClass: "kddialogview"
@@ -38,6 +52,19 @@ class WebTermView extends KDView
     @sessionBox.addSubView createSessionButton
 
     @terminal = new WebTerm.Terminal @container.$()
+
+    @advancedSettings = new KDButtonViewWithMenu
+      style         : 'editor-advanced-settings-menu'
+      icon          : yes
+      iconOnly      : yes
+      iconClass     : "cog"
+      type          : "contextmenu"
+      delegate      : @
+      itemClass     : WebtermSettingsView
+      click         : (pubInst, event)-> @contextMenu event
+      menu          : @getAdvancedSettingsMenuItems.bind @
+
+    @addSubView @advancedSettings
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -80,6 +107,8 @@ class WebTermView extends KDView
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
 
+    @bindEvent 'contextmenu'
+
     KD.singletons.kiteController.run
       kiteName: 'os',
       method: 'createWebtermServer',
@@ -102,6 +131,7 @@ class WebTermView extends KDView
 
   click: ->
     @setKeyView()
+    @textarea?.remove()
 
   keyDown: (event) ->
     @terminal.keyDown event
@@ -112,8 +142,62 @@ class WebTermView extends KDView
   keyUp: (event) ->
     @terminal.keyUp event
 
+  contextMenu: (event) ->
+    # invisible textarea will be placed under the cursor when rightclick
+    @createInvisibleTextarea event
+    event
+
+  createInvisibleTextarea:(eventData)->
+
+    # Get selected Text for cut/copy
+    if window.getSelection
+        selectedText = window.getSelection()
+    else if document.getSelection
+        selectedText = document.getSelection()
+    else if document.selection
+        selectedText = document.selection.createRange().text
+
+    @textarea?.remove()
+    @textarea = $(document.createElement("textarea"))
+    @textarea.css
+      position  : "absolute"
+      opacity   : 0
+      # width     : "30px"
+      # height    : "30px"
+      # top       : eventData.offsetY-10
+      # left      : eventData.offsetX-10
+      width       : "100%"
+      height      : "100%"
+      top         : 0
+      left        : 0
+      right       : 0
+      bottom      : 0
+    @$().append @textarea
+
+    # remove on any of these events
+    @textarea.on 'copy cut paste', (event)=>
+      @utils.wait 1000, => @textarea.remove()
+      yes
+
+    if selectedText
+      @textarea.val(selectedText.toString())
+      @textarea.select()
+    @textarea.focus()
+
+    #remove 15sec later
+    @utils.wait 15000, =>
+      @textarea?.remove()
+
   _windowDidResize: (event) ->
     @terminal.windowDidResize()
+
+  getAdvancedSettingsMenuItems:->
+
+    settings      :
+      type        : 'customView'
+      view        : new WebtermSettingsView
+        delegate  : @
+
 
 class WebTermSessionItem extends KDListItemView
   constructor: (options = {},data) ->

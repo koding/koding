@@ -1,15 +1,15 @@
 class KodingRouter extends KDRouter
+
   constructor:(@defaultRoute)->
     @openRoutes = {}
     @openRoutesById = {}
-    KD.getSingleton('contentDisplayController')
-      .on 'ContentDisplayIsDestroyed', @cleanupRoute.bind @
+    @getSingleton('contentDisplayController')
+      .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
-    # @utils.defer => 
     unless @userRoute
       @handleRoute defaultRoute,
         shouldPushState: yes
@@ -52,6 +52,7 @@ class KodingRouter extends KDRouter
     unless group?
       appManager.openApplication app
     else
+      @emit 'GroupChanged', group
       appManager.tell app, 'setGroup', group
     appManager.tell app, 'handleQuery', query
 
@@ -105,6 +106,7 @@ class KodingRouter extends KDRouter
         slug = stripTemplate route, konstructor
         selector[usedAsPath] = slug
         konstructor?.one selector, (err, model)=>
+          error err  if err?
           @openContent name, section, model, route
       else
         @handleNotFound route
@@ -141,7 +143,7 @@ class KodingRouter extends KDRouter
       (sec)=> @createContentDisplayHandler sec
     )
 
-    nouns = createLinks(
+    section = createLinks(
       # 'Account Activity Apps Groups Members StartTab Topics'
       'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
@@ -170,7 +172,7 @@ class KodingRouter extends KDRouter
       '/:name?/Login'     : ({params:{name}})->
         requireLogout -> mainController.doLogin name
       '/:name?/Logout'    : ({params:{name}})->
-        requireLogin => mainController.doLogout name; @clear()
+        requireLogin  -> mainController.doLogout name; clear()
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.doRegister name
       '/:name?/Join'      : ({params:{name}})->
@@ -178,23 +180,22 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.doRecover name
 
-      # nouns
-      # '/:name?/Groups'                  : nouns.Groups
-      '/:name?/Activity'                : nouns.Activity
-      '/:name?/Members'                 : nouns.Members
-      '/:name?/Topics'                  : nouns.Topics
-      '/:name?/Develop'                 : nouns.StartTab
-      '/:name?/Apps'                    : nouns.Apps
-      '/:name?/Account'                 : nouns.Account
-      '/:name?/Inbox'                   : nouns.Inbox
+      # section
+      # '/:name?/Groups'                  : section.Groups
+      '/:name?/Activity'                : section.Activity
+      '/:name?/Members'                 : section.Members
+      '/:name?/Topics'                  : section.Topics
+      '/:name?/Develop'                 : section.StartTab
+      '/:name?/Apps'                    : section.Apps
+      '/:name?/Account'                 : section.Account
 
-      # content displays:
-      '/:name?/Topics/:slug'            : content.Topics
-      '/:name?/Activity/:slug'          : content.Activity
-      '/:name?/Apps/:slug'              : content.Apps
+      # content
+      '/:name?/Topics/:topicSlug'       : content.Topics
+      '/:name?/Activity/:activitySlug'  : content.Activity
+      '/:name?/Apps/:appSlug'           : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
-        return if recoveryToken is 'Password'
+        return  if recoveryToken is 'Password'
         mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'

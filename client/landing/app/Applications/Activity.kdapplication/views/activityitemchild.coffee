@@ -130,3 +130,9 @@ class ActivityItemChild extends KDView
     $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
     $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
+  viewAppended:->
+    super
+
+    if @getData().fake
+      @actionLinks.setClass 'hidden'
+
