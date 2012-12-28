@@ -83,6 +83,10 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
         action                    : 'download'
         disabled                  : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new  NCopyUrlView {}, fileData
+        separator                 : yes
       'New File'                  :
         action                    : 'createFile'
       'New Folder'                :
@@ -143,8 +147,15 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : "download"
         separator                 : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new NCopyUrlView {}, fileData
+        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
+      #   separator                 : yes
+      # 'Create a CodeShare'        :
+      #   action                    : 'codeShare'
 
     if fileView.expanded
       delete items.Expand
@@ -174,10 +185,7 @@ class NFinderContextMenuController extends KDController
       if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
         items['Application menu'].children["Download source files"].separator = yes
         items['Application menu'].children["Publish to App Catalog"] =
-          action                : "publish"
-
-      fileData.on "fs.delete.finished", =>
-        @getSingleton("kodingAppsController").refreshApps()
+          action : "publish"
 
     return items
 

@@ -1,161 +1,171 @@
 // order is important
 
-.webterm
-  .console
-    white-space           nowrap
-    overflow              scroll
+&.console
+  white-space           nowrap
+  overflow              scroll
 
-    font-family           monoFonts
-    font-size             12px
-    color                 foreground
-    background-color      background
-    background-image      bgImage
+  color                 foreground
+  background-color      background
+  background-image      bgImage
+  border                1px solid #CCC
 
-  .bold
-    font-weight           bold
+&.source-code-pro
+  font-family           'SourceCodePro', monospace
+  font-size             13px
+  line-height           1.23076923077
+  // line-height           16px
 
-  .underlined
-    text-decoration       underline
+&.ubuntu-mono
+  font-family           'UbuntuMono', monospace
+  font-size             14px
+  line-height           1
+  // line-height           14px
 
-  .outlined
-    box-shadow            inset 0 0 0 1px foreground
+.bold
+  font-weight           bold
 
-  .textBlack
-    color black
-  .textRed
-    color red
-  .textGreen
-    color green
-  .textYellow
-    color yellow
-  .textBlue
-    color blue
-  .textMagenta
-    color magenta
-  .textCyan
-    color cyan
-  .textWhite
-    color white
+.underlined
+  text-decoration       underline
 
-  .textBrightBlack,   .bold.textBlack
-    color brightBlack
-  .textBrightRed,     .bold.textRed
-    color brightRed
-  .textBrightGreen,   .bold.textGreen
-    color brightGreen
-  .textBrightYellow,  .bold.textYellow
-    color brightYellow
-  .textBrightBlue,    .bold.textBlue
-    color brightBlue
-  .textBrightMagenta, .bold.textMagenta
-    color brightMagenta
-  .textBrightCyan,    .bold.textCyan
-    color brightCyan
-  .textBrightWhite,   .bold.textWhite
-    color brightWhite
+.outlined
+  box-shadow            inset 0 0 0 1px foreground
 
-  .backgroundBlack
-    background-color black
-  .backgroundRed
-    background-color red
-  .backgroundGreen
-    background-color green
-  .backgroundYellow
-    background-color yellow
-  .backgroundBlue
-    background-color blue
-  .backgroundMagenta
-    background-color magenta
-  .backgroundCyan
-    background-color cyan
-  .backgroundWhite
-    background-color white
+.textBlack
+  color black
+.textRed
+  color red
+.textGreen
+  color green
+.textYellow
+  color yellow
+.textBlue
+  color blue
+.textMagenta
+  color magenta
+.textCyan
+  color cyan
+.textWhite
+  color white
 
-  .backgroundBrightBlack
-    background-color brightBlack
-  .backgroundBrightRed
-    background-color brightRed
-  .backgroundBrightGreen
-    background-color brightGreen
-  .backgroundBrightYellow
-    background-color brightYellow
-  .backgroundBrightBlue
-    background-color brightBlue
-  .backgroundBrightMagenta
-    background-color brightMagenta
-  .backgroundBrightCyan
-    background-color brightCyan
-  .backgroundBrightWhite
-    background-color brightWhite
+.textBrightBlack,   .bold.textBlack
+  color brightBlack
+.textBrightRed,     .bold.textRed
+  color brightRed
+.textBrightGreen,   .bold.textGreen
+  color brightGreen
+.textBrightYellow,  .bold.textYellow
+  color brightYellow
+.textBrightBlue,    .bold.textBlue
+  color brightBlue
+.textBrightMagenta, .bold.textMagenta
+  color brightMagenta
+.textBrightCyan,    .bold.textCyan
+  color brightCyan
+.textBrightWhite,   .bold.textWhite
+  color brightWhite
 
-  .inverse, .bold.inverse
-    color background
-    background-color foreground
+.backgroundBlack
+  background-color black
+.backgroundRed
+  background-color red
+.backgroundGreen
+  background-color green
+.backgroundYellow
+  background-color yellow
+.backgroundBlue
+  background-color blue
+.backgroundMagenta
+  background-color magenta
+.backgroundCyan
+  background-color cyan
+.backgroundWhite
+  background-color white
 
-  .inverse.textBlack
-    background-color black
-  .inverse.textRed
-    background-color red
-  .inverse.textGreen
-    background-color green
-  .inverse.textYellow
-    background-color yellow
-  .inverse.textBlue
-    background-color blue
-  .inverse.textMagenta
-    background-color magenta
-  .inverse.textCyan
-    background-color cyan
-  .inverse.textWhite
-    background-color white
+.backgroundBrightBlack
+  background-color brightBlack
+.backgroundBrightRed
+  background-color brightRed
+.backgroundBrightGreen
+  background-color brightGreen
+.backgroundBrightYellow
+  background-color brightYellow
+.backgroundBrightBlue
+  background-color brightBlue
+.backgroundBrightMagenta
+  background-color brightMagenta
+.backgroundBrightCyan
+  background-color brightCyan
+.backgroundBrightWhite
+  background-color brightWhite
 
-  .inverse.textBrightBlack,   .inverse.bold.textBlack
-    background-color brightBlack
-  .inverse.textBrightRed,     .inverse.bold.textRed
-    background-color brightRed
-  .inverse.textBrightGreen,   .inverse.bold.textGreen
-    background-color brightGreen
-  .inverse.textBrightYellow,  .inverse.bold.textYellow
-    background-color brightYellow
-  .inverse.textBrightBlue,    .inverse.bold.textBlue
-    background-color brightBlue
-  .inverse.textBrightMagenta, .inverse.bold.textMagenta
-    background-color brightMagenta
-  .inverse.textBrightCyan,    .inverse.bold.textCyan
-    background-color brightCyan
-  .inverse.textBrightWhite,   .inverse.bold.textWhite
-    background-color brightWhite
+.inverse, .bold.inverse
+  color background
+  background-color foreground
 
-  .inverse.backgroundBlack
-    color black
-  .inverse.backgroundRed
-    color red
-  .inverse.backgroundGreen
-    color green
-  .inverse.backgroundYellow
-    color yellow
-  .inverse.backgroundBlue
-    color blue
-  .inverse.backgroundMagenta
-    color magenta
-  .inverse.backgroundCyan
-    color cyan
-  .inverse.backgroundWhite
-    color white
+.inverse.textBlack
+  background-color black
+.inverse.textRed
+  background-color red
+.inverse.textGreen
+  background-color green
+.inverse.textYellow
+  background-color yellow
+.inverse.textBlue
+  background-color blue
+.inverse.textMagenta
+  background-color magenta
+.inverse.textCyan
+  background-color cyan
+.inverse.textWhite
+  background-color white
 
-  .inverse.backgroundBrightBlack
-    color brightBlack
-  .inverse.backgroundBrightRed
-    color brightRed
-  .inverse.backgroundBrightGreen
-    color brightGreen
-  .inverse.backgroundBrightYellow
-    color brightYellow
-  .inverse.backgroundBrightBlue
-    color brightBlue
-  .inverse.backgroundBrightMagenta
-    color brightMagenta
-  .inverse.backgroundBrightCyan
-    color brightCyan
-  .inverse.backgroundBrightWhite
-    color brightWhite
+.inverse.textBrightBlack,   .inverse.bold.textBlack
+  background-color brightBlack
+.inverse.textBrightRed,     .inverse.bold.textRed
+  background-color brightRed
+.inverse.textBrightGreen,   .inverse.bold.textGreen
+  background-color brightGreen
+.inverse.textBrightYellow,  .inverse.bold.textYellow
+  background-color brightYellow
+.inverse.textBrightBlue,    .inverse.bold.textBlue
+  background-color brightBlue
+.inverse.textBrightMagenta, .inverse.bold.textMagenta
+  background-color brightMagenta
+.inverse.textBrightCyan,    .inverse.bold.textCyan
+  background-color brightCyan
+.inverse.textBrightWhite,   .inverse.bold.textWhite
+  background-color brightWhite
+
+.inverse.backgroundBlack
+  color black
+.inverse.backgroundRed
+  color red
+.inverse.backgroundGreen
+  color green
+.inverse.backgroundYellow
+  color yellow
+.inverse.backgroundBlue
+  color blue
+.inverse.backgroundMagenta
+  color magenta
+.inverse.backgroundCyan
+  color cyan
+.inverse.backgroundWhite
+  color white
+
+.inverse.backgroundBrightBlack
+  color brightBlack
+.inverse.backgroundBrightRed
+  color brightRed
+.inverse.backgroundBrightGreen
+  color brightGreen
+.inverse.backgroundBrightYellow
+  color brightYellow
+.inverse.backgroundBrightBlue
+  color brightBlue
+.inverse.backgroundBrightMagenta
+  color brightMagenta
+.inverse.backgroundBrightCyan
+  color brightCyan
+.inverse.backgroundBrightWhite
+  color brightWhite

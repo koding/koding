@@ -1,4 +1,16 @@
-class Activity12345 extends AppController
+class ActivityAppController extends AppController
+
+  allowedActivityTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CNewMemberBucketActivity'
+    'CFollowerBucketActivity'
+    'CInstallerBucketActivity'
+    # 'CLinkActivity'
+    # 'CCodeShareActivity'
+  ]
 
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
@@ -6,17 +18,7 @@ class Activity12345 extends AppController
     CodeSnippetView.on 'CodeSnippetWantsSave', (data)=>
       @saveCodeSnippet data.title, Encoder.htmlDecode data.content
 
-    @currentFilter = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CDiscussionActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES
-      # 'CCodeShareActivity'
-      'CInstallerBucketActivity'
-    ]
+    @currentFilter = allowedActivityTypes
 
   saveCodeSnippet:(title, content)->
     # This custom method is used because FS,
@@ -47,36 +49,25 @@ class Activity12345 extends AppController
   bringToFront:()->
     super name : 'Activity'
 
-  initAndBringToFront:(options,callback)->
-    @environment = options.environment
-    super
-
   loadView:(mainView)->
 
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
 
+    # mainController.popupController = new VideoPopupController
+
     unless localStorage.welcomeMessageClosed?
-      mainView.addSubView header = new WelcomeHeader
+      mainView.addSubView mainView.header = new WelcomeHeader
         type      : "big"
-        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
-        subtitle  : ""
+        title     : if KD.isLoggedIn() then\
+          "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+          "Welcome to the Koding Public Beta!<br>"
+        subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
-    unless account instanceof KD.remote.api.JGuest
-        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
-        # ... where have you been?!" # not relevant for now
-
-      mainView.addSubView updateWidget = new ActivityUpdateWidget
-        cssClass: 'activity-update-widget-wrapper'
-
-      updateWidgetController = new ActivityUpdateWidgetController
-        view : updateWidget
-
-      updateWidgetController.registerListener
-        KDEventTypes  : "OwnActivityHasArrived"
-        listener      : @
-        callback      : (pubInst,activity)=>
-          @ownActivityArrived activity
+    if KD.isLoggedIn()
+      @putWidget()
+    else
+      @getSingleton("mainController").once "AccountChanged", @putWidget.bind @
 
     # mainView.addSubView new CommonFeedMessage
     #   title           : "<p> Since you're new to Koding, so we've prepared these helper boxes to introduce you to the system. This is your Activity Feed. It displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community.</p>"
@@ -87,24 +78,28 @@ class Activity12345 extends AppController
       cssClass : "maincontent-tabs feeder-tabs"
     @activityTabView.hideHandleContainer()
 
-    activitySplitView = @activitySplitView = new ActivitySplitView
+    mainView.activitySplit = new ActivitySplitView
       views     : [activityInnerNavigation,@activityTabView]
       sizes     : [139,null]
       minimums  : [10,null]
       resizable : no
+      delegate  : mainView
+
 
     # ADD SPLITVIEW
-    mainView.addSubView activitySplitView
+    mainView.addSubView mainView.activitySplit
 
     @createFollowedAndPublicTabs()
 
-    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
-      if activity.constructor.name in @currentFilter
-        @activityListController.followedActivityArrived activity
+    account.on "FollowedActivityArrived", (activityId) =>
+      KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
+        if activity.constructor.name in @currentFilter
+          activity.snapshot?.replace /&quot;/g, '"'
+          @activityListController.followedActivityArrived activity
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
-      # activitySplitView._windowDidResize()
+      # @getView().activitySplit._windowDidResize()
       mainView.notifyResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
@@ -120,8 +115,123 @@ class Activity12345 extends AppController
     activityInnerNavigation.on "NavItemReceivedClick", (data)=>
       @filter data.type, loadIfMoreItemsIsNecessary
 
-  ownActivityArrived:(activity)->
-    @activityListController.ownActivityArrived activity
+  putWidget : ->
+
+    mainView = @getView()
+
+    mainView.addSubView mainView.widget = new ActivityUpdateWidget
+      cssClass: 'activity-update-widget-wrapper'
+
+    updateWidgetController = new ActivityUpdateWidgetController
+      view : mainView.widget
+
+    updateWidgetController.registerListener
+      KDEventTypes  : "OwnActivityHasArrived"
+      listener      : @
+      callback      : (pubInst,activity)=>
+        @ownActivityArrived activity
+
+    updateWidgetController.on 'OwnActivityHasArrived', (activity,constructorName)=>
+      @ownActivityArrived activity, constructorName
+
+    updateWidgetController.on 'OwnActivityHasFailed', (activity)=>
+      # log 'this has failed:',activity
+      # if @fake and @activityListController.fakeView?
+      #   @activityListController.fakeView.setClass 'hidden-item'
+
+      #   constructorToTab=
+      #     'JStatusUpdate':
+      #       tabName : 'update'
+      #       title : 'Status Update'
+      #     'JCodeSnip':
+      #       tabName : 'codesnip'
+      #       title : 'Code Snip'
+      #     'JDiscussion':
+      #       tabName : 'discussion'
+      #       title : 'Discussion'
+      #     'JTutorial':
+      #       tabName : 'tutorial'
+      #       title : 'Tutorial'
+
+      #   {tabName,title} = constructorToTab[@fake.fakeType]
+      #   mainView.widget.changeTab tabName, title
+      #   updateWidgetController.emit 'editFromFakeData', @fake
+      #   @utils.wait 600, =>
+      #     @activityListController.removeItem @fake, @fake
+
+    return updateWidgetController
+
+  createFakeTags:(originalTags)->
+
+    # prepare fake tags
+    tags = []
+    for tag in originalTags
+      fakeTag       = new KD.remote.api.JTag {}, tag
+      fakeTag       = $.extend {},fakeTag,
+        title       : tag.title or tag.$suggest
+        body        : tag.title or tag.$suggest
+        counts      :
+          followers : 0
+          following : 0
+          tagged    : 0
+        slug        : @utils.slugify (tag.title or tag.$suggest)
+      tags.push fakeTag
+    tags
+
+  createFakeDataStructureForOwner:(constructorName,activity)->
+    oldActivity = activity
+
+    # prepare fake post
+    fakePost      = new KD.remote.api[constructorName] {},activity
+    fakePost      = $.extend yes,{},fakePost,
+      fake        : yes
+      fakeType    : constructorName
+      slug        : 'fakeActivity'
+      title       : activity.title or activity.body
+      body        : activity.body
+      counts      :
+        followers : 0
+        following : 0
+      meta        :
+        createdAt : (new Date (Date.now())).toISOString()
+        likes     : 0
+        modifiedAt: (new Date (Date.now())).toISOString()
+      origin      : KD.whoami()
+      link        : oldActivity.link or oldActivity
+      repliesCount: 0
+      opinionCount: 0
+      originId    : KD.whoami()._id
+      originType  : 'JAccount'
+      _id         : 'fakeIdfakeId' # 12bytes, as expected
+
+    if oldActivity?.meta?.tags
+      fakePost        = $.extend fakePost,
+        tags          : @createFakeTags oldActivity?.meta?.tags
+
+    if activity?.code
+      fakePost        = $.extend fakePost,
+        attachments   : [
+          description : activity.body
+          content     : activity.code
+          syntax      : activity.syntax
+        ]
+    fakePost
+
+  ownActivityArrived:(activity,constructorName='JStatusUpdate')->
+    unless activity.bongo_
+      # log 'Creating fake data for', activity
+      @fake = activity = @createFakeDataStructureForOwner constructorName, activity
+      @activityListController.ownActivityArrived activity
+    else
+      if @fake
+        # log 'Removing fake item',@fake
+        @activityListController.removeItem @fake, @fake
+        # log 'Adding item',activity
+
+      @activityListController.ownActivityArrived activity, (if @fake then yes else no)
+      @utils.wait =>
+        @fake = null
+        delete @fake
 
   createFollowedAndPublicTabs:->
     # FIRST TAB = FOLLOWED ACTIVITIES, SORT AND POST NEW
@@ -135,12 +245,13 @@ class Activity12345 extends AppController
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
-      itemClass      : ActivityListItemView
+      itemClass         : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
-    @activitySplitView.on "ViewResized", =>
-      newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
+    {activitySplit} = @getView()
+    activitySplit.on "ViewResized", ->
+      newHeight = activitySplit.getHeight() - 28 # HEIGHT OF THE HEADER
       activityListController.scrollView.setHeight newHeight
 
     controller = @
@@ -167,25 +278,25 @@ class Activity12345 extends AppController
           flags = KD.whoami().globalFlags
           exempt = flags?.indexOf 'exempt'
           exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-          # $.ajax KD.apiUri+'/1.0'
-          #   data      :
-          #     t       : if exempt then 1 else undefined
-          #     data    : JSON.stringify(_.extend options, selector)
-          #     env     : KD.config.env
-          #   dataType  : 'jsonp'
-          #   success   : (data) -> callback null, data
-          unless exempt
-            selector['isLowQuality'] = {'$ne':yes}
-          KD.remote.api.CActivity.some selector, options, (err, data) ->
-            if err 
-              callback err 
-            else 
-              for datum in data 
-                datum.snapshot = datum.snapshot?.replace /&quot;/g, '"'
-              callback null, data
+          $.ajax KD.apiUri+'/1.0'
+            data      :
+              t       : if exempt then 1 else undefined
+              data    : JSON.stringify(_.extend options, selector)
+              env     : KD.config.env
+            dataType  : 'jsonp'
+            success   : (data) -> callback null, data
+          # unless exempt
+          #   selector['isLowQuality'] = {'$ne':yes}
+          # KD.remote.api.CActivity.some selector, options, (err, data) ->
+          #   if err
+          #     callback err
+          #   else
+          #     for datum in data
+          #       datum.snapshot = datum.snapshot?.replace /&quot;/g, '"'
+          #     callback null, data
 
     else if type is 'private'
-      KD.whoami().getFeedByTitle "followed", (err, feed) ->
+      KD.whoami().fetchFeedByTitle "followed", (err, feed) ->
         feed.fetchActivities selector, options, (err, data) ->
           if err
             callback err
@@ -195,35 +306,18 @@ class Activity12345 extends AppController
             callback null, data
 
   fetchTeasers:(selector,options,callback)->
-    type = @activityListController._state
+    type = @activityListController?._state
     @performFetchingTeasers type, selector, options, (err, data) ->
       KD.remote.reviveFromSnapshots data, (err, instances)->
         callback instances
-    #
-    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
-    #   if not err and activities?
-    #     callback? activities
-    #   else
-    #     callback()
 
   fetchFeedForHomePage:(callback)->
     # devrim's api
     # should make the selector work
-    selector =
-      type      :
-        $in     : [
-          'CStatusActivity'
-          'CCodeSnipActivity'
-          'CDiscussionActivity'
-          'CFolloweeBucketActivity'
-          'CNewMemberBucket'
-          # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES
-          # 'CCodeShareActivity'
-          'CInstallerBucketActivity'
-        ]
-
-    options =
+    selector        =
+      type          :
+        $in         : allowedActivityTypes
+    options         =
       limit         : 7
       skip          : 0
       sort          :
@@ -270,23 +364,21 @@ class Activity12345 extends AppController
     controller.noActivityItem.hide()
 
     if show is 'private'
+      #_counter = 0
       controller._state = 'private'
+      # controller.itemsOrdered.forEach (item)=>
+      #   if not controller.isInFollowing(item.data)
+      #     item.hide()
+      #     _counter++
+      # if _counter is controller.itemsOrdered.length
+      #   controller.noActivityItem.show()
+      # return no
 
     else if show is 'public'
       controller._state = 'public'
 
     else
-      @currentFilter = if show? then [show] else [
-        'CStatusActivity'
-        'CCodeSnipActivity'
-        'CDiscussionActivity'
-        'CFollowerBucketActivity'
-        'CNewMemberBucketActivity'
-        # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES
-        # 'CCodeShareActivity'
-        'CInstallerBucketActivity'
-      ]
+      @currentFilter = if show? then [show] else allowedActivityTypes
 
     controller.removeAllItems()
     controller.showLazyLoader no
@@ -299,9 +391,11 @@ class Activity12345 extends AppController
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES
+      when "JTutorial"     then @createTutorialContentDisplay activity
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -313,6 +407,15 @@ class Activity12345 extends AppController
       title : "Status Update"
       type  : "status"
     ,activity
+
+  createLinkContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Link"
+      type        : "link"
+      contentView : new ContentDisplayStatusUpdate {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
 
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
@@ -327,11 +430,16 @@ class Activity12345 extends AppController
   #     type        : "codeshare"
   #   , activity
 
-
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion
       title : "Discussion"
       type  : "discussion"
+    ,activity
+
+  createTutorialContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayTutorial
+      title : "Tutorial"
+      type  : "tutorial"
     ,activity
 
 class ActivityListController extends KDListViewController
@@ -349,6 +457,13 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
+
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
+        @activityHeader.setClass "scrolling-up-outset"
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity from your followings."
@@ -362,10 +477,12 @@ class ActivityListController extends KDListViewController
       cssClass : 'activityhead clearfix'
 
     @activityHeader.on "UnhideHiddenNewItems", =>
-      top = @getListView().$('.hidden-item').eq(0).position().top
-      @scrollView.scrollTo {top, duration : 200}, =>
-        unhideNewHiddenItems hiddenItems
-
+      firstHiddenItem = @getListView().$('.hidden-item').eq(0)
+      if firstHiddenItem.length > 0
+        top   = firstHiddenItem.position().top
+        top or= 0
+        @scrollView.scrollTo {top, duration : 200}, =>
+          unhideNewHiddenItems hiddenItems
     super
 
     #@fetchFollowings()
@@ -396,8 +513,14 @@ class ActivityListController extends KDListViewController
           account.isFollowing {$in: tagIds}, 'JTag', (result) ->
             callback result
 
-  ownActivityArrived:(activity)->
+  # isInFollowing:(activity)->
+  #   activity.originId in @_following or activity.anchor?.id in @_following
+
+  ownActivityArrived:(activity,forceNoAnimation=no)->
     view = @getListView().addHiddenItem activity, 0
+    @fakeView = view if view.getData().fake
+    if forceNoAnimation
+      view.$().removeClass 'hidden-item'
     view.addChildView activity, ()=>
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()
@@ -412,6 +535,10 @@ class ActivityListController extends KDListViewController
     unless @isMine activity
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
+
+    #   if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+    #     view = @addHiddenItem activity, 0
+    #     @activityHeader.newActivityArrived()
     else
       switch activity.constructor
         when KD.remote.api.CFolloweeBucket
@@ -426,8 +553,10 @@ class ActivityListController extends KDListViewController
   addItem:(activity, index, animation = null) ->
     @noActivityItem.hide()
     # log "ADD:", activity
-    #if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
     @getListView().addItem activity, index, animation
+
+    # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+    #   @getListView().addItem activity, index, animation
 
   unhide = (item)-> item.show()
 

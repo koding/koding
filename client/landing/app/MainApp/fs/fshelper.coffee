@@ -49,7 +49,7 @@ class FSHelper
         [itemCount] = lines.splice(0,3)
         parentPath = parentPaths[0]
       for line in lines when line
-        unless line[0] is 'l' # broken symlinks has l type
+        unless line[0] in ['l', '?'] # broken symlinks has l type and it can be ? in someway
           unless systemFilesRegExp.test line
             data.push FSHelper.createFile parseFile parentPath, line
     data
@@ -115,9 +115,16 @@ class FSHelper
 
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 
+  @isEscapedPath = (path) ->
+    return /^\s\"/.test path
+
   @escapeFilePath = (name) ->
 
     return " \"#{name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"')}\" "
+
+  @unescapeFilePath = (name) ->
+
+    return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
 
   @fileTypes =
 
@@ -134,3 +141,5 @@ class FSHelper
 
     permissions = response.match(/Access: \([0-9]*\/(..........)/)[1]
     fileData.mode = __utils.symbolsPermissionToOctal permissions
+
+KD.classes.FSHelper = FSHelper

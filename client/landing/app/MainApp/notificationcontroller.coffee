@@ -5,27 +5,32 @@ class NotificationController extends KDObject
     JStatusUpdate       : "<a href='#'>status</a>"
     JCodeSnip           : "<a href='#'>code snippet</a>"
     JQuestionActivity   : "<a href='#'>question</a>"
-    JDiscussionActivity : "<a href='#'>discussion</a>"
+    JDiscussion         : "<a href='#'>discussion</a>"
     JLinkActivity       : "<a href='#'>link</a>"
     JPrivateMessage     : "<a href='#'>private message</a>"
-    JOpinionActivity    : "<a href='#'>opinion</a>"
+    JOpinion            : "<a href='#'>opinion</a>"
+    JTutorial           : "<a href='#'>tutorial</a>"
+    JComment            : "<a href='#'>comment</a>"
+    JReview             : "<a href='#'>review</a>"
 
   constructor:->
 
     super
 
     @getSingleton('mainController').on "AccountChanged", (account)=>
-      @setListeners account
+      if account.bongo_.constructorName is 'JAccount'
+        @setListeners account
 
   setListeners:(account)->
 
     nickname = account.getAt('profile.nickname')
     if nickname
-      channelName = 'private-'+nickname+'-private'
-      KD.remote.fetchChannel channelName, (channel)=>
-        channel.on 'notification', (notification)=>
-          @emit "NotificationHasArrived", notification
-          @prepareNotification notification if notification.contents
+      # channelName = 'private-'+nickname+'-private'
+      # KD.remote.fetchChannel channelName, (channel)=>
+      #  channel.on 'notificationArrived', (notification)=>
+      account.on 'notificationArrived', (notification) =>
+        @emit "NotificationHasArrived", notification
+        @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
 
@@ -49,7 +54,7 @@ class NotificationController extends KDObject
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
 
       options.title = switch actionType
-        when "reply"
+        when "reply", "opinion"
           if isMine
             switch subject.constructorName
               when "JPrivateMessage"
@@ -79,10 +84,16 @@ class NotificationController extends KDObject
         view = @
         if subject.constructorName is "JPrivateMessage"
           appManager.openApplication "Inbox"
+        else if subject.constructorName in ["JComment", "JOpinion"]
+          KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+            # appManager.tell "Activity", "createContentDisplay", post
+            view.destroy()
         else
           # ask chris if KD.remote.cacheable is good for this
-          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
-            appManager.tell "Activity", "createContentDisplay", post
+          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
+            # appManager.tell "Activity", "createContentDisplay", post
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
             view.destroy()
       options.type  = actionType or ''
 
@@ -92,13 +103,14 @@ class NotificationController extends KDObject
 
     options.title or= 'notification arrived'
 
-    new KDNotificationView
+    notification = new KDNotificationView
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
       duration : 10000
       showTimer: yes
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
-      click    : options.click    or noop
+
+    notification.once 'click', options.click
 
 

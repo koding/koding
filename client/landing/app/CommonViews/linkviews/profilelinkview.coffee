@@ -1,19 +1,36 @@
 class ProfileLinkView extends LinkView
 
   constructor:(options = {}, data)->
+    options.noTooltip ?= yes
+
+    # this needs to be pre-super
+    unless options.noTooltip
+      @avatarPreview =
+        constructorName : AvatarTooltipView
+        options         :
+          delegate      : @
+          origin        : options.origin
+        data            : data
+
+    if @avatarPreview then options.tooltip or=
+      view             : unless options.noTooltip then @avatarPreview else null
+      viewCssClass     : 'avatar-tooltip'
+      animate          : yes
+      placement        : 'top'#['top','bottom','right','left'][Math.floor(Math.random()*4)]
+      direction        : 'left'#['left','right','center','top','bottom'][Math.floor(Math.random()*5)]
 
     super options, data
+    if @avatarPreview?
+      @on 'TooltipReady', =>
+        @utils.wait =>
+          @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
-    # nickname = data?.profile?.nickname
-    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
   render:->
 
     nickname = @getData().profile?.nickname
-    if nickname
-      @$().attr "href","/#!/member/#{nickname}"
-      # @updateTooltip title : "@#{nickname}"
+    @$().attr "href", "/#{nickname}"  if nickname
     super
 
   pistachio:->
@@ -22,7 +39,8 @@ class ProfileLinkView extends LinkView
 
   click:(event)->
 
-    appManager.tell "Members", "createContentDisplay", @getData()
+    #appManager.tell "Members", "createContentDisplay", @getData()
+    KD.getSingleton('router')?.handleRoute "/#{@getData().profile.nickname}"
     event.preventDefault()
     event.stopPropagation()
     no

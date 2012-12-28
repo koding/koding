@@ -1,7 +1,7 @@
 class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
-    options.expandable ?= no
+    options.expandable ?= yes
     options.clickable  ?= yes
     if not options.expandable and data?.title.length > 16
       options.tooltip =
@@ -11,8 +11,7 @@ class TagLinkView extends LinkView
         offset    : 1
     super options, data
 
-    data.on? "TagIsDeleted", =>
-      @destroy()
+    data.on? "TagIsDeleted", => @destroy()
 
     @setClass "ttag expandable"
     @unsetClass "expandable" unless options.expandable
@@ -20,7 +19,12 @@ class TagLinkView extends LinkView
   pistachio:->
     super "{{#(title)}}"
 
-  click:->
-    return if not @getOptions().clickable
+  click:(event)->
+    event?.stopPropagation()
+    event?.preventDefault()
+    return unless @getOptions().clickable
     tag = @getData()
-    appManager.tell "Topics", "createContentDisplay", tag
+    KD.getSingleton('router').handleRoute(
+      "/Topics/#{tag.slug}"
+      state: tag
+    )

@@ -1,4 +1,4 @@
-class Members12345 extends AppController
+class MembersAppController extends AppController
   constructor:(options, data)->
     options = $.extend
       view : mainView = (new MembersMainView cssClass : "content-page members")
@@ -11,14 +11,11 @@ class Members12345 extends AppController
         name : 'Members'
       data : @getView()
 
-  initAndBringToFront:(options, callback)->
-    @bringToFront()
-    callback()
-
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
+      noItemFoundText       : "There is no member."
       limitPerPage          : 10
       help                  :
         subtitle            : "Learn About Members"
@@ -39,11 +36,13 @@ class Members12345 extends AppController
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
+          noItemFoundText   : "There is no member who follows you."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchFollowersWithRelationship selector, options, callback
             @setCurrentViewNumber 'followers'
         followings          :
           title             : "Following <span class='member-numbers-following'></span>"
+          noItemFoundText   : "You are not following anyone."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchFollowingWithRelationship selector, options, callback
             @setCurrentViewNumber 'following'
@@ -58,7 +57,9 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
+      @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
+      @emit 'ready'
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'
           @setCurrentViewHeader count
@@ -69,6 +70,7 @@ class Members12345 extends AppController
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
+      noItemFoundText       : "There is no member."
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
@@ -111,6 +113,7 @@ class Members12345 extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
+      noItemFoundText       : "There is no liked activity."
       limitPerPage          : 8
       help                  :
         subtitle            : "Learn Personal feed"
@@ -132,6 +135,12 @@ class Members12345 extends AppController
           dataSource        : (selector, options, callback)->
             selector = {sourceName: $in: ['JCodeSnip']}
             account.fetchLikedContents options, selector, callback
+        # Discussions Disabled
+        # discussions         :
+        #   title             : 'Discussions'
+        #   dataSource        : (selector, options, callback)->
+        #     selector = {sourceName: $in: ['JDiscussion']}
+        #     account.fetchLikedContents options, selector, callback
       sort                :
         'timestamp|new'   :
           title           : 'Latest activity'

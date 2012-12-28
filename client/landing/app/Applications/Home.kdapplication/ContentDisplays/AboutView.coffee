@@ -1,5 +1,17 @@
 class AboutView extends JView
 
+  constructor:(options = {}, data)->
+
+    options.cssClass = "about about-pane content-display"
+
+    super options, data
+
+    @back   = new KDCustomHTMLView
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : =>
+        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+
   viewAppended:->
 
     super
@@ -8,6 +20,7 @@ class AboutView extends JView
   pistachio:->
 
     """
+      <h2 class="sub-header">{{> @back}}</h2>
       <div class="about-page-left">
         <h2>About Koding</h2>
         <p class="about-sub">Koding is a developer community and cloud development environment where developers come together and code – in the browser… with a real development server to run their code.</p>
@@ -84,11 +97,11 @@ class AboutView extends JView
         nickname  : 'gokmen'
         job       : 'Software Engineer'
         image     : '../images/people/gokmen.jpg'
-      ,
-        name      : 'Son Tran-Nguyen'
-        nickname  : 'sntran'
-        job       : 'Software Engineer'
-        image     : '../images/people/son.jpg'
+      # ,
+      #   name      : 'Son Tran-Nguyen'
+      #   nickname  : 'sntran'
+      #   job       : 'Software Engineer'
+      #   image     : '../images/people/son.jpg'
       ,
         name      : 'Arvid Kahl'
         nickname  : 'arvidkahl'
@@ -121,7 +134,7 @@ class AboutMemberView extends KDCustomHTMLView
     """
       <img src="#{image}" />
       <p>
-        <a href='#!/member/#{nickname}'><strong>#{name}</strong></a>
+        <a href='/#{nickname}'><strong>#{name}</strong></a>
         #{job}
       </p>
     """

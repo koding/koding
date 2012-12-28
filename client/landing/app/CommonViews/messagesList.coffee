@@ -10,7 +10,7 @@ class MessagesListView extends KDListView
 class MessagesListController extends KDListViewController
 
   constructor:(options, data)->
-    options.itemClass        or= InboxMessagesListItem
+    options.itemClass           or= InboxMessagesListItem
     options.listView            or= new MessagesListView
     options.startWithLazyLoader   = yes
     super options, data
@@ -69,6 +69,9 @@ class NotificationListItem extends KDListItemView
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
     JComment        : "your comment."
+    JDiscussion     : "your discussion."
+    JOpinion        : "your opinion."
+    JReview         : "your review."
 
   bucketNameMap = ->
     CReplieeBucketActivity  : "comment"
@@ -152,7 +155,10 @@ class NotificationListItem extends KDListItemView
 
     showPost = (err, post)->
       if post
-        appManager.tell "Activity", "createContentDisplay", post
+        internalApp = if post.constructor.name is "JApp" then "Apps" else "Activity"
+        # appManager.tell internalApp, "createContentDisplay", post
+        KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
+
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -160,7 +166,8 @@ class NotificationListItem extends KDListItemView
 
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
-    else if @snapshot.anchor.constructorName is "JComment"
+      appManager.tell 'Inbox', "goToMessages"
+    else if @snapshot.anchor.constructorName in ["JComment", "JReview", "JOpinion"]
       KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
       KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost

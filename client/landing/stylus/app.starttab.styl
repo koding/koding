@@ -26,9 +26,33 @@ app.starttab.styl
     overflow              auto
 
   .app-button-holder
-    position              absolute
-    top                   10px
-    right                 24px
+    height                33px
+    left                  5px
+    right                 5px
+    border-bottom         1px solid #CDCDCD
+    bg                    color,rgba(255,255,255,.5)
+    gradient              rgba(0,0,0,.11),rgba(255,255,255,.08)
+    abs()
+
+    .new-app-button
+    .refresh-apps-button
+      top                 4px
+      line-height         10px
+      padding-left        22px
+      z-index             100
+      abs()
+
+      span.icon
+        padding           0px
+        top               1px
+        left              6px
+        abs()
+
+    .new-app-button
+      left                5px
+
+    .refresh-apps-button
+      right               5px
 
 // .start-tab-app-container
 //   overflow-y      visible
@@ -59,7 +83,7 @@ app.starttab.styl
 
   figure
     display               inline-block
-    position              relative
+    rel()
     size                  19%, auto
     margin                0 1% 1% 0
     min-width             120px
@@ -94,7 +118,7 @@ app.starttab.styl
         color             #FF9200
         display           block
         left              0
-        position          absolute
+        abs()
         opacity           0
         padding           5px 0
         transition        bottom .3s linear
@@ -114,7 +138,7 @@ app.starttab.styl
         opacity           .5
 
     .kdloader
-      position            absolute
+      abs()
       top                 50%
       left                50%
       margin              -20px 0 0 -20px
@@ -127,7 +151,7 @@ app.starttab.styl
       width               100%
 
     cite
-      position            absolute
+      abs()
       display             block
       bottom              10px
       left                0
@@ -149,7 +173,7 @@ app.starttab.styl
       font-size           11px
 
     .icon-container
-      position            absolute
+      abs()
       display             inline-block
       top                 5px
       right               5px
@@ -174,7 +198,7 @@ app.starttab.styl
         bg                position, -280px -441px
         right             47px
 
-.tipsy .app-tip
+.tipsy .app-tip, .kdtooltip.just-text .app-tip
   text-align              left
   padding                 5px
   header
@@ -186,7 +210,7 @@ app.starttab.styl
     max-width             250px
 
 .start-tab-recent-container
-  position                absolute
+  abs()
   border                  1px solid rgba(0, 0, 0, 0.07)
   bottom                  0
   left                    0
@@ -233,7 +257,7 @@ app.starttab.styl
     fl()
 
     .kdloader
-      position            absolute
+      abs()
       top                 8px
       right               8px
 
@@ -253,7 +277,7 @@ app.starttab.styl
 .start-tab-split-options
   hidden()
   height                  80px
-  position                absolute
+  abs()
   width                   100%
   bottom                  -146px
   text-align              center
@@ -336,21 +360,6 @@ app.starttab.styl
 
       h2
         font-size         12px
-
-    .start-tab-recent-container
-      border              none
-      height              50px
-
-      h3
-        hidden()
-
-      .finder-item
-        font-size         11px
-        height            24px
-        line-height       14px
-        padding           4px 20px
-        span.icon
-          margin-top      -1px
 
     .start-tab-split-options.expanded
       bottom              52px

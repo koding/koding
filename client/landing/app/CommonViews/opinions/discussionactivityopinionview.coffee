@@ -6,6 +6,7 @@ class DiscussionActivityOpinionView extends KDView
     @createSubViews data
 
   createSubViews:(data)->
+
     @opinionList = new KDListView
       type          : "comments"
       itemClass  : DiscussionActivityOpinionListItemView
@@ -14,23 +15,17 @@ class DiscussionActivityOpinionView extends KDView
 
     @opinionController = new OpinionListViewController view: @opinionList
 
+    # the snapshot opinion list gets populated with 2 items at max initially
+    # it may grow in size later on, when the user populates the data object
+    # through loading items in the content display. this is intentional.
     @addSubView @opinionList
     if data.opinions
       for opinion, i in data.opinions when opinion? and 'object' is typeof opinion
         @opinionList.addItem opinion unless i > 1
 
-    @addSubView header = new KDView
-      cssClass : "show-more-discussion"
+    @addSubView @opinionHeader = new OpinionViewHeader delegate: @opinionList, data
 
-    if data.repliesCount > 0
-      header.addSubView linkToContentDisplay = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "discussion-view-more"
-        partial     : "View "+data.repliesCount+" answers"
-        attributes  :
-          href      : "#"
-        click :->
-          appManager.tell "Activity", "createContentDisplay", data
-
-    @addSubView spacer = new KDCustomHTMLView
-      cssClass      : "discussion-spacer"
+  viewAppended:->
+    super
+    if @getData().fake
+      @hide()

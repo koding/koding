@@ -5,7 +5,9 @@ class CodesnipActivityItemView extends ActivityItemChild
       cssClass    : "activity-item codesnip"
       tooltip     :
         title     : "Code Snippet"
-        offset    : 3
+        offset    :
+          top     : 3
+          left    : -5
         selector  : "span.type-icon"
     ,options
     super options,data
@@ -14,6 +16,12 @@ class CodesnipActivityItemView extends ActivityItemChild
     codeSnippetData.title = @getData().title
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
+
+    # @codeShareBoxView = new CodeShareBox
+    #   allowEditing:no
+    #   allowClosing:no
+    #   hideTabs:yes
+    # ,data
 
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
@@ -37,7 +45,8 @@ class CodesnipActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is(".activity-item-right-col h3")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      #appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity
@@ -45,9 +54,19 @@ class CodesnipActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
+    @codeSnippetView.$().hover =>
+      @enableScrolling = setTimeout =>
+        @codeSnippetView.codeView.setClass 'scrollable-y'
+        @codeSnippetView.setClass 'scroll-highlight out'
+
+      ,1000
+    , =>
+      clearTimeout @enableScrolling
+      @codeSnippetView.codeView.unsetClass 'scrollable-y'
+      @codeSnippetView.unsetClass 'scroll-highlight out'
 
   pistachio:->
-
+    # {{> @codeShareBoxView}}
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
@@ -90,12 +109,10 @@ class CodeSnippetView extends KDCustomHTMLView
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     @codeView = new KDCustomHTMLView
-      tagName  : "code"
+      cssClass  : ''
+      tagName   : 'code'
       pistachio : '{{#(content)}}'
     , data
-
-    @codeView.setClass hjsSyntax if hjsSyntax
-    @codeView.unsetClass "kdcustomhtml"
 
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
@@ -107,6 +124,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "save"
+      tooltip   :
+        title   : 'Save'
       callback  : ->
         new KDNotificationView
           title     : "Currently disabled!"
@@ -121,6 +140,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "open"
+      tooltip   :
+        title   : 'Open'
       callback  : ->
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
@@ -134,6 +155,8 @@ class CodeSnippetView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "select-all"
+      tooltip   :
+        title   : 'Select All'
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
@@ -147,29 +170,18 @@ class CodeSnippetView extends KDCustomHTMLView
   applySyntaxColoring:( syntax = @getData().syntax)->
 
     snipView  = @
-    hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
-    if hjsSyntax
-      requirejs (['js/highlightjs/highlight.js']), ->
-        requirejs (["highlightjs/languages/#{hjsSyntax}"]), ->
-          try
-            hljs.compileModes()
-            hljs.highlightBlock snipView.codeView.$()[0],'  '
-          catch err
-            console.warn "Error applying highlightjs syntax #{syntax}:", err
+    try
+      hljs.highlightBlock snipView.codeView.$()[0], '  '
+    catch err
+      warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 
     @setTemplate @pistachio()
     @template.update()
+
     @applySyntaxColoring()
-
-    twOptions = (title) ->
-      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
-
-    @saveButton.$().twipsy twOptions("Save")
-    @copyButton.$().twipsy twOptions("Select all")
-    @openButton.$().twipsy twOptions("Open")
 
   pistachio:->
     """

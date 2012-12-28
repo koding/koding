@@ -1,15 +1,31 @@
 class LoginView extends KDScrollView
 
+  stop =(event)->
+    event.preventDefault()
+    event.stopPropagation()
+
   constructor:->
 
     super
     @hidden = no
 
+    handler =(route, event)=>
+      stop event
+      @getSingleton('router').handleRoute route
+
+    homeHandler       = handler.bind null, '/'
+    learnMoreHandler  = handler.bind null, '/Join'
+    loginHandler      = handler.bind null, '/Login'
+    registerHandler   = handler.bind null, '/Register'
+    joinHandler       = handler.bind null, '/Join'
+    recoverHandler    = handler.bind null, '/Recover'
+    
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
       partial     : "Koding"
-      click       : => @animateToForm "home"
+      click       : homeHandler
+      # @animateToForm "home"
       # click       : =>
       #   @slideUp ->
       #     appManager.openApplication "Home"
@@ -18,6 +34,7 @@ class LoginView extends KDScrollView
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "back-to-home"
+      click       : homeHandler
       # partial     : "<span></span> Koding Homepage <span></span>"
       # click       : =>
       #   @slideUp ->
@@ -27,7 +44,7 @@ class LoginView extends KDScrollView
       tagName     : "a"
       cssClass    : "video-link"
       partial     : "video again?"
-      click       : => @animateToForm "home"
+      click       : homeHandler
       # click       : =>
       #   @slideUp ->
       #     appManager.openApplication "Home"
@@ -37,49 +54,51 @@ class LoginView extends KDScrollView
       # cssClass  : "back-to-login"
       partial   : "Go ahead and login"
       # partial   : "« back to login"
-      click     : => @animateToForm "login"
+      click     : loginHandler
+        # @animateToForm "login"
 
     @goToRequestLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an invite"
       # partial     : "Want to get in? Request an invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
+        # @animateToForm "lr"
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register an account"
       # partial     : "Have an invite? Register an account"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReg = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReg1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReq = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
 
     @bigLinkReq1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
 
     @bigLinkLog = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Login"
-      click       : => @animateToForm "login"
+      click       : loginHandler
 
     @bigLinkLog1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Login"
-      click       : => @animateToForm "login"
+      click       : loginHandler
 
     @bigLinkLearn = new KDCustomHTMLView
       tagName     : "a"
@@ -88,8 +107,8 @@ class LoginView extends KDScrollView
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Recover password."
-      click       : => @animateToForm "recover"
+      partial     : "Recover password"
+      click       : recoverHandler
 
     @loginOptions = new LoginOptions
       cssClass : "login-options-holder log"
@@ -100,7 +119,6 @@ class LoginView extends KDScrollView
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        console.log 'hey-o'
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
@@ -114,11 +132,17 @@ class LoginView extends KDScrollView
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doReset formData
+      callback : (formData)=>
+        formData.clientId = $.cookie('clientId')
+        @doReset formData
 
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
       callback : (formData)=> @doRequest formData
+
+    @headBanner = new KDCustomHTMLView
+      cssClass : "head-banner hidden"
+      partial  : "..."
 
     @video = new KDView
       cssClass : "video-wrapper"
@@ -146,9 +170,9 @@ class LoginView extends KDScrollView
     @template.update()
     # @hide()
 
-
   pistachio:->
     """
+    {{> @headBanner}}
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
@@ -205,24 +229,23 @@ class LoginView extends KDScrollView
       <div class="screenshots">
         {{> @slideShow}}
       </div>
-      <hr>
+      <hr/>
       <div class="footer-links">
         <p class='bigLink'>{{> @bigLinkReq1}}</p>
         <p class='bigLink'>{{> @bigLinkReg1}}</p>
         <p class='bigLink'>{{> @bigLinkLog1}}</p>
       </div>
-      <hr/>
       <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
     </section>
     {{> @backToHomeLink}}
     """
 
-  doReset:({recoveryToken, password})->
+  doReset:({recoveryToken, password, clientId})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
-      @animateToForm 'login'
-      @doLogin {username, password}
+      @headBanner.hide()
+      @doLogin {username, password, clientId}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -241,7 +264,6 @@ class LoginView extends KDScrollView
     {kodingenUser} = formData
     formData.agree = 'on'
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-      console.log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
@@ -254,17 +276,19 @@ class LoginView extends KDScrollView
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
+        KD.getSingleton('router').clear()
         setTimeout =>
           @animateToForm "login"
           @registerForm.reset()
           @registerForm.button.hideLoader()
+          # setTimeout =>
+          #   @getSingleton('mainController').emit "ShowInstructionsBook"
+          # , 1000
         , 1000
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    console.log 'before api call'
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
-      console.log 'after api call', arguments
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView
@@ -272,8 +296,9 @@ class LoginView extends KDScrollView
           duration: 1000
         @loginForm.resetDecoration()
       else
-        $.cookie 'clientId', replacementToken if replacementToken
+        $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
+        @getSingleton('router').handleRoute null, replaceState: yes
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -297,6 +322,33 @@ class LoginView extends KDScrollView
         @requestForm.button.hide()
         @$('.flex-wrapper').addClass 'expanded'
       @requestForm.button.hideLoader()
+
+  showHeadBanner:(message, callback)->
+    @$('.login-footer').hide()
+    @$('.footer-links').hide()
+    @headBannerMsg = message
+    @headBanner.updatePartial @headBannerMsg
+    @headBanner.unsetClass 'hidden'
+    @headBanner.setClass 'show'
+    $('body').addClass 'recovery'
+    @headBanner.click = callback
+
+  headBannerShowRecovery:(recoveryToken)->
+
+    @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
+      @getSingleton('router').clear '/Recover/Password'
+      @headBanner.updatePartial "You can now create a new password for your account"
+      @resetForm.addCustomData {recoveryToken}
+      @animateToForm "reset"
+
+  headBannerShowInvitation:(invite)->
+    @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
+      @headBanner.hide()
+      @getSingleton('router').clear '/Register'
+      $('body').removeClass 'recovery'
+      @slideDown =>
+        @animateToForm "register"
+        @getSingleton('mainController').emit 'InvitationReceived', invite
 
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
@@ -324,15 +376,21 @@ class LoginView extends KDScrollView
     @$().css marginTop : -winHeight if @hidden
 
   animateToForm: (name)->
-    if name is "register"
-      KD.remote.api.JUser.isRegistrationEnabled (status)=>
-        if status is no
-          @registerForm.$('div').hide()
-          @registerForm.$('section').show()
-          log "Registrations are disabled!!!"
-        else
-          @registerForm.$('section').hide()
-          @registerForm.$('div').show()
+    switch name
+      when "register"
+        KD.remote.api.JUser.isRegistrationEnabled (status)=>
+          if status is no
+            @registerForm.$('div').hide()
+            @registerForm.$('section').show()
+            log "Registrations are disabled!!!"
+          else
+            @registerForm.$('section').hide()
+            @registerForm.$('div').show()
+      when "home"
+        parent.notification?.destroy()
+        if @headBannerMsg?
+          @headBanner.updatePartial @headBannerMsg
+          @headBanner.show()
 
     @unsetClass "register recover login reset home lr"
     @emit "LoginViewAnimated", name

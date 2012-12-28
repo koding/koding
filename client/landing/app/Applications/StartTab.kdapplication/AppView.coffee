@@ -15,6 +15,9 @@ class StartTabMainView extends JView
       @getSingleton("kodingAppsController").appStorage.fetchStorage (storage)=>
         @decorateApps apps
 
+    appsController.on "aNewAppCreated", =>
+      @aNewAppCreated()
+
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
 
@@ -27,8 +30,10 @@ class StartTabMainView extends JView
         width : 16
 
     @refreshButton = new KDButtonView
-      cssClass    : "editor-button"
+      cssClass    : "editor-button refresh-apps-button"
       title       : "Refresh Apps"
+      icon        : yes
+      iconClass   : "refresh"
       loader      :
         diameter  : 16
       callback    : =>
@@ -39,20 +44,12 @@ class StartTabMainView extends JView
           @refreshButton.hideLoader()
 
     @addAnAppButton = new KDButtonView
-      cssClass    : "editor-button"
-      # icon        : yes
-      # iconClass   : "make-an-app"
+      cssClass    : "editor-button new-app-button"
+      icon        : yes
+      iconClass   : "plus-black"
       title       : "Make a new App"
       callback    : =>
-        appsController.makeNewApp =>
-          new KDNotificationView
-            type  : "mini"
-            title : "App is created! Check your Applications folder!"
-
-          @removeAppIcons()
-          @showLoader()
-          appsController.refreshApps =>
-            @hideLoader()
+        appsController.makeNewApp()
 
     # appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
     #   storage.update $set : { "bucket.apps" : {} }, =>
@@ -95,10 +92,21 @@ class StartTabMainView extends JView
         tab : @
       , app
 
+  aNewAppCreated:->
+    new KDNotificationView
+      type     : "mini"
+      cssClass : "success"
+      title    : "App is created! Check your Applications folder!"
+
+    @removeAppIcons()
+    @showLoader()
+    @getSingleton("kodingAppsController").refreshApps =>
+      @hideLoader()
+
   pistachio:->
     """
     <div class='app-list-wrapper'>
-      <div class='app-button-holder hidden1'>
+      <div class='app-button-holder'>
         {{> @addAnAppButton}}
         {{> @refreshButton}}
       </div>
