@@ -7,7 +7,11 @@ shopt -s nullglob
 # packages are installed with debootstrap
 # additional packages are installed later on with apt-get
 packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
-additional_packages="lighttpd htop sudo net-tools"
+additional_packages="lighttpd htop iotop iftop nodejs nodejs-legacy php5 \
+                     erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python perl \
+                     mercurial git subversion cvs bzr \
+                     fish sudo net-tools aptitude emacs \
+                     ldap-auth-client nscd"
 suite="quantal"
 variant="buildd"
 target="/var/lib/lxc/vmroot/rootfs"
@@ -98,4 +102,6 @@ run_in_vmroot /bin/hostname vmroot
 echo "Doing APT-GET Stuff"
 run_in_vmroot /usr/bin/apt-get update
 run_in_vmroot /usr/bin/apt-get install $additional_packages -y
+run_in_vmroot /usr/bin/wget http://www.duinsoft.nl/pkg/pool/all/update-sun-jre.bin -O /root/update-sun-jre.bin
+run_in_vmroot /bin/sh /root/update-sun-jre.bin
 
