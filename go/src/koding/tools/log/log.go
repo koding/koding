@@ -1,38 +1,27 @@
 package log
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
 )
 
-type Entry struct {
-	Service   string
-	Host      string
-	Level     int
-	LevelName string
-	Message   string
-}
-
-func (Entry *Entry) String() string {
-	return fmt.Sprintf("%-6v %v", LEVEL_NAMES[Entry.Level], Entry.Message)
-}
-
-var LogToLoggly bool = false
-var LogglyUrl string = "https://logs.loggly.com/inputs/a4b90ee3-0f30-4497-9840-483b6e6e60f0"
 var Service string
-var LogLevel int = 6
+var Profile string
+var Pid int
 var Hostname string
+var LogDebug bool = false
+var LogToLoggr bool = false
 
 func init() {
 	Hostname, _ = os.Hostname()
+	Pid = os.Getpid()
 }
 
-func NewEntry(level int, message ...interface{}) *Entry {
+func NewEvent(level int, message ...interface{}) url.Values {
 	messageStrings := make([]string, len(message))
 	for i, part := range message {
 		if bytes, ok := part.([]byte); ok {
@@ -41,53 +30,43 @@ func NewEntry(level int, message ...interface{}) *Entry {
 			messageStrings[i] = fmt.Sprint(part)
 		}
 	}
-	return &Entry{
-		Service:   Service,
-		Host:      Hostname,
-		Level:     level,
-		LevelName: LEVEL_NAMES[level],
-		Message:   strings.Join(messageStrings, "\n"),
+	return url.Values{
+		"source": {fmt.Sprintf("%s %d on %s", Service, Pid, Hostname)},
+		"tags":   {LEVEL_TAGS[level] + " " + Service + " " + Profile},
+		"text":   {messageStrings[0]},
+		"data":   {strings.Join(messageStrings, "\n")},
 	}
 }
 
-func Send(Entry interface{}) {
-	if !LogToLoggly {
-		fmt.Println(Entry)
+func Send(event url.Values) {
+	if !LogToLoggr {
+		fmt.Printf("[%s] %s\n", event.Get("tags"), event.Get("data"))
 		return
 	}
 
-	data, err := json.Marshal(Entry)
+	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
+	_, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
 	if err != nil {
-		fmt.Println("logger error: json.Marshal failed")
-		return
-	}
-
-	_, err = http.Post(LogglyUrl, "application/json", bytes.NewReader(data))
-	if err != nil {
-		fmt.Println("logger error: http.Post failed")
+		fmt.Println("logger error: http.PostForm failed")
 		return
 	}
 }
 
 func Log(level int, Entry ...interface{}) {
-	if level > LogLevel {
+	if level == DEBUG && !LogDebug {
 		return
 	}
-	Send(NewEntry(level, Entry...))
+	Send(NewEvent(level, Entry...))
 }
 
 const (
-	EMERG  = 0
-	ALERT  = 1
-	CRIT   = 2
-	ERR    = 3
-	WARN   = 4
-	NOTICE = 5
-	INFO   = 6
-	DEBUG  = 7
+	ERR = iota
+	WARN
+	INFO
+	DEBUG
 )
 
-var LEVEL_NAMES = []string{"EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"}
+var LEVEL_TAGS = []string{"error", "warning", "info", "debug"}
 
 func Err(Entry ...interface{}) {
 	Log(ERR, Entry...)

@@ -27,7 +27,7 @@ func Startup(serviceName string, needRoot bool) {
 
 	var profile string
 	flag.StringVar(&profile, "c", "", "Configuration profile")
-	flag.IntVar(&log.LogLevel, "l", 6, "Log level")
+	flag.BoolVar(&log.LogDebug, "d", false, "Log debug messages")
 
 	flag.Parse()
 	if flag.NArg() != 0 {
@@ -42,8 +42,9 @@ func Startup(serviceName string, needRoot bool) {
 
 	config.LoadConfig(profile)
 
-	log.LogToLoggly = config.Current.LogToLoggly
-	log.Service = fmt.Sprintf("%s %d", serviceName, os.Getpid())
+	log.Service = serviceName
+	log.Profile = profile
+	log.LogToLoggr = config.Current.LogToLoggr
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
@@ -62,12 +63,6 @@ func BeginShutdown() {
 	ChangeNumClients <- 0
 }
 
-type statusEntry struct {
-	*log.Entry
-	NumberOfClients    int
-	NumberOfGoroutines int
-}
-
 func RunStatusLogger() {
 	go func() {
 		for {
@@ -75,12 +70,8 @@ func RunStatusLogger() {
 			if ShuttingDown {
 				message = "Status: Shutting down, still %d clients."
 			}
-			log.Send(&statusEntry{
-				log.NewEntry(log.INFO, fmt.Sprintf(message, numClients)),
-				numClients,
-				runtime.NumGoroutine(),
-			})
-			time.Sleep(60 * time.Second)
+			log.Info(fmt.Sprintf(message, numClients), fmt.Sprintf("Number of goroutines: %d", runtime.NumGoroutine()))
+			time.Sleep(10 * time.Minute)
 		}
 	}()
 }
