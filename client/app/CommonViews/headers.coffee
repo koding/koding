@@ -54,6 +54,7 @@ class WelcomeHeader extends KDHeaderView
             cssClass    : "what-you-should-know-modal"
             height      : "auto"
             width       : 500
+            overlay     : yes
             content     : response
             buttons     :
               Close     :

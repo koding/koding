@@ -372,7 +372,7 @@ module.exports = class JAccount extends jraphical.Module
   checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
     if flags
-      if 'string' is typeof flag
+      if 'string' is typeof flagToCheck
         return flagToCheck in flags
       else
         for flag in flagToCheck
@@ -390,7 +390,9 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users', 'administer accounts'
+      when 'flag', 'reset guests', 'reset groups', 'administer names', \
+           'administer url aliases', 'migrate-kodingen-users', \
+           'administer accounts', 'grant-invites', 'send-invites'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->

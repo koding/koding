@@ -109,7 +109,12 @@ class KiteController extends KDController
         callback? err, response
         warn "there were some errors parsing kite response:", err
     else if err
-      if err.kiteNotPresent
+      if err.code is 503
+        notification = notify
+          msg         : error.message
+          duration    : 0
+          click       : -> notification.destroy()
+      else if err.kiteNotPresent
         @handleKiteNotPresent {err, response}, options, callback
       else if /No\ssuch\suser/.test err
         _tempOptions  or= options

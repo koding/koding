@@ -13,47 +13,21 @@ if cluster.isMaster
     cluster.fork()
 else
 
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  # processMonitor = (require 'processes-monitor').start
-  #   name : "webServer on port #{webPort}"
-  #   interval : 1000
-  #   limits  :
-  #     memory   : 300
-  #     callback : ->
-  #       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-  #       process.exit()
-  #   die :
-  #     after: "non-overlapping, random, 3 digits prime-number of minutes"
-  #     middleware : (name,callback) -> koding.disconnect callback
-  #     middlewareTimeout : 5000
-    # mixpanel:
-    #   key : KONFIG.mixpanel.key
-
-  # if webPort is 3002
-  #   foo = []
-  #   do bar = ->
-  #    process.nextTick ->
-  #      foo.push Math.random()
-  #      bar()
-
-  #   setInterval ->
-  #    a=foo.length
-  #   , 1000
-  # aaa=Math.floor(Math.random() * (50000 - 15000 + 1))+15000
-  # console.log "i will die in #{aaa/1000}secs [#{webPort} #{process.pid}]"
-  # setTimeout ->
-  #   console.log "oh no! [#{webPort} #{process.pid}]"
-  #   process.exit()
-  # ,aaa
-
-
+  processMonitor = (require 'processes-monitor').start
+    name : "webServer on port #{webPort}"
+    stats_id: "webserver." + cluster.worker.id
+    interval : 60000
+    limits  :
+      memory   : 300
+      callback : ->
+        console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+        process.exit()
+    die :
+      after: "non-overlapping, random, 3 digits prime-number of minutes"
+      middleware : (name,callback) -> koding.disconnect callback
+      middlewareTimeout : 5000
+    librato: KONFIG.librato
+  
   {extend} = require 'underscore'
   express = require 'express'
   Broker = require 'broker'
@@ -90,15 +64,15 @@ else
     # throw err
     # console.trace()
 
-  koding = require './bongo'
+  # koding = require './bongo'
 
-  kiteBroker =\
-    if kites?.vhost?
-      new Broker extend {}, mq, vhost: kites.vhost
-    else
-      koding.mq
+  # kiteBroker =\
+  #   if kites?.vhost?
+  #     new Broker extend {}, mq, vhost: kites.vhost
+  #   else
+  #     koding.mq
 
-  koding.mq.connection.on 'ready', -> console.log 'message broker is ready'
+  # koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -107,59 +81,8 @@ else
     res.clearCookie 'clientId'
     res.redirect 302, '/'
 
-  app.get '/Auth', (req, res)->
-    crypto = require 'crypto'
-    {JSession} = koding.models
-    channel = req.query?.channel
-    return res.send 'user error', 400 unless channel?
-    clientId = req.cookies.clientId
-    JSession.fetchSession clientId, (err, session)->
-      if session? and clientId isnt session?.clientId
-        res.cookie 'clientId', session.clientId
-      if err
-        authenticationFailed(res, err)
-      else
-        [priv, type, pubName] = channel.split '-'
-        if /^bongo\./.test type
-          privName = 'secret-bongo-'+hat()+'.private'
-          koding.mq.funnel privName, koding.queueName
-          res.send privName
-        else unless session?
-          authenticationFailed(res)
-        else if type is 'kite'
-          {username} = session
-          cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
-          cipher.update(
-            ''+pubName+req.cookies.clientid+Date.now()+Math.random()
-          )
-          privName = ['secret', 'kite', "#{cipher.final('hex')}.#{username}"].join '-'
-          privName += '.private'
-
-          bindKiteQueue = (binding, callback) ->
-            kiteBroker.bindQueue(
-              privName, privName, binding,
-              {queueDurable:no, queueExclusive:no},
-              callback
-              )
-
-          bindKiteQueue "client-message", (kiteCmQueue1, exchangeName)->
-            kiteCmQueue1.close() # this will get opened back up?
-            bindKiteQueue "disconnected", (kiteCmQueue2, exchangeName) ->
-              kiteBroker.emit(channel, 'join', {user: username, queue: privName})
-
-              kiteBroker.connection.on 'error', console.log
-              kiteBroker.createQueue '', (dcQueue)->
-                dcQueue.bind exchangeName, 'disconnected'
-                dcQueue.subscribe ->
-                  dcQueue.destroy()#.addCallback -> dcQueue.close()
-                  setTimeout ->
-                    kiteCmQueue2.destroy()#.addCallback -> kiteCmQueue.close()
-                  , kites?.disconnectTimeout ? 5000
-              return res.send privName
-
-
   if uploads?.enableStreamingUploads
-    
+
     s3 = require('./s3') uploads.s3
 
     app.post '/Upload', s3..., (req, res)->
@@ -203,14 +126,13 @@ else
 
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
-    
+
     obj =
       processName : req.params.kiteName
       # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
-    
+
     koding.mq.emit 'public-status', req.params.event, obj
     res.send "got it."
-
 
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
@@ -223,7 +145,7 @@ else
         state = account.checkFlag('super-admin') or account.checkFlag(flag)
       res.end "#{state}"
 
-  getAlias =do->
+  getAlias = do->
     caseSensitiveAliases = ['auth']
     (url)->
       rooted = '/' is url.charAt 0

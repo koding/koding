@@ -11,8 +11,9 @@ class AdminModal extends KDModalViewWithForms
       cssClass                : "admin-kdmodal"
       tabs                    :
         navigable             : yes
+        goToNextFormOnSubmit  : no
         forms                 :
-          "User Flags"        :
+          "User Details"      :
             buttons           :
               Update          :
                 title         : "Update"
@@ -20,20 +21,111 @@ class AdminModal extends KDModalViewWithForms
                 loader        :
                   color       : "#444444"
                   diameter    : 12
-                callback      : => @modalTabs.forms["User Flags"].emit "UpdateFlagsClicked"
+                callback      : =>
+                  {inputs, buttons} = @modalTabs.forms["User Details"]
+                  accounts = @userController.getSelectedItemData()
+                  if accounts.length > 0
+                    account  = accounts[0]
+                    flags    = [flag.trim() for flag in inputs.Flags.getValue().split(",")][0]
+                    account.updateFlags flags, (err)->
+                      error err if err
+                      KD.remote.api.JInvitation.grantInvitesFromClient
+                        username : account.profile.nickname
+                        quota    : +inputs.Invites.getValue()
+                      , (err)=>
+                        console.error err if err
+                        new KDNotificationView {title: "Done!"}
+                        buttons.Update.hideLoader()
+                  else
+                    new KDNotificationView {title : "Select a user first"}
             fields            :
               Username        :
-                label         : "Username:"
+                label         : "Dear User"
                 type          : "hidden"
-                name          : "username"
                 nextElement   :
                   userWrapper :
                     itemClass : KDView
                     cssClass  : "completed-items"
               Flags           :
-                label         : "Flags:"
-                name          : "flags"
+                label         : "Flags"
                 placeholder   : "no flags assigned"
+              Invites         :
+                label         : "Grant Invites"
+                type          : "text"
+                placeholder   : "number of invites to add"
+                validate      :
+                  rules       :
+                    regExp    : /\d+/i
+                  messages    :
+                    regExp    : "numbers only please"
+              Impersonate     :
+                label         : "Switch to User"
+                itemClass     : KDButtonView
+                title         : "Impersonate"
+                callback      : =>
+                  modal = new KDModalView
+                    title          : "Switch to this user?"
+                    content        : "<div class='modalformline'>This action will reload Koding and log you in with this user.</div>"
+                    height         : "auto"
+                    overlay        : yes
+                    buttons        :
+                      Impersonate  :
+                        style      : "modal-clean-green"
+                        loader     :
+                          color    : "#FFF"
+                          diameter : 16
+                        callback   : =>
+                          accounts = @userController.getSelectedItemData()
+                          unless accounts.length is 0
+                            KD.impersonate accounts[0].profile.nickname, =>
+                              modal.destroy()
+                          else
+                            modal.destroy()
+          "Send Beta Invites" :
+            buttons           :
+              "Send Invites"  :
+                title         : "Send Invites"
+                style         : "modal-clean-gray"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : =>
+                  {inputs, buttons} = @modalTabs.forms["Send Beta Invites"]
+                  inputs.statusInfo.updatePartial 'Working on it...'
+                  KD.remote.api.JInvitation.sendBetaInviteFromClient
+                    batch     : +inputs.Count.getValue()
+                  , (err, res)->
+                    buttons['Send Invites'].hideLoader()
+                    inputs.statusInfo.updatePartial res
+                    console.log res, err
+            fields            :
+              Information     :
+                label         : "Current state"
+                type          : "hidden"
+                nextElement   :
+                  currentState:
+                    itemClass : KDView
+                    partial   : 'Loading...'
+                    cssClass  : 'information-line'
+              Count           :
+                label         : "# of Invites"
+                type          : "text"
+                defaultValue  : 10
+                placeholder   : "how many users do you want to Invite?"
+                validate      :
+                  rules       :
+                    regExp    : /\d+/i
+                  messages    :
+                    regExp    : "numbers only please"
+              Status          :
+                label         : "Server response"
+                type          : "hidden"
+                nextElement   :
+                  statusInfo  :
+                    itemClass : KDView
+                    partial   : '...'
+                    cssClass  : 'information-line'
+
           "Migrate Kodingen Users" :
             buttons           :
               Migrate         :
@@ -43,14 +135,14 @@ class AdminModal extends KDModalViewWithForms
                   color       : "#444444"
                   diameter    : 12
                 callback      : =>
-                  form = @modalTabs.forms["Migrate Kodingen Users"]
-                  form.inputs.statusInfo.updatePartial 'Working on it...'
+                  {inputs, buttons} = @modalTabs.forms["Migrate Kodingen Users"]
+                  inputs.statusInfo.updatePartial 'Working on it...'
                   KD.remote.api.JOldUser.__migrateKodingenUsers
-                    limit     : parseInt form.inputs.Count.getValue(), 10
-                    delay     : parseInt form.inputs.Delay.getValue(), 10
+                    limit     : +inputs.Count.getValue()
+                    delay     : +inputs.Delay.getValue()
                   , (err, res)->
-                    form.buttons.Migrate.hideLoader()
-                    form.inputs.statusInfo.updatePartial res
+                    buttons.Migrate.hideLoader()
+                    inputs.statusInfo.updatePartial res
                     console.log res, err
               Stop            :
                 title         : "Stop"
@@ -68,18 +160,16 @@ class AdminModal extends KDModalViewWithForms
                     console.log res, err
             fields            :
               Information     :
-                label         : "Current state:"
+                label         : "Current state"
                 type          : "hidden"
-                name          : "information"
                 nextElement   :
                   currentState:
                     itemClass : KDView
                     partial   : 'Loading...'
                     cssClass  : 'information-line'
               Count           :
-                label         : "Number of users to Migrate:"
+                label         : "# of Migrate"
                 type          : "text"
-                name          : "nofusers"
                 defaultValue  : 10
                 placeholder   : "how many users do you want to Migrate?"
                 validate      :
@@ -88,9 +178,8 @@ class AdminModal extends KDModalViewWithForms
                   messages    :
                     regExp    : "numbers only please"
               Delay           :
-                label         : "Delay between migrates (in sec.):"
+                label         : "Delay (in sec.)"
                 type          : "text"
-                name          : "delay"
                 defaultValue  : 60
                 placeholder   : "how many seconds do you need before create new user?"
                 validate      :
@@ -99,8 +188,7 @@ class AdminModal extends KDModalViewWithForms
                   messages    :
                     regExp    : "numbers only please"
               Status          :
-                label         : "Server output:"
-                name          : "status"
+                label         : "Server response"
                 type          : "hidden"
                 nextElement   :
                   statusInfo  :
@@ -110,51 +198,70 @@ class AdminModal extends KDModalViewWithForms
 
     super options, data
 
-    flagsForm = @modalTabs.forms["User Flags"]
-    toField = flagsForm.fields.Username
-    userControllerWrapper = flagsForm.fields.userWrapper
+    @hideConnectedFields()
 
-    userController = new KDAutoCompleteController
+    @initInviteTab()
+    @initMigrateTab()
+    @createUserAutoComplete()
+
+  createUserAutoComplete:->
+    {fields, inputs, buttons} = @modalTabs.forms["User Details"]
+    @userController = new KDAutoCompleteController
+      form                : @modalTabs.forms["User Details"]
       name                : "userController"
       itemClass           : MemberAutoCompleteItemView
-      selectedItemClass   : MemberAutoCompletedItemView
-      outputWrapper       : userControllerWrapper
-      form                : flagsForm
       itemDataPath        : "profile.nickname"
+      outputWrapper       : fields.userWrapper
+      selectedItemClass   : MemberAutoCompletedItemView
       listWrapperCssClass : "users"
       submitValuesAsText  : yes
-      dataSource          : (args, callback)->
+      dataSource          : (args, callback)=>
         {inputValue} = args
-        blacklist = (data.getId() for data in userController.getSelectedItemData())
-        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err, accounts)->
+        blacklist = (data.getId() for data in @userController.getSelectedItemData())
+        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err, accounts)=>
           callback accounts
 
-    toField.addSubView userRequestLineEdit = userController.getView()
-
-    userController.on "ItemListChanged", ->
-      accounts = userController.getSelectedItemData()
+    @userController.on "ItemListChanged", =>
+      accounts = @userController.getSelectedItemData()
       if accounts.length > 0
         account = accounts[0]
-        flagsForm.inputs.Flags.setValue account.globalFlags?.join(',')
+        inputs.Flags.setValue account.globalFlags?.join(',')
         userRequestLineEdit.hide()
+        @showConnectedFields()
+        account.fetchLimit? 'invite', (err, limit)=>
+          current = 0
+          if not err and limit
+            current = limit.quota - limit.usage
+          inputs.Invites.setPlaceHolder "Currently has #{current} invites."
       else
         userRequestLineEdit.show()
-        flagsForm.inputs.Flags.setValue ''
+        @hideConnectedFields()
 
-    @modalTabs.forms["User Flags"].on "UpdateFlagsClicked", ->
-      accounts = userController.getSelectedItemData()
-      if accounts.length > 0
-        account  = accounts[0]
-        flags    = [flag.trim() for flag in flagsForm.inputs.Flags.getValue().split(",")][0]
-        account.updateFlags flags, (err)->
-          error err if err
-          flagsForm.buttons.Update.hideLoader()
+    fields.Username.addSubView userRequestLineEdit = @userController.getView()
 
-      else
-        new KDNotificationView
-          title : "Select a user first"
+  initInviteTab:->
+    inviteForm = @modalTabs.forms["Send Beta Invites"]
+    KD.remote.api.JInvitation.betaInviteCount (res)->
+      inviteForm.inputs.currentState.updatePartial res
 
+  initMigrateTab:->
     migrateForm = @modalTabs.forms["Migrate Kodingen Users"]
-
     KD.remote.api.JOldUser.__currentState (res)->
       migrateForm.inputs.currentState.updatePartial res
+
+  hideConnectedFields:->
+    {fields, inputs, buttons} = @modalTabs.forms["User Details"]
+    fields.Impersonate.hide()
+    buttons.Update.hide()
+    fields.Invites.hide()
+    inputs.Invites.setValue ''
+    fields.Flags.hide()
+    inputs.Flags.setValue ''
+
+  showConnectedFields:->
+    {fields, inputs, buttons} = @modalTabs.forms["User Details"]
+    fields.Impersonate.show()
+    fields.Flags.show()
+    fields.Invites.show()
+    inputs.Invites.setPlaceHolder 'Loading...'
+    buttons.Update.show()

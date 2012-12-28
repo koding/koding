@@ -6,7 +6,7 @@ class AppStorage
     @_applicationVersion = version
     @_storage = null
 
-  fetchStorage: (callback)->
+  fetchStorage: (callback = noop)->
 
     unless @_storage
       appManager.fetchStorage @_applicationID, @_applicationVersion, (error, storage)=>

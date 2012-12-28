@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+
+<script src="./js/sock.js"></script>
+<script src="./js/broker.js"></script>
+<script>
+
+var Broker, Channel, broker;
+
+Broker = KDBroker.Broker;
+Channel = KDBroker.Channel;
+
+broker = new Broker('http://localhost:8008/subscribe');
+
+console.log(broker);
+
+
+</script>
+</body>
+</html>

@@ -13,7 +13,7 @@ class GroupView extends JView
       attributes  :
         src       : "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
-    @joinButton = new KDToggleButton
+    @joinButton = new JoinButton
       style           : if data.member then "follow-btn following-topic" else "follow-btn"
       title           : "Join"
       dataPath        : "member"
@@ -40,6 +40,18 @@ class GroupView extends JView
       ]
     , data
 
+    @homeLink = new KDCustomHTMLView
+      tagName     : 'a'
+      attributes  :
+        href      : data.slug
+      pistachio   : "Enter {{#(title)}}"
+      click       : (event)->
+        # debugger
+        event.stopPropagation()
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
+    , data
+
   pistachio:->
     """
     <div class="profileleft">
@@ -51,7 +63,7 @@ class GroupView extends JView
       <h3 class='profilename'>{{#(title)}}<cite></cite></h3>
       <div class="installerbar clearfix">
         <div class="appfollowlike">
-          {{> @joinButton}}
+          {{> @joinButton}} {{> @homeLink}}
         </div>
       </div>
       <div class='profilebio'>

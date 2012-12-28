@@ -34,6 +34,11 @@ class OpinionFormView extends KDFormView
       title           : "your Opinion"
       type            : "textarea"
       placeholder     : "What do you want to contribute to the discussion?"
+      validate      :
+        rules       :
+          required  : yes
+        messages    :
+          required  : "Please provide an opinion..."
 
     @labelAddTags = new KDLabelView
       title           : "Add Tags:"
@@ -76,7 +81,10 @@ class OpinionFormView extends KDFormView
     super
 
   submit:=>
-    # @once "FormValidationPassed", => @reset()
+    # @once "FormValidationPassed", =>
+    #   @reset()
+    @on 'FormValidationFailed', (err)=>
+      @submitOpinionBtn.hideLoader()
     super
 
   pistachio:->

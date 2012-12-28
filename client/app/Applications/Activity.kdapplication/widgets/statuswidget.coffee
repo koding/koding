@@ -222,15 +222,21 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
 
-  switchToEditView:(activity)->
+  switchToEditView:(activity,fake=no)->
     {tags, body, link} = activity
     @tagController.reset()
     @tagController.setDefaultValue tags
-    @submitBtn.setTitle "Edit status update"
-    @addCustomData "activity", activity
+
+    unless fake
+      @submitBtn.setTitle "Edit status update"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle "Submit again"
+
     @largeInput.setValue Encoder.htmlDecode body
     @utils.selectText @largeInput.$()[0]
-    if link?
+
+    if link? and link.link_url isnt ''
 
       bodyUrls = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
       if bodyUrls?

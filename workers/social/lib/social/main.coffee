@@ -22,7 +22,8 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  interval : 1000
+  stats_id: "worker.social." + argv.workerid
+  interval : 60000
   limits  :
     memory   : 300
     callback : (name,msg,details)->
@@ -39,14 +40,13 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
-  # mixpanel:
-  #   key : KONFIG.mixpanel.key
+  librato: KONFIG.librato
 
 koding = new Bongo
   root        : __dirname
   mongo       : mongo
   models      : './models'
-  queueName   : 'koding-social'
+  resourceName: social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
     [callback, context] = [context, callback] unless callback
@@ -58,15 +58,18 @@ koding = new Bongo
       else
         callback {sessionToken, connection:delegate:account}
 
-koding.on 'auth', (exchange, sessionToken)->
-  koding.fetchClient sessionToken, (client)->
-    {delegate} = client.connection
+koding.on 'authenticateUser', (client, callback)->
+  {delegate} = client.connection
+  callback delegate
 
-    if delegate instanceof koding.models.JAccount
-      koding.models.JAccount.emit "AccountAuthenticated", delegate
+# koding.on 'auth', (exchange, sessionToken)->
+#   koding.fetchClient sessionToken, (client)->
+#     {delegate} = client.connection
+
+#     # if delegate instanceof koding.models.JAccount
+#     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
       
-    koding.handleResponse exchange, 'changeLoggedInState', [delegate]
-
+#     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log

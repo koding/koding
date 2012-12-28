@@ -27,7 +27,7 @@ class ApplicationManager extends KDObject
       app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
       view.destroy()
     @removeAppInstance path
-    app.destroy()
+    app?.destroy()
 
   quitApplication:(path)->
     app = @getAppInstance path
@@ -135,7 +135,7 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Ace.kdapplication"         : AceAppController
       "./client/app/Applications/Viewer.kdapplication"      : ViewerAppController
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
-      "./client/app/Applications/Groups.kdapplication"      : GroupsController
+      "./client/app/Applications/Groups.kdapplication"      : GroupsAppController
     if classes[path]?
       new classes[path]
 
