@@ -1,0 +1,28 @@
+{
+    "name": "OpenVZ-kites",
+    "version": "0.0.1",
+    "description": "Koding OpenVZ API",
+    "maintainers": [
+        {
+            "name": "Aleksey Mykhailov",
+            "email": "a@koding.com"
+        }
+    ],
+    "bugs": {
+        "mail": "a@koding.com"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "kodingen.beanstalkapp.com:/kfmjs.git"
+        }
+    ],
+    "dependencies": {
+        "log4js": "x",
+        "mongodb":"x",
+        "request":"x",
+        "traverse":"x",
+        "lazy":"x"
+    }
+}
+
