@@ -1,0 +1,63 @@
+title Broker
+
+Client->App: init
+App->Client: {"connected", sock_id}
+
+Client->App: {"client-subscribe": Exchange}
+App->Broker: subscribe(Client, Exchange)
+Broker->SubSup: start_subscription(Client, Exchange)
+SubSup->+Subscription: start_link(Client, Exchange)
+
+alt success
+  Subscription->SubSup: {ok, SID}
+  SubSup->Broker: {ok, SID}
+  Broker->App: {ok, SID}
+  App->Client: SID
+  Client->Client: store the SID
+else failed to declare exchange
+  Subscription->SubSup: {error, Error}
+  SubSup->Broker: {error, Error}
+  Broker->App: {error, Error}
+end
+
+Client->App: {"client-bind-event": Exchange, Event}
+alt Exchange not subscribed
+else Exchange subscribed
+  App->Broker: bind(Subscription, Event)
+  Broker->Subscription: bind(Event)
+  Subscription->Broker: ok
+  Broker->App: ok
+  App->Client: ok
+end
+
+Client->App: {"client-unbind-event": Exchange}
+alt Exchange not subscribed
+else Exchange subscribed
+  App->Broker: unbind(Subscription, Event)
+  Broker->Subscription: unbind(Event)
+  Subscription->Broker: ok
+  Broker->App: ok
+  App->Client: ok
+end
+
+Client->App: {"client-unsubscribe": Exchange, Event}
+alt Exchange not subscribed
+else Exchange subscribed
+  App->Broker: unsubscribe(Subscription)
+  Broker->Subscription: stop()
+  Subscription->Subscription: terminate()
+  Subscription->Broker: {stop, normal}
+  Broker->App: ok
+  App->Client: ok
+  Client->Client: remove subscription
+end
+
+Client->App: {"client-Event": Payload}
+alt Exchange not subscribed
+else Exchange subscribed
+  App->Broker: trigger(Subscription, Event, Payload)
+  Broker->Subscription: trigger(Event, Payload)
+  Subscription->Broker: ok
+  Broker->App: ok
+  App->Client: ok
+end

@@ -1,0 +1,27 @@
+<HTML>
+  <HEAD>
+    <TITLE>MobWrite Collaborative Web Editor</TITLE>
+    <STYLE type="text/css">
+      BODY {font-family: sans-serif;}
+      H1 {font-weight: normal;}
+      TEXTAREA {font-family: monospace; width: 100%; height: 100%}
+    </STYLE>
+    <SCRIPT SRC="http://mobwrite3.appspot.com/static/compressed_form.js"></SCRIPT>
+  </HEAD>
+  <BODY>
+    <TABLE STYLE="height: 100%; width: 100%">
+      <TR><TD HEIGHT=1><H1>MobWrite Collaborative Web Editor</H1></TD></TR>
+      <TR><TD>
+        <SCRIPT>
+          var id = window.location.search.substring(1);
+          if (id.match('^[-_:.A-Za-z0-9]+$')) {
+            document.write('<TEXTAREA ID="' + id + '"></TEXTAREA>');
+            window.setTimeout('mobwrite.share("' + id + '")', 0);
+          } else {
+            document.write('Illegal group ID.');
+          }
+        </SCRIPT>
+      </TD></TR>
+    </TABLE>
+  </BODY>
+</HTML>

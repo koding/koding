@@ -1,0 +1,46 @@
+; ---------------------
+; Settings for MobWrite
+; ---------------------
+
+; How long (in seconds) to compute a diff before giving up.
+; Set to 0 to compute indefinitely.
+DIFF_TIMEOUT = 0.1
+
+; Demo usage should limit the maximum size of any text.
+; Set to 0 to disable limit.
+MAX_CHARS = 100000
+
+; Delete any view which hasn't been accessed in a while.
+; Format: <number> {seconds|minutes|hours|days}
+TIMEOUT_VIEW = 30 minutes
+
+; Delete any text which hasn't been accessed in a while.
+; TIMEOUT_TEXT should be longer than the length of TIMEOUT_VIEW
+TIMEOUT_TEXT = 1 days
+
+; Delete any buffer which hasn't been written to in a while.
+TIMEOUT_BUFFER = 15 minutes
+
+; How verbose the log should be.
+; Choose from: CRITICAL, ERROR, WARNING, INFO, DEBUG
+LOGGING = DEBUG
+
+; ---------------------------
+; Settings for Daemon version
+; ---------------------------
+
+; Port to listen on.
+LOCAL_PORT = 3017
+
+; If the Telnet connection stalls for more than this number of seconds, give up.
+TIMEOUT_TELNET = 2.0
+
+; Restrict all Telnet connections to come from this location.
+; Set to "" to allow connections from anywhere.
+CONNECTION_ORIGIN = 127.0.0.1
+
+; -------------------------------
+; Settings for App Engine version
+; -------------------------------
+
+

@@ -1,0 +1,1 @@
+2012-10-08 16:10:20.614 [error] <0.180.0>@broker:amqp_connection:213 Failed to establish connection to vhost <<"/">> with reason econnrefused
