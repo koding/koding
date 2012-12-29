@@ -1,12 +1,10 @@
 lxc.network.type = veth
 lxc.network.link = lxcbr0
-lxc.network.veth.pair = veth-{{.}}
+lxc.network.veth.pair = {{.VEth}}
 lxc.network.flags = up
 lxc.network.hwaddr = {{.MAC}}
-lxc.network.ipv4 = {{.IP}}/8
-lxc.network.ipv4.gateway = 10.0.3.1
-lxc.hook.pre-start = /var/lib/lxc/{{.}}/pre-start
-lxc.hook.post-stop = /var/lib/lxc/{{.}}/post-stop
+lxc.network.ipv4 = {{.IP}}/16
+lxc.network.ipv4.gateway = 172.16.0.1
 lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
 lxc.utsname = {{.Hostname}}
 

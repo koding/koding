@@ -10,7 +10,7 @@ type Counter struct {
 }
 
 var database *mgo.Database
-var counters *mgo.Collection = database.C("jCounters")
+var counters *mgo.Collection
 
 func init() {
 	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2")
@@ -18,6 +18,7 @@ func init() {
 		panic(err)
 	}
 	database = session.DB("koding_dev2")
+	counters = database.C("jCounters")
 }
 
 func Collection(name string) *mgo.Collection {

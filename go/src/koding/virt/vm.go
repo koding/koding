@@ -27,7 +27,7 @@ const VMROOT_ID = 1000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
-var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 1)))
+var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)))
 
 func init() {
 	var err error
@@ -52,7 +52,11 @@ func FindVMByName(name string) (*VM, error) {
 }
 
 func (vm *VM) String() string {
-	return vm.Id.Hex()
+	return "vm-" + vm.Id.Hex()
+}
+
+func (vm *VM) VEth() string {
+	return fmt.Sprintf("veth-%x", []byte(vm.IP[12:16]))
 }
 
 func (vm *VM) MAC() net.HardwareAddr {
