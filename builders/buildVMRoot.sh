@@ -1,4 +1,3 @@
-#!/bin/sh
 [ -n "$DEBUG" ] && set -o xtrace
 set -o nounset
 set -o errexit
@@ -7,10 +6,10 @@ shopt -s nullglob
 # packages are installed with debootstrap
 # additional packages are installed later on with apt-get
 packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
-additional_packages="lighttpd htop iotop iftop nodejs nodejs-legacy php5 \
-                     erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python perl \
+additional_packages="lighttpd htop iotop iftop nodejs nodejs-legacy php5-cgi \
+                     erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python \
                      mercurial git subversion cvs bzr \
-                     fish sudo net-tools aptitude emacs \
+                     fish sudo net-tools wget aptitude emacs \
                      ldap-auth-client nscd"
 suite="quantal"
 variant="buildd"
@@ -75,7 +74,7 @@ deb $mirror $suite-updates main universe multiverse
 deb $mirror $suite-security main universe multiverse
 EOS
 
-./idshift $target;
+./../go/bin/idshift $target;
 
 # Disable interactive dpkg
 #chroot <<-EOS
@@ -101,7 +100,8 @@ run_in_vmroot /bin/hostname vmroot
 # Update packages
 echo "Doing APT-GET Stuff"
 run_in_vmroot /usr/bin/apt-get update
-run_in_vmroot /usr/bin/apt-get install $additional_packages -y
+export DEBIAN_FRONTEND=noninteractive
+run_in_vmroot /usr/bin/apt-get install $additional_packages -y -qq
 run_in_vmroot /usr/bin/wget http://www.duinsoft.nl/pkg/pool/all/update-sun-jre.bin -O /root/update-sun-jre.bin
 run_in_vmroot /bin/sh /root/update-sun-jre.bin
 
