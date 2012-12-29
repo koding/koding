@@ -60,7 +60,7 @@ Vagrant::Config.run do |config|
           web_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           web_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 768,
+                                    "--memory", 512,
                                     "--cpus", 2
                                   ]
 
@@ -85,7 +85,7 @@ Vagrant::Config.run do |config|
           rabbitmq_config.vm.network :hostonly, hosts["rabbitmq.local"]
           rabbitmq_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 1024,
+                                    "--memory", 368,
                                     "--cpus", 1
                                   ]
 
