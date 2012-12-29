@@ -115,6 +115,7 @@ Vagrant::Config.run do |config|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
             chef.add_role("base_server")
+            chef.add_role("hosting_server")
           end
     end
     # ----- end of cloudlinux server configuration -----
@@ -133,11 +134,11 @@ Vagrant::Config.run do |config|
                                     "--cpus", 1
                                   ]
 
-    #      ldap_config.vm.provision :chef_solo do |chef|
-    #        chef.cookbooks_path = cookbooks_dir
-    #        chef.roles_path = roles_dir
-    #        chef.add_role("base_server")
-    #      end
+          ldap_config.vm.provision :chef_solo do |chef|
+            chef.cookbooks_path = cookbooks_dir
+            chef.roles_path = roles_dir
+            chef.add_role("dev-ldap_server")
+         end
     end
     # ----- end of ldap server configuration -----
 
