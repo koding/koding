@@ -5,6 +5,7 @@ import (
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"net"
 	"strconv"
 )
@@ -47,12 +48,7 @@ func handleConnection(conn net.Conn) {
 			password := request.Children[2].Data.String()
 
 			if name != "" {
-				id, err := strconv.Atoi(name)
-				if err == nil {
-					conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
-					continue
-				}
-				vm, err = virt.FindVMById(id)
+				vm, err = virt.FindVMById(bson.ObjectIdHex(name))
 				if err != nil || password != vm.LdapPassword {
 					conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
 					continue

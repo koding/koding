@@ -8,9 +8,9 @@ import (
 )
 
 type User struct {
-	Id        int    "_id"
-	Name      string "name"
-	DefaultVM int    "defaultVM"
+	Id        int           "_id"
+	Name      string        "name"
+	DefaultVM bson.ObjectId "defaultVM"
 }
 
 var Users *mgo.Collection = db.Collection("jUsers2")
@@ -31,20 +31,26 @@ func FindUserByName(name string) (*User, error) {
 
 // may panic
 func (user *User) GetDefaultVM() (vm *VM, needsFormat bool) {
+	if user.DefaultVM == "" {
+		vm := FetchUnusedVM(user)
+
+		vm.Name = user.Name
+		vm.LdapPassword = utils.RandomString()
+		if err := VMs.UpdateId(vm.Id, vm); err != nil {
+			panic(err)
+		}
+
+		user.DefaultVM = vm.Id
+		if err := Users.UpdateId(user.Id, user); err != nil {
+			panic(err)
+		}
+
+		return vm, true
+	}
+
 	vm, err := FindVMById(user.DefaultVM)
-	if err == nil {
-		return vm, false
-	}
-	if err != mgo.ErrNotFound {
+	if err != nil {
 		panic(err)
 	}
-
-	vm = FetchUnusedVM(user)
-	vm.Name = user.Name
-	vm.LdapPassword = utils.RandomString()
-
-	if err := VMs.UpdateId(vm.Id, vm); err != nil {
-		panic(err)
-	}
-	return vm, true
+	return vm, false
 }

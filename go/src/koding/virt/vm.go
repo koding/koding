@@ -2,6 +2,7 @@ package virt
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"koding/tools/db"
 	"koding/tools/utils"
@@ -15,11 +16,11 @@ import (
 )
 
 type VM struct {
-	Id           int    "_id"
-	Name         string "name"
-	Users        []int  "users"
-	LdapPassword string "ldapPassword"
-	IP           net.IP "ip"
+	Id           bson.ObjectId "_id"
+	Name         string        "name"
+	Users        []int         "users"
+	LdapPassword string        "ldapPassword"
+	IP           net.IP        "ip"
 }
 
 const VMROOT_ID = 1000000
@@ -42,15 +43,8 @@ func FindVM(query interface{}) (*VM, error) {
 	return &vm, err
 }
 
-func FindVMById(id int) (*VM, error) {
+func FindVMById(id bson.ObjectId) (*VM, error) {
 	return FindVM(bson.M{"_id": id})
-}
-
-func FindVMByIP(a, b, c, d byte) (*VM, error) {
-	if a != 10 || b == 0 {
-		return nil, fmt.Errorf("Illegal VM address: %d.%d.%d.%d", a, b, c, d)
-	}
-	return FindVMById(int(b)<<16 + int(c)<<8 + int(d)<<0)
 }
 
 func FindVMByName(name string) (*VM, error) {
@@ -58,11 +52,11 @@ func FindVMByName(name string) (*VM, error) {
 }
 
 func (vm *VM) String() string {
-	return fmt.Sprintf("vm%d", vm.Id)
+	return vm.Id.Hex()
 }
 
 func (vm *VM) MAC() net.HardwareAddr {
-	return net.HardwareAddr([]byte{0, 0, byte(vm.Id >> 24), byte(vm.Id >> 16), byte(vm.Id >> 8), byte(vm.Id >> 0)})
+	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
 func (vm *VM) Hostname() string {
@@ -106,7 +100,7 @@ func FetchUnusedVM(user *User) *VM {
 	}
 
 	// create new vm
-	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}}
+	vm = VM{Id: bson.NewObjectId(), Users: []int{user.Id}}
 
 	// create disk and map to pool
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
@@ -179,10 +173,14 @@ func (vm *VM) Prepare(format bool) {
 			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id)
 			if i == 0 {
 				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
-				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname), user.Id)
-				websiteDir := vm.UpperdirFile("/home/" + user.Name + "/Sites/" + vm.Hostname + "/website")
+				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
+				websiteDir := vm.UpperdirFile("/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website")
 				vm.PrepareDir(websiteDir, user.Id)
-				for _, file := range ioutil.ReadDir("templates/website") {
+				files, err := ioutil.ReadDir("templates/website")
+				if err != nil {
+					panic(err)
+				}
+				for _, file := range files {
 					CopyFile("templates/website/"+file.Name(), websiteDir+"/"+file.Name(), user.Id)
 				}
 			}
