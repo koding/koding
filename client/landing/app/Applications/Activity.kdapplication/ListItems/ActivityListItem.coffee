@@ -85,8 +85,8 @@ class ActivityListItemView extends KDListItemView
 
     childConstructor =
       if /^CNewMemberBucket$/.test constructorName
-        # NewMemberBucketItemView
-        KDView
+        NewMemberBucketItemView
+        # KDView
       else if /Bucket$/.test constructorName
         getBucketMap()[data.sourceName]
       else
