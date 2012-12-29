@@ -10,6 +10,6 @@
 include_recipe "yum::golang"
 
 
-package "go" do
+yum_package "go" do
     version "#{node["go"]["version"]}"
 end
