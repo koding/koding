@@ -165,34 +165,32 @@ else
   #   console.log slug, req.params
   #   res.send "le finito"
 
-
+  startTime = null
   app.get "/-/cache/latest", (req, res)->
     {JActivityCache} = koding.models
+    startTime = Date.now()
     JActivityCache.latest (err, cache)->
       if err then console.warn err
-      else
-        res.send cache
+      console.log "latest: #{Date.now() - startTime} msecs!"
+      res.send if cache then cache.data else []
 
   app.get "/-/cache/next", (req, res)->
     {JActivityCache} = koding.models
     JActivityCache.next (err, cache)->
       if err then console.warn err
-      else
-        res.send cache
+      res.send if cache then cache.data else []
 
   app.get "/-/cache/prev", (req, res)->
     {JActivityCache} = koding.models
     JActivityCache.prev (err, cache)->
       if err then console.warn err
-      else
-        res.send cache
+      res.send if cache then cache.data else []
 
   app.get "/-/cache/id/:id", (req, res)->
     {JActivityCache} = koding.models
     JActivityCache.byId (err, cache)->
       if err then console.warn err
-      else
-        res.send cache
+      res.send if cache then cache.data else []
 
   app.get "/-/cache/time/:timestamp", (req, res)->
     {JActivityCache} = koding.models

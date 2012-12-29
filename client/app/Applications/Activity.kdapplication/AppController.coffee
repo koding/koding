@@ -14,9 +14,10 @@ class ActivityAppController extends AppController
       # 'CCodeShareActivity'
     ]
 
-  lastTo   = null
-  lastFrom = null
-  aRange   = 2*60*60*1000
+  lastTo    = null
+  lastFrom  = null
+  aRange    = 2*60*60*1000
+  isLoading = no
 
   constructor:(options={})->
 
@@ -69,35 +70,41 @@ class ActivityAppController extends AppController
 
     @populateActivity()
 
-  populateActivity:->
-    window.init__ = Date.now()
-    @fetchCachedActivity (err, activities)=>
+  populateActivity:(options = {})->
+
+    @listController.showLazyLoader()
+    @fetchCachedActivity options, (err, activities, overview)=>
       if err then warn err
       else
-        @listController.listActivities activities
+        @listController.listActivities activities, overview
+        @listController.hideLazyLoader()
 
-  fetchCachedActivity:(callback)->
+  fetchCachedActivity:(options = {}, callback)->
 
-    # KD.remote.api.JActivityCache.latest (err, cache)->
+    isLoading = yes
+    @listController.showLazyLoader()
+    @listController.noActivityItem.hide()
+
     $.ajax
-      url     : "/-/cache/latest"
-      error   : (err)->
-        callback? err
-      success : (cache)->
-
-        window.xhr__ = Date.now()
-        log "xhr returns:        #{xhr__ - init__}msecs!, total: #{xhr__ - init__}"
+      url     : "/-/cache/#{options.slug or 'latest'}"
+      cache   : no
+      error   : (err)-> callback? err
+      success : (cache)=>
+        @listController.hideLazyLoader()
+        if cache.length is 0
+          @listController.noActivityItem.show()
+          callback? null, []
+          return
 
         cache.activities.map (a)-> a.snapshot = a.snapshot?.replace /&quot;/g, '"'
 
         KD.remote.reviveFromSnapshots cache.activities, (err, instances)=>
-
-          window.revive__ = Date.now()
-          log "reviving snapshots: #{revive__ - xhr__}msecs!, total: #{revive__ - init__}"
-
+          # instanceMap = {}
+          # instanceMap[instance._id] = instance for instance in instances
           callback? null, instances
+          isLoading = no
 
-
+  # delete
   fetchActivityOverview:(callback)->
 
     @appStorage.fetchStorage (storage)=>
@@ -134,10 +141,8 @@ class ActivityAppController extends AppController
           callback null, null
 
   continueLoadingTeasers:->
-    unless @listController.isLoading
-      @listController.showLazyLoader()
-      @fetchActivityOverview =>
-        @listController.hideLazyLoader()
+    unless isLoading
+      @populateActivity {slug : "prev"}
 
   teasersLoaded:->
     {scrollView} = @listController

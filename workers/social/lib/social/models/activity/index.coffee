@@ -1,5 +1,4 @@
 jraphical      = require 'jraphical'
-fs             = require 'fs'
 JActivityCache = require './cache'
 
 module.exports = class CActivity extends jraphical.Capsule
@@ -24,7 +23,6 @@ module.exports = class CActivity extends jraphical.Capsule
       static          : [
         'one','some','all','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchActivityOverview'
-        'createActivityCache'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -73,15 +71,14 @@ module.exports = class CActivity extends jraphical.Capsule
   #                     snapshotIds: subject.getId()
   #                 , callback
 
-
-  @fetchCursor =(options = {}, callback)->
+  @fetchCacheCursor =(options = {}, callback)->
 
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
       createdAt    :
-        $lte       : new Date to
-        $gte       : new Date from
+        $lt        : new Date to
+        $gt        : new Date from
       type         :
         $in        : types
       isLowQuality :
@@ -98,209 +95,52 @@ module.exports = class CActivity extends jraphical.Capsule
     @someData selector, fields, options, (err, cursor)->
       if err then callback err
       else
-        callback cursor
+        callback null, cursor
 
-  @fetchActivityOverview = (options, callback)->
-    @fetchCursor options, (cursor)->
-      cursor.toArray (err, arr)->
-        if err then callback err
+  processCache = (cursorArr)->
+    console.log "processing activity cache..."
+    lastDocType = null
+    cache = cursorArr.reduce (acc, doc)->
+      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
+        acc.last.createdAt[1] = doc.createdAt
+        if acc.last.count++ < 3
+          acc.last.ids.push doc._id
+      else
+        acc.push
+          createdAt : [doc.createdAt]
+          ids       : [doc._id]
+          type      : doc.type
+          count     : 1
+      lastDocType = doc.type
+      return acc
+    , []
+    memberBucket   = null
+    bucketIndex    = 0
+    processedCache = []
+    cache.forEach (item, i)->
+      if /NewMemberBucket/.test item.type
+        unless memberBucket
+          memberBucket      = item
+          processedCache[i] = memberBucket
+          bucketIndex       = i
         else
-          lastDocType = null
-          obj = arr.reduce (acc, doc)->
-            if doc.type is lastDocType
-              acc[acc.length-1].createdAt.push doc.createdAt
+          processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat item.ids
+          processedCache[bucketIndex].count += item.count
+          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
+      else
+        processedCache.push item
 
-              if /NewMemberBucket/.test doc.type
-                if acc[acc.length-1].count++ < 3
-                  acc[acc.length-1].ids.push doc._id
-              else
-                acc[acc.length-1].ids.push doc._id
+    return processedCache
 
-            else
-              acc.push
-                createdAt  : [doc.createdAt]
-                ids        : [doc._id]
-                type       : doc.type
-                count      : 1
-            lastDocType = doc.type
-            return acc
-          , []
-          callback null, obj
-
-  @fetchActivityCache =(options = {}, callback)->
-    @fetchCursor options, (cursor)->
-      cursor.toArray (err, arr)->
-        if err then callback err
-        else
-          lastDocType = null
-          cache = arr.reduce (acc, doc)->
-            if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
-              acc[acc.length-1].createdAt[1] = doc.createdAt
-              if acc[acc.length-1].count++ < 3
-                acc[acc.length-1].ids.push doc._id
-            else
-              acc.push
-                createdAt  : [doc.createdAt]
-                ids        : [doc._id]
-                type       : doc.type
-                count      : 1
-            lastDocType = doc.type
-            return acc
-          , []
-          memberBucket      = null
-          memberBucketIndex = 0
-          processedCache    = []
-          cache.forEach (item, i)->
-            if /NewMemberBucket/.test item.type
-              unless memberBucket
-                memberBucket      = item
-                processedCache[i] = memberBucket
-                memberBucketIndex = i
-              else
-                processedCache[memberBucketIndex].ids = processedCache[memberBucketIndex].ids.concat item.ids
-                processedCache[memberBucketIndex].count +=  item.count
-                processedCache[memberBucketIndex].createdAt[1] = item.createdAt[item.createdAt.length-1]
-            else
-              processedCache.push item
-
-          callback null, processedCache
-
-
-  # JActivityCache.latest (err, latestMeta)->
-  #   console.log latestMeta
-  #   return
-  @refreshCache = ->
-
-  @createActivityCache = do ->
-
-    activityTypesToBeCached = [
-        'CStatusActivity'
-        'CCodeSnipActivity'
-        'CFollowerBucketActivity'
-        'CNewMemberBucketActivity'
-        'CDiscussionActivity'
-        'CTutorialActivity'
-        'CInstallerBucketActivity'
-      ]
-
-    allowedLengthPerFile = 50
-    timespan             = 120 * 60 *60 * 1000
-    lastTo               = null
-    lastFrom             = null
-    lastCachedBatch      = []
-    count                = 0
-    cachePath            = "#{__dirname}/../../../../../../website/activitycache/"
-
-    (options = {}, callback)->
-
-      count++
-      now        = Date.now()
-
-      # check last saved cache file
-
-      lastTo     = if lastTo   then lastFrom else now
-      lastFrom   = if lastFrom then lastFrom - timespan else now - timespan
-
-      options =
-        lowQuality : no
-        from       : options.from or lastFrom
-        to         : options.to   or lastTo
-        types      : activityTypesToBeCached
-        # limit      : 100
-
-      t = new Date options.to
-      f = new Date options.from
-      console.log "call # #{count} -------"
-      console.log "to  : #{t.toLocaleTimeString()}, #{t.toLocaleDateString()}"
-      console.log "from: #{f.toLocaleTimeString()}, #{f.toLocaleDateString()}"
-      console.log " "
-
-      @fetchActivityCache options, (err, cache)=>
-        if err then console.warn err
-        else
-          lastCachedBatch = lastCachedBatch.concat cache
-
-          if lastCachedBatch.length < 50
-            delete options.to
-            delete options.from
-            @createActivityCache options
-            return
+  @fetchRangeForCache = (options = {}, callback)->
+    @fetchCacheCursor options, (err, cursor)->
+      if err then console.warn err
+      else
+        cursor.toArray (err, arr)->
+          if err then callback err
           else
-            lastCachedBatch = lastCachedBatch[0...50]
-            lastItem        = lastCachedBatch[lastCachedBatch.length-1]
-            lastFrom        = lastItem.createdAt[lastItem.createdAt.length-1].getTime()
-            lastTo          = lastCachedBatch[0].createdAt[0].getTime()
+            callback null, processCache arr
 
-
-          console.log "cache size:", lastCachedBatch.length
-          # console.log " "
-          # console.log i, item.count, item.type for item, i in lastCachedBatch
-          # console.log " "
-          console.log "le finito", lastCachedBatch.length
-
-          # stream snapshots
-          ids = (lastCachedBatch.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
-          selector = _id : $in : ids
-          {length} = lastCachedBatch
-
-          @some selector, {}, (err, res) =>
-            if err then callback err
-            else
-              console.log res.length
-              meta = new JActivityCache
-                # name       : fileName
-                to         : new Date lastTo
-                from       : new Date lastFrom
-                overview   : lastCachedBatch
-                isFull     : lastCachedBatch.length < 50
-                activities : res
-
-              meta.save()
-
-              # unless model is null
-              #   # put snapshot
-              #   log model
-
-              # if length-- is 0
-              #   # continue writing file
-              #   console.log "streming finished"
-
-
-          # writefile
-          # fileName = "#{cachePath}#{lastTo}.#{lastFrom}"
-
-
-          # fs.writeFile fileName, JSON.stringify(lastCachedBatch), (err)->
-          #   if err then console.warn err
-          #   else
-          #     console.log "#{fileName} is saved."
-          #     console.log "----------------"
-
-
-          count           = 0
-          lastCachedBatch = []
-
-
-
-
-        # totalLength = overview.length + cachedItems.length
-
-        # if totalLength is allowedLengthPerFile
-        #   console.log cachedItems
-
-        # else if totalLength < allowedLengthPerFile
-        #   cachedItems.concat overview
-        #   nextFrom = cachedItems[overview.length-1].createdAt[0]
-        #   nextTo   = cachedItems[overview.length-1].createdAt[1]
-
-        # else if totalLength > allowedLengthPerFile
-        #   remainderCount = cachedItemsPerFile - cachedItems.length
-        #   remainder      = overview[..remainderCount]
-        #   cachedItems.concat remainder
-
-
-
-  @on "feed-new", @createActivityCache.bind @
 
   @captureSortCounts =(callback)->
     selector = {
@@ -380,3 +220,14 @@ module.exports = class CActivity extends jraphical.Capsule
     @update
       $addToSet: readBy: delegate.getId()
     , callback
+
+
+# temp, couldn't find a better place to put this
+
+do ->
+
+  CActivity.on "feed-new", ->
+    # console.log "zikkimin koku"
+    JActivityCache.init()
+  console.log "\"feed-new\" event bound."
+

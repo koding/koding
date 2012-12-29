@@ -15,27 +15,27 @@ exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
     process.exit(0)
 
 
-ProgressBar = require './builders/node_modules/progress'
-Builder     = require './builders/Builder'
-S3          = require './builders/s3'
-log4js      = require "./builders/node_modules/log4js"
-log         = log4js.getLogger("[Main]")
-prompt      = require './builders/node_modules/prompt'
-hat         = require "./builders/node_modules/hat"
-mkdirp      = require './builders/node_modules/mkdirp'
-commander     = require './builders/node_modules/commander'
+ProgressBar        = require './builders/node_modules/progress'
+Builder            = require './builders/Builder'
+S3                 = require './builders/s3'
+log4js             = require "./builders/node_modules/log4js"
+log                = log4js.getLogger("[Main]")
+prompt             = require './builders/node_modules/prompt'
+hat                = require "./builders/node_modules/hat"
+mkdirp             = require './builders/node_modules/mkdirp'
+commander          = require './builders/node_modules/commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes       = new (require "processes") main : true
-closureCompile  = require 'koding-closure-compiler'
-{daisy}         = require 'sinkrow'
-fs            = require "fs"
-http          = require 'http'
-url           = require 'url'
-nodePath      = require 'path'
-Watcher       = require "koding-watcher"
+processes          = new (require "processes") main : true
+closureCompile     = require 'koding-closure-compiler'
+{daisy}            = require 'sinkrow'
+fs                 = require "fs"
+http               = require 'http'
+url                = require 'url'
+nodePath           = require 'path'
+Watcher            = require "koding-watcher"
 
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
+KODING_CAKE        = './node_modules/koding-cake/bin/cake'
 
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
 console.log "###############################################################"
@@ -202,7 +202,7 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  
+
   vhosts = "{vhosts,[" + (config.mq.vhosts or []).
     map(({rule, vhost})-> """{"#{rule}",<<"#{vhost}">>}""").
     join(',') +
@@ -309,12 +309,18 @@ run =(options)->
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-        
+
   processes.fork
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
+
+  # processes.fork
+  #   name    : 'cacherCake'
+  #   cmd     : "#{KODING_CAKE} ./workers/cacher -c #{configFile} run"
+  #   restart : yes
+  #   restartInterval : 1000
 
 
   if config.social.watch?
@@ -328,6 +334,10 @@ run =(options)->
           folders   : ['./server']
           onChange  : ->
             processes.kill "server"
+        # cacherCake  :
+        #   folders   : ['./workers/cacher']
+        #   onChange  : ->
+        #     processes.kill "cacherCake"
 
 assureVhost =(uri, vhost, vhostFile, callback)->
   addVhost uri, vhost, (res)->

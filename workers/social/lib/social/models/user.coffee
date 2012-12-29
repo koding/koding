@@ -3,17 +3,17 @@ jraphical = require 'jraphical'
 Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
-  {secure} = require 'bongo'
-  {daisy} = require 'sinkrow'
+  {secure}       = require 'bongo'
+  {daisy}        = require 'sinkrow'
 
-  JAccount  = require './account'
-  JSession  = require './session'
-  JGuest    = require './guest'
-  JInvitation = require './invitation'
-  JFeed     = require './feed'
-  JName     = require './name'
+  JAccount       = require './account'
+  JSession       = require './session'
+  JGuest         = require './guest'
+  JInvitation    = require './invitation'
+  JFeed          = require './feed'
+  JName          = require './name'
 
-  createId = require 'hat'
+  createId       = require 'hat'
 
   {Relationship} = jraphical
 
