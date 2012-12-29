@@ -2,6 +2,7 @@ package virt
 
 import (
 	"koding/tools/db"
+	"koding/tools/utils"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -40,6 +41,8 @@ func (user *User) GetDefaultVM() (vm *VM, needsFormat bool) {
 
 	vm = FetchUnusedVM(user)
 	vm.Name = user.Name
+	vm.LdapPassword = utils.RandomString()
+
 	if err := VMs.UpdateId(vm.Id, vm); err != nil {
 		panic(err)
 	}

@@ -1,0 +1,64 @@
+---------------------------------------------------------------------
+-               Welcome to the Koding Dev Environment!              -
+   
+   Here, you can create, edit, and preview your files. Below is a
+   brief "How To"...
+   
+                        -  Getting Started  -
+   
+   - Double click a folder in your file tree to view its contents.
+   
+   - Public files are located in:
+     "/USERNAME/Sites/USERNAME.koding.com/website"
+     
+     every file under that location can be viewed with URL
+     "http://USERNAME.koding.com"
+   
+     e.g. /USERNAME/Sites/USERNAME.koding.com/website/1.txt
+     is at http://USERNAME.koding.com/1.txt
+
+   - Double-click on a file to open it within your editor.
+   
+   - Files within your "website" folder can be previewed by
+     clicking the "Eye" icon next to the Save button on the
+     upper-right side of this editor.
+        
+   - To create a new file, you can do one of the following:
+       1. Click the "+" tab above this tab, and then click
+          the "Save" button.
+       2. Right-click your file tree, and choose "New File".
+   
+   - You can change the syntax format, font size, and many other
+     options in the Settings button located at the bottom-right
+     side of this editor.
+   
+   - Try opening one of the default files provided in your 
+     "website" folder!
+   
+   - Feel free to write any questions, comments, or issues as a
+     Status Update in your Activity Feed.
+   
+   
+-                               Enjoy!                              -
+---------------------------------------------------------------------
+
+                  brought to you by your friends at
+                                                                      
+       ,--.                                                           
+   ,--/  /|                                                           
+,---,': / '                  ,---,   ,--,                             
+:   : '/ /     ,---.       ,---.'| ,--.'|          ,---,              
+|   '   ,     '   ,'\      |   | : |  |,       ,-+-. /  |   ,----._,. 
+'   |  /     /   /   |     |   | | `--'_      ,--.'|'   |  /   /  ' / 
+|   ;  ;    .   ; ,. :   ,--.__| | ,' ,'|    |   |  ,"' | |   :     | 
+:   '   \   '   | |: :  /   ,'   | '  | |    |   | /  | | |   | .\  . 
+|   |    '  '   | .; : .   '  /  | |  | :    |   | |  | | .   ; ';  | 
+'   : |.  \ |   :    | '   ; |:  | '  : |__  |   | |  |/  '   .   . | 
+|   | '_\.'  \   \  /  |   | '/  ' |  | '.'| |   | |--'    `---`-'| | 
+'   : |       `----'   |   :    :| ;  :    ; |   |/        .'__/\_: | 
+;   |,'                 \   \  /   |  ,   /  '---'         |   :    : 
+'---'                    `----'     ---`-'                  \   \  /  
+                                                             `--`-'   
+
+                                 2012
+---------------------------------------------------------------------

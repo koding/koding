@@ -2,6 +2,7 @@ package virt
 
 import (
 	"fmt"
+	"io/ioutil"
 	"koding/tools/db"
 	"koding/tools/utils"
 	"labix.org/v2/mgo"
@@ -96,7 +97,7 @@ func LowerdirFile(path string) string {
 // may panic
 func FetchUnusedVM(user *User) *VM {
 	var vm VM
-	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}, "ldapPassword": utils.RandomString()}, ReturnNew: true}, &vm)
+	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}}, ReturnNew: true}, &vm)
 	if err == nil {
 		return &vm // existing unused VM found
 	}
@@ -105,7 +106,7 @@ func FetchUnusedVM(user *User) *VM {
 	}
 
 	// create new vm
-	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}, LdapPassword: utils.RandomString()}
+	vm = VM{Id: db.NextCounterValue("vmId"), Users: []int{user.Id}}
 
 	// create disk and map to pool
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
@@ -167,12 +168,25 @@ func (vm *VM) Prepare(format bool) {
 	vm.PrepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
 	vm.PrepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
 	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
-	for _, userId := range vm.Users {
-		user, err := FindUserById(userId)
-		if err != nil {
-			panic(err)
+
+	if format {
+		// create user homes
+		for i, userId := range vm.Users {
+			user, err := FindUserById(userId)
+			if err != nil {
+				panic(err)
+			}
+			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id)
+			if i == 0 {
+				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
+				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname), user.Id)
+				websiteDir := vm.UpperdirFile("/home/" + user.Name + "/Sites/" + vm.Hostname + "/website")
+				vm.PrepareDir(websiteDir, user.Id)
+				for _, file := range ioutil.ReadDir("templates/website") {
+					CopyFile("templates/website/"+file.Name(), websiteDir+"/"+file.Name(), user.Id)
+				}
+			}
 		}
-		vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id)
 	}
 
 	// generate upperdir files
@@ -207,10 +221,9 @@ func (vm *VM) PrepareDir(path string, id int) {
 	if err := os.Mkdir(path, 0755); err != nil && !os.IsExist(err) {
 		panic(err)
 	}
-	if id != 0 {
-		if err := os.Chown(path, id, id); err != nil {
-			panic(err)
-		}
+
+	if err := os.Chown(path, id, id); err != nil {
+		panic(err)
 	}
 }
 
@@ -226,17 +239,39 @@ func (vm *VM) GenerateFile(path, template string, id int, executable bool) {
 		panic(err)
 	}
 
-	if id != 0 {
-		if err := file.Chown(id, id); err != nil {
-			panic(err)
-		}
+	if err := file.Chown(id, id); err != nil {
+		panic(err)
 	}
+
 	if executable {
 		err = file.Chmod(0755)
 	} else {
 		err = file.Chmod(0644)
 	}
 	if err != nil {
+		panic(err)
+	}
+}
+
+// may panic
+func CopyFile(src, dst string, id int) {
+	sf, err := os.Open(src)
+	if err != nil {
+		panic(err)
+	}
+	defer sf.Close()
+
+	df, err := os.Create(dst)
+	if err != nil {
+		panic(err)
+	}
+
+	defer sf.Close()
+	if _, err := io.Copy(df, sf); err != nil {
+		panic(err)
+	}
+
+	if err := df.Chown(id, id); err != nil {
 		panic(err)
 	}
 }
