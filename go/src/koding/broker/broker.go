@@ -90,7 +90,7 @@ func main() {
 					defer log.RecoverAndLog()
 
 					message := data.(map[string]interface{})
-					log.Debug(message)
+					log.Debug("Received message", message)
 
 					action := message["action"]
 					switch action {
