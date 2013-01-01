@@ -99,7 +99,7 @@ module.exports = deepFreeze
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
+    host        : 'koding.local:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   guests        :

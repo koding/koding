@@ -56,7 +56,6 @@ Vagrant::Config.run do |config|
           web_config.vm.box_url = template_centos_url
           web_config.vm.network :hostonly, hosts["koding.local"]
           web_config.vm.host_name = "koding.local"
-          web_config.vm.forward_port 3000, 3000 # nodejs web server
           web_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
           web_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           web_config.vm.customize [
