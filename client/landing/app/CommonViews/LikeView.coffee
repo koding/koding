@@ -19,7 +19,6 @@ class LikeView extends KDView
       mouseenter  : => @fetchLikeInfo()
       attributes  :
         href      : "#"
-        title     : "Click to view..."
       click       : (event)=>
         # event.preventDefault()
         if data.meta.likes > 0

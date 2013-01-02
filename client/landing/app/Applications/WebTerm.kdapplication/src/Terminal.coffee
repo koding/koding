@@ -14,6 +14,8 @@ class WebTerm.Terminal
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
+    @appStorage = new AppStorage 'WebTerm', '1.0'
+    @appStorage.fetchStorage (storage) =>
     @inSession = false
     @server = null
     @sessionEndedCallback = null
@@ -105,8 +107,8 @@ class WebTerm.Terminal
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @inSession
 
-  updateSize: ->
-    return if @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
+  updateSize: (force=no) ->
+    return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
     @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
     @pixelWidth = @container.prop("clientWidth")
     @pixelHeight = @container.prop("clientHeight")
@@ -238,3 +240,27 @@ class WebTerm.Terminal
       hex = "0" + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
+
+  getFontSize:->
+    @appStorage.getValue('fontSize') or 14
+
+  getFont:->
+    @appStorage.getValue('font') or 'ubuntu-mono'
+
+  getTheme:->
+    @appStorage.getValue('theme') or 'black-on-white'
+
+  getSettings:->
+    theme               : @getTheme()
+    fontSize            : @getFontSize()
+    font                : @getFont()
+
+  setTheme:(themeName)->
+    @appStorage.setValue 'theme', themeName, =>
+        noop
+  setFontSize:(fontSize)->
+    @appStorage.setValue 'fontSize', fontSize, =>
+        noop
+  setFont:(font)->
+    @appStorage.setValue 'font', font, =>
+        noop

@@ -62,7 +62,9 @@ class CommonInnerNavigationListItem extends KDListItemView
         tooltip     :
           title     : "<p class='login-tip'>Coming Soon</p>"
           placement : "right"
-          offset    : 3
+          offset    :
+            top     : 0
+            left    : 3
       ,options
     super options,data
     @setClass data.type
