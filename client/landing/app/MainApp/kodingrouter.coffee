@@ -118,7 +118,7 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
       else
-        appManager.tell section, 'setGroup', name  if name?
+        # appManager.tell section, 'setGroup', name  if name?
         if state?
           @openContent name, section, state, route
         else
