@@ -9,4 +9,5 @@
 
 package "ceph" do
     action :install
+    version node["ceph"]["version"]
 end
