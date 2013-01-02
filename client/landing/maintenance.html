@@ -11,9 +11,40 @@
   <link rel="shortcut icon" href="https://api.koding.com/images/favicon.ico">
   <link rel="fluid-icon" href="https://api.koding.com/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="https://api.koding.com/css/maintenance.css">
+  <script src="https://static.firebase.com/v0/firebase.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="http://www.mmoasteroids.com/vector_battle_regular.typeface.js"></script>
+  <script src="http://www.mmoasteroids.com/anchor.js"></script>
+  <script src="http://www.mmoasteroids.com/game.js"></script>
+  <base target="_blank">
 </head>
 <body>
-  <h1>We're updating Koding, it will be back shortly.</h1>
+  <h1>We're updating Koding, it will be back shortly.<span>
+  In the meantime, why not shoot each other?</span></h1>
+  <div id="asteroids">
+    <div id="game-pane">
+      <div id="game-container">
+        <div id="left-controls">
+          <div id="up" class='button'>⬆</div>
+          <div id="left" class='button'>⬅</div>
+          <div id="right" class='button'>➡</div>
+        </div>
+        <div id="right-controls">
+          <div id="space" class='button'>Fire</div>
+        </div>
+        <canvas id="canvas" width="1000" height="600"></canvas>
+      </div>
+    </div>
+    <div id="header-pane">
+      <div id="header-left">
+        <span id="my-name"></span><span>: </span><span id="my-score"></span>
+      </div>
+      <div id="header-right">
+        <span>This Multiplayer Asteroids is powered by <a href="https://www.firebase.com/">Firebase</a> </span>
+      </div>
+    </div>
+  </div>
+<!-- </div> -->
   <script type="text/javascript">
     if (location.hostname !== "localhost"){
       var _gaq = _gaq || [];
