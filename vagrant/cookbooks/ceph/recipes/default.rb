@@ -6,6 +6,8 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+include_recipe "apt::ceph"
+
 
 package "ceph" do
     action :install
