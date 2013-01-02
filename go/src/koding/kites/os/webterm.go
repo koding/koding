@@ -65,7 +65,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := server.session.CreateCommand(command)
+	cmd := server.session.CreateCommand(command...)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

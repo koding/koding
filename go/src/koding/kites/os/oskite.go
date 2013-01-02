@@ -13,77 +13,83 @@ import (
 func main() {
 	utils.Startup("os kite", true)
 
-	kite.Run("os", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
-		switch method {
-		case "spawn":
-			var command []string
-			if args.Unmarshal(&command) != nil {
-				return nil, &kite.ArgumentError{"array of strings"}
-			}
-			return run(command, session)
+	k := kite.New("os")
 
-		case "exec":
-			var line string
-			if args.Unmarshal(&line) != nil {
-				return nil, &kite.ArgumentError{"string"}
-			}
-			return run([]string{"/bin/bash", "-c", line}, session)
-
-		case "watch":
-			var params struct {
-				Path     string         `json:"path"`
-				OnChange dnode.Callback `json:"onChange"`
-			}
-			if args.Unmarshal(&params) != nil || params.OnChange == nil {
-				return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
-			}
-
-			absPath := path.Join(session.Home, params.Path)
-			info, err := os.Stat(absPath)
-			if err != nil {
-				return nil, err
-			}
-			if int(info.Sys().(*syscall.Stat_t).Uid) != session.Uid {
-				return nil, fmt.Errorf("You can only watch your own directories.")
-			}
-
-			watch, err := NewWatch(absPath, params.OnChange)
-			if err != nil {
-				return nil, err
-			}
-			session.CloseOnDisconnect(watch)
-
-			dir, err := os.Open(absPath)
-			defer dir.Close()
-			if err != nil {
-				return nil, err
-			}
-
-			infos, err := dir.Readdir(0)
-			if err != nil {
-				return nil, err
-			}
-
-			entries := make([]FileEntry, len(infos))
-			for i, info := range infos {
-				entries[i] = makeFileEntry(info)
-			}
-
-			return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
-
-		case "createWebtermServer":
-			remote, err := args.Map()
-			if err != nil {
-				return nil, err
-			}
-			server := &WebtermServer{session: session}
-			server.remote = remote
-			session.CloseOnDisconnect(server)
-			return server, nil
+	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var command []string
+		if args.Unmarshal(&command) != nil {
+			return nil, &kite.ArgumentError{"array of strings"}
 		}
 
-		return nil, &kite.UnknownMethodError{method}
+		output, err := session.CreateCommand(command...).CombinedOutput()
+		return string(output), err
 	})
+
+	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var line string
+		if args.Unmarshal(&line) != nil {
+			return nil, &kite.ArgumentError{"string"}
+		}
+
+		output, err := session.CreateCommand("/bin/bash", "-c", line).CombinedOutput()
+		return string(output), err
+	})
+
+	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path     string         `json:"path"`
+			OnChange dnode.Callback `json:"onChange"`
+		}
+		if args.Unmarshal(&params) != nil || params.OnChange == nil {
+			return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
+		}
+
+		absPath := path.Join(session.Home, params.Path)
+		info, err := os.Stat(absPath)
+		if err != nil {
+			return nil, err
+		}
+		if int(info.Sys().(*syscall.Stat_t).Uid) != session.Uid {
+			return nil, fmt.Errorf("You can only watch your own directories.")
+		}
+
+		watch, err := NewWatch(absPath, params.OnChange)
+		if err != nil {
+			return nil, err
+		}
+		session.CloseOnDisconnect(watch)
+
+		dir, err := os.Open(absPath)
+		defer dir.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		infos, err := dir.Readdir(0)
+		if err != nil {
+			return nil, err
+		}
+
+		entries := make([]FileEntry, len(infos))
+		for i, info := range infos {
+			entries[i] = makeFileEntry(info)
+		}
+
+		return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
+	})
+
+	k.Handle("createWebtermServer", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		remote, err := args.Map()
+		if err != nil {
+			return nil, err
+		}
+		server := &WebtermServer{session: session}
+		server.remote = remote
+		session.CloseOnDisconnect(server)
+		return server, nil
+	})
+
+	k.Run()
 }
 
 type FileEntry struct {
@@ -93,10 +99,4 @@ type FileEntry struct {
 
 func makeFileEntry(info os.FileInfo) FileEntry {
 	return FileEntry{Name: info.Name(), IsDir: info.IsDir()}
-}
-
-func run(command []string, session *kite.Session) (string, error) {
-	cmd := session.CreateCommand(command)
-	output, err := cmd.CombinedOutput()
-	return string(output), err
 }

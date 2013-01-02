@@ -68,7 +68,7 @@ module.exports = class AuthWorker extends EventEmitter
     index = servicesOfType.indexOf serviceUniqueName
     servicesOfType.splice index, 1
     clientsByExchange = @clients.byExchange[serviceUniqueName]
-    clientsByExchange.forEach @bound 'cycleClient'
+    clientsByExchange?.forEach @bound 'cycleClient'
 
   cycleClient:(client)->
     {routingKey} = client

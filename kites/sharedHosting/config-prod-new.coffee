@@ -10,6 +10,7 @@ module.exports =
     host                : 'web0.beta.system.aws.koding.com'
     login               : 'prod-sharedhosting-kite'
     password            : 'Dtxym6fRJXx4GJz'
+    heartbeat           : 10
   apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
