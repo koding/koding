@@ -23,6 +23,7 @@ class AceView extends JView
       menu          : @getSaveMenu.bind @
       callback      : ()=>
         @ace.requestSave()
+    @saveButton.disable()
 
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
@@ -41,6 +42,7 @@ class AceView extends JView
       itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
+    @advancedSettings.disable()
 
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
@@ -54,6 +56,7 @@ class AceView extends JView
         appManager.openFileWithApplication publicPath, "Viewer"
 
     @previewButton.hide() unless publicUrlCheck.test(@getData().path)
+    @previewButton.disable()
 
     @compileAndRunButton = new KDButtonView
       style     : "editor-button"
@@ -73,10 +76,17 @@ class AceView extends JView
           @compileAndRunButton.hideLoader()
 
     @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
+    @compileAndRunButton.disable()
 
     @setViewListeners()
 
   setViewListeners:->
+
+    @ace.on "ace.ready", =>
+      @saveButton.enable()
+      @advancedSettings.enable()
+      @previewButton.enable()
+      @compileAndRunButton.enable()
 
     @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
@@ -162,7 +172,7 @@ class AceView extends JView
             name   = @inputFileName.getValue()
 
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              @_message 'Wrong file name', "Please type valid file name"
+              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
 

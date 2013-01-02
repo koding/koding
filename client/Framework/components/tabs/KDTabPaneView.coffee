@@ -9,18 +9,9 @@ class KDTabPaneView extends KDView
     @setClass "clearfix"
     @setHeight @$().parent().height()
 
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneActive" ]
-      listenedToInstance  : @
-      callback            : @becameActive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneInactive" ]
-      listenedToInstance  : @
-      callback            : @becameInactive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneDestroy" ]
-      listenedToInstance  : @
-      callback            : @aboutToBeDestroyed
+    @on "KDTabPaneActive"   , @becameActive
+    @on "KDTabPaneInactive" , @becameInactive
+    @on "KDTabPaneDestroy"  , @aboutToBeDestroyed
 
   becameActive: noop
   becameInactive: noop
@@ -29,12 +20,12 @@ class KDTabPaneView extends KDView
   show:()->
     @getDomElement().removeClass("kdhiddentab").addClass("active")
     @active = yes
-    @handleEvent type : "KDTabPaneActive"
+    @emit "KDTabPaneActive"
 
   hide:()->
     @getDomElement().removeClass("active").addClass("kdhiddentab")
     @active = no
-    @handleEvent type : "KDTabPaneInactive"
+    @emit "KDTabPaneInactive"
 
   viewAppended:()->
     {name} = @getOptions()

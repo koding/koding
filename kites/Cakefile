@@ -13,25 +13,25 @@ task 'cl3','runs dev kites',(options)->
   config = require '../config/dev'
   processes.fork
     name    : "sharedHosting cake"
-    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev-new run"
     restart : yes
     verbose : yes
 
   processes.fork
     name    : "applications cake"
-    cmd     : "#{KODING_CAKE} ./applications -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./applications -c config-dev-new run"
     restart : yes
     verbose : yes
 
   processes.spawn
     name    : 'webterm kite'
-    cmd     : "#{__dirname}/webterm -c dev"
+    cmd     : "#{__dirname}/webterm -c dev-new"
     restart : yes
     verbose : yes
 
   processes.fork
     name    : "databases cake"
-    cmd     : "#{KODING_CAKE} ./databases -c config-dev run"
+    cmd     : "#{KODING_CAKE} ./databases -c config-dev-new run"
     restart : yes
     verbose : yes
 
@@ -39,50 +39,26 @@ task 'cl3','runs dev kites',(options)->
 task 'cl0', 'runs prod kites',(options)->
   config = require '../config/prod'
   
-  setTimeout ->
-    https.get e = "https://koding.com/-/status/processIsDead/sharedHosting"
-    https.get e = "https://koding.com/-/status/processIsDead/webterm"
-    https.get e = "https://koding.com/-/status/processIsDead/databases"
-    https.get e = "https://koding.com/-/status/processIsDead/applications"
-  ,10*1000
-  
-  processes.run
+  processes.fork
     name    : "sharedHosting cake"
-    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod-new run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
-
-  processes.run
+  processes.fork
     name    : "applications cake"
-    cmd     : "#{KODING_CAKE} ./applications -c config-prod run"
+    cmd     : "#{KODING_CAKE} ./applications -c config-prod-new run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
-  processes.run
+  processes.spawn
     name    : 'webterm'
-    cmd     : "#{__dirname}/webterm -c prod"
+    cmd     : "#{__dirname}/webterm -c prod-new"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
-  processes.run
+  processes.fork
     name    : "databases cake"
-    cmd     : "#{KODING_CAKE} ./databases -c config-prod run"
+    cmd     : "#{KODING_CAKE} ./databases -c config-prod-new run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      https.get e = "https://koding.com/-/status/processIsDead/#{name}"

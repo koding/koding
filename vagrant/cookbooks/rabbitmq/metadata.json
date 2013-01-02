@@ -1,0 +1,192 @@
+{
+  "name": "rabbitmq",
+  "description": "Installs and configures RabbitMQ server",
+  "long_description": "",
+  "maintainer": "Opscode, Inc.",
+  "maintainer_email": "cookbooks@opscode.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "ubuntu": ">= 0.0.0",
+    "debian": ">= 0.0.0",
+    "redhat": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "scientific": ">= 0.0.0",
+    "amazon": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "oracle": ">= 0.0.0",
+    "smartos": ">= 0.0.0"
+  },
+  "dependencies": {
+    "apt": ">= 1.4.4",
+    "yum": ">= 0.5.0",
+    "erlang": ">= 0.9"
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+    "rabbitmq": {
+      "display_name": "RabbitMQ",
+      "description": "Hash of RabbitMQ attributes",
+      "type": "hash",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/nodename": {
+      "display_name": "RabbitMQ Erlang node name",
+      "description": "The Erlang node name for this server.",
+      "default": "node['hostname']",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/address": {
+      "display_name": "RabbitMQ server IP address",
+      "description": "IP address to bind.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/port": {
+      "display_name": "RabbitMQ server port",
+      "description": "TCP port to bind.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/config": {
+      "display_name": "RabbitMQ config file to load",
+      "description": "Path to the rabbitmq.config file, if any.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/logdir": {
+      "display_name": "RabbitMQ log directory",
+      "description": "Path to the directory for log files.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/mnesiadir": {
+      "display_name": "RabbitMQ Mnesia database directory",
+      "description": "Path to the directory for Mnesia database files.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/cluster": {
+      "display_name": "RabbitMQ clustering",
+      "description": "Whether to activate clustering.",
+      "default": "no",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/cluster_config": {
+      "display_name": "RabbitMQ clustering configuration file",
+      "description": "Path to the clustering configuration file, if cluster is yes.",
+      "default": "/etc/rabbitmq/rabbitmq_cluster.config",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/cluster_disk_nodes": {
+      "display_name": "RabbitMQ cluster disk nodes",
+      "description": "Array of member Erlang nodenames for the disk-based storage nodes in the cluster.",
+      "default": [
+
+      ],
+      "type": "array",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "rabbitmq/erlang_cookie": {
+      "display_name": "RabbitMQ Erlang cookie",
+      "description": "Access cookie for clustering nodes.  There is no default.",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "type": "string",
+      "required": "optional",
+      "recipes": [
+
+      ]
+    }
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "rabbitmq": "Install and configure RabbitMQ",
+    "rabbitmq::cluster": "Set up RabbitMQ clustering."
+  },
+  "version": "1.7.0"
+}

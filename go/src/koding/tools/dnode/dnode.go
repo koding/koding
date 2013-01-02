@@ -40,10 +40,10 @@ func New() *DNode {
 }
 
 func (d *DNode) SendRemote(object interface{}) {
-	d.Send("methods", []interface{}{object})
+	d.Send("methods", object)
 }
 
-func (d *DNode) Send(method interface{}, arguments []interface{}) {
+func (d *DNode) Send(method interface{}, arguments ...interface{}) {
 	callbacks := make(map[string]([]string))
 	d.collectCallbacks(arguments, make([]string, 0), callbacks)
 
@@ -126,7 +126,7 @@ func (d *DNode) ProcessMessage(data []byte) {
 			panic(err)
 		}
 		callback := Callback(func(args ...interface{}) {
-			d.Send(methodId, args)
+			d.Send(methodId, args...)
 		})
 		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
 	}

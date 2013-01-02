@@ -11,7 +11,7 @@ Includes =
     Client:
       Framework :
         sockjs                      : "./client/libs/sockjs-0.3-patched.js"
-        broker                      : "./node_modules/broker-client/browser/broker.js"
+        broker                      : "./node_modules/koding-broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         # core
         __utils             : "./client/Framework/core/utils.coffee"
@@ -116,6 +116,7 @@ Includes =
 
         #tooltip
         KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
+        KDTooltip             : "./client/Framework/components/tooltip/KDTooltip.coffee"
 
         # autocomplete
         KDAutoCompleteC       : "./client/Framework/components/autocomplete/autocompletecontroller.coffee"
@@ -128,6 +129,7 @@ Includes =
         registry              : "./client/Framework/classregistry.coffee"
 
       Applications :
+        KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
@@ -154,7 +156,9 @@ Includes =
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
 
         # groups
-        GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
+        GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
+        GroupsController      : "./client/app/Applications/Groups.kdapplication/groupscontroller.coffee"
+
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
@@ -164,6 +168,8 @@ Includes =
         # webterm
         WebTermController     : "./client/app/Applications/WebTerm.kdapplication/AppController.coffee"
         WebTermView           : "./client/app/Applications/WebTerm.kdapplication/AppView.coffee"
+        WebtermSettingsView   : "./client/app/Applications/WebTerm.kdapplication/webtermsettingsview.coffee"
+        WebtermSettings       : "./client/app/Applications/WebTerm.kdapplication/webtermsettings.coffee"
         WebTerm1              : "./client/app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee"
         WebTerm2              : "./client/app/Applications/WebTerm.kdapplication/src/Cursor.coffee"
         WebTerm3              : "./client/app/Applications/WebTerm.kdapplication/src/InputHandler.coffee"
@@ -241,6 +247,7 @@ Includes =
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
         # GROUPS VIEWS
+        joinButton                    : "./client/app/Applications/Groups.kdapplication/Views/joinbutton.coffee"
         groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
         groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
@@ -424,6 +431,8 @@ Includes =
 
         FollowButton                : "./client/app/CommonViews/followbutton.coffee"
 
+        ManageRemotesModal          : "./client/app/CommonViews/remotesmodal.coffee"
+
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
         CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
@@ -492,6 +501,7 @@ Includes =
         NFinderItemDeleteDialog       : "./client/app/MainApp/filetree/itemsubviews/finderitemdeletedialog.coffee"
         NFinderItemRenameView         : "./client/app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee"
         NSetPermissionsView           : "./client/app/MainApp/filetree/itemsubviews/setpermissionsview.coffee"
+        NCopyUrlView                  : "./client/app/MainApp/filetree/itemsubviews/copyurlview.coffee"
         # re-used files
         FinderBottomControlsListItem  : "./client/app/MainApp/filetree/bottomlist/finderbottomlist.coffee"
         FinderBottomControls          : "./client/app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee"
@@ -600,6 +610,7 @@ Includes =
         kdScrollView        : "./client/Framework/themes/default/kd.scrollview.styl"
         kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
         kdFormView          : "./client/Framework/themes/default/kd.form.styl"
+        kdTooltip           : "./client/Framework/themes/default/kd.tooltip.styl"
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"

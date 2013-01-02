@@ -8,22 +8,28 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
-exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
-  # can't run the program if this fails,
-  if a or b or c
-    console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
-    process.exit(0)
+# exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
+#   # can't run the program if this fails,
+#   if a or b or c
+#     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
+#     process.exit(0)
 
+ProgressBar = require './builders/node_modules/progress'
+Builder     = require './builders/Builder'
+S3          = require './builders/s3'
+# log4js      = require "./builders/node_modules/log4js"
+# log         = log4js.getLogger("[Main]")
 
-ProgressBar        = require './builders/node_modules/progress'
-Builder            = require './builders/Builder'
-S3                 = require './builders/s3'
-log4js             = require "./builders/node_modules/log4js"
-log                = log4js.getLogger("[Main]")
-prompt             = require './builders/node_modules/prompt'
-hat                = require "./builders/node_modules/hat"
-mkdirp             = require './builders/node_modules/mkdirp'
-commander          = require './builders/node_modules/commander'
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
+
+prompt    = require './builders/node_modules/prompt'
+hat       = require "./builders/node_modules/hat"
+mkdirp    = require './builders/node_modules/mkdirp'
+commander = require './builders/node_modules/commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes          = new (require "processes") main : true
@@ -38,22 +44,22 @@ Watcher            = require "koding-watcher"
 KODING_CAKE        = './node_modules/koding-cake/bin/cake'
 
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
-console.log "###############################################################"
-console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    1- node_modules_koding is now where we store our node    #"
-console.log "#      modules. ./node_modules dir is completely ignored.     #"
-console.log "#      ./node_modules_koding is symlinked/mixed into          #"
-console.log "#      node_modules so you can use it as usual. Just don't    #"
-console.log "#      make a new one in ./node_modules, it will be ignored.  #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    2- `cake install` is now equivalent to `npm install`     #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#    3- do NOT `npm install [module]` add to package.json     #"
-console.log "#      and do another `npm install` or you will mess deploy.  #"
-console.log "# ----------------------------------------------------------- #"
-console.log "#                       questions and complaints 1-877-DEVRIM #"
-console.log "###############################################################"
+# console.log "###############################################################"
+# console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    1- node_modules_koding is now where we store our node    #"
+# console.log "#      modules. ./node_modules dir is completely ignored.     #"
+# console.log "#      ./node_modules_koding is symlinked/mixed into          #"
+# console.log "#      node_modules so you can use it as usual. Just don't    #"
+# console.log "#      make a new one in ./node_modules, it will be ignored.  #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    2- `cake install` is now equivalent to `npm install`     #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#    3- do NOT `npm install [module]` add to package.json     #"
+# console.log "#      and do another `npm install` or you will mess deploy.  #"
+# console.log "# ----------------------------------------------------------- #"
+# console.log "#                       questions and complaints 1-877-DEVRIM #"
+# console.log "###############################################################"
 # log =
 #   info  : console.log
 #   debug : console.log
@@ -62,17 +68,6 @@ console.log "###############################################################"
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-
-
-
-# get current version
-# version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
-# if process.argv[2] is 'buildForProduction'
-#   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
-#   rev[2]++
-#   version = rev.join(".")
-# else
-#   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
 compilePistachios = require 'pistachio-compiler'
 
@@ -161,6 +156,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
+  console.log {options}
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -193,7 +189,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage","local-go"
+    when "dev","prod","local","stage","local-go","dev-new","prod-new","vagrant"
       long = "./config/#{short}.coffee"
     else
       short
@@ -267,13 +263,11 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
-
+  console.log {options}
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 
   fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
-
-  pipeStd(spawn './broker/start.sh') if options.runBroker
 
   if config.runGoBroker
     processes.spawn
@@ -285,6 +279,16 @@ run =(options)->
       stderr  : process.stderr
       verbose : yes
 
+  if config.authWorker
+    processes.fork
+      name  : 'authWorker'
+      cmd   : "#{KODING_CAKE} ./workers/auth -c #{configFile} -n #{config.authWorker.numberOfWorkers} run"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: yes
+
   if config.guests
     processes.fork
       name  : 'guestCleanup'
@@ -294,15 +298,6 @@ run =(options)->
       stdout: process.stdout
       stderr: process.stderr
       verbose: yes
-
-  # processes.run
-  #   name    : 'social'
-  #   cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
-  #   restart : yes
-  #   restartInterval : 1000
-  #   stdout  : process.stdout
-  #   stderr  : process.stderr
-  #   verbose : yes
 
   processes.fork
     name    : 'social'
@@ -316,16 +311,13 @@ run =(options)->
     restart : yes
     restartInterval : 1000
 
-  # processes.fork
-  #   name    : 'cacherCake'
-  #   cmd     : "#{KODING_CAKE} ./workers/cacher -c #{configFile} run"
-  #   restart : yes
-  #   restartInterval : 1000
-
-
   if config.social.watch?
     watcher = new Watcher
       groups        :
+        auth        :
+          folders   : ['./workers/auth']
+          onChange  : (path) ->
+            processes.kill "authWorker"
         social      :
           folders   : ['./workers/social']
           onChange  : (path) ->

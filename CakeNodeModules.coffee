@@ -43,3 +43,5 @@ module.exports =
     cron            : '0.3.4'
     csv             : '0.0.17'
     embedly         : '0.6.0'
+
+    'librato-metrics' : '0.0.6'

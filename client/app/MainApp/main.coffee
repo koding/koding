@@ -66,6 +66,7 @@ do ->
     mainController.accountChanged account
     AccountMixin.init(KD.remote.api)
 
+  KD.remote.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
 
   KD.remote.on 'connected', ->
     manuallyClosed = no

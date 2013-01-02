@@ -11,7 +11,9 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass    : "activity-item discussion"
       tooltip     :
         title     : "Discussion"
-        offset    : 3
+        offset    :
+          top     : 3
+          left    : -5
         selector  : "span.type-icon"
     ,options
 

@@ -147,11 +147,8 @@ class AvatarPopup extends KDView
     @addSubView @avatarPopupContent = new KDView cssClass : 'content'
 
   setPopupListener:->
-    @listenTo
-      KDEventTypes        : 'click'
-      listenedToInstance  : @avatarPopupTab
-      callback:(pubInst, event)->
-        @hide()
+    @avatarPopupTab.on 'click', (event)=>
+      @hide()
 
   _windowDidResize:=>
     if @listController
@@ -166,6 +163,21 @@ class AvatarPopupShareStatus extends AvatarPopup
   viewAppended:->
     super()
 
+    @loader = new KDLoaderView
+      cssClass      : "avatar-popup-status-loader"
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#ff9200"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
+
+    @avatarPopupContent.addSubView @loader
+
     {profile} = KD.whoami()
 
     @avatarPopupContent.addSubView @statusField = new KDHitEnterInputView
@@ -178,6 +190,7 @@ class AvatarPopupShareStatus extends AvatarPopup
 
   updateStatus:(status)->
 
+    @loader.show()
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
@@ -187,11 +200,14 @@ class AvatarPopupShareStatus extends AvatarPopup
           title    : 'Message posted!'
           duration : 2000
         @statusField.setValue ""
+
+        @loader.hide()
         # @statusField.setPlaceHolder reply.body
         @hide()
 
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        @loader.hide()
         @hide()
 
 # avatar popup box Notifications
@@ -239,7 +255,7 @@ class AvatarPopupNotifications extends AvatarPopup
     super
 
   hide:->
-    KD.whoami().glanceActivities =>
+    KD.whoami()?.glanceActivities =>
       for item in @listController.itemsOrdered
         item.unsetClass 'unread'
       @noNotification.show()
