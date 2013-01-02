@@ -25,7 +25,7 @@ type WebtermServer struct {
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
-	dir, err := os.Open("/var/run/screen/S-" + server.session.User)
+	dir, err := os.Open("/var/run/screen/S-" + server.session.User.Name)
 	if err != nil {
 		if os.IsNotExist(err) {
 			callback(map[string]string{})

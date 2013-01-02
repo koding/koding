@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hsoj/asn1-ber"
 	"io"
+	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -83,13 +84,13 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 	var attributes map[string]string
 	switch findAttributeInFilter(filter, "objectClass") {
 	case "posixAccount":
-		var user *virt.User
+		var user *db.User
 		var err error
 		if name := findAttributeInFilter(filter, "uid"); name != "" {
-			user, err = virt.FindUserByName(name)
+			user, err = db.FindUserByName(name)
 		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
 			uid, _ := strconv.Atoi(uidStr)
-			user, err = virt.FindUserById(uid)
+			user, err = db.FindUserById(uid)
 		} else {
 			return false
 		}
@@ -120,7 +121,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			return false
 		}
 		gid, _ := strconv.Atoi(gidStr)
-		user, err := virt.FindUserById(gid)
+		user, err := db.FindUserById(gid)
 		if err != nil || !vm.HasUser(user) {
 			return true
 		}

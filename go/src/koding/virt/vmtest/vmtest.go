@@ -13,7 +13,7 @@ func main() {
 		panic(err)
 	}
 
-	vm, format := user.GetDefaultVM()
+	vm, format := virt.GetDefaultVM(user)
 	vm.Prepare(format)
 	//vm.Start()
 	//vm.Stop()

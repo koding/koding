@@ -51,6 +51,32 @@ func FindVMByName(name string) (*VM, error) {
 	return FindVM(bson.M{"name": name})
 }
 
+// may panic
+func GetDefaultVM(user *db.User) (vm *VM, needsFormat bool) {
+	if user.DefaultVM == "" {
+		vm := FetchUnusedVM(user)
+
+		vm.Name = user.Name
+		vm.LdapPassword = utils.RandomString()
+		if err := VMs.UpdateId(vm.Id, vm); err != nil {
+			panic(err)
+		}
+
+		user.DefaultVM = vm.Id
+		if err := db.Users.UpdateId(user.Id, user); err != nil {
+			panic(err)
+		}
+
+		return vm, true
+	}
+
+	vm, err := FindVMById(user.DefaultVM)
+	if err != nil {
+		panic(err)
+	}
+	return vm, false
+}
+
 func (vm *VM) String() string {
 	return "vm-" + vm.Id.Hex()
 }
@@ -79,7 +105,7 @@ func (vm *VM) UpperdirFile(path string) string {
 	return vm.File("overlayfs-upperdir/" + path)
 }
 
-func (vm *VM) HasUser(user *User) bool {
+func (vm *VM) HasUser(user *db.User) bool {
 	for _, uid := range vm.Users {
 		if uid == user.Id {
 			return true
@@ -93,7 +119,7 @@ func LowerdirFile(path string) string {
 }
 
 // may panic
-func FetchUnusedVM(user *User) *VM {
+func FetchUnusedVM(user *db.User) *VM {
 	var vm VM
 	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}}, ReturnNew: true}, &vm)
 	if err == nil {
@@ -170,7 +196,7 @@ func (vm *VM) Prepare(format bool) {
 	if format {
 		// create user homes
 		for i, userId := range vm.Users {
-			user, err := FindUserById(userId)
+			user, err := db.FindUserById(userId)
 			if err != nil {
 				panic(err)
 			}

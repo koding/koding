@@ -5,6 +5,7 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/utils"
+	"koding/virt"
 	"os"
 	"path"
 	"syscall"
@@ -14,6 +15,13 @@ func main() {
 	utils.Startup("os kite", true)
 
 	k := kite.New("os")
+
+	k.Handle("startVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		vm, format := virt.GetDefaultVM(session.User)
+		vm.Prepare(format)
+		vm.Start()
+		return "Success", nil
+	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var command []string
@@ -49,7 +57,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		if int(info.Sys().(*syscall.Stat_t).Uid) != session.Uid {
+		if int(info.Sys().(*syscall.Stat_t).Uid) != session.User.Id {
 			return nil, fmt.Errorf("You can only watch your own directories.")
 		}
 

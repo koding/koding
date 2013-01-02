@@ -6,14 +6,13 @@ import (
 	"github.com/streadway/amqp"
 	"io"
 	"koding/config"
+	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"koding/tools/utils"
 	"os"
 	"os/exec"
 	"os/signal"
-	"os/user"
-	"strconv"
 	"sync"
 	"syscall"
 )
@@ -193,32 +192,23 @@ func (k *Kite) Run() {
 }
 
 type Session struct {
-	User, Home string
-	Uid, Gid   int
-	closers    []io.Closer
+	User    *db.User
+	Home    string
+	closers []io.Closer
 }
 
 func NewSession(username string) *Session {
-	userData, err := user.Lookup(username)
+	user, err := db.FindUserByName(username)
 	if err != nil {
 		panic(err)
 	}
-	uid, err := strconv.Atoi(userData.Uid)
-	if err != nil {
-		panic(err)
-	}
-	gid, err := strconv.Atoi(userData.Gid)
-	if err != nil {
-		panic(err)
-	}
-	if uid == 0 || gid == 0 {
+	if user.Id == 0 {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
+
 	return &Session{
-		User: username,
+		User: user,
 		Home: config.Current.HomePrefix + username,
-		Uid:  uid,
-		Gid:  gid,
 	}
 }
 
@@ -242,8 +232,8 @@ func (session *Session) CreateCommand(command ...string) *exec.Cmd {
 	}
 	cmd.Dir = session.Home
 	cmd.Env = []string{
-		"USER=" + session.User,
-		"LOGNAME=" + session.User,
+		"USER=" + session.User.Name,
+		"LOGNAME=" + session.User.Name,
 		"HOME=" + session.Home,
 		"SHELL=/bin/bash",
 		"TERM=xterm",
@@ -252,8 +242,8 @@ func (session *Session) CreateCommand(command ...string) *exec.Cmd {
 	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
-			Uid: uint32(session.Uid),
-			Gid: uint32(session.Gid),
+			Uid: uint32(session.User.Id),
+			Gid: uint32(session.User.Id),
 		},
 	}
 
