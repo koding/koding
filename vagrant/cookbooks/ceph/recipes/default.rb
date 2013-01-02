@@ -6,3 +6,7 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+
+package "ceph" do
+    action :install
+end
