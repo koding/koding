@@ -1,11 +1,16 @@
 #
 # Cookbook Name:: hosting
-# Recipe:: default
+# Recipe:: users_dir
 #
 # Copyright 2013, YOUR_COMPANY_NAME
 #
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe "hosting::users_dir"
-include_recipe "hosting::configs"
+
+directory "/Users" do
+  owner "root"
+  group "root"
+  mode 0755
+  action :create
+end
