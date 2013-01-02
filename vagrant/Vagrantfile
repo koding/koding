@@ -1,9 +1,33 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# setup username
+hosts = {
+        "koding.local"      => "10.5.5.2",
+        "rabbitmq.local" => "10.5.5.3",
+        "cl.local"       => "10.5.5.4",
+        "ldap.local"     => "10.5.5.5",
+}
 
-local_user = Etc.getpwuid(Process.uid).name
+
+count=0
+File.open('/etc/hosts').each_line do |s|
+    hosts.each_pair do |host,ip|
+        host = host.gsub(".","\\.")
+        ip = ip.gsub(".","\\.")
+        if s.match(/^#{ip}\s+#{host}/)
+            count += 1
+        end
+    end
+end
+
+unless count.eql?(hosts.length)
+    puts "please add the following hosts to the /etc/hosts:"
+    hosts.each_pair do |host,ip|
+        puts "#{ip} #{host}"
+    end
+end
+
+
 private_ssh_key = "vagrant.pem"
 template_centos_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/centos64.box"
 template_cloudlinux_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/cloudlinux64.box"
@@ -12,7 +36,6 @@ koding_git_dir = ENV['PWD']
 cookbooks_dir = "#{koding_git_dir}/vagrant/cookbooks"
 roles_dir = "#{koding_git_dir}/vagrant/roles"
 
-File.new(private_ssh_key).chmod(0600)
 
 # start VMs only in the toplevel git directory
 toplevel = `/usr/bin/git rev-parse --show-toplevel`.chop.downcase
@@ -21,22 +44,23 @@ unless toplevel.eql?(koding_git_dir.downcase)
     exit 1
 end
 
+File.new(private_ssh_key).chmod(0600)
+
 Vagrant::Config.run do |config|
     config.ssh.private_key_path = private_ssh_key
 
     # ---- Web server configuration -------
     config.vm.define :web do |web_config|
-
+          
           web_config.vm.box = "centos64"
           web_config.vm.box_url = template_centos_url
-          web_config.vm.network :hostonly, "10.0.0.2"
-          web_config.vm.host_name = "web.#{local_user}.local"
-          web_config.vm.forward_port 3000, 3000 # nodejs web server
+          web_config.vm.network :hostonly, hosts["koding.local"]
+          web_config.vm.host_name = "koding.local"
           web_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
           web_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           web_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 768,
+                                    "--memory", 512,
                                     "--cpus", 2
                                   ]
 
@@ -56,12 +80,12 @@ Vagrant::Config.run do |config|
 
           rabbitmq_config.vm.box = "centos64"
           rabbitmq_config.vm.box_url = template_centos_url
-          rabbitmq_config.vm.host_name = "rabbitmq.#{local_user}.local"
+          rabbitmq_config.vm.host_name = "rabbitmq.local"
           rabbitmq_config.vm.forward_port 55672, 55672 # rabbitmq management console
-          rabbitmq_config.vm.network :hostonly, "10.0.0.3"
+          rabbitmq_config.vm.network :hostonly, hosts["rabbitmq.local"]
           rabbitmq_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 1024,
+                                    "--memory", 368,
                                     "--cpus", 1
                                   ]
 
@@ -78,9 +102,9 @@ Vagrant::Config.run do |config|
 
           cloudlinux_config.vm.box = "cloudlinux64"
           cloudlinux_config.vm.box_url = template_cloudlinux_url
-          cloudlinux_config.vm.host_name = "cloudlinux.#{local_user}.local"
+          cloudlinux_config.vm.host_name = "cl.local"
           #cloudlinux_config.vm.forward_port 55672, 55672 
-          cloudlinux_config.vm.network :hostonly, "10.0.0.4"
+          cloudlinux_config.vm.network :hostonly, hosts["cl.local"]
           cloudlinux_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 368,
@@ -91,6 +115,7 @@ Vagrant::Config.run do |config|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
             chef.add_role("base_server")
+            chef.add_role("hosting_server")
           end
     end
     # ----- end of cloudlinux server configuration -----
@@ -102,18 +127,18 @@ Vagrant::Config.run do |config|
           ldap_config.vm.box_url = template_centos_url
           ldap_config.vm.host_name = "ldap.local"
           #ldap_config.vm.forward_port 55672, 55672 
-          ldap_config.vm.network :hostonly, "10.0.0.5"
+          ldap_config.vm.network :hostonly, hosts["ldap.local"]
           ldap_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 368,
                                     "--cpus", 1
                                   ]
 
-    #      ldap_config.vm.provision :chef_solo do |chef|
-    #        chef.cookbooks_path = cookbooks_dir
-    #        chef.roles_path = roles_dir
-    #        chef.add_role("base_server")
-    #      end
+          ldap_config.vm.provision :chef_solo do |chef|
+            chef.cookbooks_path = cookbooks_dir
+            chef.roles_path = roles_dir
+            chef.add_role("dev-ldap_server")
+         end
     end
     # ----- end of ldap server configuration -----
 
