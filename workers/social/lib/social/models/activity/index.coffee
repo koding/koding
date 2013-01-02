@@ -227,7 +227,7 @@ module.exports = class CActivity extends jraphical.Capsule
 do ->
 
   CActivity.on "feed-new", ->
-    # console.log "zikkimin koku"
-    JActivityCache.init()
+    console.log arguments
+    # JActivityCache.init()
   console.log "\"feed-new\" event bound."
 

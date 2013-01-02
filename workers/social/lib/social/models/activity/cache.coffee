@@ -115,7 +115,7 @@ module.exports = class JActivityCache extends jraphical.Module
   # between from and to
   @init = (from, to)->
 
-    console.log "JActivityCache init...\n"
+    console.log "JActivityCache inits...\n"
 
     @latest (err, latest)=>
 
@@ -256,7 +256,6 @@ module.exports = class JActivityCache extends jraphical.Module
     @fetchOverviewTeasers overview, (err, activities)->
       if err then callback? err
       else
-
         to   = overview.first.createdAt.first
         from = overview.last.createdAt.last
 
@@ -275,7 +274,7 @@ module.exports = class JActivityCache extends jraphical.Module
           if err then console.warn err
           else
             console.log "cache instance saved! from: #{instance.from} to: #{instance.to}"
-            callback? null, inst
+            callback? null, inst[0]
 
 
   @fetchOverviewTeasers = (overview, callback)->
@@ -299,6 +298,9 @@ module.exports = class JActivityCache extends jraphical.Module
 
     latestOverview = []
 
+    # this is kinda silly but it seems it's the only way to get rid of subcollections
+    # and get clean native objects
+
     @overview.forEach (o)->
       createdAt = []
       ids       = []
@@ -312,21 +314,22 @@ module.exports = class JActivityCache extends jraphical.Module
         ids
       }
 
+
     overview.reverse().forEach (oItem)-> latestOverview.unshift oItem
 
-    # return console.log latestOverview
-
-    # unfortunately whatever i tried update didn't work
-    # so i'm deleting the instance first and recreating the new one :|
+    # unfortunately update didn't work whatever i tried,
+    # so i'm creating a new one with new entries and deleting the outdated one :|
 
     JActivityCache.createInstance latestOverview, (err, inst)=>
-      if err then console.warn err
+      if err then callback err
       else
 
-        return console.log "cache instance capped to #{inst.overview.length}!"
+        console.log "cache instance capped to #{inst.overview.length}!"
         JActivityCache.remove { _id : @getId()}, (err)->
-          if err then console.warn err
-          callback err
+          if err then callback err
+          else
+            console.log "old instance is deleted!"
+            callback err
 
 
 
