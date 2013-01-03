@@ -124,7 +124,8 @@ class KDView extends KDObject
             child.emit 'viewAppended', child
 
 
-  setTemplate:(tmpl, params=@pistachioParams)->
+  setTemplate:(tmpl, params)->
+    params ?= @getOptions()?.pistachioParams
     options = if params? then {params}
     @template = new Pistachio @, tmpl, options
     @updatePartial @template.html

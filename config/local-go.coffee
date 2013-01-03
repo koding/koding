@@ -10,7 +10,9 @@ mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
-#rabbitVhost = try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf-8'
+rabbitPrefix = try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf-8'
+
+socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
   projectRoot   : projectRoot
@@ -19,14 +21,21 @@ module.exports = deepFreeze
     port        : 3000#[3001..3002]
     login       : 'webserver'
     clusterSize : 4
+    queueName   : socialQueueName+'web'
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
   mongo         : mongo
   buildClient   : no
   runGoBroker   : yes
+  authWorker    :
+    login       : 'authWorker'
+    queueName   : socialQueueName+'auth'
+    authResourceName: 'auth'
+    numberOfWorkers: 1
   social        :
     login       : 'social'
+    queueName   : socialQueueName
     numberOfWorkers: 4
     watch       : yes
   feeder        :
@@ -34,7 +43,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 1
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : no
     watch       : yes
@@ -47,6 +56,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      resourceName: socialQueueName
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :

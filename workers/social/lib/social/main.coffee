@@ -46,7 +46,7 @@ koding = new Bongo
   root        : __dirname
   mongo       : mongo
   models      : './models'
-  queueName   : 'koding-social'
+  resourceName: social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
     [callback, context] = [context, callback] unless callback
@@ -58,15 +58,18 @@ koding = new Bongo
       else
         callback {sessionToken, connection:delegate:account}
 
-koding.on 'auth', (exchange, sessionToken)->
-  koding.fetchClient sessionToken, (client)->
-    {delegate} = client.connection
+koding.on 'authenticateUser', (client, callback)->
+  {delegate} = client.connection
+  callback delegate
 
-    if delegate instanceof koding.models.JAccount
-      koding.models.JAccount.emit "AccountAuthenticated", delegate
+# koding.on 'auth', (exchange, sessionToken)->
+#   koding.fetchClient sessionToken, (client)->
+#     {delegate} = client.connection
+
+#     # if delegate instanceof koding.models.JAccount
+#     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
       
-    koding.handleResponse exchange, 'changeLoggedInState', [delegate]
-
+#     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log

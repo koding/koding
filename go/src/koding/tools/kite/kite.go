@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"os/user"
 	"strconv"
+	"sync"
 	"syscall"
 )
 
@@ -23,97 +24,133 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
 	utils.AmqpAutoReconnect(name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
-		joinChannel := utils.CreateAmqpChannel(consumeConn)
-		joinStream := utils.DeclareBindConsumeAmqpQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
+		routeMap := make(map[string](chan<- []byte))
+		var routeMapMutex sync.RWMutex
+
+		publishChannel := utils.CreateAmqpChannel(publishConn)
+		defer publishChannel.Close()
+
+		consumeChannel := utils.CreateAmqpChannel(consumeConn)
+		utils.DeclareAmqpPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+name, "kite-"+name)
+		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+name, "")
+
 		for {
 			select {
-			case join, ok := <-joinStream:
+			case message, ok := <-stream:
 				if !ok {
 					return
 				}
-				go func() {
-					defer log.RecoverAndLog()
 
-					joinData := make(map[string]interface{})
-					json.Unmarshal(join.Body, &joinData)
-					userName := joinData["user"].(string)
-					queue := joinData["queue"].(string)
+				switch message.RoutingKey {
+				case "auth.join":
+					arguments := make(map[string]interface{})
+					json.Unmarshal(message.Body, &arguments)
+					username := arguments["username"].(string)
+					routingKey := arguments["routingKey"].(string)
 
-					utils.ChangeNumClients <- 1
-					log.Debug("Client connected: " + userName)
-					defer func() {
-						utils.ChangeNumClients <- -1
-						log.Debug("Client disconnected: " + userName)
-					}()
-
-					session := NewSession(userName)
-					defer session.Close()
-
-					d := dnode.New()
-					defer d.Close()
-					d.OnRootMethod = func(method string, args *dnode.Partial) {
-						go func() {
-							defer log.RecoverAndLog()
-
-							var partials []*dnode.Partial
-							err := args.Unmarshal(&partials)
-							if err != nil {
-								panic(err)
-							}
-
-							var options map[string]*dnode.Partial
-							err = partials[0].Unmarshal(&options)
-							if err != nil {
-								panic(err)
-							}
-							var callback dnode.Callback
-							err = partials[1].Unmarshal(&callback)
-							if err != nil {
-								panic(err)
-							}
-
-							result, err := onRootMethod(session, method, options["withArgs"])
-							if err != nil {
-								callback(err.Error(), result)
-							} else if result != nil {
-								callback(nil, result)
-							}
-						}()
+					channel := make(chan []byte, 1024)
+					routeMapMutex.Lock()
+					if _, found := routeMap[routingKey]; found {
+						routeMapMutex.Unlock()
+						continue // duplicate key
 					}
+					routeMap[routingKey] = channel
+					routeMapMutex.Unlock()
 
 					go func() {
-						publishChannel := utils.CreateAmqpChannel(publishConn)
-						defer publishChannel.Close()
-						for data := range d.SendChan {
-							log.Debug("Write", data)
-							err := publishChannel.Publish(queue, "reply-client-message", false, false, amqp.Publishing{Body: data})
-							if err != nil {
-								panic(err)
+						defer log.RecoverAndLog()
+
+						utils.ChangeNumClients <- 1
+						log.Debug("Client connected: " + username)
+						defer func() {
+							utils.ChangeNumClients <- -1
+							log.Debug("Client disconnected: " + username)
+						}()
+
+						session := NewSession(username)
+						defer session.Close()
+
+						d := dnode.New()
+						defer d.Close()
+						d.OnRootMethod = func(method string, args *dnode.Partial) {
+							go func() {
+								defer log.RecoverAndLog()
+
+								var partials []*dnode.Partial
+								err := args.Unmarshal(&partials)
+								if err != nil {
+									panic(err)
+								}
+
+								var options map[string]*dnode.Partial
+								err = partials[0].Unmarshal(&options)
+								if err != nil {
+									panic(err)
+								}
+								var callback dnode.Callback
+								err = partials[1].Unmarshal(&callback)
+								if err != nil {
+									panic(err)
+								}
+
+								result, err := onRootMethod(session, method, options["withArgs"])
+								if err != nil {
+									callback(err.Error(), result)
+								} else if result != nil {
+									callback(nil, result)
+								}
+							}()
+						}
+
+						go func() {
+							defer log.RecoverAndLog()
+							for data := range d.SendChan {
+								log.Debug("Write", routingKey, data)
+								err := publishChannel.Publish("broker", routingKey, false, false, amqp.Publishing{Body: data})
+								if err != nil {
+									panic(err)
+								}
 							}
+						}()
+
+						d.Send("ready", "kite-"+name)
+
+						for message := range channel {
+							log.Debug("Read", routingKey, message)
+							d.ProcessMessage(message)
 						}
 					}()
 
-					messageChannel := utils.CreateAmqpChannel(consumeConn)
-					defer messageChannel.Close()
-					messageStream, err := messageChannel.Consume(queue, "", true, false, false, false, nil)
-					if err != nil {
-						panic(err)
+				case "auth.leave":
+					arguments := make(map[string]interface{})
+					json.Unmarshal(message.Body, &arguments)
+					routingKey := arguments["routingKey"].(string)
+					routeMapMutex.Lock()
+					channel, found := routeMap[routingKey]
+					if found {
+						close(channel)
+						delete(routeMap, routingKey)
 					}
+					routeMapMutex.Unlock()
 
-					for message := range messageStream {
-						if message.RoutingKey == "disconnected" {
-							message.Cancel(true) // stop consuming
-						} else {
-							log.Debug("Read", message.Body)
-							d.ProcessMessage(message.Body)
+				default:
+					routeMapMutex.RLock()
+					channel, found := routeMap[message.RoutingKey]
+					routeMapMutex.RUnlock()
+					if found {
+						select {
+						case channel <- message.Body:
+							// successful
+						default:
+							log.Warn("Dropped message")
 						}
 					}
-				}()
+				}
 
 			case <-sigtermChannel:
 				log.Info("Received TERM signal. Beginning shutdown...")
 				utils.BeginShutdown()
-				joinChannel.Close()
+				consumeChannel.Close()
 			}
 		}
 	})
@@ -125,8 +162,8 @@ type Session struct {
 	closers    []io.Closer
 }
 
-func NewSession(userName string) *Session {
-	userData, err := user.Lookup(userName)
+func NewSession(username string) *Session {
+	userData, err := user.Lookup(username)
 	if err != nil {
 		panic(err)
 	}
@@ -142,8 +179,8 @@ func NewSession(userName string) *Session {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
 	return &Session{
-		User: userName,
-		Home: config.Current.HomePrefix + userName,
+		User: username,
+		Home: config.Current.HomePrefix + username,
 		Uid:  uid,
 		Gid:  gid,
 	}

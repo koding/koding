@@ -14,6 +14,12 @@ roles_dir = "#{koding_git_dir}/vagrant/roles"
 
 File.new(private_ssh_key).chmod(0600)
 
+# start VMs only in the toplevel git directory
+toplevel = `/usr/bin/git rev-parse --show-toplevel`.chop.downcase
+unless toplevel.eql?(koding_git_dir.downcase)
+    STDERR.puts "you have to change directory to the git toplevel first"
+    exit 1
+end
 
 Vagrant::Config.run do |config|
     config.ssh.private_key_path = private_ssh_key
@@ -30,7 +36,7 @@ Vagrant::Config.run do |config|
           web_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           web_config.vm.customize [
                                     "modifyvm", :id,
-                                    "--memory", 1024,
+                                    "--memory", 768,
                                     "--cpus", 2
                                   ]
 
@@ -88,5 +94,27 @@ Vagrant::Config.run do |config|
           end
     end
     # ----- end of cloudlinux server configuration -----
+
+    # ---- LDAP server configuration -------
+    config.vm.define :ldap do |ldap_config|
+
+          ldap_config.vm.box = "centos64"
+          ldap_config.vm.box_url = template_centos_url
+          ldap_config.vm.host_name = "ldap.local"
+          #ldap_config.vm.forward_port 55672, 55672 
+          ldap_config.vm.network :hostonly, "10.0.0.5"
+          ldap_config.vm.customize [
+                                    "modifyvm", :id,
+                                    "--memory", 368,
+                                    "--cpus", 1
+                                  ]
+
+    #      ldap_config.vm.provision :chef_solo do |chef|
+    #        chef.cookbooks_path = cookbooks_dir
+    #        chef.roles_path = roles_dir
+    #        chef.add_role("base_server")
+    #      end
+    end
+    # ----- end of ldap server configuration -----
 
 end

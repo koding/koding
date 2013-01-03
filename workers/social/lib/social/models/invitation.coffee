@@ -30,6 +30,7 @@ module.exports = class JInvitation extends jraphical.Module
     schema          :
       code          : String
       inviteeEmail  : String
+      group         : String
       customMessage :
         subject     : String
         body        : String

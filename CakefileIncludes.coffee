@@ -11,7 +11,7 @@ Includes =
     Client:
       Framework :
         sockjs                      : "./client/libs/sockjs-0.3-patched.js"
-        broker                      : "./node_modules/broker-client/browser/broker.js"
+        broker                      : "./node_modules/koding-broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         # core
         __utils             : "./client/Framework/core/utils.coffee"
@@ -129,6 +129,7 @@ Includes =
         registry              : "./client/Framework/classregistry.coffee"
 
       Applications :
+        KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
@@ -155,7 +156,9 @@ Includes =
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
 
         # groups
-        GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
+        GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
+        GroupsController      : "./client/app/Applications/Groups.kdapplication/groupscontroller.coffee"
+
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
@@ -242,6 +245,7 @@ Includes =
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
         # GROUPS VIEWS
+        joinButton                    : "./client/app/Applications/Groups.kdapplication/Views/joinbutton.coffee"
         groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
         groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"

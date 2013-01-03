@@ -1,0 +1,48 @@
+{
+  "name": "git",
+  "description": "Installs git and/or sets up a Git server daemon",
+  "long_description": "Description\n===========\n\nInstalls git and optionally sets up a git server as a daemon under runit.\n\nRequirements\n============\n## Ohai and Chef:\n\n* Ohai: 6.14.0+\n\nThis cookbook makes use of `node['platform_family']` to simplify platform\nselection logic. This attribute was introduced in Ohai v0.6.12.\n\n## Platform:\n\nThe following platform families are supported:\n\n* Debian\n* Arch\n* RHEL\n* Fedora\n* Mac OS X (10.6.0+)\n* Windows\n\n## Cookbooks:\n\n* runit (for `git::server`)\n* build-essential (for `git::source`)\n* dmg (for OS X installation)\n* yum (for RHEL 5 installation)\n\n### Windows Dependencies\nThe [`windows_package`](https://github.com/opscode-cookbooks/windows#windows_package) resource from the Windows cookbook is required to\ninstall the git package on Windows.\n\n## Attributes\n\n### default\nThe following attributes are platform-specific.\n\n#### Windows\n\n* `node['git']['version']` - git version to install\n* `node['git']['url']` - URL to git package\n* `node['git']['checksum']` - package SHA256 checksum\n* `node['git']['display_name']` - `windows_package` resource Display Name (makes the package install idempotent) \n\n#### Mac OS X\n\n* `node['git']['osx_dmg']['url']` - URL to git package\n* `node['git']['osx_dmg']['checksum']` - package SHA256 checksum\n\n#### Linux\n\n* `node['git']['prefix']` - git install directory\n* `node['git']['version']` - git version to install\n* `node['git']['url']` - URL to git tarball\n* `node['git']['checksum']` - tarball SHA256 checksum\n\nRecipes\n=======\n\n## default\n\nInstalls base git packages based on platform.\n\n## server\n\nSets up a git daemon to provide a server.\n\n## source\n\nInstalls git from source.\n\n## windows\n\nInstalls git client on Windows\n\nUsage\n=====\n\n\nThis cookbook primarily installs git core packages. It can also be\nused to serve git repositories.\n\nTo install git client (all supported platforms):\n\n    include_recipe 'git'\n\nTo install git server:\n\n    include_recipe \"git::server\"\n\nThis creates the directory /srv/git and starts a git daemon, exporting\nall repositories found. Repositories need to be added manually, but\nwill be available once they are created.\n\nLicense and Author\n==================\n\n- Author:: Joshua Timberman (<joshua@opscode.com>)\n- Copyright:: 2009-2012, Opscode, Inc.\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n",
+  "maintainer": "Opscode, Inc.",
+  "maintainer_email": "cookbooks@opscode.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "amazon": ">= 0.0.0",
+    "arch": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "debian": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "redhat": ">= 0.0.0",
+    "scientific": ">= 0.0.0",
+    "oracle": ">= 0.0.0",
+    "ubuntu": ">= 0.0.0",
+    "windows": ">= 0.0.0",
+    "mac_os_x": ">= 10.6.0"
+  },
+  "dependencies": {
+    "dmg": ">= 0.0.0",
+    "runit": ">= 0.0.0",
+    "build-essential": ">= 0.0.0",
+    "yum": ">= 0.0.0",
+    "windows": ">= 0.0.0"
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "git": "Installs git",
+    "git::server": "Sets up a runit_service for git daemon",
+    "git::source": "Installs git from source"
+  },
+  "version": "2.1.2"
+}

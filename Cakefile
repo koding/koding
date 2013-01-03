@@ -156,6 +156,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
+  console.log {options}
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -188,7 +189,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage","local-go"
+    when "dev","prod","local","stage","local-go","dev-new","prod-new","vagrant"
       long = "./config/#{short}.coffee"
     else
       short
@@ -263,14 +264,11 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
-
+  console.log {options}
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 
   fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
-
-  if options.runBroker
-    pipeStd(spawn './broker/start.sh') 
 
   if config.runGoBroker
     processes.spawn
@@ -281,6 +279,16 @@ run =(options)->
       stdout  : process.stdout
       stderr  : process.stderr
       verbose : yes
+
+  if config.authWorker
+    processes.fork
+      name  : 'authWorker'
+      cmd   : "#{KODING_CAKE} ./workers/auth -c #{configFile} -n #{config.authWorker.numberOfWorkers} run"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: yes
 
   if config.guests
     processes.fork
@@ -307,6 +315,10 @@ run =(options)->
   if config.social.watch?
     watcher = new Watcher
       groups        :
+        auth        :
+          folders   : ['./workers/auth']
+          onChange  : (path) ->
+            processes.kill "authWorker"
         social      :
           folders   : ['./workers/social']
           onChange  : (path) ->

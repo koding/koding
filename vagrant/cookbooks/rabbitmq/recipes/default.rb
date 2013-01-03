@@ -70,6 +70,7 @@ when "rhel", "fedora"
 
     rpm_package "#{Chef::Config[:file_cache_path]}/rabbitmq-server-#{node['rabbitmq']['version']}-1.noarch.rpm" do
       action :install
+      options "--nodeps"
     end
 
   end

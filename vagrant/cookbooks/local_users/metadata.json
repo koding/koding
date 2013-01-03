@@ -1,0 +1,29 @@
+{
+  "maintainer_email": "aleksey@koding.com",
+  "groupings": {
+  },
+  "suggestions": {
+  },
+  "dependencies": {
+  },
+  "description": "Installs/Configures local users",
+  "attributes": {
+  },
+  "recipes": {
+  },
+  "replacing": {
+  },
+  "conflicting": {
+  },
+  "version": "0.1.3",
+  "license": "All rights reserved",
+  "maintainer": "Aleksey Mykhailov",
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "providing": {
+  },
+  "recommendations": {
+  },
+  "platforms": {
+  },
+  "name": "local_users"
+}
