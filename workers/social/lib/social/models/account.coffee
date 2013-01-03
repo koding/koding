@@ -2,6 +2,9 @@ jraphical = require 'jraphical'
 
 KodingError = require '../error'
 
+likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
+                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
@@ -285,7 +288,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+    selector.sourceName or= $in: likeableActivities
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -314,7 +317,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'like'
       targetId   : @getId()
-      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+      sourceName : $in: likeableActivities
     , (err, count)=>
       @update ($set: 'counts.likes': count), ->
 
