@@ -1,0 +1,35 @@
+# deployed by chef
+[domain/default]
+
+ldap_id_use_start_tls = False
+cache_credentials = True
+ldap_search_base = <%= @suffix %>
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+ldap_uri = ldap://<%= @host %>:389
+ldap_default_authtok_type = password
+ldap_default_bind_dn = <%= @directory_manger %>
+ldap_default_authtok = <%= @manager_pass %>
+min_id = 1000
+entry_cache_timeout = 10800
+
+[sssd]
+services = nss, pam
+config_file_version = 2
+
+domains = default
+[nss]
+
+entry_cache_timeout = 10800 
+entry_cache_nowait_percentage = 75
+entry_negative_timeout = 0
+filter_users = root,vagrant
+
+[pam]
+
+[sudo]
+
+[autofs]
+
+[ssh]
