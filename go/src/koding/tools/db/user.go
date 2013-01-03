@@ -5,6 +5,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const DEFAULT_VM = "defaultVM"
+
 type User struct {
 	Id        int           "_id"
 	Name      string        "name"

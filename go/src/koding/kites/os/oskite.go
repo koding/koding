@@ -6,10 +6,21 @@ import (
 	"koding/tools/kite"
 	"koding/tools/utils"
 	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
+	"sync"
 	"syscall"
+	"time"
 )
+
+type VMState struct {
+	sessions map[*kite.Session]bool
+	timeout  *time.Timer
+}
+
+var states = make(map[bson.ObjectId]*VMState)
+var statesMutex sync.Mutex
 
 func main() {
 	utils.Startup("os kite", true)
@@ -17,9 +28,17 @@ func main() {
 	k := kite.New("os")
 
 	k.Handle("startVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		vm, format := virt.GetDefaultVM(session.User)
-		vm.Prepare(format)
-		return nil, vm.Start()
+		vm := virt.GetDefaultVM(session.User)
+		AddSession(vm, session)
+		return vm.StartCommand().CombinedOutput()
+	})
+
+	k.Handle("shutdownVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		return virt.GetDefaultVM(session.User).ShutdownCommand().CombinedOutput()
+	})
+
+	k.Handle("stopVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		return virt.GetDefaultVM(session.User).StopCommand().CombinedOutput()
 	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -28,9 +47,7 @@ func main() {
 			return nil, &kite.ArgumentError{"array of strings"}
 		}
 
-		vm, _ := virt.GetDefaultVM(session.User)
-		output, err := vm.AttachCommand(session.User.Id, command...).CombinedOutput()
-		return string(output), err
+		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, command...).CombinedOutput()
 	})
 
 	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -39,9 +56,7 @@ func main() {
 			return nil, &kite.ArgumentError{"string"}
 		}
 
-		vm, _ := virt.GetDefaultVM(session.User)
-		output, err := vm.AttachCommand(session.User.Id, "/bin/bash", "-c", line).CombinedOutput()
-		return string(output), err
+		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, "/bin/bash", "-c", line).CombinedOutput()
 	})
 
 	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -66,7 +81,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		session.CloseOnDisconnect(watch)
+		session.OnDisconnect(func() { watch.Close() })
 
 		dir, err := os.Open(absPath)
 		defer dir.Close()
@@ -94,15 +109,53 @@ func main() {
 		}
 		server := &WebtermServer{session: session}
 		server.remote = remote
-		session.CloseOnDisconnect(server)
+		session.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
 
 	k.Run()
 }
 
-func getVM() {
+func AddSession(vm *virt.VM, session *kite.Session) {
+	statesMutex.Lock()
+	defer statesMutex.Unlock()
 
+	state, found := states[vm.Id]
+	if !found {
+		vm.Prepare()
+		state = &VMState{sessions: make(map[*kite.Session]bool)}
+		states[vm.Id] = state
+	}
+
+	if !state.sessions[session] {
+		return
+	}
+	state.sessions[session] = true
+	if state.timeout != nil {
+		state.timeout.Stop()
+		state.timeout = nil
+	}
+
+	session.OnDisconnect(func() {
+		statesMutex.Lock()
+		defer statesMutex.Unlock()
+
+		delete(state.sessions, session)
+		if len(state.sessions) != 0 {
+			return
+		}
+		state.timeout = time.AfterFunc(10*time.Minute, func() {
+			statesMutex.Lock()
+			defer statesMutex.Unlock()
+
+			if len(state.sessions) != 0 {
+				return
+			}
+			vm.ShutdownCommand().Run()
+			vm.Unprepare()
+			delete(states, vm.Id)
+		})
+	})
 }
 
 type FileEntry struct {

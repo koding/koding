@@ -17,6 +17,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	session.SetSafe(&mgo.Safe{})
 	database = session.DB("koding_dev2")
 	counters = database.C("jCounters")
 }

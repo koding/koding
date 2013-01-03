@@ -65,8 +65,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	vm, _ := virt.GetDefaultVM(server.session.User)
-	cmd := vm.AttachCommand(server.session.User.Id) // empty command is default shell
+	cmd := virt.GetDefaultVM(server.session.User).AttachCommand(server.session.User.Id) // empty command is default shell
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

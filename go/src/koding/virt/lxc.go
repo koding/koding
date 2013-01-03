@@ -5,16 +5,16 @@ import (
 	"os/exec"
 )
 
-func (vm *VM) Start() error {
-	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").Run()
+func (vm *VM) StartCommand() *exec.Cmd {
+	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon")
 }
 
-func (vm *VM) Stop() error {
-	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String()).Run()
+func (vm *VM) StopCommand() *exec.Cmd {
+	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String())
 }
 
-func (vm *VM) Shutdown() error {
-	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String(), "--timeout", "10").Start()
+func (vm *VM) ShutdownCommand() *exec.Cmd {
+	return exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String(), "--timeout", "5")
 }
 
 func (vm *VM) AttachCommand(uid int, command ...string) *exec.Cmd {

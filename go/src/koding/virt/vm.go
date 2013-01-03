@@ -52,9 +52,14 @@ func FindVMByName(name string) (*VM, error) {
 }
 
 // may panic
-func GetDefaultVM(user *db.User) (vm *VM, needsFormat bool) {
+func GetDefaultVM(user *db.User) *VM {
 	if user.DefaultVM == "" {
 		vm := FetchUnusedVM(user)
+
+		// create file system
+		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
+			panic(err)
+		}
 
 		vm.Name = user.Name
 		vm.LdapPassword = utils.RandomString()
@@ -62,19 +67,19 @@ func GetDefaultVM(user *db.User) (vm *VM, needsFormat bool) {
 			panic(err)
 		}
 
-		user.DefaultVM = vm.Id
-		if err := db.Users.UpdateId(user.Id, user); err != nil {
+		if err := db.Users.Update(bson.M{"_id": user.Id, "defaultVM": ""}, bson.M{"defaultVM": vm.Id}); err != nil {
 			panic(err)
 		}
+		user.DefaultVM = vm.Id
 
-		return vm, true
+		return vm
 	}
 
 	vm, err := FindVMById(user.DefaultVM)
 	if err != nil {
 		panic(err)
 	}
-	return vm, false
+	return vm
 }
 
 func (vm *VM) String() string {
@@ -160,11 +165,15 @@ func FetchUnusedVM(user *db.User) *VM {
 }
 
 // may panic
-func (vm *VM) Prepare(format bool) {
-	if vm.IP != nil {
-		return
+func (vm *VM) Prepare() {
+	vm.Unprepare()
+
+	ip := utils.IntToIP(<-ipPoolFetch)
+	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": ""}, bson.M{"ip": ip}); err != nil {
+		ipPoolRelease <- utils.IPToInt(ip)
+		panic(err)
 	}
-	vm.IP = utils.IntToIP(<-ipPoolFetch)
+	vm.IP = ip
 
 	// prepare directories
 	vm.PrepareDir(vm.File(""), 0)
@@ -174,13 +183,6 @@ func (vm *VM) Prepare(format bool) {
 	// write LXC files
 	vm.GenerateFile(vm.File("config"), "config", 0, false)
 	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
-
-	if format {
-		// create file system
-		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
-			panic(err)
-		}
-	}
 
 	// mount rbd/ceph
 	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
@@ -193,30 +195,27 @@ func (vm *VM) Prepare(format bool) {
 	vm.PrepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
 	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
 
-	if format {
-		// create user homes
-		for i, userId := range vm.Users {
-			user, err := db.FindUserById(userId)
+	// create user homes
+	for i, userId := range vm.Users {
+		user, err := db.FindUserById(userId)
+		if err != nil {
+			panic(err)
+		}
+		if vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id) && i == 0 {
+			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
+			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
+			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
+			vm.PrepareDir(vm.UpperdirFile(websiteDir), user.Id)
+			files, err := ioutil.ReadDir("templates/website")
 			if err != nil {
 				panic(err)
 			}
-			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id)
-			if i == 0 {
-				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
-				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
-				websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-				vm.PrepareDir(vm.UpperdirFile(websiteDir), user.Id)
-				files, err := ioutil.ReadDir("templates/website")
-				if err != nil {
-					panic(err)
-				}
-				for _, file := range files {
-					CopyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
-				}
-				vm.PrepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
-				if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
-					panic(err)
-				}
+			for _, file := range files {
+				CopyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
+			}
+			vm.PrepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
+			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
+				panic(err)
 			}
 		}
 	}
@@ -235,6 +234,7 @@ func (vm *VM) Prepare(format bool) {
 }
 
 func (vm *VM) Unprepare() {
+	vm.StopCommand().Run()
 	exec.Command("/bin/umount", vm.File("rootfs")).Run()
 	exec.Command("/bin/umount", vm.UpperdirFile("")).Run()
 	os.Remove(vm.File("config"))
@@ -243,20 +243,26 @@ func (vm *VM) Unprepare() {
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
 	if vm.IP != nil {
+		VMs.UpdateId(vm.Id, bson.M{"ip": ""})
 		ipPoolRelease <- utils.IPToInt(vm.IP)
 		vm.IP = nil
 	}
 }
 
 // may panic
-func (vm *VM) PrepareDir(path string, id int) {
-	if err := os.Mkdir(path, 0755); err != nil && !os.IsExist(err) {
+func (vm *VM) PrepareDir(path string, id int) bool {
+	if err := os.Mkdir(path, 0755); err != nil {
+		if os.IsExist(err) {
+			return false
+		}
 		panic(err)
 	}
 
 	if err := os.Chown(path, id, id); err != nil {
 		panic(err)
 	}
+
+	return true
 }
 
 // may panic

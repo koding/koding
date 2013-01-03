@@ -25,7 +25,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		session.CloseOnDisconnect(conn)
+		session.OnDisconnect(func() { conn.Close() })
 
 		go func() {
 			for message := range conn.ReceiveChannel {

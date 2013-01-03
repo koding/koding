@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"io"
 	"koding/config"
 	"koding/tools/db"
 	"koding/tools/dnode"
@@ -46,6 +45,11 @@ func (k *Kite) Run() {
 	utils.AmqpAutoReconnect(k.Name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
 		routeMap := make(map[string](chan<- []byte))
 		var routeMapMutex sync.RWMutex
+		defer func() {
+			for _, channel := range routeMap {
+				close(channel)
+			}
+		}()
 
 		publishChannel := utils.CreateAmqpChannel(publishConn)
 		defer publishChannel.Close()
@@ -120,6 +124,9 @@ func (k *Kite) Run() {
 
 							execHandler := func() {
 								result, err := handler.Callback(options["withArgs"], session)
+								if b, ok := result.([]byte); ok {
+									result = string(b)
+								}
 								if err != nil {
 									resultCallback(err.Error(), result)
 								} else if result != nil {
@@ -191,9 +198,10 @@ func (k *Kite) Run() {
 }
 
 type Session struct {
-	User    *db.User
-	Home    string
-	closers []io.Closer
+	User         *db.User
+	Home         string
+	Alive        bool
+	onDisconnect []func()
 }
 
 func NewSession(username string) *Session {
@@ -206,18 +214,20 @@ func NewSession(username string) *Session {
 	}
 
 	return &Session{
-		User: user,
-		Home: config.Current.HomePrefix + username,
+		User:  user,
+		Home:  config.Current.HomePrefix + username,
+		Alive: true,
 	}
 }
 
-func (session *Session) CloseOnDisconnect(closer io.Closer) {
-	session.closers = append(session.closers, closer)
+func (session *Session) OnDisconnect(f func()) {
+	session.onDisconnect = append(session.onDisconnect, f)
 }
 
 func (session *Session) Close() {
-	for _, closer := range session.closers {
-		closer.Close()
+	session.Alive = false
+	for _, f := range session.onDisconnect {
+		f()
 	}
-	session.closers = nil
+	session.onDisconnect = nil
 }
