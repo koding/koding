@@ -9,7 +9,11 @@
 
 include_recipe "yum::golang"
 
-
 yum_package "go" do
-    version "#{node["go"]["version"]}"
+    action :remove
+end
+
+
+yum_package "go-dev" do
+    version "#{node["go-dev"]["version"]}"
 end
