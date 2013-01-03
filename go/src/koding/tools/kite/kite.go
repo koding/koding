@@ -11,7 +11,6 @@ import (
 	"koding/tools/log"
 	"koding/tools/utils"
 	"os"
-	"os/exec"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -221,31 +220,4 @@ func (session *Session) Close() {
 		closer.Close()
 	}
 	session.closers = nil
-}
-
-func (session *Session) CreateCommand(command ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if config.Current.UseLVE {
-		cmd = exec.Command("/bin/lve_exec", command...)
-	} else {
-		cmd = exec.Command(command[0], command[1:]...)
-	}
-	cmd.Dir = session.Home
-	cmd.Env = []string{
-		"USER=" + session.User.Name,
-		"LOGNAME=" + session.User.Name,
-		"HOME=" + session.Home,
-		"SHELL=/bin/bash",
-		"TERM=xterm",
-		"LANG=en_US.UTF-8",
-		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + session.Home + "/bin",
-	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Credential: &syscall.Credential{
-			Uid: uint32(session.User.Id),
-			Gid: uint32(session.User.Id),
-		},
-	}
-
-	return cmd
 }

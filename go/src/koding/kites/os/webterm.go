@@ -6,6 +6,7 @@ import (
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
+	"koding/virt"
 	"os"
 	"strconv"
 	"strings"
@@ -58,14 +59,14 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	command := []string{"/bin/bash", "-l"}
 	// command = append(command, args...)
 
 	pty := pty.New()
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := server.session.CreateCommand(command...)
+	vm, _ := virt.GetDefaultVM(server.session.User)
+	cmd := vm.AttachCommand(server.session.User.Id) // empty command is default shell
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

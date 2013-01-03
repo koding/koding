@@ -204,14 +204,18 @@ func (vm *VM) Prepare(format bool) {
 			if i == 0 {
 				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
 				vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
-				websiteDir := vm.UpperdirFile("/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website")
-				vm.PrepareDir(websiteDir, user.Id)
+				websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
+				vm.PrepareDir(vm.UpperdirFile(websiteDir), user.Id)
 				files, err := ioutil.ReadDir("templates/website")
 				if err != nil {
 					panic(err)
 				}
 				for _, file := range files {
-					CopyFile("templates/website/"+file.Name(), websiteDir+"/"+file.Name(), user.Id)
+					CopyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
+				}
+				vm.PrepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
+				if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
+					panic(err)
 				}
 			}
 		}

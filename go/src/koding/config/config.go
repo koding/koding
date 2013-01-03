@@ -11,7 +11,6 @@ var configs = map[string]Config{
 		AmqpUser:     "guest",
 		AmqpPassword: "guest",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 	},
 
 	"dev": {
@@ -19,7 +18,6 @@ var configs = map[string]Config{
 		AmqpUser:     "guest",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 	},
 
 	"dev-new": {
@@ -27,7 +25,6 @@ var configs = map[string]Config{
 		AmqpUser:     "broker",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 	},
 
 	"dev-new-web0": {
@@ -35,7 +32,6 @@ var configs = map[string]Config{
 		AmqpUser:     "broker",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 	},
 
 	"cl3-new": {
@@ -43,7 +39,6 @@ var configs = map[string]Config{
 		AmqpUser:     "guest",
 		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 	},
 
 	"stage": {
@@ -51,7 +46,6 @@ var configs = map[string]Config{
 		AmqpUser:     "STAGE-sg46lU8J17UkVUq",
 		AmqpPassword: "TV678S1WT221t1q",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 		LogToLoggr:   true,
 	},
 
@@ -60,7 +54,6 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 		LogToLoggr:   true,
 	},
 
@@ -69,7 +62,6 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 		LogToLoggr:   true,
 	},
 
@@ -78,7 +70,6 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "djfjfhgh4455__5",
 		HomePrefix:   "/Users/",
-		UseLVE:       true,
 		LogToLoggr:   true,
 	},
 
@@ -95,12 +86,6 @@ var configs = map[string]Config{
 		AmqpPassword: "guest",
 		HomePrefix:   "/home/",
 	},
-
-	"websockets": {
-		UseWebsockets: true,
-		User:          "koding",
-		HomePrefix:    "/home/",
-	},
 }
 
 type Config struct {
@@ -108,12 +93,7 @@ type Config struct {
 	AmqpUser     string
 	AmqpPassword string
 	HomePrefix   string
-	UseLVE       bool
 	LogToLoggr   bool
-
-	// for webterm's websockets mode
-	UseWebsockets bool
-	User          string
 }
 
 var Current Config

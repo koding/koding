@@ -19,8 +19,7 @@ func main() {
 	k.Handle("startVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		vm, format := virt.GetDefaultVM(session.User)
 		vm.Prepare(format)
-		vm.Start()
-		return "Success", nil
+		return nil, vm.Start()
 	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -29,7 +28,8 @@ func main() {
 			return nil, &kite.ArgumentError{"array of strings"}
 		}
 
-		output, err := session.CreateCommand(command...).CombinedOutput()
+		vm, _ := virt.GetDefaultVM(session.User)
+		output, err := vm.AttachCommand(session.User.Id, command...).CombinedOutput()
 		return string(output), err
 	})
 
@@ -39,7 +39,8 @@ func main() {
 			return nil, &kite.ArgumentError{"string"}
 		}
 
-		output, err := session.CreateCommand("/bin/bash", "-c", line).CombinedOutput()
+		vm, _ := virt.GetDefaultVM(session.User)
+		output, err := vm.AttachCommand(session.User.Id, "/bin/bash", "-c", line).CombinedOutput()
 		return string(output), err
 	})
 
@@ -98,6 +99,10 @@ func main() {
 	})
 
 	k.Run()
+}
+
+func getVM() {
+
 }
 
 type FileEntry struct {
