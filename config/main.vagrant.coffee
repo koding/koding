@@ -18,8 +18,9 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
-  uri           :
-    address     : "http://10.0.0.2:3020"
+  uri :
+    address : 
+      prod : "http://10.0.0.2:3020", dev : "->prod", vagrant : "->prod"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -116,20 +117,21 @@ module.exports = deepFreeze
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
-  crypto :
-    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      cipher = crypto.createCipher('aes-256-cbc',""+key)
-      cipher.update(str,'utf-8')
-      a = cipher.final('hex')
-      return a
-    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      decipher = crypto.createDecipher('aes-256-cbc',""+key)
-      decipher.update(str,'hex')
-      b = decipher.final('utf-8')
-      return b
+
+  # crypto :
+  #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
+  #     crypto = require "crypto"
+  #     str = str+""
+  #     key = key+""
+  #     cipher = crypto.createCipher('aes-256-cbc',""+key)
+  #     cipher.update(str,'utf-8')
+  #     a = cipher.final('hex')
+  #     return a
+  #   decrypt: (str,key=Math.floor(Date.now()/1000/60))->
+  #     crypto = require "crypto"
+  #     str = str+""
+  #     key = key+""
+  #     decipher = crypto.createDecipher('aes-256-cbc',""+key)
+  #     decipher.update(str,'hex')
+  #     b = decipher.final('utf-8')
+  #     return b
