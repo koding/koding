@@ -136,28 +136,28 @@ class ActivityAppController extends AppController
 
     updateWidgetController.on 'OwnActivityHasFailed', (activity)=>
       # log 'this has failed:',activity
-      if @fake and @activityListController.fakeView?
-        @activityListController.fakeView.setClass 'hidden-item'
+      # if @fake and @activityListController.fakeView?
+      #   @activityListController.fakeView.setClass 'hidden-item'
 
-        constructorToTab=
-          'JStatusUpdate':
-            tabName : 'update'
-            title : 'Status Update'
-          'JCodeSnip':
-            tabName : 'codesnip'
-            title : 'Code Snip'
-          'JDiscussion':
-            tabName : 'discussion'
-            title : 'Discussion'
-          'JTutorial':
-            tabName : 'tutorial'
-            title : 'Tutorial'
+      #   constructorToTab=
+      #     'JStatusUpdate':
+      #       tabName : 'update'
+      #       title : 'Status Update'
+      #     'JCodeSnip':
+      #       tabName : 'codesnip'
+      #       title : 'Code Snip'
+      #     'JDiscussion':
+      #       tabName : 'discussion'
+      #       title : 'Discussion'
+      #     'JTutorial':
+      #       tabName : 'tutorial'
+      #       title : 'Tutorial'
 
-        {tabName,title} = constructorToTab[@fake.fakeType]
-        mainView.widget.changeTab tabName, title
-        updateWidgetController.emit 'editFromFakeData', @fake
-        @utils.wait 600, =>
-          @activityListController.removeItem @fake, @fake
+      #   {tabName,title} = constructorToTab[@fake.fakeType]
+      #   mainView.widget.changeTab tabName, title
+      #   updateWidgetController.emit 'editFromFakeData', @fake
+      #   @utils.wait 600, =>
+      #     @activityListController.removeItem @fake, @fake
 
     return updateWidgetController
 
@@ -310,35 +310,6 @@ class ActivityAppController extends AppController
     @performFetchingTeasers type, selector, options, (err, data) ->
       KD.remote.reviveFromSnapshots data, (err, instances)->
         callback instances
-
-    # # Old code
-    #
-    # appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
-    #   if err
-    #     log '>> error fetching app storage', err
-    #   else
-    #     options.collection = 'activities'
-    #     flags = KD.whoami().globalFlags
-    #     exempt = flags?.indexOf 'exempt'
-    #     exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-    #     $.ajax KD.apiUri+'/1.0'
-    #       data      :
-    #         t       : if exempt then 1 else undefined
-    #         data    : JSON.stringify(_.extend options, selector)
-    #         env     : KD.config.env
-    #       dataType  : 'jsonp'
-    #       success   : (data)->
-    #         KD.remote.reviveFromSnapshots data, (err, instances)->
-    #           # log instances
-    #           callback instances
-
-    # # Unused code from before
-    #
-    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
-    #   if not err and activities?
-    #     callback? activities
-    #   else
-    #     callback()
 
   fetchFeedForHomePage:(callback)->
     # devrim's api

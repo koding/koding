@@ -18,7 +18,7 @@ class GroupsListItemView extends KDListItemView
         cssClass    : 'edit-group'
         partial     : '<span class="icon"></span>Group settings'
         click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditGroupButtonClicked', @
+          @getSingleton('mainController').emit 'EditGroupButtonClicked', this
       , null
 
       @grantPermissionsButton = new KDCustomHTMLView
@@ -26,12 +26,12 @@ class GroupsListItemView extends KDListItemView
         cssClass    : 'edit-group'
         partial     : '<span class="icon"></span>Permissions'
         click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', @
+          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', this
       , null
     else
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    @joinButton = new KDToggleButton
+    @joinButton = new JoinButton
       style           : if data.member then "follow-btn following-topic" else "follow-btn"
       title           : "Join"
       dataPath        : "member"
@@ -43,14 +43,12 @@ class GroupsListItemView extends KDListItemView
       states          : [
         "Join", (callback)->
           data.join (err, response)=>
-            console.log arguments
             @hideLoader()
             unless err
               @setClass 'following-btn following-topic'
               callback? null
         "Leave", (callback)->
           data.leave (err, response)=>
-            console.log arguments
             @hideLoader()
             unless err
               @unsetClass 'following-btn following-topic'

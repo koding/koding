@@ -1,8 +1,13 @@
 KD.remote = new Bongo
 
+  resourceName: KD.config.resourceName ? 'koding-social'
+
   getUserArea:-> KD.getSingleton('mainController').getUserArea()
 
   getSessionToken:-> $.cookie('clientId')
+
+  # createRoutingKey:(service, event)->
+    # "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
 
   fetchName:do->
     cache = {}
@@ -35,11 +40,4 @@ KD.remote = new Bongo
 
   mq: do->
     {broker} = KD.config
-    brokerOptions = {
-      encrypted     : yes
-      sockURL       : broker.sockJS
-      authEndPoint  : broker.auth
-      vhost         : broker.vhost
-      autoReconnect : yes
-    }
-    broker = new Broker broker.apiKey, brokerOptions
+    broker = new KDBroker.Broker broker.sockJS, autoReconnect: yes
