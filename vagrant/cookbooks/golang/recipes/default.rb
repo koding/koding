@@ -16,4 +16,6 @@ end
 
 yum_package "go-dev" do
     version "#{node["go-dev"]["version"]}"
+    action :install
 end
+
