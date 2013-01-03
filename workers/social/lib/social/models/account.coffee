@@ -233,7 +233,7 @@ module.exports = class JAccount extends jraphical.Module
       if err
         callback err
       else
-        current = user.getAt 'emailFrequency'
+        current = user.getAt('emailFrequency') or {}
         Object.keys(prefs).forEach (granularity)->
           current[granularity] = if prefs[granularity] then 'instant' else 'never'
         user.update {$set: emailFrequency: current}, callback
