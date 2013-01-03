@@ -15,6 +15,10 @@ KONFIG = require argv.c.trim()
 {librato, mongo} = KONFIG
 
 os = require 'os'
+http = require 'http'
+
+# Node ID
+node_id = ''
 
 # Mongo entry counts
 db_users = 0
@@ -38,15 +42,15 @@ get_stats = ->
   print "Load average: " + loadavg
   load1 =
     name: 'load'
-    source: '1'
+    source: '1:' + node_id
     value: loadavg[0]
   load5 =
     name: 'load'
-    source: '5'
+    source: '5:' + node_id
     value: loadavg[1]
   load15 =
     name: 'load'
-    source: '15'
+    source: '15:' + node_id
     value: loadavg[2]
 
   # Available memory
@@ -54,12 +58,10 @@ get_stats = ->
   mem_free = os.freemem() / (1024 * 1024)
   mem_used = mem_total - mem_free
   print "Memory: " + mem_used + "/" + mem_total
-  memory_total =
-    name: 'memory_total'
-    value: mem_total
   memory_used =
     name: 'memory_used'
-    value: mem_used
+    source: node_id
+    value: mem_used * 100 / mem_total
 
   # Mongo stats
   print "Users: " + db_users
@@ -113,19 +115,17 @@ push = (stats) ->
       if err
         console.log "LIBRATO: " + err
 
-console.log "Starting Librato worker"
+# Collect stats and post to Librato
+post_to_librato = ->
+  data = get_stats()
+  push data
 
-# Collect data from Mongo in every <interval>/2 seconds
-setInterval ->
+# Collect information from Mongo
+collect_mongo = ->
   # Get total users
   collector = db.collection 'jUsers'
   collector.count (err, count) ->
     db_users = count
-
-  # # Get total posts
-  # collector = db.collection 'jPosts'
-  # collector.count (err, count) ->
-  #   db_posts = count
 
   # Get total activities
   collector = db.collection 'cActivities'
@@ -142,11 +142,25 @@ setInterval ->
   collector.count {type: 'JDatabaseMongo'}, (err, count) ->
     db_mongo = count
 
-, (librato.interval / 2)
+# Get machine ID and start collecting stats
+options =
+  host: '169.254.169.254'
+  port: 80
+  path: '/latest/meta-data/instance-id'
 
-# Post to Librato in every <interval> seconds
-setInterval ->
-  data = get_stats()
-  push data
+http.get(options, (res) ->
+  res.on "data", (chunk) ->
+    node_id = chunk
 
-, librato.interval
+    # Collect data from Mongo in every <interval>/2 seconds
+    setInterval ->
+      collect_mongo
+    , (librato.interval / 2)
+
+    # Post to Librato in every <interval> seconds
+    setInterval ->
+      post_to_librato
+    , librato.interval
+
+).on "error", (e) ->
+  console.log "AWS - Can't get machine ID: " + e.message
