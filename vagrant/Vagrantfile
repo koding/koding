@@ -31,6 +31,7 @@ end
 private_ssh_key = "vagrant.pem"
 template_centos_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/centos64.box"
 template_cloudlinux_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/cloudlinux64.box"
+template_precise_url = "ubuntu1204-64"
 
 koding_git_dir = ENV['PWD']
 cookbooks_dir = "#{koding_git_dir}/vagrant/cookbooks"
@@ -48,6 +49,31 @@ File.new(private_ssh_key).chmod(0600)
 
 Vagrant::Config.run do |config|
     config.ssh.private_key_path = private_ssh_key
+
+    # ---- Ceph client configuration -------
+    config.vm.define :cephClient do |cephClient_config|
+
+          cephClient_config.vm.box = "ubuntu1204-64"
+          # cephClient_config.vm.box_path = template_precise_url
+          cephClient_config.vm.network :hostonly, "10.0.0.15"
+          cephClient_config.vm.host_name = "ceph-client.local"
+          # cephClient_config.vm.forward_port 3000, 3000 # nodejs web server
+          cephClient_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+          cephClient_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+          cephClient_config.vm.customize [
+                                    "modifyvm", :id,
+                                    "--memory", 512,
+                                    "--cpus", 2
+                                  ]
+
+          cephClient_config.vm.provision :chef_solo do |chef|
+            chef.cookbooks_path = cookbooks_dir
+            chef.roles_path = roles_dir
+            chef.add_role("ceph-client")
+          end
+    end
+    # ----- end of Ceph client configuration -----
+
 
     # ---- Web server configuration -------
     config.vm.define :web do |web_config|
@@ -76,70 +102,69 @@ Vagrant::Config.run do |config|
 
 
     # ---- RabbitMQ server configuration -------
-    config.vm.define :rabbitmq do |rabbitmq_config|
+    # config.vm.define :rabbitmq do |rabbitmq_config|
 
-          rabbitmq_config.vm.box = "centos64"
-          rabbitmq_config.vm.box_url = template_centos_url
-          rabbitmq_config.vm.host_name = "rabbitmq.local"
-          rabbitmq_config.vm.forward_port 55672, 55672 # rabbitmq management console
-          rabbitmq_config.vm.network :hostonly, hosts["rabbitmq.local"]
-          rabbitmq_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
+    #       rabbitmq_config.vm.box = "centos64"
+    #       rabbitmq_config.vm.box_url = template_centos_url
+    #       rabbitmq_config.vm.host_name = "rabbitmq.#{local_user}.local"
+    #       rabbitmq_config.vm.forward_port 55672, 55672 # rabbitmq management console
+    #       rabbitmq_config.vm.network :hostonly, "10.0.0.3"
+    #       rabbitmq_config.vm.customize [
+    #                                 "modifyvm", :id,
+    #                                 "--memory", 1024,
+    #                                 "--cpus", 1
+    #                               ]
 
-          rabbitmq_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("rabbitmq_server")
-          end
-    end
+    #       rabbitmq_config.vm.provision :chef_solo do |chef|
+    #         chef.cookbooks_path = cookbooks_dir
+    #         chef.roles_path = roles_dir
+    #         chef.add_role("rabbitmq_server")
+    #       end
+    # end
     # ----- end of RabbitMQ server configuration -----
 
     # ---- CloudLinux server configuration -------
-    config.vm.define :cloudlinux do |cloudlinux_config|
+    # config.vm.define :cloudlinux do |cloudlinux_config|
 
-          cloudlinux_config.vm.box = "cloudlinux64"
-          cloudlinux_config.vm.box_url = template_cloudlinux_url
-          cloudlinux_config.vm.host_name = "cl.local"
-          #cloudlinux_config.vm.forward_port 55672, 55672 
-          cloudlinux_config.vm.network :hostonly, hosts["cl.local"]
-          cloudlinux_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
+    #       cloudlinux_config.vm.box = "cloudlinux64"
+    #       cloudlinux_config.vm.box_url = template_cloudlinux_url
+    #       cloudlinux_config.vm.host_name = "cloudlinux.#{local_user}.local"
+    #       #cloudlinux_config.vm.forward_port 55672, 55672 
+    #       cloudlinux_config.vm.network :hostonly, "10.0.0.4"
+    #       cloudlinux_config.vm.customize [
+    #                                 "modifyvm", :id,
+    #                                 "--memory", 368,
+    #                                 "--cpus", 1
+    #                               ]
 
-          cloudlinux_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("hosting_server")
-          end
-    end
+    #       cloudlinux_config.vm.provision :chef_solo do |chef|
+    #         chef.cookbooks_path = cookbooks_dir
+    #         chef.roles_path = roles_dir
+    #         chef.add_role("base_server")
+    #       end
+    # end
     # ----- end of cloudlinux server configuration -----
 
     # ---- LDAP server configuration -------
-    config.vm.define :ldap do |ldap_config|
+    # config.vm.define :ldap do |ldap_config|
 
-          ldap_config.vm.box = "centos64"
-          ldap_config.vm.box_url = template_centos_url
-          ldap_config.vm.host_name = "ldap.local"
-          #ldap_config.vm.forward_port 55672, 55672 
-          ldap_config.vm.network :hostonly, hosts["ldap.local"]
-          ldap_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
+    #       ldap_config.vm.box = "centos64"
+    #       ldap_config.vm.box_url = template_centos_url
+    #       ldap_config.vm.host_name = "ldap.local"
+    #       #ldap_config.vm.forward_port 55672, 55672 
+    #       ldap_config.vm.network :hostonly, "10.0.0.5"
+    #       ldap_config.vm.customize [
+    #                                 "modifyvm", :id,
+    #                                 "--memory", 368,
+    #                                 "--cpus", 1
+    #                               ]
 
-          ldap_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("dev-ldap_server")
-         end
-    end
+    # #      ldap_config.vm.provision :chef_solo do |chef|
+    # #        chef.cookbooks_path = cookbooks_dir
+    # #        chef.roles_path = roles_dir
+    # #        chef.add_role("base_server")
+    # #      end
+    # end
     # ----- end of ldap server configuration -----
 
 end
