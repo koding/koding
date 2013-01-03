@@ -1,0 +1,29 @@
+{
+  "recipes": {
+  },
+  "suggestions": {
+  },
+  "dependencies": {
+  },
+  "attributes": {
+  },
+  "replacing": {
+  },
+  "platforms": {
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "description": "Installs/Configures hosts",
+  "providing": {
+  },
+  "conflicting": {
+  },
+  "license": "All rights reserved",
+  "version": "0.1.0",
+  "maintainer": "YOUR_COMPANY_NAME",
+  "groupings": {
+  },
+  "maintainer_email": "YOUR_EMAIL",
+  "name": "hosts",
+  "recommendations": {
+  }
+}
