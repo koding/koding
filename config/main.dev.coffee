@@ -88,7 +88,7 @@ module.exports = deepFreeze
     ]
     pidFile     : '/var/run/broker.pid'
   kites:
-    disconnectTimeout: 3e3
+    disconnectTimeout: 3000
     vhost       : 'kite'
   email         :
     host        : 'localhost'
@@ -97,7 +97,7 @@ module.exports = deepFreeze
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
-    poolSize        : 1e4
+    poolSize        : 1000
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
   logger            :

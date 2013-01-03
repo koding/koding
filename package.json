@@ -12,7 +12,7 @@
   "main": "server/index.js",
   "scripts" : {
     "preinstall"  : "rm -rf ./node_modules",
-    "install"     : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
+    "install"     : "cd node_modules/ && ln -s ../node_modules_koding/* .",
     "preupdate"   : "echo pre-update... ",
     "update"      : "echo update..."
   },
