@@ -8,47 +8,18 @@ import (
 	"time"
 )
 
-type LimiterData struct {
-	active           bool
-	previousCpuUsage int
-	cpuShares        int
-}
+const MaxMemoryLimit = 1024 * 1024 * 1024
 
-const MAX_MEMORY_LIMIT = 1024 * 1024 * 1024
-
-func main() {
-	datas := make(map[string]*LimiterData)
+func LimiterLoop() {
 	totalRAM := GetTotalRAM()
 
 	for {
-		// add/remove map entries
-		for _, data := range datas {
-			data.active = false
-		}
-		infos, err := ioutil.ReadDir("/sys/fs/cgroup/cpuacct/lxc")
-		if err != nil {
-			panic(err)
-		}
-		for _, info := range infos {
-			if info.IsDir() {
-				data := datas[info.Name()]
-				if data != nil {
-					data.active = true
-				} else {
-					datas[info.Name()] = &LimiterData{true, 1<<63 - 1, 1000}
-				}
-			}
-		}
-		for name, data := range datas {
-			if !data.active {
-				delete(datas, name)
-			}
-		}
+		statesMutex.Lock()
 
 		// collect memory stats and calculate limit
-		groupCount := len(datas)
-		memoryUsages := make([]int, 0, groupCount)
-		for name := range datas {
+		vmCount := len(states)
+		memoryUsages := make([]int, 0, vmCount)
+		for name := range states {
 			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.memsw.usage_in_bytes", name))
 			memoryUsages = append(memoryUsages, usage)
 		}
@@ -59,23 +30,23 @@ func main() {
 		for i, memoryUsage := range memoryUsages {
 			diff := memoryUsage - previousMemoryUsage
 			previousMemoryUsage = memoryUsage
-			required := diff * (groupCount - i)
+			required := diff * (vmCount - i)
 			if required <= availableMemory {
 				memoryLimit += diff
 				availableMemory -= required
 			} else {
-				memoryLimit += availableMemory / (groupCount - i)
+				memoryLimit += availableMemory / (vmCount - i)
 				availableMemory = 0
 				break
 			}
 		}
 		memoryLimit += availableMemory
-		if memoryLimit > MAX_MEMORY_LIMIT {
-			memoryLimit = MAX_MEMORY_LIMIT
+		if memoryLimit > MaxMemoryLimit {
+			memoryLimit = MaxMemoryLimit
 		}
 
 		// apply limits
-		for name, data := range datas {
+		for name, data := range states {
 			cpuUsage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage", name))
 
 			diff := 0
@@ -97,6 +68,7 @@ func main() {
 			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(memoryLimit)), 0644)
 		}
 
+		statesMutex.Unlock()
 		time.Sleep(time.Second)
 	}
 }

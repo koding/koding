@@ -1,7 +1,5 @@
 package main
 
-import ()
-
 // #include <sys/sysinfo.h>
 import "C"
 

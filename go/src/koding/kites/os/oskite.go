@@ -6,7 +6,6 @@ import (
 	"koding/tools/kite"
 	"koding/tools/utils"
 	"koding/virt"
-	"labix.org/v2/mgo/bson"
 	"os"
 	"path"
 	"sync"
@@ -15,16 +14,19 @@ import (
 )
 
 type VMState struct {
-	sessions map[*kite.Session]bool
-	timeout  *time.Timer
+	sessions         map[*kite.Session]bool
+	timeout          *time.Timer
+	previousCpuUsage int
+	cpuShares        int
 }
 
-var states = make(map[bson.ObjectId]*VMState)
+var states = make(map[string]*VMState)
 var statesMutex sync.Mutex
 
 func main() {
 	utils.Startup("os kite", true)
 
+	go LimiterLoop()
 	k := kite.New("os")
 
 	k.Handle("startVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -120,11 +122,15 @@ func AddSession(vm *virt.VM, session *kite.Session) {
 	statesMutex.Lock()
 	defer statesMutex.Unlock()
 
-	state, found := states[vm.Id]
+	state, found := states[vm.String()]
 	if !found {
 		vm.Prepare()
-		state = &VMState{sessions: make(map[*kite.Session]bool)}
-		states[vm.Id] = state
+		state = &VMState{
+			sessions:         make(map[*kite.Session]bool),
+			previousCpuUsage: utils.MaxInt,
+			cpuShares:        1000,
+		}
+		states[vm.String()] = state
 	}
 
 	if !state.sessions[session] {
@@ -153,7 +159,7 @@ func AddSession(vm *virt.VM, session *kite.Session) {
 			}
 			vm.ShutdownCommand().Run()
 			vm.Unprepare()
-			delete(states, vm.Id)
+			delete(states, vm.String())
 		})
 	})
 }

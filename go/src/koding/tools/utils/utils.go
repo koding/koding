@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+const MaxInt = int(^uint(0) >> 1)
+
 var version string
 var numClients int = 0
 var ChangeNumClients chan int = make(chan int)
