@@ -16,7 +16,7 @@ variant="buildd"
 target="/var/lib/lxc/vmroot/rootfs"
 VM_upstart="/etc/init"
 
-mirror="http://10.158.65.166/ubuntu/"
+mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
 
 # Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
@@ -25,18 +25,13 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 function debootstrap() {
-  if [ -d $target ]
-  then
-    read -p "Target directory $target already exists. Erase it? [Ny] "
-    if [[ $REPLY =~ ^[Yy].*$ ]]
-    then
-      lxc-stop -n vmroot
-      rm -rf $target
-    else
-      echo "Aborting..."
-      exit 1
-    fi
-  fi
+   if [ -d $target ]
+   then
+    echo "Target exists... stopping vmroot VM and deleting old VMRoot dir"
+    lxc-stop -n vmroot;
+    sleep 1;
+    rm -rf $target;
+   fi
 
   $(which debootstrap) --include $packages --variant=$variant $suite $target $mirror
 }
@@ -74,7 +69,7 @@ deb $mirror $suite-updates main universe multiverse
 deb $mirror $suite-security main universe multiverse
 EOS
 
-./../go/bin/idshift $target;
+/opt/koding/go/bin/idshift $target;
 
 # Disable interactive dpkg
 #chroot <<-EOS
@@ -102,6 +97,7 @@ echo "Doing APT-GET Stuff"
 run_in_vmroot /usr/bin/apt-get update
 export DEBIAN_FRONTEND=noninteractive
 run_in_vmroot /usr/bin/apt-get install $additional_packages -y -qq
+run_in_vmroot /bin/mkdir -p /usr/share/update-sun-jre
 run_in_vmroot /usr/bin/wget http://www.duinsoft.nl/pkg/pool/all/update-sun-jre.bin -O /root/update-sun-jre.bin
 run_in_vmroot /bin/sh /root/update-sun-jre.bin
 

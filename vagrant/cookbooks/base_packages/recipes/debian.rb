@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make vim screen mercurial )
+packages = %w( make vim screen mercurial golang-go htop )
 
 packages.each do |pkg|
     package "#{pkg}" do
