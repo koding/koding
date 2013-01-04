@@ -61,8 +61,24 @@ func main() {
 
 			subscriptions := make(map[string]bool)
 
-			controlChannel := utils.CreateAmqpChannel(publishConn)
-			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
+			var controlChannel *amqp.Channel
+			resetControlChannel := func() {
+				if controlChannel != nil {
+					controlChannel.Close()
+				}
+				controlChannel = utils.CreateAmqpChannel(publishConn)
+				go func() {
+					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
+						body, err := json.Marshal(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+						if err != nil {
+							panic(err)
+						}
+						sendChan <- string(body)
+					}
+				}()
+			}
+			resetControlChannel()
+			defer func() { controlChannel.Close() }()
 
 			err := controlChannel.Publish("auth", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 			if err != nil {
@@ -77,8 +93,7 @@ func main() {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 					if err != nil {
 						log.LogError(err)
-						controlChannel.Close()
-						controlChannel = utils.CreateAmqpChannel(publishConn)
+						resetControlChannel()
 					} else {
 						break
 					}
@@ -118,8 +133,7 @@ func main() {
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
 								if err != nil {
 									log.LogError(err)
-									controlChannel.Close()
-									controlChannel = utils.CreateAmqpChannel(publishConn)
+									resetControlChannel()
 								} else {
 									break
 								}
