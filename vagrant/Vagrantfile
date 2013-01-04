@@ -6,12 +6,23 @@ hosts = {
         "rabbitmq.local" => "10.5.5.3",
         "cl.local"       => "10.5.5.4",
         "ldap.local"     => "10.5.5.5",
+}
+
+workers = {
         "web0.local"     => "10.5.5.6",
         "web1.local"     => "10.5.5.7",
         "web3.local"     => "10.5.5.8",
         "web4.local"     => "10.5.5.9",
 }
 
+if ENV["WEB_WORKERS"]
+    hosts.update(workers)
+else
+    "**** NOTE *****"
+    puts "if you want to start additional NodeJS servers ( #{workers.keys.join(', ')} )"
+    puts "set env variable with 'export WEB_WORKERS=true'"
+    puts "*******"
+end
 
 count=0
 File.open('/etc/hosts').each_line do |s|
@@ -78,131 +89,131 @@ Vagrant::Config.run do |config|
           end
     end
     # ----- end of Web server configuration -----
+    if ENV["RUN_WORKERS"]
+        # ---- Web0 server configuration -------
+        config.vm.define :web0 do |web0_config|
+              
+              web0_config.vm.box = "centos64"
+              web0_config.vm.box_url = template_centos_url
+              web0_config.vm.network :hostonly, hosts["web0.local"]
+              web0_config.vm.host_name = "web0.local"
+              web0_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+              web0_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+              web0_config.vm.customize [
+                                        "modifyvm", :id,
+                                        "--memory", 368,
+                                        "--cpus", 1
+                                      ]
 
-    # ---- Web0 server configuration -------
-    config.vm.define :web0 do |web0_config|
-          
-          web0_config.vm.box = "centos64"
-          web0_config.vm.box_url = template_centos_url
-          web0_config.vm.network :hostonly, hosts["web0.local"]
-          web0_config.vm.host_name = "web0.local"
-          web0_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          web0_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          web0_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
-
-          web0_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server")
-          end
-    end
-    # ----- end of Web0 server configuration -----
-
-
-    # ---- Web1 server configuration -------
-    config.vm.define :web1 do |web1_config|
-          
-          web1_config.vm.box = "centos64"
-          web1_config.vm.box_url = template_centos_url
-          web1_config.vm.network :hostonly, hosts["web1.local"]
-          web1_config.vm.host_name = "web1.local"
-          web1_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          web1_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          web1_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
-
-          web1_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server")
-          end
-    end
-    # ----- end of Web server configuration -----
+              web0_config.vm.provision :chef_solo do |chef|
+                chef.cookbooks_path = cookbooks_dir
+                chef.roles_path = roles_dir
+                chef.add_role("base_server")
+                chef.add_role("web_server")
+              end
+        end
+        # ----- end of Web0 server configuration -----
 
 
-    # ---- Web2 server configuration -------
-    config.vm.define :web2 do |web2_config|
-          
-          web2_config.vm.box = "centos64"
-          web2_config.vm.box_url = template_centos_url
-          web2_config.vm.network :hostonly, hosts["web2.local"]
-          web2_config.vm.host_name = "web2.local"
-          web2_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          web2_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          web2_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
+        # ---- Web1 server configuration -------
+        config.vm.define :web1 do |web1_config|
+              
+              web1_config.vm.box = "centos64"
+              web1_config.vm.box_url = template_centos_url
+              web1_config.vm.network :hostonly, hosts["web1.local"]
+              web1_config.vm.host_name = "web1.local"
+              web1_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+              web1_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+              web1_config.vm.customize [
+                                        "modifyvm", :id,
+                                        "--memory", 368,
+                                        "--cpus", 1
+                                      ]
 
-          web2_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server")
-          end
-    end
-    # ----- end of Web server configuration -----
-
-
-    # ---- Web3 server configuration -------
-    config.vm.define :web3 do |web3_config|
-          
-          web3_config.vm.box = "centos64"
-          web3_config.vm.box_url = template_centos_url
-          web3_config.vm.network :hostonly, hosts["web3.local"]
-          web3_config.vm.host_name = "web3.local"
-          web3_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          web3_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          web3_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
-
-          web3_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server")
-          end
-    end
-    # ----- end of Web server configuration -----
+              web1_config.vm.provision :chef_solo do |chef|
+                chef.cookbooks_path = cookbooks_dir
+                chef.roles_path = roles_dir
+                chef.add_role("base_server")
+                chef.add_role("web_server")
+              end
+        end
+        # ----- end of Web server configuration -----
 
 
-    # ---- Web4 server configuration -------
-    config.vm.define :web4 do |web4_config|
-          
-          web4_config.vm.box = "centos64"
-          web4_config.vm.box_url = template_centos_url
-          web4_config.vm.network :hostonly, hosts["web4.local"]
-          web4_config.vm.host_name = "web4.local"
-          web4_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          web4_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          web4_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1
-                                  ]
+        # ---- Web2 server configuration -------
+        config.vm.define :web2 do |web2_config|
+              
+              web2_config.vm.box = "centos64"
+              web2_config.vm.box_url = template_centos_url
+              web2_config.vm.network :hostonly, hosts["web2.local"]
+              web2_config.vm.host_name = "web2.local"
+              web2_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+              web2_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+              web2_config.vm.customize [
+                                        "modifyvm", :id,
+                                        "--memory", 368,
+                                        "--cpus", 1
+                                      ]
 
-          web4_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server")
-          end
-    end
-    # ----- end of Web server configuration -----
+              web2_config.vm.provision :chef_solo do |chef|
+                chef.cookbooks_path = cookbooks_dir
+                chef.roles_path = roles_dir
+                chef.add_role("base_server")
+                chef.add_role("web_server")
+              end
+        end
+        # ----- end of Web server configuration -----
 
+
+        # ---- Web3 server configuration -------
+        config.vm.define :web3 do |web3_config|
+              
+              web3_config.vm.box = "centos64"
+              web3_config.vm.box_url = template_centos_url
+              web3_config.vm.network :hostonly, hosts["web3.local"]
+              web3_config.vm.host_name = "web3.local"
+              web3_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+              web3_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+              web3_config.vm.customize [
+                                        "modifyvm", :id,
+                                        "--memory", 368,
+                                        "--cpus", 1
+                                      ]
+
+              web3_config.vm.provision :chef_solo do |chef|
+                chef.cookbooks_path = cookbooks_dir
+                chef.roles_path = roles_dir
+                chef.add_role("base_server")
+                chef.add_role("web_server")
+              end
+        end
+        # ----- end of Web server configuration -----
+
+
+        # ---- Web4 server configuration -------
+        config.vm.define :web4 do |web4_config|
+              
+              web4_config.vm.box = "centos64"
+              web4_config.vm.box_url = template_centos_url
+              web4_config.vm.network :hostonly, hosts["web4.local"]
+              web4_config.vm.host_name = "web4.local"
+              web4_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+              web4_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+              web4_config.vm.customize [
+                                        "modifyvm", :id,
+                                        "--memory", 368,
+                                        "--cpus", 1
+                                      ]
+
+              web4_config.vm.provision :chef_solo do |chef|
+                chef.cookbooks_path = cookbooks_dir
+                chef.roles_path = roles_dir
+                chef.add_role("base_server")
+                chef.add_role("web_server")
+              end
+        end
+        # ----- end of Web server configuration -----
+    end # end of if ENV["RUN_WORKERS"]
 
 
 
