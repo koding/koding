@@ -20,7 +20,7 @@ end
 KODING_ROOT = '/opt/koding/'
 deploy_revision KODING_ROOT do
     deploy_to         KODING_ROOT
-    repo              'ssh://git@kodingen.beanstalkapp.com:/koding.git'
+    repo              'git@kodingen.beanstalkapp.com:/koding.git'
     revision          node['kd_deploy']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
     action            node['kd_deploy']['release_action']
     shallow_clone     true
