@@ -27,7 +27,7 @@ else
       middleware : (name,callback) -> koding.disconnect callback
       middlewareTimeout : 5000
     librato: KONFIG.librato
-  
+
   {extend} = require 'underscore'
   express  = require 'express'
   Broker   = require 'broker'
@@ -64,7 +64,7 @@ else
     # throw err
     # console.trace()
 
-  # koding = require './bongo'
+  koding = require './bongo'
 
   # kiteBroker =\
   #   if kites?.vhost?
@@ -76,6 +76,36 @@ else
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
+
+  startTime = null
+  app.get "/-/cache/latest", (req, res)->
+    {JActivityCache} = koding.models
+    startTime = Date.now()
+    JActivityCache.latest (err, cache)->
+      if err then console.warn err
+      console.log "latest: #{Date.now() - startTime} msecs!"
+      res.send if cache then cache.data else []
+
+  app.get "/-/cache/next", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.next (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else []
+
+  app.get "/-/cache/prev", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.prev (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else []
+
+  app.get "/-/cache/id/:id", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.byId (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else []
+
+  app.get "/-/cache/time/:timestamp", (req, res)->
+    {JActivityCache} = koding.models
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'

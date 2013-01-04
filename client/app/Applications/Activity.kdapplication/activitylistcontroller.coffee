@@ -54,26 +54,19 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  listActivities:(activities)->
+  listActivities:(cache)->
 
-    # for item in overview
-    #   log item
-    #   unless /^CNewMemberBucket/.test item.type
-    #     @addItem activities[item.ids[0]]
+    for item in cache.overview
+      if item.ids.length > 1
+        @addItem new NewMemberBucketData
+          type      : "CNewMemberBucketActivity"
+          teasers   : (cache.activities[id] for id in item.ids)
+          count     : item.count
+          createdAt : item.createdAt
+      else
+        @addItem cache.activities[item.ids.first].teaser
 
-    # log activities
-    # log overview
-
-    @addItem activity for activity in activities when activity
     @teasersLoaded()
-      # if group.type is "CNewMemberBucket"
-      #   @addItem new NewMemberBucketData
-      #     type  : group.type
-      #     ids   : group.ids
-      #     count : group.count
-      # else
-        # for id in group.ids
-        #   @addItem type : group.type, ids : [id]
 
   teasersLoaded:->
     @emit "teasersLoaded"

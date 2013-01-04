@@ -100,6 +100,8 @@ module.exports = class CActivity extends jraphical.Capsule
   processCache = (cursorArr)->
     console.log "processing activity cache..."
     lastDocType = null
+
+    # group newmember buckets
     cache = cursorArr.reduce (acc, doc)->
       if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
         acc.last.createdAt[1] = doc.createdAt
@@ -117,6 +119,8 @@ module.exports = class CActivity extends jraphical.Capsule
     memberBucket   = null
     bucketIndex    = 0
     processedCache = []
+
+    # put new member groups all together
     cache.forEach (item, i)->
       if /NewMemberBucket/.test item.type
         unless memberBucket
@@ -227,7 +231,6 @@ module.exports = class CActivity extends jraphical.Capsule
 do ->
 
   CActivity.on "feed-new", ->
-    console.log arguments
-    # JActivityCache.init()
-  console.log "\"feed-new\" event bound."
+    JActivityCache.init()
+  console.log "\"feed-new\" event for Activity Caching is bound."
 

@@ -23,8 +23,11 @@ String.prototype.capitalize   = ()-> this.charAt(0).toUpperCase() + this.slice(1
 String.prototype.decapitalize = ()-> this.charAt(0).toLowerCase() + this.slice(1)
 String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 
-# unless Array.prototype.last
-#   Array.prototype.__defineGetter__ "last", -> this[this.length-1]
+unless Array.prototype.last
+  Object.defineProperty Array.prototype, "last", get : -> this[this.length-1]
+
+unless Array.prototype.first
+  Object.defineProperty Array.prototype, "first", get : -> this[0]
 
 # KD Global
 KD = @KD or {}

@@ -14,9 +14,7 @@ modelsDir = 'workers/social/lib/social/models/'
 module.exports = new Bongo {
   mongo
   models: [
-    "#{modelsDir}session.coffee"
-    "#{modelsDir}account.coffee"
-    "#{modelsDir}guest.coffee"
+    "#{modelsDir}activity/cache.coffee"
   ].map (path)-> nodePath.join projectRoot, path
   mq: new Broker mqOptions
   resourceName: webserver.queueName

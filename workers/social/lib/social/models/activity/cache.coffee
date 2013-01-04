@@ -24,7 +24,7 @@ module.exports = class JActivityCache extends jraphical.Module
     ]
 
   lengthPerCache = 20
-  timespan       = 120 * 60 *60 * 1000
+  timespan       = 120 * 60 * 60 * 1000
 
   @share()
 
@@ -39,23 +39,23 @@ module.exports = class JActivityCache extends jraphical.Module
       to          :
         type      : Date
         default   : -> new Date
-        get       : -> this.overview[0].createdAt[0]
-      from        :
-        type      : Date
-        default   : -> new Date
         get       : ->
           last = this.overview[this.overview.length-1]
           last.createdAt[last.createdAt.length-1]
+      from        :
+        type      : Date
+        default   : -> new Date
+        get       : -> this.overview[0].createdAt[0]
       isFull      :
         type      : Boolean
         default   : no
         get       : -> this.overview.length is lengthPerCache
       overview    : Array
-      activities  : Array
+      activities  : Object
 
   latestFetched = null
 
-  o =
+  defaultOptions =
     limit : 1
     sort  : to : -1
 
@@ -72,7 +72,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
   @latest = (callback)->
 
-    @one {}, o, (err, cache)-> kallback err, cache, callback
+    @one {}, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @earliest = (callback)->
 
@@ -88,7 +88,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     selector = from : $gt : latestFetched.to.getTime()
 
-    @one selector, o, (err, cache)-> kallback err, cache, callback
+    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @prev = (callback)->
 
@@ -96,19 +96,19 @@ module.exports = class JActivityCache extends jraphical.Module
 
     selector = to : $lt : latestFetched.from.getTime()
 
-    @one selector, o, (err, cache)-> kallback err, cache, callback
+    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @byId = (id, callback)->
 
     selector = _id : id
 
-    @one selector, o, (err, cache)-> kallback err, cache, callback
+    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @containsTimestamp = (timestamp, callback)->
 
     selector = to : $gte : timestamp
 
-    @one selector, o, (err, cache)-> kallback err, cache, callback
+    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   # create initial activity cache
   # FIXME: this would fail if there are more than 1000 activities
@@ -167,10 +167,10 @@ module.exports = class JActivityCache extends jraphical.Module
           # TEST - better not to delete this
           # logs item dates in batches
 
-          for ov,i in overview2d
-            console.log "batch #{i}:\n"
-            for it in ov
-              console.log it.createdAt[0]
+          # for ov,i in overview2d
+          #   console.log "batch #{i}:\n"
+          #   for it in ov
+          #     console.log it.createdAt[0]
 
           @createCache overview2d
 
@@ -260,7 +260,7 @@ module.exports = class JActivityCache extends jraphical.Module
         from = overview.last.createdAt.last
 
         instance = new JActivityCache {
-          overview   : overview.slice()
+          overview   : overview.slice().reverse()
           isFull     : overview.length is lengthPerCache
           activities
           from
@@ -283,96 +283,73 @@ module.exports = class JActivityCache extends jraphical.Module
 
     selector =
       _id    :
-        $in  : (overview.map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+        $in  : (overview.slice().map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+
+
 
     CActivity.some selector, {sort: createdAt: -1}, (err, activities) =>
       if err then callback? err
       else
-        callback null, activities
+        # callback null, activities
+
+        console.log selector._id, activities
+
+        activityHash = {}
+        for activity in activities
+          # activityHash[activity.snapshotIds[0]] = activity
+          actvivityId = activity._id
+          activityHash[actvivityId] = activity
+
+        callback null, activityHash
+
+
+        # activityHash[activity._id] = activity for activity in activities
+
+        # groupedActivities = []
+        # for item in overview
+        #   if item.ids.length > 1
+        #     subGroup = (activityHash[id] for id in item.ids)
+        #     groupedActivities.push subGroup
+        #   else
+        #     groupedActivities.push [activityHash[item.ids.first]]
+
+        # callback null, groupedActivities
+
+
+
 
   cap : (overview, callback)->
 
     unless overview or (overview.length and overview.length is 0)
       return console.warn "no overview items passed to cap the activity cache instance"
 
+    JActivityCache.fetchOverviewTeasers overview, (err, activityHash)=>
 
-    latestOverview = []
+      overview.reverse()
 
-    # this is kinda silly but it seems it's the only way to get rid of subcollections
-    # and get clean native objects
+      # console.log {overview, activityHash}
 
-    @overview.forEach (o)->
-      createdAt = []
-      ids       = []
-      o.createdAt.forEach (c)-> createdAt.push c
-      o.ids.forEach (id)-> ids.push id
-
-      latestOverview.push {
-        type      : o.type
-        count     : o.count
-        createdAt
-        ids
-      }
+      activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
+        activity = activityHash[activityId]
+        acc["activities.#{activity.getId()}"] = activity
+        return acc
+      , {}
 
 
-    overview.reverse().forEach (oItem)-> latestOverview.unshift oItem
+      console.log {activitiesModifier}
 
-    # unfortunately update didn't work whatever i tried,
-    # so i'm creating a new one with new entries and deleting the outdated one :|
-
-    JActivityCache.createInstance latestOverview, (err, inst)=>
-      if err then callback err
-      else
-
-        console.log "cache instance capped to #{inst.overview.length}!"
-        JActivityCache.remove { _id : @getId()}, (err)->
-          if err then callback err
-          else
-            console.log "old instance is deleted!"
-            callback err
+      @update {
+        # $pushAll: {overview}
+        $set    : activitiesModifier
+      }, (err)->
+        console.log err, "did it work"
+        callback?()
 
 
 
+      # , (err)->
 
-    # JActivityCache.fetchOverviewTeasers overview, (err, activities)->
-
-    #   console.log latest.overview.length, latest.activities.length
-
-    #   latestActivities = [].slice.apply latest.activities
-
-    #   activities.reverse().forEach (aItem)-> latestActivities.unshift aItem
-
-    #   console.log latestOverview.length, latestActivities.length
-
-    #   updateOptions =
-    #     '$set' :
-    #       'to'         : latestOverview.first.createdAt.first
-    #       'from'       : latestOverview.last.createdAt.last
-    #       'isFull'     : latestOverview.length is lengthPerCache
-    #       'overview'   : latestOverview
-    #       'activities' : latestActivities
-
-    #   latest.update updateOptions, (err, inst)->
-    #     if err then console.warn err
-    #     else console.log "cache instance capped to #{inst.overview.length}!"
-
-
-
-
-
-
-
-  # createInitialCache
-  # do ->
-  #   console.log "zikkimi >>>>"
-
-
-
-
-
-
-
-
+      #   @update $set: {activities}
 
 
 
