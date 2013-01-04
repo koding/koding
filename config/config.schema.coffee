@@ -4,10 +4,10 @@ config =
       name              : 1
       pidPath           : 1
       logFile           : 1
-      amqp                  :
-        host                : 1
-        login               : 1
-        password            : 1
+      amqp            :
+        host            : 1
+        login           : 1
+        password        : 1
       apiUri            : 1
       usersPath         : 1
       vhostDir          : 1
@@ -31,7 +31,7 @@ config =
           mysql         : [{ host : 1, user : 1, password:1}]
       mongo             :
         databases       :
-          mongodb       : [{ host : 1, user : 1, password:1}]      
+          mongodb       : [{ host : 1, user : 1, password:1}]    
     sharedHosting :
       name                  : 1
       pidPath               : 1
@@ -88,7 +88,7 @@ config =
     version       : 1
     webserver     :
       login       : 1
-      port        : 1
+      port        : []
       clusterSize : 1
       queueName   : 1
     mongo         : 1
@@ -171,3 +171,4 @@ config =
     pidFile       : 1
 
 
+module.exports = config
