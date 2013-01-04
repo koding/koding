@@ -17,6 +17,9 @@ KONFIG = require argv.c.trim()
 os = require 'os'
 http = require 'http'
 
+# Interval
+interval = if librato?.interval? then librato.interval else 10000
+
 # Node ID
 node_id = os.hostname()
 
@@ -52,6 +55,14 @@ get_stats = ->
     name: 'load'
     source: '15:' + node_id
     value: loadavg[2]
+
+  # CPU usage
+  cpu_usage = get_cpu_usage()
+  print "CPU usage: " + cpu_usage
+  cpu_total =
+    name: 'cpu'
+    source: node_id
+    value: cpu_usage
 
   # Available memory
   mem_total = os.totalmem() / (1024 * 1024)
@@ -90,6 +101,8 @@ get_stats = ->
       load1,
       load5,
       load15,
+      # CPU usage
+      cpu_total,
       # Memory
       memory_used,
       # Users
@@ -102,6 +115,20 @@ get_stats = ->
     ]
   print ""
   stats
+
+get_cpu_usage = ->
+  cpus = os.cpus()
+  used = 0
+  total = 0
+
+  for i of cpus
+    cpu = cpus[i]
+    for type of cpu.times
+      total += cpu.times[type]
+      if type != 'idle'
+        used += cpu.times[type]
+
+  Math.floor 100 * used / total
 
 # Pushes stats to Librato
 push = (stats) ->
@@ -144,9 +171,9 @@ collect_mongo = ->
 # Collect data from Mongo in every <interval>/2 seconds
 setInterval ->
   collect_mongo()
-, (librato.interval / 2)
+, (interval / 2)
 
 # Post to Librato in every <interval> seconds
 setInterval ->
   post_to_librato()
-, librato.interval
+, interval
