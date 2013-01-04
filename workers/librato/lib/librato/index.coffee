@@ -91,7 +91,6 @@ get_stats = ->
       load5,
       load15,
       # Memory
-      memory_total,
       memory_used,
       # Users
       total_users,
@@ -144,10 +143,10 @@ collect_mongo = ->
 
 # Collect data from Mongo in every <interval>/2 seconds
 setInterval ->
-  collect_mongo
+  collect_mongo()
 , (librato.interval / 2)
 
 # Post to Librato in every <interval> seconds
 setInterval ->
-  post_to_librato
+  post_to_librato()
 , librato.interval
