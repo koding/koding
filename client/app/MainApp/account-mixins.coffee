@@ -50,6 +50,7 @@ AccountMixin = do ->
 
       cycleChannel =->
         @off()
+        @stopPinging()
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
@@ -94,12 +95,13 @@ AccountMixin = do ->
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
         channel.on "message", messageHandler.bind channel, kiteName
-        setInterval ->
+        i = setInterval ->
           channel.publish JSON.stringify
             method      : 'ping'
             arguments   : []
             callbacks   : {}
         , 5000
+        channel.stopPinging =-> clearInterval i
 
       # {utils} = KD
 
