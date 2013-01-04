@@ -247,7 +247,7 @@ Vagrant::Config.run do |config|
           cloudlinux_config.vm.host_name = "cl.local"
           #cloudlinux_config.vm.forward_port 55672, 55672 
           cloudlinux_config.vm.network :hostonly, hosts["cl.local"]
-          cloudlinux_config.vm.share_folder "koding", "/mnt/storage0/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+          cloudlinux_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
           cloudlinux_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
           cloudlinux_config.vm.customize [
                                     "modifyvm", :id,
