@@ -7,16 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-
-# This should be made available once we have a running setup instead of pulling it from the repo
-# Maybe from the apt-mirror?
-
-#remote_file "/tmp/vcider_#{version}_#{arch}.deb" do
-#  source "https://my.vcider.com/m/downloads/vcider_#{version}_#{arch}.deb"
-#  mode 0644
-#  checksum ""
-#end
-
 koding_git_dir = ENV['PWD']
 package_dir = "/opt/koding/vagrant/virtualization/lxc/lxc_patched"
 

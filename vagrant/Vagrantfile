@@ -31,7 +31,7 @@ end
 private_ssh_key = "vagrant.pem"
 template_centos_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/centos64.box"
 template_cloudlinux_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/cloudlinux64.box"
-template_precise_url = "ubuntu1204-64"
+template_ubuntu1204-64_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/ubuntu1204-64.box"
 
 koding_git_dir = ENV['PWD']
 cookbooks_dir = "#{koding_git_dir}/vagrant/cookbooks"
@@ -54,7 +54,7 @@ Vagrant::Config.run do |config|
     config.vm.define :cephClient do |cephClient_config|
 
           cephClient_config.vm.box = "ubuntu1204-64"
-          # cephClient_config.vm.box_path = template_precise_url
+          cephClient_config.vm.box_path = template_ubuntu1204-64_url
           cephClient_config.vm.network :hostonly, "10.0.0.15"
           cephClient_config.vm.host_name = "ceph-client.local"
           # cephClient_config.vm.forward_port 3000, 3000 # nodejs web server
