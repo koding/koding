@@ -94,10 +94,18 @@ AccountMixin = do ->
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
         channel.on "message", messageHandler.bind channel, kiteName
+        setInterval ->
+          channel.publish JSON.stringify
+            method      : 'ping'
+            arguments   : []
+            callbacks   : {}
+        , 5000
+
+      # {utils} = KD
 
       tellKite =(options, callback=->)->
+        # kallback = utils.getCancellableCallback kallback
         scrubber = new Scrubber localStore
         args = [options, callback]
         {method} = options
-        delete options.autoCull
         request options.kiteName, method, args
