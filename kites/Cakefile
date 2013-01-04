@@ -62,3 +62,16 @@ task 'cl0', 'runs prod kites',(options)->
     cmd     : "#{KODING_CAKE} ./databases -c config-prod-new run"
     restart : yes
     verbose : yes
+
+
+
+task 'vagrant', 'runs vagrant kites',(options)->
+  config = require '../config/vagrant'
+  
+  processes.fork
+    name    : "sharedHosting cake"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c vagrant run"
+    restart : yes
+    verbose : yes
+
+
