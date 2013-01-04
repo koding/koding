@@ -6,3 +6,5 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+
+include_recipe "kd_deploy::deploy"
