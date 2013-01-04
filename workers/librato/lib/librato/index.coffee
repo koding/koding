@@ -18,7 +18,7 @@ os = require 'os'
 http = require 'http'
 
 # Node ID
-node_id = ''
+node_id = os.hostname()
 
 # Mongo entry counts
 db_users = 0
@@ -142,25 +142,12 @@ collect_mongo = ->
   collector.count {type: 'JDatabaseMongo'}, (err, count) ->
     db_mongo = count
 
-# Get machine ID and start collecting stats
-options =
-  host: '169.254.169.254'
-  port: 80
-  path: '/latest/meta-data/instance-id'
+# Collect data from Mongo in every <interval>/2 seconds
+setInterval ->
+  collect_mongo
+, (librato.interval / 2)
 
-http.get(options, (res) ->
-  res.on "data", (chunk) ->
-    node_id = chunk
-
-    # Collect data from Mongo in every <interval>/2 seconds
-    setInterval ->
-      collect_mongo
-    , (librato.interval / 2)
-
-    # Post to Librato in every <interval> seconds
-    setInterval ->
-      post_to_librato
-    , librato.interval
-
-).on "error", (e) ->
-  console.log "AWS - Can't get machine ID: " + e.message
+# Post to Librato in every <interval> seconds
+setInterval ->
+  post_to_librato
+, librato.interval
