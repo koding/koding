@@ -17,31 +17,7 @@ class NewMemberBucketView extends JView
 
     super
 
-    @anchors = []
-
-  viewAppendedHelper:->
-
-    @group = new LinkGroup totalCount : @getData().count, @anchors
-
-    JView::viewAppended.call @
-
-  viewAppended:->
-
-    {length} = @getData().ids
-    appManager.tell "Activity", "streamByIds", @getData().ids, (err, model)=>
-      unless err
-        if model
-          snapshot = JSON.parse model.snapshot.replace /&quot;/g, '"'
-          @anchors.push snapshot.anchor
-
-        if length-- is 0
-          @viewAppendedHelper()
-
-
-    # @timer = @utils.wait 800, =>
-    #   @$('.fx').removeClass "out hidden"
-    #   @timer = @utils.wait 400, =>
-    #     @$('.fx').addClass "hidden"
+    @group = new LinkGroup totalCount : @getData().count, @getData().teasers
 
   click:->
 

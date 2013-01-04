@@ -70,14 +70,38 @@ class ActivityAppController extends AppController
 
     @populateActivity()
 
+
   populateActivity:(options = {})->
 
     @listController.showLazyLoader()
-    @fetchCachedActivity options, (err, activities, overview)=>
+
+    @fetchCachedActivity options, (err, cache)=>
       if err then warn err
       else
-        @listController.listActivities activities, overview
-        @listController.hideLazyLoader()
+        @sanitizeCache cache, (err, cache)=>
+
+          @listController.listActivities cache
+          @listController.hideLazyLoader()
+          isLoading = no
+
+
+  sanitizeCache:(cache, callback)->
+
+    activities = []
+    for activityId, activity of cache.activities
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activities.push activity
+
+
+    KD.remote.reviveFromSnapshots activities, (err, instances)->
+
+      for activity,i in activities
+        cache.activities[activity._id].teaser = instances[i]
+
+      callback null, cache
+
+
+
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -91,18 +115,13 @@ class ActivityAppController extends AppController
       error   : (err)-> callback? err
       success : (cache)=>
         @listController.hideLazyLoader()
-        if cache.length is 0
+        if cache?.length is 0
           @listController.noActivityItem.show()
-          callback? null, []
           return
 
-        cache.activities.map (a)-> a.snapshot = a.snapshot?.replace /&quot;/g, '"'
+        cache.overview.reverse()
 
-        KD.remote.reviveFromSnapshots cache.activities, (err, instances)=>
-          # instanceMap = {}
-          # instanceMap[instance._id] = instance for instance in instances
-          callback? null, instances
-          isLoading = no
+        callback null, cache
 
   # delete
   fetchActivityOverview:(callback)->
