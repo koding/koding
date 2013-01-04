@@ -45,7 +45,7 @@ module.exports = class JPrivateMessage extends JPost
     # a helper for sending to mulitple recipients.
     dispatchMessages =(sender, recipients, pm, callback)->
       deliver = race (i, recipient, pm, fin)->
-        recipient.addPrivateMessage pm, (err)->
+        recipient.addPrivateMessage pm, {as:'recipient'}, (err)->
           if err
             fin err
           else
