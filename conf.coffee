@@ -28,42 +28,44 @@ class Config extends EventEmitter
     @conf = conf #read file from root of the project
     @configSchemaPath = @conf.path+"/config.schema.coffee"
     @configFilePath   = @conf.path+"/"+@path+".coffee"
+
     @init()
 
   init: ->
     a = @path.split "."
-    configSchema = (require @configSchemaPath)[a[0]]
+    configSchema = (require @configSchemaPath)[a[0]][a[1]]
     # console.log configSchema
     configFile = require @configFilePath
-    @checkPaths configSchema,configFile
+    #console.log configSchema["mongo"]["databases"]["mongodb"]["0"]["password"]
 
-  checkPaths:(obj1,obj2) ->
-    t1 = traverse(obj1).paths()
-    t1.forEach (path)=>
-      o = @checkVal path,obj1,obj2 unless path.length is 0
-        
-    t2 = traverse(obj2).paths()
-    t2.forEach (path)=>
-      o = @checkVal path,obj2,obj1 unless path.length is 0
+    # @checkPaths configSchema,configFile
 
-  checkVal:(path,obj1,obj2)->
-    p = path.join "."
-    r     = {}
-    r.key = p
-    try
-      eval("r.val1 = obj1."+p)
-    catch e
-      # console.log "a. Property mismatch between #{@configSchemaPath} and #{@configFilePath}: #{p}"
-    try
-      eval("r.val2 = obj2."+p)
-    catch e
-      console.log "b. Property mismatch between #{@configSchemaPath} and #{@configFilePath}: #{p}"
-    if r.val is 1
-      console.log r
-      return r
-    else if Array.isArray(r.val)
-      console.log r
-      return r
+    normalizePathForSchema = (path,p=[])->
+      (if n-n is 0 then path.push 0 else path.push n) for n,i in path
+      return p
+
+    paths = {}
+
+    file   = traverse(configFile)
+    schema = traverse(configSchema)
+    file.paths().forEach (path)->  
+      a = path.join "."
+      b = paths[a] ?= {}
+      b.schema = schema.has normalizePathForSchema path
+      b.file   = yes
+
+
+    schema.paths().forEach (path)->
+      c = path.join "."
+      d = paths[c] ?= {}
+      d.schema = yes
+      d.file   = file.has path
+    
+    # for i,p of paths  
+    #   delete paths[i] if paths[i].schema is yes and paths[i].file is yes
+    
+    console.log paths
+
 
 
 
@@ -73,6 +75,6 @@ class Config extends EventEmitter
   toJson : ->
     return @out
 
-a = new Config "main.prod"
+a = new Config "kite.databases.config-prod-new"
 # a.toJson()
 

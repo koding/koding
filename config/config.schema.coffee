@@ -32,6 +32,8 @@ config =
       mongo             :
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]    
+          hello         : 1
+      hola: 1
     sharedHosting :
       name                  : 1
       pidPath               : 1
