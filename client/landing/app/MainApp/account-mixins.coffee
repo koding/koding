@@ -83,7 +83,7 @@ AccountMixin = do ->
         nickname  = delegate?.profile.nickname ?
                     if delegate.guestId then "guest#{delegate.guestId}" ?
                     'unknown'
-        channelName = "#{Bongo.createId 128}.#{nickname}.kite-#{kiteName}"
+        channelName = "#{Bongo.createId 128}.#{nickname}.#{kiteName}"
         namesCache[kiteName] = channelName
         return channelName
 
@@ -97,25 +97,26 @@ AccountMixin = do ->
         channel.cycleChannel = -> cycleChannel.call this
         channels[channelName] = channel
         channel.once 'broker.subscribed', ->
-          onReady channel, -> callback channel
+          onReady channel, ->
+            callback channel
+            i = setInterval ->
+              now = Date.now()
+              isUnresponsive = channel.lastPong? and (now - channel.lastPong > 6000)
+              cycleChannel.call channel  if isUnresponsive
+              channel.publish JSON.stringify
+                method      : 'ping'
+                arguments   : []
+                callbacks   : {}
+            , 5000
+            channel.stopPinging =-> clearInterval i
         channel.setAuthenticationInfo
           serviceType : 'kite'
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
         channel.on "message", messageHandler.bind channel, kiteName
-        i = setInterval ->
-          now = Date.now()
-          isUnresponsive = channel.lastPong? and (now - channel.lastPong > 6000)
-          cycleChannel.call channel  if isUnresponsive
-          channel.publish JSON.stringify
-            method      : 'ping'
-            arguments   : []
-            callbacks   : {}
-        , 5000
-        channel.stopPinging =-> clearInterval i
 
       tellKite =(options, callback=->)->
         scrubber = new Scrubber localStore
         args = [options, callback]
-        {method} = options
-        request options.kiteName, method, args
+        {method, kiteName} = options
+        request kiteName, method, args
