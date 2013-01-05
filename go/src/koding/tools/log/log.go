@@ -54,11 +54,12 @@ func Send(event url.Values) {
 	}
 
 	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
-	_, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
+	resp, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
 	if err != nil {
 		fmt.Println("logger error: http.PostForm failed")
 		return
 	}
+	resp.Body.Close()
 }
 
 func Log(level int, text string, data ...interface{}) {
