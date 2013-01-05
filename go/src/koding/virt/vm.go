@@ -137,24 +137,9 @@ func FetchUnusedVM(user *db.User) *VM {
 	// create new vm
 	vm = VM{Id: bson.NewObjectId(), Users: []int{user.Id}}
 
-	// create disk and map to pool
+	// create disk
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
 		panic(err)
-	}
-	if err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
-		panic(err)
-	}
-
-	// wait for device to appear
-	for {
-		_, err := os.Stat(vm.RbdDevice())
-		if err == nil {
-			break
-		}
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-		time.Sleep(time.Second / 2)
 	}
 
 	if err := VMs.Insert(vm); err != nil {
@@ -175,6 +160,11 @@ func (vm *VM) Prepare() {
 	}
 	vm.IP = ip
 
+	// map image to block device
+	if err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+		panic(err)
+	}
+
 	// prepare directories
 	vm.PrepareDir(vm.File(""), 0)
 	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
@@ -183,6 +173,18 @@ func (vm *VM) Prepare() {
 	// write LXC files
 	vm.GenerateFile(vm.File("config"), "config", 0, false)
 	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
+
+	// wait for block device to appear
+	for {
+		_, err := os.Stat(vm.RbdDevice())
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		time.Sleep(time.Second / 2)
+	}
 
 	// mount rbd/ceph
 	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
@@ -237,6 +239,7 @@ func (vm *VM) Unprepare() {
 	vm.StopCommand().Run()
 	exec.Command("/bin/umount", vm.File("rootfs")).Run()
 	exec.Command("/bin/umount", vm.UpperdirFile("")).Run()
+	exec.Command("/usr/bin/rbd", "unmap", vm.String(), "--pool", "rbd").Run()
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
