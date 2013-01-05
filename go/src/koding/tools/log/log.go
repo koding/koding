@@ -17,7 +17,8 @@ var LogDebug bool = false
 var LogToLoggr bool = false
 
 func init() {
-	Hostname, _ = os.Hostname()
+	fullName, _ := os.Hostname()
+	Hostname = strings.Split(fullName, ".")[0]
 	Pid = os.Getpid()
 }
 
