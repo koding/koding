@@ -73,6 +73,15 @@ var configs = map[string]Config{
 		LogToLoggr:   true,
 	},
 
+	"vagrant": {
+		AmqpHost:     "rabbitmq.local",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "djfjfhgh4455__5",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+		LogToLoggr:   true,
+	},
+
 	"local-go": {
 		AmqpHost:     "localhost",
 		AmqpUser:     "guest",

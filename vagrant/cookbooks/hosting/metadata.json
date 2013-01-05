@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0",
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+  },
+  "suggestions": {
+  },
+  "recommendations": {
+  },
+  "long_description": "Description\n===========\ncloudlinux server configuration\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "providing": {
+  },
+  "license": "All rights reserved",
+  "name": "hosting",
+  "conflicting": {
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "dependencies": {
+  },
+  "platforms": {
+  },
+  "description": "Installs/Configures hosting servers",
+  "maintainer_email": "aleksey@koding.com",
+  "replacing": {
+  }
+}

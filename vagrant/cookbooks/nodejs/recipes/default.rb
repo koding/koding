@@ -10,7 +10,7 @@
 include_recipe "yum::nodejs"
 
 
-package "nodejs" do
+yum_package "nodejs" do
     version "#{node["nodejs"]["version"]}"
 end
 

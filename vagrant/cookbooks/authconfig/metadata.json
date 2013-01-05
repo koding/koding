@@ -1,0 +1,29 @@
+{
+  "description": "Installs/Configures LDAP auth",
+  "providing": {
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "recipes": {
+  },
+  "license": "All rights reserved",
+  "groupings": {
+  },
+  "conflicting": {
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "suggestions": {
+  },
+  "platforms": {
+  },
+  "attributes": {
+  },
+  "recommendations": {
+  },
+  "dependencies": {
+  },
+  "name": "authconfig",
+  "replacing": {
+  },
+  "maintainer_email": "<aleksey@koding.com>",
+  "version": "0.1.0"
+}
