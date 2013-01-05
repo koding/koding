@@ -48,6 +48,8 @@ AccountMixin = do ->
         cycleChannel.call this
         console.error err
 
+      pong =-> @lastPong = Date.now()
+
       cycleChannel =->
         @off()
         @stopPinging()
@@ -61,6 +63,8 @@ AccountMixin = do ->
             ready.bind this
           else if method is 'error'
             error.bind this
+          else if method is 'pong'
+            pong.bind this
           else if method is 'cycleChannel'
             cycleChannel.bind this
           else
@@ -87,6 +91,10 @@ AccountMixin = do ->
         channelName = getChannelName "kite-#{kiteName}"
         return callback channels[channelName]  if channels[channelName]
         channel = KD.remote.mq.subscribe channelName
+        kiteController = KD.getSingleton 'kiteController'
+        kiteController.channels ?= {}
+        kiteController.channels[kiteName] = channel
+        channel.cycleChannel = -> cycleChannel.call this
         channels[channelName] = channel
         channel.once 'broker.subscribed', ->
           onReady channel, -> callback channel
@@ -96,6 +104,9 @@ AccountMixin = do ->
           clientId    : KD.remote.getSessionToken()
         channel.on "message", messageHandler.bind channel, kiteName
         i = setInterval ->
+          now = Date.now()
+          isUnresponsive = channel.lastPong? and (now - channel.lastPong > 6000)
+          cycleChannel.call channel  if isUnresponsive
           channel.publish JSON.stringify
             method      : 'ping'
             arguments   : []
@@ -103,10 +114,7 @@ AccountMixin = do ->
         , 5000
         channel.stopPinging =-> clearInterval i
 
-      # {utils} = KD
-
       tellKite =(options, callback=->)->
-        # kallback = utils.getCancellableCallback kallback
         scrubber = new Scrubber localStore
         args = [options, callback]
         {method} = options
