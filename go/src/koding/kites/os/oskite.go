@@ -14,10 +14,14 @@ import (
 )
 
 type VMState struct {
-	sessions         map[*kite.Session]bool
-	timeout          *time.Timer
-	previousCpuUsage int
-	cpuShares        int
+	sessions      map[*kite.Session]bool
+	timeout       *time.Timer
+	totalCpuUsage int
+
+	CpuUsage    int `json:"cpuUsage"`
+	CpuShares   int `json:"cpuShares"`
+	MemoryUsage int `json:"memoryUsage"`
+	MemoryLimit int `json:"memoryLimit"`
 }
 
 var states = make(map[string]*VMState)
@@ -29,18 +33,22 @@ func main() {
 	go LimiterLoop()
 	k := kite.New("os")
 
-	k.Handle("startVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("vm.start", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		vm := virt.GetDefaultVM(session.User)
 		AddSession(vm, session)
 		return vm.StartCommand().CombinedOutput()
 	})
 
-	k.Handle("shutdownVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("vm.shutdown", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		return virt.GetDefaultVM(session.User).ShutdownCommand().CombinedOutput()
 	})
 
-	k.Handle("stopVM", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("vm.stop", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		return virt.GetDefaultVM(session.User).StopCommand().CombinedOutput()
+	})
+
+	k.Handle("vm.state", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		return states[virt.GetDefaultVM(session.User).String()], nil
 	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -126,9 +134,9 @@ func AddSession(vm *virt.VM, session *kite.Session) {
 	if !found {
 		vm.Prepare()
 		state = &VMState{
-			sessions:         make(map[*kite.Session]bool),
-			previousCpuUsage: utils.MaxInt,
-			cpuShares:        1000,
+			sessions:      make(map[*kite.Session]bool),
+			totalCpuUsage: utils.MaxInt,
+			CpuShares:     1000,
 		}
 		states[vm.String()] = state
 	}

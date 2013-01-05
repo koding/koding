@@ -19,8 +19,9 @@ func LimiterLoop() {
 		// collect memory stats and calculate limit
 		vmCount := len(states)
 		memoryUsages := make([]int, 0, vmCount)
-		for name := range states {
+		for name, state := range states {
 			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.memsw.usage_in_bytes", name))
+			state.MemoryUsage = usage
 			memoryUsages = append(memoryUsages, usage)
 		}
 		sort.Ints(memoryUsages)
@@ -46,26 +47,28 @@ func LimiterLoop() {
 		}
 
 		// apply limits
-		for name, data := range states {
-			cpuUsage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage", name))
+		for name, state := range states {
+			newTotalCpuUsage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage", name))
 
-			diff := 0
-			if cpuUsage > data.previousCpuUsage {
-				diff = cpuUsage - data.previousCpuUsage
+			state.CpuUsage = 0
+			if newTotalCpuUsage > state.totalCpuUsage {
+				state.CpuUsage = newTotalCpuUsage - state.totalCpuUsage
 			}
-			data.previousCpuUsage = cpuUsage
+			state.totalCpuUsage = newTotalCpuUsage
 
-			data.cpuShares -= diff / 100000000
-			data.cpuShares += 1
-			if data.cpuShares < 1 {
-				data.cpuShares = 1
+			state.CpuShares -= state.CpuUsage / 100000000
+			state.CpuShares += 1
+			if state.CpuShares < 1 {
+				state.CpuShares = 1
 			}
-			if data.cpuShares > 1000 {
-				data.cpuShares = 1000
+			if state.CpuShares > 1000 {
+				state.CpuShares = 1000
 			}
 
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/cpu/lxc/%s/cpu.shares", name), []byte(strconv.Itoa(data.cpuShares)), 0644)
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(memoryLimit)), 0644)
+			state.MemoryLimit = memoryLimit
+
+			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/cpu/lxc/%s/cpu.shares", name), []byte(strconv.Itoa(state.CpuShares)), 0644)
+			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(state.MemoryLimit)), 0644)
 		}
 
 		statesMutex.Unlock()
