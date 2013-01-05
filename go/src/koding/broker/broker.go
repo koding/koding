@@ -91,11 +91,13 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					if err != nil {
-						log.LogError(err, 0)
+					amqpError, isAmqpError := err.(amqp.Error)
+					if err == nil {
+						break
+					} else if isAmqpError && amqpError.Code == 504 {
 						resetControlChannel()
 					} else {
-						break
+						panic(err)
 					}
 				}
 			}()
@@ -131,11 +133,13 @@ func main() {
 						if strings.HasPrefix(routingKey, "client.") {
 							for {
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								if err != nil {
-									log.LogError(err, 0)
+								amqpError, isAmqpError := err.(amqp.Error)
+								if err == nil {
+									break
+								} else if isAmqpError && amqpError.Code == 504 {
 									resetControlChannel()
 								} else {
-									break
+									panic(err)
 								}
 							}
 						} else {
