@@ -43,7 +43,7 @@ module.exports = class JPost extends jraphical.Message
     slugifyFrom : 'title'
     slugTemplate: 'Activity/#{slug}'
     indexes     :
-      slug      : 'unique' 
+      slug      : 'unique'
     permissions: [
       'read posts'
       'create posts'
@@ -437,3 +437,9 @@ module.exports = class JPost extends jraphical.Message
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
     super
+
+  update:(rest...)->
+
+    jraphical.Message::update.apply @, rest
+
+    CActivity.emit "post-updated", @

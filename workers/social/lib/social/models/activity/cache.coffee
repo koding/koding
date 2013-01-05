@@ -8,6 +8,8 @@ unless Array.prototype.first
   Object.defineProperty Array.prototype, "first",
     get : -> this[0]
 
+log = console.log
+
 module.exports = class JActivityCache extends jraphical.Module
 
   {daisy}   = require 'bongo'
@@ -106,7 +108,11 @@ module.exports = class JActivityCache extends jraphical.Module
 
   @containsTimestamp = (timestamp, callback)->
 
-    selector = to : $gte : timestamp
+    selector =
+      to     :
+        $gte : timestamp
+      from   :
+        $lte : timestamp
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -132,11 +138,13 @@ module.exports = class JActivityCache extends jraphical.Module
         if err then console.warn err
         else
 
+          ###
           # TEST - better not to delete this
           # logs all items' dates
 
-          # console.log item.createdAt[0] for item in overview
-          # return
+          console.log item.createdAt[0] for item in overview
+          return
+          ###
 
           # cap latest
           if latest and latest.overview.length < lengthPerCache
@@ -145,13 +153,10 @@ module.exports = class JActivityCache extends jraphical.Module
             remainderAmount   = lengthPerCache - latest.overview.length
             remainderOverview = overview.splice -remainderAmount
 
-            latest.cap remainderOverview, ->
-              console.log "capped latest and finished!"
+            latest.cap remainderOverview, -> console.log "capped latest!"
 
+            # terminate only if there are no new items to be cached
             return  if remainderOverview.length <= remainderAmount
-
-
-
 
           # create new cache instances
           overview2d = []
@@ -164,13 +169,15 @@ module.exports = class JActivityCache extends jraphical.Module
           while overview.length >= lengthPerCache
             overview2d.push overview.splice 0,lengthPerCache
 
+          ###
           # TEST - better not to delete this
           # logs item dates in batches
 
-          # for ov,i in overview2d
-          #   console.log "batch #{i}:\n"
-          #   for it in ov
-          #     console.log it.createdAt[0]
+          for ov,i in overview2d
+            console.log "batch #{i}:\n"
+            for it in ov
+              console.log it.createdAt[0]
+          ###
 
           @createCache overview2d
 
@@ -318,7 +325,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
 
 
-  cap : (overview, callback)->
+  cap: (overview, callback)->
 
     unless overview or (overview.length and overview.length is 0)
       return console.warn "no overview items passed to cap the activity cache instance"
@@ -338,18 +345,38 @@ module.exports = class JActivityCache extends jraphical.Module
 
       console.log {activitiesModifier}
 
-      @update {
-        # $pushAll: {overview}
-        $set    : activitiesModifier
-      }, (err)->
-        console.log err, "did it work"
-        callback?()
+      # @update {
+      #   # $pushAll: {overview}
+      #   $set    : activitiesModifier
+      # }, (err)->
+      #   console.log err, "did it work"
+      #   callback?()
 
 
+  @modifyByTeaser = (teaser, callback)->
 
-      # , (err)->
+    CActivity = require './index'
 
-      #   @update $set: {activities}
+    @containsTimestamp teaser.meta.createdAt, (err, cache)->
+      if err then callback? err
+      else
+
+        # this is to get the activity
+        idToUpdate = null
+        for id, activity of cache.activities
+          if activity.snapshotIds[0].equals teaser.getId()
+            idToUpdate = id
+            log "found the activity, now perform an atomic update to:", id
+
+        CActivity.one _id : idToUpdate, (err, activity)->
+          if err then callback? err
+          else
+            setModifier = {}
+            setModifier["activities.#{idToUpdate}"] = activity
+            log setModifier
+            cache.update $set : setModifier
+
+
 
 
 

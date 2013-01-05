@@ -229,8 +229,14 @@ module.exports = class CActivity extends jraphical.Capsule
 # temp, couldn't find a better place to put this
 
 do ->
+  CActivity.on "feed-new", (activity)->
+    # JActivityCache.init()
+    console.log activity
 
-  CActivity.on "feed-new", ->
-    JActivityCache.init()
+  CActivity.on "post-updated", (teaser)->
+    # JActivityCache.init()
+    JActivityCache.modifyByTeaser teaser
+
   console.log "\"feed-new\" event for Activity Caching is bound."
+  console.log "\"post-updated\" event for Activity Caching is bound."
 
