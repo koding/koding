@@ -1,4 +1,4 @@
-users::useradd { "bahadir":
+users::useradd { "bahadirk":
      fullname => "Bahadır Kandemir",
      uid => "607",
      hash => '$6$zExJZZg8$vAhZTJVFuXiRuNDxgCtvAe8IIKNuPScYNHz4AMF/3kCphnm9Nk6HtRrHZI3rgZ87Syrc.8BSYI8d/UppAmTTg0',
