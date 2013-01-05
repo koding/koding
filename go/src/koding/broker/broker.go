@@ -74,7 +74,7 @@ func main() {
 				}
 				go func() {
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
-						log.Warn("AMQP channel: "+err.Error(), "Last publish payload:", lastPayload)
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
 						body, err := json.Marshal(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 						if err != nil {
