@@ -93,9 +93,9 @@ func Debug(text string, data ...interface{}) {
 	Log(DEBUG, text, data...)
 }
 
-func LogError(err interface{}) {
+func LogError(err interface{}, stackOffset int) {
 	data := make([]interface{}, 0)
-	for i := 3; ; i++ {
+	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
 			break
@@ -115,6 +115,6 @@ func LogError(err interface{}) {
 func RecoverAndLog() {
 	err := recover()
 	if err != nil {
-		LogError(err)
+		LogError(err, 2)
 	}
 }

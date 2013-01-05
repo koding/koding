@@ -92,7 +92,7 @@ func main() {
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 					if err != nil {
-						log.LogError(err)
+						log.LogError(err, 0)
 						resetControlChannel()
 					} else {
 						break
@@ -132,7 +132,7 @@ func main() {
 							for {
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
 								if err != nil {
-									log.LogError(err)
+									log.LogError(err, 0)
 									resetControlChannel()
 								} else {
 									break
