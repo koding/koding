@@ -161,7 +161,7 @@ func (vm *VM) Prepare() {
 	vm.IP = ip
 
 	// map image to block device
-	if err = exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
 		panic(err)
 	}
 
