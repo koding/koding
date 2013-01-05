@@ -74,7 +74,7 @@ func main() {
 				}
 				go func() {
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
-						log.Warn("AMQP channel: "+err.Error(), "Last publish payload:", lastPayload)
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
 						body, err := json.Marshal(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 						if err != nil {
@@ -98,7 +98,7 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					amqpError, isAmqpError := err.(amqp.Error)
+					amqpError, isAmqpError := err.(*amqp.Error)
 					if err == nil {
 						break
 					} else if isAmqpError && amqpError.Code == 504 {
@@ -141,7 +141,7 @@ func main() {
 							for {
 								lastPayload = ""
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								amqpError, isAmqpError := err.(amqp.Error)
+								amqpError, isAmqpError := err.(*amqp.Error)
 								if err == nil {
 									lastPayload = message["payload"].(string)
 									break
