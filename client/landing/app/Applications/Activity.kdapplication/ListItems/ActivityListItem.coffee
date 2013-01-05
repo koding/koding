@@ -37,7 +37,7 @@ class ActivityListItemView extends KDListItemView
 
     super options, data
 
-    constructorName = data.type
+    {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
   viewAppended:->
