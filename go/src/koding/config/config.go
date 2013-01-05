@@ -79,7 +79,6 @@ var configs = map[string]Config{
 		AmqpPassword: "djfjfhgh4455__5",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggr:   true,
 	},
 
 	"local-go": {
