@@ -698,6 +698,7 @@ class NFinderTreeController extends JTreeViewController
       msg = "Permission denied!"
 
     style or= 'error' if details
+    duration = if reconnect then 0 else if details then 5000 else 2500
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
@@ -705,12 +706,14 @@ class NFinderTreeController extends JTreeViewController
       cssClass  : "filetree #{style}"
       container : @getView().parent
       # duration  : 0
-      duration  : if details then 5000 else 2500
+      duration  : duration
       details   : details
       click     : =>
         if reconnect
           @emit 'fs.retry.scheduled'
           @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
+          notification.destroy()
+          return
 
         if notification.getOptions().details
           details = new KDNotificationView
