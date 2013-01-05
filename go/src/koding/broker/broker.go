@@ -98,7 +98,7 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					amqpError, isAmqpError := err.(amqp.Error)
+					amqpError, isAmqpError := err.(*amqp.Error)
 					if err == nil {
 						break
 					} else if isAmqpError && amqpError.Code == 504 {
@@ -141,7 +141,7 @@ func main() {
 							for {
 								lastPayload = ""
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								amqpError, isAmqpError := err.(amqp.Error)
+								amqpError, isAmqpError := err.(*amqp.Error)
 								if err == nil {
 									lastPayload = message["payload"].(string)
 									break
