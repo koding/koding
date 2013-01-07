@@ -6,6 +6,7 @@ hosts = {
         "rabbitmq.local" => "10.5.5.3",
         "cl.local"       => "10.5.5.4",
         "ldap.local"     => "10.5.5.5",
+        "cephClient.local" => "10.5.5.6",
 }
 
 workers = {
