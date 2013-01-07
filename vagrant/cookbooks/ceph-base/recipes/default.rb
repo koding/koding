@@ -18,3 +18,5 @@ end
 package "ceph-common" do
 	action :install
 end
+
+execute "modprobe rbd"
