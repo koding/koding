@@ -254,18 +254,20 @@ func (vm *VM) Unprepare() {
 
 // may panic
 func (vm *VM) PrepareDir(path string, id int) bool {
+	created := true
 	if err := os.Mkdir(path, 0755); err != nil {
 		if os.IsExist(err) {
-			return false
+			created = false
+		} else {
+			panic(err)
 		}
-		panic(err)
 	}
 
 	if err := os.Chown(path, id, id); err != nil {
 		panic(err)
 	}
 
-	return true
+	return created
 }
 
 // may panic
