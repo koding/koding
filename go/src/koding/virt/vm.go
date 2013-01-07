@@ -57,17 +57,18 @@ func GetDefaultVM(user *db.User) *VM {
 		vm := FetchUnusedVM(user)
 
 		// create file system
+		vm.MapRBD()
 		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
 			panic(err)
 		}
 
 		vm.Name = user.Name
 		vm.LdapPassword = utils.RandomString()
-		if err := VMs.UpdateId(vm.Id, vm); err != nil {
+		if err := VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"name": vm.Name, "ldapPassword": vm.LdapPassword}}); err != nil {
 			panic(err)
 		}
 
-		if err := db.Users.Update(bson.M{"_id": user.Id, "defaultVM": ""}, bson.M{"defaultVM": vm.Id}); err != nil {
+		if err := db.Users.Update(bson.M{"_id": user.Id, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
 			panic(err)
 		}
 		user.DefaultVM = vm.Id
@@ -142,7 +143,7 @@ func FetchUnusedVM(user *db.User) *VM {
 		panic(err)
 	}
 
-	if err := VMs.Insert(vm); err != nil {
+	if err := VMs.Insert(bson.M{"_id": vm.Id, "users": vm.Users}); err != nil {
 		panic(err)
 	}
 
@@ -150,29 +151,11 @@ func FetchUnusedVM(user *db.User) *VM {
 }
 
 // may panic
-func (vm *VM) Prepare() {
-	vm.Unprepare()
-
-	ip := utils.IntToIP(<-ipPoolFetch)
-	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": ""}, bson.M{"ip": ip}); err != nil {
-		ipPoolRelease <- utils.IPToInt(ip)
-		panic(err)
-	}
-	vm.IP = ip
-
+func (vm *VM) MapRBD() {
 	// map image to block device
 	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
 		panic(err)
 	}
-
-	// prepare directories
-	vm.PrepareDir(vm.File(""), 0)
-	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
-	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)
-
-	// write LXC files
-	vm.GenerateFile(vm.File("config"), "config", 0, false)
-	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
 
 	// wait for block device to appear
 	for {
@@ -185,8 +168,30 @@ func (vm *VM) Prepare() {
 		}
 		time.Sleep(time.Second / 2)
 	}
+}
+
+// may panic
+func (vm *VM) Prepare() {
+	vm.Unprepare()
+
+	ip := utils.IntToIP(<-ipPoolFetch)
+	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+		ipPoolRelease <- utils.IPToInt(ip)
+		panic(err)
+	}
+	vm.IP = ip
+
+	// prepare directories
+	vm.PrepareDir(vm.File(""), 0)
+	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
+	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)
+
+	// write LXC files
+	vm.GenerateFile(vm.File("config"), "config", 0, false)
+	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
 
 	// mount rbd/ceph
+	vm.MapRBD()
 	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
 		panic(err)
 	}
@@ -246,7 +251,7 @@ func (vm *VM) Unprepare() {
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
 	if vm.IP != nil {
-		VMs.UpdateId(vm.Id, bson.M{"ip": ""})
+		VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
 		ipPoolRelease <- utils.IPToInt(vm.IP)
 		vm.IP = nil
 	}
