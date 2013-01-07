@@ -1,7 +1,15 @@
 class hosting_crontabs::clamav {
 
+    file { "/opt/cronscripts/clamscan.sh":
+         ensure  => file,
+         source  => "puppet:///modules/hosting_crontabs/opt/cronscripts/clamscan.sh",
+         mode    => 755,
+         require => Class["hosting_crontabs::scripts_dir"],
+    }
+
+
     cron { clamav_scan: 
-        command => '/usr/bin/ionice -c 3 -p `cat /var/run/clamav/clamd.pid` ; /bin/echo -e "MULTISCAN /Users" | /usr/bin/nc localhost 13310',
+        command => '/opt/cronscripts/clamscan.sh',
         user    => root,
         hour    => 2,
         minute  => 30,
