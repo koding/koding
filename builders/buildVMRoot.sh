@@ -56,9 +56,9 @@ function configure_upstart() {
    run_in_vmroot /usr/bin/rename s/\.conf/\.conf\.disabled/ $VM_upstart/tty*;
    run_in_vmroot /usr/bin/rename s/\.conf/\.conf\.disabled/ $VM_upstart/udev*;
    run_in_vmroot /usr/bin/rename s/\.conf/\.conf\.disabled/ $VM_upstart/upstart-*;
-   run_in_vmroot /usr/bin/rename s/\.conf/\.conf\.disabled/ $VM_upstart/mountall*;
+   # run_in_vmroot /usr/bin/rename s/\.conf/\.conf\.disabled/ $VM_upstart/mountall*;
    run_in_vmroot /bin/mv $VM_upstart/ssh.conf $VM_upstart/ssh.conf.disabled;
-   run_in_vmroot /bin/mv $VM_upstart/console.conf $VM_upstart/console.conf.disabled;
+   # run_in_vmroot /bin/mv $VM_upstart/console.conf $VM_upstart/console.conf.disabled;
 }
 
 debootstrap
@@ -84,7 +84,12 @@ sleep 5;
 echo "Fixing locale";
 run_in_vmroot /usr/sbin/locale-gen en_US.UTF-8;
 run_in_vmroot /usr/sbin/update-locale LANG="en_US.UTF-8";
-configure_upstart;
+
+#Modify fstab so lxc will start
+run_in_vmroot sed -i 's!none            /sys/fs/fuse/connections!#none            /sys/fs/fuse/connections!' $target/lib/init/fstab
+run_in_vmroot sed -i 's!none            /sys/kernel/!#none            /sys/kernel/!' $target/lib/init/fstab
+
+# configure_upstart;
 lxc-stop -n vmroot;
 sleep 1;
 lxc-start -n vmroot -d;
