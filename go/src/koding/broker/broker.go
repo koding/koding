@@ -73,6 +73,8 @@ func main() {
 					panic(err)
 				}
 				go func() {
+					defer log.RecoverAndLog()
+
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
