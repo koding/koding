@@ -47,3 +47,9 @@ sftp-config.json
 *.orig
 
 .vagrant
+kites/alice
+kites/broker
+kites/idshift
+kites/irc
+kites/ldapserver
+kites/proxy
