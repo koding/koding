@@ -20,6 +20,7 @@ func init() {
 	session.SetSafe(&mgo.Safe{})
 	database = session.DB("koding_dev2")
 	counters = database.C("jCounters")
+	Users = database.C("jUsers2")
 }
 
 func Collection(name string) *mgo.Collection {

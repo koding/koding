@@ -13,7 +13,7 @@ type User struct {
 	DefaultVM bson.ObjectId "defaultVM"
 }
 
-var Users *mgo.Collection = Collection("jUsers2")
+var Users *mgo.Collection
 
 func FindUser(query interface{}) (*User, error) {
 	var user User

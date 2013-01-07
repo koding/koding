@@ -49,11 +49,11 @@ file "/etc/ceph/ceph.conf" do
 
 [mon.a]
 
-	host = ceph-client
+	host = #{node['hostname']}
 	mon addr = 127.0.0.1:6789
 
 [osd.0]
-	host = ceph-client
+	host = #{node['hostname']}
 	
 	# For Bobtail (v 0.56) and subsequent versions, you may 
 	# add settings for mkcephfs so that it will create and mount
