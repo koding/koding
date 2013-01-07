@@ -86,10 +86,10 @@ run_in_vmroot /usr/sbin/locale-gen en_US.UTF-8;
 run_in_vmroot /usr/sbin/update-locale LANG="en_US.UTF-8";
 
 #Modify fstab so lxc will start
-run_in_vmroot sed -i 's!none            /sys/fs/fuse/connections!#none            /sys/fs/fuse/connections!' $target/lib/init/fstab
-run_in_vmroot sed -i 's!none            /sys/kernel/!#none            /sys/kernel/!' $target/lib/init/fstab
+/bin/sed -i 's!none            /sys/fs/fuse/connections!#none            /sys/fs/fuse/connections!' $target/lib/init/fstab
+/bin/sed -i 's!none            /sys/kernel/!#none            /sys/kernel/!' $target/lib/init/fstab
 
-# configure_upstart;
+configure_upstart;
 lxc-stop -n vmroot;
 sleep 1;
 lxc-start -n vmroot -d;
