@@ -229,9 +229,23 @@ module.exports = class CActivity extends jraphical.Capsule
 # temp, couldn't find a better place to put this
 
 do ->
-  CActivity.on "feed-new", (activity)->
-    # JActivityCache.init()
-    console.log activity
+  typesToBeCached = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+    ]
+
+  CActivity.on "feed-new", (activities)->
+
+    isCacheable = no
+    isCacheable = yes for activity in activities when activity in typesToBeCached
+    if isCacheable
+      JActivityCache.init()
+      console.log activities
 
   CActivity.on "post-updated", (teaser)->
     # JActivityCache.init()

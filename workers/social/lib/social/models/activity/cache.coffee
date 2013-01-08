@@ -41,13 +41,13 @@ module.exports = class JActivityCache extends jraphical.Module
       to          :
         type      : Date
         default   : -> new Date
-        get       : ->
-          last = this.overview[this.overview.length-1]
-          last.createdAt[last.createdAt.length-1]
+        get       : -> this.overview[0].createdAt[0]
       from        :
         type      : Date
         default   : -> new Date
-        get       : -> this.overview[0].createdAt[0]
+        get       : ->
+          last = this.overview[this.overview.length-1]
+          last.createdAt[last.createdAt.length-1]
       isFull      :
         type      : Boolean
         default   : no
@@ -343,7 +343,7 @@ module.exports = class JActivityCache extends jraphical.Module
       , {}
 
 
-      console.log {activitiesModifier}
+      # console.log {activitiesModifier}
 
       # @update {
       #   # $pushAll: {overview}
@@ -357,9 +357,13 @@ module.exports = class JActivityCache extends jraphical.Module
 
     CActivity = require './index'
 
+    log "ever here", teaser.meta.createdAt
+
     @containsTimestamp teaser.meta.createdAt, (err, cache)->
       if err then callback? err
       else
+
+        return log "couldn't find cache instance!" unless cache
 
         # this is to get the activity
         idToUpdate = null

@@ -54,8 +54,8 @@ class ActivityAppController extends AppController
     activityController.on "OwnActivityHasArrived", (activity)->
       controller.ownActivityArrived activity
 
-    activityController.on 'ActivitiesArrived', (activities)->
-      for activity in activities when activity.constructor.name in @currentFilter
+    activityController.on 'ActivitiesArrived', (activities)=>
+      for activity in activities when activity.bongo_.constructorName in @currentFilter
         controller.newActivityArrived activity
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
@@ -80,9 +80,9 @@ class ActivityAppController extends AppController
       else
         @sanitizeCache cache, (err, cache)=>
 
+          isLoading = no
           @listController.listActivities cache
           @listController.hideLazyLoader()
-          isLoading = no
 
 
   sanitizeCache:(cache, callback)->

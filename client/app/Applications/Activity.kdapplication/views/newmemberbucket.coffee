@@ -17,7 +17,7 @@ class NewMemberBucketView extends JView
 
     super
 
-    @group = new LinkGroup (totalCount : @getData().count), @getData().teasers
+    @group = new LinkGroup (totalCount : @getData().count), @getData().anchors
 
   click:->
 

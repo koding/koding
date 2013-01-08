@@ -96,9 +96,9 @@ class ActivityListItemView extends KDListItemView
       childView = new childConstructor({}, data)
       # to not to block the page
       # we use this timeout here
-      @utils.wait =>
-        @addSubView childView
-        callback?()
+      # @utils.wait =>
+      @addSubView childView
+      callback?()
 
   partial:-> ''
 
