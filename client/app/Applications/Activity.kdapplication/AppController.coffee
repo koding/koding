@@ -73,8 +73,9 @@ class ActivityAppController extends AppController
 
   populateActivity:(options = {})->
 
+    return if isLoading
+    isLoading = yes
     @listController.showLazyLoader()
-
 
     if @getFilter() isnt activityTypes
       # debugger
@@ -82,26 +83,19 @@ class ActivityAppController extends AppController
         @listController.itemsOrdered.last.meta.createdAt
       else new Date
 
-      selector      =
-        type             :
-          $in            : @currentFilter
-        'meta.createdAt' :
-          $lt            : lastItemsTimestamp
-
       options       =
         limit       : 20
+        to          : lastItemsTimestamp.getTime()
+        facets      : @getFilter()
         sort        :
           createdAt : -1
 
-      log "ever here", selector, options
-      KD.remote.api.CActivity.some selector, options, (err, model) =>
-        log err, model
-        if err then callback err
+      log "ever here", options
+      KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+        isLoading = no
+        if err then warn err
         else
-          unless model is null
-            log model
-            # model[0].snapshot = model[0].snapshot.replace /&quot;/g, '"'
-            # callback null, model
+          log activities
 
         # @fetchTeasers selector, options, (activities)=>
         #   if activities
@@ -159,6 +153,42 @@ class ActivityAppController extends AppController
         cache.overview.reverse()
 
         callback null, cache
+
+  # delete
+  fetchActivityOverview:(callback)->
+
+    @appStorage.fetchStorage (storage)=>
+
+      flags      = KD.whoami().globalFlags
+      exempt     = (flags? and 'exempt' in flags) or storage.getAt 'bucket.showLowQualityContent'
+      now        = Date.now()
+      lastTo     = if lastTo   then lastFrom else now
+      lastFrom   = if lastFrom then lastFrom - aRange else now - aRange
+      lowQuality = yes  if exempt
+
+      options =
+        lowQuality : lowQuality
+        from       : lastFrom
+        to         : lastTo
+        types      : @getFilter()
+
+      KD.remote.api.CActivity.fetchActivityOverview options, (err, overview)=>
+        if overview.length is 0
+          @fetchActivityOverview callback
+        else
+          callback?()
+          @listController.prepareToStream overview
+
+  streamByIds:(ids, callback)->
+
+    selector = _id : $in : ids
+    KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
+      if err then callback err
+      else
+        unless model is null
+          callback null, model[0]
+        else
+          callback null, null
 
   continueLoadingTeasers:->
     unless isLoading

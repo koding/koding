@@ -22,7 +22,7 @@ module.exports = class CActivity extends jraphical.Capsule
     sharedMethods     :
       static          : [
         'one','some','all','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchActivityOverview'
+        'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -219,6 +219,26 @@ module.exports = class CActivity extends jraphical.Capsule
     @someData {snapshot:$exists:1}, {snapshot:1}, {limit:20}, (err, cursor)->
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
+
+  @fetchFacets = (options, callback)->
+
+    {to, limit, facets} = options
+
+    selector =
+      type      : $in : facets
+      createdAt : $lt : new Date
+
+    options =
+      limit : limit or 20
+      sort  : createdAt : -1
+
+    @someData selector, {}, options, (err, cursor)->
+      console.log err, cursor
+      cursor.toArray (err, arr)->
+        if err then callback err
+        else
+          callback null, arr
+
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
