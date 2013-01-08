@@ -10,23 +10,28 @@ class StatusLEDView extends KDView
 
     monitorController = @getSingleton 'monitorController'
 
-    monitorController.on 'ServiceWentOnline', (key,serviceData)=>
+    monitorController.on 'ServiceWentOnline', (key,serviceData={})=>
       for item in @ledList.items
         if item.getData() is key
-          # log key, 'went on'
           item.setOnline()
+          if serviceData.count
+            item.setCount serviceData.count
 
-    monitorController.on 'ServiceWentOffline', (key,serviceData)=>
+    monitorController.on 'ServiceWentOffline', (key,serviceData={})=>
       for item in @ledList.items
         if item.getData() is key
-          # log key, 'went off'
           item.setOffline()
+          if serviceData.count
+            item.setCount serviceData.count
 
     for service in monitorController.serviceList
       @ledList.addItem service
 
     @on 'click', =>
       monitorController.monitorPresence()
+
+    @utils.wait 4000, =>
+      @setClass 'pulse'
 
   viewAppended:->
     super
@@ -51,36 +56,62 @@ class StatusLEDItemView extends KDListItemView
       title         : 'Service'
       direction     : 'center'
       placement     : 'bottom'
+      offset        :
+        left        : -10
+        top         : 0
 
     super options,data
     @setClass 'led'
 
     #initial color
-    @setOnline()
+    @setOff()
+    @currentState = 'off'
+
+    @count = 0
+
+  updateTooltip:(title=@currentState)->
+    if @getCount() > 0
+      @getOptions().tooltip.title = keyToName[@getData()]+" #{title} <br/><span class='instance-count'>("+@getCount()+' instances running)</span>'
+    else
+      @getOptions().tooltip.title = keyToName[@getData()]+" #{title}"
+
+  setCurrentState:(state)->
+    @currentState = state
+
+  setCount:(newCount)->
+    @count = newCount
+    @updateTooltip()
+
+  getCount:->
+    @count
 
   setOnline:->
-    @getOptions().tooltip.title = keyToName[@getData()]+' online'
+    @updateTooltip 'online'
+    @setCurrentState 'online'
     @unsetClass 'red'
     @unsetClass 'yellow'
     @unsetClass 'off'
     @setClass 'green'
 
   setOffline:->
-    log "service #{@getData()} set offline"
-    @getOptions().tooltip.title = keyToName[@getData()]+' offline'
+    @updateTooltip 'offline'
+    @setCurrentState 'offline'
     @unsetClass 'yellow'
     @unsetClass 'off'
     @unsetClass 'green'
     @setClass 'red'
+
   setWaiting:->
-    @getOptions().tooltip.title = keyToName[@getData()]+' under heavy load. Please wait.'
+    @updateTooltip 'under heavy load. Please wait.'
+    @setCurrentState 'under heavy load. Please wait.'
     @unsetClass 'red'
     @unsetClass 'green'
     @unsetClass 'off'
     @setClass 'yellow'
 
   setOff:->
-    @getOptions().tooltip.title = 'You are not connected to Koding.'
+    @updateTooltip 'not connected'
+    @setCurrentState 'not connected'
     @unsetClass 'yellow'
     @unsetClass 'green'
     @unsetClass 'red'
