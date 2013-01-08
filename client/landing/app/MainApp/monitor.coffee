@@ -22,8 +22,6 @@ class MonitorController extends KDController
 
 
   monitorPresence:->
-    log 'Monitoring Presence.'
-
     @monitorHandler =
       join : =>
         @handleJoin arguments
@@ -48,12 +46,12 @@ class MonitorController extends KDController
 
 
   handleJoin:(args)->
-    log 'Join.', @parseRoutingKey args[0]
+    # log 'Join.', @parseRoutingKey args[0]
     @addMonitorData @parseRoutingKey args[0]
     @checkForServices()
 
   handleLeave:(args)->
-    log 'Leave: ', @parseRoutingKey args[0]
+    # log 'Leave: ', @parseRoutingKey args[0]
     @removeMonitorData @parseRoutingKey args[0]
     @checkForServices()
 
@@ -71,9 +69,13 @@ class MonitorController extends KDController
           @monitorData[key]
       else
         if /\*/.test key
+          @socialWorkers = 0
           for item of @monitorData
             if item.indexOf(key.replace('*','')) isnt -1
-              return @monitorData[item]
+              @socialWorkers++
+              socialWorker = @monitorData[item]
+          socialWorker.count = @socialWorkers
+          return socialWorker
 
   checkForService:(serviceGenericName)->
     @getMonitorData(serviceGenericName) or no
@@ -84,48 +86,24 @@ class MonitorController extends KDController
       serviceData = @checkForService key
       if serviceData
         services.push serviceData
-        if @offlineServices.indexOf(key) isnt -1
-          # log 'went online!'
+        if @offlineServices.indexOf(key) isnt -1 or serviceData.count
           @emit 'ServiceWentOnline', key, serviceData
           for service,i in @offlineServices
             @offlineServices.splice(i,1) if service is key
-          # delete @offlineServices[key]
       else
         @offlineServices.push key unless @offlineServices.indexOf(key) isnt -1
-        # log 'went offline!'
-        @emit 'ServiceWentOffline', key
+        if key.indexOf('*') isnt -1
+          serviceData =
+            count : @socialWorkers
+        else
+          serviceData = null
+        @emit 'ServiceWentOffline', key, serviceData
+
     services
 
   getOfflineServices:->
     @getOnlineServices()
     @offlineServices
 
-
   checkForServices:->
     @getOfflineServices()
-
-
-class MonitorItem extends KDListItemView
-
-  constructor:(options,data)->
-    super options,data
-    @setClass 'monitor-item'
-
-    @serviceName = switch @getData().serviceGenericName
-      when 'kite-webterm' then 'Terminal'
-      when 'kite-applications' then 'Apps'
-      when 'kite-databases' then 'Databases'
-      when 'kite-sharedHosting' then 'Hosting'
-      else 'Social'
-
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-    <span class='status-light'></span>#{@serviceName}
-    """
-
-

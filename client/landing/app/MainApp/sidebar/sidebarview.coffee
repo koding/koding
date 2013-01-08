@@ -61,24 +61,6 @@ class Sidebar extends JView
 
     @accNav = @accNavController.getView()
 
-    @statusNavController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        cssClass     : "status"
-        itemClass    : NavigationLink
-        bind         : "mouseenter mouseleave click"
-        mouseenter   : => @animateLeftNavIn()
-        mouseleave   : => @animateLeftNavOut()
-      wrapper        : no
-      scrollView     : no
-    , statusNavItems
-
-    @statusNav = @statusNavController.getView()
-
-    @statusList = new KDListView
-      itemClass : MonitorItem
-
-
     @adminNavController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -132,6 +114,8 @@ class Sidebar extends JView
 
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
+
+    @statusLEDs = new StatusLEDView
 
   resetAdminNavController:->
     @utils.wait 1000, =>
@@ -230,11 +214,11 @@ class Sidebar extends JView
       </div>
       {{> @avatarAreaIconMenu}}
       {{> @nav}}
-      <hr>
+      <hr />
       {{> @accNav}}
       {{> @adminNav}}
-      {{> @statusNav}}
-      {{> @statusList}}
+      <hr />
+      {{> @statusLEDs}}
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
@@ -371,12 +355,6 @@ class Sidebar extends JView
       { title : "Account",        loggedIn  : yes, path   : '/Account' }
       { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
       { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
-    ]
-  statusNavItems =
-    id    : "status-navigation"
-    title : "status-navigation"
-    items : [
-      { title : "Status", loggedIn  : yes }
     ]
 
   bottomControlsItems =
