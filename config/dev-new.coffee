@@ -46,7 +46,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -57,7 +57,7 @@ module.exports = deepFreeze
     numberOfWorkers: 1
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   feeder        :

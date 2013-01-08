@@ -112,6 +112,8 @@ class MainView extends KDView
     mainController = @getSingleton('mainController')
     mainController.popupController = new VideoPopupController
 
+    mainController.monitorController = new MonitorController
+
     @videoButton = new KDButtonView
       cssClass : "video-popup-button"
       icon : yes

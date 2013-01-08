@@ -136,6 +136,8 @@ Includes =
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
+        MonitorController     : "./client/app/MainApp/monitor.coffee"
+
         MembersAppController       : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         AccountAppController       : "./client/app/Applications/Account.kdapplication/AppController.coffee"
         HomeAppController          : "./client/app/Applications/Home.kdapplication/AppController.coffee"
