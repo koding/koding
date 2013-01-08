@@ -171,6 +171,7 @@ mounter    =
       callback "You are not authorized to do this."
       return no
 
+    fc  = ''
     res = {mounted : false, remotehost, mountpoint : options.mountpoint}
 
     rs = fs.createReadStream '/proc/mounts', flags: 'r'
@@ -181,7 +182,10 @@ mounter    =
       callback error
 
     rs.on 'data', (data)->
-      mounts = [mount.split(' ', 2) for mount in data.split('\n') when startsWith mount, remotehost][0]
+      fc += data
+
+    rs.on 'end', ->
+      mounts = [mount.split(' ', 2) for mount in fc.split('\n') when startsWith mount, remotehost][0]
       if mounts.length > 0
         state = [line for line in mounts when (startsWith(line[1], "/Users/#{username}/") and \
                                                endsWith(  line[1], "#{remoteuser}@#{remotehost}"))][0]

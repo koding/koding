@@ -78,11 +78,7 @@ func main() {
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-						body, err := json.Marshal(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
-						if err != nil {
-							panic(err)
-						}
-						sendChan <- string(body)
+						sendChan <- map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover}
 					}
 				}()
 			}
@@ -124,12 +120,7 @@ func main() {
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
-
-						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
-						if err != nil {
-							panic(err)
-						}
-						sendChan <- string(body)
+						sendChan <- map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix}
 
 					case "unsubscribe":
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -201,13 +192,10 @@ func main() {
 			panic(err)
 		}
 
-		for message := range stream {
-			routingKey := message.RoutingKey
-			body, err := json.Marshal(map[string]string{"routingKey": routingKey, "payload": string(message.Body)})
-			if err != nil {
-				panic(err)
-			}
-			bodyStr := string(body)
+		for amqpMessage := range stream {
+			routingKey := amqpMessage.RoutingKey
+			payload := json.RawMessage(amqpMessage.Body)
+			jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 			for pos != -1 && pos < len(routingKey) {
@@ -223,7 +211,7 @@ func main() {
 				routeMapMutex.RUnlock()
 				for _, channel := range channels {
 					select {
-					case channel <- bodyStr:
+					case channel <- jsonMessage:
 						// successful
 					default:
 						log.Warn("Dropped message")
