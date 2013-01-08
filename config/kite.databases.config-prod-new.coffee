@@ -22,5 +22,7 @@ module.exports =
         { host : 'mongo1.db.koding.com', user : 'admin', password : '22t78skhdlksaje1'}
         { host : 'mongo0.db.koding.com', user : 'admin', password : '22t78skhdlksaje1'}
       ]
+  bahadir :
+    x : "d"
 
 
