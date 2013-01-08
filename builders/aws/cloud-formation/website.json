@@ -10,7 +10,7 @@
             "Type": "String",
             "Default": "c1.xlarge",
             "AllowedValues": [
-                "c1.xlarge",
+                "c1.xlarge"
             ],
             "ConstraintDescription": "must be a valid EC2 instance type."
         },
