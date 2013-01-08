@@ -38,7 +38,7 @@ AccountMixin = do ->
         if readyChannels[name] then callback()
         else
           channel.once 'ready', ->
-            readyChannels[name] = channel
+            readyChannels[name] ?= channel
             callback()
 
       ready =(resourceName)->
