@@ -137,7 +137,7 @@ Includes =
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
         MonitorController     : "./client/app/MainApp/monitor.coffee"
-
+        MonitorView           : "./client/app/MainApp/monitorview.coffee"
         MembersAppController       : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         AccountAppController       : "./client/app/Applications/Account.kdapplication/AppController.coffee"
         HomeAppController          : "./client/app/Applications/Home.kdapplication/AppController.coffee"

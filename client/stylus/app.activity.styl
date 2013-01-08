@@ -2339,6 +2339,31 @@ div.activity-content-container
         right 0px
 
 
+div.status-leds
+  abs()
+  top : -30px
+  right 0px
+  size auto, auto
+  div.led
+    display inline-block
+    margin: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    vendor transition, background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out
+    &.red
+      background-color: #f00;
+      box-shadow: #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px;
+    &.green
+      background-color: #0f0;
+      box-shadow: #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px;
+    &.yellow
+      background-color: #ff0;
+      box-shadow: #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px;
+    &.blue
+      background-color: #00f;
+      box-shadow: #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px;
+
 span.avatar-popup-status-loader
   position absolute
   top 33%
