@@ -71,7 +71,7 @@ Vagrant::Config.run do |config|
     # ---- Ceph client configuration -------
     config.vm.define :cephClient do |cephClient_config|
 
-          cephClient_config.vm.box = "ubuntu1204-64"
+          cephClient_config.vm.box = "ubuntu1210-64"
           cephClient_config.vm.box_url = template_ubuntu120464_url
           cephClient_config.vm.network :hostonly, hosts["cephClient.local"]
           cephClient_config.vm.host_name = "cephClient.local"

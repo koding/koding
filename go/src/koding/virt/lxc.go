@@ -18,7 +18,7 @@ func (vm *VM) ShutdownCommand() *exec.Cmd {
 }
 
 func (vm *VM) AttachCommand(uid int, command ...string) *exec.Cmd {
-	args := []string{"--name", vm.String(), "--", "sudo", "-i", "-u", fmt.Sprintf("#%d", uid)}
+	args := []string{"--name", vm.String(), "--", "/usr/bin/sudo", "-i", "-u", fmt.Sprintf("#%d", uid)}
 	args = append(args, command...)
 	cmd := exec.Command("/usr/bin/lxc-attach", args...)
 	//cmd.Env = []string{"TERM=xterm"}
