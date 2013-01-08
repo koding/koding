@@ -135,6 +135,8 @@ class MainView extends KDView
       delegate      : @
     , {}
 
+    @statusLEDs = new StatusLEDView
+
     @mainTabView.on "AllPanesClosed", ->
       @getSingleton('router').handleRoute "/Activity"
 
@@ -142,6 +144,7 @@ class MainView extends KDView
     @contentPanel.addSubView @mainTabHandleHolder
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
+    @contentPanel.addSubView @statusLEDs
 
   createSideBar:->
 

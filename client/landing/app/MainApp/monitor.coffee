@@ -3,6 +3,27 @@ class MonitorController extends KDController
   constructor:(options,data)->
     super options,data
 
+    @serviceList =[
+      'kite-applications'
+      'kite-webterm'
+      'kite-databases'
+      'kite-sharedHosting'
+      'koding-social-*'
+      # 'koding-social-arvidkah'
+    ]
+
+    @monitorData = {}
+    @offlineServices = []
+
+
+    @monitorPresence()
+
+    @registerSingleton 'monitorController', @, no
+
+
+  monitorPresence:->
+    log 'Monitoring Presence.'
+
     @monitorHandler =
       join : =>
         @handleJoin arguments
@@ -10,31 +31,6 @@ class MonitorController extends KDController
         @handleLeave arguments
 
     KD.remote.monitorPresence @monitorHandler
-
-    @monitorData = {}
-    @offlineServices = []
-
-    @serviceList =[
-      'kite-applications'
-      'kite-webterm'
-      'kite-databases'
-      'kite-sharedHosting'
-      # 'koding-social-*'
-      'koding-social-arvidkah'
-    ]
-
-    @registerSingleton 'monitorController', @, yes
-
-    @utils.wait 5000, =>
-      @showSidebarView()
-      @checkForServices()
-
-  showSidebarView:->
-    @getSingleton('mainController').mainViewController.sidebarController.mainView.statusNav?.show()
-
-  hideSidebarView:->
-    @getSingleton('mainController').mainViewController.sidebarController.mainView.statusNav?.hide()
-
 
   parseRoutingKey:(routingKey)->
     data = {}
@@ -52,15 +48,14 @@ class MonitorController extends KDController
 
 
   handleJoin:(args)->
-    # log 'Join.', @parseRoutingKey args[0]
+    log 'Join.', @parseRoutingKey args[0]
     @addMonitorData @parseRoutingKey args[0]
     @checkForServices()
 
   handleLeave:(args)->
-    # log 'Leave: ', @parseRoutingKey args[0]
+    log 'Leave: ', @parseRoutingKey args[0]
     @removeMonitorData @parseRoutingKey args[0]
     @checkForServices()
-
 
   addMonitorData:(data)->
     @monitorData[data.serviceGenericName]=data
@@ -90,12 +85,14 @@ class MonitorController extends KDController
       if serviceData
         services.push serviceData
         if @offlineServices.indexOf(key) isnt -1
+          # log 'went online!'
           @emit 'ServiceWentOnline', key, serviceData
           for service,i in @offlineServices
             @offlineServices.splice(i,1) if service is key
           # delete @offlineServices[key]
       else
         @offlineServices.push key unless @offlineServices.indexOf(key) isnt -1
+        # log 'went offline!'
         @emit 'ServiceWentOffline', key
     services
 
@@ -103,26 +100,9 @@ class MonitorController extends KDController
     @getOnlineServices()
     @offlineServices
 
-  displayOfflineServices:(services)->
-    list = @getSingleton('mainController').mainViewController.sidebarController.mainView.statusList
-    list.empty()
-    list.show()
-    for service in services
-      list.addItem service
-
-  resetOfflineServices:->
-    list = @getSingleton('mainController').mainViewController.sidebarController.mainView.statusList
-    list.empty()
-
 
   checkForServices:->
-    offlineServices = @getOfflineServices()
-    unless offlineServices.length
-      @hideSidebarView()
-      @resetOfflineServices @getOnlineServices()
-    else
-      @displayOfflineServices offlineServices
-      @showSidebarView()
+    @getOfflineServices()
 
 
 class MonitorItem extends KDListItemView
