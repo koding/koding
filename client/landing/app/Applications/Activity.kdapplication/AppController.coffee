@@ -73,16 +73,47 @@ class ActivityAppController extends AppController
 
   populateActivity:(options = {})->
 
+    return if isLoading
+    isLoading = yes
     @listController.showLazyLoader()
 
-    @fetchCachedActivity options, (err, cache)=>
-      if err then warn err
-      else
-        @sanitizeCache cache, (err, cache)=>
+    if @getFilter() isnt activityTypes
+      # debugger
+      lastItemsTimestamp = if @listController.itemsOrdered.last
+        @listController.itemsOrdered.last.meta.createdAt
+      else new Date
 
-          isLoading = no
-          @listController.listActivities cache
-          @listController.hideLazyLoader()
+      options       =
+        limit       : 20
+        to          : lastItemsTimestamp.getTime()
+        facets      : @getFilter()
+        sort        :
+          createdAt : -1
+
+      log "ever here", options
+      KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+        isLoading = no
+        if err then warn err
+        else
+          log activities
+
+        # @fetchTeasers selector, options, (activities)=>
+        #   if activities
+        #     for activity in activities when activity?
+        #       controller.addItem activity
+        #     callback? activities
+        #   else
+        #     callback?()
+        #   @teasersLoaded()
+
+    else
+      @fetchCachedActivity options, (err, cache)=>
+        if err then warn err
+        else
+          @sanitizeCache cache, (err, cache)=>
+            isLoading = no
+            @listController.listActivities cache
+            @listController.hideLazyLoader()
 
 
   sanitizeCache:(cache, callback)->
