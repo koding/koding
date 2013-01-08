@@ -60,7 +60,7 @@ class ActivityListController extends KDListViewController
       if item.ids.length > 1
         @addItem new NewMemberBucketData
           type      : "CNewMemberBucketActivity"
-          teasers   : (cache.activities[id] for id in item.ids)
+          anchors   : (cache.activities[id].teaser.anchor for id in item.ids)
           count     : item.count
           createdAt : item.createdAt
       else

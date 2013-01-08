@@ -56,7 +56,7 @@ class ActivityListContainer extends JView
 
     @controller = new ActivityListController
       delegate          : @
-      lazyLoadThreshold : .75
+      lazyLoadThreshold : .99
       itemClass         : ActivityListItemView
 
     @listWrapper = @controller.getView()
