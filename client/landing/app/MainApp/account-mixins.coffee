@@ -37,8 +37,9 @@ AccountMixin = do ->
         {name} = channel
         if readyChannels[name] then callback()
         else
-          readyChannels[name] = channel
-          channel.once 'ready', callback
+          channel.once 'ready', ->
+            readyChannels[name] = channel
+            callback()
 
       ready =(resourceName)->
         @exchange = resourceName
