@@ -299,6 +299,14 @@ run =(options)->
       stderr: process.stderr
       verbose: yes
 
+  if config.librato?.push
+    processes.fork
+      name  : 'libratoWorker'
+      cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
+      restart: yes
+      restartInterval: 100
+      verbose: yes
+
   processes.fork
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"

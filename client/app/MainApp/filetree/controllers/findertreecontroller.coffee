@@ -170,11 +170,14 @@ class NFinderTreeController extends JTreeViewController
       @addNodes files
       callback? nodeView
       @emit "folder.expanded", nodeView.getData()
+      @emit 'fs.retry.success'
 
     folder = nodeView.getData()
 
     folder.failTimer = @utils.wait 5000, =>
-      @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
+      @notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+      @once 'fs.retry.scheduled', =>
+        @expandFolder nodeView, callback
       folder.emit "fs.nothing.finished", []
       cb.cancel()
 
@@ -686,7 +689,7 @@ class NFinderTreeController extends JTreeViewController
 
   notification = null
 
-  notify:(msg, style, details)->
+  notify:(msg, style, details, reconnect=no)->
 
     return unless @getView().parent?
 
@@ -696,6 +699,7 @@ class NFinderTreeController extends JTreeViewController
       msg = "Permission denied!"
 
     style or= 'error' if details
+    duration = if reconnect then 0 else if details then 5000 else 2500
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
@@ -703,9 +707,19 @@ class NFinderTreeController extends JTreeViewController
       cssClass  : "filetree #{style}"
       container : @getView().parent
       # duration  : 0
-      duration  : if details then 5000 else 2500
+      duration  : duration
       details   : details
-      click     : ->
+      click     : =>
+        if reconnect
+          @emit 'fs.retry.scheduled'
+          @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
+          notification.notificationSetTitle 'Attempting to fetch files'
+          notification.notificationSetPositions()
+          notification.setClass 'loading'
+          @once 'fs.retry.success', =>
+            notification.destroy()
+          return
+
         if notification.getOptions().details
           details = new KDNotificationView
             title     : "Error details"
@@ -715,6 +729,5 @@ class NFinderTreeController extends JTreeViewController
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          details.on 'ReceivedClickElsewhere', =>
+          details.on 'ReceivedClickElsewhere', ->
             details.destroy()
-

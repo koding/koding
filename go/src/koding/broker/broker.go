@@ -61,8 +61,29 @@ func main() {
 
 			subscriptions := make(map[string]bool)
 
-			controlChannel := utils.CreateAmqpChannel(publishConn)
-			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
+			var controlChannel *amqp.Channel
+			var lastPayload string
+			resetControlChannel := func() {
+				if controlChannel != nil {
+					controlChannel.Close()
+				}
+				var err error
+				controlChannel, err = publishConn.Channel()
+				if err != nil {
+					panic(err)
+				}
+				go func() {
+					defer log.RecoverAndLog()
+
+					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+
+						sendChan <- map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover}
+					}
+				}()
+			}
+			resetControlChannel()
+			defer func() { controlChannel.Close() }()
 
 			err := controlChannel.Publish("auth", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 			if err != nil {
@@ -75,12 +96,13 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					if err != nil {
-						log.LogError(err)
-						controlChannel.Close()
-						controlChannel = utils.CreateAmqpChannel(publishConn)
-					} else {
+					amqpError, isAmqpError := err.(*amqp.Error)
+					if err == nil {
 						break
+					} else if isAmqpError && amqpError.Code == 504 {
+						resetControlChannel()
+					} else {
+						panic(err)
 					}
 				}
 			}()
@@ -98,12 +120,7 @@ func main() {
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
-
-						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
-						if err != nil {
-							panic(err)
-						}
-						sendChan <- string(body)
+						sendChan <- map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix}
 
 					case "unsubscribe":
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -115,13 +132,16 @@ func main() {
 						routingKey := message["routingKey"].(string)
 						if strings.HasPrefix(routingKey, "client.") {
 							for {
+								lastPayload = ""
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								if err != nil {
-									log.LogError(err)
-									controlChannel.Close()
-									controlChannel = utils.CreateAmqpChannel(publishConn)
-								} else {
+								amqpError, isAmqpError := err.(*amqp.Error)
+								if err == nil {
+									lastPayload = message["payload"].(string)
 									break
+								} else if isAmqpError && amqpError.Code == 504 {
+									resetControlChannel()
+								} else {
+									panic(err)
 								}
 							}
 						} else {
@@ -172,13 +192,10 @@ func main() {
 			panic(err)
 		}
 
-		for message := range stream {
-			routingKey := message.RoutingKey
-			body, err := json.Marshal(map[string]string{"routingKey": routingKey, "payload": string(message.Body)})
-			if err != nil {
-				panic(err)
-			}
-			bodyStr := string(body)
+		for amqpMessage := range stream {
+			routingKey := amqpMessage.RoutingKey
+			payload := json.RawMessage(amqpMessage.Body)
+			jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 			for pos != -1 && pos < len(routingKey) {
@@ -194,7 +211,7 @@ func main() {
 				routeMapMutex.RUnlock()
 				for _, channel := range channels {
 					select {
-					case channel <- bodyStr:
+					case channel <- jsonMessage:
 						// successful
 					default:
 						log.Warn("Dropped message")

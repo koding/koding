@@ -2352,6 +2352,95 @@ div.activity-content-container
         left 50%
         right 0px
 
+@keyframes pulseOnce
+  50%
+    bg color,                           #0f0
+
+@keyframes pulseAlert
+  50%
+      background-color                  #ff0
+      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
+      opacity                           1
+div.status-leds
+  margin                                0px auto 0px auto
+  text-align                            center
+  size                                  auto, 22px
+  opacity                               1
+  vendor transition,                    opacity 0.25s ease-in-out
+
+  &.fadeout
+    opacity 1
+
+  &.pulse
+    div.led-wrapper > .led
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
+
+  &:hover
+    div.led-wrapper.green > .led
+      background-color                  darken(#0f0, 50%)
+    opacity                             1
+
+    div.led-wrapper:hover
+      &.green
+        .led
+          bg color,                       #0f0
+          box-shadow                      #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px
+      &.red
+        .led
+          bg color,                       #f60
+          box-shadow                      #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px
+  div.led-wrapper
+    borderBox()
+    size 22px, 22px
+    padding 2px 0px
+    display                             inline-block
+    opacity 1
+    vendor transition, opacity .1s ease-in-out
+    &.fadeout
+      opacity 1
+    div.led
+      borderBox()
+      display inline-block
+      width                               6px
+      height                              6px
+      border-radius                       50%
+      vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
+    &.red
+      .led
+        background-color                  #ff9200
+        box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
+        animation-name                    pulseAlert
+        animation-duration                1s
+        animation-iteration-count         infinite
+    &.green
+      .led
+        animation-name                    pulseOnce
+        animation-duration                1s
+        animation-iteration-count         1
+        background-color                  #5f5f5f
+        box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
+        // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
+    &.yellow
+      background-color                  #ff0
+      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
+    &.blue
+      background-color                  #00f
+      box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
+    &.off
+      background-color                  #444
+      box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
+
+  div.status-label
+    color                               #ADADAD !important
+    font-size                           11px
+    cursor                              pointer
+    font-weight 300 !important
+    text-shadow none !important
+span.instance-count
+  white-space                           pre
+
 
 span.avatar-popup-status-loader
   position absolute

@@ -28,7 +28,7 @@ when "rhel","fedora"
   when 5
     include_recipe "yum::epel"
   end
-  package "git"
+  yum_package "git"
 when "windows"
   include_recipe 'git::windows'
 when "mac_os_x"
@@ -42,5 +42,5 @@ when "mac_os_x"
     action :install
   end
 else
-  package "git"
+  yum_package "git"
 end

@@ -97,6 +97,8 @@ class Sidebar extends JView
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
+    @statusLEDs = new StatusLEDView
+
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
@@ -198,10 +200,12 @@ class Sidebar extends JView
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
+      {{> @statusLEDs}}
       {{> @nav}}
-      <hr>
+      <hr />
       {{> @accNav}}
       {{> @adminNav}}
+      <hr />
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
@@ -221,7 +225,6 @@ class Sidebar extends JView
   _mouseleaveTimeout = null
 
   animateLeftNavIn:->
-
     return if $('body').hasClass("dragInAction")
     @utils.killWait _mouseleaveTimeout if _mouseleaveTimeout
     _mouseenterTimeout = @utils.wait 200, =>
@@ -229,7 +232,6 @@ class Sidebar extends JView
       @expandNavigationPanel() if @_onDevelop
 
   animateLeftNavOut:->
-
     return if @_popupIsActive or $('body').hasClass("dragInAction")
     @utils.killWait _mouseenterTimeout if _mouseenterTimeout
     _mouseleaveTimeout = @utils.wait 200, =>
