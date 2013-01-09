@@ -181,8 +181,6 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 		}
 	}
 
-	time.Sleep(time.Second)
-
 	data, _ := json.Marshal(messages)
 	return createFrame('a', string(data), frameStart, frameEnd, escape), false
 }
