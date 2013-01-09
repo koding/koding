@@ -35,7 +35,7 @@ func main() {
 	}
 
 	k := kite.New("webterm")
-	k.Handle("createSever", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("createServer", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		remote, err := args.Map()
 		if err != nil {
 			return nil, err
