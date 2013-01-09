@@ -222,11 +222,12 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchFacets = (options, callback)->
 
-    {to, limit, facets} = options
+    {to, limit, facets, lowQuality} = options
 
     selector =
-      type      : { $in : facets }
-      createdAt : { $lt : new Date to }
+      type         : { $in : facets }
+      createdAt    : { $lt : new Date to }
+      isLowQuality : { $ne : lowQuality }
 
     options =
       limit : limit or 20

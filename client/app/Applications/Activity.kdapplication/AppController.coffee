@@ -19,6 +19,24 @@ class ActivityAppController extends AppController
   aRange    = 2*60*60*1000
   isLoading = no
 
+  clearQuotes = (activities)->
+
+    return activities = for activityId, activity of activities
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity
+
+  isExempt = (callback)->
+
+    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+      if err
+        log 'error fetching app storage', err
+        callback no
+      else
+        flags = KD.whoami().globalFlags
+        exempt = flags?.indexOf 'exempt'
+        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+        callback exempt
+
   constructor:(options={})->
 
     options.view = new ActivityAppView
@@ -77,40 +95,27 @@ class ActivityAppController extends AppController
     isLoading = yes
     @listController.showLazyLoader()
 
-    if @getFilter() isnt activityTypes
+    isExempt (exempt)=>
 
-      options       =
-        limit       : 20
-        to          : options.to or Date.now()
-        facets      : @getFilter()
-        sort        :
-          createdAt : -1
+      if exempt or @getFilter() isnt activityTypes
 
-      log "ever here", options
-      KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
-        if err then warn err
-        else
-          activities = clearQuotes activities
-          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+        options = to : options.to or Date.now()
+
+        @fetchActivity options, (err, teasers)=>
+          if err then warn err
+          else
             isLoading = no
             @listController.listActivities teasers
             @listController.hideLazyLoader()
 
-    else
-      @fetchCachedActivity options, (err, cache)=>
-        if err then warn err
-        else
-          @sanitizeCache cache, (err, cache)=>
-            isLoading = no
-            @listController.listActivitiesFromCache cache
-            @listController.hideLazyLoader()
-
-
-  clearQuotes = (activities)->
-
-    return activities = for activityId, activity of activities
-      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
-      activity
+      else
+        @fetchCachedActivity options, (err, cache)=>
+          if err then warn err
+          else
+            @sanitizeCache cache, (err, cache)=>
+              @listController.listActivitiesFromCache cache
+              isLoading = no
+              @listController.hideLazyLoader()
 
   sanitizeCache:(cache, callback)->
 
@@ -124,7 +129,25 @@ class ActivityAppController extends AppController
 
       callback null, cache
 
+  fetchActivity:(options = {}, callback)->
 
+    isLoading = yes
+    @listController.showLazyLoader()
+    @listController.noActivityItem.hide()
+
+    options       =
+      limit       : options.limit  or 20
+      to          : options.to     or Date.now()
+      facets      : options.facets or @getFilter()
+      lowQuality  : options.exempt or no
+      sort        :
+        createdAt : -1
+
+    KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+      if err then callback err
+      else
+        activities = clearQuotes activities
+        KD.remote.reviveFromSnapshots activities, callback
 
 
   fetchCachedActivity:(options = {}, callback)->
@@ -141,47 +164,12 @@ class ActivityAppController extends AppController
         @listController.hideLazyLoader()
         if cache?.length is 0
           @listController.noActivityItem.show()
+          isLoading = no
           return
 
         cache.overview.reverse()
 
         callback null, cache
-
-  # delete
-  fetchActivityOverview:(callback)->
-
-    @appStorage.fetchStorage (storage)=>
-
-      flags      = KD.whoami().globalFlags
-      exempt     = (flags? and 'exempt' in flags) or storage.getAt 'bucket.showLowQualityContent'
-      now        = Date.now()
-      lastTo     = if lastTo   then lastFrom else now
-      lastFrom   = if lastFrom then lastFrom - aRange else now - aRange
-      lowQuality = yes  if exempt
-
-      options =
-        lowQuality : lowQuality
-        from       : lastFrom
-        to         : lastTo
-        types      : @getFilter()
-
-      KD.remote.api.CActivity.fetchActivityOverview options, (err, overview)=>
-        if overview.length is 0
-          @fetchActivityOverview callback
-        else
-          callback?()
-          @listController.prepareToStream overview
-
-  streamByIds:(ids, callback)->
-
-    selector = _id : $in : ids
-    KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
-      if err then callback err
-      else
-        unless model is null
-          callback null, model[0]
-        else
-          callback null, null
 
   continueLoadingTeasers:->
     unless isLoading
@@ -235,6 +223,44 @@ class ActivityAppController extends AppController
       title : "Tutorial"
       type  : "tutorial"
     ,activity
+
+
+
+  # delete
+  fetchActivityOverview:(callback)->
+
+    @appStorage.fetchStorage (storage)=>
+
+      flags      = KD.whoami().globalFlags
+      exempt     = (flags? and 'exempt' in flags) or storage.getAt 'bucket.showLowQualityContent'
+      now        = Date.now()
+      lastTo     = if lastTo   then lastFrom else now
+      lastFrom   = if lastFrom then lastFrom - aRange else now - aRange
+      lowQuality = yes  if exempt
+
+      options =
+        lowQuality : lowQuality
+        from       : lastFrom
+        to         : lastTo
+        types      : @getFilter()
+
+      KD.remote.api.CActivity.fetchActivityOverview options, (err, overview)=>
+        if overview.length is 0
+          @fetchActivityOverview callback
+        else
+          callback?()
+          @listController.prepareToStream overview
+
+  streamByIds:(ids, callback)->
+
+    selector = _id : $in : ids
+    KD.remote.api.CActivity.streamModels selector, {}, (err, model) =>
+      if err then callback err
+      else
+        unless model is null
+          callback null, model[0]
+        else
+          callback null, null
 
 
 
