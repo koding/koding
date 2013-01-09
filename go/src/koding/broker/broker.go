@@ -24,7 +24,7 @@ func main() {
 		consumeChannel := utils.CreateAmqpChannel(consumeConn)
 		defer consumeChannel.Close()
 
-		routeMap := make(map[string]([]chan<- interface{}))
+		routeMap := make(map[string]([]*sockjs.Session))
 		var routeMapMutex sync.Mutex
 
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(session *sockjs.Session) {
@@ -43,16 +43,16 @@ func main() {
 
 			addToRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
-				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session.SendChan)
+				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 				routeMapMutex.Unlock()
 			}
 			removeFromRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
-				channels := routeMap[routingKeyPrefix]
-				for i, channel := range channels {
-					if channel == session.SendChan {
-						channels[i] = channels[len(channels)-1]
-						routeMap[routingKeyPrefix] = channels[:len(channels)-1]
+				routeSessions := routeMap[routingKeyPrefix]
+				for i, routeSession := range routeSessions {
+					if routeSession == session {
+						routeSessions[i] = routeSessions[len(routeSessions)-1]
+						routeMap[routingKeyPrefix] = routeSessions[:len(routeSessions)-1]
 						break
 					}
 				}
@@ -207,10 +207,10 @@ func main() {
 				}
 				prefix := routingKey[:pos]
 				routeMapMutex.Lock()
-				channels := routeMap[prefix]
-				for _, channel := range channels {
+				routeSessions := routeMap[prefix]
+				for _, routeSession := range routeSessions {
 					select {
-					case channel <- jsonMessage:
+					case routeSession.SendChan <- jsonMessage:
 						// successful
 					default:
 						log.Warn("Dropped message")
