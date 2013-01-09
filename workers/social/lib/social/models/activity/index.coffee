@@ -225,19 +225,20 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, limit, facets} = options
 
     selector =
-      type      : $in : facets
-      createdAt : $lt : new Date
+      type      : { $in : facets }
+      createdAt : { $lt : new Date to }
 
     options =
       limit : limit or 20
       sort  : createdAt : -1
 
-    @someData selector, {}, options, (err, cursor)->
-      console.log err, cursor
-      cursor.toArray (err, arr)->
-        if err then callback err
-        else
-          callback null, arr
+
+    console.log JSON.stringify selector
+
+    @some selector, options, (err, activities)->
+      if err then callback err
+      else
+        callback null, activities
 
 
   markAsRead: secure ({connection:{delegate}}, callback)->

@@ -55,8 +55,6 @@ module.exports = class JActivityCache extends jraphical.Module
       overview    : Array
       activities  : Object
 
-  latestFetched = null
-
   defaultOptions =
     limit : 1
     sort  : to : -1
@@ -65,8 +63,6 @@ module.exports = class JActivityCache extends jraphical.Module
     if err
       callback err
     else if cache
-      latestFetched = if cache then cache
-      # console.log latestFetched?.to
       callback err, cache
     else
       callback null, null
@@ -84,22 +80,6 @@ module.exports = class JActivityCache extends jraphical.Module
 
     @one {}, options, (err, cache)-> kallback err, cache, callback
 
-  @next = (callback)->
-
-    return @latest callback  unless latestFetched
-
-    selector = from : $gt : latestFetched.to.getTime()
-
-    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
-
-  @prev = (callback)->
-
-    return @latest callback  unless latestFetched
-
-    selector = to : $lt : latestFetched.from.getTime()
-
-    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
-
   @byId = (id, callback)->
 
     selector = _id : id
@@ -109,10 +89,8 @@ module.exports = class JActivityCache extends jraphical.Module
   @containsTimestamp = (timestamp, callback)->
 
     selector =
-      to     :
-        $gte : timestamp
-      from   :
-        $lte : timestamp
+      to     : { $gte : timestamp }
+      from   : { $lte : timestamp }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -343,7 +321,7 @@ module.exports = class JActivityCache extends jraphical.Module
       , {}
 
 
-      # console.log {activitiesModifier}
+      console.log {activitiesModifier}
 
       # @update {
       #   # $pushAll: {overview}

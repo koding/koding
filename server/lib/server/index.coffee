@@ -12,7 +12,6 @@ if cluster.isMaster
   cluster.on "exit", (worker, code, signal) ->
     cluster.fork()
 else
-
   processMonitor = (require 'processes-monitor').start
     name : "webServer on port #{webPort}"
     stats_id: "webserver." + cluster.worker.id
@@ -84,18 +83,6 @@ else
     JActivityCache.latest (err, cache)->
       if err then console.warn err
       console.log "latest: #{Date.now() - startTime} msecs!"
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/next", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.next (err, cache)->
-      if err then console.warn err
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/prev", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.prev (err, cache)->
-      if err then console.warn err
       res.send if cache then cache.data else []
 
   app.get "/-/cache/id/:id", (req, res)->

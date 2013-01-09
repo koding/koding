@@ -37,6 +37,7 @@ class ActivityListController extends KDListViewController
 
     @noActivityItem.hide()
 
+
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -54,7 +55,14 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  listActivities:(cache)->
+  listActivities:(activities)->
+
+    for activity in activities
+      @addItem activity
+
+    @teasersLoaded()
+
+  listActivitiesFromCache:(cache)->
 
     for item in cache.overview
       if item.ids.length > 1
