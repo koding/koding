@@ -25,7 +25,7 @@ class ActivityAppView extends JView
 
     @widget.hide()  unless KD.isLoggedIn()
 
-    widgetController = new ActivityUpdateWidgetController
+    @widgetController = new ActivityUpdateWidgetController
       view : @widget
 
     @getSingleton("mainController").once "AccountChanged", (account)=>

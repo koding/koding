@@ -130,13 +130,13 @@ class ActivityListController extends KDListViewController
       else
         view = @addHiddenItem activity, 0
         @activityHeader.newActivityArrived()
-    else
-      # i don't know what this does
-      {CFolloweeBucket} = KD.remote.api
-      switch activity.constructor
-        when CFolloweeBucket
-          @addItem activity, 0
-      @ownActivityArrived activity
+    # else
+    #   # i don't know what this does
+    #   {CFolloweeBucket} = KD.remote.api
+    #   switch activity.constructor
+    #     when CFolloweeBucket
+    #       @addItem activity, 0
+    #   @ownActivityArrived activity
 
   updateNewMemberBucket:(activity)->
 
@@ -152,12 +152,23 @@ class ActivityListController extends KDListViewController
           item.addChildView data
           break
 
+  fakeItems = []
+
   ownActivityArrived:(activity)->
 
-    view = @getListView().addHiddenItem activity, 0
-    view.addChildView activity, ()=>
-      @scrollView.scrollTo {top : 0, duration : 200}, ->
-        view.slideIn()
+    if fakeItems.length > 0
+      itemToBeRemoved = fakeItems.shift()
+      @removeItem null, itemToBeRemoved
+      @getListView().addItem activity, 0
+    else
+      view = @addHiddenItem activity, 0
+      @utils.defer -> view.slideIn()
+
+  fakeActivityArrived:(activity)->
+
+    @ownActivityArrived activity
+    fakeItems.push activity
+
 
   addHiddenItem:(activity, index, animation = null)->
 
