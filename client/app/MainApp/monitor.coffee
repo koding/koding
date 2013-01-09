@@ -127,7 +127,15 @@ class MonitorController extends KDController
     @getMonitorData(serviceGenericName) or no
 
   checkForServices:->
-    @getOfflineServices()
+    serviceCount = @getOfflineServices().length
+    if serviceCount is 0
+      @emit 'AllServicesOnline'
+    else
+      if serviceCount is @serviceList.length
+        @emit 'AllServicesOffline'
+      else
+        @emit 'SomeServicesOnline'
+
 
 
   # EVENT HANDLING METHODS

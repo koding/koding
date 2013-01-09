@@ -47,6 +47,7 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
+      bind     : 'mouseenter mouseleave'
 
     @panelWrapper.addSubView @contentPanel = new KDView
       domId    : "content-panel"
@@ -148,6 +149,11 @@ class MainView extends KDView
     @sidebar = new Sidebar domId : "sidebar", delegate : @
     @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
+    @sidebarPanel.on 'mouseenter', (event)=>
+      @sidebar.statusLEDs.show()
+    @sidebarPanel.on 'mouseleave', (event)=>
+      unless $(event.target).is @sidebar.getDomElement()
+        @sidebar.statusLEDs.hideIfAllServicesOnline()
 
   changeHomeLayout:(isLoggedIn)->
 
