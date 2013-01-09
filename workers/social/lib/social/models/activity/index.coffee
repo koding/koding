@@ -14,10 +14,13 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @set
     feedable          : yes
-    # indexes           :
-    #   'sorts.repliesCount'  : 'sparse'
-    #   'sorts.likesCount'    : 'sparse'
-    #   'sorts.followerCount' : 'sparse'
+    indexes           :
+      'sorts.repliesCount'  : 'sparse'
+      'sorts.likesCount'    : 'sparse'
+      'sorts.followerCount' : 'sparse'
+      createdAt             : 'sparse'
+      modifiedAt            : 'sparse'
+      group                 : 'sparse'
     sharedMethods     :
       static          : [
         'one','some','all','someData','teasers','each'
@@ -47,6 +50,7 @@ module.exports = class CActivity extends jraphical.Capsule
         get           : -> new Date
       originType      : String
       originId        : ObjectId
+      group           : String
 
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->

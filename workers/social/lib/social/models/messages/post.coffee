@@ -28,7 +28,8 @@ module.exports = class JPost extends jraphical.Message
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     slug          : String
-    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
+    group         : String 
     counts        :
       followers   :
         type      : Number
@@ -43,7 +44,8 @@ module.exports = class JPost extends jraphical.Message
     slugifyFrom : 'title'
     slugTemplate: 'Activity/#{slug}'
     indexes     :
-      slug      : 'unique' 
+      slug      : 'unique'
+      group     : 'sparse'
     permissions: [
       'read posts'
       'create posts'

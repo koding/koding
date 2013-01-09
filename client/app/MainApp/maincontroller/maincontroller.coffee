@@ -16,7 +16,7 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    # KD.registerSingleton "groupsController", new GroupsController this
+    KD.registerSingleton "groupsController", new GroupsController this
 
     @appReady =>
 

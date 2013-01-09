@@ -31,6 +31,8 @@ module.exports = class JTag extends jraphical.Module
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
+      title         : 'sparse'
+      group         : 'sparse'
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -67,6 +69,7 @@ module.exports = class JTag extends jraphical.Module
           type      : Number
           default   : 0
       synonyms      : [String]
+      group         : String
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
