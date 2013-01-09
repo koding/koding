@@ -34,19 +34,18 @@ func main() {
 		return
 	}
 
-	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
-		if method == "createServer" {
-			remote, err := args.Map()
-			if err != nil {
-				return nil, err
-			}
-			server := &WebtermServer{session: session}
-			server.remote = remote
-			session.CloseOnDisconnect(server)
-			return server, nil
+	k := kite.New("webterm")
+	k.Handle("createSever", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		remote, err := args.Map()
+		if err != nil {
+			return nil, err
 		}
-		return nil, &kite.UnknownMethodError{method}
+		server := &WebtermServer{session: session}
+		server.remote = remote
+		session.CloseOnDisconnect(server)
+		return server, nil
 	})
+	k.Run()
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
@@ -90,7 +89,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := server.session.CreateCommand(command)
+	cmd := server.session.CreateCommand(command...)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {
