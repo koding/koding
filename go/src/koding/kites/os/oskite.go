@@ -158,7 +158,7 @@ func AddSession(vm *virt.VM, session *kite.Session) {
 		if len(state.sessions) != 0 {
 			return
 		}
-		state.timeout = time.AfterFunc(10*time.Minute, func() {
+		state.timeout = time.AfterFunc(1*time.Minute, func() {
 			statesMutex.Lock()
 			defer statesMutex.Unlock()
 
