@@ -85,14 +85,17 @@ else
       console.log "latest: #{Date.now() - startTime} msecs!"
       res.send if cache then cache.data else []
 
-  app.get "/-/cache/id/:id", (req, res)->
+  app.get "/-/cache/to/:timestamp", (req, res)->
     {JActivityCache} = koding.models
-    JActivityCache.byId (err, cache)->
+    JActivityCache.previousTo req.params.timestamp, (err, cache)->
       if err then console.warn err
       res.send if cache then cache.data else []
 
-  app.get "/-/cache/time/:timestamp", (req, res)->
+  app.get "/-/cache/id/:id", (req, res)->
     {JActivityCache} = koding.models
+    JActivityCache.byId req.params.id, (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else []
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'

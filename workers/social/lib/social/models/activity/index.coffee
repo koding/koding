@@ -262,8 +262,15 @@ do ->
 
   CActivity.on "feed-new", (activities)->
 
+    console.log activities
+
     isCacheable = no
-    isCacheable = yes for activity in activities when activity in typesToBeCached
+
+    for activity in activities
+      if activity.constructor.name in typesToBeCached
+        isCacheable = yes
+        break
+
     if isCacheable
       JActivityCache.init()
       console.log activities
