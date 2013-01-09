@@ -79,30 +79,22 @@ class ActivityAppController extends AppController
 
     if @getFilter() isnt activityTypes
 
-      options       =
-        limit       : 20
-        to          : options.to or Date.now()
-        facets      : @getFilter()
-        sort        :
-          createdAt : -1
+      options = to : options.to or Date.now()
 
-      log "ever here", options
-      KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+      @fetchActivity options, (err, teasers)=>
         if err then warn err
         else
-          activities = clearQuotes activities
-          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-            isLoading = no
-            @listController.listActivities teasers
-            @listController.hideLazyLoader()
+          isLoading = no
+          @listController.listActivities teasers
+          @listController.hideLazyLoader()
 
     else
       @fetchCachedActivity options, (err, cache)=>
         if err then warn err
         else
           @sanitizeCache cache, (err, cache)=>
-            isLoading = no
             @listController.listActivitiesFromCache cache
+            isLoading = no
             @listController.hideLazyLoader()
 
 
@@ -111,6 +103,18 @@ class ActivityAppController extends AppController
     return activities = for activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
+
+  isExempt = (callback)->
+
+    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+      if err
+        log 'error fetching app storage', err
+        callback no
+      else
+        flags = KD.whoami().globalFlags
+        exempt = flags?.indexOf 'exempt'
+        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+        callback exempt
 
   sanitizeCache:(cache, callback)->
 
@@ -124,7 +128,26 @@ class ActivityAppController extends AppController
 
       callback null, cache
 
+  fetchActivity:(options = {}, callback)->
 
+    isLoading = yes
+    @listController.showLazyLoader()
+    @listController.noActivityItem.hide()
+
+    isExempt (exempt)=>
+      options       =
+        limit       : options.limit  or 20
+        to          : options.to     or Date.now()
+        facets      : options.facets or @getFilter()
+        lowQuality  : exempt
+        sort        :
+          createdAt : -1
+
+      KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+        if err then callback err
+        else
+          activities = clearQuotes activities
+          KD.remote.reviveFromSnapshots activities, callback
 
 
   fetchCachedActivity:(options = {}, callback)->
@@ -141,6 +164,7 @@ class ActivityAppController extends AppController
         @listController.hideLazyLoader()
         if cache?.length is 0
           @listController.noActivityItem.show()
+          isLoading = no
           return
 
         cache.overview.reverse()
