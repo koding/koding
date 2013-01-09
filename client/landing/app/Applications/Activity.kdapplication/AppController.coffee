@@ -185,7 +185,8 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
     unless isLoading
-      @populateActivity()# {slug : "prev"}
+      lastDate = new Date @listController.itemsOrdered.last.getData().meta.createdAt
+      @populateActivity {slug : "to/#{lastDate.getTime()}"}
 
   teasersLoaded:->
     {scrollView} = @listController
