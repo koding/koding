@@ -9,8 +9,14 @@ class MonitorController extends KDController
       'kite-databases'
       'kite-sharedHosting'
       'koding-social-*'
-      # 'koding-social-arvidkah'
     ]
+
+    @serviceToMethod =
+      'kite-applications' : 'appKite'
+      'kite-webterm'      : 'webtermKite'
+      'kite-databases'    : 'databaseKite'
+      'kite-sharedHosting': 'sharedHostingKite'
+      'koding-social-*'   : 'socialWorker'
 
     @monitorData = {}
     @offlineServices = []
@@ -20,6 +26,8 @@ class MonitorController extends KDController
 
     @registerSingleton 'monitorController', @, no
 
+
+  # SUBSCRIBE TO JOIN/LEAVE EVENTS
 
   monitorPresence:->
     @monitorHandler =
@@ -45,6 +53,8 @@ class MonitorController extends KDController
     data
 
 
+  # JOIN/LEAVE HANDLERS
+
   handleJoin:(args)->
     # log 'Join.', @parseRoutingKey args[0]
     @addMonitorData @parseRoutingKey args[0]
@@ -54,6 +64,9 @@ class MonitorController extends KDController
     # log 'Leave: ', @parseRoutingKey args[0]
     @removeMonitorData @parseRoutingKey args[0]
     @checkForServices()
+
+
+  # GETTER/SETTER
 
   addMonitorData:(data)->
     @monitorData[data.serviceGenericName]=data
@@ -77,9 +90,6 @@ class MonitorController extends KDController
           socialWorker.count = @socialWorkers
           return socialWorker
 
-  checkForService:(serviceGenericName)->
-    @getMonitorData(serviceGenericName) or no
-
   getOnlineServices:->
     services = []
     for key in @serviceList
@@ -87,7 +97,10 @@ class MonitorController extends KDController
       if serviceData
         services.push serviceData
         if @offlineServices.indexOf(key) isnt -1 or serviceData.count
+
           @emit 'ServiceWentOnline', key, serviceData
+          @[@serviceToMethod[key]+'Join']?(serviceData)
+
           for service,i in @offlineServices
             @offlineServices.splice(i,1) if service is key
       else
@@ -97,7 +110,9 @@ class MonitorController extends KDController
             count : @socialWorkers
         else
           serviceData = null
+
         @emit 'ServiceWentOffline', key, serviceData
+        @[@serviceToMethod[key]+'Leave']?(serviceData)
 
     services
 
@@ -105,5 +120,30 @@ class MonitorController extends KDController
     @getOnlineServices()
     @offlineServices
 
+
+  # CHECKING METHODS
+
+  checkForService:(serviceGenericName)->
+    @getMonitorData(serviceGenericName) or no
+
   checkForServices:->
     @getOfflineServices()
+
+
+  # EVENT HANDLING METHODS
+
+  appKiteJoin:()->
+  appKiteLeave:()->
+
+  webtermKiteJoin:()->
+  webtermKiteLeave:()->
+
+  sharedHostingKiteJoin:()->
+  sharedHostingKiteLeave:()->
+
+  databaseKiteJoin:()->
+  databaseKiteLeave:()->
+
+  socialWorkerJoin:()->
+  socialWorkerLeave:()->
+
