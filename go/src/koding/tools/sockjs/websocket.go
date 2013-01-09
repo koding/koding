@@ -71,7 +71,7 @@ func (service *Service) serveRawWebsocket(w http.ResponseWriter, r *http.Request
 
 		sendChan := make(chan interface{})
 		go func() {
-			service.Callback(receiveChan, sendChan)
+			service.Callback(&Session{ReceiveChan: receiveChan, SendChan: sendChan})
 			close(sendChan)
 		}()
 

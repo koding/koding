@@ -25,9 +25,9 @@ func main() {
 		defer consumeChannel.Close()
 
 		routeMap := make(map[string]([]chan<- interface{}))
-		var routeMapMutex sync.RWMutex
+		var routeMapMutex sync.Mutex
 
-		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
+		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(session *sockjs.Session) {
 			defer log.RecoverAndLog()
 
 			r := make([]byte, 128/8)
@@ -43,14 +43,14 @@ func main() {
 
 			addToRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
-				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], sendChan)
+				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session.SendChan)
 				routeMapMutex.Unlock()
 			}
 			removeFromRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
 				channels := routeMap[routingKeyPrefix]
 				for i, channel := range channels {
-					if channel == sendChan {
+					if channel == session.SendChan {
 						channels[i] = channels[len(channels)-1]
 						routeMap[routingKeyPrefix] = channels[:len(channels)-1]
 						break
@@ -78,7 +78,7 @@ func main() {
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-						sendChan <- map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover}
+						session.SendChan <- map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover}
 					}
 				}()
 			}
@@ -107,7 +107,7 @@ func main() {
 				}
 			}()
 
-			for data := range receiveChan {
+			for data := range session.ReceiveChan {
 				func() {
 					defer log.RecoverAndLog()
 
@@ -120,7 +120,7 @@ func main() {
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
-						sendChan <- map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix}
+						session.SendChan <- map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix}
 
 					case "unsubscribe":
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -206,9 +206,8 @@ func main() {
 					pos += 1 + index
 				}
 				prefix := routingKey[:pos]
-				routeMapMutex.RLock()
+				routeMapMutex.Lock()
 				channels := routeMap[prefix]
-				routeMapMutex.RUnlock()
 				for _, channel := range channels {
 					select {
 					case channel <- jsonMessage:
@@ -217,6 +216,7 @@ func main() {
 						log.Warn("Dropped message")
 					}
 				}
+				routeMapMutex.Unlock()
 			}
 		}
 	})

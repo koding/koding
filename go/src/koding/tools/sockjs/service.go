@@ -19,16 +19,16 @@ type Service struct {
 	CookieNeeded bool
 	Timeout      time.Duration
 	StreamLimit  int
-	Callback     func(receiveChan <-chan interface{}, sendChan chan<- interface{})
+	Callback     func(*Session)
 
 	iFrameContent      []byte
 	iFrameETag         string
-	sessions           map[string]*session
+	sessions           map[string]*Session
 	sessionsMutex      sync.Mutex
 	lastSessionCleanup time.Time
 }
 
-func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Duration, streamLimit int, callback func(receiveChan <-chan interface{}, sendChan chan<- interface{})) *Service {
+func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Duration, streamLimit int, callback func(*Session)) *Service {
 	iFrameContent := createIFrameContent(jsFileUrl)
 	hash := md5.New()
 	hash.Write(iFrameContent)
@@ -47,7 +47,7 @@ func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Dur
 
 		iFrameContent:      iFrameContent,
 		iFrameETag:         iFrameETag,
-		sessions:           make(map[string]*session),
+		sessions:           make(map[string]*Session),
 		sessionsMutex:      sync.Mutex{},
 		lastSessionCleanup: time.Now(),
 	}
@@ -128,7 +128,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.sessionsMutex.Lock()
 	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
 		for key, session := range s.sessions {
-			if session.Broken || session.LastActivity.Add(s.Timeout).Before(time.Now()) {
+			if session.broken || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
 				session.Close()
 				delete(s.sessions, key)
 			}
@@ -145,15 +145,15 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session = s.newSession()
 		s.sessions[parts[1]] = session
 	}
-	session.LastActivity = time.Now()
+	session.lastActivity = time.Now()
 	s.sessionsMutex.Unlock()
 
 	if s.CookieNeeded {
 		newCookie := r.Header.Get("Cookie")
 		if newCookie != "" {
-			session.Cookie = newCookie
+			session.cookie = newCookie
 		}
-		w.Header().Set("Set-Cookie", session.Cookie+";path=/")
+		w.Header().Set("Set-Cookie", session.cookie+";path=/")
 	}
 
 	chunked := r.ProtoMinor == 1
@@ -274,22 +274,26 @@ func (s *Service) Close() {
 	for _, session := range s.sessions {
 		session.Close()
 	}
-	s.sessions = make(map[string]*session)
+	s.sessions = make(map[string]*Session)
 }
 
-func (s *Service) newSession() *session {
-	sess := &session{
-		Service:         s,
-		ReceiveChan:     make(chan interface{}, 1024),
-		SendChan:        make(chan interface{}, 1024),
-		DoConnCheck:     make(chan bool),
-		ConnCheckResult: make(chan bool),
-		ReadSemaphore:   make(chan bool, 1),
-		WriteOpenFrame:  true,
-		Cookie:          "JSESSIONID=dummy",
+func (s *Service) newSession() *Session {
+	receiveChan := make(chan interface{}, 1024)
+	sendChan := make(chan interface{}, 1024)
+	sess := &Session{
+		Service:             s,
+		ReceiveChan:         receiveChan,
+		SendChan:            sendChan,
+		receiveChanInternal: receiveChan,
+		sendChanInternal:    sendChan,
+		doConnCheck:         make(chan bool),
+		connCheckResult:     make(chan bool),
+		readSemaphore:       make(chan bool, 1),
+		writeOpenFrame:      true,
+		cookie:              "JSESSIONID=dummy",
 	}
 	go func() {
-		s.Callback(sess.ReceiveChan, sess.SendChan)
+		s.Callback(sess)
 		close(sess.SendChan)
 	}()
 	return sess
