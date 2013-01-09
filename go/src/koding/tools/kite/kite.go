@@ -14,7 +14,6 @@ import (
 	"os/signal"
 	"os/user"
 	"strconv"
-	"sync"
 	"syscall"
 )
 
@@ -98,13 +97,6 @@ func (k *Kite) Run() {
 								return
 							}
 
-							if method == "crashme" {
-								for i := 0; i < 1000; i++ {
-									d.Send("flood")
-								}
-								return
-							}
-
 							var partials []*dnode.Partial
 							err := args.Unmarshal(&partials)
 							if err != nil {
@@ -182,7 +174,9 @@ func (k *Kite) Run() {
 						case channel <- message.Body:
 							// successful
 						default:
-							log.Warn("Dropped message")
+							close(channel)
+							delete(routeMap, message.RoutingKey)
+							log.Warn("Dropped client because of message buffer overflow.")
 						}
 					}
 				}
