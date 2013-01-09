@@ -84,7 +84,6 @@ module.exports = class JActivityCache extends jraphical.Module
 
     selector =
       to     : { $lte : timestamp }
-    console.log selector
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @byId = (id, callback)->
@@ -284,7 +283,7 @@ module.exports = class JActivityCache extends jraphical.Module
       else
         # callback null, activities
 
-        console.log selector._id, activities
+        # console.log selector._id, activities
 
         activityHash = {}
         for activity in activities
@@ -319,23 +318,18 @@ module.exports = class JActivityCache extends jraphical.Module
 
       overview.reverse()
 
-      # console.log {overview, activityHash}
-
       activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
         acc["activities.#{activity.getId()}"] = activity
         return acc
       , {}
 
-
-      console.log {activitiesModifier}
-
-      # @update {
-      #   # $pushAll: {overview}
-      #   $set    : activitiesModifier
-      # }, (err)->
-      #   console.log err, "did it work"
-      #   callback?()
+      @update {
+        $pushAll: {overview}
+        $set    : activitiesModifier
+      }, (err)->
+        console.log err, "did it work"
+        callback?()
 
 
   @modifyByTeaser = (teaser, callback)->
