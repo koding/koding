@@ -13,24 +13,60 @@ import (
 
 type Session struct {
 	Service                      *Service
-	ReceiveChan                  <-chan interface{}
-	receiveChanInternal          chan<- interface{}
-	SendChan                     chan<- interface{}
-	sendChanInternal             <-chan interface{}
+	ReceiveChan                  chan interface{}
+	sendChan                     chan interface{}
 	doConnCheck, connCheckResult chan bool
 	readSemaphore                chan bool
-	writeMutex                   sync.Mutex
 	writeOpenFrame               bool
 	lastActivity                 time.Time
-	broken                       bool
+	closed                       bool
+	closeMutex                   sync.Mutex
 	cookie                       string
 }
 
+func newSession(service *Service) *Session {
+	return &Session{
+		Service:         service,
+		ReceiveChan:     make(chan interface{}, 1024),
+		sendChan:        make(chan interface{}, 1024),
+		doConnCheck:     make(chan bool),
+		connCheckResult: make(chan bool),
+		readSemaphore:   make(chan bool, 1),
+		writeOpenFrame:  true,
+		cookie:          "JSESSIONID=dummy",
+	}
+}
+
+func (s *Session) Send(data interface{}) bool {
+	if s.closed {
+		return true
+	}
+	select {
+	case s.sendChan <- data:
+		// successful
+	default:
+		return false
+	}
+	return true
+}
+
 func (s *Session) Close() {
-	close(s.receiveChanInternal)
+	s.closeMutex.Lock()
+	defer s.closeMutex.Unlock()
+	if !s.closed {
+		s.closed = true
+		close(s.ReceiveChan)
+	}
 }
 
 func (s *Session) ReadMessages(data []byte) bool {
+	s.closeMutex.Lock()
+	defer s.closeMutex.Unlock()
+
+	if s.closed {
+		return true
+	}
+
 	var obj interface{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
@@ -38,10 +74,10 @@ func (s *Session) ReadMessages(data []byte) bool {
 	}
 	if messages, ok := obj.([]interface{}); ok {
 		for _, message := range messages {
-			s.receiveChanInternal <- message
+			s.ReceiveChan <- message
 		}
 	} else {
-		s.receiveChanInternal <- obj
+		s.ReceiveChan <- obj
 	}
 	return true
 }
@@ -94,7 +130,7 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 				_, err := conn.Write([]byte("0\r\n"))
 				if err != nil {
 					s.connCheckResult <- false
-					s.broken = true
+					s.Close()
 					return
 				}
 				s.connCheckResult <- true
@@ -123,7 +159,7 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 
 	messages := make([]interface{}, 0)
 	select {
-	case message, ok := <-s.sendChanInternal:
+	case message, ok := <-s.sendChan:
 		if !ok {
 			return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
 		}
@@ -134,7 +170,7 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 
 	for moreMessages := true; moreMessages; {
 		select {
-		case message, ok := <-s.sendChanInternal:
+		case message, ok := <-s.sendChan:
 			if ok {
 				messages = append(messages, message)
 			} else {
@@ -144,6 +180,8 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 			moreMessages = false
 		}
 	}
+
+	time.Sleep(time.Second)
 
 	data, _ := json.Marshal(messages)
 	return createFrame('a', string(data), frameStart, frameEnd, escape), false

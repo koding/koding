@@ -27,7 +27,7 @@ func main() {
 		routeMap := make(map[string]([]*sockjs.Session))
 		var routeMapMutex sync.Mutex
 
-		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(session *sockjs.Session) {
+		service := sockjs.NewService("http://localhost/sockjs.js", func(session *sockjs.Session) {
 			defer log.RecoverAndLog()
 
 			r := make([]byte, 128/8)
@@ -78,7 +78,7 @@ func main() {
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-						session.SendChan <- map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover}
+						session.Send(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 					}
 				}()
 			}
@@ -120,7 +120,7 @@ func main() {
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
-						session.SendChan <- map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix}
+						session.Send(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 
 					case "unsubscribe":
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -156,6 +156,7 @@ func main() {
 			}
 		})
 		defer service.Close()
+		service.PanicHandler = log.RecoverAndLog
 
 		server := &http.Server{Handler: &sockjs.Mux{
 			Services: map[string]*sockjs.Service{
@@ -209,11 +210,9 @@ func main() {
 				routeMapMutex.Lock()
 				routeSessions := routeMap[prefix]
 				for _, routeSession := range routeSessions {
-					select {
-					case routeSession.SendChan <- jsonMessage:
-						// successful
-					default:
-						log.Warn("Dropped message")
+					if !routeSession.Send(jsonMessage) {
+						routeSession.Close()
+						log.Warn("Dropped session because of broker to client buffer overflow.")
 					}
 				}
 				routeMapMutex.Unlock()

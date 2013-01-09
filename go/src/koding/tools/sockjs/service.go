@@ -8,18 +8,18 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
 )
 
 type Service struct {
+	Callback     func(*Session)
 	Websocket    bool
 	CookieNeeded bool
 	Timeout      time.Duration
 	StreamLimit  int
-	Callback     func(*Session)
+	PanicHandler func()
 
 	iFrameContent      []byte
 	iFrameETag         string
@@ -28,22 +28,19 @@ type Service struct {
 	lastSessionCleanup time.Time
 }
 
-func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Duration, streamLimit int, callback func(*Session)) *Service {
+func NewService(jsFileUrl string, callback func(*Session)) *Service {
 	iFrameContent := createIFrameContent(jsFileUrl)
 	hash := md5.New()
 	hash.Write(iFrameContent)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
-	if streamLimit <= 0 {
-		streamLimit = 128 * 1024
-	}
-
 	return &Service{
-		Websocket:    websocket,
-		CookieNeeded: cookieNeeded,
-		Timeout:      timeout,
-		StreamLimit:  streamLimit,
+		Websocket:    true,
+		CookieNeeded: false,
+		Timeout:      10 * time.Minute,
+		StreamLimit:  128 * 1024,
 		Callback:     callback,
+		PanicHandler: func() {},
 
 		iFrameContent:      iFrameContent,
 		iFrameETag:         iFrameETag,
@@ -54,13 +51,7 @@ func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Dur
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println(err)
-			debug.PrintStack()
-		}
-	}()
+	defer s.PanicHandler()
 
 	path := r.URL.Path
 
@@ -128,7 +119,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.sessionsMutex.Lock()
 	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
 		for key, session := range s.sessions {
-			if session.broken || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
+			if session.closed || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
 				session.Close()
 				delete(s.sessions, key)
 			}
@@ -278,23 +269,10 @@ func (s *Service) Close() {
 }
 
 func (s *Service) newSession() *Session {
-	receiveChan := make(chan interface{}, 1024)
-	sendChan := make(chan interface{}, 1024)
-	sess := &Session{
-		Service:             s,
-		ReceiveChan:         receiveChan,
-		SendChan:            sendChan,
-		receiveChanInternal: receiveChan,
-		sendChanInternal:    sendChan,
-		doConnCheck:         make(chan bool),
-		connCheckResult:     make(chan bool),
-		readSemaphore:       make(chan bool, 1),
-		writeOpenFrame:      true,
-		cookie:              "JSESSIONID=dummy",
-	}
+	sess := newSession(s)
 	go func() {
 		s.Callback(sess)
-		close(sess.SendChan)
+		close(sess.sendChan)
 	}()
 	return sess
 }

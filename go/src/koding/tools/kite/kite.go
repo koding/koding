@@ -102,6 +102,13 @@ func (k *Kite) Run() {
 								return
 							}
 
+							if method == "crashme" {
+								for i := 0; i < 1000; i++ {
+									d.Send("flood")
+								}
+								return
+							}
+
 							var partials []*dnode.Partial
 							err := args.Unmarshal(&partials)
 							if err != nil {
