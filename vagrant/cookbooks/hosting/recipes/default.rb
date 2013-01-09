@@ -6,3 +6,7 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+
+include_recipe "hosting::users_dir"
+include_recipe "hosting::configs"
+include_recipe "hosting::lve_exec"

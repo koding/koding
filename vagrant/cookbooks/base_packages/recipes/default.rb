@@ -7,7 +7,13 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make vim-enhanced screen mercurial )
+packages = %w( make 
+              vim-enhanced
+              screen
+              mercurial
+              man
+              telnet
+            )
 
 packages.each do |pkg|
     yum_package "#{pkg}" do

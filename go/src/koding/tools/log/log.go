@@ -17,7 +17,8 @@ var LogDebug bool = false
 var LogToLoggr bool = false
 
 func init() {
-	Hostname, _ = os.Hostname()
+	fullName, _ := os.Hostname()
+	Hostname = strings.Split(fullName, ".")[0]
 	Pid = os.Getpid()
 }
 
@@ -54,11 +55,12 @@ func Send(event url.Values) {
 	}
 
 	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
-	_, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
+	resp, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
 	if err != nil {
 		fmt.Println("logger error: http.PostForm failed")
 		return
 	}
+	resp.Body.Close()
 }
 
 func Log(level int, text string, data ...interface{}) {
@@ -93,9 +95,9 @@ func Debug(text string, data ...interface{}) {
 	Log(DEBUG, text, data...)
 }
 
-func LogError(err interface{}) {
+func LogError(err interface{}, stackOffset int) {
 	data := make([]interface{}, 0)
-	for i := 3; ; i++ {
+	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
 			break
@@ -115,6 +117,6 @@ func LogError(err interface{}) {
 func RecoverAndLog() {
 	err := recover()
 	if err != nil {
-		LogError(err)
+		LogError(err, 2)
 	}
 }

@@ -10,6 +10,9 @@ import (
 )
 
 func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *amqp.Connection)) {
+	user := strings.Replace(config.Current.AmqpUser, "<component>", component, 1)
+	url := "amqp://" + user + ":" + config.Current.AmqpPassword + "@" + config.Current.AmqpHost
+
 	for !ShuttingDown {
 		func() {
 			defer time.Sleep(time.Second)
@@ -17,10 +20,30 @@ func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *
 
 			log.Info("Connecting to AMQP server...")
 
-			consumeConn := CreateAmqpConnection(component)
+			consumeConn, err := amqp.Dial(url)
+			if err != nil {
+				panic(err)
+			}
 			defer consumeConn.Close()
-			publishConn := CreateAmqpConnection(component)
+
+			publishConn, err := amqp.Dial(url)
+			if err != nil {
+				panic(err)
+			}
 			defer publishConn.Close()
+
+			go func() {
+				for err := range consumeConn.NotifyClose(make(chan *amqp.Error)) {
+					log.Warn("AMQP connection: " + err.Error())
+				}
+				publishConn.Close()
+			}()
+			go func() {
+				for err := range publishConn.NotifyClose(make(chan *amqp.Error)) {
+					log.Warn("AMQP connection: " + err.Error())
+				}
+				consumeConn.Close()
+			}()
 
 			log.Info("Successfully connected to AMQP server.")
 
@@ -31,21 +54,6 @@ func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *
 			}
 		}()
 	}
-}
-
-func CreateAmqpConnection(component string) *amqp.Connection {
-	user := config.Current.AmqpUser
-	user = strings.Replace(user, "<component>", component, 1)
-	conn, err := amqp.Dial("amqp://" + user + ":" + config.Current.AmqpPassword + "@" + config.Current.AmqpHost)
-	if err != nil {
-		panic(err)
-	}
-	go func() {
-		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Warn("AMQP connection: " + err.Error())
-		}
-	}()
-	return conn
 }
 
 func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {

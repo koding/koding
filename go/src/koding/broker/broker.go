@@ -62,13 +62,22 @@ func main() {
 			subscriptions := make(map[string]bool)
 
 			var controlChannel *amqp.Channel
+			var lastPayload string
 			resetControlChannel := func() {
 				if controlChannel != nil {
 					controlChannel.Close()
 				}
-				controlChannel = utils.CreateAmqpChannel(publishConn)
+				var err error
+				controlChannel, err = publishConn.Channel()
+				if err != nil {
+					panic(err)
+				}
 				go func() {
+					defer log.RecoverAndLog()
+
 					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+
 						body, err := json.Marshal(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 						if err != nil {
 							panic(err)
@@ -91,11 +100,13 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					if err != nil {
-						log.LogError(err)
+					amqpError, isAmqpError := err.(*amqp.Error)
+					if err == nil {
+						break
+					} else if isAmqpError && amqpError.Code == 504 {
 						resetControlChannel()
 					} else {
-						break
+						panic(err)
 					}
 				}
 			}()
@@ -130,12 +141,16 @@ func main() {
 						routingKey := message["routingKey"].(string)
 						if strings.HasPrefix(routingKey, "client.") {
 							for {
+								lastPayload = ""
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								if err != nil {
-									log.LogError(err)
+								amqpError, isAmqpError := err.(*amqp.Error)
+								if err == nil {
+									lastPayload = message["payload"].(string)
+									break
+								} else if isAmqpError && amqpError.Code == 504 {
 									resetControlChannel()
 								} else {
-									break
+									panic(err)
 								}
 							}
 						} else {

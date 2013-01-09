@@ -19,7 +19,7 @@ socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
   uri           :
-    address     : "http://koding.local:3020"
+    address     : "http://koding.local"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -77,12 +77,12 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://koding.local:3020'
+    staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://koding.local:3020'
+      mainUri   : 'http://koding.local'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://koding.local:8008/subscribe'
@@ -99,7 +99,7 @@ module.exports = deepFreeze
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'koding.local:3020'
+    host        : 'koding.local'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   guests        :

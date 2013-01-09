@@ -70,6 +70,7 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "djfjfhgh4455__5",
 		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"local-go": {

@@ -1,0 +1,29 @@
+{
+  "maintainer_email": "YOUR_EMAIL",
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "recipes": {
+  },
+  "suggestions": {
+  },
+  "platforms": {
+  },
+  "conflicting": {
+  },
+  "dependencies": {
+  },
+  "license": "All rights reserved",
+  "maintainer": "YOUR_COMPANY_NAME",
+  "version": "0.1.0",
+  "groupings": {
+  },
+  "providing": {
+  },
+  "name": "dev-ldap",
+  "description": "Installs/Configures dev-ldap",
+  "replacing": {
+  },
+  "recommendations": {
+  },
+  "attributes": {
+  }
+}
