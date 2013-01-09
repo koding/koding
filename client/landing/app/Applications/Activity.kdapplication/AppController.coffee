@@ -78,33 +78,23 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
 
     if @getFilter() isnt activityTypes
-      # debugger
-      lastItemsTimestamp = if @listController.itemsOrdered.last
-        @listController.itemsOrdered.last.meta.createdAt
-      else new Date
 
       options       =
         limit       : 20
-        to          : lastItemsTimestamp.getTime()
+        to          : options.to or Date.now()
         facets      : @getFilter()
         sort        :
           createdAt : -1
 
       log "ever here", options
       KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
-        isLoading = no
         if err then warn err
         else
-          log activities
-
-        # @fetchTeasers selector, options, (activities)=>
-        #   if activities
-        #     for activity in activities when activity?
-        #       controller.addItem activity
-        #     callback? activities
-        #   else
-        #     callback?()
-        #   @teasersLoaded()
+          activities = clearQuotes activities
+          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+            isLoading = no
+            @listController.listActivities teasers
+            @listController.hideLazyLoader()
 
     else
       @fetchCachedActivity options, (err, cache)=>
@@ -112,21 +102,24 @@ class ActivityAppController extends AppController
         else
           @sanitizeCache cache, (err, cache)=>
             isLoading = no
-            @listController.listActivities cache
+            @listController.listActivitiesFromCache cache
             @listController.hideLazyLoader()
 
 
+  clearQuotes = (activities)->
+
+    return activities = for activityId, activity of activities
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity
+
   sanitizeCache:(cache, callback)->
 
-    activities = []
-    for activityId, activity of cache.activities
-      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
-      activities.push activity
-
+    activities = clearQuotes cache.activities
 
     KD.remote.reviveFromSnapshots activities, (err, instances)->
 
       for activity,i in activities
+        cache.activities[activity._id] or= {}
         cache.activities[activity._id].teaser = instances[i]
 
       callback null, cache
@@ -192,7 +185,7 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
     unless isLoading
-      @populateActivity {slug : "prev"}
+      @populateActivity()# {slug : "prev"}
 
   teasersLoaded:->
     {scrollView} = @listController
