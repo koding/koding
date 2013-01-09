@@ -1,6 +1,14 @@
 {argv} = require 'optimist'
 
-KONFIG = require argv.c?.trim()
+# KONFIG = require argv.c?.trim()
+#Config = require('koding-config-manager')
+
+
+
+KONFIG = require('koding-config-manager').factory("main.#{argv.c}")
+
+console.log KONFIG
+
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
