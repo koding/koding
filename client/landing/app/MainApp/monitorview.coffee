@@ -5,15 +5,29 @@ class StatusLEDView extends KDView
 
     @setClass 'status-leds'
 
+    @allServicesOnline = no
+
     @ledList = new KDListView
       itemClass : StatusLEDItemView
+
+    @ledLabel = new KDView
+      cssClass : 'status-label'
+      partial  : 'System Status'
+      click    :=>
+        @ledList.show()
 
     monitorController = @getSingleton 'monitorController'
 
     monitorController.on 'ServiceWentOnline', (key,serviceData={})=>
       for item in @ledList.items
         if item.getData() is key
+          # if @utils.getRandomNumber(2) is 1
+          #   item.setOffline()
+          # else
+          #   item.setOnline()
+
           item.setOnline()
+
           if serviceData.count
             item.setCount serviceData.count
 
@@ -24,14 +38,34 @@ class StatusLEDView extends KDView
           if serviceData.count
             item.setCount serviceData.count
 
+    monitorController.on 'AllServicesOnline', =>
+      # @ledList.hide()
+      @allServicesOnline = yes
+
+    monitorController.on 'AllServicesOffline', =>
+      @show()
+      @ledList.show()
+      @allServicesOnline = no
+    monitorController.on 'SomeServicesOnline', =>
+      @show()
+      @ledList.show()
+      @allServicesOnline = no
+
     for service in monitorController.serviceList
       @ledList.addItem service
 
-    @on 'click', =>
-      monitorController.monitorPresence()
+  hideIfAllServicesOnline:->
+    @hide() if @allServicesOnline
 
-    @utils.wait 4000, =>
-      @setClass 'pulse'
+  hide:->
+    @utils.wait 500, =>
+      @setClass 'fadeout'
+
+    # super
+
+  show:->
+    @unsetClass 'fadeout'
+    # super
 
   viewAppended:->
     super
@@ -56,12 +90,13 @@ class StatusLEDItemView extends KDListItemView
       title         : 'Service'
       direction     : 'center'
       placement     : 'bottom'
-      offset        :
-        left        : -10
-        top         : 0
+      selector      : 'div.led'
+      # offset        :
+      #   left        : -10
+      #   top         : 0
 
     super options,data
-    @setClass 'led'
+    @setClass 'led-wrapper'
 
     #initial color
     @setOff()
@@ -122,6 +157,14 @@ class StatusLEDItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
+  show:->
+    log 'SHOW ITEM'
+    @unsetClass 'fadeout'
+  hide:->
+    log 'HIDE ITEM'
+    @setClass 'fadeout'
+
   pistachio:->
     """
+    <div class='led'></div>
     """
