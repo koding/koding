@@ -184,6 +184,12 @@ class ActivityUpdateWidgetController extends KDViewController
           mainView.showPane "codeshare"
           codeShareWidget.switchToForkView activity
 
+  emitFakeData:(type, data)->
+
+    fakeData = $.extend {fakeType : type}, data
+    @emit 'FakeActivityHasArrived', createFakeDataStructureForOwner fakeData
+
+
   updateWidgetSubmit:(data, callback)->
 
     # if troll clear the tag input
@@ -200,7 +206,7 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : err.message
     else
 
-      @emit 'OwnActivityHasArrived', data, 'JStatusUpdate'
+      @emitFakeData 'JStatusUpdate', data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
         # new KDNotificationView
@@ -212,7 +218,7 @@ class ActivityUpdateWidgetController extends KDViewController
         unless err
           @utils.killWait updateTimeout
           # @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
-          @emit 'OwnActivityHasArrived',activity
+          @emit 'OwnActivityHasArrived', activity
         else
           @emit 'OwnActivityHasFailed', data
           new KDNotificationView
@@ -233,7 +239,7 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
 
-      @emit 'OwnActivityHasArrived', data, 'JCodeSnip'
+      @emitFakeData 'JCodeSnip', data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
@@ -328,7 +334,7 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
 
-      @emit 'OwnActivityHasArrived', data, 'JTutorial'
+      @emitFakeData 'JTutorial', data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
@@ -359,7 +365,7 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
 
-      @emit 'OwnActivityHasArrived', data, 'JDiscussion'
+      @emitFakeData 'JDiscussion', data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
@@ -373,3 +379,59 @@ class ActivityUpdateWidgetController extends KDViewController
           @utils.killWait updateTimeout
           activityController.emit "OwnActivityHasArrived", discussion
 
+
+  createFakeTags = (originalTags)->
+
+    # prepare fake tags
+    tags = []
+    for tag in originalTags
+      fakeTag       = new KD.remote.api.JTag {}, tag
+      fakeTag       = $.extend {},fakeTag,
+        title       : tag.title or tag.$suggest
+        body        : tag.title or tag.$suggest
+        counts      :
+          followers : 0
+          following : 0
+          tagged    : 0
+        slug        : KD.utils.slugify (tag.title or tag.$suggest)
+      tags.push fakeTag
+    tags
+
+  createFakeDataStructureForOwner = (activity)->
+
+    oldActivity = activity
+    constructorName = activity.fakeType
+    # prepare fake post
+    fakePost      = new KD.remote.api[constructorName] {}, activity
+    fakePost      = $.extend yes,{},fakePost,
+      fake        : yes
+      slug        : 'fakeActivity'
+      title       : activity.title or activity.body
+      body        : activity.body
+      counts      :
+        followers : 0
+        following : 0
+      meta        :
+        createdAt : (new Date (Date.now())).toISOString()
+        likes     : 0
+        modifiedAt: (new Date (Date.now())).toISOString()
+      origin      : KD.whoami()
+      link        : oldActivity.link or oldActivity
+      repliesCount: 0
+      opinionCount: 0
+      originId    : KD.whoami()._id
+      originType  : 'JAccount'
+      _id         : 'fakeIdfakeId' # 12bytes, as expected
+
+    if oldActivity?.meta?.tags
+      fakePost        = $.extend fakePost,
+        tags          : createFakeTags oldActivity?.meta?.tags
+
+    if activity?.code
+      fakePost        = $.extend fakePost,
+        attachments   : [
+          description : activity.body
+          content     : activity.code
+          syntax      : activity.syntax
+        ]
+    fakePost
