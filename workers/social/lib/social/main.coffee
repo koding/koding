@@ -23,12 +23,21 @@ broker = new Broker mqOptions
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + argv.workerid
-  interval : 60000
-  limits  :
+  interval : 30000
+  limit_hard  :
     memory   : 300
     callback : (name,msg,details)->
-      console.log "[SOCIAL WORKER #{name}] I'm using too much memory, feeling suicidal."
+      console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
+  limit_soft:
+    memory: 120
+    callback: (name, msg, details) ->
+      console.log "[SOCIAL WORKER #{name}] Using too much memory, accepting no more new jobs."
+      process.send?({pid: process.pid, exiting: yes})
+      koding.disconnect
+      setTimeout ->
+        process.exit()
+       , 20000
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback
@@ -92,4 +101,4 @@ koding.connect ->
     #     process.exit()
     #   ,10*1000
 
-console.log 'Koding Social Worker has started.'
+console.log "Koding Social Worker #{argv.workerid} has started."
