@@ -97,6 +97,11 @@ func (k *Kite) Run() {
 						d.OnRootMethod = func(method string, args *dnode.Partial) {
 							defer log.RecoverAndLog()
 
+							if method == "ping" {
+								d.Send("pong")
+								return
+							}
+
 							var partials []*dnode.Partial
 							err := args.Unmarshal(&partials)
 							if err != nil {
