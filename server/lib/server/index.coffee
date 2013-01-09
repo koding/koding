@@ -85,9 +85,9 @@ else
       console.log "latest: #{Date.now() - startTime} msecs!"
       res.send if cache then cache.data else []
 
-  app.get "/-/cache/to/:timestamp", (req, res)->
+  app.get "/-/cache/before/:timestamp", (req, res)->
     {JActivityCache} = koding.models
-    JActivityCache.previousTo req.params.timestamp, (err, cache)->
+    JActivityCache.before req.params.timestamp, (err, cache)->
       if err then console.warn err
       res.send if cache then cache.data else []
 

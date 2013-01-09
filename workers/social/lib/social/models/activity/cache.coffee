@@ -34,7 +34,7 @@ module.exports = class JActivityCache extends jraphical.Module
     indexes       :
       to          : 'unique'
     sharedMethods :
-      static      : ["latest", "previousTo", "init", "createCacheFromEarliestTo"]
+      static      : ["latest", "init", "createCacheFromEarliestTo"]
       instance    : []
     schema        :
       # name        : String
@@ -80,7 +80,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     @one {}, options, (err, cache)-> kallback err, cache, callback
 
-  @previousTo = (timestamp, callback)->
+  @before = (timestamp, callback)->
 
     selector =
       to     : { $lte : timestamp }
