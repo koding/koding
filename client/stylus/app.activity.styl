@@ -2340,62 +2340,59 @@ div.activity-content-container
 
 @keyframes pulseOnce
   50%
-    bg color, #ff9200
+    bg color,                           #ff9200
 
 div.status-leds
-  // abs()
-  // top : -30px
-  // right 0px
-  margin 10px auto 5px auto
-  text-align center
-  size auto, auto
-  opacity 0.9
-  vendor transition, opacity 0.15s ease-in-out
+  margin                                10px auto 5px auto
+  text-align                            center
+  size                                  auto, auto
+  opacity                               0.9
+  vendor transition,                    opacity 0.15s ease-in-out
 
   &.pulse
     div.led
-      animation-name pulseOnce
-      animation-duration 1s
-      animation-iteration-count 1
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
 
   &:hover
     div.led.green
-      background-color darken(#0f0, 50%)
-    opacity 1
+      background-color                  darken(#0f0, 50%)
+    opacity                             1
 
     div.led:hover
       &.green
-        bg color, #0f0
-        box-shadow: #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px;
+        bg color,                       #0f0
+        box-shadow                      #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px
       &.red
-        bg color, #f60
-        box-shadow: #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px;
+        bg color,                       #f60
+        box-shadow                      #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px
 
   div.led
-    display inline-block
-    margin: 5px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    vendor transition, background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out
+    display                             inline-block
+    margin                              5px
+    width                               8px
+    height                              8px
+    border-radius                       50%
+    vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out
     &.red
-      background-color: #ff9200
-      box-shadow: #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px;
+      background-color                  #ff9200
+      box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
     &.green
-      background-color: #5f5f5f;
-      box-shadow: #181818 0 -1px 7px 1px, inset #333 0 -1px 9px, #555 0 2px 14px;
+      background-color                  #5f5f5f
+      box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 9px, #555 0 2px 14px
     &.yellow
-      background-color: #ff0;
-      box-shadow: #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px;
+      background-color                  #ff0
+      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
     &.blue
-      background-color: #00f;
-      box-shadow: #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px;
+      background-color                  #00f
+      box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
     &.off
-      background-color: #444;
-      box-shadow: #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px;
+      background-color                  #444
+      box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
 
 span.instance-count
-  white-space pre
+  white-space                           pre
 
 
 span.avatar-popup-status-loader
