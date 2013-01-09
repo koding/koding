@@ -10,6 +10,8 @@ class StatusLEDView extends KDView
     @ledList = new KDListView
       itemClass : StatusLEDItemView
 
+    @ledList.hide() unless KD.checkFlag "super-admin", KD.whoami()
+
     @ledLabel = new KDView
       cssClass : 'status-label'
       partial  : 'System Status'
@@ -44,11 +46,11 @@ class StatusLEDView extends KDView
 
     monitorController.on 'AllServicesOffline', =>
       @show()
-      @ledList.show()
+      # @ledList.show()
       @allServicesOnline = no
     monitorController.on 'SomeServicesOnline', =>
       @show()
-      @ledList.show()
+      # @ledList.show()
       @allServicesOnline = no
 
     for service in monitorController.serviceList
