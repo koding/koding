@@ -59,8 +59,7 @@ class KDListView extends KDView
       return
     else
       for item,i in @items
-        if itemInstance and itemInstance is item or
-           itemData and itemData is item.getData()
+        if itemInstance is item or itemData is item.getData()
           @emit 'ItemIsBeingDestroyed', { view : item, index : i }
           @items.splice i,1
           item.destroy()
