@@ -90,10 +90,10 @@ class StatusLEDItemView extends KDListItemView
       title         : 'Service'
       direction     : 'center'
       placement     : 'bottom'
-      selector      : 'div.led'
-      # offset        :
-      #   left        : -10
-      #   top         : 0
+      # selector      : 'div.led'
+      offset        :
+        left        : -10
+        top         : 0
 
     super options,data
     @setClass 'led-wrapper'
@@ -158,10 +158,8 @@ class StatusLEDItemView extends KDListItemView
     @template.update()
 
   show:->
-    log 'SHOW ITEM'
     @unsetClass 'fadeout'
   hide:->
-    log 'HIDE ITEM'
     @setClass 'fadeout'
 
   pistachio:->
