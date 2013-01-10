@@ -11,7 +11,6 @@ import (
 	"koding/tools/utils"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 )
 
