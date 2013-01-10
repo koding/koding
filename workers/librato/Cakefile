@@ -1,14 +1,12 @@
-{fork} = require 'child_process'
-# KodingLogger = require 'koding-logger'
-os = require 'os'
 processes = new (require 'processes')
-option '-c', '--configPath [CONFIG]', 'Which config file to use.'
+option '-c', '--config [CONFIG]', 'Which config file to use.'
 
-task 'run', ({configPath}) ->
-  configPath ?= '../../config/dev'
+task 'run', ({config}) ->
+  KONFIG = require('koding-config-manager').load("main.#{config}")
+  
   processes.fork
     name  : "libratoWorker"
-    cmd   : "./index -c #{configPath}"
+    cmd   : "./index -c #{config}"
     restart : yes
     restartInterval : 1000
 

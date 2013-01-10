@@ -12,7 +12,8 @@ process.on 'uncaughtException', (err)->
 Bongo = require 'bongo'
 Broker = require 'broker'
 
-Object.defineProperty global, 'KONFIG', value: require './config'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, mongo, email, social} = KONFIG
 
 mqOptions = extend {}, mq

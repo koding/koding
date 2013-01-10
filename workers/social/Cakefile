@@ -1,12 +1,7 @@
-{fork} = require 'child_process'
-KodingLogger = require 'koding-logger'
-os = require 'os'
-processes = new (require 'processes')
+processes = new (require "processes")
 
-option '-c', '--configPath [CONFIG]', 'Which config file to use.'
-option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
+option '-c', '--config [NAME]', 'Which config file to use.'
 option '-s', '--silent', 'Set this flag to suppress stdout'
-option '-D', '--debug', 'Start the node project with the debugger'
 
 # We're not relying on Process.restart option anymore. We're going to
 # restart a worker only if a backup worker was not already started.
@@ -14,21 +9,23 @@ option '-D', '--debug', 'Start the node project with the debugger'
 worker_id_next = 0
 workers_recovered = []
 
-start_worker = (configPath) ->
+start_worker = (config) ->
   id = worker_id_next++
   processes.fork
     name  : "socialWorker-#{id}"
-    cmd   : "./index -c #{configPath} --workerid #{id}"
+    cmd   : "./index -c #{config} --workerid #{id}"
   id
 
-task 'run', ({numberOfWorkers, configPath, silent})->
-  configPath ?= '../../config/dev'
-  {logger, configNumberOfWorkers} = require configPath
-  numberOfWorkers ?= configNumberOfWorkers ? 1
+task 'run', ({config, silent}) ->
+  KONFIG = require('koding-config-manager').load("main.#{config}")
+  {social} = KONFIG
+
+  {numberOfWorkers} = social
+  numberOfWorkers ?= numberOfWorkers ? 1
 
   for _, i in Array +numberOfWorkers
     # Start a worker
-    wid = start_worker configPath
+    wid = start_worker config
 
     # If a worker stops accepting new connections, start a backup worker.
     processes.get("socialWorker-#{wid}").on "message", (msg) ->
@@ -40,7 +37,7 @@ task 'run', ({numberOfWorkers, configPath, silent})->
           console.log "[SOCIAL WORKER] A worker has stopped accepting connections, starting new one."
 
           # Start a backup worker
-          start_worker configPath
+          start_worker config
 
     # Start a new worker if a worker dies, unless it has a backup worker.
     processes.on "exit", (cid, name) ->
@@ -48,6 +45,4 @@ task 'run', ({numberOfWorkers, configPath, silent})->
         workers_recovered.splice workers_recovered.indexOf(cid), 1
       else
         console.log "[SOCIAL WORKER] A worker has died, starting new one."
-        start_worker configPath
-
-  return
+        start_worker config

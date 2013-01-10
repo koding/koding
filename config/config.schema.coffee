@@ -108,6 +108,11 @@ config =
         awsAccessKeyId      : 1
         awsSecretAccessKey  : 1
         bucket              : 1
+    librato :
+      push      : 1
+      email     : 1
+      token     : 1
+      interval  : 1
     bitly :
       username  : 1
       apiKey    : 1
