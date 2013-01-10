@@ -22,7 +22,7 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  stats_id: "worker.social." + argv.workerid
+  stats_id: "worker.social." + process.pid
   interval : 30000
   limit_hard  :
     memory   : 300
@@ -101,4 +101,4 @@ koding.connect ->
     #     process.exit()
     #   ,10*1000
 
-console.log "Koding Social Worker #{argv.workerid} has started."
+console.log "Koding Social Worker #{process.pid} has started."
