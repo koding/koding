@@ -14,7 +14,6 @@ import (
 	"os/signal"
 	"os/user"
 	"strconv"
-	"sync"
 	"syscall"
 )
 
@@ -47,7 +46,11 @@ func (k *Kite) Run() {
 
 	utils.AmqpAutoReconnect(k.Name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
 		routeMap := make(map[string](chan<- []byte))
-		var routeMapMutex sync.RWMutex
+		defer func() {
+			for _, channel := range routeMap {
+				close(channel)
+			}
+		}()
 
 		publishChannel := utils.CreateAmqpChannel(publishConn)
 		defer publishChannel.Close()
@@ -70,14 +73,11 @@ func (k *Kite) Run() {
 					username := arguments["username"].(string)
 					routingKey := arguments["routingKey"].(string)
 
-					channel := make(chan []byte, 1024)
-					routeMapMutex.Lock()
 					if _, found := routeMap[routingKey]; found {
-						routeMapMutex.Unlock()
 						continue // duplicate key
 					}
+					channel := make(chan []byte, 1024)
 					routeMap[routingKey] = channel
-					routeMapMutex.Unlock()
 
 					go func() {
 						defer log.RecoverAndLog()
@@ -166,24 +166,22 @@ func (k *Kite) Run() {
 					arguments := make(map[string]interface{})
 					json.Unmarshal(message.Body, &arguments)
 					routingKey := arguments["routingKey"].(string)
-					routeMapMutex.Lock()
 					channel, found := routeMap[routingKey]
 					if found {
 						close(channel)
 						delete(routeMap, routingKey)
 					}
-					routeMapMutex.Unlock()
 
 				default:
-					routeMapMutex.RLock()
 					channel, found := routeMap[message.RoutingKey]
-					routeMapMutex.RUnlock()
 					if found {
 						select {
 						case channel <- message.Body:
 							// successful
 						default:
-							log.Warn("Dropped message")
+							close(channel)
+							delete(routeMap, message.RoutingKey)
+							log.Warn("Dropped client because of message buffer overflow.")
 						}
 					}
 				}

@@ -10,6 +10,8 @@ class StatusLEDView extends KDView
     @ledList = new KDListView
       itemClass : StatusLEDItemView
 
+    @ledList.hide() unless KD.checkFlag "super-admin", KD.whoami()
+
     @ledLabel = new KDView
       cssClass : 'status-label'
       partial  : 'System Status'
@@ -44,11 +46,11 @@ class StatusLEDView extends KDView
 
     monitorController.on 'AllServicesOffline', =>
       @show()
-      @ledList.show()
+      # @ledList.show()
       @allServicesOnline = no
     monitorController.on 'SomeServicesOnline', =>
       @show()
-      @ledList.show()
+      # @ledList.show()
       @allServicesOnline = no
 
     for service in monitorController.serviceList
@@ -90,10 +92,10 @@ class StatusLEDItemView extends KDListItemView
       title         : 'Service'
       direction     : 'center'
       placement     : 'bottom'
-      selector      : 'div.led'
-      # offset        :
-      #   left        : -10
-      #   top         : 0
+      # selector      : 'div.led'
+      offset        :
+        left        : -10
+        top         : 0
 
     super options,data
     @setClass 'led-wrapper'
@@ -158,10 +160,8 @@ class StatusLEDItemView extends KDListItemView
     @template.update()
 
   show:->
-    log 'SHOW ITEM'
     @unsetClass 'fadeout'
   hide:->
-    log 'HIDE ITEM'
     @setClass 'fadeout'
 
   pistachio:->
