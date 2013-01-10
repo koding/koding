@@ -37,8 +37,9 @@ AccountMixin = do ->
         {name} = channel
         if readyChannels[name] then callback()
         else
-          readyChannels[name] = channel
-          channel.once 'ready', callback
+          channel.once 'ready', ->
+            readyChannels[name] ?= channel
+            callback()
 
       ready =(resourceName)->
         @exchange = resourceName
@@ -89,7 +90,7 @@ AccountMixin = do ->
 
       fetchChannel =(kiteName, callback)-> 
         channelName = getChannelName "kite-#{kiteName}"
-        return callback channels[channelName]  if channels[channelName]
+        return callback readyChannels[channelName]  if readyChannels[channelName]
         channel = KD.remote.mq.subscribe channelName
         kiteController = KD.getSingleton 'kiteController'
         kiteController.channels ?= {}
