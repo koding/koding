@@ -1,6 +1,6 @@
 name "web_server"
 description "The  role for WEB servers"
-run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]","recipe[git]"]
+run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]"]
 
 
 default_attributes({ "nginx" => {

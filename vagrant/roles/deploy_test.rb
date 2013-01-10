@@ -1,6 +1,6 @@
 name "deploy_test"
 description "The  role for  servers"
-run_list ["recipe[nodejs]","recipe[golang]","recipe[git]","recipe[kd_deploy]"]
+run_list ["recipe[nodejs]","recipe[golang]","recipe[kd_deploy]"]
 
 
 default_attributes({ "kd_deploy" => {

@@ -8,20 +8,32 @@
 #
 
 packages = %w( make 
-              vim-enhanced
+              gcc
+              patch
               screen
               mercurial
-              man
               telnet
+              git
             )
 
-packages.each do |pkg|
-    yum_package "#{pkg}" do
-        action :install
+rpm_diff = %w( vim-enhanced man )
+ubuntu_diff = %w( vim )
+
+case node['platform_family']
+when "rhel", "cloudlinux"
+    include_recipe "yum::epel"
+    packages.concat(rpm_diff)
+    packages.each do |pkg|
+        yum_package "#{pkg}" do
+            action :install
+        end
+    end
+when "debian"
+    packages.concat(ubuntu_diff)
+    packages.each do |pkg|
+        apt_package "#{pkg}" do
+            action :install
+        end
     end
 end
 
-
-gem_package "ruby-shadow" do
-    action :install
-end

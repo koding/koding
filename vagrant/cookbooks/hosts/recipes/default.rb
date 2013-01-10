@@ -7,9 +7,11 @@
 # All rights reserved - Do Not Redistribute
 #
 
-cookbook_file "/etc/hosts" do
-  source "hosts"
-  mode 0644
-  owner "root"
-  group "root"
+if node['virtualization']['system'] == 'vbox'
+    cookbook_file "/etc/hosts" do
+      source "vagrant.hosts"
+      mode 0644
+      owner "root"
+      group "root"
+    end
 end
