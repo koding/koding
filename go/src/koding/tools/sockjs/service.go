@@ -8,76 +8,50 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
 )
 
 type Service struct {
+	Callback     func(*Session)
 	Websocket    bool
 	CookieNeeded bool
 	Timeout      time.Duration
 	StreamLimit  int
-	Callback     func(receiveChan <-chan interface{}, sendChan chan<- interface{})
+	PanicHandler func()
 
 	iFrameContent      []byte
 	iFrameETag         string
-	active             bool
-	sessions           map[string]*session
+	sessions           map[string]*Session
 	sessionsMutex      sync.Mutex
 	lastSessionCleanup time.Time
 }
 
-func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Duration, streamLimit int, callback func(receiveChan <-chan interface{}, sendChan chan<- interface{})) *Service {
+func NewService(jsFileUrl string, callback func(*Session)) *Service {
 	iFrameContent := createIFrameContent(jsFileUrl)
 	hash := md5.New()
 	hash.Write(iFrameContent)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
-	if streamLimit <= 0 {
-		streamLimit = 128 * 1024
-	}
-
-	s := &Service{
-		Websocket:    websocket,
-		CookieNeeded: cookieNeeded,
-		Timeout:      timeout,
-		StreamLimit:  streamLimit,
+	return &Service{
+		Websocket:    true,
+		CookieNeeded: false,
+		Timeout:      10 * time.Minute,
+		StreamLimit:  128 * 1024,
 		Callback:     callback,
+		PanicHandler: func() {},
 
-		iFrameContent: iFrameContent,
-		iFrameETag:    iFrameETag,
-		active:        true,
-		sessions:      make(map[string]*session),
-		sessionsMutex: sync.Mutex{},
+		iFrameContent:      iFrameContent,
+		iFrameETag:         iFrameETag,
+		sessions:           make(map[string]*Session),
+		sessionsMutex:      sync.Mutex{},
+		lastSessionCleanup: time.Now(),
 	}
-
-	go func() {
-		for s.active {
-			s.sessionsMutex.Lock()
-			for key, session := range s.sessions {
-				if session.Broken || session.LastActivity.Add(s.Timeout).Before(time.Now()) {
-					session.Close()
-					delete(s.sessions, key)
-				}
-			}
-			s.sessionsMutex.Unlock()
-			time.Sleep(s.Timeout)
-		}
-	}()
-
-	return s
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println(err)
-			debug.PrintStack()
-		}
-	}()
+	defer s.PanicHandler()
 
 	path := r.URL.Path
 
@@ -143,9 +117,14 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sessionsMutex.Lock()
-	if !s.active {
-		s.sessionsMutex.Unlock()
-		return
+	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
+		for key, session := range s.sessions {
+			if session.closed || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
+				session.Close()
+				delete(s.sessions, key)
+			}
+		}
+		s.lastSessionCleanup = time.Now()
 	}
 	session := s.sessions[parts[1]]
 	if session == nil {
@@ -157,15 +136,15 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session = s.newSession()
 		s.sessions[parts[1]] = session
 	}
-	session.LastActivity = time.Now()
+	session.lastActivity = time.Now()
 	s.sessionsMutex.Unlock()
 
 	if s.CookieNeeded {
 		newCookie := r.Header.Get("Cookie")
 		if newCookie != "" {
-			session.Cookie = newCookie
+			session.cookie = newCookie
 		}
-		w.Header().Set("Set-Cookie", session.Cookie+";path=/")
+		w.Header().Set("Set-Cookie", session.cookie+";path=/")
 	}
 
 	chunked := r.ProtoMinor == 1
@@ -286,24 +265,14 @@ func (s *Service) Close() {
 	for _, session := range s.sessions {
 		session.Close()
 	}
-	s.active = false
-	s.sessions = nil
+	s.sessions = make(map[string]*Session)
 }
 
-func (s *Service) newSession() *session {
-	sess := &session{
-		Service:         s,
-		ReceiveChan:     make(chan interface{}, 1024),
-		SendChan:        make(chan interface{}, 1024),
-		DoConnCheck:     make(chan bool),
-		ConnCheckResult: make(chan bool),
-		ReadSemaphore:   make(chan bool, 1),
-		WriteOpenFrame:  true,
-		Cookie:          "JSESSIONID=dummy",
-	}
+func (s *Service) newSession() *Session {
+	sess := newSession(s)
 	go func() {
-		s.Callback(sess.ReceiveChan, sess.SendChan)
-		close(sess.SendChan)
+		s.Callback(sess)
+		close(sess.sendChan)
 	}()
 	return sess
 }

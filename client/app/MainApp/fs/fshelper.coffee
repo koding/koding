@@ -20,6 +20,11 @@ class FSHelper
     path      = parentPath + '/' + path
     path      = if type is 'folder' then path.substr(0, path.length - 1) else path
     name      = getFileName path
+
+    if type is 'folder'
+      if /^\/Users\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
+        type = 'mount'
+
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
 
   getDateInstance = (date, time, timezone) ->

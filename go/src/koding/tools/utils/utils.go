@@ -28,7 +28,9 @@ func Startup(serviceName string, needRoot bool) {
 		os.Exit(1)
 	}
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	if serviceName != "broker" {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
 	rand.Seed(time.Now().UnixNano())
 
 	var profile string
