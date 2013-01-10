@@ -42,6 +42,12 @@ class ActivityListController extends KDListViewController
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
 
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
+        @activityHeader.setClass "scrolling-up-outset"
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
       if firstHiddenItem.length > 0
