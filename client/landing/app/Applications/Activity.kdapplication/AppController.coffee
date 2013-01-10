@@ -69,11 +69,9 @@ class ActivityAppController extends AppController
     controller.on 'teasersLoaded', @teasersLoaded.bind @
 
     @getView().widgetController.on "FakeActivityHasArrived", (activity)->
-      log "widget fakeActivityArrived"
       controller.fakeActivityArrived activity
 
     @getView().widgetController.on "OwnActivityHasArrived", (activity)->
-      log "widget ownActivityArrived"
       controller.ownActivityArrived activity
 
     activityController.on 'ActivitiesArrived', (activities)=>

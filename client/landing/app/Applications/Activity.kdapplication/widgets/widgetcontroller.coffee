@@ -16,173 +16,95 @@ class ActivityUpdateWidgetController extends KDViewController
 
     activityController = @getSingleton('activityController')
 
-    mainView.addWidgetPane
-      paneName    : "update"
-      mainContent : updateWidget = new ActivityStatusUpdateWidget
-        cssClass  : "status-widget"
-        callback  : (formData)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-            @updateWidgetSubmit formData, stopSubmission
-            updateWidget.switchToSmallView()
-            mainView.resetWidgets()
+    paneMap = [
+        name            : 'statusUpdatePane'
+        paneName        : 'update'
+        cssClass        : 'status-widget'
+        constructorName : 'JStatusUpdate'
+        widgetName      : 'updateWidget'
+        widgetType      : ActivityStatusUpdateWidget
+      ,
+        name            : 'codeSnippetPane'
+        paneName        : 'codesnip'
+        constructorName : 'JCodeSnip'
+        widgetName      : 'codeWidget'
+        widgetType      : ActivityCodeSnippetWidget
+      ,
+        name            : 'codeSharePane'
+        paneName        : 'codeshare'
+        constructorName : 'JCodeShare'
+        widgetName      : 'codeShareWidget'
+        widgetType      : ActivityCodeShareWidget
+      ,
+        name : 'linkPane'
+        paneName : 'link'
+        constructorName : 'JLink'
+        widgetName : 'linkWidget'
+        widgetType : ActivityLinkWidget
+      ,
+        name : 'tutorialPane'
+        paneName : 'tutorial'
+        constructorName : 'JTutorial'
+        widgetName : 'tutorialWidget'
+        widgetType : ActivityTutorialWidget
+      ,
+        name : 'discussionPane'
+        paneName : 'discussion'
+        constructorName : 'JDiscussion'
+        widgetName : 'discussionWidget'
+        widgetType : ActivityDiscussionWidget
+      ]
 
-    mainView.addWidgetPane
-      paneName    : "question"
-      mainContent : questionWidget = new ActivityQuestionWidget
-        callback  : @questionWidgetSubmit
-
-    codeSnippetPane = mainView.addWidgetPane
-      paneName    : "codesnip"
-      mainContent : codeWidget = new ActivityCodeSnippetWidget
-        delegate  : mainView
-        callback  : (data)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-            @codeSnippetWidgetSubmit data, stopSubmission
-            mainView.resetWidgets()
-
-    codeSharePane = mainView.addWidgetPane
-      paneName    : "codeshare"
-      mainContent : codeShareWidget = new ActivityCodeShareWidget
-        delegate  : mainView
-        callback  : (data)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-
-            # # this forces the iframe to load the code and execute it
-            # codeShareWidget.codeShareResultView.hide()
-            # codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
-
-            # reset widget tab as if it was submitted
-            mainView.resetWidgets()
-
-            # notify the user
-            notifiy = new KDNotificationView
-              title: "Submitting your Code Share"
-              content: "This may take up to ten seconds. Thank you for your patience!"
-              duration: 5
-
-            # then wait x seconds
-            window.setTimeout =>
-              #only if the browser/tab did not lock up due to script execution, this will run
-              @codeShareWidgetSubmit data, stopSubmission
-            , 5
-
-    mainView.addWidgetPane
-      paneName    : "link"
-      mainContent : linkWidget = new ActivityLinkWidget
-        cssClass  : "link-widget"
-        callback  : (formData)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-            @linkWidgetSubmit formData, stopSubmission
-            # updateWidget.switchToSmallView()
-            mainView.resetWidgets()
-
-    # mainView.addWidgetPane
-    #   paneName    : "tutorial"
-    #   mainContent : tutorialWidget = new ActivityTutorialWidget
-    #     callback  : @tutorialWidgetSubmit
-
-    mainView.addWidgetPane
-      paneName    : "tutorial"
-      mainContent : tutorialWidget = new ActivityTutorialWidget
-        delegate  : mainView
-        callback  : (data)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-            @tutorialWidgetSubmit data, stopSubmission, ->
-
-            mainView.resetWidgets()
-
-    mainView.addWidgetPane
-      paneName    : "discussion"
-      mainContent : discussionWidget = new ActivityDiscussionWidget
-        delegate  : mainView
-        callback  : (data)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-            @discussionWidgetSubmit data, stopSubmission
-            mainView.resetWidgets()
+    for pane in paneMap
+      self = @
+      @[pane.name] = mainView.addWidgetPane
+        paneName : pane.paneName
+        mainContent : @[pane.widgetName] = new pane.widgetType
+          pane : pane
+          cssClass : pane.cssClass or "#{pane.paneName}-widget"
+          callback : (formData)->
+            if submissionStopped
+              return notifySubmissionStopped()
+            else
+              self.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
+              if @getOptions().pane.constructorName in ['JStatusUpdate']
+                self[@getOptions().pane.widgetName].switchToSmallView()
+              mainView.resetWidgets()
 
     mainView.showPane "update"
 
-    codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
+    @codeSnippetPane.on 'PaneDidShow', => @codeWidget.widgetShown()
 
-    # THIS WILL DISABLE CODE SHARES
-    codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
-
-    @getSingleton('mainController').on "CreateNewActivityRequested", (type, data)=>
-      appManager.openApplication "Activity"
+    switchForEditView = (type,data,fake=no)=>
       switch type
-        # THIS WILL DISABLE CODE SHARES
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          # log "Will add this data:", data
-          codeShareWidget.setCodeShareData data
-
-    @on 'editFromFakeData', (fakeData)=>
-      switch fakeData.fakeType
         when "JStatusUpdate"
           mainView.showPane "update"
-          updateWidget.switchToEditView fakeData, yes
+          @updateWidget.switchToEditView data, fake
         when "JCodeSnip"
           mainView.showPane "codesnip"
-          codeWidget.switchToEditView fakeData, yes
+          @codeWidget.switchToEditView data, fake
         when "JTutorial"
           mainView.showPane "tutorial"
-          tutorialWidget.switchToEditView fakeData, yes
+          @tutorialWidget.switchToEditView data, fake
         when "JDiscussion"
           mainView.showPane "discussion"
-          discussionWidget.switchToEditView fakeData, yes
-        # THIS WILL DISABLE CODE SHARES
+          @discussionWidget.switchToEditView data, fake
         when "JCodeShare"
           mainView.showPane "codeshare"
-          codeShareWidget.switchToEditView fakeData, yes
+          @codeShareWidget.switchToEditView data, fake
         when "JLink"
           mainView.showPane "link"
-          linkWidget.switchToEditView Activity
+          @linkWidget.switchToEditView data, fake
+
+    @on 'editFromFakeData', (fakeData)=>
+      switchForEditView fakeData.fakeType, fakeData, yes
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
       appManager.openApplication "Activity"
       mainView.setClass "edit-mode"
+      switchForEditView activity.bongo_.constructorName, activity
 
-      switch activity.bongo_.constructorName
-        when "JStatusUpdate"
-          mainView.showPane "update"
-          updateWidget.switchToEditView activity
-        when "JCodeSnip"
-          mainView.showPane "codesnip"
-          codeWidget.switchToEditView activity
-        when "JTutorial"
-          mainView.showPane "tutorial"
-          tutorialWidget.switchToEditView activity
-        when "JDiscussion"
-          mainView.showPane "discussion"
-          discussionWidget.switchToEditView activity
-        # THIS WILL DISABLE CODE SHARES
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          codeShareWidget.switchToEditView activity
-        when "JLink"
-          mainView.showPane "link"
-          linkWidget.switchToEditView activity
-
-    @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
-      mainView.setClass "edit-mode"
-
-      switch activity.bongo_.constructorName
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          codeShareWidget.switchToForkView activity
 
   emitFakeData:(type, data)->
 
@@ -190,7 +112,7 @@ class ActivityUpdateWidgetController extends KDViewController
     @emit 'FakeActivityHasArrived', createFakeDataStructureForOwner fakeData
 
 
-  updateWidgetSubmit:(data, callback)->
+  widgetSubmit:(data,constructorName,callback)->
 
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
@@ -206,179 +128,19 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : err.message
     else
 
-      @emitFakeData 'JStatusUpdate', data
+      @emitFakeData constructorName, data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
-        # new KDNotificationView
-        #   # type : "mini"
-        #   title : "There was an error, please try again!"
 
-      KD.remote.api.JStatusUpdate.create data, (err, activity)=>
+      KD.remote.api[constructorName].create data, (err, activity)=>
         callback? err, activity
         unless err
           @utils.killWait updateTimeout
-          # @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
           @emit 'OwnActivityHasArrived', activity
         else
           @emit 'OwnActivityHasFailed', data
           new KDNotificationView
-            # type : "mini"
             title : "There was an error, try again later!"
-
-  codeSnippetWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-
-      @emitFakeData 'JCodeSnip', data
-      updateTimeout = @utils.wait 20000, =>
-        @emit 'OwnActivityHasFailed', data
-
-      KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
-        callback? err, codesnip
-        stopSubmission()
-        if err
-          @emit 'OwnActivityHasFailed', data
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          @utils.killWait updateTimeout
-          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
-
-  # THIS WILL DISABLE CODE SHARES
-
-  codeShareWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-
-      KD.remote.api.JCodeShare.create data, (err, codeshare) =>
-        callback? err, codeshare
-        stopSubmission()
-        if err
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          activityController.emit "OwnActivityHasArrived", codeshare
-
-
-
-  questionWidgetSubmit:(data)->
-    log 'creating question', data
-    KD.remote.api.JActivity.create {type: 'qa', activity: data}, (error) ->
-      warn 'couldnt ask question', error if error
-
-
-  linkWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-
-      log "Link data is", data
-
-      KD.remote.api.JLink.create data, (err, link) =>
-        callback? err, link
-        stopSubmission()
-        if err
-          log err
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          activityController.emit "OwnActivityHasArrived", link
-
-  # linkWidgetSubmit:(data)->
-  #   log 'sharing link', data
-  #   KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
-  #     warn 'couldnt save link', error if error
-
-  # tutorialWidgetSubmit:(data)->
-  #   log 'sharing tutorial', data
-  #   KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
-  #     warn 'couldnt save tutorial', error if error
-
-  tutorialWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, tutorial)=>
-        callback? err, tutorial
-        unless err
-          new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-
-      @emitFakeData 'JTutorial', data
-      updateTimeout = @utils.wait 20000, =>
-        @emit 'OwnActivityHasFailed', data
-
-      KD.remote.api.JTutorial.create data, (err, tutorial) =>
-
-        callback? err, tutorial
-        stopSubmission()
-
-        if err
-          @emit 'OwnActivityHasFailed', data
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          @utils.killWait updateTimeout
-          activityController.emit "OwnActivityHasArrived", tutorial
-
-
-  discussionWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated the discussion successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-
-      @emitFakeData 'JDiscussion', data
-      updateTimeout = @utils.wait 20000, =>
-        @emit 'OwnActivityHasFailed', data
-
-      KD.remote.api.JDiscussion.create data, (err, discussion) =>
-        callback? err, discussion
-        stopSubmission()
-        if err
-          @emit 'OwnActivityHasFailed', data
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          @utils.killWait updateTimeout
-          activityController.emit "OwnActivityHasArrived", discussion
-
 
   createFakeTags = (originalTags)->
 
