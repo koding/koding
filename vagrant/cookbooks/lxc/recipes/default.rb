@@ -78,3 +78,13 @@ dpkg_package "python3-lxc_0.8.0~rc1-4ubuntu38userns3_amd64.deb" do
   action :install
 end
 
+
+cookbook_file "/etc/default/lxc" do
+  source "lxc"
+  mode "0644"
+end
+
+cookbook_file "/etc/init/lxc-net.conf" do
+  source "lxc-net.conf"
+  mode "0644"
+end

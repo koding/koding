@@ -102,7 +102,10 @@ echo "Doing APT-GET Stuff"
 run_in_vmroot /usr/bin/apt-get update
 export DEBIAN_FRONTEND=noninteractive
 run_in_vmroot /usr/bin/apt-get install $additional_packages -y -qq
+# Install Sun Java
 run_in_vmroot /bin/mkdir -p /usr/share/update-sun-jre
 run_in_vmroot /usr/bin/wget http://www.duinsoft.nl/pkg/pool/all/update-sun-jre.bin -O /root/update-sun-jre.bin
 run_in_vmroot /bin/sh /root/update-sun-jre.bin
+# Use LDAP server for lookup
+run_in_vmroot /usr/sbin/auth-client-config -t nss -p lac_ldap
 
