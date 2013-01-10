@@ -1,13 +1,6 @@
 {argv} = require 'optimist'
 
-# KONFIG = require argv.c?.trim()
-#Config = require('koding-config-manager')
-
-
-
-KONFIG = require('koding-config-manager').factory("main.#{argv.c}")
-
-console.log KONFIG
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
@@ -175,4 +168,4 @@ else
 
   app.listen webPort
 
-  console.log '[WEBSERVER] running ', "http://localhost:#{webPort} pid:#{process.pid}"
+  console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
