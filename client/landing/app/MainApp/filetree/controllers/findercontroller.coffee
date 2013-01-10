@@ -102,10 +102,23 @@ class NFinderController extends KDViewController
       # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       @mount.emit "fs.fetchContents.started"
+
+      @utils.killWait kiteFailureTimer if kiteFailureTimer
+      kiteFailureTimer = @utils.wait 5000, =>
+        @treeController.notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+        @mount.emit "fs.fetchContents.finished"
+
+        @treeController.once 'fs.retry.scheduled', =>
+          @defaultStructureLoaded = no
+          @loadDefaultStructure()
+
       @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
+          @utils.killWait kiteFailureTimer
           @treeController.addNodes files
+          @treecontroller?.emit 'fs.retry.success'
+
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller
         kiteController.emit "UserEnvironmentIsCreated"
