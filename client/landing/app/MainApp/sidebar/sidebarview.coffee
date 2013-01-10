@@ -99,6 +99,13 @@ class Sidebar extends JView
 
     @statusLEDs = new StatusLEDView
 
+    @globalNotify = new KDButtonView
+      title     : 'SHUTDOWN'
+      callback  : =>
+        log 'callback', new Date(Date.now()+5*60*1000)
+        test = new GlobalNotification
+          # targetDate :
+
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
@@ -205,6 +212,7 @@ class Sidebar extends JView
       <hr />
       {{> @accNav}}
       {{> @adminNav}}
+      {{> @globalNotify}}
       <hr />
       {{> @footerMenu}}
     </div>
