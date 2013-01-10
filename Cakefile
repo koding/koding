@@ -98,42 +98,31 @@ task 'social', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
-  worker_id_next = 0
-  workers_recovered = []
+  startPool = (config) ->
+    exitingProcesses = {}
 
-  start_worker = (config) ->
-    id = worker_id_next++
-    processes.fork
-      name  : "socialWorker-#{id}"
-      cmd   : __dirname + "/workers/social/index -c #{config} --workerid #{id}"
-    id
+    runProcess = (size) ->
+      processes.fork
+        name  : "socialWorker"
+        cmd   : __dirname + "/workers/social/index -c #{config}"
+        pool  : 
+          size: size
+        onMessage: (msg) ->
+          if msg.exiting
+            exitingProcesses[msg.pid] = yes
+            console.log "Yedegi geliyor..."
+            runProcess(0)
+        onExit: (pid, name) ->
+          unless exitingProcesses[pid]
+            console.log "Bir gideriz bin geliriz."
+            runProcess(0)
+          else
+            console.log "Zaten biri baslatilmisti..."
+            delete exitingProcesses[pid]
 
-  {numberOfWorkers} = social
-  numberOfWorkers ?= numberOfWorkers ? 1
+    runProcess(social.numberOfWorkers)
 
-  for _, i in Array +numberOfWorkers
-    # Start a worker
-    wid = start_worker configFile
-
-    # If a worker stops accepting new connections, start a backup worker.
-    processes.get("socialWorker-#{wid}").on "message", (msg) ->
-      if msg?.exiting?
-        # Do not start backup worker more than once
-        if msg.pid not in workers_recovered
-          workers_recovered.push msg.pid
-
-          console.log "[SOCIAL WORKER] A worker has stopped accepting connections, starting new one."
-
-          # Start a backup worker
-          start_worker configFile
-
-    # Start a new worker if a worker dies, unless it has a backup worker.
-    processes.on "exit", (cid, name) ->
-      if cid in workers_recovered
-        workers_recovered.splice workers_recovered.indexOf(cid), 1
-      else
-        console.log "[SOCIAL WORKER] A worker has died, starting new one."
-        start_worker configFile
+  startPool configFile
 
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
