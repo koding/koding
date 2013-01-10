@@ -229,6 +229,7 @@ func (vm *VM) Prepare() {
 
 	// generate upperdir files
 	vm.GenerateFile(vm.UpperdirFile("/etc/hostname"), "hostname", VMROOT_ID, false)
+	vm.GenerateFile(vm.UpperdirFile("/etc/hosts"), "hosts", VMROOT_ID, false)
 	vm.GenerateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", VMROOT_ID, false)
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
