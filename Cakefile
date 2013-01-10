@@ -74,29 +74,66 @@ compilePistachios = require 'pistachio-compiler'
 task 'runAll',(args)->
 
   invoke 'server'
-  invoke 'social'
-  invoke 'auth'
+  # invoke 'social'
+  # invoke 'auth'
 
 
-task 'server',(args)->
-  
-  configFile = (args.arguments[1].split("."))[1]
+task 'server', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver} = KONFIG
 
   runServer = (config, port) ->
     processes.fork
       name          : 'server' + port
-      cmd           : __dirname+"/server/index -c #{config} -p #{port}"
+      cmd           : __dirname + "/server/index -c #{config} -p #{port}"
       restart : yes
       restartInterval : 100
 
+  webPort = webserver.port
+  webPort = [webPort] unless Array.isArray webPort
+  webPort.forEach (port) ->
+    runServer configFile, port
 
-  if webserver
-    webPort = webserver.port
-    webPort = [webPort] unless Array.isArray webPort
-    webPort.forEach (port) ->
-      runServer configFile, port
+task 'social', ({configFile}) ->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {social} = KONFIG
+
+  worker_id_next = 0
+  workers_recovered = []
+
+  start_worker = (config) ->
+    id = worker_id_next++
+    processes.fork
+      name  : "socialWorker-#{id}"
+      cmd   : __dirname + "/workers/social/index -c #{config} --workerid #{id}"
+    id
+
+  {numberOfWorkers} = social
+  numberOfWorkers ?= numberOfWorkers ? 1
+
+  for _, i in Array +numberOfWorkers
+    # Start a worker
+    wid = start_worker configFile
+
+    # If a worker stops accepting new connections, start a backup worker.
+    processes.get("socialWorker-#{wid}").on "message", (msg) ->
+      if msg?.exiting?
+        # Do not start backup worker more than once
+        if msg.pid not in workers_recovered
+          workers_recovered.push msg.pid
+
+          console.log "[SOCIAL WORKER] A worker has stopped accepting connections, starting new one."
+
+          # Start a backup worker
+          start_worker configFile
+
+    # Start a new worker if a worker dies, unless it has a backup worker.
+    processes.on "exit", (cid, name) ->
+      if cid in workers_recovered
+        workers_recovered.splice workers_recovered.indexOf(cid), 1
+      else
+        console.log "[SOCIAL WORKER] A worker has died, starting new one."
+        start_worker configFile
 
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->

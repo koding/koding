@@ -33,7 +33,7 @@ module.exports = deepFreeze
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
-    # debugConnectionErrors: yes
+    debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -42,6 +42,11 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  librato :
+    push      : no
+    email     : ""
+    token     : ""
+    interval  : 30 * 1000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
@@ -84,9 +89,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
-        apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://dmq.koding.com:8008/subscribe'
-        vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -115,22 +118,3 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-  mixpanel :
-    key : "bb9dd21f58e3440e048a2c907422deed"
-  crypto :
-    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      cipher = crypto.createCipher('aes-256-cbc',""+key)
-      cipher.update(str,'utf-8')
-      a = cipher.final('hex')
-      return a
-    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      decipher = crypto.createDecipher('aes-256-cbc',""+key)
-      decipher.update(str,'hex')
-      b = decipher.final('utf-8')
-      return b
