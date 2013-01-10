@@ -36,23 +36,23 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetName      : 'codeShareWidget'
         widgetType      : ActivityCodeShareWidget
       ,
-        name : 'linkPane'
-        paneName : 'link'
+        name            : 'linkPane'
+        paneName        : 'link'
         constructorName : 'JLink'
-        widgetName : 'linkWidget'
-        widgetType : ActivityLinkWidget
+        widgetName      : 'linkWidget'
+        widgetType      : ActivityLinkWidget
       ,
-        name : 'tutorialPane'
-        paneName : 'tutorial'
+        name            : 'tutorialPane'
+        paneName        : 'tutorial'
         constructorName : 'JTutorial'
-        widgetName : 'tutorialWidget'
-        widgetType : ActivityTutorialWidget
+        widgetName      : 'tutorialWidget'
+        widgetType      : ActivityTutorialWidget
       ,
-        name : 'discussionPane'
-        paneName : 'discussion'
+        name            : 'discussionPane'
+        paneName        : 'discussion'
         constructorName : 'JDiscussion'
-        widgetName : 'discussionWidget'
-        widgetType : ActivityDiscussionWidget
+        widgetName      : 'discussionWidget'
+        widgetType      : ActivityDiscussionWidget
       ]
 
     for pane in paneMap
@@ -60,9 +60,9 @@ class ActivityUpdateWidgetController extends KDViewController
       @[pane.name] = mainView.addWidgetPane
         paneName : pane.paneName
         mainContent : @[pane.widgetName] = new pane.widgetType
-          pane : pane
-          cssClass : pane.cssClass or "#{pane.paneName}-widget"
-          callback : (formData)->
+          pane      : pane
+          cssClass  : pane.cssClass or "#{pane.paneName}-widget"
+          callback  : (formData)->
             if submissionStopped
               return notifySubmissionStopped()
             else
