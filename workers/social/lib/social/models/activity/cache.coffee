@@ -40,14 +40,8 @@ module.exports = class JActivityCache extends jraphical.Module
       # name        : String
       to          :
         type      : Date
-        default   : -> new Date
-        get       : -> this.overview[0].createdAt[0]
       from        :
         type      : Date
-        default   : -> new Date
-        get       : ->
-          last = this.overview[this.overview.length-1]
-          last.createdAt[last.createdAt.length-1]
       isFull      :
         type      : Boolean
         default   : no
@@ -83,7 +77,8 @@ module.exports = class JActivityCache extends jraphical.Module
   @before = (timestamp, callback)->
 
     selector =
-      to     : { $lte : timestamp }
+      to     : { $lt : new Date(parseInt(timestamp,10)) }
+
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @byId = (id, callback)->
@@ -95,8 +90,8 @@ module.exports = class JActivityCache extends jraphical.Module
   @containsTimestamp = (timestamp, callback)->
 
     selector =
-      to     : { $gte : timestamp }
-      from   : { $lte : timestamp }
+      to     : { $gte : new Date(timestamp) }
+      from   : { $lte : new Date(timestamp) }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -131,16 +126,18 @@ module.exports = class JActivityCache extends jraphical.Module
           ###
 
           # cap latest
-          if latest and latest.overview.length < lengthPerCache
+          if latest and not latest.isFull
 
             # return console.log "capping latest...."
             remainderAmount   = lengthPerCache - latest.overview.length
             remainderOverview = overview.splice -remainderAmount
 
+            # log remainderOverview
+            # return
             latest.cap remainderOverview, -> console.log "capped latest!"
 
             # terminate only if there are no new items to be cached
-            return  if remainderOverview.length <= remainderAmount
+            return  if overview.length is 0
 
           # create new cache instances
           overview2d = []
@@ -324,11 +321,15 @@ module.exports = class JActivityCache extends jraphical.Module
         return acc
       , {}
 
+      activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
+
+      log overview, activitiesModifier
+
       @update {
         $pushAll: {overview}
         $set    : activitiesModifier
       }, (err)->
-        console.log err, "did it work"
+        console.log err, "nope, it doesn't work even it says so."
         callback?()
 
 
@@ -356,7 +357,6 @@ module.exports = class JActivityCache extends jraphical.Module
           else
             setModifier = {}
             setModifier["activities.#{idToUpdate}"] = activity
-            log setModifier
             cache.update $set : setModifier
 
 
