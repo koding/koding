@@ -71,6 +71,34 @@ mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
+task 'runAll',(args)->
+
+  invoke 'server'
+  invoke 'social'
+  invoke 'auth'
+
+
+task 'server',(args)->
+  
+  configFile = (args.arguments[1].split("."))[1]
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {webserver} = KONFIG
+
+  runServer = (config, port) ->
+    processes.fork
+      name          : 'server' + port
+      cmd           : __dirname+"/server/index -c #{config} -p #{port}"
+      restart : yes
+      restartInterval : 100
+
+
+  if webserver
+    webPort = webserver.port
+    webPort = [webPort] unless Array.isArray webPort
+    webPort.forEach (port) ->
+      runServer configFile, port
+
+
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.

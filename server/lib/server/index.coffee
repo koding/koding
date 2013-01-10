@@ -13,7 +13,6 @@ if cluster.isMaster
   cluster.on "exit", (worker, code, signal) ->
     cluster.fork()
 else
-
   processMonitor = (require 'processes-monitor').start
     name : "webServer on port #{webPort}"
     stats_id: "webserver." + cluster.worker.id
