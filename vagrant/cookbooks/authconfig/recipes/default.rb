@@ -14,7 +14,8 @@ end
 
 
 execute "configure_auth" do
-    command "/usr/sbin/authconfig --enableldap --ldapserver=ldap://#{node['authconfig']['host']}:389 --enableldapauth --ldapbasedn='#{node['authconfig']['suffix']}' --updateall"
+    command "/usr/sbin/authconfig --enablemkhomedir --enableldap --ldapserver=ldap://#{node['authconfig']['host']}:389 --enableldapauth --ldapbasedn='#{node['authconfig']['suffix']}' --updateall"
+    #not_if "grep -q  #{node['authconfig']['host']} /etc/sssd/sssd.conf"
 end
 
 template "/etc/sssd/sssd.conf" do

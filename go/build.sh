@@ -8,5 +8,5 @@ if [ $(uname) == "Linux" ]; then
   services+=(koding/kites/os)
 fi
 
-/usr/local/go/bin/go get -v -ldflags "$ldflags" $services
+go get -v -ldflags "$ldflags" "${services[@]}"
 cp $GOPATH/bin/* $GOPATH/../kites

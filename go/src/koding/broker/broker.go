@@ -24,10 +24,10 @@ func main() {
 		consumeChannel := utils.CreateAmqpChannel(consumeConn)
 		defer consumeChannel.Close()
 
-		routeMap := make(map[string]([]chan<- interface{}))
-		var routeMapMutex sync.RWMutex
+		routeMap := make(map[string]([]*sockjs.Session))
+		var routeMapMutex sync.Mutex
 
-		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
+		service := sockjs.NewService("http://localhost/sockjs.js", func(session *sockjs.Session) {
 			defer log.RecoverAndLog()
 
 			r := make([]byte, 128/8)
@@ -43,16 +43,16 @@ func main() {
 
 			addToRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
-				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], sendChan)
+				routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 				routeMapMutex.Unlock()
 			}
 			removeFromRouteMap := func(routingKeyPrefix string) {
 				routeMapMutex.Lock()
-				channels := routeMap[routingKeyPrefix]
-				for i, channel := range channels {
-					if channel == sendChan {
-						channels[i] = channels[len(channels)-1]
-						routeMap[routingKeyPrefix] = channels[:len(channels)-1]
+				routeSessions := routeMap[routingKeyPrefix]
+				for i, routeSession := range routeSessions {
+					if routeSession == session {
+						routeSessions[i] = routeSessions[len(routeSessions)-1]
+						routeMap[routingKeyPrefix] = routeSessions[:len(routeSessions)-1]
 						break
 					}
 				}
@@ -61,8 +61,29 @@ func main() {
 
 			subscriptions := make(map[string]bool)
 
-			controlChannel := utils.CreateAmqpChannel(publishConn)
-			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
+			var controlChannel *amqp.Channel
+			var lastPayload string
+			resetControlChannel := func() {
+				if controlChannel != nil {
+					controlChannel.Close()
+				}
+				var err error
+				controlChannel, err = publishConn.Channel()
+				if err != nil {
+					panic(err)
+				}
+				go func() {
+					defer log.RecoverAndLog()
+
+					for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+
+						session.Send(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+					}
+				}()
+			}
+			resetControlChannel()
+			defer func() { controlChannel.Close() }()
 
 			err := controlChannel.Publish("auth", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 			if err != nil {
@@ -75,22 +96,23 @@ func main() {
 				}
 				for {
 					err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-					if err != nil {
-						log.LogError(err)
-						controlChannel.Close()
-						controlChannel = utils.CreateAmqpChannel(publishConn)
-					} else {
+					amqpError, isAmqpError := err.(*amqp.Error)
+					if err == nil {
 						break
+					} else if isAmqpError && amqpError.Code == 504 {
+						resetControlChannel()
+					} else {
+						panic(err)
 					}
 				}
 			}()
 
-			for data := range receiveChan {
+			for data := range session.ReceiveChan {
 				func() {
 					defer log.RecoverAndLog()
 
 					message := data.(map[string]interface{})
-					log.Debug(message)
+					log.Debug("Received message", message)
 
 					action := message["action"]
 					switch action {
@@ -98,12 +120,7 @@ func main() {
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
 						addToRouteMap(routingKeyPrefix)
 						subscriptions[routingKeyPrefix] = true
-
-						body, err := json.Marshal(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
-						if err != nil {
-							panic(err)
-						}
-						sendChan <- string(body)
+						session.Send(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 
 					case "unsubscribe":
 						routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -115,13 +132,16 @@ func main() {
 						routingKey := message["routingKey"].(string)
 						if strings.HasPrefix(routingKey, "client.") {
 							for {
+								lastPayload = ""
 								err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-								if err != nil {
-									log.LogError(err)
-									controlChannel.Close()
-									controlChannel = utils.CreateAmqpChannel(publishConn)
-								} else {
+								amqpError, isAmqpError := err.(*amqp.Error)
+								if err == nil {
+									lastPayload = message["payload"].(string)
 									break
+								} else if isAmqpError && amqpError.Code == 504 {
+									resetControlChannel()
+								} else {
+									panic(err)
 								}
 							}
 						} else {
@@ -136,6 +156,7 @@ func main() {
 			}
 		})
 		defer service.Close()
+		service.PanicHandler = log.RecoverAndLog
 
 		server := &http.Server{Handler: &sockjs.Mux{
 			Services: map[string]*sockjs.Service{
@@ -172,13 +193,10 @@ func main() {
 			panic(err)
 		}
 
-		for message := range stream {
-			routingKey := message.RoutingKey
-			body, err := json.Marshal(map[string]string{"routingKey": routingKey, "payload": string(message.Body)})
-			if err != nil {
-				panic(err)
-			}
-			bodyStr := string(body)
+		for amqpMessage := range stream {
+			routingKey := amqpMessage.RoutingKey
+			payload := json.RawMessage(amqpMessage.Body)
+			jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 			pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 			for pos != -1 && pos < len(routingKey) {
@@ -189,17 +207,15 @@ func main() {
 					pos += 1 + index
 				}
 				prefix := routingKey[:pos]
-				routeMapMutex.RLock()
-				channels := routeMap[prefix]
-				routeMapMutex.RUnlock()
-				for _, channel := range channels {
-					select {
-					case channel <- bodyStr:
-						// successful
-					default:
-						log.Warn("Dropped message")
+				routeMapMutex.Lock()
+				routeSessions := routeMap[prefix]
+				for _, routeSession := range routeSessions {
+					if !routeSession.Send(jsonMessage) {
+						routeSession.Close()
+						log.Warn("Dropped session because of broker to client buffer overflow.")
 					}
 				}
+				routeMapMutex.Unlock()
 			}
 		}
 	})

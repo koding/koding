@@ -1,113 +1,103 @@
 package log
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
 )
 
-type Entry struct {
-	Service   string
-	Host      string
-	Level     int
-	LevelName string
-	Message   string
-}
-
-func (Entry *Entry) String() string {
-	return fmt.Sprintf("%-6v %v", LEVEL_NAMES[Entry.Level], Entry.Message)
-}
-
-var LogToLoggly bool = false
-var LogglyUrl string = "https://logs.loggly.com/inputs/a4b90ee3-0f30-4497-9840-483b6e6e60f0"
 var Service string
-var LogLevel int = 6
+var Profile string
+var Pid int
 var Hostname string
+var LogDebug bool = false
+var LogToLoggr bool = false
 
 func init() {
-	Hostname, _ = os.Hostname()
+	fullName, _ := os.Hostname()
+	Hostname = strings.Split(fullName, ".")[0]
+	Pid = os.Getpid()
 }
 
-func NewEntry(level int, message ...interface{}) *Entry {
-	messageStrings := make([]string, len(message))
-	for i, part := range message {
-		if bytes, ok := part.([]byte); ok {
-			messageStrings[i] = string(bytes)
-		} else {
-			messageStrings[i] = fmt.Sprint(part)
+func NewEvent(level int, text string, data ...interface{}) url.Values {
+	event := url.Values{
+		"source": {fmt.Sprintf("%s %d on %s", Service, Pid, Hostname)},
+		"tags":   {LEVEL_TAGS[level] + " " + Service + " " + Profile},
+		"text":   {text},
+	}
+	if len(data) != 0 {
+		dataStrings := make([]string, len(data))
+		for i, part := range data {
+			if bytes, ok := part.([]byte); ok {
+				dataStrings[i] = string(bytes)
+			} else {
+				dataStrings[i] = fmt.Sprint(part)
+			}
 		}
+		event.Add("data", strings.Join(dataStrings, "\n"))
 	}
-	return &Entry{
-		Service:   Service,
-		Host:      Hostname,
-		Level:     level,
-		LevelName: LEVEL_NAMES[level],
-		Message:   strings.Join(messageStrings, "\n"),
-	}
+	return event
 }
 
-func Send(Entry interface{}) {
-	if !LogToLoggly {
-		fmt.Println(Entry)
+func Send(event url.Values) {
+	if !LogToLoggr {
+		tagPrefix := "[" + event.Get("tags") + "] "
+		data := event.Get("data")
+		if data != "" {
+			linePrefix := "\n" + strings.Repeat(" ", len(tagPrefix))
+			data = linePrefix + strings.Replace(data, "\n", linePrefix, -1)
+		}
+		fmt.Println(tagPrefix + event.Get("text") + data)
 		return
 	}
 
-	data, err := json.Marshal(Entry)
+	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
+	resp, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
 	if err != nil {
-		fmt.Println("logger error: json.Marshal failed")
+		fmt.Println("logger error: http.PostForm failed")
 		return
 	}
-
-	_, err = http.Post(LogglyUrl, "application/json", bytes.NewReader(data))
-	if err != nil {
-		fmt.Println("logger error: http.Post failed")
-		return
-	}
+	resp.Body.Close()
 }
 
-func Log(level int, Entry ...interface{}) {
-	if level > LogLevel {
+func Log(level int, text string, data ...interface{}) {
+	if level == DEBUG && !LogDebug {
 		return
 	}
-	Send(NewEntry(level, Entry...))
+	Send(NewEvent(level, text, data...))
 }
 
 const (
-	EMERG  = 0
-	ALERT  = 1
-	CRIT   = 2
-	ERR    = 3
-	WARN   = 4
-	NOTICE = 5
-	INFO   = 6
-	DEBUG  = 7
+	ERR = iota
+	WARN
+	INFO
+	DEBUG
 )
 
-var LEVEL_NAMES = []string{"EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"}
+var LEVEL_TAGS = []string{"error", "warning", "info", "debug"}
 
-func Err(Entry ...interface{}) {
-	Log(ERR, Entry...)
+func Err(text string, data ...interface{}) {
+	Log(ERR, text, data...)
 }
 
-func Warn(Entry ...interface{}) {
-	Log(WARN, Entry...)
+func Warn(text string, data ...interface{}) {
+	Log(WARN, text, data...)
 }
 
-func Info(Entry ...interface{}) {
-	Log(INFO, Entry...)
+func Info(text string, data ...interface{}) {
+	Log(INFO, text, data...)
 }
 
-func Debug(Entry ...interface{}) {
-	Log(DEBUG, Entry...)
+func Debug(text string, data ...interface{}) {
+	Log(DEBUG, text, data...)
 }
 
-func LogError(err interface{}) {
-	Entry := []interface{}{err}
-	for i := 3; ; i++ {
+func LogError(err interface{}, stackOffset int) {
+	data := make([]interface{}, 0)
+	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
 		if !ok {
 			break
@@ -119,14 +109,14 @@ func LogError(err interface{}) {
 		} else {
 			name = "<unknown>"
 		}
-		Entry = append(Entry, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}
-	Log(ERR, Entry...)
+	Log(ERR, fmt.Sprint(err), data...)
 }
 
 func RecoverAndLog() {
 	err := recover()
 	if err != nil {
-		LogError(err)
+		LogError(err, 2)
 	}
 }

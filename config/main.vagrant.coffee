@@ -18,9 +18,8 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
-  uri :
-    address : 
-      prod : "http://10.0.0.2:3020", dev : "->prod", vagrant : "->prod"
+  uri           :
+    address     : "http://koding.local"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -78,21 +77,21 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://10.0.0.2:3020'
+    staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://10.0.0.2:3020'
+      mainUri   : 'http://koding.local'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://10.0.0.2:8008/subscribe'
+        sockJS  : 'http://koding.local:8008/subscribe'
         vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : '10.0.0.3'
+    host        : 'rabbitmq.local'
     login       : 'PROD-k5it50s4676pO9O'
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
@@ -100,7 +99,7 @@ module.exports = deepFreeze
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
+    host        : 'koding.local'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   guests        :

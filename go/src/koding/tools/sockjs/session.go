@@ -11,23 +11,62 @@ import (
 	"time"
 )
 
-type session struct {
+type Session struct {
 	Service                      *Service
-	ReceiveChan, SendChan        chan interface{}
-	DoConnCheck, ConnCheckResult chan bool
-	ReadSemaphore                chan bool
-	WriteMutex                   sync.Mutex
-	WriteOpenFrame               bool
-	LastActivity                 time.Time
-	Broken                       bool
-	Cookie                       string
+	ReceiveChan                  chan interface{}
+	sendChan                     chan interface{}
+	doConnCheck, connCheckResult chan bool
+	readSemaphore                chan bool
+	writeOpenFrame               bool
+	lastActivity                 time.Time
+	closed                       bool
+	closeMutex                   sync.Mutex
+	cookie                       string
 }
 
-func (s *session) Close() {
-	close(s.ReceiveChan)
+func newSession(service *Service) *Session {
+	return &Session{
+		Service:         service,
+		ReceiveChan:     make(chan interface{}, 1024),
+		sendChan:        make(chan interface{}, 1024),
+		doConnCheck:     make(chan bool),
+		connCheckResult: make(chan bool),
+		readSemaphore:   make(chan bool, 1),
+		writeOpenFrame:  true,
+		cookie:          "JSESSIONID=dummy",
+	}
 }
 
-func (s *session) ReadMessages(data []byte) bool {
+func (s *Session) Send(data interface{}) bool {
+	if s.closed {
+		return true
+	}
+	select {
+	case s.sendChan <- data:
+		// successful
+	default:
+		return false
+	}
+	return true
+}
+
+func (s *Session) Close() {
+	s.closeMutex.Lock()
+	defer s.closeMutex.Unlock()
+	if !s.closed {
+		s.closed = true
+		close(s.ReceiveChan)
+	}
+}
+
+func (s *Session) ReadMessages(data []byte) bool {
+	s.closeMutex.Lock()
+	defer s.closeMutex.Unlock()
+
+	if s.closed {
+		return true
+	}
+
 	var obj interface{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
@@ -43,13 +82,13 @@ func (s *session) ReadMessages(data []byte) bool {
 	return true
 }
 
-func (s *session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, frameStart, frameEnd []byte, escape bool) {
+func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, frameStart, frameEnd []byte, escape bool) {
 	select {
-	case s.ReadSemaphore <- true:
+	case s.readSemaphore <- true:
 		// can read
 	default:
-		s.DoConnCheck <- true
-		if <-s.ConnCheckResult {
+		s.doConnCheck <- true
+		if <-s.connCheckResult {
 			w.Write(createFrame('c', `[2010,"Another connection still open"]`, frameStart, frameEnd, escape))
 		} else {
 			w.Write(createFrame('c', `[1002,"Connection interrupted"]`, frameStart, frameEnd, escape))
@@ -57,7 +96,7 @@ func (s *session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 		return
 	}
 	defer func() {
-		<-s.ReadSemaphore
+		<-s.readSemaphore
 	}()
 
 	c := make(chan []byte)
@@ -87,14 +126,14 @@ func (s *session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 				if streaming {
 					buf.Flush()
 				}
-			case <-s.DoConnCheck:
+			case <-s.doConnCheck:
 				_, err := conn.Write([]byte("0\r\n"))
 				if err != nil {
-					s.ConnCheckResult <- false
-					s.Broken = true
+					s.connCheckResult <- false
+					s.Close()
 					return
 				}
-				s.ConnCheckResult <- true
+				s.connCheckResult <- true
 			}
 		}
 	}()
@@ -112,15 +151,15 @@ func (s *session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 	}
 }
 
-func (s *session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]byte, bool) {
-	if s.WriteOpenFrame {
-		s.WriteOpenFrame = false
+func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]byte, bool) {
+	if s.writeOpenFrame {
+		s.writeOpenFrame = false
 		return createFrame('o', "", frameStart, frameEnd, escape), false
 	}
 
 	messages := make([]interface{}, 0)
 	select {
-	case message, ok := <-s.SendChan:
+	case message, ok := <-s.sendChan:
 		if !ok {
 			return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
 		}
@@ -131,7 +170,7 @@ func (s *session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 
 	for moreMessages := true; moreMessages; {
 		select {
-		case message, ok := <-s.SendChan:
+		case message, ok := <-s.sendChan:
 			if ok {
 				messages = append(messages, message)
 			} else {

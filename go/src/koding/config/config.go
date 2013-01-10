@@ -22,14 +22,6 @@ var configs = map[string]Config{
 		UseLVE:       true,
 	},
 
-	"vagrant": {
-		AmqpHost:     "10.0.0.3",
-		AmqpUser:     "prod-<component>",
-		AmqpPassword: "djfjfhgh4455__5",
-		HomePrefix:   "/Users/",
-		UseLVE:       true,
-	},
-
 	"dev-new": {
 		AmqpHost:     "web0.dev.system.aws.koding.com:5672",
 		AmqpUser:     "broker",
@@ -60,6 +52,7 @@ var configs = map[string]Config{
 		AmqpPassword: "TV678S1WT221t1q",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
+		LogToLoggr:   true,
 	},
 
 	"prod": {
@@ -68,7 +61,7 @@ var configs = map[string]Config{
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggly:  true,
+		LogToLoggr:   true,
 	},
 
 	"prod-new": {
@@ -77,7 +70,15 @@ var configs = map[string]Config{
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggly:  true,
+		LogToLoggr:   true,
+	},
+
+	"vagrant": {
+		AmqpHost:     "rabbitmq.local",
+		AmqpUser:     "prod-<component>",
+		AmqpPassword: "djfjfhgh4455__5",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"local-go": {
@@ -107,7 +108,7 @@ type Config struct {
 	AmqpPassword string
 	HomePrefix   string
 	UseLVE       bool
-	LogToLoggly  bool
+	LogToLoggr   bool
 
 	// for webterm's websockets mode
 	UseWebsockets bool
