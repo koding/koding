@@ -78,6 +78,7 @@ dpkg_package "python3-lxc_0.8.0~rc1-4ubuntu38userns3_amd64.deb" do
   action :install
 end
 
+execute "service lxc-net stop"
 
 cookbook_file "/etc/default/lxc" do
   source "lxc"
@@ -88,3 +89,5 @@ cookbook_file "/etc/init/lxc-net.conf" do
   source "lxc-net.conf"
   mode "0644"
 end
+
+execute "service lxc-net start"
