@@ -39,7 +39,10 @@ func New() *PTY {
 }
 
 func (pty *PTY) AdaptCommand(cmd *exec.Cmd) {
-	pty.Slave.Chown(int(cmd.SysProcAttr.Credential.Uid), -1)
+	if cmd.SysProcAttr == nil {
+		cmd.SysProcAttr = new(syscall.SysProcAttr)
+	}
+	//pty.Slave.Chown(int(cmd.SysProcAttr.Credential.Uid), -1)
 	cmd.Stdin = pty.Slave
 	cmd.Stdout = pty.Slave
 	cmd.Stderr = pty.Slave
