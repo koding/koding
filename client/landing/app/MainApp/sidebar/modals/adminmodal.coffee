@@ -206,10 +206,16 @@ class AdminModal extends KDModalViewWithForms
                 #   diameter    : 12
                 callback      : =>
                   {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
-                  new GlobalNotification
-                    targetDate : Date.now()+inputs.Duration.getValue()*1000
-                    title : inputs.Title.getValue()
-                    content : inputs.Description.getValue()
+                  # new GlobalNotification
+                  #   targetDate : Date.now()+inputs.Duration.getValue()*1000
+                  #   title : inputs.Title.getValue()
+                  #   content : inputs.Description.getValue()
+                  KD.remote.api.JSystemStatus.scheduleRestart
+                    restartScheduled : Date.now()+inputs.Duration.getValue()*1000
+                    restartTitle : inputs.Title.getValue()
+                    restartContent : inputs.Description.getValue()
+
+
             fields            :
               Title           :
                 label         : "Message Title"
