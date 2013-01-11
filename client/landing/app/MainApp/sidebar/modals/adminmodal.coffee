@@ -196,6 +196,52 @@ class AdminModal extends KDModalViewWithForms
                     partial   : '...'
                     cssClass  : 'information-line'
 
+          "Broadcast Message" :
+            buttons           :
+              "Broadcast Message"  :
+                title         : "Broadcast"
+                style         : "modal-clean-gray"
+                # loader        :
+                #   color       : "#444444"
+                #   diameter    : 12
+                callback      : =>
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+                  new GlobalNotification
+                    targetDate : Date.now()+inputs.Duration.getValue()*1000
+                    title : inputs.Title.getValue()
+                    content : inputs.Description.getValue()
+            fields            :
+              Title           :
+                label         : "Message Title"
+                type          : "text"
+                # defaultValue  : ''
+                placeholder   : "Shutdown in"
+              Description           :
+                label         : "Message Details"
+                type          : "text"
+                # defaultValue  : ''
+                placeholder   : "We are upgrading the platform. Please save your work."
+              Duration           :
+                label         : "Timer duration (in seconds)"
+                type          : "text"
+                defaultValue  : 5*60
+                placeholder   : "Please enter a reasonable timeout."
+                # validate      :
+                #   rules       :
+                #     regExp    : /\d+/i
+                #   messages    :
+                #     regExp    : "numbers only please"
+              # Status          :
+              #   label         : "Server response"
+              #   type          : "hidden"
+              #   nextElement   :
+              #     statusInfo  :
+              #       itemClass : KDView
+              #       partial   : '...'
+              #       cssClass  : 'information-line'
+
+
+
     super options, data
 
     @hideConnectedFields()
