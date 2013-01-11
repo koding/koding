@@ -2566,11 +2566,14 @@ div.kdtooltip
   abs()
   borderBox()
   rounded 0 0 4px 4px
-  vendor transition, top 1.5s ease-in-out // \, -webkit-transform 0.5s ease-in-out
+  vendor transition, top 1.5s ease-in-out \, margin-left 0.5s ease-in-out
+  // \, -webkit-transform 0.5s ease-in-out
   top 0px
   left 50%
   margin-left -150px
-  width 300px
+  min-width 300px
+  max-width 90%
+  width auto
   height auto
   background-color rgba(48,48,48,0.5)
   z-index 20001
@@ -2656,6 +2659,8 @@ div.kdtooltip
     font-size 13px
     font-weight 300
     color lighten(#adadad,95%)
+    // white-space pre
+    overflow hidden
     &:hover
       cursor pointer
 
@@ -2664,12 +2669,14 @@ div.kdtooltip
     width auto
     vendor transition, height 0.25s linear
     height 32px
+    overflow-y scroll
     &.hidden
       height 0px!important
       display block!important
       visibility visible!important
     .content
       borderBox()
+      height auto
       color white!important
       rounded 3px
       text-shadow 0px 0px 1px black
