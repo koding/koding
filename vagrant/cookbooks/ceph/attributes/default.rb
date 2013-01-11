@@ -1,1 +1,1 @@
-default["ceph"]["version"] = "0.48.2argonaut-1precise"
+default["ceph"]["version"] = "ceph_0.56.1-1quantal"
