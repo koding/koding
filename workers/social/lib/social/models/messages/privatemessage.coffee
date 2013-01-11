@@ -49,6 +49,11 @@ module.exports = class JPrivateMessage extends JPost
           if err
             fin err
           else
+            # @emit 'NewPrivateMessageHasArrived',
+            #   actorType   : 'sender'
+            #   actionType  : 'newMessage'
+            #   sender      : ObjectRef(sender).data
+            #   subject     : ObjectRef(pm).data
             recipient.sendNotification 'NewPrivateMessageHasArrived',
               actorType   : 'sender'
               actionType  : 'newMessage'
