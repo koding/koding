@@ -64,14 +64,29 @@ task 'cl0', 'runs prod kites',(options)->
     verbose : yes
 
 
-
 task 'vagrant', 'runs vagrant kites',(options)->
   config = require '../config/vagrant'
-  
+
   processes.fork
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c vagrant run"
     restart : yes
     verbose : yes
 
+  processes.fork
+    name    : "applications cake"
+    cmd     : "#{KODING_CAKE} ./applications -c vagrant run"
+    restart : yes
+    verbose : yes
 
+  processes.spawn
+    name    : 'webterm'
+    cmd     : "#{__dirname}/webterm -c vagrant"
+    restart : yes
+    verbose : yes
+
+  processes.fork
+    name    : "databases cake"
+    cmd     : "#{KODING_CAKE} ./databases -c vagrant run"
+    restart : yes
+    verbose : yes

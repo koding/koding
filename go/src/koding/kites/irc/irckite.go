@@ -11,32 +11,29 @@ import (
 func main() {
 	utils.Startup("irc kite", false)
 
-	kite.Run("irc", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
-		switch method {
-		case "connect":
-			var params struct {
-				Host      string         `json:"host"`
-				OnMessage dnode.Callback `json:"onMessage"`
-			}
-			if args.Unmarshal(&params) != nil || params.Host == "" || params.OnMessage == nil {
-				return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
-			}
-
-			conn, err := irc.NewConn(params.Host, log.RecoverAndLog)
-			if err != nil {
-				return nil, err
-			}
-			session.CloseOnDisconnect(conn)
-
-			go func() {
-				for message := range conn.ReceiveChannel {
-					params.OnMessage(message)
-				}
-			}()
-
-			return conn, nil
+	k := kite.New("irc")
+	k.Handle("connect", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Host      string         `json:"host"`
+			OnMessage dnode.Callback `json:"onMessage"`
+		}
+		if args.Unmarshal(&params) != nil || params.Host == "" || params.OnMessage == nil {
+			return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
 		}
 
-		return nil, &kite.UnknownMethodError{method}
+		conn, err := irc.NewConn(params.Host, log.RecoverAndLog)
+		if err != nil {
+			return nil, err
+		}
+		session.CloseOnDisconnect(conn)
+
+		go func() {
+			for message := range conn.ReceiveChannel {
+				params.OnMessage(message)
+			}
+		}()
+
+		return conn, nil
 	})
+	k.Run()
 }

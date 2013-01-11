@@ -23,6 +23,7 @@ type WebtermServer struct {
 	process          *os.Process
 	currentSecond    int64
 	messageCounter   int
+	byteCounter      int
 	lineFeeedCounter int
 }
 
@@ -34,19 +35,18 @@ func main() {
 		return
 	}
 
-	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
-		if method == "createServer" {
-			remote, err := args.Map()
-			if err != nil {
-				return nil, err
-			}
-			server := &WebtermServer{session: session}
-			server.remote = remote
-			session.CloseOnDisconnect(server)
-			return server, nil
+	k := kite.New("webterm")
+	k.Handle("createServer", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		remote, err := args.Map()
+		if err != nil {
+			return nil, err
 		}
-		return nil, &kite.UnknownMethodError{method}
+		server := &WebtermServer{session: session}
+		server.remote = remote
+		session.CloseOnDisconnect(server)
+		return server, nil
 	})
+	k.Run()
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
@@ -90,7 +90,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := server.session.CreateCommand(command)
+	cmd := server.session.CreateCommand(command...)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {
@@ -112,29 +112,50 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	go func() {
 		defer log.RecoverAndLog()
 
-		buf := make([]byte, 1<<12, (1<<12)+4)
+		buf := make([]byte, (1<<12)-4, 1<<12)
+		runes := make([]rune, 1<<12)
 		for {
 			n, err := pty.Master.Read(buf)
-			for {
+			for n < cap(buf)-1 {
 				r, _ := utf8.DecodeLastRune(buf[:n])
 				if r != utf8.RuneError {
 					break
 				}
 				pty.Master.Read(buf[n : n+1])
-				n += 1
+				n++
 			}
+
 			s := time.Now().Unix()
 			if server.currentSecond != s {
 				server.currentSecond = s
 				server.messageCounter = 0
+				server.byteCounter = 0
 				server.lineFeeedCounter = 0
 			}
 			server.messageCounter += 1
+			server.byteCounter += n
 			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.lineFeeedCounter > 300 {
+			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
 				time.Sleep(time.Second)
 			}
-			server.remote["output"].(dnode.Callback)(string(buf[:n]))
+
+			// convert manually to fix invalid utf-8 chars
+			i := 0
+			c := 0
+			for {
+				r, l := utf8.DecodeRune(buf[i:n])
+				if l == 0 {
+					break
+				}
+				if r >= 0xD800 {
+					r = utf8.RuneError
+				}
+				runes[c] = r
+				i += l
+				c++
+			}
+
+			server.remote["output"].(dnode.Callback)(string(runes[:c]))
 			if err != nil {
 				break
 			}
