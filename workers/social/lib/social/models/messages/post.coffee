@@ -43,7 +43,7 @@ module.exports = class JPost extends jraphical.Message
     slugifyFrom : 'title'
     slugTemplate: 'Activity/#{slug}'
     indexes     :
-      slug      : 'unique' 
+      slug      : 'unique'
     permissions: [
       'read posts'
       'create posts'
