@@ -22,9 +22,6 @@ ebin
 /website/dev/*.json
 /go/bin
 /go/pkg
-/go/src/code.google.com
-/go/src/github.com
-/go/src/labix.org
 /kites/webterm
 /kites/os
 .project
