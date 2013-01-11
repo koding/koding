@@ -304,8 +304,6 @@ module.exports = class JActivityCache extends jraphical.Module
         # callback null, groupedActivities
 
 
-
-
   cap: (overview, callback)->
 
     unless overview or (overview.length and overview.length is 0)
@@ -317,13 +315,13 @@ module.exports = class JActivityCache extends jraphical.Module
 
       activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
-        acc["activities.#{activity.getId()}"] = activity
+        updatedActivity = activity.prune()
+        updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
+        acc["activities.#{activity.getId()}"] = updatedActivity
         return acc
       , {}
 
       activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
-
-      log overview, activitiesModifier
 
       @update {
         $pushAll: {overview}
@@ -356,8 +354,11 @@ module.exports = class JActivityCache extends jraphical.Module
           if err then callback? err
           else
             setModifier = {}
-            setModifier["activities.#{idToUpdate}"] = activity
-            cache.update $set : setModifier
+            updatedActivity = activity.prune()
+            # TODO: this is a workaround.  I need to look into a bug in bongo C.T.:
+            updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
+            setModifier["activities.#{idToUpdate}"] = foo
+            cache.update {$set : setModifier}, console.log.bind(console)
 
 
 
