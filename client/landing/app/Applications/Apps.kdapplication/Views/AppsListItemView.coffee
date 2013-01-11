@@ -82,6 +82,6 @@ class AppsListItemView extends KDListItemView
     <div class="appdetails">
       <h3>{a[href="#"]{#(title)}}</h3>
       <article>{{@utils.shortenText #(body)}}</article>
-      <a href="/Apps/#{@getData().slug}">Application Page →</a>
+      <a href="#">Application Page →</a>
     </div>
     """
