@@ -19,8 +19,33 @@ class NewMemberBucketView extends JView
 
     @group = new NewMemberLinkGroup (totalCount : @getData().count), @getData().anchors
 
+    lastFetchedDate = null
+
     @group.on "moreLinkClicked", =>
       log "expand the view to show more users"
+      selector    =
+        type      : { $in : ['CNewMemberBucketActivity'] }
+        createdAt :
+          $lt     : lastFetchedDate or @getData().createdAt[0]
+          $gt     : @getData().createdAt[1]
+
+      options     =
+        limit     : 20
+
+      @group.loader.show()
+      KD.remote.api.CActivity.some selector, options, (err, activities)=>
+        if err then warn err
+        else
+          activities = ActivityAppController.clearQuotes activities
+          lastFetchedDate = activities.last.createdAt
+          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+            if err then warn err
+            else
+              @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
+              @group.setData @getData().anchors
+              @group.visibleCount += 20
+              @group.render()
+              @group.loader.hide()
 
   pistachio:->
 
@@ -36,9 +61,7 @@ class NewMemberLinkGroup extends LinkGroup
 
     super
 
-    {totalCount} = @getOptions()
-    log @getOptions(), "<<<<<"
-    @visibleCount = if totalCount > 4 then 4 else totalCount
+    @loader = new KDLoaderView
 
   createMoreLink:->
 
@@ -47,14 +70,12 @@ class NewMemberLinkGroup extends LinkGroup
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{totalCount-@visibleCount} more"
+      partial     : "#{totalCount-@getData().length} more"
       attributes  :
         href      : "#"
         title     : "Click to view..."
       click       : (e)=>
         @emit "moreLinkClicked"
-        @visibleCount += 20
-        @render()
 
   pistachio:->
 
@@ -62,30 +83,27 @@ class NewMemberLinkGroup extends LinkGroup
     {hasMore, totalCount, group, separator} = @getOptions()
 
     @createMoreLink()
-    log "buraya nolmus", @visibleCount, totalCount
-    switch @visibleCount
+    log @getData().length, ">>>>"
+    pst = switch @getData().length
       when 0 then ""
       when 1 then "{{> @participant0}}"
       when 2 then "{{> @participant0}} and {{> @participant1}}"
       when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
       when 4
         if totalCount - 4 > 0
-          log "burda"
           "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
         else
           "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
       else
         tmpl = ""
-        for i in [0...@visibleCount]
-          log "yo", i
+        for i in [0...@getData().length]
           tmpl += "{{> @participant#{i}}}"
-          tmpl += separator if i isnt @visibleCount
+          tmpl += separator if i isnt @getData().length-1
 
-        if totalCount > @visibleCount
-          log "yo more"
+        if totalCount > @getData().length
           tmpl += " and {{> @more}}"
-        log tmpl
         tmpl
+    pst += "{{> @loader }}"
 
 
 # SLIGHTLY OLD
