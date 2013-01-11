@@ -17,11 +17,10 @@ class NewMemberBucketView extends JView
 
     super
 
-    @group = new LinkGroup (totalCount : @getData().count), @getData().anchors
+    @group = new NewMemberLinkGroup (totalCount : @getData().count), @getData().anchors
 
-  click:->
-
-    log "le click"
+    @group.on "moreLinkClicked", =>
+      log "expand the view to show more users"
 
   pistachio:->
 
@@ -31,7 +30,62 @@ class NewMemberBucketView extends JView
     {{> @group}}
     """
 
+class NewMemberLinkGroup extends LinkGroup
 
+  constructor:->
+
+    super
+
+    {totalCount} = @getOptions()
+    log @getOptions(), "<<<<<"
+    @visibleCount = if totalCount > 4 then 4 else totalCount
+
+  createMoreLink:->
+
+    @more.destroy() if @more
+    {totalCount, group} = @getOptions()
+    @more = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "more"
+      partial     : "#{totalCount-@visibleCount} more"
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : (e)=>
+        @emit "moreLinkClicked"
+        @visibleCount += 20
+        @render()
+
+  pistachio:->
+
+    participants = @getData()
+    {hasMore, totalCount, group, separator} = @getOptions()
+
+    @createMoreLink()
+    log "buraya nolmus", @visibleCount, totalCount
+    switch @visibleCount
+      when 0 then ""
+      when 1 then "{{> @participant0}}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}"
+      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
+      when 4
+        if totalCount - 4 > 0
+          log "burda"
+          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+        else
+          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
+      else
+        tmpl = ""
+        for i in [0...@visibleCount]
+          log "yo", i
+          tmpl += "{{> @participant#{i}}}"
+          tmpl += separator if i isnt @visibleCount
+
+        if totalCount > @visibleCount
+          log "yo more"
+          tmpl += " and {{> @more}}"
+        log tmpl
+        tmpl
 
 
 # SLIGHTLY OLD
