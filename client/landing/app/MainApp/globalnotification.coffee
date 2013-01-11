@@ -4,7 +4,7 @@ class GlobalNotification extends KDView #KDNotificationView
     options.type ?= 'sticky'
     options.targetDate ?= new Date(Date.now()+5*60*1000)
     options.duration = options.targetDate - new Date Date.now()
-    options.flashThresholdPercentage ?= 10
+    options.flashThresholdPercentage ?= 25
     options.flashThresholdSeconds ?= 60
     options.showTimer = yes
     options.content ?= 'We are upgrading the platform. Please save your work.'
@@ -15,10 +15,11 @@ class GlobalNotification extends KDView #KDNotificationView
     @setClass 'notification sticky hidden'
 
     @on 'mouseenter', =>
+      @show()
       @notificationShowContent()
 
     @on 'mouseleave', =>
-      @notificationHideContent()
+      @notificationHideContent() unless @$().hasClass 'hidden'
 
     @timer = new KDView
       cssClass : 'notification-timer'
@@ -73,12 +74,17 @@ class GlobalNotification extends KDView #KDNotificationView
   pistachio:->
      """
      <div class='header'>
+     <span class='icon'></span>
      {{> @timer}}
      </div>
-     <div class='slider'>
-      {{> @current}}
-     </div>
+
      {{> @content}}
+
+     <div class='slider-wrapper'>
+       <div class='slider'>
+        {{> @current}}
+       </div>
+     </div>
      """
 
   click:->
@@ -92,61 +98,41 @@ class GlobalNotification extends KDView #KDNotificationView
       @show()
     @notificationStartTimer @getOptions().duration
 
-
-
-  # notificationSetTitle:(title)->
-  #   @notificationTitle = title
-
-  # notificationSetContent:(content)->
-  #   @notificationContent = content
-
-  # notificationShowTimer:()->
-  # notificationSetOverlay:()->
-  # notificationSetCloseHandle:->
-  # notificationSetTimer:(duration)->
-
-  # notificationDisplay:()->
-
   notificationShowContent:->
     @content?.show()
-    # @contentWrapper?.show()
   notificationHideContent:->
     @content?.hide()
-    # @contentWrapper?.hide()
-
 
   notificationStartTimer:(duration)->
     return if duration is 0
 
-    timeText = (remaining=300000)->
+    timeText = (remaining=300000)=>
       seconds = Math.floor remaining/1000
       minutes = Math.floor seconds/60
       if seconds > 0
+        text = @getOptions().title+' '
         if minutes>0
-          text = "#{minutes} Minute#{if minutes is 1 then '' else 's'}"
+          text += "#{minutes} Minute#{if minutes is 1 then '' else 's'}"
           if seconds-60*minutes isnt 0
             text +=" and #{seconds-60*minutes} seconds"
           text
         else
-          "#{seconds} seconds"
+          text += "#{seconds} second#{if seconds isnt 1 then 's' else ''}"
       else
-        "anytime now."
+        "Shutting down anytime now."
 
-    # @notificationTimerDiv = @getDomElement().find ".kdnotification-timer"
     @utils.defer =>
-      log timeText duration
-      # @notificationTimerDiv.text timeText duration
-      @timer.updatePartial @getOptions().title+' '+timeText duration
-    @notificationTimeout = setTimeout ()=>
-      @getDomElement().fadeOut 200,()=>
-        @destroy()
-    ,duration
+      @timer.updatePartial timeText duration
 
     @notificationInterval = setInterval ()=>
-      # @notificationTimerDiv.text timeText parseInt(@getOptions().targetDate - new Date(Date.now()),10)
       @current.$().css width : @getCurrentTimePercentage()+'%'
-      if @getCurrentTimePercentage() < @getOptions().flashThresholdPercentage or @getCurrentTimeRemaining() < @getOptions().flashThresholdSeconds
+      if (@getCurrentTimePercentage() < @getOptions().flashThresholdPercentage) \
+      or (@getCurrentTimeRemaining()/1000 < @getOptions().flashThresholdSeconds)
         @current.setClass 'flash'
-      @timer.updatePartial @getOptions().title+' '+timeText(parseInt(@getOptions().targetDate - new Date(Date.now()),10))
+      currentTime = parseInt(@getOptions().targetDate - new Date(Date.now()),10)
+      @timer.updatePartial timeText currentTime
+      if currentTime < 0
+        clearInterval @notificationInterval
+        @$('.slider-wrapper').addClass 'done'
     ,1000
 

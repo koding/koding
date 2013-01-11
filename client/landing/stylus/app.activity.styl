@@ -2566,17 +2566,17 @@ div.kdtooltip
   abs()
   borderBox()
   rounded 0 0 4px 4px
-  vendor transition, top 2s ease-in-out // \, -webkit-transform 0.5s ease-in-out
+  vendor transition, top 1.5s ease-in-out // \, -webkit-transform 0.5s ease-in-out
   top 0px
   left 50%
   margin-left -150px
   width 300px
   height auto
-  background-color rgba(48,48,48,0.8)
+  background-color rgba(48,48,48,0.5)
   z-index 20001
   border 1px solid black
   border-top none
-  border-bottom-color #444
+  border-bottom-color #5f5f5f
   border-left-color #5F5F5F
   border-right-color #5F5F5F
 
@@ -2602,23 +2602,52 @@ div.kdtooltip
     padding 2px 10px 3px 10px
     width 100%
     height auto
-    background-color rgba(0,0,0,0.25)
-  .slider
-    width 100%
-    height 4px
-    background-color #adadad
-    .current
+    background-color rgba(0,0,0,0.333)
+    span.icon
+      display inline-block
+      fl()
+      margin-top -1px
+      margin-left -9px
+      size 18px 18px
+      sprite()
+      bg position, -20px -320px
+  .slider-wrapper
+    borderBox()
+    border-top 1px solid #5F5F5F
+    padding 5px
+    height 14px
+    vendor transition, height 0.5s ease-in-out \, padding 0.5s ease-in-out
+    &.done
+      border none
+      height 0px
+      padding 0px 5px
+      .slider
+        opacity 0
+    .slider
       borderBox()
-      width 75%
+      width 100%
       height 4px
-      background-color #ff9200
-      border-right 1px solid lighten(#ff9200,67%)
-      border-bottom 1px solid lighten(#ff9200,33%)
-      &.flash
-        animation-name flashSlider
-        animation-duration 0.5s
-        animation-iteration-count infinite
+      bg color, #5f5f5f//#adadad
+      vendor transition, opacity 0.4s ease-in-out
+      opacity 1
+      rounded 2px
+      shadow inset 0px 0px 2px 0px rgba(255, 255, 255, 0.25)
 
+      .current
+        vendor transition, width 1s linear
+        borderBox()
+        width 100%
+        height 4px
+        background-color #ff9200
+        border-top 1px solid darken(#ff9200,15%)
+        border-right 1px solid lighten(#ff9200,50%)
+        border-bottom 1px solid lighten(#ff9200,33%)
+        border-left 1px solid darken(#ff9200,30%)
+        rounded 2px
+        &.flash
+          animation-name flashSlider
+          animation-duration 0.5s
+          animation-iteration-count infinite
 
   .notification-timer
     vertical-align top
@@ -2626,33 +2655,22 @@ div.kdtooltip
     width auto
     font-size 13px
     font-weight 300
-    color lighten(#adadad,25%)
-
-    // animation-name pulseText
-    // animation-duration 1s
-    // animation-iteration-count 3
-
-
-  // .notification-title
-  //   fl()
-  //   width auto
-  //   vertical-align top
-  //   color white
-  //   font-size 14px
+    color lighten(#adadad,95%)
 
   .notification-content
     borderBox()
     width auto
-    vendor transition, height 0.25s ease-in-out
-    height auto
+    vendor transition, height 0.25s linear
+    height 50px
     &.hidden
       height 0px!important
       display block!important
       visibility visible!important
     .content
       borderBox()
-      color #adadad!important
+      color white!important
       rounded 3px
+      text-shadow 0px 0px 1px black
       font-weight 300
       font-size 11px
       padding 10px

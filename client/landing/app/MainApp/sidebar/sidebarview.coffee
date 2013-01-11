@@ -102,9 +102,9 @@ class Sidebar extends JView
     @globalNotify = new KDButtonView
       title     : 'SHUTDOWN'
       callback  : =>
-        log 'callback', new Date(Date.now()+5*60*1000)
+        log 'callback'
         test = new GlobalNotification
-          # targetDate :
+          targetDate : new Date(Date.now()+1*60*1000+5000)
 
   resetAdminNavController:->
     @utils.wait 1000, =>
