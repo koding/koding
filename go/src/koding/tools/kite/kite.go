@@ -149,7 +149,7 @@ func (k *Kite) Run() {
 								log.Debug("Write", routingKey, data)
 								err := publishChannel.Publish("broker", routingKey, false, false, amqp.Publishing{Body: data})
 								if err != nil {
-									panic(err)
+									log.LogError(err, 0)
 								}
 							}
 						}()
