@@ -1,0 +1,48 @@
+{
+    "Parameters": {
+        "KeyName": {
+            "Type": "String",
+            "Description": "EC2 Key Pair for webservers",
+            "Default": "koding"
+        },
+        "InstanceType": {
+            "Description": "Webserver EC2 instance type",
+            "Type": "String",
+            "Default": "c1.xlarge",
+            "AllowedValues": [
+                "c1.xlarge"
+            ],
+            "ConstraintDescription": "must be a valid EC2 instance type."
+        },
+        "ChefOrganization": {
+            "Description": "Organization name used in Hosted Chef.",
+            "Type": "String",
+            "Default": "koding"
+        },
+        "ChefEnvironment": {
+            "Description": "The Chef Environment.",
+            "Type": "String",
+            "Default": "Production"
+        },
+        "ChefRunList": {
+            "Description": "The Chef run list.",
+            "Type": "String",
+            "Default": "role[web_server]"
+        },
+        "DomainName": {
+            "Description": "Webserver Domain Name.",
+            "Type": "String",
+            "Default": "koding.com"
+        },
+        "KodingBucket": {
+            "Description": "S3 with validation private key for Chef",
+            "Type": "String",
+            "Default": "koding-chef"
+        },
+        "SNSTopic": {
+            "Description": "Email address for alerts",
+            "Type": "String",
+            "Default": "aleksey@koding.com"
+        }
+    }
+}

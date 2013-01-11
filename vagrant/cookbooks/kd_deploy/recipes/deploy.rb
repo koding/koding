@@ -28,5 +28,8 @@ deploy_revision KODING_ROOT do
     enable_submodules false
     migrate           false
     ssh_wrapper       "/tmp/private_code/wrap-ssh4git.sh"
+    symlink_before_migrate.clear
+    create_dirs_before_symlink.clear
+    purge_before_symlink.clear
     symlinks.clear
 end

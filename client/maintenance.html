@@ -209,7 +209,7 @@ A:hover {text-decoration: underline; color: white;}
   border: 1px solid #444;
   margin: 2px;
   color: #424547;
-  background: url('http://www.mmoasteroids.com/stars.gif');
+  background: url('https://api.koding.com/images/stars.gif');
 }
 
 .button {
@@ -390,7 +390,7 @@ var currentUser = { name: "Guest" + Math.floor((10000 * Math.random())), type: '
 
 function updateName() {
  if(currentUser.type == 'twitter') {
-   $('#my-name').html('<img height=24 src="' + currentUser.photo + '"> @' + currentUser.name);
+   $('#my-name').text(currentUser.name);
  }
  else {
    $('#my-name').text(currentUser.name);
@@ -417,12 +417,11 @@ function handleScoreAdded(scoreSnapshot, lowerScoreName) {
   var newScoreRow = $("<tr/>");
   var postedScore = scoreSnapshot.val();
   if(postedScore.user.type == 'twitter') {
-    newScoreRow.append($("<td/>").append('<img height=24 src="' + postedScore.user.photo + '">').append($("<strong/>").text('@' + postedScore.user.name)));
-    newScoreRow.append($("<td/>").text(postedScore.score));
+    newScoreRow.append($("<td/>").text(postedScore.score));    newScoreRow.append($("<td/>").append($("<strong/>").text(postedScore.user.name)));
   }
   else {
-    newScoreRow.append($("<td/>").append($("<strong/>").text(postedScore.user.name)));
     newScoreRow.append($("<td/>").text(postedScore.score));
+    newScoreRow.append($("<td/>").append($("<strong/>").text(postedScore.user.name)));
   }
 
   // Store a reference to the table row so we can get it again later.
@@ -1569,8 +1568,9 @@ $(function () {
   enemy.user = snapshot.val().user;
   enemy.fref = asteroids.child('players').child(snapshot.name());
   if(typeof(enemy.user.photo) != undefined && enemy.user.photo != null) {
-    enemy.eimg = new Image();
-    enemy.eimg.src = enemy.user.photo;
+    enemy.eimg = null
+    // enemy.eimg = new Image();
+    // enemy.eimg.src = enemy.user.photo;
   }
   else {
     enemy.eimg = null;
@@ -1594,8 +1594,9 @@ $(function () {
   enemy.user = snapshot.val().user;
   enemy.fref = asteroids.child('players').child(snapshot.name());
   if(typeof(enemy.user.photo) != undefined && enemy.user.photo != null) {
-    enemy.eimg = new Image();
-    enemy.eimg.src = enemy.user.photo;
+    enemy.eimg = null
+    // enemy.eimg = new Image();
+    // enemy.eimg.src = enemy.user.photo;
   }
   else {
     enemy.eimg = null;
