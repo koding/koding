@@ -46,7 +46,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -117,6 +117,11 @@ module.exports = deepFreeze
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
+  librato:
+    push: no
+    email: ""
+    token: ""
+    interval: 30000
   crypto :
     encrypt: (str,key=Math.floor(Date.now()/1000/60))->
       crypto = require "crypto"

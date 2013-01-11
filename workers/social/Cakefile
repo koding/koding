@@ -2,10 +2,24 @@
 KodingLogger = require 'koding-logger'
 os = require 'os'
 processes = new (require 'processes')
+
 option '-c', '--configPath [CONFIG]', 'Which config file to use.'
 option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
 option '-s', '--silent', 'Set this flag to suppress stdout'
 option '-D', '--debug', 'Start the node project with the debugger'
+
+# We're not relying on Process.restart option anymore. We're going to
+# restart a worker only if a backup worker was not already started.
+
+worker_id_next = 0
+workers_recovered = []
+
+start_worker = (configPath) ->
+  id = worker_id_next++
+  processes.fork
+    name  : "socialWorker-#{id}"
+    cmd   : "./index -c #{configPath} --workerid #{id}"
+  id
 
 task 'run', ({numberOfWorkers, configPath, silent})->
   configPath ?= '../../config/dev'
@@ -13,10 +27,27 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   numberOfWorkers ?= configNumberOfWorkers ? 1
 
   for _, i in Array +numberOfWorkers
-    processes.fork
-      name  : "socialWorker-#{i}"
-      cmd   : "./index -c #{configPath} --workerid #{i+1}"
-      restart : yes
-      restartInterval : 1000
+    # Start a worker
+    wid = start_worker configPath
+
+    # If a worker stops accepting new connections, start a backup worker.
+    processes.get("socialWorker-#{wid}").on "message", (msg) ->
+      if msg?.exiting?
+        # Do not start backup worker more than once
+        if msg.pid not in workers_recovered
+          workers_recovered.push msg.pid
+
+          console.log "[SOCIAL WORKER] A worker has stopped accepting connections, starting new one."
+
+          # Start a backup worker
+          start_worker configPath
+
+    # Start a new worker if a worker dies, unless it has a backup worker.
+    processes.on "exit", (cid, name) ->
+      if cid in workers_recovered
+        workers_recovered.splice workers_recovered.indexOf(cid), 1
+      else
+        console.log "[SOCIAL WORKER] A worker has died, starting new one."
+        start_worker configPath
 
   return
