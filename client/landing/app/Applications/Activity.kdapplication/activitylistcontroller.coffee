@@ -72,7 +72,8 @@ class ActivityListController extends KDListViewController
           count     : item.count
           createdAt : item.createdAt
       else
-        @addItem cache.activities[item.ids.first].teaser
+        if cache.activities[item.ids.first]
+          @addItem cache.activities[item.ids.first].teaser
 
     @teasersLoaded()
 
