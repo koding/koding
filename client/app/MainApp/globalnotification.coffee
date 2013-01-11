@@ -100,7 +100,7 @@ class GlobalNotification extends KDView #KDNotificationView
 
   click:->
     @hide()
-    @getSingleton('windowController').stickyNotification = null
+    # @getSingleton('windowController').stickyNotification = null
 
   viewAppended:->
     @setTemplate @pistachio()
