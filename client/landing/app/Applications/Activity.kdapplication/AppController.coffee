@@ -19,7 +19,7 @@ class ActivityAppController extends AppController
   aRange    = 2*60*60*1000
   isLoading = no
 
-  clearQuotes = (activities)->
+  @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
