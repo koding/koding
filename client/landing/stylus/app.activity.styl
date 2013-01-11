@@ -2608,9 +2608,12 @@ div.kdtooltip
     height 4px
     background-color #adadad
     .current
+      borderBox()
       width 75%
       height 4px
       background-color #ff9200
+      border-right 1px solid lighten(#ff9200,67%)
+      border-bottom 1px solid lighten(#ff9200,33%)
       &.flash
         animation-name flashSlider
         animation-duration 0.5s
