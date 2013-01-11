@@ -1,29 +1,31 @@
 {
+  "version": "0.1.0",
   "providing": {
   },
-  "name": "golang",
-  "replacing": {
-  },
-  "license": "All rights reserved",
-  "groupings": {
-  },
-  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
-  "attributes": {
-  },
+  "maintainer_email": "aleksey@koding.com",
   "description": "Installs/Configures golang",
-  "version": "0.1.0",
-  "maintainer": "Aleksey Mykhailov",
-  "recommendations": {
+  "suggestions": {
   },
   "dependencies": {
+    "yum": ">= 0.0.0",
+    "apt": ">= 0.0.0"
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "groupings": {
+  },
+  "attributes": {
+  },
+  "replacing": {
+  },
+  "conflicting": {
   },
   "platforms": {
   },
-  "suggestions": {
+  "recommendations": {
   },
-  "maintainer_email": "aleksey@koding.com",
+  "name": "golang",
   "recipes": {
   },
-  "conflicting": {
-  }
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "license": "All rights reserved"
 }

@@ -7,17 +7,9 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make 
-              gcc
-              patch
-              screen
-              mercurial
-              telnet
-              git
-            )
-
+packages = %w( make gcc patch screen telnet git )
 rpm_diff = %w( vim-enhanced man )
-ubuntu_diff = %w( vim )
+deb_diff = %w( vim )
 
 case node['platform_family']
 when "rhel", "cloudlinux"
@@ -29,9 +21,9 @@ when "rhel", "cloudlinux"
         end
     end
 when "debian"
-    packages.concat(ubuntu_diff)
+    packages.concat(deb_diff)
     packages.each do |pkg|
-        apt_package "#{pkg}" do
+        package "#{pkg}" do
             action :install
         end
     end
