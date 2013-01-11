@@ -17,11 +17,35 @@ class NewMemberBucketView extends JView
 
     super
 
-    @group = new LinkGroup (totalCount : @getData().count), @getData().anchors
+    @group = new NewMemberLinkGroup (totalCount : @getData().count), @getData().anchors
 
-  click:->
+    lastFetchedDate = null
 
-    log "le click"
+    @group.on "moreLinkClicked", =>
+      log "expand the view to show more users"
+      selector    =
+        type      : { $in : ['CNewMemberBucketActivity'] }
+        createdAt :
+          $lt     : lastFetchedDate or @getData().createdAt[0]
+          $gt     : @getData().createdAt[1]
+
+      options     =
+        limit     : 20
+
+      @group.loader.show()
+      KD.remote.api.CActivity.some selector, options, (err, activities)=>
+        if err then warn err
+        else
+          activities = ActivityAppController.clearQuotes activities
+          lastFetchedDate = activities.last.createdAt
+          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+            if err then warn err
+            else
+              @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
+              @group.setData @getData().anchors
+              @group.visibleCount += 20
+              @group.render()
+              @group.loader.hide()
 
   pistachio:->
 
@@ -31,7 +55,55 @@ class NewMemberBucketView extends JView
     {{> @group}}
     """
 
+class NewMemberLinkGroup extends LinkGroup
 
+  constructor:->
+
+    super
+
+    @loader = new KDLoaderView
+
+  createMoreLink:->
+
+    @more.destroy() if @more
+    {totalCount, group} = @getOptions()
+    @more = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "more"
+      partial     : "#{totalCount-@getData().length} more"
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : (e)=>
+        @emit "moreLinkClicked"
+
+  pistachio:->
+
+    participants = @getData()
+    {hasMore, totalCount, group, separator} = @getOptions()
+
+    @createMoreLink()
+    log @getData().length, ">>>>"
+    pst = switch @getData().length
+      when 0 then ""
+      when 1 then "{{> @participant0}}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}"
+      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
+      when 4
+        if totalCount - 4 > 0
+          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+        else
+          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
+      else
+        tmpl = ""
+        for i in [0...@getData().length]
+          tmpl += "{{> @participant#{i}}}"
+          tmpl += separator if i isnt @getData().length-1
+
+        if totalCount > @getData().length
+          tmpl += " and {{> @more}}"
+        tmpl
+    pst += "{{> @loader }}"
 
 
 # SLIGHTLY OLD

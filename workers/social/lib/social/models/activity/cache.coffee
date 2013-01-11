@@ -40,14 +40,8 @@ module.exports = class JActivityCache extends jraphical.Module
       # name        : String
       to          :
         type      : Date
-        default   : -> new Date
-        get       : -> this.overview[0].createdAt[0]
       from        :
         type      : Date
-        default   : -> new Date
-        get       : ->
-          last = this.overview[this.overview.length-1]
-          last.createdAt[last.createdAt.length-1]
       isFull      :
         type      : Boolean
         default   : no
@@ -83,7 +77,8 @@ module.exports = class JActivityCache extends jraphical.Module
   @before = (timestamp, callback)->
 
     selector =
-      to     : { $lte : timestamp }
+      to     : { $lt : new Date(parseInt(timestamp,10)) }
+
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
   @byId = (id, callback)->
@@ -95,8 +90,8 @@ module.exports = class JActivityCache extends jraphical.Module
   @containsTimestamp = (timestamp, callback)->
 
     selector =
-      to     : { $gte : timestamp }
-      from   : { $lte : timestamp }
+      to     : { $gte : new Date(timestamp) }
+      from   : { $lte : new Date(timestamp) }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -131,16 +126,18 @@ module.exports = class JActivityCache extends jraphical.Module
           ###
 
           # cap latest
-          if latest and latest.overview.length < lengthPerCache
+          if latest and not latest.isFull
 
             # return console.log "capping latest...."
             remainderAmount   = lengthPerCache - latest.overview.length
             remainderOverview = overview.splice -remainderAmount
 
+            # log remainderOverview
+            # return
             latest.cap remainderOverview, -> console.log "capped latest!"
 
             # terminate only if there are no new items to be cached
-            return  if remainderOverview.length <= remainderAmount
+            return  if overview.length is 0
 
           # create new cache instances
           overview2d = []
@@ -307,8 +304,6 @@ module.exports = class JActivityCache extends jraphical.Module
         # callback null, groupedActivities
 
 
-
-
   cap: (overview, callback)->
 
     unless overview or (overview.length and overview.length is 0)
@@ -318,17 +313,29 @@ module.exports = class JActivityCache extends jraphical.Module
 
       overview.reverse()
 
+      # log activityHash
+
+      # return
+
       activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
-        acc["activities.#{activity.getId()}"] = activity
+        updatedActivity = activity.prune()
+        # log activity, activity.snapshotIds
+        if activity.snapshotIds
+          updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
+          acc["activities.#{activity.getId()}"] = updatedActivity
         return acc
       , {}
+
+      # return
+
+      activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
       @update {
         $pushAll: {overview}
         $set    : activitiesModifier
       }, (err)->
-        console.log err, "did it work"
+        console.log err, "nope, it doesn't work even it says so."
         callback?()
 
 
@@ -336,7 +343,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     CActivity = require './index'
 
-    log "ever here", teaser.meta.createdAt
+    # log "ever here", teaser.meta.createdAt
 
     @containsTimestamp teaser.meta.createdAt, (err, cache)->
       if err then callback? err
@@ -349,15 +356,17 @@ module.exports = class JActivityCache extends jraphical.Module
         for id, activity of cache.activities
           if activity.snapshotIds[0].equals teaser.getId()
             idToUpdate = id
-            log "found the activity, now perform an atomic update to:", id
+            # log "found the activity, now perform an atomic update to:", id
 
         CActivity.one _id : idToUpdate, (err, activity)->
           if err then callback? err
           else
             setModifier = {}
-            setModifier["activities.#{idToUpdate}"] = activity
-            log setModifier
-            cache.update $set : setModifier
+            updatedActivity = activity.prune()
+            # TODO: this is a workaround.  I need to look into a bug in bongo C.T.:
+            updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
+            setModifier["activities.#{idToUpdate}"] = updatedActivity
+            cache.update {$set : setModifier}, console.log.bind(console)
 
 
 

@@ -28,7 +28,7 @@ job = new CronJob guests.cleanupCron, ->
     {leasedAt: $lt: new Date new Date - 1000*60*6}
     {$set: {status: 'pristine'}, $unset: {leasedAt: 1}}
     {multi:yes}
-  )
+  , ->)
   JGuest.someData(
     {status: 'needs cleanup'}, {guestId:1}, {limit: guests?.batchSize}
     (err, cursor)->
