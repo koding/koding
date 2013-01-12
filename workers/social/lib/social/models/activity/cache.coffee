@@ -313,13 +313,21 @@ module.exports = class JActivityCache extends jraphical.Module
 
       overview.reverse()
 
+      # log activityHash
+
+      # return
+
       activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
         updatedActivity = activity.prune()
-        updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
-        acc["activities.#{activity.getId()}"] = updatedActivity
+        # log activity, activity.snapshotIds
+        if activity.snapshotIds
+          updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
+          acc["activities.#{activity.getId()}"] = updatedActivity
         return acc
       , {}
+
+      # return
 
       activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
@@ -335,7 +343,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     CActivity = require './index'
 
-    log "ever here", teaser.meta.createdAt
+    # log "ever here", teaser.meta.createdAt
 
     @containsTimestamp teaser.meta.createdAt, (err, cache)->
       if err then callback? err
@@ -348,7 +356,7 @@ module.exports = class JActivityCache extends jraphical.Module
         for id, activity of cache.activities
           if activity.snapshotIds[0].equals teaser.getId()
             idToUpdate = id
-            log "found the activity, now perform an atomic update to:", id
+            # log "found the activity, now perform an atomic update to:", id
 
         CActivity.one _id : idToUpdate, (err, activity)->
           if err then callback? err
