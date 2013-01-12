@@ -273,14 +273,9 @@ module.exports = class JActivityCache extends jraphical.Module
       _id    :
         $in  : (overview.slice().map (group)-> group.ids).reduce (a, b)-> a.concat(b)
 
-
-
     CActivity.some selector, {sort: createdAt: -1}, (err, activities) =>
       if err then callback? err
       else
-        # callback null, activities
-
-        # console.log selector._id, activities
 
         activityHash = {}
         for activity in activities
@@ -313,9 +308,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
       overview.reverse()
 
-      # log activityHash
-
-      # return
+      # activityMissed = no
 
       activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
@@ -324,19 +317,24 @@ module.exports = class JActivityCache extends jraphical.Module
         if activity.snapshotIds
           updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
           acc["activities.#{activity.getId()}"] = updatedActivity
+        # else
+        #   activityMissed = yes
         return acc
       , {}
 
-      # return
+      # if activityMissed
+      #   log "an activity couldn't be cached, trying again in a sec!"
+      #   setTimeout =>
+      #     @cap overview, callback
+      #   , 1000
+      #   return
 
       activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
       @update {
         $pushAll: {overview}
         $set    : activitiesModifier
-      }, (err)->
-        console.log err, "nope, it doesn't work even it says so."
-        callback?()
+      }, (err)-> callback?()
 
 
   @modifyByTeaser = (teaser, callback)->

@@ -261,23 +261,12 @@ do ->
       'CInstallerBucketActivity'
     ]
 
-  CActivity.on "feed-new", (activities)->
-
-    console.log activities
-
-    isCacheable = no
-
-    for activity in activities
-      if activity.constructor.name in typesToBeCached
-        isCacheable = yes
-        break
-
-    if isCacheable
+  CActivity.on "ActivityIsCreated", (activity)->
+    console.log "ever here"
+    if activity.constructor.name in typesToBeCached
       JActivityCache.init()
-      console.log activities
 
   CActivity.on "post-updated", (teaser)->
-    # JActivityCache.init()
     JActivityCache.modifyByTeaser teaser
 
   console.log "\"feed-new\" event for Activity Caching is bound."
