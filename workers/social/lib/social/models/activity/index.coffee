@@ -262,12 +262,17 @@ do ->
     ]
 
   CActivity.on "ActivityIsCreated", (activity)->
-    console.log "ever here"
+    console.log "ever here", activity.constructor.name
     if activity.constructor.name in typesToBeCached
       JActivityCache.init()
 
   CActivity.on "post-updated", (teaser)->
     JActivityCache.modifyByTeaser teaser
+
+  CActivity.on "BucketIsUpdated", (activity, bucket)->
+    console.log bucket.constructor.name, "is being updated"
+    if activity.constructor.name in typesToBeCached
+      JActivityCache.modifyByTeaser bucket
 
   console.log "\"feed-new\" event for Activity Caching is bound."
   console.log "\"post-updated\" event for Activity Caching is bound."

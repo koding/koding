@@ -61,7 +61,7 @@ module.exports = class CBucket extends jraphical.Module
           when 'source' then CInstalleeBucket
           when 'target' then CInstallerBucket
 
-  addToBucket =do ->
+  addToBucket = do ->
     # @helper
     addIt = (bucket, anchor, item, groupName, callback)->
       isOwn = anchor.equals item
@@ -74,6 +74,7 @@ module.exports = class CBucket extends jraphical.Module
             sourceName: bucket.constructor.name + 'Activity'
             as: 'content'
           }, (err, rel)->
+            CActivity = require '../activity'
             if err
               callback err
             else if rel
@@ -88,6 +89,7 @@ module.exports = class CBucket extends jraphical.Module
                     if err
                       callback err
                     else
+                      CActivity.emit 'BucketIsUpdated', activity, bucket
                       callback null, bucket
             else
               CBucketActivity = require '../activity/bucketactivity'

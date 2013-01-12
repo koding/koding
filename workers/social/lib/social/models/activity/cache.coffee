@@ -341,7 +341,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     CActivity = require './index'
 
-    # log "ever here", teaser.meta.createdAt
+    log "ever here", teaser.meta.createdAt
 
     @containsTimestamp teaser.meta.createdAt, (err, cache)->
       if err then callback? err
