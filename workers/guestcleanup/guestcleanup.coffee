@@ -2,7 +2,7 @@
 Bongo     = require 'bongo'
 {CronJob} = require 'cron'
 
-{mongo, amqp, guests} = require argv.c
+{mongo, amqp, guests} = require('koding-config-manager').load("main.#{argv.c}")
 
 error =(err)->
   err = message: err if 'string' is typeof err

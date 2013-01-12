@@ -1,4 +1,6 @@
 config =
+  _selfConfig :
+    defaultConfig : "dev-new"
   kite :
     applications :
       name              : 1

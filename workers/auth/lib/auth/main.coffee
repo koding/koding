@@ -5,7 +5,9 @@ koding.connect()
 
 AuthWorker = require './authworker'
 
-{authWorker} = require argv.c
+configFile = argv.c
 
-authWorker = new AuthWorker koding, authWorker.authResourceName
+KONFIG = require('koding-config-manager').load("main.#{configFile}")
+
+authWorker = new AuthWorker koding, KONFIG.authWorker.authResourceName
 authWorker.connect()

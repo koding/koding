@@ -1,7 +1,6 @@
 getWorker =(config)->
   Bongo = require 'bongo'
   {mongo} = config
-  console.log __dirname
   worker = new Bongo {
     mongo
     root: __dirname
