@@ -84,26 +84,15 @@ class NewMemberLinkGroup extends LinkGroup
 
     @createMoreLink()
     log @getData().length, ">>>>"
-    pst = switch @getData().length
-      when 0 then ""
-      when 1 then "{{> @participant0}}"
-      when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
-      when 4
-        if totalCount - 4 > 0
-          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
-        else
-          "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
-      else
-        tmpl = ""
-        for i in [0...@getData().length]
-          tmpl += "{{> @participant#{i}}}"
-          tmpl += separator if i isnt @getData().length-1
+    tmpl = ""
+    for i in [0...@getData().length]
+      tmpl += "{{> @participant#{i}}}"
+      tmpl += separator if i isnt @getData().length-1
 
-        if totalCount > @getData().length
-          tmpl += " and {{> @more}}"
-        tmpl
-    pst += "{{> @loader }}"
+    if totalCount > @getData().length
+      tmpl += " and {{> @more}}"
+
+    tmpl += "{{> @loader }}"
 
 
 # SLIGHTLY OLD
