@@ -119,6 +119,7 @@ module.exports = class CBucket extends jraphical.Module
                             else
                               if groupName is 'source'
                                 anchor.sendNotification? 'ActivityIsAdded'
+                              CActivity.emit 'ActivityIsCreated', activity
                               callback null, bucket
 
     (groupName, relationship, item, anchor, callback)->

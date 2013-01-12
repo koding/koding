@@ -32,7 +32,7 @@ job = new CronJob guests.cleanupCron, ->
   JGuest.someData(
     {status: 'needs cleanup'}, {guestId:1}, {limit: guests?.batchSize}
     (err, cursor)->
-      console.error err  if err
+      return console.error err  if err
       cursor.each (err, guest)->
         if err
           error err
