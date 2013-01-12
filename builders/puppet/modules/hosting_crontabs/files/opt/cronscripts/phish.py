@@ -2,13 +2,34 @@
 # anti phishing zabbix plugin
 
 import json
+import platform
+import shlex
 import dateutil.parser
+from subprocess import Popen, PIPE
 from time import localtime
 import sys
 
 phishing_db = '/tmp/online-valid.json'
 phishing_result = '/tmp/phishing_result'
-search_domain = 'koding.com'
+search_domain = 'koding'
+
+ZABBIX_SENDER="/usr/bin/zabbix_sender"
+ZABBIX_HOST="mon.prod.system.aws.koding.com"
+ZABBIX_PORT="10051"
+ZABBIX_KEY="koding.phishing"
+HOSTNAME=platform.node()
+
+def zabbix_sender(data):
+
+    cmd = shlex.split("%s -z %s -p %s -s %s -k %s -o %s" % (ZABBIX_SENDER, ZABBIX_HOST,ZABBIX_PORT,HOSTNAME,ZABBIX_KEY, data))
+    output,stderr = Popen(cmd, stdout=PIPE,stderr=PIPE).communicate()
+    child = Popen(cmd, stdout=PIPE,stderr=PIPE)
+    stdout,stderr = child.communicate()
+    if child.returncode != 0:
+        print(stderr)
+        return False
+    #else:
+        #pass
 
 
 def search_phising_domain():
@@ -26,10 +47,8 @@ def search_phising_domain():
             if search_domain in phish['url']:
                 fh.write(phish['url']+"\n")
                 urls.append(phish['url']) 
-    if urls.__len__ > 0:
-        return urls
-    else:
-        return False
+    
+    return len(urls)
+
 if __name__ == "__main__":
-    for url in search_phising_domain():
-        print(url)
+    zabbix_sender(search_phising_domain())

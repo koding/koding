@@ -1,5 +1,0 @@
-2012-10-08 16:10:20.529 [info] <0.7.0> Application lager started on node nonode@nohost
-2012-10-08 16:10:20.542 [info] <0.72.0>@broker_app:start:81  [*] Running at http://localhost:8008
-2012-10-08 16:10:20.584 [info] <0.7.0> Application amqp_client started on node nonode@nohost
-2012-10-08 16:10:20.614 [error] <0.180.0>@broker:amqp_connection:213 Failed to establish connection to vhost <<"/">> with reason econnrefused
-2012-10-08 16:10:20.617 [info] <0.7.0> Application broker started on node nonode@nohost

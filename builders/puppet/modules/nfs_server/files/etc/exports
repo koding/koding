@@ -1,0 +1,2 @@
+/Users       10.0.0.0/8(rw,acl,no_root_squash,anonuid=0,anongid=0)
+/Shared       10.0.0.0/8(rw,acl,no_root_squash,anonuid=0,anongid=0)

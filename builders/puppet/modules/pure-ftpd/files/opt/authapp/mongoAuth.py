@@ -10,8 +10,8 @@ import hashlib
 
 
 mongo_host  = 'web0.beta.system.aws.koding.com'
-mongo_user  = 'PROD-koding'
-mongo_pass  = '34W4BXx595ib3J72k5Mh'
+mongo_user  = 'ro-PROD-koding-ftp'
+mongo_pass  = 'ddkdkdkfjcfff'
 database    = 'beta_koding'
 collection  = 'jUsers'
 
