@@ -378,8 +378,8 @@ class LoginView extends KDScrollView
   animateToForm: (name)->
     switch name
       when "register"
-        @utils.wait 5000, =>
-          @utils.registerDummyUser()
+        # @utils.wait 5000, =>
+        #   @utils.registerDummyUser()
 
         KD.remote.api.JUser.isRegistrationEnabled (status)=>
           if status is no
