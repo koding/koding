@@ -143,12 +143,12 @@ class MainView extends KDView
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
-    KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
-      log 'System status called back',systemStatus
-      new GlobalNotification
-        targetDate : systemStatus.restartScheduled
-        title : systemStatus.restartTitle
-        content : systemStatus.restartContent
+    # KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
+    #   log 'System status called back',systemStatus
+    #   new GlobalNotification
+    #     targetDate : systemStatus.restartScheduled
+    #     title : systemStatus.restartTitle
+    #     content : systemStatus.restartContent
 
   createSideBar:->
 
