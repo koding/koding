@@ -5,8 +5,7 @@ koding.connect()
 
 AuthWorker = require './authworker'
 
-configFile = argv.c
-KONFIG = require('koding-config-manager').load("main.#{configFile}")
+{librato, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
 
 processMonitor = (require 'processes-monitor').start
   name : "Auth Worker #{process.pid}"
@@ -14,5 +13,5 @@ processMonitor = (require 'processes-monitor').start
   interval : 30000
   librato: librato
 
-authWorker = new AuthWorker koding, KONFIG.authWorker.authResourceName
+authWorker = new AuthWorker koding, authWorker.authResourceName
 authWorker.connect()
