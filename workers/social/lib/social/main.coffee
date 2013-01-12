@@ -35,7 +35,7 @@ processMonitor = (require 'processes-monitor').start
     callback: (name, msg, details) ->
       console.log "[SOCIAL WORKER #{name}] Using too much memory, accepting no more new jobs."
       process.send?({pid: process.pid, exiting: yes})
-      koding.disconnect
+      koding.disconnect()
       setTimeout ->
         process.exit()
        , 20000

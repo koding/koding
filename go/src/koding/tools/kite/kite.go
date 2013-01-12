@@ -46,6 +46,11 @@ func (k *Kite) Run() {
 
 	utils.AmqpAutoReconnect(k.Name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
 		routeMap := make(map[string](chan<- []byte))
+		defer func() {
+			for _, channel := range routeMap {
+				close(channel)
+			}
+		}()
 
 		publishChannel := utils.CreateAmqpChannel(publishConn)
 		defer publishChannel.Close()
@@ -144,7 +149,7 @@ func (k *Kite) Run() {
 								log.Debug("Write", routingKey, data)
 								err := publishChannel.Publish("broker", routingKey, false, false, amqp.Publishing{Body: data})
 								if err != nil {
-									panic(err)
+									log.LogError(err, 0)
 								}
 							}
 						}()

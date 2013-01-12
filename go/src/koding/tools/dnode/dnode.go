@@ -131,11 +131,13 @@ func (d *DNode) ProcessMessage(data []byte) {
 		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
 	}
 
-	index, err := strconv.Atoi(fmt.Sprint(m.Method))
-	if err == nil {
+	if index, err := strconv.Atoi(fmt.Sprint(m.Method)); err == nil {
 		args, err := m.Arguments.Array()
 		if err != nil {
 			panic(err)
+		}
+		if index < 0 || index >= len(d.callbacks) {
+			return
 		}
 		callArgs := make([]reflect.Value, len(args))
 		for i, v := range args {
