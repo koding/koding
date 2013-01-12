@@ -25,7 +25,37 @@ else
       middleware : (name,callback) -> koding.disconnect callback
       middlewareTimeout : 5000
     librato: KONFIG.librato
-  
+
+  # Services
+  services = 
+    webterm: 0
+    auth: 0
+    web: 0
+    social: 0
+
+  # Presences
+  koding = require './bongo'
+  koding.connect ->
+    koding.monitorPresence
+      join: (serviceKey) ->
+        if serviceKey.indexOf('webterm') > -1
+          services.webterm++
+        else if serviceKey.indexOf('auth') > -1
+          services.auth++
+        else if serviceKey.indexOf('web') > -1
+          services.web++
+        else if serviceKey.indexOf('social') > -1
+          services.social++
+      leave: (serviceKey) ->
+        if serviceKey.indexOf('webterm') > -1
+          services.webterm--
+        else if serviceKey.indexOf('auth') > -1
+          services.auth--
+        else if serviceKey.indexOf('web') > -1
+          services.web--
+        else if serviceKey.indexOf('social') > -1
+          services.social--
+
   {extend} = require 'underscore'
   express = require 'express'
   Broker = require 'broker'
@@ -121,6 +151,13 @@ else
       fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
         throw err if err
         res.send data
+
+  app.get "/-/presence/:service", (req, res) ->
+    {service} = req.params
+    if services[service] and services[service] > 0
+      res.send 200
+    else
+      res.send 404
 
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
