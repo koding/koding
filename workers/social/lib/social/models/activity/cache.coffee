@@ -16,14 +16,14 @@ module.exports = class JActivityCache extends jraphical.Module
   # CActivity = require './index'
 
   typesToBeCached = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-    ]
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+  ]
 
   lengthPerCache = 20
   timespan       = 120 * 60 * 60 * 1000
@@ -364,7 +364,7 @@ module.exports = class JActivityCache extends jraphical.Module
             # TODO: this is a workaround.  I need to look into a bug in bongo C.T.:
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
-            cache.update {$set : setModifier}, console.log.bind(console)
+            cache.update {$set : setModifier}, -> #console.log.bind(console)
 
 
 
