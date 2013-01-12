@@ -1,11 +1,13 @@
-{Base,Model} = require 'bongo'
+{Base} = require 'bongo'
 
-module.exports = class JSystemStatus extends Model
+module.exports = class JSystemStatus extends Base
 
   @setSharedMethods
     static: ['monitorStatus','scheduleRestart']
 
   @share()
+
+  {log} = console
 
   restartData =
     restartScheduled : null
@@ -14,15 +16,13 @@ module.exports = class JSystemStatus extends Model
 
   # callbacks = []
 
-  {log} = console
-
   @monitorStatus =(callback)->
     log 'monitorStatus called'
-    callback restartScheduled  if restartData.restartScheduled?
+    callback restartData  if restartData.restartScheduled?
     # callbacks.push callback
 
   @scheduleRestart =(data)->
     log 'scheduleRestart called',data
     restartData = data
     # callback restartData  for callback in callbacks
-    @emit 'restartScheduled', data
+    # @emit 'restartScheduled', data
