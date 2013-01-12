@@ -46,15 +46,18 @@ class GlobalNotification extends KDView #KDNotificationView
 
     @startTime = new Date Date.now()
     @endTime = @getOptions().targetDate
+    @done = no
 
     globalSticky = @getSingleton('windowController').stickyNotification
     if globalSticky
+      globalSticky.done = no
       globalSticky.show()
       globalSticky.setTitle @getOptions().title
       globalSticky.setContent @getOptions().content
       globalSticky.startTime = Date.now()
       globalSticky.endTime = @getOptions().targetDate
       globalSticky.adjustTimer @getOptions().duration
+
 
     else
       KDView.appendToDOMBody @
@@ -70,7 +73,7 @@ class GlobalNotification extends KDView #KDNotificationView
 
   recalculatePosition:()->
 
-    cachedWidth = @getWidth
+    cachedWidth = @getWidth()
 
     @$().css marginLeft : -cachedWidth/2
 
@@ -123,7 +126,7 @@ class GlobalNotification extends KDView #KDNotificationView
      """
 
   click:->
-    @hide()
+    @hide() unless @done
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -175,6 +178,7 @@ class GlobalNotification extends KDView #KDNotificationView
 
       @recalculatePosition()
       if currentTime < 0
+        @done = yes
         clearInterval @notificationInterval
         @$('.slider-wrapper').addClass 'done'
     ,1000
