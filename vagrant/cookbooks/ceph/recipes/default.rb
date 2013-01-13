@@ -69,6 +69,8 @@ execute "sudo mkcephfs -a -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.keyring" do
 	creates "/etc/ceph/ceph.keyring"
 end
 
+execute "service ceph restart"
+
 service "ceph" do
 	action :start
 	start_command "/etc/init.d/ceph -a start"

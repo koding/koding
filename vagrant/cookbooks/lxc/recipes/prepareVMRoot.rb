@@ -32,10 +32,10 @@ end
 	# additional packages are installed later on with apt-get
 	packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
 	additional_packages="lighttpd htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd"
-	suite="quantal"
+	suite="#{node["lsb"].codename}"
 	variant="buildd"
 	target="/var/lib/lxc/vmroot/rootfs"
-	VM_upstart="/etc/init"
+	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
 	mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
 
@@ -43,17 +43,16 @@ end
 	execute "lxc-stop -n vmroot"
 	execute "sleep 1"
 	execute "rm -rf #{target}"
-
 	execute "$(which debootstrap) --include #{packages} --variant=#{variant} #{suite} #{target} #{mirror}"
 
-	file "#{target}/etc/apt/sources.list" do
+file "#{target}/etc/apt/sources.list" do
 		mode "0644"
 		content <<-EOH
-deb #{mirror} #{suite} main restricted universe multiverse
-deb #{mirror} #{suite}-updates main restricted universe multiverse
-deb #{mirror} #{suite}-security main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename} main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename}-updates main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename}-security main restricted universe multiverse
 EOH
-	end
+end
 
 	execute "/opt/koding/go/bin/idshift #{target}"
 	execute "lxc-start -n vmroot -d"
@@ -99,3 +98,6 @@ EOH
 	# Configure the VMs to use LDAP lookup for users
 	execute "lxc-attach -n vmroot -- /usr/sbin/auth-client-config -t nss -p lac_ldap"
 # end
+
+execute "lxc-stop -n vmroot"
+

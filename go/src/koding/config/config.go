@@ -69,7 +69,7 @@ var configs = map[string]Config{
 		AmqpHost:     "rabbitmq.local",
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "djfjfhgh4455__5",
-		HomePrefix:   "/Users/",
+		HomePrefix:   "/home/",
 	},
 
 	"local-go": {
