@@ -49,6 +49,22 @@ mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
+
+task 'runKites', ({configFile})->
+
+  invoke 'sharedHostingKite'
+  invoke 'databasesKite'
+  invoke 'applicationsKite'
+  invoke 'webtermKite'
+
+task 'webtermKite',({configFile})->
+
+  processes.spawn
+    name    : 'webterm'
+    cmd     : __dirname+"/kites/webterm -c #{configFile}"
+    restart : yes
+    verbose : yes
+
 task 'sharedHostingKite',({configFile})->
   processes.fork
     name    : "sharedHosting"

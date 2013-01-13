@@ -21,9 +21,13 @@ pistachioc     = require 'pistachio-compiler'
 coffee         = require 'coffee-script'
 
 # Execute Command
-# executeCommand = require '../sharedHosting/executecommand'
-sharedHosting = require '../sharedHosting'
-executeCommand = sharedHosting.api.executeCommand.bind sharedHosting.api
+executeCommand = require '../sharedHosting/executecommand'
+
+##############################################
+# IF YOU COMMENT THIS IN AGAIN WITHOUT TELLING ME WHY, YOU'RE IN TROUBLE. (devrim)
+# sharedHosting = require '../sharedHosting'
+# executeCommand = sharedHosting.api.executeCommand.bind sharedHosting.api
+##############################################
 
 # Utilities
 {normalizeUserPath,
