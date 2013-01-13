@@ -49,6 +49,23 @@ mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
+task 'sharedHostingKite',({configFile})->
+  processes.fork
+  name    : "sharedHosting"
+  cmd     : __dirname+"/kites/sharedHosting/index -c #{configFile} --sharedHosting"
+  restart : yes
+
+task 'databasesKite',({configFile})->
+  processes.fork
+  name    : "databases"
+  cmd     : __dirname+"/kites/databases/index -c #{configFile} --databases"
+  restart : yes
+
+task 'applicationsKite',({configFile})->
+  processes.fork
+  name    : "applications"
+  cmd     : __dirname+"/kites/applications/index -c #{configFile} --applications"
+  restart : yes
 
 task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
