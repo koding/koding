@@ -4,6 +4,7 @@ cwd = process.cwd()
 
 module.exports =
   name                  : "sharedhosting"
+  numberOfWorkers       : 4
   pidPath               : "/var/run/node/SharedHosting.pid"
   logFile               : "/var/log/node/SharedHosting.log"
   amqp                  :

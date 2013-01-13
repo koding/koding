@@ -36,6 +36,7 @@ config =
           mongodb       : [{ host : 1, user : 1, password:1}]    
     sharedHosting :
       name                  : 1
+      numberOfWorkers       : 1
       pidPath               : 1
       logFile               : 1
       amqp                  :
