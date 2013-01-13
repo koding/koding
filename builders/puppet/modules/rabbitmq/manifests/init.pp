@@ -3,5 +3,5 @@
 #
 class rabbitmq {
     include rabbitmq::install
-    include rabbitmq::service
+    #include rabbitmq::service
 }
