@@ -144,17 +144,21 @@ class MainView extends KDView
     @contentPanel.addSubView @popupList
 
     KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
-      # log 'callback from monitor'
       new GlobalNotification
-        targetDate : systemStatus.restartScheduled
-        title : systemStatus.restartTitle
-        content : systemStatus.restartContent
+        targetDate  : systemStatus.restartScheduled
+        title       : systemStatus.restartTitle
+        content     : systemStatus.restartContent
 
     KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      new GlobalNotification
-        targetDate : systemStatus.restartScheduled
-        title : systemStatus.restartTitle
-        content : systemStatus.restartContent
+      if systemStatus.canceled
+        @getSingleton('windowController')?.stickyNotification?.emit 'restartCanceled'
+      else
+        new GlobalNotification
+          targetDate : systemStatus.restartScheduled
+          title      : systemStatus.restartTitle
+          content    : systemStatus.restartContent
+
+
 
   createSideBar:->
 

@@ -4,7 +4,7 @@ module.exports = class JSystemStatus extends Base
 
   @set
     sharedMethods :
-      static: ['monitorStatus','scheduleRestart']
+      static: ['monitorStatus','scheduleRestart','cancelRestart']
 
   @share()
 
@@ -24,3 +24,17 @@ module.exports = class JSystemStatus extends Base
       callback? yes
     else
       callback? no
+
+  @cancelRestart = secure (client, callback)->
+    {connection:{delegate}} = client
+    if delegate.checkFlag('super-admin')
+      @emit 'restartScheduled',
+        canceled : yes
+      restartData =
+        restartScheduled : null
+        restartTitle     : null
+        restartContent   : null
+      callback? yes
+    else
+      callback? no
+
