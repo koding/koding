@@ -15,12 +15,18 @@ class GlobalNotification extends KDView #KDNotificationView
     @setClass 'notification sticky hidden'
 
     @on 'mouseenter', =>
-      @show()
-      @utils.wait 100, =>
-        @notificationShowContent()
+      unless @done
+        @show()
+        @utils.wait 100, =>
+          @notificationShowContent()
 
     @on 'mouseleave', =>
       @notificationHideContent() unless @$().hasClass 'hidden'
+
+    @on 'restartCanceled', =>
+      @stopTimer()
+      @recalculatePosition()
+      @hide()
 
     @timer = new KDView
       cssClass : 'notification-timer'
@@ -57,8 +63,6 @@ class GlobalNotification extends KDView #KDNotificationView
       globalSticky.startTime = Date.now()
       globalSticky.endTime = @getOptions().targetDate
       globalSticky.adjustTimer @getOptions().duration
-
-
     else
       KDView.appendToDOMBody @
       @getSingleton('windowController').stickyNotification = @
@@ -69,7 +73,7 @@ class GlobalNotification extends KDView #KDNotificationView
 
   hide:->
     super
-    @$().css top : -@getHeight()+15
+    @$().css top : -@getHeight()+14
 
   recalculatePosition:()->
 
@@ -94,6 +98,12 @@ class GlobalNotification extends KDView #KDNotificationView
   setContent:(content)->
     @contentText.updatePartial content
     @contentText.render()
+
+  stopTimer:->
+    clearInterval @notificationInterval
+    @$('.slider-wrapper').addClass 'done'
+    @timer.updatePartial 'The restart was canceled.'
+    @done = yes
 
   adjustTimer:(newDuration)->
     clearInterval @notificationInterval
