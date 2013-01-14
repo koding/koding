@@ -8,8 +8,13 @@ journal=true
 <% else -%>
 nojournal=true
 <% end -%>
+
+<% if @auth %>
+auth = true
+<% else -%>
 noauth = true
-#auth = true
+<% end -%>
+
 
 <% if @httpinterface %>
 rest=true

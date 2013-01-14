@@ -24,6 +24,7 @@ template node['mongodb']['configfile'] do
     :httpinterface => node['mongodb']['nohttpinterface'],
     :rest => node['mongodb']['rest'],
     :replication_set => node['mongodb']['replicaset'],
+    :auth => node['mongodb']['auth'],
     :master => node['mongodb']['master'],
     :oplogsize => node['mongodb']['oplogsize'],
     :slave => node['mongodb']['slave'],

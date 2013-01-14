@@ -12,6 +12,7 @@ default['mongodb']['journal'] = true
 default['mongodb']['rest']    = false
 default['mongodb']['quiet']   = true
 default['mongodb']['httpinterface']   = true
+default['mongodb']['auth']   = false
 
 
 # replocation
