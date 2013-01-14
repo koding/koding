@@ -293,7 +293,7 @@ module.exports = new Kite 'sharedHosting'
           log.info info = "createVhost: #{command} done!"
           callback null, info
 
-    createVhost = (options,callback)->
+    (options,callback)->
       {username,uid,domainName} = options
 
       domainName ?= "#{username}.#{config.defaultDomain}"
