@@ -169,6 +169,13 @@ else
         throw err if err
         res.send data
 
+  app.get "/-/presence/:service", (req, res) ->
+    {service} = req.params
+    if services[service] and services[service] > 0
+      res.send 200
+    else
+      res.send 404
+
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
 
