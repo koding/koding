@@ -1,0 +1,31 @@
+logpath=<%= @logpath %>/mongod.log
+logappend=true
+fork = true
+port = <%= @port %>
+dbpath=<%= @dbpath %>
+<% if @journal %>
+journal=true
+<% else -%>
+nojournal=true
+<% end -%>
+noauth = true
+#auth = true
+
+<% if @httpinterface %>
+rest=true
+<% else -%>
+nohttpinterface=false
+<% end -%>
+
+<% if @master %>
+master=true
+<% if @oplogsize %>
+oplogSize = <% @oplogsize %>
+<% end -%>
+<% end -%>
+
+<% if @slave %>
+slave=true
+source = <% @source %>
+<% end -%>
+
