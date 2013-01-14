@@ -1,6 +1,4 @@
-nodePath = require 'path'
 {argv} = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-console.log argv.c
-
-module.exports = require argv.c
+module.exports = KONFIG

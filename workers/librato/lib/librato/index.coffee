@@ -9,9 +9,10 @@
 #     interval: 5000
 #   mango: "user:pass@server:port/path?options"
 
-# Parse arguments and get configuration file
+# Get configuration file
 {argv} = require 'optimist'
-KONFIG = require argv.c.trim()
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
 {librato, mongo} = KONFIG
 
 os = require 'os'

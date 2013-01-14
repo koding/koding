@@ -28,6 +28,8 @@ node hosting inherits base {
     include aide
     include traffcalc
     include rsyslog
+    include nfs_server
+    include disabled_services
 
     
     if $nodeuser {
@@ -113,6 +115,13 @@ node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
 
 }
 
+node /^cl\d+\.dev\.service\.aws\.koding\.com$/ inherits hosting {
 
+    include deploy_from_s3 # deployment disabled , just install tools
+    include hosting_httpd
+    include authconfig
+    include nginx_proxy
+
+}
 
 
