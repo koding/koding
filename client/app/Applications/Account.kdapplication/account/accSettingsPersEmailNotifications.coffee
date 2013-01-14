@@ -22,26 +22,35 @@ class AccountEmailNotifications extends KDView
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView
-      field.formView.addSubView new KDLabelView
+      field.formView.addSubView    new KDLabelView
         title        : field.title
-        cssClass     : "main-label"
+        cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
-      field.current = if user.getAt("emailFrequency.#{flag}") \
-                      is 'instant' then on else off
+      field.current = user.getAt("emailFrequency.#{flag}")
+      labels        = ['never', 'instant', 'daily']
 
-      field.formView.addSubView field.onOffSwitch = new KDOnOffSwitch
+      if flag is 'global'
+        labels = ['on', 'off']
+        field.current = if field.current is 'instant' then 'on' else 'off'
+
+      field.formView.addSubView field.switch = new KDMultipleChoice
         cssClass      : 'dark'
+        labels        : labels
         defaultValue  : field.current
         callback      : (state)->
-          flag = @getData()
+          flag  = do @getData
           prefs = {}
+
+          if flag is 'global'
+            state = if state is 'on' then 'instant' else 'never'
+
           prefs[flag] = state
           fields[flag].loader.show()
+
           account.setEmailPreferences prefs, (err)=>
-            flag = @getData()
             fields[flag].loader.hide()
             if err
-              @setValue !state
+              do @fallBackToOldState
               new KDNotificationView
                 duration : 2000
                 title    : 'Failed to change state'
@@ -59,10 +68,10 @@ class AccountEmailNotifications extends KDView
 
     toggleFieldStates = (state)->
       for flag, field of fields when flag isnt 'global'
-        unless state
+        if state is 'off'
           field.formView.hide()
         else
           field.formView.show()
 
     toggleFieldStates(fields.global.current)
-    fields.global.onOffSwitch.on 'StateChanged', toggleFieldStates
+    fields.global.switch.on 'StateChanged', toggleFieldStates

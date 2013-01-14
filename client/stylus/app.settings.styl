@@ -20,10 +20,6 @@ positiveGreen = rgba(58,200,2,1)
   bg(position,-16px -52px)
   a
     text-decoration     none
-    font-weight         300
-    color               linkColor1
-    &:hover
-      text-decoration   underline
 
 #account-split-view
   .account-sidebar-toggler
@@ -100,12 +96,21 @@ positiveGreen = rgba(58,200,2,1)
     // min-height      200px
 
 .login-email, .password-security
+  a
+    font-weight         300
+    color               linkColor1
+    &:hover
+      text-decoration   underline
   input
     top           -4px
 
 .linked-accounts
   a
+    font-weight         300
     color               linkColor1
+    &:hover
+      text-decoration   underline
+
   ul
     margin                0
     padding               0
@@ -240,6 +245,13 @@ positiveGreen = rgba(58,200,2,1)
 .ssh-keys,
 .database-settings
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
+
+  a
+    font-weight         300
+    color               linkColor1
+    &:hover
+      text-decoration   underline
+
   ul
     margin            0
     padding           0
