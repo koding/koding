@@ -31,31 +31,24 @@ else
   # Services (order is important here)
   services =
     kite_webterm:
-      count: 0
       pattern: 'webterm'
     worker_auth:
-      count: 0
       pattern: 'auth'
     kite_sharedhosting:
-      count: 0
       pattern: 'kite-sharedHosting'
     kite_applications:
-      count: 0
       pattern: 'kite-application'
     kite_databases:
-      count: 0
       pattern: 'kite-application'
     webserver:
-      count: 0
       pattern: 'web'
     worker_social:
-      count: 0
       pattern: 'social'
     
   incService = (serviceKey, inc) ->
     for key, value of services
       if serviceKey.indexOf(value.pattern) > -1
-        value.count += inc
+        value.count = if value.count then value.count += inc else 1
         break
 
   # Presences
