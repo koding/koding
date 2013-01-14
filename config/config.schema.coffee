@@ -10,6 +10,7 @@ config =
         host            : 1
         login           : 1
         password        : 1
+        heartbeat       : 1
       apiUri            : 1
       usersPath         : 1
       vhostDir          : 1
@@ -25,6 +26,7 @@ config =
         host                : 1
         login               : 1
         password            : 1
+        heartbeat           : 1
       apiUri            : 1
       mysql             :
         usersPath       : 1
@@ -43,6 +45,7 @@ config =
         host                : 1
         login               : 1
         password            : 1
+        heartbeat           : 1
       apiUri                : 1
       usersPath             : 1
       vhostDir              : 1
