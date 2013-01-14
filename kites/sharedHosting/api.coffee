@@ -1,7 +1,7 @@
 config    = require './config'
 
 log4js    = require 'log4js'
-log       = log4js.getLogger("[#{config.name}]")
+log       = log4js.getLogger("[#{config.name + process.pid}]")
 
 nodePath  = require 'path'
 {exec}    = require 'child_process'
