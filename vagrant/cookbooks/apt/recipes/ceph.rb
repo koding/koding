@@ -1,4 +1,3 @@
-include_recipe "apt"
 
 apt_repository "ceph" do
   uri "http://ceph.com/debian-bobtail"
