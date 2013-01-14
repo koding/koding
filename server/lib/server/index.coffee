@@ -28,10 +28,13 @@ else
 
   # Services
   services = 
-    webterm: 0
-    auth: 0
-    web: 0
-    social: 0
+    webserver: 0
+    worker_auth: 0
+    worker_social: 0
+    kite_webterm: 0
+    kite_sharedhosting: 0
+    kite_databases: 0
+    kite_applications: 0
 
   # Presences
   koding = require './bongo'
@@ -39,22 +42,34 @@ else
     koding.monitorPresence
       join: (serviceKey) ->
         if serviceKey.indexOf('webterm') > -1
-          services.webterm++
+          services.kite_webterm++
         else if serviceKey.indexOf('auth') > -1
-          services.auth++
+          services.worker_auth++
+        else if serviceKey.indexOf('kite-sharedHosting') > -1
+          services.kite_sharedhosting++
+        else if serviceKey.indexOf('kite-application') > -1
+          services.kite_applications++
+        else if serviceKey.indexOf('kite-database') > -1
+          services.kite_databases++
         else if serviceKey.indexOf('web') > -1
-          services.web++
+          services.webserver++
         else if serviceKey.indexOf('social') > -1
-          services.social++
+          services.worker_social++
       leave: (serviceKey) ->
         if serviceKey.indexOf('webterm') > -1
-          services.webterm--
+          services.kite_webterm--
         else if serviceKey.indexOf('auth') > -1
-          services.auth--
+          services.worker_auth--
+        else if serviceKey.indexOf('kite-sharedHosting') > -1
+          services.kite_sharedhosting--
+        else if serviceKey.indexOf('kite-application') > -1
+          services.kite_applications--
+        else if serviceKey.indexOf('kite-database') > -1
+          services.kite_databases--
         else if serviceKey.indexOf('web') > -1
-          services.web--
+          services.webserver--
         else if serviceKey.indexOf('social') > -1
-          services.social--
+          services.worker_social--
 
   {extend} = require 'underscore'
   express = require 'express'
