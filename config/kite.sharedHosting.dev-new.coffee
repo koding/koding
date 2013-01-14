@@ -4,12 +4,14 @@ cwd = process.cwd()
 
 module.exports =
   name                  : "sharedhosting"
+  numberOfWorkers       : 4
   pidPath               : "/var/run/node/SharedHosting.pid"
   logFile               : "/var/log/node/SharedHosting.log"
   amqp                  :
     host                : 'web0.dev.system.aws.koding.com'
     login               : 'kite-sharedHosting'
     password            : 's486auEkPzvUjYfeFTMQ'
+    heartbeat           : 10
   apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'

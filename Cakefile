@@ -58,7 +58,7 @@ task 'runKites', ({configFile})->
   invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
-
+  configFile = "dev-new" if configFile in ["",undefined,"undefined"]
   processes.spawn
     name    : 'webterm'
     cmd     : __dirname+"/kites/webterm -c #{configFile}"
@@ -66,10 +66,14 @@ task 'webtermKite',({configFile})->
     verbose : yes
 
 task 'sharedHostingKite',({configFile})->
-  processes.fork
-    name    : "sharedHosting"
-    cmd     : __dirname+"/kites/sharedHosting/index -c #{configFile} --sharedHosting"
-    restart : yes
+  {numberOfWorkers} = require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
+  numberOfWorkers ?= config.numberOfWorkers ? 1
+
+  for _, i in Array +numberOfWorkers
+    processes.fork
+      name    : "sharedHosting"
+      cmd     : __dirname+"/kites/sharedHosting/index -c #{configFile} --sharedHosting"
+      restart : yes
 
 task 'databasesKite',({configFile})->
   processes.fork
