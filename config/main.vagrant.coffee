@@ -82,7 +82,7 @@ module.exports = deepFreeze
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : 'http://koding.local:8008/subscribe'
       version   : version
       mainUri   : 'http://koding.local'
       apiUri    : 'https://dev-api.koding.com'

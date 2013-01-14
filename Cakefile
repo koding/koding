@@ -153,7 +153,7 @@ task 'goBroker',({configFile})->
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{options.configFile}"
+    cmd   : "./go/bin/broker -c #{configFile}"
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
