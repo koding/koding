@@ -16,7 +16,7 @@ module.exports =
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
   suspendDir            : '/var/www/suspended_vhosts/'
-  defaultVhostFiles     : nodePath.join cwd, '..', 'sharedHosting', 'defaultVhostFiles'
+  defaultVhostFiles     : nodePath.join cwd, 'kites', 'sharedHosting', 'defaultVhostFiles'
   freeUsersGroup        : 'freeusers'
   liteSpeedUser         : 'lsws'
   defaultDomain         : 'koding.com'

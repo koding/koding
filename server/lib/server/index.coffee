@@ -26,14 +26,59 @@ else
       middlewareTimeout : 5000
     librato: KONFIG.librato
 
+  # Services
+  services = 
+    webserver: 0
+    worker_auth: 0
+    worker_social: 0
+    kite_webterm: 0
+    kite_sharedhosting: 0
+    kite_databases: 0
+    kite_applications: 0
+
+  # Presences
+  koding = require './bongo'
+  koding.connect ->
+    koding.monitorPresence
+      join: (serviceKey) ->
+        if serviceKey.indexOf('webterm') > -1
+          services.kite_webterm++
+        else if serviceKey.indexOf('auth') > -1
+          services.worker_auth++
+        else if serviceKey.indexOf('kite-sharedHosting') > -1
+          services.kite_sharedhosting++
+        else if serviceKey.indexOf('kite-application') > -1
+          services.kite_applications++
+        else if serviceKey.indexOf('kite-database') > -1
+          services.kite_databases++
+        else if serviceKey.indexOf('web') > -1
+          services.webserver++
+        else if serviceKey.indexOf('social') > -1
+          services.worker_social++
+      leave: (serviceKey) ->
+        if serviceKey.indexOf('webterm') > -1
+          services.kite_webterm--
+        else if serviceKey.indexOf('auth') > -1
+          services.worker_auth--
+        else if serviceKey.indexOf('kite-sharedHosting') > -1
+          services.kite_sharedhosting--
+        else if serviceKey.indexOf('kite-application') > -1
+          services.kite_applications--
+        else if serviceKey.indexOf('kite-database') > -1
+          services.kite_databases--
+        else if serviceKey.indexOf('web') > -1
+          services.webserver--
+        else if serviceKey.indexOf('social') > -1
+          services.worker_social--
+
   {extend} = require 'underscore'
-  express  = require 'express'
-  Broker   = require 'broker'
-  fs       = require 'fs'
-  hat      = require 'hat'
+  express = require 'express'
+  Broker = require 'broker'
+  fs = require 'fs'
+  hat = require 'hat'
   nodePath = require 'path'
 
-  app      = express()
+  app = express()
 
   # this is a hack so express won't write the multipart to /tmp
   #delete express.bodyParser.parse['multipart/form-data']
@@ -62,7 +107,7 @@ else
     # throw err
     # console.trace()
 
-  koding = require './bongo'
+  # koding = require './bongo'
 
   # kiteBroker =\
   #   if kites?.vhost?
@@ -74,27 +119,6 @@ else
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
-
-  startTime = null
-  app.get "/-/cache/latest", (req, res)->
-    {JActivityCache} = koding.models
-    startTime = Date.now()
-    JActivityCache.latest (err, cache)->
-      if err then console.warn err
-      console.log "latest: #{Date.now() - startTime} msecs!"
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/before/:timestamp", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.before req.params.timestamp, (err, cache)->
-      if err then console.warn err
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/id/:id", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.byId req.params.id, (err, cache)->
-      if err then console.warn err
-      res.send if cache then cache.data else []
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'
@@ -142,6 +166,13 @@ else
       fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
         throw err if err
         res.send data
+
+  app.get "/-/presence/:service", (req, res) ->
+    {service} = req.params
+    if services[service] and services[service] > 0
+      res.send 200
+    else
+      res.send 404
 
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data

@@ -33,7 +33,7 @@ module.exports = deepFreeze
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
-    # debugConnectionErrors: yes
+    debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -84,9 +84,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://koding.local'
       broker    :
-        apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://koding.local:8008/subscribe'
-        vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -98,6 +96,7 @@ module.exports = deepFreeze
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
+    vhost       : 'kite'
   email         :
     host        : 'koding.local'
     protocol    : 'http:'
@@ -108,13 +107,12 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  # logger            :
-  #   mq              :
-  #     host          : 'web0.dev.system.aws.koding.com'
-  #     login         : 'guest'
-  #     password      : 's486auEkPzvUjYfeFTMQ'
+  logger            :
+    mq              :
+      host          : 'web0.dev.system.aws.koding.com'
+      login         : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-
   librato:
     push: no
     email: ""
