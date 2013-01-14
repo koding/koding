@@ -129,6 +129,10 @@ class cloudlinux::cagefs_configs {
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/procps.cfg",
            require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
     }
+   file { "/etc/cagefs/conf.d/golang.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/golang.cfg",
+           require => [Class['hosting_packages::compilers'],Exec['cagefs_init']]
+    }
    
    
     file { "/etc/cagefs/cagefs.mp":

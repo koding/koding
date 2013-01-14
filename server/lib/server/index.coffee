@@ -1,6 +1,5 @@
 {argv} = require 'optimist'
-
-KONFIG = require argv.c?.trim()
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
@@ -12,7 +11,6 @@ if cluster.isMaster
   cluster.on "exit", (worker, code, signal) ->
     cluster.fork()
 else
-
   processMonitor = (require 'processes-monitor').start
     name : "webServer on port #{webPort}"
     stats_id: "webserver." + process.pid
@@ -167,4 +165,4 @@ else
 
   app.listen webPort
 
-  console.log '[WEBSERVER] running ', "http://localhost:#{webPort} pid:#{process.pid}"
+  console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

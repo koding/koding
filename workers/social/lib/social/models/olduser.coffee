@@ -11,7 +11,7 @@ module.exports = class JOldUser extends jraphical.Module
   {Relationship}    = jraphical
 
   {secure}          = require 'bongo'
-  csvParser         = require 'csv'
+  # csvParser         = require 'csv'
   createSalt        = require 'hat'
   dateFormat        = require 'dateformat'
 
