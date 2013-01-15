@@ -6,9 +6,9 @@ class GroupsListItemView extends KDListItemView
 
     @avatar = new KDCustomHTMLView
       tagName : 'img'
-      cssClass : 'avatar'
+      cssClass : 'avatar-image'
       attributes :
-        src : @getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(300)}/#{50+@utils.getRandomNumber(150)}"
+        src : @getData().avatar or "http://lorempixel.com/#{60+@utils.getRandomNumber(10)}/#{60+@utils.getRandomNumber(10)}"
 
 
     @titleLink = new KDCustomHTMLView
@@ -106,10 +106,11 @@ class GroupsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
-      {{>@avatar}}
-      <div class="overlay">
+      <span class="avatar">{{>@avatar}}</span>
+      <div class="content">
       {h3{> @titleLink}}
       {article{#(body)}}
+      </div>
       <div class="topicmeta clearfix">
         <div class="topicstats">
           <p class="posts">
@@ -130,7 +131,6 @@ class GroupsListItemView extends KDListItemView
         </div>
       </div>
       <div class="button-container">{{> @joinButton}}</div>
-      </div>
     </div>
     """
 
