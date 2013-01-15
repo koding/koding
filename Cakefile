@@ -41,7 +41,7 @@ url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
 
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
+KODING_CAKE        = './node_modules/koding-cake/bin/cake'
 
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
 # console.log "###############################################################"
@@ -198,7 +198,7 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  
+
   vhosts = "{vhosts,[" + (config.mq.vhosts or []).
     map(({rule, vhost})-> """{"#{rule}",<<"#{vhost}">>}""").
     join(',') +
@@ -250,7 +250,6 @@ task 'buildForProduction','set correct flags, and get ready to run in production
       console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
     else
       process.exit()
-
 
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build/.cache",->
@@ -313,7 +312,7 @@ run =(options)->
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-        
+
   processes.fork
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
@@ -335,6 +334,10 @@ run =(options)->
           folders   : ['./server']
           onChange  : ->
             processes.kill "server"
+        # cacherCake  :
+        #   folders   : ['./workers/cacher']
+        #   onChange  : ->
+        #     processes.kill "cacherCake"
 
 assureVhost =(uri, vhost, vhostFile, callback)->
   addVhost uri, vhost, (res)->
@@ -380,7 +383,7 @@ task 'run', (options)->
   config = require configFile
 
   config.buildClient = yes if options.buildClient
-    
+
   queue = []
   if config.vhostConfigurator?
     queue.push -> configureVhost config, -> queue.next()

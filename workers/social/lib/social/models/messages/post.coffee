@@ -439,3 +439,9 @@ module.exports = class JPost extends jraphical.Message
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
     super
+
+  update:(rest..., callback)->
+    kallback =(rest...)=>
+      callback rest...
+      CActivity.emit "post-updated", @
+    jraphical.Message::update.apply @, rest.concat kallback

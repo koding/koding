@@ -136,6 +136,8 @@ Includes =
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
+        MonitorController     : "./client/app/MainApp/monitor.coffee"
+        MonitorView           : "./client/app/MainApp/monitorview.coffee"
         MembersAppController       : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         AccountAppController       : "./client/app/Applications/Account.kdapplication/AppController.coffee"
         HomeAppController          : "./client/app/Applications/Home.kdapplication/AppController.coffee"
@@ -179,8 +181,9 @@ Includes =
 
       ApplicationPageViews :
 
+        ActivityListController      : "./client/app/Applications/Activity.kdapplication/activitylistcontroller.coffee"
         # ACTIVITY VIEWS
-
+        ActivityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
         # Activity commons
         actActions                  : "./client/app/Applications/Activity.kdapplication/views/activityactions.coffee"
         activityinnernavigation     : "./client/app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee"
@@ -195,6 +198,7 @@ Includes =
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
         embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
         embedboxviews               : "./client/app/Applications/Activity.kdapplication/views/embedboxviews.coffee"
+        NewMemberBucket             : "./client/app/Applications/Activity.kdapplication/views/newmemberbucket.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"

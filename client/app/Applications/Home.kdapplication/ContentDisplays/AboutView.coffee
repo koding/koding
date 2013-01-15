@@ -112,6 +112,11 @@ class AboutView extends JView
         nickname  : 'neelance'
         job       : 'Software Engineer'
         image     : '../images/people/richard.jpg'
+      ,
+        name      : 'Chris Nelson Blum'
+        nickname  : 'blum'
+        job       : 'System Administrator'
+        image     : '../images/people/nelson.jpg'
     ]
 
 

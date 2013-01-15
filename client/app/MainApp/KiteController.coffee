@@ -7,7 +7,7 @@ class KiteController extends KDController
     default           : "Something went wrong"
     creatingEnv       : "Creating your environment."
     stillCreatingEnv  : "...still busy with setting up your environment."
-    creationTookLong  : "...still busy with it, there might be something wrong. ಠ_ಠ"
+    creationTookLong  : "...still busy with it, there might be something wrong."
     tookTooLong       : "It seems like we couldn't set up your environment, please click here to try again."
     envCreated        : "Your server, terminal and files are ready, enjoy!"
     notResponding     : "Backend is not responding, trying to fix..."

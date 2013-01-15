@@ -1,4 +1,5 @@
-jraphical = require 'jraphical'
+jraphical      = require 'jraphical'
+JActivityCache = require './cache'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -23,8 +24,8 @@ module.exports = class CActivity extends jraphical.Capsule
       group                 : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','teasers','each'
-        'captureSortCounts','addGlobalListener'
+        'one','some','all','someData','each','cursor','teasers'
+        'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -73,6 +74,81 @@ module.exports = class CActivity extends jraphical.Capsule
   #                   $addToSet:
   #                     snapshotIds: subject.getId()
   #                 , callback
+
+  @fetchCacheCursor =(options = {}, callback)->
+
+    {to, from, lowQuality, types, limit, sort} = options
+
+    selector =
+      createdAt    :
+        $lt        : new Date to
+        $gt        : new Date from
+      type         :
+        $in        : types
+      isLowQuality :
+        $ne        : lowQuality
+
+    fields  =
+      type      : 1
+      createdAt : 1
+
+    options =
+      sort  : sort  or {createdAt: -1}
+      limit : limit or 1000
+
+    @someData selector, fields, options, (err, cursor)->
+      if err then callback err
+      else
+        callback null, cursor
+
+  processCache = (cursorArr)->
+    console.log "processing activity cache..."
+    lastDocType = null
+
+    # group newmember buckets
+    cache = cursorArr.reduce (acc, doc)->
+      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
+        acc.last.createdAt[1] = doc.createdAt
+        if acc.last.count++ < 3
+          acc.last.ids.push doc._id
+      else
+        acc.push
+          createdAt : [doc.createdAt]
+          ids       : [doc._id]
+          type      : doc.type
+          count     : 1
+      lastDocType = doc.type
+      return acc
+    , []
+    memberBucket   = null
+    bucketIndex    = 0
+    processedCache = []
+
+    # put new member groups all together
+    cache.forEach (item, i)->
+      if /NewMemberBucket/.test item.type
+        unless memberBucket
+          memberBucket      = item
+          processedCache[i] = memberBucket
+          bucketIndex       = i
+        else
+          processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat item.ids
+          processedCache[bucketIndex].count += item.count
+          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
+      else
+        processedCache.push item
+
+    return processedCache
+
+  @fetchRangeForCache = (options = {}, callback)->
+    @fetchCacheCursor options, (err, cursor)->
+      if err then console.warn err
+      else
+        cursor.toArray (err, arr)->
+          if err then callback err
+          else
+            callback null, processCache arr
+
 
   @captureSortCounts =(callback)->
     selector = {
@@ -148,7 +224,60 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
+  @fetchFacets = (options, callback)->
+
+    {to, limit, facets, lowQuality} = options
+
+    selector =
+      type         : { $in : facets }
+      createdAt    : { $lt : new Date to }
+      isLowQuality : { $ne : lowQuality }
+
+    options =
+      limit : limit or 20
+      sort  : createdAt : -1
+
+
+    console.log JSON.stringify selector
+
+    @some selector, options, (err, activities)->
+      if err then callback err
+      else
+        callback null, activities
+
+
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
     , callback
+
+
+# temp, couldn't find a better place to put this
+
+do ->
+  typesToBeCached = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+    ]
+
+  CActivity.on "ActivityIsCreated", (activity)->
+    console.log "ever here", activity.constructor.name
+    if activity.constructor.name in typesToBeCached
+      JActivityCache.init()
+
+  CActivity.on "post-updated", (teaser)->
+    JActivityCache.modifyByTeaser teaser
+
+  CActivity.on "BucketIsUpdated", (activity, bucket)->
+    console.log bucket.constructor.name, "is being updated"
+    if activity.constructor.name in typesToBeCached
+      JActivityCache.modifyByTeaser bucket
+
+  console.log "\"feed-new\" event for Activity Caching is bound."
+  console.log "\"post-updated\" event for Activity Caching is bound."
+

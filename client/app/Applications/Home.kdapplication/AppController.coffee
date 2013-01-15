@@ -30,10 +30,10 @@ class HomeAppController extends AppController
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
 
-    appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
-      if activity
-        @mainView.widgetHolder.activityLoader.hide()
-        @activityController.instantiateListItems activity
+    # appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
+    #   if activity
+    #     @mainView.widgetHolder.activityLoader.hide()
+    #     @activityController.instantiateListItems activity
 
     appManager.tell "Members", "fetchFeedForHomePage", (err,topics)=>
       unless err
