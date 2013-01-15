@@ -239,6 +239,8 @@ class ActivityAppController extends AppController
     @currentGroup = groupSlug
     @populateActivity()
 
+  fetchCurrentGroup:(callback)-> callback @currentGroup
+
   # delete
   fetchActivityOverview:(callback)->
 
