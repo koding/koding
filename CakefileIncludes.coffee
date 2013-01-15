@@ -645,6 +645,7 @@ Includes =
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
+        groups              : "./client/stylus/app.group.styl"
 
         temp             : "./client/stylus/temp.styl"
 
