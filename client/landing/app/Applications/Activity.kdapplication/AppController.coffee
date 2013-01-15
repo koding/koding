@@ -20,6 +20,10 @@ class ActivityAppController extends AppController
 
     @currentFilter = allowedActivityTypes
 
+  setGroup:(groupSlug)->
+    @currentGroup = (groupSlug)
+    @refreshFeed()
+
   saveCodeSnippet:(title, content)->
     # This custom method is used because FS,
     # command, environment are all a mess and
@@ -335,6 +339,9 @@ class ActivityAppController extends AppController
     selector =
       type        :
         $in       : @currentFilter
+      group       : @currentGroup ? 'koding'
+
+    console.log selector
 
     options  =
       limit       : limit or= 20
