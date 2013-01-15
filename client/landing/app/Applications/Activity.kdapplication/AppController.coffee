@@ -42,7 +42,7 @@ class ActivityAppController extends AppController
     options.view = new ActivityAppView
 
     super options
-
+    @currentGroup = 'koding'
     @currentFilter = activityTypes
     @appStorage = new AppStorage 'Activity', '1.0'
     @getSingleton('activityController').on "ActivityListControllerReady", (controller)=>
@@ -55,6 +55,7 @@ class ActivityAppController extends AppController
     lastFrom = null
     lastTo   = null
     @listController.removeAllItems()
+    @listController.noActivityItem.hide()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
 
@@ -99,8 +100,10 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
 
     isExempt (exempt)=>
-
-      if exempt or @getFilter() isnt activityTypes
+      bypassCache = exempt or (@getFilter() isnt activityTypes) or\
+         @currentGroup isnt 'koding' and @currentGroup isnt @loadedGroup
+      console.log {@currentGroup, @loadedGroup}
+      if bypassCache
 
         options = to : options.to or Date.now()
 
@@ -108,8 +111,8 @@ class ActivityAppController extends AppController
           if err then warn err
           else
             isLoading = no
+            @loadedGroup = @currentGroup
             @listController.listActivities teasers
-            @listController.hideLazyLoader()
 
       else
         @fetchCachedActivity options, (err, cache)=>
@@ -133,7 +136,6 @@ class ActivityAppController extends AppController
       callback null, cache
 
   fetchActivity:(options = {}, callback)->
-
     isLoading = yes
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
@@ -143,14 +145,19 @@ class ActivityAppController extends AppController
       to          : options.to     or Date.now()
       facets      : options.facets or @getFilter()
       lowQuality  : options.exempt or no
+      group       : @currentGroup
       sort        :
         createdAt : -1
 
     KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
       if err then callback err
-      else
+      else if activities.length
         activities = clearQuotes activities
         KD.remote.reviveFromSnapshots activities, callback
+      else
+        @listController.noActivityItem.show()
+      @listController.hideLazyLoader()
+      isLoading = no
 
 
   fetchCachedActivity:(options = {}, callback)->
@@ -227,7 +234,10 @@ class ActivityAppController extends AppController
       type  : "tutorial"
     ,activity
 
-
+  setGroup:(groupSlug)->
+    @resetList()
+    @currentGroup = groupSlug
+    @populateActivity()
 
   # delete
   fetchActivityOverview:(callback)->
