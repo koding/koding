@@ -4,6 +4,13 @@ class GroupsListItemView extends KDListItemView
     options.type = "groups"
     super options,data
 
+    @avatar = new KDCustomHTMLView
+      tagName : 'img'
+      cssClass : 'avatar'
+      attributes :
+        src : @getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(300)}/#{50+@utils.getRandomNumber(150)}"
+
+
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
@@ -69,6 +76,9 @@ class GroupsListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
+    # @$().css backgroundImage : 'url('+(@getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(300)}/#{50+@utils.getRandomNumber(150)}")+')'
+
+
   setFollowerCount:(count)->
     @$('.followers a').html count
 
@@ -96,6 +106,8 @@ class GroupsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
+      {{>@avatar}}
+      <div class="overlay">
       {h3{> @titleLink}}
       {article{#(body)}}
       <div class="topicmeta clearfix">
@@ -116,7 +128,8 @@ class GroupsListItemView extends KDListItemView
             {li{> @grantPermissionsButton}}
           </ul>
         </div>
-        <div class="button-container">{{> @joinButton}}</div>
+      </div>
+      <div class="button-container">{{> @joinButton}}</div>
       </div>
     </div>
     """
