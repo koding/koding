@@ -1,20 +1,21 @@
 include_recipe "apt::10gen"
 
 package node['mongodb']['package_name'] do
-    version node['mongodb']['version']
-    action :install
-    options "-o Dpkg::Options::='--force-confold' "
-    only_if do
-        File.exists?(node['mongodb']['data_device'])
-        File.exists?(node['mongodb']['log_device'])
-    end
+  version node['mongodb']['version']
+  action :install
+  options "-o Dpkg::Options::='--force-confold' "
+  only_if do
+      File.exists?(node['mongodb']['data_device'])
+      File.exists?(node['mongodb']['log_device'])
+  end
 end
 
 directory node['mongodb']['dbpath'] do
   owner "mongodb"
   group "mongodb"
   mode 00755
-  action :create
+  action :nothing
+  subscribes :create, resources(:package => node['mongodb']['package_name'] ), :immediately
 end
 
 directory node['mongodb']['logpath'] do
@@ -22,5 +23,6 @@ directory node['mongodb']['logpath'] do
   group "mongodb"
   mode 00755
   action :create
+  subscribes :create, resources(:package => node['mongodb']['package_name'] ), :immediately
 end
 
