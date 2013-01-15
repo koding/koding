@@ -188,9 +188,10 @@ module.exports = class JUser extends jraphical.Module
                     snapshot    : JSON.stringify(bucket)
                   $addToSet     :
                     snapshotIds : bucket.getId()
-                , ->
-                  CActivity.emit 'ActivityIsCreated', activity
-                  callback()
+                , (err)->
+                  CActivity = require "./activity"
+                  CActivity.emit "ActivityIsCreated", activity
+                  callback err
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')

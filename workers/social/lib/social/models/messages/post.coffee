@@ -149,6 +149,7 @@ module.exports = class JPost extends jraphical.Message
           delegate.addContent activity, (err)-> queue.next(err)
         ->
           tags or= []
+          console.log tags
           status.addTags client, tags, (err)->
             if err
               log err
@@ -170,6 +171,7 @@ module.exports = class JPost extends jraphical.Message
               snapshotIds: status.getId()
           , ->
             callback null, teaser
+            console.log activity
             CActivity.emit "ActivityIsCreated", activity
             queue.next()
         ->
