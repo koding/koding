@@ -10,33 +10,51 @@ class GroupsListItemView extends KDListItemView
       attributes :
         src : @getData().avatar or "http://lorempixel.com/#{60+@utils.getRandomNumber(10)}/#{60+@utils.getRandomNumber(10)}"
 
+    @settingsButton = new KDButtonViewWithMenu
+        cssClass    : 'transparent groups-settings-context groups-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "arrow"
+        menu        : @settingsMenu data
+        callback    : (event)=> @settingsButton.contextMenu event
+
+    # @settingsButton.hide()
+
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
         href      : '#'
       pistachio   : '{{#(title)}}'
+      tooltip     :
+        title     : @getData().title
+        direction : 'right'
+        placement : 'top'
+        offset    :
+          top     : 6
+          left    : -2
       click       : (event) => @titleReceivedClick event
     , data
 
-    if options.editable
-      @editGroupButton = new KDCustomHTMLView
-        tagName     : 'a'
-        cssClass    : 'edit-group'
-        partial     : '<span class="icon"></span>Group settings'
-        click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditGroupButtonClicked', this
-      , null
+    # if options.editable
+    #   @editGroupButton = new KDCustomHTMLView
+    #     tagName     : 'a'
+    #     cssClass    : 'edit-group'
+    #     partial     : '<span class="icon"></span>Group settings'
+    #     click       : (pubInst, event) =>
+    #       @getSingleton('mainController').emit 'EditGroupButtonClicked', this
+    #   , null
 
-      @grantPermissionsButton = new KDCustomHTMLView
-        tagName     : 'a'
-        cssClass    : 'edit-group'
-        partial     : '<span class="icon"></span>Permissions'
-        click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', this
-      , null
-    else
-      @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+    #   @grantPermissionsButton = new KDCustomHTMLView
+    #     tagName     : 'a'
+    #     cssClass    : 'edit-group'
+    #     partial     : '<span class="icon"></span>Permissions'
+    #     click       : (pubInst, event) =>
+    #       @getSingleton('mainController').emit 'EditPermissionsButtonClicked', this
+    #   , null
+    # else
+    #   @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @joinButton = new JoinButton
       style           : if data.member then "follow-btn following-topic" else "follow-btn"
@@ -62,6 +80,46 @@ class GroupsListItemView extends KDListItemView
               callback? null
       ]
     , data
+
+    @enterButton = new KDButtonView
+      cssClass        : 'follow-btn enter-group'
+      title           : "Enter"
+      dataPath        : "member"
+      # icon : yes
+      # iconClass : 'enter-group'
+      callback        : (event)=>
+        log 'Speak Friend and enter.'
+        KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
+
+    , data
+
+
+  settingsMenu:(data)->
+
+    account        = KD.whoami()
+    mainController = @getSingleton('mainController')
+
+    # if data.originId is KD.whoami().getId()
+    menu =
+        'Group Settings'     :
+          callback : =>
+            mainController.emit 'EditGroupButtonClicked', @
+        'Permissions'     :
+          callback : =>
+            mainController.emit 'EditPermissionsButtonClicked', @
+
+      return menu
+
+    # if KD.checkFlag 'super-admin'
+    #   menu =
+    #     'MARK USER AS TROLL' :
+    #       callback : =>
+    #         mainController.markUserAsTroll data
+    #     'UNMARK USER AS TROLL' :
+    #       callback : =>
+    #         mainController.unmarkUserAsTroll data
+
+      return menu
 
   titleReceivedClick:(event)->
     group = @getData()
@@ -105,6 +163,7 @@ class GroupsListItemView extends KDListItemView
 
   pistachio:->
     """
+    {{>@settingsButton}}
     <div class="topictext">
       <span class="avatar">{{>@avatar}}</span>
       <div class="content">
@@ -122,15 +181,8 @@ class GroupsListItemView extends KDListItemView
             <a href="#">{{#(counts.followers) or 0}}</a> Followers
           </p>
         </div>
-          <div class="edit-actions">
-          <h4>Edit:</h4>
-          <ul>
-            {li{> @editGroupButton}}
-            {li{> @grantPermissionsButton}}
-          </ul>
-        </div>
       </div>
-      <div class="button-container">{{> @joinButton}}</div>
+      <div class="button-container">{{>@enterButton}}{{> @joinButton}}</div>
     </div>
     """
 

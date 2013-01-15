@@ -224,16 +224,48 @@
   .kdlistitemview-groups
     borderBox()
     border-bottom           1px solid #f5f5f5
-    min-height              127px
+    // min-height              127px
+    min-height              131px
+
     clear                   none
     width                   50%
     display                 inline-block
     height auto
     vertical-align top
 
+    &:hover
+      div.groups-settings-menu
+        opacity 1
 
     &:nth-child(2n+1)
       border-right           1px solid #f5f5f5
+
+    div.groups-settings-menu
+        vendor            transition, opacity .1s ease-out
+        size              21px, 18px
+        opacity           .2
+        abs()
+        top               0
+        right             20px
+        z-index           10
+        button.kdbutton.with-icon
+          padding         1px 2px
+          padding-right   3px!important
+          span.icon
+            bg            position, -81px -281px
+            size          16px, 16px
+            padding       0
+            margin        0
+          &:hover
+            gradient      #eee, #ddd
+            rounded       2px
+        .chevron
+          display         none
+        .chevron-separator
+          display         none
+
+
+
 
     span.avatar
       margin 20px 20px 5px 20px
@@ -250,48 +282,129 @@
         size(60px,60px)
 
     .content
-      width 100%
-      margin-left : 70px
+      width auto
+      margin-left : 103px
       borderBox()
       padding-top 7px
       h3
+        borderBox()
+        width auto
         padding-bottom 10px
+        padding-right 20px
         margin-top 10px
+        overflow-y hidden
+        overflow-x hidden
+        white-space nowrap
+        text-overflow ellipsis
+        height 30px
         a
+          width auto
           color black
           noTextDeco()
 
       article
         borderBox()
         width auto
-        margin-right 10px
-        padding-bottom 10px
+        margin-right 95px
+        padding-bottom 20px
+        overflow-x hidden
+        overflow-y hidden
+        text-overflow ellipsis
+        line-height 1.2em
+        height 3.6em
+
 
     .topicmeta
-      clear both
+      // abs()
+      // left 18px
+      // bottom 12px
+
+      vertical-align bottom
+      fl()
       margin-left 20px
+
       .topicstats
         .posts
-        .followers
+          margin-right 5px
+        .followers, .posts
           display inline-block
           a
             color black
             font-weight bold
             noTextDeco()
-      .edit-actions
-        h4
-          display inline-block
-        ul
-          display inline-block
-          li
-            display inline-block
-            a
-              noTextDeco()
-              color #ff9200
-              &:hover
-                color #27A3C9
 
     .button-container
       abs()
       right 10px
       bottom 10px
+
+      button
+        fr()
+        clear both
+        display block
+        margin-top 5px
+
+        &.joined
+          bg color, #444
+
+      .enter-group
+
+        &:before
+          content               ''
+          padding 0px 10px
+          sprite()
+          bg position, -20px -263px
+          size 15px 15px
+          margin               0 6px 0 0
+          vertical-align       middle
+
+        // border            1px solid #ddd
+        // border-bottom-color    #cfcfcf
+        // color             #7f7f7f
+        // font-size         11px
+        // width             80px
+        // line-height       12px
+        // padding           5px 5px 4px 5px
+        // text-align        center
+        // text-shadow       0 1px 0 #fff
+        // font-weight       700
+        // vertical-align    inherit
+        // background        linear-gradient(top,  white 0%,#e6e5e5 94%)
+        // shadow(0 1px 0 rgb(255, 255, 255))
+        // rounded(3px,3px,3px,3px)
+
+        // &:hover
+        //   background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+        //   border               1px solid #ddd
+        //   border-bottom-color  #cfcfcf
+        //   -moz-box-shadow      0 1px 0 #fff
+        //   -webkit-box-shadow   0 1px 0 #fff
+        //   box-shadow           0 1px 0 #fff
+
+        // &:before
+        //   sprite()
+        //   bg position, -20px -262px
+        //   size 15px 15px
+        // content              url(../images/follow.png)
+        // margin               0 6px 0 0
+        // vertical-align       middle
+
+        // span.icon
+
+        // &.joined
+        //   bg color, #444!important
+
+.kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
+  border-color          rgba(0,0,0,.2)
+  .chevron-ghost-wrapper
+    border-color        rgba(0,0,0,.2)
+    rounded             2px 2px 0 0
+    width               19px
+    span.chevron-ghost
+      margin            0 auto
+      bg                position, -80px -261px
+  .kdcontextmenutreeview
+    margin              3px 0
+    .kdview.kdtreeitemview.default
+      padding           2px
+      font-size         11px
