@@ -119,8 +119,8 @@ class ActivityAppController extends AppController
           if err then warn err
           else
             @sanitizeCache cache, (err, cache)=>
-              @listController.listActivitiesFromCache cache
               isLoading = no
+              @listController.listActivitiesFromCache cache
               @listController.hideLazyLoader()
 
   sanitizeCache:(cache, callback)->
@@ -182,13 +182,22 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
+
     unless isLoading
-      lastDate = new Date @listController.itemsOrdered.last.getData().meta.createdAt
-      @populateActivity {slug : "before/#{lastDate.getTime()}"}
+      lastItemData = @listController.itemsOrdered.last.getData()
+
+      # memberbucket data has no serverside model it comes from cache
+      # so it has no meta, that's why we check its date by its overview
+      lastDate = if lastItemData.createdAt
+        lastItemData.createdAt.first
+      else
+        lastItemData.meta.createdAt
+
+      @populateActivity {slug : "before/#{(new Date(lastDate)).getTime()}"}
 
   teasersLoaded:->
     {scrollView} = @listController
-    if scrollView.getScrollHeight() <= scrollView.getHeight()
+    unless scrollView.hasScrollBars()
       @continueLoadingTeasers()
 
   createContentDisplay:(activity)->
