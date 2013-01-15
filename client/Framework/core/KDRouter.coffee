@@ -92,7 +92,6 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
-    console.trace()
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
     query = @utils.parseQuery query.join '&'

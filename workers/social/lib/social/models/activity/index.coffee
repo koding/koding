@@ -225,13 +225,13 @@ module.exports = class CActivity extends jraphical.Capsule
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
   @fetchFacets = (options, callback)->
-
     {to, limit, facets, lowQuality} = options
 
     selector =
       type         : { $in : facets }
       createdAt    : { $lt : new Date to }
       isLowQuality : { $ne : lowQuality }
+      group        : options.group ? 'koding'
 
     options =
       limit : limit or 20
