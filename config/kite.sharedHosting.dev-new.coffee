@@ -11,11 +11,12 @@ module.exports =
     host                : 'web0.dev.system.aws.koding.com'
     login               : 'kite-sharedHosting'
     password            : 's486auEkPzvUjYfeFTMQ'
+    heartbeat           : 10
   apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
   suspendDir            : '/var/www/suspended_vhosts/'
-  defaultVhostFiles     : nodePath.join cwd, '..', 'sharedHosting', 'defaultVhostFiles'
+  defaultVhostFiles     : nodePath.join cwd, 'kites', 'sharedHosting', 'defaultVhostFiles'
   freeUsersGroup        : 'freeusers'
   liteSpeedUser         : 'lsws'
   defaultDomain         : 'koding.com'

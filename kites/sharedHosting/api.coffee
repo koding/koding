@@ -1,7 +1,7 @@
 config    = require './config'
 
 log4js    = require 'log4js'
-log       = log4js.getLogger("[#{config.name}]")
+log       = log4js.getLogger("[#{config.name + process.pid}]")
 
 nodePath  = require 'path'
 {exec}    = require 'child_process'
@@ -293,7 +293,7 @@ module.exports = new Kite 'sharedHosting'
           log.info info = "createVhost: #{command} done!"
           callback null, info
 
-    createVhost = (options,callback)->
+    (options,callback)->
       {username,uid,domainName} = options
 
       domainName ?= "#{username}.#{config.defaultDomain}"

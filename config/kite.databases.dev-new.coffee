@@ -7,6 +7,7 @@ module.exports =
     host                : 'web0.dev.system.aws.koding.com'
     login               : 'kite-sharedHosting'
     password            : 's486auEkPzvUjYfeFTMQ'
+    heartbeat           : 10
   apiUri            : 'https://dev-api.koding.com/1.0'
   mysql             :
     usersPath       : '/Users/'
