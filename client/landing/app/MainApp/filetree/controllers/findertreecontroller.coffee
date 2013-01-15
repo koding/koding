@@ -170,6 +170,7 @@ class NFinderTreeController extends JTreeViewController
       @addNodes files
       callback? nodeView
       @emit "folder.expanded", nodeView.getData()
+      @emit 'fs.retry.success'
 
     folder = nodeView.getData()
 
@@ -712,7 +713,11 @@ class NFinderTreeController extends JTreeViewController
         if reconnect
           @emit 'fs.retry.scheduled'
           @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
-          notification.destroy()
+          notification.notificationSetTitle 'Attempting to fetch files'
+          notification.notificationSetPositions()
+          notification.setClass 'loading'
+          @once 'fs.retry.success', =>
+            notification.destroy()
           return
 
         if notification.getOptions().details
@@ -726,4 +731,3 @@ class NFinderTreeController extends JTreeViewController
           @getSingleton('windowController').addLayer details
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
-

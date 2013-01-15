@@ -13,9 +13,6 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
-      bind       : "mouseenter mouseleave"
-      mouseenter : => @animateLeftNavIn()
-      mouseleave : => @animateLeftNavOut()
       size       :
         width    : 160
         height   : 76
@@ -23,9 +20,6 @@ class Sidebar extends JView
 
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
-      bind         : "mouseenter mouseleave"
-      mouseenter   : => @animateLeftNavIn()
-      mouseleave   : => @animateLeftNavOut()
 
     currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
 
@@ -41,9 +35,6 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         itemClass    : NavigationLink
-        bind         : "mouseenter mouseleave"
-        mouseenter   : => @animateLeftNavIn()
-        mouseleave   : => @animateLeftNavOut()
       wrapper        : no
       scrollView     : no
     , navItems
@@ -55,9 +46,6 @@ class Sidebar extends JView
         type         : "navigation"
         cssClass     : "account"
         itemClass    : NavigationLink
-        bind         : "mouseenter mouseleave"
-        mouseenter   : => @animateLeftNavIn()
-        mouseleave   : => @animateLeftNavOut()
       wrapper        : no
       scrollView     : no
     , accNavItems
@@ -69,9 +57,6 @@ class Sidebar extends JView
         type         : "navigation"
         cssClass     : "account admin"
         itemClass    : AdminNavigationLink
-        bind         : "mouseenter mouseleave"
-        mouseenter   : => @animateLeftNavIn()
-        mouseleave   : => @animateLeftNavOut()
       wrapper        : no
       scrollView     : no
 
@@ -81,9 +66,6 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "footer-menu"
         itemClass    : FooterMenuItem
-        bind         : "mouseenter mouseleave"
-        mouseenter   : => @animateLeftNavIn()
-        mouseleave   : => @animateLeftNavOut()
       wrapper        : no
       scrollView     : no
     , footerMenuItems
@@ -117,6 +99,8 @@ class Sidebar extends JView
 
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
+
+    @statusLEDs = new StatusLEDView
 
   resetAdminNavController:->
     @utils.wait 1000, =>
@@ -178,6 +162,11 @@ class Sidebar extends JView
       cp.$().css left : cp._left - x, width : cp._width + x
       $fp.css "width", newFpWidth
 
+    # exception - Sinan, Jan 2013
+    # we bind this with jquery directly bc #main-nav is no KDView but just HTML
+    @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
+    @$('#main-nav').on "mouseleave", @animateLeftNavOut.bind @
+
   viewAppended:->
 
     super
@@ -215,10 +204,12 @@ class Sidebar extends JView
       </div>
       {{> @avatarAreaIconMenu}}
       {{> @currentGroup}}
+      {{> @statusLEDs}}
       {{> @nav}}
-      <hr>
+      <hr />
       {{> @accNav}}
       {{> @adminNav}}
+      <hr />
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
@@ -238,7 +229,6 @@ class Sidebar extends JView
   _mouseleaveTimeout = null
 
   animateLeftNavIn:->
-
     return if $('body').hasClass("dragInAction")
     @utils.killWait _mouseleaveTimeout if _mouseleaveTimeout
     _mouseenterTimeout = @utils.wait 200, =>
@@ -246,7 +236,6 @@ class Sidebar extends JView
       @expandNavigationPanel() if @_onDevelop
 
   animateLeftNavOut:->
-
     return if @_popupIsActive or $('body').hasClass("dragInAction")
     @utils.killWait _mouseenterTimeout if _mouseenterTimeout
     _mouseleaveTimeout = @utils.wait 200, =>

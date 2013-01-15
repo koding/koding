@@ -1,8 +1,11 @@
 class ActivityUpdateWidget extends KDView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    options.cssClass = "activity-update-widget-wrapper"
+
+    super options, data
+
     @windowController = @getSingleton('windowController')
     @listenWindowResize()
 

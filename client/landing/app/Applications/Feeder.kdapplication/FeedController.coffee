@@ -34,11 +34,7 @@ class FeedController extends KDViewController
     @sorts              = {}
     @defaultQuery       = options.defaultQuery ? {}
 
-    @resultsController.registerListener
-      KDEventTypes  : 'LazyLoadThresholdReached'
-      listener      : @
-      callback      : =>
-        @loadFeed()
+    @resultsController.on 'LazyLoadThresholdReached', => @loadFeed()
 
     @defineFilter name, filter for own name, filter of options.filter
     @defineSort name, sort for own name, sort of options.sort
