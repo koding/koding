@@ -1,4 +1,3 @@
-include_recipe "apt"
 
 apt_repository "golang" do
   uri "http://ppa.launchpad.net/gophers/go/ubuntu"

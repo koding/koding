@@ -15,5 +15,6 @@ default_attributes({ "nginx" => {
                      "kd_deploy" => {
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
+                                "deploy_dir" => '/opt/koding',
                      }
 })

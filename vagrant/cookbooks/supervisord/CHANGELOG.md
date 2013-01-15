@@ -1,10 +1,10 @@
-# CHANGELOG for mongodb-10gen
+# CHANGELOG for supervisord
 
-This file is used to list changes made in each version of mongodb-10gen.
+This file is used to list changes made in each version of supervisord.
 
 ## 0.1.0:
 
-* Initial release of mongodb-10gen
+* Initial release of supervisord
 
 - - - 
 Check the [Markdown Syntax Guide](http://daringfireball.net/projects/markdown/syntax) for help with Markdown.

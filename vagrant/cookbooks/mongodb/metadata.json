@@ -1,0 +1,30 @@
+{
+  "name": "mongodb",
+  "attributes": {
+  },
+  "replacing": {
+  },
+  "conflicting": {
+  },
+  "description": "Installs/Configures mongodb",
+  "version": "0.1.0",
+  "recipes": {
+  },
+  "recommendations": {
+  },
+  "platforms": {
+  },
+  "providing": {
+  },
+  "license": "All rights reserved",
+  "dependencies": {
+    "apt": ">= 1.4.4"
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "groupings": {
+  },
+  "suggestions": {
+  },
+  "maintainer_email": "aleksey@koding.com",
+  "maintainer": "Aleksey Mykhailov"
+}

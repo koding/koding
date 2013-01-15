@@ -1,4 +1,3 @@
-include_recipe "apt"
 
 apt_repository "nodejs" do
   uri "http://ppa.launchpad.net/chris-lea/node.js/ubuntu"
