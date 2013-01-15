@@ -13,7 +13,7 @@ var database *mgo.Database
 var counters *mgo.Collection
 
 func init() {
-	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2")
+	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2")
 	if err != nil {
 		panic(err)
 	}
