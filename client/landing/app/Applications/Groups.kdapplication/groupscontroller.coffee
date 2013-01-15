@@ -1,24 +1,26 @@
 class GroupData extends KDEventEmitter
 
-  # constructor:(currentGroup="Koding")->
-  #   super
+  constructor:(currentGroup="koding")->
+    super
 
-  #   @data = title: currentGroup
+    KD.remote.on 'ready', =>
+      console.log "it's ready", this
+      KD.remote.cacheable currentGroup, (err, group)=> @setGroup group
 
-  # getAt:(path)->
-  #   JsPath.getAt @data, path
+  getAt:(path)->
+    JsPath.getAt @data, path
 
-  # setGroup:(group)->
-  #   @data = group
-  #   @emit 'update'
+  setGroup:(group)->
+    @data = group
+    @emit 'update'
 
 class GroupsController extends KDObject
 
-  # constructor:(parentController)->
-  #   @groups = {}
-  #   @currentGroupData = groupData = new GroupData
+  constructor:(parentController)->
+    @groups = {}
+    @currentGroupData = groupData = new GroupData
 
-  #   parentController.on 'GroupChanged', (groupName)=>
-  #     KD.remote.cacheable groupName, (err, group)-> groupData.setGroup group
+    parentController.on 'GroupChanged', (groupName)->
+      KD.remote.cacheable groupName, (err, group)-> groupData.setGroup group
 
-  # getCurrentGroupData:-> @currentGroupData
+  getCurrentGroupData:-> @currentGroupData

@@ -20,6 +20,8 @@ class ApplicationManager extends KDObject
     #FIXME: make this async -sah 1/3/12
     callback?()
 
+  setGroup:-> console.log 'setGroup', arguments
+
   forceQuit:(path)->
     app = @getAppInstance path
     views = (@getAppViews path)?.slice 0

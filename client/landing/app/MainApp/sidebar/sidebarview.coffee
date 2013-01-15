@@ -21,12 +21,15 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
 
-    # @currentGroup = new KDCustomHTMLView
-    #   cssClass    : 'current-group-indicator'
-    #   pistachio   : "{{#(title)}}"
-    # , currentGroupData
+    @currentGroup = new KDCustomHTMLView
+      cssClass    : 'current-group-indicator'
+      pistachio   : "{{#(title)}}"
+      click       : ->
+        #KD.getSingleton('router').handleRoute
+        console.log @getData()
+    , currentGroupData
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -201,6 +204,7 @@ class Sidebar extends JView
       </div>
       {{> @avatarAreaIconMenu}}
       {{> @statusLEDs}}
+      {{> @currentGroup}}
       {{> @nav}}
       <hr />
       {{> @accNav}}

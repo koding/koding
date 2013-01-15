@@ -118,7 +118,7 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
       else
-        # appManager.tell section, 'setGroup', name  if name?
+        appManager.tell section, 'setGroup', name  if name? and not state?
         if state?
           @openContent name, section, state, route
         else
@@ -138,14 +138,14 @@ class KodingRouter extends KDRouter
     mainController = KD.getSingleton 'mainController'
 
     content = createLinks(
-      # 'Activity Apps Groups Members Topics'
-      'Activity Apps Members Topics'
+      'Activity Apps Groups Members Topics'
+      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
     section = createLinks(
-      # 'Account Activity Apps Groups Members StartTab Topics'
-      'Account Activity Apps Inbox Members StartTab Topics'
+      'Account Activity Apps Groups Inbox Members StartTab Topics'
+      # 'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -181,7 +181,7 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.doRecover name
 
       # section
-      # '/:name?/Groups'                  : section.Groups
+      '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity
       '/:name?/Members'                 : section.Members
       '/:name?/Topics'                  : section.Topics
@@ -253,7 +253,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            # when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
             when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
