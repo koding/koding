@@ -68,7 +68,7 @@ class AccountEmailNotifications extends KDView
 
     toggleFieldStates = (state)->
       for flag, field of fields when flag isnt 'global'
-        if state is 'off'
+        if state in ['off', 'never']
           field.formView.hide()
         else
           field.formView.show()
