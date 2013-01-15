@@ -222,6 +222,7 @@
   // .kdlistview-everything
 
   .kdlistitemview-groups
+    borderBox()
     border-bottom           1px solid #f5f5f5
     min-height              127px
     clear                   none
@@ -233,70 +234,29 @@
 
     &:nth-child(2n+1)
       border-right           1px solid #f5f5f5
-    cite
-      abs()
-      display             inline-block
-      line-height         18px
-      vertical-align      top
-      font-size           10px
-      width               74px
-      font-style          normal
-      color               white
-      text-align          center
-      // border-top          1px solid rgba(255,255,255,0.3)
-      // border-bottom       1px solid rgba(0,0,0,0.1)
-      z-index             100
-      vendor              transition, background-color .3s linear
-      bg                  color, rgba(255, 146, 0, 0.4)
-      // shadow              0 -2px 1px -1px rgba(0,0,0,0.1)
-      &.lt
-        top                 10px
-        left                -18px
-        vendor              transform, rotate(-45deg)
-      &.rt
-        top                 10px
-        right               -18px
-        vendor              transform, rotate(45deg)
-      &.l
-        width               152px
-        top                 66px
-        left                -67px
-        vendor              transform, rotate(-90deg)
-      &.r
-        width               152px
-        top                 66px
-        right               -67px
-        vendor              transform, rotate(90deg)
 
-    .fl
-      rel()
-      size                  60px, 60px
-      border                1px solid #f5f5f5
-      margin-right          15px
-      padding               1px
-      button
-        vendor              transition, opacity .3s linear
-        opacity             0
-        margin-top          10px
-        padding             3px 0 4px 0
-        width               62px
+    span.avatar
+      margin 20px 20px 5px 20px
+      padding         1px
+      border          1px solid #E3E3E3
+      fl()
+      display         block
+      size(60px,60px)
+      .avatar-image
+        display         block
+        text-decoration   none
+        background-size   cover
+        background-position   center
+        size(60px,60px)
 
-    .avatar
-      display               block
-      width                 50px
-      gradient              #ddd, #f2f2f2
-
-
-    .overlay
+    .content
+      width 100%
+      margin-left : 70px
       borderBox()
-      bg color, rgba(255,255,255,0.85)
-      vendor transition, background 0.25s ease-in-out
-      &:hover
-        bg color, rgba(255,255,255,0.95)
-
+      padding-top 7px
       h3
         padding-bottom 10px
-        margin-top 5px
+        margin-top 10px
         a
           color black
           noTextDeco()
@@ -307,65 +267,30 @@
         margin-right 10px
         padding-bottom 10px
 
-      .topicmeta
-        .topicstats
-          .posts
-          .followers
+    .topicmeta
+      clear both
+      margin-left 20px
+      .topicstats
+        .posts
+        .followers
+          display inline-block
+          a
+            color black
+            font-weight bold
+            noTextDeco()
+      .edit-actions
+        h4
+          display inline-block
+        ul
+          display inline-block
+          li
             display inline-block
-            a
-              color black
-              font-weight bold
-              noTextDeco()
 
-      .button-container
-        abs()
-        right 5px
-        bottom 5px
+    .button-container
+      abs()
+      right 15px
+      bottom 15px
 
-    .right-overflow
-      margin-right          18px
-      section
-        p
-          display           inline-block
-          border-bottom     1px solid #f5f5f5
-          line-height       16px
-          padding-bottom    5px
-          margin-bottom     5px
-          color             #888
-          font-size         12px
-          font-weight       300
-          min-height        59px
-          max-height        59px
-          overflow          hidden
-        div
-          figure
-            display         inline-block
-            font-size       11px
-            line-height     20px
-            span
-              font-weight   bold
-          span.members
-          span.posts
-            size            20px, 20px
-            sprite()
-            fl()
-            &.members
-              bg            position, -180px -480px
-            &.posts
-              bg            position, 0 -630px
-
-    &:hover
-      cite
-        bg                  color, rgba(255, 146, 0, 1)
-      button
-        opacity             1
-  h2
-    font-size               18px
-    padding-bottom          6px
-    a
-      color                 linkColor1
-      font-weight           400
-      noTextDeco()
 
 
 
