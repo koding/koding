@@ -64,27 +64,27 @@ module.exports = class JEmail extends Model
       eventType       : 'ReplyIsAdded'
       contentTypes    : commonActivities
       header          : commonHeader
-      template        : commonTemplate
+      instantTemplate : commonTemplate
     likeActivities    :
       eventType       : 'LikeIsAdded'
       contentTypes    : commonActivities
       header          : commonHeader
-      template        : commonTemplate
+      instantTemplate : commonTemplate
     likeComments      :
       eventType       : 'LikeIsAdded'
       contentTypes    : ['JComment']
       header          : commonHeader
-      template        : commonTemplate
+      instantTemplate : commonTemplate
     followActions     :
       eventType       : ''
       contentTypes    : []
       header          : commonHeader
-      template        : commonTemplate
+      instantTemplate : commonTemplate
     privateMessage    :
       eventType       : 'ReplyIsAdded'
       contentTypes    : ['JPrivateMessage']
       header          : commonHeader
-      template        : (m)-> """
+      instantTemplate : (m)-> """
         Hi #{m.receiver.profile.firstName},
 
         #{m.sender.profile.firstName} #{m.sender.profile.lastName} sent you a <a href="https://koding.com/Inbox">private message</a>.
@@ -111,7 +111,7 @@ module.exports = class JEmail extends Model
             for key, type of flags
               if contentType in type.contentTypes and event is type.eventType
                 if emailFrequency[key]
-                  callback null, {state: emailFrequency[key] is 'instant',
+                  callback null, {state: emailFrequency[key] in ['instant', 'daily'],
                                   email, type}
                   return
           callback null, {state: no}
@@ -126,9 +126,9 @@ module.exports = class JEmail extends Model
     # console.log "HERE", data
 
     createEmail  = (details, callback)->
-      body       = details.notification.type.template details
+      body       = details.notification.type.instantTemplate details
       header     = details.notification.type.header details
-      {event}    = details
+      {event}    = details.notification.type
       {email}    = details.notification
       originId   = details.sender._id
       activityId = details.realContent._id
