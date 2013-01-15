@@ -28,7 +28,8 @@ module.exports = class JPost extends jraphical.Message
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     slug          : String
-    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
+    group         : String 
     counts        :
       followers   :
         type      : Number
@@ -44,6 +45,7 @@ module.exports = class JPost extends jraphical.Message
     slugTemplate: 'Activity/#{slug}'
     indexes     :
       slug      : 'unique'
+      group     : 'sparse'
     permissions: [
       'read posts'
       'create posts'
@@ -437,9 +439,3 @@ module.exports = class JPost extends jraphical.Message
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
     super
-
-  update:(rest..., callback)->
-    kallback =(rest...)=>
-      callback rest...
-      CActivity.emit "post-updated", @
-    jraphical.Message::update.apply @, rest.concat kallback
