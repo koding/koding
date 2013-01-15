@@ -49,6 +49,16 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
+  toobusy:
+    interval: 10000
+    callback: ->
+      console.log "[SOCIAL WORKER #{name}] I'm too busy, accepting no more new jobs."
+      process.send?({pid: process.pid, exiting: yes})
+      koding.disconnect()
+      setTimeout ->
+        process.exit()
+       , 20000
+
   librato: KONFIG.librato
 
 koding = new Bongo
