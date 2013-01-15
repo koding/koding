@@ -47,7 +47,6 @@ else
     app.use express.compress()
     app.use express.static "#{projectRoot}/website/"
 
-  #app.use gzippo.staticGzip "#{projectRoot}/website/"
   app.use (req, res, next)->
     res.removeHeader "X-Powered-By"
     next()
@@ -60,18 +59,8 @@ else
     console.error err
     stack = err?.stack
     console.log stack  if stack?
-    # throw err
-    # console.trace()
 
   koding = require './bongo'
-
-  # kiteBroker =\
-  #   if kites?.vhost?
-  #     new Broker extend {}, mq, vhost: kites.vhost
-  #   else
-  #     koding.mq
-
-  # koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
