@@ -1,0 +1,69 @@
+#
+# Define which protocol versions mountd 
+# will advertise. The values are "no" or "yes"
+# with yes being the default
+#MOUNTD_NFS_V2="no"
+#MOUNTD_NFS_V3="no"
+#
+#
+# Path to remote quota server. See rquotad(8)
+#RQUOTAD="/usr/sbin/rpc.rquotad"
+# Port rquotad should listen on.
+#RQUOTAD_PORT=875
+# Optinal options passed to rquotad
+#RPCRQUOTADOPTS=""
+#
+#
+# Optional arguments passed to in-kernel lockd
+#LOCKDARG=
+# TCP port rpc.lockd should listen on.
+LOCKD_TCPPORT=32803
+# UDP port rpc.lockd should listen on.
+LOCKD_UDPPORT=32769
+#
+#
+# Optional arguments passed to rpc.nfsd. See rpc.nfsd(8)
+# Turn off v2 and v3 protocol support
+RPCNFSDARGS="-N 2 -p 12049"
+# Turn off v4 protocol support
+#RPCNFSDARGS="-N 4"
+# Number of nfs server processes to be started.
+# The default is 8. 
+#RPCNFSDCOUNT=8
+# Stop the nfsd module from being pre-loaded
+#NFSD_MODULE="noload"
+# Set V4 grace period in seconds
+#NFSD_V4_GRACE=90
+#
+#
+#
+# Optional arguments passed to rpc.mountd. See rpc.mountd(8)
+#RPCMOUNTDOPTS=""
+# Port rpc.mountd should listen on.
+MOUNTD_PORT=10892
+#
+#
+# Optional arguments passed to rpc.statd. See rpc.statd(8)
+#STATDARG=""
+# Port rpc.statd should listen on.
+STATD_PORT=10662
+# Outgoing port statd should used. The default is port
+# is random
+STATD_OUTGOING_PORT=12020
+# Specify callout program 
+#STATD_HA_CALLOUT="/usr/local/bin/foo"
+#
+#
+# Optional arguments passed to rpc.idmapd. See rpc.idmapd(8)
+#RPCIDMAPDARGS=""
+#
+# Set to turn on Secure NFS mounts. 
+#SECURE_NFS="yes"
+# Optional arguments passed to rpc.gssd. See rpc.gssd(8)
+#RPCGSSDARGS=""
+# Optional arguments passed to rpc.svcgssd. See rpc.svcgssd(8)
+#RPCSVCGSSDARGS=""
+#
+# To enable RDMA support on the server by setting this to
+# the port the server should listen on
+RDMA_PORT=20049 

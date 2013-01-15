@@ -5,7 +5,7 @@ koding.connect()
 
 AuthWorker = require './authworker'
 
-{authWorker,librato} = require argv.c
+{librato, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
 
 processMonitor = (require 'processes-monitor').start
   name : "Auth Worker #{process.pid}"
