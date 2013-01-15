@@ -8,6 +8,7 @@
 #
 
 
-include_recipe "mongodb::config"
+include_recipe "mongodb::config_file"
 include_recipe "mongodb::install"
 include_recipe "mongodb::service"
+include_recipe "mongodb::admin_user"

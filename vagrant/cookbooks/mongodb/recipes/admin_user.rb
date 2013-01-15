@@ -6,10 +6,23 @@ ruby_block "create-admin-user" do
   block do
     require "rubygems"
     require "mongo"
-
-    if node['mongodb']['auth'].nil?
-      Chef::Log.warn("auth attribute is false , skipping")
-      next
+    until File.exists?("#{node['mongodb']['dbpath']}/local.0")
+        sleep 1
+        Chef::Log.info("waiting for file #{node['mongodb']['dbpath']}/local.0")
     end
+    mongo_client = Mongo::MongoClient.new("127.0.0.1", 27017).db('admin')
+    mongo_client.add_user(node['mongodb']['admin_user'],node['mongodb']['admin_pass'])
+    Chef::Log.info("waiting for file #{node['mongodb']['dbpath']}/admin.1")
+    until File.exists?("#{node['mongodb']['dbpath']}/admin.1")
+        Chef::Log.info("waiting for file #{node['mongodb']['dbpath']}/admin.1")
+        sleep 1
+    end
+    Chef::Log.info("DEBUG: admin user has been created")
   end
+  not_if do
+    File.exists?("#{node['mongodb']['dbpath']}/admin.1")  
+  end
+  notifies :create, "template[#{node['mongodb']['configfile']}]", :delayed
+  notifies :restart, resources(:service => node['mongodb']['service_name'] ), :delayed
 end
+

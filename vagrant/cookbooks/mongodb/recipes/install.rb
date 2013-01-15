@@ -9,3 +9,18 @@ package node['mongodb']['package_name'] do
         File.exists?(node['mongodb']['log_device'])
     end
 end
+
+directory node['mongodb']['dbpath'] do
+  owner "mongodb"
+  group "mongodb"
+  mode 00755
+  action :create
+end
+
+directory node['mongodb']['logpath'] do
+  owner "mongodb"
+  group "mongodb"
+  mode 00755
+  action :create
+end
+
