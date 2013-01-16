@@ -21,6 +21,8 @@ class GroupsController extends KDObject
     @currentGroupData = groupData = new GroupData
 
     parentController.on 'GroupChanged', (groupName)->
-      KD.remote.cacheable groupName, (err, group)-> groupData.setGroup group
+      KD.remote.cacheable groupName, (err, group)->
+        groupData.setGroup group
+        parentController.emit 'GroupChangeFinished'
 
   getCurrentGroupData:-> @currentGroupData
