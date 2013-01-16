@@ -22,6 +22,8 @@ class NewMemberBucketView extends JView
     lastFetchedDate = null
 
     @group.on "moreLinkClicked", =>
+      # TBDL an accordion view
+      return
       log "expand the view to show more users"
       selector    =
         type      : { $in : ['CNewMemberBucketActivity'] }
@@ -83,15 +85,16 @@ class NewMemberLinkGroup extends LinkGroup
     {hasMore, totalCount, group, separator} = @getOptions()
 
     @createMoreLink()
-    log @getData().length, ">>>>"
+    l = if @getData().length < 4 then @getData().length else 3
     tmpl = ""
-    for i in [0...@getData().length]
+    for i in [0...l]
       tmpl += "{{> @participant#{i}}}"
-      tmpl += separator if i isnt @getData().length-1
+      tmpl += separator if i isnt l-1
 
     if totalCount > @getData().length
       tmpl += " and {{> @more}}"
 
+    tmpl += " became a member."
     tmpl += "{{> @loader }}"
 
 
