@@ -81,7 +81,8 @@ Vagrant::Config.run do |config|
           cephClient_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 512,
-                                    "--cpus", 2
+                                    "--cpus", 2,
+                                    "--name", "koding_VM"
                                   ]
 
           cephClient_config.vm.provision :chef_solo do |chef|
