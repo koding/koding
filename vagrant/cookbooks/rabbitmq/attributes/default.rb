@@ -50,4 +50,8 @@ end
 
 
 # plugins location
-default['rabbitmq']['plugins_root'] = "/usr/lib/rabbitmq/lib/rabbitmq_server-#{default['rabbitmq']['version']}/plugins"
+if node['platform_family'] = 'debian'
+    default['rabbitmq']['plugins_root'] = "/usr/lib/rabbitmq/lib/rabbitmq_server-3.0.1/plugins"
+else
+    default['rabbitmq']['plugins_root'] = "/usr/lib/rabbitmq/lib/rabbitmq_server-#{default['rabbitmq']['version']}/plugins"
+end
