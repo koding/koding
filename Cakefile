@@ -150,6 +150,15 @@ task 'guestCleanup',({configFile})->
     restart: yes
     restartInterval: 100
 
+task 'emailWorker',({configFile})->
+
+  processes.fork
+    name            : 'emailWorker'
+    cmd             : "./workers/emailnotifications/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+
 task 'goBroker',({configFile})->
 
   processes.spawn
@@ -263,6 +272,7 @@ run =(options)->
   invoke 'libratoWorker'  if config.librato?.push
   invoke 'socialWorker'
   invoke 'webserver'
+  invoke 'emailWorker'
 
 
   if config.social.watch?
@@ -276,6 +286,10 @@ run =(options)->
           folders   : ['./workers/social']
           onChange  : (path) ->
             processes.kill "socialWorker"
+        email       :
+          folders   : ['./workers/emailnotifications']
+          onChange  : (path) ->
+            processes.kill "emailWorker"
         server      :
           folders   : ['./server']
           onChange  : ->
