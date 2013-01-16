@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make gcc patch screen telnet git lvm2 )
+packages = %w( make gcc patch screen telnet git lvm2 sysstat mc )
 rpm_diff = %w( vim-enhanced man )
 deb_diff = %w( vim )
 
