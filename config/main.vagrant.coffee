@@ -85,6 +85,8 @@ module.exports = deepFreeze
         sockJS  : 'http://koding.local:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
+      version   : version
+      mainUri   : 'http://koding.local'
       appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : 'rabbitmq.local'

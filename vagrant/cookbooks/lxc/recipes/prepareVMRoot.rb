@@ -37,7 +37,7 @@ end
 	target="/var/lib/lxc/vmroot/rootfs"
 	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
-	mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
+	mirror="http://us.archive.ubuntu.com/ubuntu"
 
 	# Not REALLY necessary because we have our if clause, but nice for testing when if is commented
 	execute "lxc-stop -n vmroot"
