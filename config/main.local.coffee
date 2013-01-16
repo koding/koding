@@ -5,7 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
+#mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -91,7 +92,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'localhost'
     login       : 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'guest'
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
@@ -110,7 +111,7 @@ module.exports = deepFreeze
     mq              :
       host          : 'localhost'
       login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
+      password      : 'guest'
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"

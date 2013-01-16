@@ -9,6 +9,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
+mqOptions.productName = 'koding-webserver'
 
 modelsDir = 'workers/social/lib/social/models/'
 
