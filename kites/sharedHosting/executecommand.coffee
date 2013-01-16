@@ -171,14 +171,14 @@ module.exports =(options, callback)->
 
   # Send memory usage to librato
   {argv} = require 'optimist'
-  KODING = require('koding-config-manager').load("main.#{argv.c}")
-  if options.librato?.push
+  KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+  if KONFIG.librato?.push
     os = require "os"
 
     # Post to Librato
     librato = require("librato-metrics").createClient(
-      email: options.librato.email
-      token: options.librato.token
+      email: KONFIG.librato.email
+      token: KONFIG.librato.token
     )
     data = counters: [
       name: 'kite.sharedhosting.execute'
