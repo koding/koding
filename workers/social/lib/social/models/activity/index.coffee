@@ -128,7 +128,9 @@ module.exports = class CActivity extends jraphical.Capsule
           processedCache[i] = memberBucket
           bucketIndex       = i
         else
-          processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat item.ids
+          if processedCache[bucketIndex].ids.length < 3
+            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
+            processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
           processedCache[bucketIndex].count += item.count
           processedCache[bucketIndex].createdAt[1] = item.createdAt.last
       else

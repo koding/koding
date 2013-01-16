@@ -8,6 +8,7 @@ Broker   = require 'broker'
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
+mqOptions.productName = 'koding-webserver'
 
 modelsDir = 'workers/social/lib/social/models/'
 
