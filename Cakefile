@@ -93,15 +93,16 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port) ->
     processes.fork
-      name          : 'server' + port
-      cmd           : __dirname + "/server/index -c #{config} -p #{port}"
-      restart : yes
+      name            : 'server'
+      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
+      restart         : yes
       restartInterval : 100
 
   webPort = webserver.port
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port) ->
     runServer configFile, port
+    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
 
 task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
@@ -137,7 +138,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
       restart : yes
       restartInterval : 1000
 
@@ -242,7 +243,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
-  
+
 
 
 
@@ -256,7 +257,7 @@ run =(options)->
   config = require('koding-config-manager').load("main.#{configFile}")
   fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
 
-  invoke 'goBroker'       if config.runGoBroker    
+  invoke 'goBroker'       if config.runGoBroker
   invoke 'authWorker'     if config.authWorker
   invoke 'guestCleanup'   if config.guests
   invoke 'libratoWorker'  if config.librato?.push
@@ -274,7 +275,7 @@ run =(options)->
         social      :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "social"
+            processes.kill "socialWorker"
         server      :
           folders   : ['./server']
           onChange  : ->
