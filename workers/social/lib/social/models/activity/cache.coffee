@@ -31,23 +31,24 @@ module.exports = class JActivityCache extends jraphical.Module
   @share()
 
   @set
-    indexes       :
-      to          : 'unique'
-    sharedMethods :
-      static      : ["latest", "init", "createCacheFromEarliestTo"]
-      instance    : []
-    schema        :
-      # name        : String
-      to          :
-        type      : Date
-      from        :
-        type      : Date
-      isFull      :
-        type      : Boolean
-        default   : no
-        get       : -> this.overview.length is lengthPerCache
-      overview    : Array
-      activities  : Object
+    indexes                 :
+      to                    : 'unique'
+    sharedMethods           :
+      static                : ["latest", "init", "createCacheFromEarliestTo"]
+      instance              : []
+    schema                  :
+      # name                  : String
+      to                    :
+        type                : Date
+      from                  :
+        type                : Date
+      isFull                :
+        type                : Boolean
+        default             : no
+        get                 : -> this.overview.length is lengthPerCache
+      overview              : Array
+      activities            : Object
+      newMemberBucketIndex  : Number
 
   defaultOptions =
     limit : 1
@@ -247,9 +248,16 @@ module.exports = class JActivityCache extends jraphical.Module
         to   = overview.first.createdAt.first
         from = overview.last.createdAt.last
 
+        overviewReversed = overview.slice().reverse()
+
+        for bucket, i in overviewReversed when bucket.type is 'CNewMemberBucketActivity'
+          newMemberBucketIndex = i
+          break
+
         instance = new JActivityCache {
-          overview   : overview.slice().reverse()
+          overview   : overviewReversed
           isFull     : overview.length is lengthPerCache
+          newMemberBucketIndex
           activities
           from
           to
@@ -305,96 +313,49 @@ module.exports = class JActivityCache extends jraphical.Module
       return console.warn "no overview items passed to cap the activity cache instance"
 
     JActivityCache.fetchOverviewTeasers overview, (err, activityHash)=>
-
       overview.reverse()
 
-      # activityMissed = no
-
-      activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
+      setModifier = Object.keys(activityHash).reduce (acc, activityId)->
         activity = activityHash[activityId]
         updatedActivity = activity.prune()
-        # log activity, activity.snapshotIds
-        if activity.snapshotIds
-          updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
-          acc["activities.#{activity.getId()}"] = updatedActivity
-        # else
-        #   activityMissed = yes
+        updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
+        acc["activities.#{activity.getId()}"] = updatedActivity
         return acc
       , {}
 
-      # if activityMissed
-      #   log "an activity couldn't be cached, trying again in a sec!"
-      #   setTimeout =>
-      #     @cap overview, callback
-      #   , 1000
-      #   return
+      setModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
-      activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
+      if @newMemberBucketIndex?
+        oldOverview = overview
+        overview = []
+        freshNewMemberBuckets = []
+        for overviewItem in oldOverview
+          if overviewItem.type is 'CNewMemberBucketActivity'
+            freshNewMemberBuckets.push overviewItem
+          else
+            overview.push overviewItem
 
-      @update {
-        $pushAll: {overview}
-        $set    : activitiesModifier
-      }, (err)-> callback?()
+      pushAllModifier = {overview}
 
-    # JActivityCache.fetchOverviewTeasers overview, (err, activityHash)=>
+      if freshNewMemberBuckets?.length
+        newMemberBucketKey = "overview.#{@newMemberBucketIndex}"
 
-    #   overview.reverse()
+        setModifier["#{newMemberBucketKey}.ids"] =\
+          @overview[@newMemberBucketIndex].ids
+            .slice(0, Math.max 3 - freshNewMemberBuckets.length, 0)
+            .concat freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
 
-    #   newActivitiesHasNewMemberBucket   = no
-    #   currentOverviewHasNewMemberBucket = no
+        count = @overview[@newMemberBucketIndex].count
+        setModifier["#{newMemberBucketKey}.count"] =\
+          freshNewMemberBuckets.length + count
 
-    #   activitiesModifier = Object.keys(activityHash).reduce (acc, activityId)->
-    #     activity = activityHash[activityId]
-    #     updatedActivity = activity.prune()
-    #     updatedActivity.snapshotIds = [].slice.call activity.snapshotIds
-    #     acc["activities.#{activity.getId()}"] = updatedActivity
-    #     if updatedActivity.type is "CNewMemberBucketActivity"
-    #       newActivitiesHasNewMemberBucket = yes
-    #     return acc
-    #   , {}
+        createdAt = freshNewMemberBuckets.last.createdAt.first
+        setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt
 
-    #   newMemberBucketIndex = null
+      if overview.length
+        @update $pushAll: pushAllModifier, ->
 
-    #   if newActivitiesHasNewMemberBucket
-    #     @overview.forEach (overviewItem, index)->
-    #       if overviewItem.type is "CNewMemberBucketActivity"
-    #         currentOverviewHasNewMemberBucket = yes
-    #         newMemberBucketIndex              = index
-
-
-
-    #   if currentOverviewHasNewMemberBucket and newActivitiesHasNewMemberBucket
-    #     @overview.forEach (item)->
-    #       log item
-    #     # freshOverview = overview.first
-
-    #     # if freshOverview.type is "CNewMemberBucketActivity"
-    #     #   @overview.forEach ()
-
-    #     #   updatedOverview = @overview
-    #     #   updatedOverview.ids.push freshOverview.ids.first
-    #     #   updatedOverview.createdAt.push freshOverview.createdAt.first
-    #     #   updatedOverview.count++
-
-    #     #   activitiesModifier.to = freshOverview.createdAt.first
-
-    #     #   log updatedOverview
-
-    #     #   # @update {
-    #     #   #   $pushAll: {overview}
-    #     #   #   $set    : activitiesModifier
-    #     #   # }, (err)-> callback?()
-
-    #       return
-
-    #   activitiesModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
-
-    #   @update {
-    #     $pushAll: {overview}
-    #     $set    : activitiesModifier
-    #   }, (err)-> callback?()
-
-    #   # log overview, @overview
+      @update $set: setModifier, (err)-> callback?()
 
 
   @modifyByTeaser = (teaser, callback)->
@@ -425,9 +386,3 @@ module.exports = class JActivityCache extends jraphical.Module
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
             cache.update {$set : setModifier}, -> #console.log.bind(console)
-
-
-
-
-
-
