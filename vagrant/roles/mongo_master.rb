@@ -12,6 +12,8 @@ default_attributes({ "mongodb" => {
                                 "dbpath" => "/var/lib/mongodb",
                                 "logpath" => "/var/log/mongodb",
                                 "admin_user" => 'admin',
+                                "repl_user" => 'repl',
                                 "admin_pass" => 'cQ7zD43NvLypgGre',
+                                "repl_pass" => 'cQdklsdk3e',
                                 }
                   })

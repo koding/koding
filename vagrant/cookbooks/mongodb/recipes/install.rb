@@ -1,5 +1,9 @@
 include_recipe "apt::10gen"
 
+gem_package "mongo" do
+  action :install
+end
+
 package node['mongodb']['package_name'] do
   version node['mongodb']['version']
   action :install
