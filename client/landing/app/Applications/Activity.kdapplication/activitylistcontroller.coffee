@@ -148,7 +148,9 @@ class ActivityListController extends KDListViewController
       for item in @itemsOrdered
         if item.getData() instanceof NewMemberBucketData
           data = item.getData()
-          data.buckets.unshift bucket
+          # debugger
+          data.anchors.pop()
+          data.anchors.unshift bucket.anchor
           item.destroySubViews()
           item.addChildView data
           break
