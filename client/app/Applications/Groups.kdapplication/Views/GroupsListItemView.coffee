@@ -19,6 +19,7 @@ class GroupsListItemView extends KDListItemView
         menu        : @settingsMenu data
         callback    : (event)=> @settingsButton.contextMenu event
 
+    # TODO : hide settings button for non-admins
     # @settingsButton.hide()
 
 
@@ -37,24 +38,17 @@ class GroupsListItemView extends KDListItemView
       click       : (event) => @titleReceivedClick event
     , data
 
-    # if options.editable
-    #   @editGroupButton = new KDCustomHTMLView
-    #     tagName     : 'a'
-    #     cssClass    : 'edit-group'
-    #     partial     : '<span class="icon"></span>Group settings'
-    #     click       : (pubInst, event) =>
-    #       @getSingleton('mainController').emit 'EditGroupButtonClicked', this
-    #   , null
-
-    #   @grantPermissionsButton = new KDCustomHTMLView
-    #     tagName     : 'a'
-    #     cssClass    : 'edit-group'
-    #     partial     : '<span class="icon"></span>Permissions'
-    #     click       : (pubInst, event) =>
-    #       @getSingleton('mainController').emit 'EditPermissionsButtonClicked', this
-    #   , null
-    # else
-    #   @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+    @bodyView = new KDCustomHTMLView
+      tagName  : 'span'
+      pistachio : '{{#(body)}}'
+      tooltip     :
+        title     : @getData().body
+        direction : 'right'
+        placement : 'top'
+        offset    :
+          top     : 6
+          left    : -2
+    ,data
 
     @joinButton = new JoinButton
       style           : if data.member then "follow-btn following-topic" else "follow-btn"
@@ -81,6 +75,8 @@ class GroupsListItemView extends KDListItemView
       ]
     , data
 
+    # TODO: hide enter button for non-admins
+
     @enterButton = new KDButtonView
       cssClass        : 'follow-btn enter-group'
       title           : "Enter"
@@ -88,7 +84,6 @@ class GroupsListItemView extends KDListItemView
       # icon : yes
       # iconClass : 'enter-group'
       callback        : (event)=>
-        log 'Speak Friend and enter.'
         KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
 
     , data
@@ -99,16 +94,13 @@ class GroupsListItemView extends KDListItemView
     account        = KD.whoami()
     mainController = @getSingleton('mainController')
 
-    # if data.originId is KD.whoami().getId()
     menu =
-        'Group Settings'     :
-          callback : =>
-            mainController.emit 'EditGroupButtonClicked', @
-        'Permissions'     :
-          callback : =>
-            mainController.emit 'EditPermissionsButtonClicked', @
-
-      return menu
+      'Group Settings'     :
+        callback : =>
+          mainController.emit 'EditGroupButtonClicked', @
+      'Permissions'     :
+        callback : =>
+          mainController.emit 'EditPermissionsButtonClicked', @
 
     # if KD.checkFlag 'super-admin'
     #   menu =
@@ -119,7 +111,7 @@ class GroupsListItemView extends KDListItemView
     #       callback : =>
     #         mainController.unmarkUserAsTroll data
 
-      return menu
+    return menu
 
   titleReceivedClick:(event)->
     group = @getData()
@@ -161,14 +153,14 @@ class GroupsListItemView extends KDListItemView
     return unless @_trimmedBody
     # @$clone.remove()
 
-  pistachio:->
+  pistachio:-> # {article{#(body)}}
     """
     {{>@settingsButton}}
     <div class="topictext">
       <span class="avatar">{{>@avatar}}</span>
       <div class="content">
       {h3{> @titleLink}}
-      {article{#(body)}}
+      {article{> @bodyView}}
       </div>
       <div class="topicmeta clearfix">
         <div class="topicstats">
