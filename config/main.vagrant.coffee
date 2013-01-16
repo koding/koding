@@ -83,8 +83,6 @@ module.exports = deepFreeze
       suppressLogs: no
       broker    :
         sockJS  : 'http://koding.local:8008/subscribe'
-      version   : version
-      mainUri   : 'http://koding.local'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -113,7 +111,6 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-
   librato:
     push: no
     email: ""

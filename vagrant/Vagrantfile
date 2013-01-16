@@ -105,7 +105,8 @@ Vagrant::Config.run do |config|
           web_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 512,
-                                    "--cpus", 2
+                                    "--cpus", 2,
+                                    "--name", "koding_web"
                                   ]
 
           web_config.vm.provision :chef_solo do |chef|
@@ -129,7 +130,8 @@ Vagrant::Config.run do |config|
               web0_config.vm.customize [
                                         "modifyvm", :id,
                                         "--memory", 368,
-                                        "--cpus", 1
+                                        "--cpus", 1,
+                                        "--name", "koding_web0"
                                       ]
 
               web0_config.vm.provision :chef_solo do |chef|
@@ -154,7 +156,8 @@ Vagrant::Config.run do |config|
               web1_config.vm.customize [
                                         "modifyvm", :id,
                                         "--memory", 368,
-                                        "--cpus", 1
+                                        "--cpus", 1,
+                                        "--name", "koding_web1"
                                       ]
 
               web1_config.vm.provision :chef_solo do |chef|
@@ -179,7 +182,8 @@ Vagrant::Config.run do |config|
               web2_config.vm.customize [
                                         "modifyvm", :id,
                                         "--memory", 368,
-                                        "--cpus", 1
+                                        "--cpus", 1,
+                                        "--name", "koding_web2"
                                       ]
 
               web2_config.vm.provision :chef_solo do |chef|
@@ -204,7 +208,8 @@ Vagrant::Config.run do |config|
               web3_config.vm.customize [
                                         "modifyvm", :id,
                                         "--memory", 368,
-                                        "--cpus", 1
+                                        "--cpus", 1,
+                                        "--name", "koding_web3"
                                       ]
 
               web3_config.vm.provision :chef_solo do |chef|
@@ -229,7 +234,8 @@ Vagrant::Config.run do |config|
               web4_config.vm.customize [
                                         "modifyvm", :id,
                                         "--memory", 368,
-                                        "--cpus", 1
+                                        "--cpus", 1,
+                                        "--name", "koding_web4"
                                       ]
 
               web4_config.vm.provision :chef_solo do |chef|
@@ -255,7 +261,8 @@ Vagrant::Config.run do |config|
           rabbitmq_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 368,
-                                    "--cpus", 1
+                                    "--cpus", 1,
+                                    "--name", "koding_rabbitmq"
                                   ]
 
           rabbitmq_config.vm.provision :chef_solo do |chef|
@@ -279,7 +286,8 @@ Vagrant::Config.run do |config|
           cloudlinux_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 368,
-                                    "--cpus", 1
+                                    "--cpus", 1,
+                                    "--name", "koding_cloudlinux"
                                   ]
 
           cloudlinux_config.vm.provision :chef_solo do |chef|
@@ -302,7 +310,8 @@ Vagrant::Config.run do |config|
           ldap_config.vm.customize [
                                     "modifyvm", :id,
                                     "--memory", 368,
-                                    "--cpus", 1
+                                    "--cpus", 1,
+                                    "--name", "koding_ldap"
                                   ]
 
           ldap_config.vm.provision :chef_solo do |chef|
