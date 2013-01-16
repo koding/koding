@@ -28,7 +28,7 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    deploy_to         node['kd_deploy']['deploy_dir']
    repo              'git@kodingen.beanstalkapp.com:/koding.git'
    revision          node['kd_deploy']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
-   branch            "dev-new"
+   branch            "master_autoscale"
    action            node['kd_deploy']['release_action']
    shallow_clone     true
    enable_submodules false
