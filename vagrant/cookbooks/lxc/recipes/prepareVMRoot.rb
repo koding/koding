@@ -7,11 +7,8 @@
 # All rights reserved - Do Not Redistribute
 #
 
-if (! ::File.exists?("/cgroup"))
-	then
-	execute "mkdir -p /cgroup"
-	execute "mount none -t cgroup /cgroup"
-end
+execute "mkdir -p /cgroup"
+execute "mount none -t cgroup /cgroup"
 
 execute "mkdir -p /var/lib/lxc/vmroot"
 cookbook_file "/var/lib/lxc/vmroot/config" do
