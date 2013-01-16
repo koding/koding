@@ -125,9 +125,7 @@ class GlobalNotification extends KDView #KDNotificationView
      <span class='icon'></span>
      {{> @timer}}
      </div>
-
      {{> @content}}
-
      <div class='slider-wrapper'>
        <div class='slider'>
         {{> @current}}
@@ -183,6 +181,7 @@ class GlobalNotification extends KDView #KDNotificationView
       if (@getCurrentTimePercentage() < @getOptions().flashThresholdPercentage) \
       or (@getCurrentTimeRemaining()/1000 < @getOptions().flashThresholdSeconds)
         @current.setClass 'flash'
+      else @current.unsetClass 'flash'
       currentTime = parseInt(@endTime - new Date(Date.now()),10)
       @timer.updatePartial timeText currentTime
 
