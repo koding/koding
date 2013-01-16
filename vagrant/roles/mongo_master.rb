@@ -1,7 +1,8 @@
 name "mongo_master"
 description "The role for MongoDB system master servers"
 
-run_list ["recipe[mongodb]"]
+env_run_lists "prod" =>  ["recipe[mongodb]"],
+              "_default" => []
 
 default_attributes({ "mongodb" => {
                                 "master" => true,
