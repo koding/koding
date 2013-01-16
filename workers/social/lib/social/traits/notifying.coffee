@@ -13,9 +13,9 @@ module.exports = class Notifying
       @notify receiver, event, contents
 
   notify:(receiver, event, contents)->
+    JEmailNotificationGG  = require '../models/emailnotification'
     JAccount = require '../models/account'
     CBucket  = require '../models/bucket'
-    JEmail   = require '../models/email'
     JUser    = require '../models/user'
 
     actor = contents[contents.actorType]
@@ -27,7 +27,7 @@ module.exports = class Notifying
       relationship = new Relationship contents.relationship
       CBucket.addActivities relationship, origin, actor, (err)->
         if receiver instanceof JAccount
-          JEmail.createNotificationEmail {actor, receiver, event, contents}, \
+          JEmailNotificationGG.create {actor, receiver, event, contents}, \
           (err)->
             console.error err if err
 
