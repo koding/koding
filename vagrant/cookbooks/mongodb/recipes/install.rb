@@ -22,7 +22,7 @@ directory node['mongodb']['logpath'] do
   owner "mongodb"
   group "mongodb"
   mode 00755
-  action :create
+  action :nothing
   subscribes :create, resources(:package => node['mongodb']['package_name'] ), :immediately
 end
 

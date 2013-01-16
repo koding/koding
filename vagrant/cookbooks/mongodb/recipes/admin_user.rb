@@ -27,7 +27,7 @@ ruby_block "create-admin-user" do
   not_if do
     File.exists?("#{node['mongodb']['dbpath']}/admin.1")  
   end
-  subscribes :create, resources(:service => node['mongodb']['service_name'] ), :immediately
+  subscribes :create, resources(:package => node['mongodb']['package_name'] ), :immediately
   notifies :create, "template[#{node['mongodb']['configfile']}]", :delayed
   notifies :restart, resources(:service => node['mongodb']['service_name'] ), :delayed
   action :nothing
