@@ -131,7 +131,7 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
-      currentGroup = appManager.tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
+      appManager.tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
         data.group = currentGroup
         KD.remote.api[constructorName].create data, (err, activity)=>
           callback? err, activity
