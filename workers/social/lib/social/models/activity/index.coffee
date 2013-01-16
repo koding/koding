@@ -80,6 +80,7 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
+      # group        : 'koding'
       createdAt    :
         $lt        : new Date to
         $gt        : new Date from
@@ -266,16 +267,18 @@ do ->
     ]
 
   CActivity.on "ActivityIsCreated", (activity)->
-    console.log "ever here", activity.constructor.name
-    if activity.constructor.name in typesToBeCached
+    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
+    # if activity.constructor.name in typesToBeCached
       JActivityCache.init()
 
   CActivity.on "post-updated", (teaser)->
+    #if activity.group is 'koding' then 
     JActivityCache.modifyByTeaser teaser
 
   CActivity.on "BucketIsUpdated", (activity, bucket)->
     console.log bucket.constructor.name, "is being updated"
-    if activity.constructor.name in typesToBeCached
+    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
+    # if activity.constructor.name in typesToBeCached
       JActivityCache.modifyByTeaser bucket
 
   console.log "\"feed-new\" event for Activity Caching is bound."

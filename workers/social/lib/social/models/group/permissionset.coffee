@@ -2,11 +2,16 @@
 {Module} = require 'jraphical'
 
 class JPermission extends Model
-  @setSchema
-    module  : String
-    title   : String
-    body    : String
-    roles   : [String]
+  @set
+    indexes   :
+      module  : 'sparse'
+      title   : 'sparse'
+      roles   : 'sparse'
+    schema    :
+      module  : String
+      title   : String
+      body    : String
+      roles   : [String]
 
 module.exports = class JPermissionSet extends Module
 
@@ -29,6 +34,7 @@ module.exports = class JPermissionSet extends Module
         permissions = []
         queue = chain.map (group)->->
           delegate.fetchRoles group, (err, roles)->
+            console.log roles
             if err then queue.fin(err)
             else if roles.length
               if 'admin' in roles
@@ -70,7 +76,8 @@ module.exports = class JPermissionSet extends Module
       JPermissionSet.checkPermission(
         delegate
         permission
-        @, (err, hasPermission)->
+        this
+        (err, hasPermission)->
           if err
             failure err
           else if hasPermission

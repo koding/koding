@@ -74,6 +74,7 @@ module.exports = class JDiscussion extends JPost
       title       : data.title
       body        : data.body
       meta        : data.meta
+      group       : data.group
     JPost.create.call @, client, discussion, callback
 
   modify: secure (client, data, callback)->

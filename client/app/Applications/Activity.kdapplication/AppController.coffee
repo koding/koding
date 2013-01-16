@@ -100,9 +100,7 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
 
     isExempt (exempt)=>
-      bypassCache = exempt or (@getFilter() isnt activityTypes) or\
-         @currentGroup isnt 'koding' and @currentGroup isnt @loadedGroup
-      console.log {@currentGroup, @loadedGroup}
+      bypassCache = exempt or (@getFilter() isnt activityTypes) or @currentGroup isnt 'koding'
       if bypassCache
 
         options = to : options.to or Date.now()
@@ -161,7 +159,6 @@ class ActivityAppController extends AppController
 
 
   fetchCachedActivity:(options = {}, callback)->
-
     isLoading = yes
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()

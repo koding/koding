@@ -325,7 +325,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
       setModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
-      if @newMemberBucketIndex
+      if @newMemberBucketIndex?
         oldOverview = overview
         overview = []
         freshNewMemberBuckets = []
@@ -352,12 +352,10 @@ module.exports = class JActivityCache extends jraphical.Module
         createdAt = freshNewMemberBuckets.last.createdAt.first
         setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt
 
-      updateOperation = {
-        $pushAll: pushAllModifier
-        $set    : setModifier
-      }
+      if overview.length
+        @update $pushAll: pushAllModifier, ->
 
-      @update updateOperation, (err)-> callback?()
+      @update $set: setModifier, (err)-> callback?()
 
     # JActivityCache.fetchOverviewTeasers overview, (err, activityHash)=>
 
