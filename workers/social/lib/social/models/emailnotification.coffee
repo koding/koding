@@ -65,7 +65,7 @@ module.exports = class JEmailNotificationGG extends Model
               if contentType in type.contentTypes and event is type.eventType
                 if emailFrequency[key]
                   state = emailFrequency[key]
-                  callback null, state, email
+                  callback null, state, email, key
                   return
           callback null
 

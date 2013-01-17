@@ -50,15 +50,26 @@ commonTemplate   = (m)->
     Management
   """
 
+flags =
+  comment           :
+    template        : commonTemplate
+  likeActivities    :
+    template        : commonTemplate
+  likeComments      :
+    template        : commonTemplate
+  followActions     :
+    template        : commonTemplate
+  privateMessage    :
+    template        : commonTemplate
+
 prepareAndSendEmail = (notification)->
 
   sendEmail = (details)->
     {notification} = details
-    # log "This is the mail:", commonTemplate details
     Emailer.send
       To        : details.email
       Subject   : commonHeader details
-      HtmlBody  : commonTemplate details
+      HtmlBody  : flags[details.key].template details
     , (err, status)->
       log "An error occured: #{err}" if err
       notification.update $set: status: 'attempted', (err)->
@@ -128,7 +139,7 @@ prepareAndSendEmail = (notification)->
         event       : event
         contentType : contentType
         username    : receiver.profile.nickname
-      , (err, state, email)->
+      , (err, state, email, key)->
         if err
           console.error "Could not load user record"
           callback err
@@ -147,7 +158,7 @@ prepareAndSendEmail = (notification)->
                   if err then callback err
                   else
                     realContent = subjectContent
-                    details = {sender, receiver, event, email, \
+                    details = {sender, receiver, event, email, key, \
                                subjectContent, realContent, notification}
                     fetchSubjectContentLink subjectContent, contentType, \
                     (err, link)->
@@ -177,7 +188,7 @@ job = new CronJob email.notificationCron, ->
         log "There are #{emails.length} mail in queue."
         for email in emails
           prepareAndSendEmail email
-      else
-        log "E-Mail queue is empty. Yay."
+      # else
+      #   log "E-Mail queue is empty. Yay."
 
 job.start()
