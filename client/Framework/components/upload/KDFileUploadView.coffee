@@ -66,6 +66,7 @@ class KDFileUploadView extends KDView
     reader = new FileReader()
     reader.onload = (event)=>
       @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
+      @emit "FileReadComplete", {progressEvent : event, file : file}
 
     reader.readAsDataURL file
 
