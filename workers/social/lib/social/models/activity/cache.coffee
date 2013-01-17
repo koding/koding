@@ -141,9 +141,9 @@ module.exports = class JActivityCache extends jraphical.Module
 
             # terminate only if there are no new items to be cached
             if overview.length is 0
-              cacheQueue.push ->
+              cacheQueue.push =>
                 log "caching finished"
-                CActivity.emit "CachingFinished"
+                @emit "CachingFinished"
               daisy cacheQueue
               return
 
@@ -168,8 +168,8 @@ module.exports = class JActivityCache extends jraphical.Module
               console.log it.createdAt[0]
           ###
 
-          @createCache overview2d, ->
-            CActivity.emit "CachingFinished"
+          @createCache overview2d, =>
+            @emit "CachingFinished"
             log "caching finished"
 
 
