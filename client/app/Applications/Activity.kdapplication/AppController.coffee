@@ -150,6 +150,8 @@ class ActivityAppController extends AppController
       if err then callback err
       else
         activities = clearQuotes activities
+        log activities
+        # return
         KD.remote.reviveFromSnapshots activities, callback
 
 

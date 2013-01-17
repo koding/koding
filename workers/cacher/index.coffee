@@ -22,40 +22,40 @@ koding = new Bongo {
 
 {JActivityCache, CActivity} = koding.models
 
-do ->
+# do ->
 
-  typesToBeCached = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-    ]
+#   typesToBeCached = [
+#       'CStatusActivity'
+#       'CCodeSnipActivity'
+#       'CFollowerBucketActivity'
+#       'CNewMemberBucketActivity'
+#       'CDiscussionActivity'
+#       'CTutorialActivity'
+#       'CInstallerBucketActivity'
+#     ]
 
-  cachingInProcess = no
+#   cachingInProcess = no
 
-  # koding.mq
-  koding.connect ->
+#   # koding.mq
+#   koding.connect ->
 
-    JActivityCache.on "CachingFinished", -> cachingInProcess = no
+#     JActivityCache.on "CachingFinished", -> cachingInProcess = no
 
-    CActivity.addGlobalListener "ActivityIsCreated", (activity)->
-      console.log "ever here", activity.constructor.name
-      if not cachingInProcess and activity.constructor.name in typesToBeCached
-        cachingInProcess = yes
-        JActivityCache.init()
+#     CActivity.addGlobalListener "ActivityIsCreated", (activity)->
+#       console.log "ever here", activity.constructor.name
+#       if not cachingInProcess and activity.constructor.name in typesToBeCached
+#         cachingInProcess = yes
+#         JActivityCache.init()
 
-    CActivity.addGlobalListener "post-updated", (teaser)->
-      JActivityCache.modifyByTeaser teaser
+#     CActivity.addGlobalListener "post-updated", (teaser)->
+#       JActivityCache.modifyByTeaser teaser
 
-    CActivity.addGlobalListener "BucketIsUpdated", (activity, bucket)->
-      console.log bucket.constructor.name, "is being updated"
-      if activity.constructor.name in typesToBeCached
-        JActivityCache.modifyByTeaser bucket
+#     CActivity.addGlobalListener "BucketIsUpdated", (activity, bucket)->
+#       console.log bucket.constructor.name, "is being updated"
+#       if activity.constructor.name in typesToBeCached
+#         JActivityCache.modifyByTeaser bucket
 
-    console.log "\"feed-new\" event for Activity Caching is bound."
-    console.log "\"post-updated\" event for Activity Caching is bound."
+#     console.log "\"feed-new\" event for Activity Caching is bound."
+#     console.log "\"post-updated\" event for Activity Caching is bound."
 
 
