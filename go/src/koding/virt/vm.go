@@ -18,9 +18,14 @@ import (
 type VM struct {
 	Id           bson.ObjectId "_id"
 	Name         string        "name"
-	Users        []int         "users"
+	Users        []*UserEntry  "users"
 	LdapPassword string        "ldapPassword"
 	IP           net.IP        "ip"
+}
+
+type UserEntry struct {
+	Id   int  "id"
+	Sudo bool "sudo"
 }
 
 const VMROOT_ID = 1000000
@@ -111,13 +116,13 @@ func (vm *VM) UpperdirFile(path string) string {
 	return vm.File("overlayfs-upperdir/" + path)
 }
 
-func (vm *VM) HasUser(user *db.User) bool {
-	for _, uid := range vm.Users {
-		if uid == user.Id {
-			return true
+func (vm *VM) GetUserEntry(user *db.User) *UserEntry {
+	for _, entry := range vm.Users {
+		if entry.Id == user.Id {
+			return entry
 		}
 	}
-	return false
+	return nil
 }
 
 func LowerdirFile(path string) string {
@@ -127,7 +132,7 @@ func LowerdirFile(path string) string {
 // may panic
 func FetchUnusedVM(user *db.User) *VM {
 	var vm VM
-	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": user.Id}}, ReturnNew: true}, &vm)
+	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": bson.M{"id": user.Id, "sudo": true}}}, ReturnNew: true}, &vm)
 	if err == nil {
 		return &vm // existing unused VM found
 	}
@@ -136,7 +141,7 @@ func FetchUnusedVM(user *db.User) *VM {
 	}
 
 	// create new vm
-	vm = VM{Id: bson.NewObjectId(), Users: []int{user.Id}}
+	vm = VM{Id: bson.NewObjectId(), Users: []*UserEntry{&UserEntry{Id: user.Id, Sudo: true}}}
 
 	// create disk
 	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
@@ -203,8 +208,8 @@ func (vm *VM) Prepare() {
 	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
 
 	// create user homes
-	for i, userId := range vm.Users {
-		user, err := db.FindUserById(userId)
+	for i, entry := range vm.Users {
+		user, err := db.FindUserById(entry.Id)
 		if err != nil {
 			panic(err)
 		}

@@ -9,6 +9,7 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -48,16 +49,21 @@ func handleConnection(conn net.Conn) {
 			name := request.Children[1].Value.(string)
 			password := request.Children[2].Data.String()
 
-			if name != "" {
-				vm, err = virt.FindVMById(bson.ObjectIdHex(name))
-				if err != nil || password != vm.LdapPassword {
-					conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
-					continue
-				}
+			if name == "vmhost" && password == "abc" {
+				bound = true
+			} else if strings.HasPrefix(name, "vm-") {
+				vm, err = virt.FindVMById(bson.ObjectIdHex(name[3:]))
+				bound = (err == nil && password == vm.LdapPassword)
+			} else {
+				user, err := db.FindUserByName(name)
+				bound = (err == nil && user.Password == password)
 			}
 
-			bound = true
-			conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultSuccess).Bytes())
+			if bound {
+				conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultSuccess).Bytes())
+			} else {
+				conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
+			}
 
 		case ApplicationUnbindRequest:
 			bound = false
@@ -81,9 +87,45 @@ func handleConnection(conn net.Conn) {
 }
 
 func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn) bool {
-	var attributes map[string]string
 	switch findAttributeInFilter(filter, "objectClass") {
-	case "posixAccount":
+	case "posixGroup":
+		if memberUid := findAttributeInFilter(filter, "memberUid"); memberUid != "" {
+			if vm == nil {
+				return true
+			}
+
+			user, err := db.FindUserByName(memberUid)
+			if err != nil {
+				return true
+			}
+			userEntry := vm.GetUserEntry(user)
+
+			if userEntry != nil && userEntry.Sudo {
+				conn.Write(createSearchResultEntry(messageID, map[string]string{
+					"objectClass": "posixGroup",
+					"cn":          "sudo",
+					"gidNumber":   "27",
+				}).Bytes())
+			}
+
+		} else if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
+			gid, _ := strconv.Atoi(gidStr)
+			user, err := db.FindUserById(gid)
+			if err != nil || (vm != nil && vm.GetUserEntry(user) != nil) {
+				return true
+			}
+
+			conn.Write(createSearchResultEntry(messageID, map[string]string{
+				"objectClass": "posixGroup",
+				"cn":          user.Name,
+				"gidNumber":   gidStr,
+			}).Bytes())
+
+		} else {
+			return false
+		}
+
+	default: // including "posixAccount"
 		var user *db.User
 		var err error
 		if name := findAttributeInFilter(filter, "uid"); name != "" {
@@ -94,59 +136,22 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		} else {
 			return false
 		}
-		if err != nil || !vm.HasUser(user) {
+		if err != nil || (vm != nil && vm.GetUserEntry(user) != nil) {
 			return true
 		}
 
-		attributes = map[string]string{
+		conn.Write(createSearchResultEntry(messageID, map[string]string{
+			"objectClass":   "posixAccount",
+			"cn":            user.Name,
 			"uid":           user.Name,
-			"userPassword":  "",
+			"userPassword":  "{SSHA}MmhmXrqch9NbAcRA6Z79OTSj6MqNXQxF",
 			"uidNumber":     strconv.Itoa(user.Id),
 			"gidNumber":     strconv.Itoa(user.Id),
-			"cn":            user.Name,
 			"homeDirectory": "/home/" + user.Name,
 			"loginShell":    "/bin/bash",
-			"gecos":         "",
-			"description":   "",
-		}
+		}).Bytes())
 
-	case "posixGroup":
-		if findAttributeInFilter(filter, "memberUid") != "" {
-			// ignoring group membership queries
-			return true
-		}
-
-		gidStr := findAttributeInFilter(filter, "gidNumber")
-		if gidStr == "" {
-			return false
-		}
-		gid, _ := strconv.Atoi(gidStr)
-		user, err := db.FindUserById(gid)
-		if err != nil || !vm.HasUser(user) {
-			return true
-		}
-
-		attributes = map[string]string{
-			"cn":           user.Name,
-			"userPassword": "",
-			"memberUid":    "",
-			"uniqueMember": "",
-			"gidNumber":    gidStr,
-		}
-	default:
-		return false
 	}
-
-	response := createLDAPMessage(messageID)
-	entry := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationSearchResultEntry, nil, "SearchResultEntry")
-	entry.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimative, ber.TagOctetString, "noName", "objectName"))
-	attributeSequence := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "attributes")
-	for key, value := range attributes {
-		attributeSequence.AppendChild(createAttribute(key, value))
-	}
-	entry.AppendChild(attributeSequence)
-	response.AppendChild(entry)
-	conn.Write(response.Bytes())
 
 	return true
 }
@@ -184,6 +189,19 @@ func createLDAPResponse(tag uint8, resultCode uint64) *ber.Packet {
 func createSimpleResponse(messageID uint64, tag uint8, resultCode uint64) *ber.Packet {
 	response := createLDAPMessage(messageID)
 	response.AppendChild(createLDAPResponse(tag, resultCode))
+	return response
+}
+
+func createSearchResultEntry(messageID uint64, attributes map[string]string) *ber.Packet {
+	response := createLDAPMessage(messageID)
+	entry := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationSearchResultEntry, nil, "SearchResultEntry")
+	entry.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimative, ber.TagOctetString, attributes["cn"], "objectName"))
+	attributeSequence := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "attributes")
+	for key, value := range attributes {
+		attributeSequence.AppendChild(createAttribute(key, value))
+	}
+	entry.AppendChild(attributeSequence)
+	response.AppendChild(entry)
 	return response
 }
 
