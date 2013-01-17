@@ -132,16 +132,9 @@ class GroupsAppController extends AppController
             title : "Select an Avatar"
             partial : "<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>"
             callback :(formData)=>
-              {inputs, buttons} = modal.modalTabs.forms["Avatar"]
+              log 'image data, ready for S3 upload',formData
 
-              fileData = inputs['Drop Image here'].fileList.items[0]?.data
-              log 'fileData is',fileData
-
-              if fileData
-                log 'uploading to s3 should happen here. then add returned ULR to data.avatar IMPLEMENT ME!'
-
-                log 'closing modal now.'
-                modal.destroy()
+              modal.destroy()
 
             buttons:
               Save                :
@@ -158,11 +151,42 @@ class GroupsAppController extends AppController
             fields:
               "Drop Image here"              :
                 label             : "Avatar"
-                itemClass         : KDImageUploadView
+                itemClass         : KDImageUploadSingleView
                 name              : "group-avatar"
                 limit             : 1
                 preview           : 'thumbs'
-
+                actions         : {
+                  big    :
+                    [
+                      'scale', {
+                        shortest: 400
+                      }
+                      'crop', {
+                        width   : 400
+                        height  : 400
+                      }
+                    ]
+                  medium         :
+                    [
+                      'scale', {
+                        shortest: 200
+                      }
+                      'crop', {
+                        width   : 200
+                        height  : 200
+                      }
+                    ]
+                  small         :
+                    [
+                      'scale', {
+                        shortest: 60
+                      }
+                      'crop', {
+                        width   : 60
+                        height  : 60
+                      }
+                    ]
+                }
           "General Settings":
             title: if isNewGroup then 'Create a group' else 'Edit group'
             callback:(formData)=>
@@ -228,7 +252,7 @@ class GroupsAppController extends AppController
 
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       modal.$('img.avatar-image').attr 'src' : stuff.file.data
-
+      modal.$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
       if err

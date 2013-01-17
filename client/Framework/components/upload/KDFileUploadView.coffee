@@ -278,3 +278,15 @@ class KDFileUploadThumbItemView extends KDListItemView
         <span class='file-size'>#{(file.size / 1024).toFixed(2)}kb</span>
         <span class='close-icon'></span>
        </p>"
+
+class KDFileUploadSingleView extends KDFileUploadView
+
+    putFileInQueue:(file)->
+      @files = {}
+      @fileList.empty()
+      if not @isDuplicate(file) and @checkLimits(file)
+        @files[file.name] = file
+        @fileList.addItem file
+        return yes
+      else
+        return no

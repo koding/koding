@@ -360,10 +360,12 @@
 
 .group-admin-modal
   img.avatar-image
-    width 50%
+    width 250px
+    height 250px
     display inline
     margin-top -1px
     fl()
+    border-bottom 1px solid #e5e5e5
   div.group-avatar
     width 50%
     borderBox()
@@ -371,8 +373,19 @@
     height 250px
     label.avatar
       display none
+    .input-wrapper
+      height 100%
     div.kdfileupload
+      height 100%
       min-width 0px
+      .kdfileuploadarea
+        bg size, contain
+        bg position, center center
+        bg repeat, no-repeat no-repeat
+
+        height 100%
+    .listview-wrapper
+      display none
 
 
 
