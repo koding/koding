@@ -31,19 +31,19 @@ module.exports = class JEmailNotificationGG extends Model
                         'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
   flags =
     comment           :
-      eventType       : 'ReplyIsAdded'
+      eventType       : ['ReplyIsAdded']
       contentTypes    : @commonActivities
     likeActivities    :
-      eventType       : 'LikeIsAdded'
+      eventType       : ['LikeIsAdded']
       contentTypes    : @commonActivities
     likeComments      :
-      eventType       : 'LikeIsAdded'
+      eventType       : ['LikeIsAdded']
       contentTypes    : ['JComment']
     followActions     :
       eventType       : ''
       contentTypes    : []
     privateMessage    :
-      eventType       : 'ReplyIsAdded'
+      eventType       : ['ReplyIsAdded', 'PrivateMessageSent']
       contentTypes    : ['JPrivateMessage']
 
   @checkEmailChoice = (options, callback)->
@@ -62,7 +62,7 @@ module.exports = class JEmailNotificationGG extends Model
         else
           if emailFrequency.global is 'instant'
             for key, type of flags
-              if contentType in type.contentTypes and event is type.eventType
+              if contentType in type.contentTypes and event in type.eventType
                 if emailFrequency[key]
                   state = emailFrequency[key]
                   callback null, state, email, key

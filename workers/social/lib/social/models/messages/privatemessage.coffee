@@ -49,16 +49,20 @@ module.exports = class JPrivateMessage extends JPost
           if err
             fin err
           else
-            # @emit 'NewPrivateMessageHasArrived',
+            # FIXME GG
+            # recipient.emit 'NewPrivateMessageHasArrived',
             #   actorType   : 'sender'
             #   actionType  : 'newMessage'
             #   sender      : ObjectRef(sender).data
             #   subject     : ObjectRef(pm).data
-            recipient.sendNotification 'NewPrivateMessageHasArrived',
-              actorType   : 'sender'
-              actionType  : 'newMessage'
-              sender      : ObjectRef(sender).data
-              subject     : ObjectRef(pm).data
+            # recipient.sendNotification 'NewPrivateMessageHasArrived',
+
+            recipient.emit 'PrivateMessageSent',
+              origin        : recipient
+              subject       : ObjectRef(pm).data
+              actorType     : 'sender'
+              sender        : ObjectRef(sender).data
+
             fin()
             # jraphical.Channel.fetchPrivateChannelById recipient.getId(), (err, channel)->
             #   channel.publish sender, pm

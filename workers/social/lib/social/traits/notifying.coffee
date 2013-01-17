@@ -21,15 +21,25 @@ module.exports = class Notifying
     actor = contents[contents.actorType]
     {origin} = contents
 
+    # console.log "HERE I AM", arguments
+
+    createActivity = =>
+      if contents.relationship?
+        relationship = new Relationship contents.relationship
+        CBucket.addActivities relationship, origin, actor, (err)->
+          console.err err if err
+
+    sendNotification = =>
+      # console.log 'sendNotification'
+      if receiver instanceof JAccount
+        JEmailNotificationGG.create {actor, receiver, event, contents}, \
+        (err)->
+          console.error err if err
+
     if actor? and not receiver.getId().equals actor.id
       receiver?.sendNotification? event, contents
-
-      relationship = new Relationship contents.relationship
-      CBucket.addActivities relationship, origin, actor, (err)->
-        if receiver instanceof JAccount
-          JEmailNotificationGG.create {actor, receiver, event, contents}, \
-          (err)->
-            console.error err if err
+      do createActivity
+      do sendNotification
 
   notifyOriginWhen:(events...)->
     @setNotifiers events, (event, contents)=>

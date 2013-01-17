@@ -13,6 +13,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
+  @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
   JAppStorage = require './appstorage'
@@ -165,6 +166,10 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  constructor:->
+    super
+    @notifyOriginWhen 'PrivateMessageSent'
 
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client

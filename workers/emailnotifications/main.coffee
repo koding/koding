@@ -24,21 +24,22 @@ log "Koding E-Mail Notification Worker has started with PID #{process.pid}"
 
 commonHeader     = (m)-> """[Koding Bot] A new notification"""
 commonTemplate   = (m)->
-
   action  = ''
-  preview = ''
+  preview = """
+
+              <hr/>
+                #{m.realContent.body}
+              <hr/>
+
+            """
   switch m.event
     when 'LikeIsAdded'
       action = "liked your"
+      preview = ''
+    when 'PrivateMessageSent'
+      action = "sent you a"
     when 'ReplyIsAdded'
       action  = "commented on your"
-      preview = """
-
-                  <hr/>
-                    #{m.realContent.body}
-                  <hr/>
-
-                """
 
   """
     Hi #{m.receiver.profile.firstName},
@@ -66,6 +67,8 @@ prepareAndSendEmail = (notification)->
 
   sendEmail = (details)->
     {notification} = details
+    # log "MAIL", flags[details.key].template details
+
     Emailer.send
       To        : details.email
       Subject   : commonHeader details
@@ -109,7 +112,9 @@ prepareAndSendEmail = (notification)->
       JPrivateMessage   : "#{pre}private message</a>"
       JQuestionActivity : "#{pre}question</a>"
 
-    if content.slug
+    if type is 'JPrivateMessage'
+      callback null, "<a href='https://koding.com/Inbox'>private message</a>"
+    else if content.slug
       callback null, contentTypeLinkMap(content.slug)[type]
     else
       {constructorName} = content.bongo_
