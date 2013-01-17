@@ -81,7 +81,7 @@ module.exports = class JPermissionSet extends Module
           if err
             failure err
           else if hasPermission
-            success.apply @, [client, rest..., callback]
+            success.apply this, [client, rest..., callback]
           else
             failure new KodingError 'Access denied!'
       )

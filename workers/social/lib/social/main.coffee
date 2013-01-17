@@ -66,7 +66,7 @@ koding = new Bongo
       if err
         koding.emit 'error', err
       else
-        callback {sessionToken, connection:delegate:account}
+        callback {sessionToken, context, connection:delegate:account}
 
 koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection

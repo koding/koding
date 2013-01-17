@@ -5,13 +5,16 @@ module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
 
+  {permit} = require '../group/permissionset'
+
   @getFlagRole =-> 'activity'
 
   jraphical.Snapshot.watchConstructor @
 
   @share()
 
-  @trait __dirname, '../../traits/followable', override: no
+  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/restrictedquery'
 
   @set
     feedable          : yes
@@ -24,7 +27,7 @@ module.exports = class CActivity extends jraphical.Capsule
       group                 : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','each','cursor','teasers'
+        'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
@@ -225,26 +228,24 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
-  @fetchFacets = (options, callback)->
-    {to, limit, facets, lowQuality} = options
+  @fetchFacets = permit 'read activity'
+    success:(options, callback)->
+      {to, limit, facets, lowQuality} = options
 
-    selector =
-      type         : { $in : facets }
-      createdAt    : { $lt : new Date to }
-      isLowQuality : { $ne : lowQuality }
-      group        : options.group ? 'koding'
+      selector =
+        type         : { $in : facets }
+        createdAt    : { $lt : new Date to }
+        isLowQuality : { $ne : lowQuality }
+        group        : options.group ? 'koding'
 
-    options =
-      limit : limit or 20
-      sort  : createdAt : -1
+      options =
+        limit : limit or 20
+        sort  : createdAt : -1
 
-
-    console.log JSON.stringify selector
-
-    @some selector, options, (err, activities)->
-      if err then callback err
-      else
-        callback null, activities
+      @some selector, options, (err, activities)->
+        if err then callback err
+        else
+          callback null, activities
 
 
   markAsRead: secure ({connection:{delegate}}, callback)->
