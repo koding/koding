@@ -97,47 +97,6 @@ module.exports = class CActivity extends jraphical.Capsule
       else
         callback null, cursor
 
-  processCache = (cursorArr)->
-    console.log "processing activity cache..."
-    lastDocType = null
-
-    # group newmember buckets
-    cache = cursorArr.reduce (acc, doc)->
-      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
-        acc.last.createdAt[1] = doc.createdAt
-        if acc.last.count++ < 3
-          acc.last.ids.push doc._id
-      else
-        acc.push
-          createdAt : [doc.createdAt]
-          ids       : [doc._id]
-          type      : doc.type
-          count     : 1
-      lastDocType = doc.type
-      return acc
-    , []
-    memberBucket   = null
-    bucketIndex    = 0
-    processedCache = []
-
-    # put new member groups all together
-    cache.forEach (item, i)->
-      if /NewMemberBucket/.test item.type
-        unless memberBucket
-          memberBucket      = item
-          processedCache[i] = memberBucket
-          bucketIndex       = i
-        else
-          if processedCache[bucketIndex].ids.length < 3
-            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
-            processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
-          processedCache[bucketIndex].count += item.count
-          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
-      else
-        processedCache.push item
-
-    return processedCache
-
   @fetchRangeForCache = (options = {}, callback)->
     @fetchCacheCursor options, (err, cursor)->
       if err then console.warn err
@@ -145,8 +104,7 @@ module.exports = class CActivity extends jraphical.Capsule
         cursor.toArray (err, arr)->
           if err then callback err
           else
-            callback null, processCache arr
-
+            callback null, arr
 
   @captureSortCounts =(callback)->
     selector = {
@@ -248,39 +206,3 @@ module.exports = class CActivity extends jraphical.Capsule
     @update
       $addToSet: readBy: delegate.getId()
     , callback
-
-
-# temp, couldn't find a better place to put this
-
-do ->
-  typesToBeCached = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-    ]
-
-  cachingInProcess = no
-
-  CActivity.on "CachingFinished", -> cachingInProcess = no
-
-  CActivity.on "ActivityIsCreated", (activity)->
-    console.log "ever here", activity.constructor.name
-    if not cachingInProcess and activity.constructor.name in typesToBeCached
-      cachingInProcess = yes
-      JActivityCache.init()
-
-  CActivity.on "post-updated", (teaser)->
-    JActivityCache.modifyByTeaser teaser
-
-  CActivity.on "BucketIsUpdated", (activity, bucket)->
-    console.log bucket.constructor.name, "is being updated"
-    if activity.constructor.name in typesToBeCached
-      JActivityCache.modifyByTeaser bucket
-
-  console.log "\"feed-new\" event for Activity Caching is bound."
-  console.log "\"post-updated\" event for Activity Caching is bound."
-

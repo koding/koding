@@ -26,7 +26,7 @@ module.exports = class JActivityCache extends jraphical.Module
   ]
 
   lengthPerCache = 20
-  timespan       = 24 * 60 * 60 * 1000
+  timespan       = 120 * 60 * 60 * 1000
   cacheQueue     = []
 
   @share()
@@ -35,10 +35,8 @@ module.exports = class JActivityCache extends jraphical.Module
     indexes                 :
       to                    : 'unique'
     sharedMethods           :
-      static                : ["latest", "init", "createCacheFromEarliestTo"]
-      instance              : []
+      static                : ["init", "createCacheFromEarliestTo"]
     schema                  :
-      # name                  : String
       to                    :
         type                : Date
       from                  :
@@ -133,12 +131,9 @@ module.exports = class JActivityCache extends jraphical.Module
           # cap latest
           if latest and not latest.isFull
 
-            # return console.log "capping latest...."
             remainderAmount   = lengthPerCache - latest.overview.length
             remainderOverview = overview.splice -remainderAmount
 
-            # log remainderOverview
-            # return
             cacheQueue.push ->
               latest.cap remainderOverview, ->
                 console.log "capped latest!"
@@ -178,7 +173,7 @@ module.exports = class JActivityCache extends jraphical.Module
             log "caching finished"
 
 
-  @createCacheFromEarliestTo = (to)->
+  @createCacheFromEarliestTo = (eternity)->
 
     @earliest (err, earliest)=>
       if err then console.warn err
@@ -204,9 +199,15 @@ module.exports = class JActivityCache extends jraphical.Module
           while overview.length >= lengthPerCache
             overview2d.push overview.splice 0,lengthPerCache
 
-          @createCache overview2d
+          cb = \
+            if eternity
+              JActivityCache.createCacheFromEarliestTo.bind JActivityCache
+            else
+              ->
 
-  @createCache = (overview2d, callback)->
+          @createCache overview2d, cb
+
+  @createCache = (overview2d, callback=->)->
 
     overview2d.forEach (cacheOverview, i)->
       cacheQueue.push ->
@@ -214,6 +215,47 @@ module.exports = class JActivityCache extends jraphical.Module
 
     cacheQueue.push callback
     daisy cacheQueue
+
+  processCache = (cursorArr)->
+    console.log "processing activity cache..."
+    lastDocType = null
+
+    # group newmember buckets
+    cache = cursorArr.reduce (acc, doc)->
+      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
+        acc.last.createdAt[1] = doc.createdAt
+        if acc.last.count++ < 3
+          acc.last.ids.push doc._id
+      else
+        acc.push
+          createdAt : [doc.createdAt]
+          ids       : [doc._id]
+          type      : doc.type
+          count     : 1
+      lastDocType = doc.type
+      return acc
+    , []
+    memberBucket   = null
+    bucketIndex    = 0
+    processedCache = []
+
+    # put new member groups all together
+    cache.forEach (item, i)->
+      if /NewMemberBucket/.test item.type
+        unless memberBucket
+          memberBucket      = item
+          processedCache[i] = memberBucket
+          bucketIndex       = i
+        else
+          if processedCache[bucketIndex].ids.length < 3
+            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
+            processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
+          processedCache[bucketIndex].count += item.count
+          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
+      else
+        processedCache.push item
+
+    return processedCache
 
   @prepareCacheData = do ->
 
@@ -230,9 +272,10 @@ module.exports = class JActivityCache extends jraphical.Module
       options.lowQuality  ?= no
       options.types      or= typesToBeCached
 
-      CActivity.fetchRangeForCache options, (err, cache)=>
+      CActivity.fetchRangeForCache options, (err, cursorArr)=>
         if err then console.warn err
         else
+          cache = processCache cursorArr
           overview = overview.concat cache
 
           if overview.length is 0

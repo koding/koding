@@ -10,16 +10,44 @@ koding = new Bongo {
   mongo
   models: [
     'workers/social/lib/social/models/activity/cache.coffee'
+    'workers/social/lib/social/models/activity/index.coffee'
   ].map (path)-> nodePath.join projectRoot, path
 }
 
-{JActivityCache} = koding.models
+{JActivityCache, CActivity} = koding.models
+
 
 do ->
-  from = Date.now()-(240*60*60*1000)
-  JActivityCache.createCacheBetween from, null, (lolo)->
-    console.log lolo
 
-setInterval ->
-  console.log "devam"
-,10000
+  typesToBeCached = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+    ]
+
+  cachingInProcess = no
+
+  CActivity.on "CachingFinished", -> cachingInProcess = no
+
+  CActivity.on "ActivityIsCreated", (activity)->
+    console.log "ever here", activity.constructor.name
+    if not cachingInProcess and activity.constructor.name in typesToBeCached
+      cachingInProcess = yes
+      JActivityCache.init()
+
+  CActivity.on "post-updated", (teaser)->
+    JActivityCache.modifyByTeaser teaser
+
+  CActivity.on "BucketIsUpdated", (activity, bucket)->
+    console.log bucket.constructor.name, "is being updated"
+    if activity.constructor.name in typesToBeCached
+      JActivityCache.modifyByTeaser bucket
+
+  console.log "\"feed-new\" event for Activity Caching is bound."
+  console.log "\"post-updated\" event for Activity Caching is bound."
+
+
