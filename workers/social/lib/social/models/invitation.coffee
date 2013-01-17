@@ -142,9 +142,9 @@ module.exports = class JInvitation extends jraphical.Module
         if err then callback err
         else callback "There are #{waitingInvite} people who is waiting for invite."
 
-  betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
-
   @sendBetaInvite = (options,callback) ->
+
+    betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
 
     Bitly = require 'bitly'
     bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
