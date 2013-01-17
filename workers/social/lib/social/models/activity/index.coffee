@@ -263,9 +263,14 @@ do ->
       'CInstallerBucketActivity'
     ]
 
+  cachingInProcess = no
+
+  CActivity.on "CachingFinished", -> cachingInProcess = no
+
   CActivity.on "ActivityIsCreated", (activity)->
     console.log "ever here", activity.constructor.name
-    if activity.constructor.name in typesToBeCached
+    if not cachingInProcess and activity.constructor.name in typesToBeCached
+      cachingInProcess = yes
       JActivityCache.init()
 
   CActivity.on "post-updated", (teaser)->
