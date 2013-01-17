@@ -372,7 +372,10 @@
     bg size, contain
     bg position, center center
     bg repeat, no-repeat
+
     img.avatar-image
+      borderBox()
+      padding 5px
       width auto
       height auto
       max-width 240px
@@ -400,6 +403,13 @@
     .listview-wrapper
       display none
 
+.group-header
+  button
+    &.enter
+      fl()
+      margin-right 5px!important
+    &.join
+      display block
 
 
 .kdview.jcontextmenu.kdbuttonmenu.groups-settings-context

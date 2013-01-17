@@ -118,7 +118,7 @@ class GroupsAppController extends AppController
       group = {}
       isNewGroup = yes
     modal = new KDModalViewWithForms #GroupAdminModal
-      title       : if isNewGroup then 'Create a group' else "Edit the group '#{group.title}'"
+      title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
       # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
       cssClass    : "compose-message-modal admin-kdmodal group-admin-modal"
@@ -133,7 +133,15 @@ class GroupsAppController extends AppController
             #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
             partial : "<div class='image-wrapper'></div>"
             callback :(formData)=>
+
               log 'image data, ready for S3 upload',formData
+
+              # access data like this. formData.images may have undefined values for some reason
+              # for image in formData.images
+              #   if image
+              #     modal.$('.image-wrapper').append("<img src='#{image.small}'/>")
+              #     modal.$('.image-wrapper').append("<img src='#{image.medium}'/>")
+              #     modal.$('.image-wrapper').append("<img src='#{image.big}'/>")
 
               modal.destroy()
 
