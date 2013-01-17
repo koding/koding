@@ -175,7 +175,7 @@ class KDImage
 
     canvas = document.createElement('canvas')
 
-    resampler canvas, data, scaledWidth, lobesKernel, (res)->
+    resampler canvas, data, scaledWidth, lobesKernel, (res)=>
       callback res.canvas.toDataURL(@format)
 
   createView:->

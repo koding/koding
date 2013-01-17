@@ -44,7 +44,11 @@ class KDImageUploadSingleView extends KDFileUploadSingleView
       KDEventTypes  : 'ImageWasResampled'
       listener      : @
       callback      : (pubInst, {name, img, index})=>
+        if @previousPath and @previousPath.indexOf('.'+index) < 0
+          form.removeCustomData @previousPath
+
         form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
+        @previousPath = "#{options.fieldName}.#{index}"
 
     @listController.on 'UnregisteringItem', ({view, index})=>
       form.removeCustomData "#{options.fieldName}.#{index}"
