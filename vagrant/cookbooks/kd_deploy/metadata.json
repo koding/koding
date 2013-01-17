@@ -1,29 +1,30 @@
 {
-  "version": "0.1.0",
-  "attributes": {
-  },
-  "providing": {
-  },
   "recommendations": {
   },
+  "license": "All rights reserved",
   "maintainer_email": "aleksey@koding.com",
-  "groupings": {
+  "recipes": {
   },
   "replacing": {
   },
+  "maintainer": "Aleksey Mykhailov",
+  "providing": {
+  },
   "long_description": "Description\n===========\ndeploy main koding code\nstart apps\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
-  "platforms": {
-  },
-  "name": "kd_deploy",
-  "license": "All rights reserved",
-  "description": "Installs/Configures kd_deploy",
-  "suggestions": {
-  },
-  "dependencies": {
-  },
-  "recipes": {
+  "version": "0.1.0",
+  "groupings": {
   },
   "conflicting": {
   },
-  "maintainer": "Aleksey Mykhailov"
+  "suggestions": {
+  },
+  "dependencies": {
+    "supervisord": ">= 0.0.0"
+  },
+  "platforms": {
+  },
+  "description": "Installs/Configures kd_deploy",
+  "name": "kd_deploy",
+  "attributes": {
+  }
 }
