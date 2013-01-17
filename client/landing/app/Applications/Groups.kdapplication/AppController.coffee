@@ -121,7 +121,7 @@ class GroupsAppController extends AppController
       title       : if isNewGroup then 'Create a group' else "Edit the group '#{group.title}'"
       # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
-      cssClass    : "compose-message-modal admin-kdmodal"
+      cssClass    : "compose-message-modal admin-kdmodal group-admin-modal"
       width       : 500
       overlay     : yes
       tabs        :
@@ -138,10 +138,8 @@ class GroupsAppController extends AppController
               log 'fileData is',fileData
 
               if fileData
-                log 'uploading to s3 should happen here. IMPLEMENT ME!'
-                # upload file to S3
+                log 'uploading to s3 should happen here. then add returned ULR to data.avatar IMPLEMENT ME!'
 
-                # add image URL to data.avatar
                 log 'closing modal now.'
                 modal.destroy()
 
@@ -194,7 +192,7 @@ class GroupsAppController extends AppController
                 keydown           : (pubInst, event)->
                   setTimeout =>
                     slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms.create.inputs.Slug.setValue slug
+                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
                   , 1
                 defaultValue      : group.title ? ""
               Slug                :
@@ -227,6 +225,9 @@ class GroupsAppController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
     , group
+
+    modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
+      modal.$('img.avatar-image').attr 'src' : stuff.file.data
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
