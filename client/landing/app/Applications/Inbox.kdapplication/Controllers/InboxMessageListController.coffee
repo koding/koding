@@ -5,7 +5,6 @@ class InboxMessageListController extends KDListViewController
     @selectedMessages = {}
 
   loadMessages:(callback, continueLoading = no)->
-    @removeAllItems() if not continueLoading
 
     options =
       limit       : 10
@@ -14,6 +13,7 @@ class InboxMessageListController extends KDListViewController
     options.skip = @getItemCount() if continueLoading
 
     KD.whoami().fetchMail options, (err, messages)=>
+      @removeAllItems() if not continueLoading
       @loadMoreMessagesItem?.destroy()
       @instantiateListItems messages
 
