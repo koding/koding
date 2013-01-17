@@ -14,7 +14,10 @@ module.exports = class CActivity extends jraphical.Capsule
   @share()
 
   @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/restrictedquery'
+
+  console.log this
 
   @set
     feedable          : yes

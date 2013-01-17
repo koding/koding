@@ -31,6 +31,7 @@ module.exports = class JPermissionSet extends Module
       if err
         callback err
       else
+        console.log {chain}
         permissions = []
         queue = chain.map (group)->->
           delegate.fetchRoles group, (err, roles)->
@@ -44,7 +45,7 @@ module.exports = class JPermissionSet extends Module
                       group.privacy is 'public' and 'guest' in roles
                 group.fetchPermissionSet (err, permissionSet)->
                   if err then queue.fin(err)
-                  else
+                  else if permissionSet?
                     matchingPermissions = [].filter.call(
                       permissionSet.permissions
                       (savedPermission)->
@@ -54,6 +55,8 @@ module.exports = class JPermissionSet extends Module
                     )
                     permissions.push !!matchingPermissions.length
                     queue.fin()
+                  else
+                    console.log 'there was no permission set found!'
               else
                 permissions.push no
                 queue.fin()
