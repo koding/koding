@@ -57,7 +57,6 @@ class hosting_packages::ruby {
         'rack-cache',
         'rack-test',
         'tilt',
-        'sprockets',
         'actionpack',
         'polyglot',
         'treetop',
@@ -93,7 +92,6 @@ class hosting_packages::ruby {
         'rack-cache-19',
         'rack-test-19',
         'tilt-19',
-        'sprockets-19',
         'actionpack-19',
         'polyglot-19',
         'treetop-19',
@@ -141,4 +139,17 @@ class hosting_packages::ruby {
        require => Package[$ruby19]
     }
 
+    # solve rails dependency issue 
+    package { "sprockets":
+        ensure => '2.2.2',
+        provider => 'gem',
+        require => Package[$ruby18],
+        notify => Class["cloudlinux::cagefs_update"],
+    }
+    package { "sprockets-19":
+        ensure => '2.2.2',
+        provider => 'gem19',
+        require => Package[$ruby19],
+        notify => Class["cloudlinux::cagefs_update"],
+    }
 }

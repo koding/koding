@@ -4,7 +4,8 @@ Broker   = require 'broker'
 {argv}   = require 'optimist'
 {extend} = require 'underscore'
 
-{mongo, mq, projectRoot, webserver} = require argv.c
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+{mongo, mq, projectRoot, webserver} = KONFIG
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?

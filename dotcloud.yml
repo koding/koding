@@ -1,5 +1,0 @@
-webServer:
-  type: nodejs
-  approot: hellonode
-  config:
-    node_version : v0.8.x

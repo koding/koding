@@ -16,6 +16,12 @@ class zabbix-agent {
             require => Class["yumrepos::zabbixzone"],
             notify => Service["zabbix-agent"]
     }
+    package {
+        "zabbix-sender":
+            ensure => latest,
+            require => Class["yumrepos::zabbixzone"],
+    }
+
 
     user { "zabbix":
         ensure => present,
