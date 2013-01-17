@@ -130,7 +130,8 @@ class GroupsAppController extends AppController
         forms     :
           "Avatar":
             title : "Select an Avatar"
-            partial : "<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>"
+            #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
+            partial : "<div class='image-wrapper'></div>"
             callback :(formData)=>
               log 'image data, ready for S3 upload',formData
 
@@ -251,8 +252,9 @@ class GroupsAppController extends AppController
     , group
 
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
-      modal.$('img.avatar-image').attr 'src' : stuff.file.data
-      modal.$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
+      # modal.$('img.avatar-image').attr 'src' : stuff.file.data
+      modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
+
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
       if err

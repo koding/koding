@@ -359,16 +359,29 @@
 
 
 .group-admin-modal
-  img.avatar-image
+  div.image-wrapper
+    fl()
+    borderBox()
     width 250px
     height 250px
-    display inline
-    margin-top -1px
-    fl()
+    display block
     border-bottom 1px solid #e5e5e5
+    text-align center
+    padding 5px
+    bg size, cover
+    bg size, contain
+    bg position, center center
+    bg repeat, no-repeat
+    img.avatar-image
+      width auto
+      height auto
+      max-width 240px
+      max-height 240px
+      shadow 0px 0px 5px black
+
   div.group-avatar
-    width 50%
     borderBox()
+    width 50%
     margin-left 50%
     height 250px
     label.avatar
