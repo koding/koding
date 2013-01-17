@@ -130,18 +130,19 @@ class GroupsAppController extends AppController
         forms     :
           "Avatar":
             title : "Select an Avatar"
-            partial : "<img src='#{group.avatar}'/>"
+            partial : "<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>"
             callback :(formData)=>
               {inputs, buttons} = modal.modalTabs.forms["Avatar"]
+
               fileData = inputs['Drop Image here'].fileList.items[0]?.data
-              log fileData
+              log 'fileData is',fileData
 
               if fileData
-                log 'uploading to s3'
+                log 'uploading to s3 should happen here. IMPLEMENT ME!'
                 # upload file to S3
 
                 # add image URL to data.avatar
-                log 'closing modal'
+                log 'closing modal now.'
                 modal.destroy()
 
             buttons:
