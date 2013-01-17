@@ -224,9 +224,8 @@
   .kdlistitemview-groups
     borderBox()
     border-bottom           1px solid #f5f5f5
-    // min-height              127px
     min-height              131px
-
+    min-width 250px
     clear                   none
     width                   50%
     display                 inline-block
@@ -246,7 +245,7 @@
         opacity           .2
         abs()
         top               0
-        right             20px
+        right             0
         z-index           10
         button.kdbutton.with-icon
           padding         1px 2px
@@ -285,7 +284,7 @@
       width auto
       margin-left : 103px
       borderBox()
-      padding-top 7px
+      padding-top 10px
       h3
         borderBox()
         width auto
@@ -298,6 +297,7 @@
         text-overflow ellipsis
         height 30px
         color #ff9200
+        font-size 13px
         a
           width auto
           color #ff9200
@@ -315,6 +315,7 @@
         line-height 1.2em
         height 3.6em
         color #5f5f5f
+        font-size 12px
 
     .topicmeta
       abs()
@@ -356,41 +357,6 @@
           margin               0 6px 0 0
           vertical-align       middle
 
-        // border            1px solid #ddd
-        // border-bottom-color    #cfcfcf
-        // color             #7f7f7f
-        // font-size         11px
-        // width             80px
-        // line-height       12px
-        // padding           5px 5px 4px 5px
-        // text-align        center
-        // text-shadow       0 1px 0 #fff
-        // font-weight       700
-        // vertical-align    inherit
-        // background        linear-gradient(top,  white 0%,#e6e5e5 94%)
-        // shadow(0 1px 0 rgb(255, 255, 255))
-        // rounded(3px,3px,3px,3px)
-
-        // &:hover
-        //   background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
-        //   border               1px solid #ddd
-        //   border-bottom-color  #cfcfcf
-        //   -moz-box-shadow      0 1px 0 #fff
-        //   -webkit-box-shadow   0 1px 0 #fff
-        //   box-shadow           0 1px 0 #fff
-
-        // &:before
-        //   sprite()
-        //   bg position, -20px -262px
-        //   size 15px 15px
-        // content              url(../images/follow.png)
-        // margin               0 6px 0 0
-        // vertical-align       middle
-
-        // span.icon
-
-        // &.joined
-        //   bg color, #444!important
 
 .kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
   border-color          rgba(0,0,0,.2)

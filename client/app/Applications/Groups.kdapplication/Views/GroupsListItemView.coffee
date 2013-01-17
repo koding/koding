@@ -51,7 +51,7 @@ class GroupsListItemView extends KDListItemView
     ,data
 
     @joinButton = new JoinButton
-      style           : if data.member then "follow-btn following-topic" else "follow-btn"
+      style           : if data.member then "join-group follow-btn following-topic" else "join-group follow-btn"
       title           : "Join"
       dataPath        : "member"
       defaultState    : if data.member then "Leave" else "Join"
@@ -64,21 +64,31 @@ class GroupsListItemView extends KDListItemView
           data.join (err, response)=>
             @hideLoader()
             unless err
-              @setClass 'following-btn following-topic'
+              # @setClass 'following-btn following-topic'
+              @setClass 'following-topic'
+              @emit 'Joined'
               callback? null
         "Leave", (callback)->
           data.leave (err, response)=>
             @hideLoader()
             unless err
-              @unsetClass 'following-btn following-topic'
+              # @unsetClass 'following-btn following-topic'
+              @unsetClass 'following-topic'
+              @emit 'Left'
               callback? null
       ]
     , data
 
+    @joinButton.on 'Joined', =>
+      @enterButton.show()
+
+    @joinButton.on 'Left', =>
+      @enterButton.hide()
+
     # TODO: hide enter button for non-admins
 
     @enterButton = new KDButtonView
-      cssClass        : 'follow-btn enter-group'
+      cssClass        : 'follow-btn following-btn enter-group hidden'
       title           : "Enter"
       dataPath        : "member"
       # icon : yes
@@ -125,6 +135,8 @@ class GroupsListItemView extends KDListItemView
 
     @setTemplate @pistachio()
     @template.update()
+
+    # log @titleLink.$()[0]#.innerWidth
 
     # @$().css backgroundImage : 'url('+(@getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(300)}/#{50+@utils.getRandomNumber(150)}")+')'
 
