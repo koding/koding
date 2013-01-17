@@ -48,9 +48,10 @@ class GroupsAppController extends AppController
               if err then error err
               else
                 {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, ({joinButton})->
+                everything.forEachItemByIndex groups, ({joinButton,enterButton})->
                   joinButton.setState 'Leave'
                   joinButton.redecorateState()
+                  enterButton.show()
         following           :
           title             : "Following"
           dataSource        : (selector, options, callback)=>
@@ -116,17 +117,54 @@ class GroupsAppController extends AppController
       console.log 'there wasnt a group'
       group = {}
       isNewGroup = yes
-    modal = new KDModalViewWithForms
-      title       : 'Create a group'
+    modal = new KDModalViewWithForms #GroupAdminModal
+      title       : if isNewGroup then 'Create a group' else "Edit the group '#{group.title}'"
+      # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
-      cssClass    : "compose-message-modal"
+      cssClass    : "compose-message-modal admin-kdmodal"
       width       : 500
       overlay     : yes
       tabs        :
         navigable : yes
         goToNextFormOnSubmit: no
         forms     :
-          create:
+          "Avatar":
+            title : "Select an Avatar"
+            partial : "<img src='#{group.avatar}'/>"
+            callback :(formData)=>
+              {inputs, buttons} = modal.modalTabs.forms["Avatar"]
+              fileData = inputs['Drop Image here'].fileList.items[0]?.data
+              log fileData
+
+              if fileData
+                log 'uploading to s3'
+                # upload file to S3
+
+                # add image URL to data.avatar
+                log 'closing modal'
+                modal.destroy()
+
+            buttons:
+              Save                :
+                style             : "modal-clean-gray"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Cancel              :
+                style             : "modal-clean-gray"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 16
+            fields:
+              "Drop Image here"              :
+                label             : "Avatar"
+                itemClass         : KDImageUploadView
+                name              : "group-avatar"
+                limit             : 1
+                preview           : 'thumbs'
+
+          "General Settings":
             title: if isNewGroup then 'Create a group' else 'Edit group'
             callback:(formData)=>
               if isNewGroup
@@ -163,11 +201,6 @@ class GroupsAppController extends AppController
                 itemClass         : KDInputView
                 name              : "slug"
                 defaultValue      : group.slug ? ""
-              # TODO: fix KDImageUploadView
-              # Avatar              :
-              #   label             : "Avatar"
-              #   itemClass         : KDImageUploadView
-              #   name              : "avatar"
               Description         :
                 label             : "Description"
                 type              : "textarea"
@@ -192,6 +225,7 @@ class GroupsAppController extends AppController
                   { title : "Visible",    value : "visible" }
                   { title : "Hidden",     value : "hidden" }
                 ]
+    , group
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -249,7 +283,7 @@ class GroupsAppController extends AppController
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
             @showGroupSubmissionView groupItem.getData()
-            
+
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
