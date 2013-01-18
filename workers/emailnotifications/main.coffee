@@ -56,8 +56,6 @@ flags =
     template        : commonTemplate
   likeActivities    :
     template        : commonTemplate
-  likeComments      :
-    template        : commonTemplate
   followActions     :
     template        : commonTemplate
   privateMessage    :
@@ -137,9 +135,11 @@ prepareAndSendEmail = (notification)->
   {event}     = notification.data
   contentType = notification.activity.subject.constructorName
 
+  # Fetch Receiver
   JAccount.one {_id:notification.receiver.id}, (err, receiver)->
     if err then callback err
     else
+      # Fetch Receiver E-Mail choices
       JEmailNotificationGG.checkEmailChoice
         event       : event
         contentType : contentType
@@ -155,22 +155,29 @@ prepareAndSendEmail = (notification)->
               console.error err if err
           else
             # log "Trying to send it... to...", email
+            # Fetch Sender
             JAccount.one {_id:notification.sender}, (err, sender)->
               if err then callback err
               else
+                # Fetch Subject Content
                 fetchSubjectContent notification.activity, \
                 (err, subjectContent)->
                   if err then callback err
                   else
                     realContent = subjectContent
+                    # Create object which we pass to template later
                     details = {sender, receiver, event, email, key, \
                                subjectContent, realContent, notification}
+                    # Fetch Subject Content-Link
+                    # If Subject is a secondary level content like JComment
+                    # we need to get its parent's slug to show link correctly
                     fetchSubjectContentLink subjectContent, contentType, \
                     (err, link)->
                       if err then callback err
                       else
                         details.contentLink = link
                         if event is 'ReplyIsAdded'
+                          # Fetch RealContent
                           fetchContent notification.activity.content, \
                           (err, content)->
                             if err then callback err

@@ -27,8 +27,8 @@ module.exports = class JEmailNotificationGG extends Model
         default      : 'queued'
         enum         : ['Invalid status',['queued','attempted','postponed']]
 
-  @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
-                        'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+  @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
+                        'JOpinion', 'JCodeShare', 'JComment', 'JTutorial']
   flags =
     comment           :
       eventType       : ['ReplyIsAdded']
@@ -36,9 +36,6 @@ module.exports = class JEmailNotificationGG extends Model
     likeActivities    :
       eventType       : ['LikeIsAdded']
       contentTypes    : @commonActivities
-    likeComments      :
-      eventType       : ['LikeIsAdded']
-      contentTypes    : ['JComment']
     followActions     :
       eventType       : ''
       contentTypes    : []
