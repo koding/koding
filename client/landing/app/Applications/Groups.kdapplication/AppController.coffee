@@ -274,9 +274,28 @@ class GroupsAppController extends AppController
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
 
   editPermissions:(group)->
-    log 'calling fetchPermissions'
-    group.getData().fetchPermissions (err, permissionSet)->
-      log arguments
+    # log 'calling fetchPermissions'
+    # group.getData().fetchPermissions (err, permissionSet)->
+      err = null
+      permissionSet = {
+        permissionsByModule:
+          'Content' : [
+            'Post'
+            'Edit'
+            'Delete'
+            ]
+          'Members': [
+            'Invite members'
+            'Add members'
+            'Remove members'
+            ]
+          'Administration': [
+            'Change Details'
+            'Change Avatar'
+            ]
+
+
+      }
       if err
         new KDNotificationView title: err.message
       else
@@ -284,11 +303,33 @@ class GroupsAppController extends AppController
           privacy: group.getData().privacy
           permissionSet
         }
+
+        optionizePermissions = (set)->
+          options = {}
+
+          for module, permissions of set.permissionsByModule
+            options[module] =
+              fields : {}
+            for permission in permissions
+               options[module].fields[permission] =
+                  itemClass   : KDInputView
+                  name        : "guest"
+                  next        :
+                    name      : "member"
+                    next      :
+                      name    : "moderator"
+                      next    :
+                        name  : "admin"
+          log options
+
+        optionizePermissions permissionSet
+
+
         modal = new KDModalView
           title     : "Edit permissions"
           content   : ""
           overlay   : yes
-          cssClass  : "new-kdmodal"
+          cssClass  : "new-kdmodal permission-modal"
           width     : 500
           height    : "auto"
           buttons:
