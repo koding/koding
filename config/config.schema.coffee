@@ -97,6 +97,7 @@ config =
       port        : []
       clusterSize : 1
       queueName   : 1
+      watch       : 1
     mongo         : 1
     runGoBroker   : 1
     buildClient   : 1
@@ -121,10 +122,11 @@ config =
       username  : 1
       apiKey    : 1
     authWorker    :
-      login       : 1
-      queueName   : 1
+      login           : 1
+      queueName       : 1
       authResourceName: 1
-      numberOfWorkers: 1
+      numberOfWorkers : 1
+      watch           : 1
     social        :
       login       : 1
       numberOfWorkers: 1
