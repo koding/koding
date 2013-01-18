@@ -133,9 +133,12 @@ class GroupsAppController extends AppController
             #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
             partial : "<div class='image-wrapper'></div>"
             callback :(formData)=>
-
               log 'image data, ready for S3 upload',formData
 
+              for image in formData.images
+                if image
+                  modal.$('.image-wrapper').css backgroundImage : "url(#{image.small})"
+                  modal.modalTabs.forms["General Settings"].addCustomData 'avatar', image.small
               # access data like this. formData.images may have undefined values for some reason
               # for image in formData.images
               #   if image
@@ -143,10 +146,11 @@ class GroupsAppController extends AppController
               #     modal.$('.image-wrapper').append("<img src='#{image.medium}'/>")
               #     modal.$('.image-wrapper').append("<img src='#{image.big}'/>")
 
-              modal.destroy()
+              modal.modalTabs.forms['Avatar'].buttons['Use this image'].hideLoader()
+              # modal.destroy()
 
             buttons:
-              Save                :
+              "Use this image"    :
                 style             : "modal-clean-gray"
                 type              : "submit"
                 loader            :
@@ -157,6 +161,8 @@ class GroupsAppController extends AppController
                 loader            :
                   color           : "#ffffff"
                   diameter        : 16
+                callback          :=>
+                  modal.destroy()
             fields:
               "Drop Image here"              :
                 label             : "Avatar"
@@ -194,6 +200,9 @@ class GroupsAppController extends AppController
                         width   : 60
                         height  : 60
                       }
+                      # 'blur', {
+                      #   radius : 0
+                      # }
                     ]
                 }
           "General Settings":
@@ -259,12 +268,15 @@ class GroupsAppController extends AppController
                 ]
     , group
 
+    modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       # modal.$('img.avatar-image').attr 'src' : stuff.file.data
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
 
   editPermissions:(group)->
+    log 'calling fetchPermissions'
     group.getData().fetchPermissions (err, permissionSet)->
+      log arguments
       if err
         new KDNotificationView title: err.message
       else
