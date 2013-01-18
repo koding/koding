@@ -66,7 +66,7 @@ class ActivityListController extends KDListViewController
     for activity in activities
       @addItem activity
 
-    @teasersLoaded()
+    @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
 
