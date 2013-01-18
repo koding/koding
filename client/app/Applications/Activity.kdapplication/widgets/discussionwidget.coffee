@@ -88,7 +88,7 @@ class ActivityDiscussionWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
-    @tagController.reset()
+    @utils.wait 2000, => @tagController.reset()
     @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
