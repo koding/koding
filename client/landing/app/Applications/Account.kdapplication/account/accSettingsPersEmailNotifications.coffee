@@ -17,8 +17,6 @@ class AccountEmailNotifications extends KDView
         title        : 'When a comment related with me'
       likeActivities :
         title        : 'When someone liked my activities'
-      likeComments   :
-        title        : 'When someone liked my comments'
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView
