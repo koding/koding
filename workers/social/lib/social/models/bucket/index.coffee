@@ -89,8 +89,13 @@ module.exports = class CBucket extends jraphical.Module
                     if err
                       callback err
                     else
-                      console.log ">>>>", activity.constructor.name
-                      CActivity.emit 'BucketIsUpdated', [activity.constructor.name, bucket]
+
+                      bucketOptions =
+                        type        : activity.constructor.name
+                        teaserId    : bucket.getId()
+                        createdAt   : bucket.meta.createdAt
+
+                      CActivity.emit 'BucketIsUpdated', bucketOptions
                       callback null, bucket
             else
               CBucketActivity = require '../activity/bucketactivity'

@@ -200,7 +200,8 @@ module.exports = class JPost extends jraphical.Message
 
   delete: secure ({connection:{delegate}}, callback)->
     if delegate.can 'delete', this
-      id = @getId()
+      id                = @getId()
+      createdAt         = @meta.createdAt
       {getDeleteHelper} = Relationship
       queue = [
         getDeleteHelper {
@@ -221,6 +222,7 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         callback null
         @emit 'PostIsDeleted', 1
+        CActivity.emit "PostIsDeleted", {teaserId : id, createdAt}
     else
       callback new KodingError 'Access denied!'
 
@@ -441,5 +443,8 @@ module.exports = class JPost extends jraphical.Message
   update:(rest..., callback)->
     kallback =(rest...)=>
       callback rest...
-      CActivity.emit "post-updated", @
+      eventOptions =
+        teaserId   : @getId()
+        createdAt  : @meta.createdAt
+      CActivity.emit "post-updated", eventOptions
     jraphical.Message::update.apply @, rest.concat kallback
