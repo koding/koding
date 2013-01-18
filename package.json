@@ -17,6 +17,7 @@
     "update"      : "echo update..."
   },
   "dependencies": {
+    "toobusy"         : "0.2.1",
     "bitly"           : "1.2.4",
     "coffee-script"   : "1.4.0",
     "dateformat"      : "1.0.2-1.2.3",

@@ -12,15 +12,15 @@ module.exports = class Protected
       relationships.group =
         targetType  : require '../models/group' 
         as          : ['member','moderator','admin']
-      Module.setRelationships.call @, relationships      
+      Module.setRelationships.call this, relationships      
     (relationships)->
       if 'function' is typeof relationships
         # when you pass "relationships" as a function, it will be defered until the next tick.
         # this can be useful for resolving circular dependencies (a requirement for graphs).
-        process.nextTick setRelationships.bind @, relationships
+        process.nextTick setRelationships.bind this, relationships
       else
-        setRelationships.call @, relationships
-      @
+        setRelationships.call this, relationships
+      this
 
   @setPermissions =(permissions)->
     perms = Protected.permissionsByModule[@name] ?= []
