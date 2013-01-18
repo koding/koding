@@ -27,6 +27,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
   lengthPerCache = 20
   timespan       = 120 * 60 * 60 * 1000
+  cacheQueue     = []
 
   @share()
 
@@ -34,10 +35,8 @@ module.exports = class JActivityCache extends jraphical.Module
     indexes                 :
       to                    : 'unique'
     sharedMethods           :
-      static                : ["latest", "init", "createCacheFromEarliestTo"]
-      instance              : []
+      static                : ["init", "createCacheFromEarliestTo"]
     schema                  :
-      # name                  : String
       to                    :
         type                : Date
       from                  :
@@ -99,9 +98,12 @@ module.exports = class JActivityCache extends jraphical.Module
   # create initial activity cache
   # FIXME: this would fail if there are more than 1000 activities
   # between from and to
+
   @init = (from, to)->
 
     console.log "JActivityCache inits...\n"
+
+    CActivity = require './index'
 
     @latest (err, latest)=>
 
@@ -129,16 +131,21 @@ module.exports = class JActivityCache extends jraphical.Module
           # cap latest
           if latest and not latest.isFull
 
-            # return console.log "capping latest...."
             remainderAmount   = lengthPerCache - latest.overview.length
             remainderOverview = overview.splice -remainderAmount
 
-            # log remainderOverview
-            # return
-            latest.cap remainderOverview, -> console.log "capped latest!"
+            cacheQueue.push ->
+              latest.cap remainderOverview, ->
+                console.log "capped latest!"
+                cacheQueue.next()
 
             # terminate only if there are no new items to be cached
-            return  if overview.length is 0
+            if overview.length is 0
+              cacheQueue.push =>
+                log "caching finished"
+                @emit "CachingFinished"
+              daisy cacheQueue
+              return
 
           # create new cache instances
           overview2d = []
@@ -161,9 +168,12 @@ module.exports = class JActivityCache extends jraphical.Module
               console.log it.createdAt[0]
           ###
 
-          @createCache overview2d
+          @createCache overview2d, =>
+            @emit "CachingFinished"
+            log "caching finished"
 
-  @createCacheFromEarliestTo = (to)->
+
+  @createCacheFromEarliestTo = (eternity)->
 
     @earliest (err, earliest)=>
       if err then console.warn err
@@ -189,17 +199,63 @@ module.exports = class JActivityCache extends jraphical.Module
           while overview.length >= lengthPerCache
             overview2d.push overview.splice 0,lengthPerCache
 
-          @createCache overview2d
+          cb = \
+            if eternity
+              JActivityCache.createCacheFromEarliestTo.bind JActivityCache
+            else
+              ->
 
-  @createCache = (overview2d)->
+          @createCache overview2d, cb
 
-    queue    = []
-    {length} = queue
+  @createCache = (overview2d, callback=->)->
+
     overview2d.forEach (cacheOverview, i)->
-      queue.push ->
-        JActivityCache.createInstance cacheOverview, queue.next.bind queue
+      cacheQueue.push ->
+        JActivityCache.createInstance cacheOverview, cacheQueue.next.bind cacheQueue
 
-    daisy queue
+    cacheQueue.push callback
+    daisy cacheQueue
+
+  processCache = (cursorArr)->
+    console.log "processing activity cache..."
+    lastDocType = null
+
+    # group newmember buckets
+    cache = cursorArr.reduce (acc, doc)->
+      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
+        acc.last.createdAt[1] = doc.createdAt
+        if acc.last.count++ < 3
+          acc.last.ids.push doc._id
+      else
+        acc.push
+          createdAt : [doc.createdAt]
+          ids       : [doc._id]
+          type      : doc.type
+          count     : 1
+      lastDocType = doc.type
+      return acc
+    , []
+    memberBucket   = null
+    bucketIndex    = 0
+    processedCache = []
+
+    # put new member groups all together
+    cache.forEach (item, i)->
+      if /NewMemberBucket/.test item.type
+        unless memberBucket
+          memberBucket      = item
+          processedCache[i] = memberBucket
+          bucketIndex       = i
+        else
+          if processedCache[bucketIndex].ids.length < 3
+            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
+            processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
+          processedCache[bucketIndex].count += item.count
+          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
+      else
+        processedCache.push item
+
+    return processedCache
 
   @prepareCacheData = do ->
 
@@ -216,9 +272,10 @@ module.exports = class JActivityCache extends jraphical.Module
       options.lowQuality  ?= no
       options.types      or= typesToBeCached
 
-      CActivity.fetchRangeForCache options, (err, cache)=>
+      CActivity.fetchRangeForCache options, (err, cursorArr)=>
         if err then console.warn err
         else
+          cache = processCache cursorArr
           overview = overview.concat cache
 
           if overview.length is 0
@@ -278,8 +335,9 @@ module.exports = class JActivityCache extends jraphical.Module
     CActivity = require './index'
 
     selector =
-      _id    :
-        $in  : (overview.slice().map (group)-> group.ids).reduce (a, b)-> a.concat(b)
+      snapshot : { $exists : 1 }
+      _id      :
+        $in    : (overview.slice().map (group)-> group.ids).reduce (a, b)-> a.concat(b)
 
     CActivity.some selector, {sort: createdAt: -1}, (err, activities) =>
       if err then callback? err
@@ -287,24 +345,10 @@ module.exports = class JActivityCache extends jraphical.Module
 
         activityHash = {}
         for activity in activities
-          # activityHash[activity.snapshotIds[0]] = activity
           actvivityId = activity._id
           activityHash[actvivityId] = activity
 
         callback null, activityHash
-
-
-        # activityHash[activity._id] = activity for activity in activities
-
-        # groupedActivities = []
-        # for item in overview
-        #   if item.ids.length > 1
-        #     subGroup = (activityHash[id] for id in item.ids)
-        #     groupedActivities.push subGroup
-        #   else
-        #     groupedActivities.push [activityHash[item.ids.first]]
-
-        # callback null, groupedActivities
 
 
   cap: (overview, callback)->
@@ -325,36 +369,49 @@ module.exports = class JActivityCache extends jraphical.Module
 
       setModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
-      if @newMemberBucketIndex?
-        oldOverview = overview
-        overview = []
-        freshNewMemberBuckets = []
-        for overviewItem in oldOverview
-          if overviewItem.type is 'CNewMemberBucketActivity'
-            freshNewMemberBuckets.push overviewItem
-          else
-            overview.push overviewItem
+      # if @newMemberBucketIndex?
+      oldOverview = overview
+      overview = []
+      freshNewMemberBuckets = []
+      for overviewItem in oldOverview
+        if overviewItem.type is 'CNewMemberBucketActivity'
+          freshNewMemberBuckets.push overviewItem
+        else
+          overview.push overviewItem
 
       pushAllModifier = {overview}
 
       if freshNewMemberBuckets?.length
-        newMemberBucketKey = "overview.#{@newMemberBucketIndex}"
+        if @newMemberBucketIndex
+          index              = @newMemberBucketIndex
+          newMemberBucketKey = "overview.#{index}"
+          count              = @overview[@newMemberBucketIndex].count
+          createdAt          = freshNewMemberBuckets.last.createdAt.first
 
-        setModifier["#{newMemberBucketKey}.ids"] =\
-          @overview[@newMemberBucketIndex].ids
-            .slice(0, Math.max 3 - freshNewMemberBuckets.length, 0)
-            .concat freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
+          setModifier["#{newMemberBucketKey}.ids"] =\
+            @overview[@newMemberBucketIndex].ids
+              .slice(0, Math.max 3 - freshNewMemberBuckets.length, 0)
+              .concat freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
+          setModifier["#{newMemberBucketKey}.count"] =\
+            freshNewMemberBuckets.length + count
+          setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt
+        else
+          index              = @overview.length
+          newMemberBucketKey = "overview.#{index}"
+          createdAt0         = freshNewMemberBuckets.first.createdAt.first
+          createdAt1         = freshNewMemberBuckets.last.createdAt.first
 
-        count = @overview[@newMemberBucketIndex].count
-        setModifier["#{newMemberBucketKey}.count"] =\
-          freshNewMemberBuckets.length + count
-
-        createdAt = freshNewMemberBuckets.last.createdAt.first
-        setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt
+          setModifier.newMemberBucketIndex = index
+          setModifier["#{newMemberBucketKey}.ids"] =\
+              freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
+          setModifier["#{newMemberBucketKey}.count"] = freshNewMemberBuckets.length
+          setModifier["#{newMemberBucketKey}.createdAt.0"] = createdAt0
+          setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt1
 
       if overview.length
         @update $pushAll: pushAllModifier, ->
 
+      # log {setModifier}
       @update $set: setModifier, (err)-> callback?()
 
 
@@ -386,3 +443,15 @@ module.exports = class JActivityCache extends jraphical.Module
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
             cache.update {$set : setModifier}, -> #console.log.bind(console)
+
+  # update:do ->
+  #   updateQueue = []
+  #   update =(rest..., callback)->
+
+  #     updateQueue.push =>
+  #       jraphical.Module::update.apply @, rest.concat =>
+  #         callback arguments
+  #         updateQueue.next()
+
+  #     unless updateQueue.length
+  #       daisy updateQueue

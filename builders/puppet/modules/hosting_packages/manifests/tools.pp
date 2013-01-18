@@ -2,7 +2,7 @@
 class hosting_packages::tools {
     
     
-    $tools = ["htop","mc","bash-completion"]
+    $tools = ["htop","mc","bash-completion","gdb"]
     
     package { $tools:
         ensure  => installed,

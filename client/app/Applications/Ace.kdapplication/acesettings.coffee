@@ -109,6 +109,7 @@ __aceSettings =
     html        : ["HTML"         , "htm|html|xhtml"]
     c_cpp       : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
     clojure     : ["Clojure"      , "clj"]
+    delphi      : ["Delphi"       , "delphi"]
     jade        : ["Jade"         , "jade"]
     java        : ["Java"         , "java"]
     javascript  : ["JavaScript"   , "js"]
