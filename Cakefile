@@ -41,7 +41,7 @@ url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
 
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
+KODING_CAKE        = './node_modules/koding-cake/bin/cake'
 
 
 # create required folders
@@ -137,7 +137,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
       restart : yes
       restartInterval : 1000
 
@@ -168,6 +168,15 @@ task 'libratoWorker',({configFile})->
     restart: yes
     restartInterval: 100
     verbose: yes
+
+task 'cacheWorker',({configFile})->
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
@@ -242,7 +251,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
-  
+
 
 
 
@@ -256,10 +265,11 @@ run =(options)->
   config = require('koding-config-manager').load("main.#{configFile}")
   fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
 
-  invoke 'goBroker'       if config.runGoBroker    
+  invoke 'goBroker'       if config.runGoBroker
   invoke 'authWorker'     if config.authWorker
   invoke 'guestCleanup'   if config.guests
   invoke 'libratoWorker'  if config.librato?.push
+  invoke 'cacheWorker'
   invoke 'socialWorker'
   invoke 'webserver'
 
@@ -279,12 +289,15 @@ run =(options)->
           folders   : ['./server']
           onChange  : ->
             processes.kill "server"
+        cacheWorker :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
 
 
 task 'run', (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
-
 
   config.buildClient = yes if options.buildClient
 

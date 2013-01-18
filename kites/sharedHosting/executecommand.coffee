@@ -168,3 +168,22 @@ module.exports =(options, callback)->
       else
         execute {command,username},callback
         # log.debug "exec directly",command
+
+  # # Send memory usage to librato
+  # {argv} = require 'optimist'
+  # KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+  # if KONFIG.librato?.push
+  #   os = require "os"
+
+  #   # Post to Librato
+  #   librato = require("librato-metrics").createClient(
+  #     email: KONFIG.librato.email
+  #     token: KONFIG.librato.token
+  #   )
+  #   data = counters: [
+  #     name: 'kite.sharedhosting.execute'
+  #     value: 1
+  #   ]
+  #   librato.post '/metrics', data, (err, response) ->
+  #     if err
+  #       console.log "Librato - Can't push stats: " + err

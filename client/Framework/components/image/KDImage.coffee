@@ -6,21 +6,20 @@ class KDImage
       if (f = args.shift()) then !!f(args) or yes else no
     , 0
 
+  #BlobBuilder and ArrayBuffer are now deprecated, here is an updated version
+  #with Blob constructor, #http://stackoverflow.com/a/11954337/462233
   @dataURItoBlob = (dataURI) ->
-    byteString = atob(dataURI.split(",")[1])
-    mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]
-    ab = new ArrayBuffer byteString.length
-    ia = new Uint8Array ab
+    binary = atob(dataURI.split(",")[1])
+    array = []
 
     i = 0
-    while i < byteString.length
-      ia[i] = byteString.charCodeAt(i)
+    while i < binary.length
+      array.push binary.charCodeAt(i)
       i++
 
-    bb = new BlobBuilder
-    bb.append ab
-    bb.getBlob mimeString
-
+    new Blob([new Uint8Array(array)],
+      type: "image/png"
+    )
 
   constructor:(@data, @format='image/png')->
     # {@data} = file

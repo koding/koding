@@ -12,7 +12,7 @@
   "main": "server/index.js",
   "scripts" : {
     "preinstall"  : "rm -rf ./node_modules",
-    "install"     : "cd node_modules/ && ln -s ../node_modules_koding/* .",
+    "install"     : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
     "preupdate"   : "echo pre-update... ",
     "update"      : "echo update..."
   },
@@ -36,7 +36,7 @@
     "validator"       : "0.2.0",
     "jsonify"         : "0.0.0",
     "cron"            : "0.3.4",
-    "librato-metrics" : "0.0.6"
+    "librato-metrics" : "0.0.6"  
   },
   "devDependencies": {},
   "optionalDependencies": {},
