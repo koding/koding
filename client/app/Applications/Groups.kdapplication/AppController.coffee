@@ -128,6 +128,67 @@ class GroupsAppController extends AppController
         navigable : yes
         goToNextFormOnSubmit: no
         forms     :
+          "General Settings":
+            title: if isNewGroup then 'Create a group' else 'Edit group'
+            callback:(formData)=>
+              if isNewGroup
+                _createGroupHandler.call @, formData
+              else
+                _updateGroupHandler group, formData
+              modal.destroy()
+            buttons:
+              Save                :
+                style             : "modal-clean-gray"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Cancel              :
+                style             : "modal-clean-gray"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 16
+                callback          : -> modal.destroy()
+            fields:
+              Title               :
+                label             : "Title"
+                itemClass         : KDInputView
+                name              : "title"
+                keydown           : (pubInst, event)->
+                  setTimeout =>
+                    slug = @utils.slugify @getValue()
+                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                  , 1
+                defaultValue      : group.title ? ""
+              Slug                :
+                label             : "Slug"
+                itemClass         : KDInputView
+                name              : "slug"
+                defaultValue      : group.slug ? ""
+              Description         :
+                label             : "Description"
+                type              : "textarea"
+                itemClass         : KDInputView
+                name              : "body"
+                defaultValue      : group.body ? ""
+              "Privacy settings"  :
+                label             : "Privacy settings"
+                type              : "select"
+                name              : "privacy"
+                defaultValue      : group.privacy ? "public"
+                selectOptions     : [
+                  { title : "Public",    value : "public" }
+                  { title : "Private",   value : "private" }
+                ]
+              "Visibility settings"  :
+                label             : "Visibility settings"
+                type              : "select"
+                name              : "visibility"
+                defaultValue      : group.visibility ? "visible"
+                selectOptions     : [
+                  { title : "Visible",    value : "visible" }
+                  { title : "Hidden",     value : "hidden" }
+                ]
           "Avatar":
             title : "Select an Avatar"
             #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
@@ -205,67 +266,6 @@ class GroupsAppController extends AppController
                       # }
                     ]
                 }
-          "General Settings":
-            title: if isNewGroup then 'Create a group' else 'Edit group'
-            callback:(formData)=>
-              if isNewGroup
-                _createGroupHandler.call @, formData
-              else
-                _updateGroupHandler group, formData
-              modal.destroy()
-            buttons:
-              Save                :
-                style             : "modal-clean-gray"
-                type              : "submit"
-                loader            :
-                  color           : "#444444"
-                  diameter        : 12
-              Cancel              :
-                style             : "modal-clean-gray"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 16
-                callback          : -> modal.destroy()
-            fields:
-              Title               :
-                label             : "Title"
-                itemClass         : KDInputView
-                name              : "title"
-                keydown           : (pubInst, event)->
-                  setTimeout =>
-                    slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                  , 1
-                defaultValue      : group.title ? ""
-              Slug                :
-                label             : "Slug"
-                itemClass         : KDInputView
-                name              : "slug"
-                defaultValue      : group.slug ? ""
-              Description         :
-                label             : "Description"
-                type              : "textarea"
-                itemClass         : KDInputView
-                name              : "body"
-                defaultValue      : group.body ? ""
-              "Privacy settings"  :
-                label             : "Privacy settings"
-                type              : "select"
-                name              : "privacy"
-                defaultValue      : group.privacy ? "public"
-                selectOptions     : [
-                  { title : "Public",    value : "public" }
-                  { title : "Private",   value : "private" }
-                ]
-              "Visibility settings"  :
-                label             : "Visibility settings"
-                type              : "select"
-                name              : "visibility"
-                defaultValue      : group.visibility ? "visible"
-                selectOptions     : [
-                  { title : "Visible",    value : "visible" }
-                  { title : "Hidden",     value : "hidden" }
-                ]
     , group
 
     modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
