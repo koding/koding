@@ -170,7 +170,7 @@ class ActivityTutorialWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
-    @tagController.reset()
+    @utils.wait 2000, => @tagController.reset()
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''

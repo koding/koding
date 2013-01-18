@@ -137,7 +137,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setContents "//your code snippet goes here..."
       @ace.setSyntax 'javascript'
     @syntaxSelect.setValue 'javascript'
-    @tagController.reset()
+    @utils.wait 2000, => @tagController.reset()
     @updateSyntaxTag 'javascript'
     @hiddenAceInputClone.setValue ''
     @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'

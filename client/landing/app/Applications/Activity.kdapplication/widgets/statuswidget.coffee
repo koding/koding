@@ -281,7 +281,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:->
-    @tagController.reset()
+    @utils.wait 2000, => @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     @removeCustomData "link_url"
