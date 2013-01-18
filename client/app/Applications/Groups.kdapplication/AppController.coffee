@@ -112,9 +112,7 @@ class GroupsAppController extends AppController
           duration: 1000
 
   showGroupSubmissionView:(group)->
-    console.log 'group', group
     unless group?
-      console.log 'there wasnt a group'
       group = {}
       isNewGroup = yes
     modal = new KDModalViewWithForms #GroupAdminModal
@@ -339,10 +337,9 @@ class GroupsAppController extends AppController
                 color     : "#444444"
                 diameter  : 12
               callback    : ->
-                console.log permissionsGrid.reducedList()
                 group.getData().updatePermissions(
                   permissionsGrid.reducedList()
-                  console.log.bind(console)
+                  console.log.bind(console) # TODO: do something with this callback
                 )
                 modal.destroy()
             Cancel        :
