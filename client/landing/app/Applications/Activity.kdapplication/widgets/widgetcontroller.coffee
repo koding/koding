@@ -113,7 +113,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
   widgetSubmit:(data,constructorName,callback)->
-
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -132,15 +131,17 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
-      KD.remote.api[constructorName].create data, (err, activity)=>
-        callback? err, activity
-        unless err
-          @utils.killWait updateTimeout
-          @emit 'OwnActivityHasArrived', activity
-        else
-          @emit 'OwnActivityHasFailed', data
-          new KDNotificationView
-            title : "There was an error, try again later!"
+      appManager.tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
+        data.group = currentGroup
+        KD.remote.api[constructorName].create data, (err, activity)=>
+          callback? err, activity
+          unless err
+            @utils.killWait updateTimeout
+            @emit 'OwnActivityHasArrived', activity
+          else
+            @emit 'OwnActivityHasFailed', data
+            new KDNotificationView
+              title : "There was an error, try again later!"
 
   createFakeTags = (originalTags)->
 
