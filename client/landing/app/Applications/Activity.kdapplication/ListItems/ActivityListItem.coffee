@@ -69,4 +69,10 @@ class ActivityListItemView extends KDListItemView
     @getData().fetchTeaser? (err, teaser)=>
       @addChildView teaser, => @slideIn()
 
-  slideIn:()-> @$().removeClass 'hidden-item'
+  slideIn:(callback=noop)->
+    @unsetClass 'hidden-item'
+    @utils.wait 601, callback.bind @
+
+  slideOut:(callback=noop)->
+    @setClass 'hidden-item'
+    @utils.wait 601, callback.bind @
