@@ -8,7 +8,7 @@ default_attributes({ "nginx" => {
                                 "backend_ports" => [3020],
                                 "server_name" => "as.koding.com",
                                 "maintenance_page" => "maintenance.html",
-                                "static_files" => "/opt/koding/client"
+                                "static_files" => "/opt/koding/current/client"
                      },
                      "kd_deploy" => {
                                 "revision_tag" => "HEAD",
