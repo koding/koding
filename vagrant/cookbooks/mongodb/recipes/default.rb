@@ -8,6 +8,12 @@
 #
 
 
-include_recipe "mongodb::config"
+include_recipe "mongodb::config_file"
 include_recipe "mongodb::install"
 include_recipe "mongodb::service"
+if node['mongodb']['master'] or node['mongodb']['slave']
+    include_recipe "mongodb::repl_user"
+end
+if node['mongodb']['master']
+    include_recipe "mongodb::admin_user"
+end

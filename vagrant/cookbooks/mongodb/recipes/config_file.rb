@@ -1,17 +1,3 @@
-directory node['mongodb']['dbpath'] do
-  owner "mongodb"
-  group "mongodb"
-  mode 00755
-  action :create
-end
-
-directory node['mongodb']['logpath'] do
-  owner "mongodb"
-  group "mongodb"
-  mode 00755
-  action :create
-end
-
 
 
 template node['mongodb']['configfile'] do
@@ -24,7 +10,6 @@ template node['mongodb']['configfile'] do
     :httpinterface => node['mongodb']['nohttpinterface'],
     :rest => node['mongodb']['rest'],
     :replication_set => node['mongodb']['replicaset'],
-    :auth => node['mongodb']['auth'],
     :master => node['mongodb']['master'],
     :oplogsize => node['mongodb']['oplogsize'],
     :slave => node['mongodb']['slave'],
@@ -34,5 +19,5 @@ template node['mongodb']['configfile'] do
   group "root"
   mode "0644"
   action :create
-  #notifies :restart, "service[#{node['mongodb']['service_name']}]", :immediately
 end
+

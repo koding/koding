@@ -16,5 +16,9 @@ default_attributes({ "nginx" => {
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
+                     },
+                     "launch" => {
+                                "config" => "autoscale",
+                                "programs" => ["buildClient webserver", "authWorker", "socialWorker", "guestCleanup"]
                      }
 })

@@ -6,6 +6,8 @@ execute "build_modules" do
     command "/usr/bin/npm i"
     creates "#{node['kd_deploy']['deploy_dir']}/current/node_modules"
     action :nothing
-    environment ({'TMPDIR' => '/tmp/kd_tmp'})
+    environment ({'TMPDIR' => '/tmp/kd_tmp',
+                  'HOME' => '/opt/koding'
+                })
 end
 

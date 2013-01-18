@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e -x
-ROLE="mongo_master"
+ROLE="mongo_slave"
+ENVIRONMENT="prod"
 LOGFILE="/var/log/user-data-out.log"
 mkdir -p /etc/chef
 cat > /root/.s3cfg << "EOF"
@@ -17,10 +18,6 @@ encrypt = False
 follow_symlinks = False
 force = False
 get_continue = False
-gpg_command = /usr/bin/gpg
-gpg_decrypt = %(gpg_command)s -d --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
-gpg_encrypt = %(gpg_command)s -c --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
-gpg_passphrase = 
 guess_mime_type = True
 host_base = s3.amazonaws.com
 host_bucket = %(bucket)s.s3.amazonaws.com
@@ -52,7 +49,7 @@ apt-get install opscode-keyring >> $LOGFILE
 apt-get -y upgrade >> $LOGFILE
 apt-get -y install s3cmd >> $LOGFILE
 /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/koding-validator.pem /etc/chef/koding-validator.pem
-/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client.rb /etc/chef/client.rb
-/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client-config-${ROLE}.json /etc/chef/client-config.json
+/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client_${ENVIRONMENT}.rb /etc/chef/client.rb
+/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client-config-${ROLE}_${ENVIRONMENT}.json /etc/chef/client-config.json
 apt-get -y install chef >> $LOGFILE
 /etc/init.d/chef-client restart
