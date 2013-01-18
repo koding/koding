@@ -70,7 +70,7 @@ module.exports = deepFreeze
     login       : 'social'
     watch       : yes
     queueName   : socialQueueName+'cache'
-    run         : no    # don't run this, this should only run by prod or one at a time for testing
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"

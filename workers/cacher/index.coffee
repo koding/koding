@@ -4,7 +4,7 @@ KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 Broker   = require 'broker'
 {extend} = require 'underscore'
 
-{mongo, social, mq} = KONFIG
+{mongo, cacheWorker, mq} = KONFIG
 
 mqOptions = extend {}, mq
 mqOptions.login = cacheWorker.login if cacheWorker?.login?
@@ -13,7 +13,7 @@ koding = new Bongo {
   mongo
   root         : __dirname
   mq           : new Broker mqOptions
-  resourceName : social.queueName+'cache'
+  resourceName : cacheWorker.queueName
   models       : [
     '../social/lib/social/models/activity/cache.coffee'
     '../social/lib/social/models/activity/index.coffee'
