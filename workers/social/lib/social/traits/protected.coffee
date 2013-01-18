@@ -25,30 +25,3 @@ module.exports = class Protected
   @setPermissions =(permissions)->
     perms = Protected.permissionsByModule[@name] ?= []
     Protected.permissionsByModule[@name] = perms.concat permissions
-
-  @fetchParentGroup = @::fetchParentGroup =\
-    (callback)->
-      JGroup = require '../models/group'
-      JGroup.fetchParentGroup @, callback
-
-  @fetchAuthorityChain = @::fetchAuthorityChain = do ->
-    fetchChain = (group, callback, acc=[])->
-      acc.push group  if group
-      if group?.parent?
-        group.parent.populate (err, parent)->
-          if err
-            callback err
-          else
-            fetchChain parent, callback, acc
-      else
-        JGroup = require '../models/group'
-        JGroup.one slug: 'koding', (err, rootGroup)->
-          if err
-            callback err
-          else
-            acc.push rootGroup
-            callback null, acc
-    (callback)->
-      @fetchParentGroup (err, group)->
-        if err then callback err
-        else fetchChain group, callback

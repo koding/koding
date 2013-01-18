@@ -24,7 +24,6 @@ module.exports = class RestrictedQuery
 
   @one$ = permit 'query collection'
     success:(client, uniqueSelector, options, callback)->
-      console.log 'fsfsfsfsfsf'
       # TODO: this needs more security?
       uniqueSelector.group = makeGroupSelector client.context.group
       @one uniqueSelector, options, callback

@@ -1,5 +1,5 @@
 {Model, secure, dash} = require 'bongo'
-{Module} = require 'jraphical'
+{Module, Relationship} = require 'jraphical'
 
 class JPermission extends Model
   @set
@@ -25,45 +25,31 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
-  @checkPermission =(delegate, permission, target, callback)->
-    permission = [permission] unless Array.isArray permission
-    target.fetchAuthorityChain (err, chain)->
-      if err
-        callback err
-      else
-        console.log {chain}
-        permissions = []
-        queue = chain.map (group)->->
-          delegate.fetchRoles group, (err, roles)->
-            console.log roles
-            if err then queue.fin(err)
-            else if roles.length
-              if 'admin' in roles
-                permissions.push yes
-                queue.fin()
-              else if ('moderator' in roles or 'member' in roles) or \
-                      group.privacy is 'public' and 'guest' in roles
-                group.fetchPermissionSet (err, permissionSet)->
-                  if err then queue.fin(err)
-                  else if permissionSet?
-                    matchingPermissions = [].filter.call(
-                      permissionSet.permissions
-                      (savedPermission)->
-                        savedPermission.module is target.constructor.name and\
-                        savedPermission.role in roles and\
-                        !!intersection permission, savedPermission.permissions
-                    )
-                    permissions.push !!matchingPermissions.length
-                    queue.fin()
-                  else
-                    console.log 'there was no permission set found!'
-              else
-                permissions.push no
-                queue.fin()
-            else permissions.push no
-        dash queue, ->
-          hasPermission = yes in permissions
-          callback null, hasPermission
+  @checkPermission =(client, permission, target, callback)->
+    JGroup = require '../group'
+    permission = [permission]  unless Array.isArray permission
+    if 'function' is typeof target
+      groupName = client.context.group ? 'koding'
+      module    = target.name
+    else
+      target.group
+    JGroup.one {slug: groupName}, (err, group)->
+      return callback null  if err
+      permissionSelector = 'permissions.title':
+        if permission.length is 1 then permission[0]
+        else $in: permission
+      options = targetOptions: selector: permissionSelector
+      group.fetchPermissionSet {}, options, (err, permissionSet)->
+        return callback null  if err or not permissionSet
+        break   for perm in permissionSet.permissions\
+                when perm.title in permission
+        Relationship.one {
+          targetId: group.getId()
+          sourceId: client.connection.delegate.getId()
+          as: { $in: perm.roles }
+        }, (err, rel)->
+          return callback null, yes  if rel
+          callback null
 
   @permit =(permission, promise)->
     secure (client, rest...)->
@@ -72,14 +58,11 @@ module.exports = class JPermissionSet extends Module
       else
         callback =->
       success =
-        if 'function' is typeof promise then promise.bind(@)
-        else promise.success.bind(@)
-      failure = promise.failure?.bind(@) ? (args...)-> callback args...
+        if 'function' is typeof promise then promise.bind this
+        else promise.success.bind this
+      failure = (promise.failure?.bind this) ? (args...)-> callback args...
       {delegate} = client.connection
-      JPermissionSet.checkPermission(
-        delegate
-        permission
-        this
+      JPermissionSet.checkPermission(client, permission, this,
         (err, hasPermission)->
           if err
             failure err

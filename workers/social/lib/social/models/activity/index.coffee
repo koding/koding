@@ -17,8 +17,6 @@ module.exports = class CActivity extends jraphical.Capsule
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/restrictedquery'
 
-  console.log this
-
   @set
     feedable          : yes
     indexes           :
