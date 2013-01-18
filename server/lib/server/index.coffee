@@ -26,50 +26,37 @@ else
       middlewareTimeout : 5000
     librato: KONFIG.librato
 
- # Services
-  services = 
-    webserver: 0
-    worker_auth: 0
-    worker_social: 0
-    kite_webterm: 0
-    kite_sharedhosting: 0
-    kite_databases: 0
-    kite_applications: 0
+  # Services (order is important here)
+  services =
+    kite_webterm:
+      pattern: 'webterm'
+    worker_auth:
+      pattern: 'auth'
+    kite_sharedhosting:
+      pattern: 'kite-sharedHosting'
+    kite_applications:
+      pattern: 'kite-application'
+    kite_databases:
+      pattern: 'kite-application'
+    webserver:
+      pattern: 'web'
+    worker_social:
+      pattern: 'social'
+    
+  incService = (serviceKey, inc) ->
+    for key, value of services
+      if serviceKey.indexOf(value.pattern) > -1
+        value.count = if value.count then value.count += inc else 1
+        break
 
   # Presences
   koding = require './bongo'
   koding.connect ->
     koding.monitorPresence
       join: (serviceKey) ->
-        if serviceKey.indexOf('webterm') > -1
-          services.kite_webterm++
-        else if serviceKey.indexOf('auth') > -1
-          services.worker_auth++
-        else if serviceKey.indexOf('kite-sharedHosting') > -1
-          services.kite_sharedhosting++
-        else if serviceKey.indexOf('kite-application') > -1
-          services.kite_applications++
-        else if serviceKey.indexOf('kite-database') > -1
-          services.kite_databases++
-        else if serviceKey.indexOf('web') > -1
-          services.webserver++
-        else if serviceKey.indexOf('social') > -1
-          services.worker_social++
+        incService serviceKey, 1
       leave: (serviceKey) ->
-        if serviceKey.indexOf('webterm') > -1
-          services.kite_webterm--
-        else if serviceKey.indexOf('auth') > -1
-          services.worker_auth--
-        else if serviceKey.indexOf('kite-sharedHosting') > -1
-          services.kite_sharedhosting--
-        else if serviceKey.indexOf('kite-application') > -1
-          services.kite_applications--
-        else if serviceKey.indexOf('kite-database') > -1
-          services.kite_databases--
-        else if serviceKey.indexOf('web') > -1
-          services.webserver--
-        else if serviceKey.indexOf('social') > -1
-          services.worker_social--
+        incService serviceKey, -1
 
   {extend} = require 'underscore'
   express = require 'express'
@@ -169,7 +156,7 @@ else
 
   app.get "/-/presence/:service", (req, res) ->
     {service} = req.params
-    if services[service] and services[service] > 0
+    if services[service] and services[service].count > 0
       res.send 200
     else
       res.send 404
