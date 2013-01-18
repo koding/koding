@@ -1,25 +1,29 @@
 {Model, secure, dash} = require 'bongo'
 {Module, Relationship} = require 'jraphical'
 
-class JPermission extends Model
-  @set
-    indexes   :
-      module  : 'sparse'
-      title   : 'sparse'
-      roles   : 'sparse'
-    schema    :
-      module  : String
-      title   : String
-      body    : String
-      roles   : [String]
+# class JPermission extends Model
+#   @set
+#     indexes   :
+#       module  : 'sparse'
+#       title   : 'sparse'
+#       roles   : 'sparse'
+#     schema    :
+#       module  : String
+#       title   : String
+#       body    : String
+#       roles   : [String]
 
 module.exports = class JPermissionSet extends Module
 
   @share()
 
   @set
-    schema        :
-      permissions : [JPermission]
+    index                   :
+      'permissions.module'  : 'sparse'
+      'permissions.roles'   : 'sparse'
+      'permissions.title'   : 'sparse'
+    schema                  :
+      permissions           : Array
 
   {intersection} = require 'underscore'
 
@@ -28,26 +32,34 @@ module.exports = class JPermissionSet extends Module
   @checkPermission =(client, permission, target, callback)->
     JGroup = require '../group'
     permission = [permission]  unless Array.isArray permission
-    if 'function' is typeof target
-      groupName = client.context.group ? 'koding'
-      module    = target.name
-    else
-      target.group
+    groupName =\
+      if 'function' is typeof target
+        module = target.name
+        client.context.group ? 'koding'
+      else if target instanceof JGroup
+        module = 'JGroup'
+        target.slug
+      else
+        module = target.constructor.name
+        target.group
     JGroup.one {slug: groupName}, (err, group)->
       return callback null  if err
-      permissionSelector = 'permissions.title':
-        if permission.length is 1 then permission[0]
-        else $in: permission
-      options = targetOptions: selector: permissionSelector
-      group.fetchPermissionSet {}, options, (err, permissionSet)->
+      # permissionSelector = 'permissions.title':
+      #   if permission.length is 1 then permission[0]
+      #   else $in: permission
+      # options = targetOptions: selector: permissionSelector
+      # group.fetchPermissionSet {}, options, (err, permissionSet)->
+      group.fetchPermissionSet (err, permissionSet)->
         return callback null  if err or not permissionSet
         break   for perm in permissionSet.permissions\
                 when perm.title in permission
-        Relationship.one {
+        roles = (perm.roles or []).concat 'admin' # admin can do anything!
+        console.log {roles}
+        relationshipSelector =
           targetId: group.getId()
           sourceId: client.connection.delegate.getId()
-          as: { $in: perm.roles }
-        }, (err, rel)->
+          as: { $in: roles }
+        Relationship.one relationshipSelector, (err, rel)->
           return callback null, yes  if rel
           callback null
 

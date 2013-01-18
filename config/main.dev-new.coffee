@@ -64,7 +64,7 @@ module.exports = deepFreeze
     watch       : yes  
   social        :
     login       : 'social'
-    numberOfWorkers: 1
+    numberOfWorkers: 0
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
