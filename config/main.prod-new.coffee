@@ -27,13 +27,14 @@ module.exports = deepFreeze
     port        : 3020
     clusterSize : 10
     queueName   : socialQueueName+'web'
+    watch       : no
   mongo         : mongo
   runGoBroker   : yes
-  buildClient   : no
+  buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
-    # debugConnectionErrors: yes
+    debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -55,10 +56,11 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
+    watch       : no
   social        :
     login       : 'prod-social'
     numberOfWorkers: 10
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
@@ -113,27 +115,9 @@ module.exports = deepFreeze
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
-  mixpanel :
-    key : "bb9dd21f58e3440e048a2c907422deed"
   librato:
     push: yes
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 30000
-  crypto :
-    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      cipher = crypto.createCipher('aes-256-cbc',""+key)
-      cipher.update(str,'utf-8')
-      a = cipher.final('hex')
-      return a
-    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      decipher = crypto.createDecipher('aes-256-cbc',""+key)
-      decipher.update(str,'hex')
-      b = decipher.final('utf-8')
-      return b
+
