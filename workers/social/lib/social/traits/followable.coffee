@@ -128,10 +128,10 @@ module.exports = class Followable
               follower        : follower
               action          : action
 
-            JAccount.emit 'FollowingRelationshipChanged'
-              follower: follower.getId()
-              followee: @getId()
-              action  : action
+            # JAccount.emit 'FollowingRelationshipChanged'
+            #   follower: follower.getId()
+            #   followee: @getId()
+            #   action  : action
 
             follower.updateFollowingCount @, action
 
@@ -168,10 +168,10 @@ module.exports = class Followable
           follower        : follower
           action          : action
 
-        JAccount.emit 'FollowingRelationshipChanged'
-          follower: follower.getId()
-          followee: @getId()
-          action  : action
+        # JAccount.emit 'FollowingRelationshipChanged'
+        #   follower: follower.getId()
+        #   followee: @getId()
+        #   action  : action
 
         follower.updateFollowingCount @, action
 
