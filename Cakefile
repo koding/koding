@@ -6,6 +6,7 @@ option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
+{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
 # exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
@@ -40,7 +41,6 @@ http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
-
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
@@ -114,37 +114,30 @@ task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
-  startPool = (config) ->
-    exitingProcesses = {}
-    i = 0
-    runProcess = (size) ->
-      processes.fork
-        name  : "socialWorker"
-        cmd   : __dirname + "/workers/social/index -c #{config}"
-        pool  :
-          size: size
-        onMessage: (msg) ->
-          if msg.exiting
-            exitingProcesses[msg.pid] = yes
-            runProcess(0)
-        onExit: (pid, name) ->
-          unless exitingProcesses[pid]
-            runProcess(0)
-          else
-            delete exitingProcesses[pid]
+  for i in [1..social.numberOfWorkers]
+    processes.fork
+      name  : "socialWorker-#{i}"
+      cmd   : __dirname + "/workers/social/index -c #{configFile}"
+      restart : yes
+      restartInterval : 100
+      # onMessage: (msg) ->
+      #   if msg.exiting
+      #     exitingProcesses[msg.pid] = yes
+      #     runProcess(0)
+      # onExit: (pid, name) ->
+      #   unless exitingProcesses[pid]
+      #     runProcess(0)
+      #   else
+      #     delete exitingProcesses[pid]
 
-    runProcess(social.numberOfWorkers)
-
-  startPool configFile
 
   if social.watch?
-    console.log '[SOCIAL WORKER] Make sure there is only one worker active for [WATCHER] to work properly.'
     watcher = new Watcher
       groups   :
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker"
+            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
