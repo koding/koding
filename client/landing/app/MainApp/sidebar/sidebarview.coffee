@@ -52,7 +52,10 @@ class Sidebar extends JView
         unless currentGroupData?.data?.slug is 'koding'
           @avatar.setClass 'shared-avatar'
           @avatar.setWidth 80
-          @groupAvatar.$().css backgroundImage :  currentGroupData?.data?.avatar or "url(http://lorempixel.com/#{100+@utils.getRandomNumber(10)}/#{100+@utils.getRandomNumber(10)})"
+
+          # group avatar should be either a URL or a dataURL
+
+          @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
           @groupAvatar.show()
           @groupAvatar.setClass 'flash'
           @avatarHeader.setData currentGroupData
