@@ -130,17 +130,22 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   reset:=>
     @submitBtn.setTitle "Share your Code Snippet"
+
     @removeCustomData "activity"
+
     @title.setValue ''
     @description.setValue ''
-    @utils.wait =>
-      @ace.setContents "//your code snippet goes here..."
-      @ace.setSyntax 'javascript'
     @syntaxSelect.setValue 'javascript'
-    @utils.wait 2000, => @tagController.reset()
+
     @updateSyntaxTag 'javascript'
     @hiddenAceInputClone.setValue ''
     @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'
+
+    # deferred resets
+    @utils.wait =>
+      @tagController.reset()
+      @ace.setContents "//your code snippet goes here..."
+      @ace.setSyntax 'javascript'
 
   switchToEditView:(activity,fake=no)->
     unless fake
