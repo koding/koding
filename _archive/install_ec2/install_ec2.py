@@ -9,6 +9,7 @@
 from boto.ec2 import get_region
 from boto.ec2.connection import EC2Connection
 from boto.ec2 import blockdevicemapping
+# import boto
 from pprint import pprint
 from time import sleep
 import syslog
@@ -20,7 +21,21 @@ import os
 
 
 
+#centos_id     = 'ami-c49030ad' # koding ami (centos)
+centos_id     = 'ami-2f219746' # koding ami (centos)
 
+ceph_id       = 'ami-7539b41c'
+
+#cloudlinux_id = 'ami-888f2fe1' # CloudLinux
+cloudlinux_id = 'ami-dd02b4b4'
+key_name      = 'koding'
+zone          = 'us-east-1b'
+placement     = 'us-east-1'
+#instance_type = 'm1.small'
+#instance_type = 'm1.large'
+security_groups = ['koding']
+#security_groups = ['internal']
+#security_groups = ['smtp']
 
 syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
@@ -100,14 +115,19 @@ def attachVolume(volumeID,instanceID):
 def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
 
     reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
+    chef_client = 'echo { \"run_list\": [ \"role[baseServer]\"] } > /etc/chef/client-config.json; curl https://gist.github.com/raw/7bb15fe2b931feefff35/c6832d7cdfbc08678a1aedac6781b05ef748e3ac/gistfile1.txt > /etc/chef/client.rb'
+    chef_pems = 'curl https://gist.github.com/raw/7bb15fe2b931feefff35/dcda348ba840d0ec9e5782451b4b49e9fd53295b/gistfile2.txt > /etc/chef/chris-test-validator.pem ; curl https://gist.github.com/raw/7bb15fe2b931feefff35/c1c82fa892c2bf35e57fd8dc539359ae7bf95ffb/gistfile3.txt > /etc/chef/ceph0-validator.pem'
     if type == "hosting":
         user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network && %s" % (fqdn,fqdn,reg)
-    else:
+    elif type == "webserver" or type == "proxy":
         user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
+    elif type == "cephServer":
+        user_data = "#!/bin/bash\n/bin/hostname %s ; apt-get update ; export DEBIAN_FRONTEND=noninteractive ; apt-get install chef curl -q -y ; %s ; %s ; service chef-client restart" % (fqdn, chef_client, chef_pems)
 
     reservation = ec2.run_instances(
         image_id = ami_id,
-        key_name = config.key_name,
+        # key_name = config.key_name,
+        key_name = "chris",
         instance_type = instance_type,
         security_groups = config.security_groups,
         user_data  = user_data,
@@ -139,7 +159,7 @@ if __name__ == "__main__":
 
 
     parser = argparse.ArgumentParser(description="Create EC2")
-    parser.add_argument('--type', dest='type',help='specify purpose of server (hosting , webserver or proxy currently supported)',required=True)
+    parser.add_argument('--type', dest='type',help='specify purpose of server (hosting, webserver, proxy and cephServer currently supported)',required=True)
     parser.add_argument('--env', dest='env',help='specify purpose of server (only "beta" currently supported)',required=True)
     parser.add_argument('--disk', dest='disk',help="disk size in GB")
     parser.add_argument('--pub', dest='pub',action='store_true',help="with elastic IP")
@@ -159,6 +179,12 @@ if __name__ == "__main__":
         id = launchInstance(fqdn, args.type, args.ec2type)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
+    elif args.type == "cephServer":
+        fqdn = route53.get_new_name(args.type, args.env)
+        if not fqdn: sys.exit(1)
+        id = launchInstance(fqdn, args.type, args.ec2type, ceph_id)
+        addr = getSystemAddr(id)
+        # fqdn = route53.createCNAMErecord(fqdn, addr)
     else:
         sys.stderr.write("server type %s is not supported" % args.type) 
         syslog.syslog(syslog.LOG_ERR, "server type %s is not supported" % args.type)

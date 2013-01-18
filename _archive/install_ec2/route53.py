@@ -17,6 +17,8 @@ def get_new_name(instance_type, env):
         rr_name = "web"
     elif instance_type == "proxy":
         rr_name = "proxy"
+    elif instance_type == "cephServer":
+        rr_name = "ceph"
     else:
         sys.stderr.write("%s is not valid instance type" % instance_type)
         return False
@@ -24,6 +26,9 @@ def get_new_name(instance_type, env):
     if env != "beta":
         sys.stderr.write("%s is not valid env" % env)
         return False
+
+    if instance_type == "cephServer":
+        return "ceph0.%s.system.aws.koding.com" % (env)
 
 
     result = route53.get_all_hosted_zones()
