@@ -269,7 +269,7 @@ run =(options)->
   invoke 'authWorker'     if config.authWorker
   invoke 'guestCleanup'   if config.guests
   invoke 'libratoWorker'  if config.librato?.push
-  invoke 'cacheWorker'
+  invoke 'cacheWorker'    if config.cacheWorker?.run is yes
   invoke 'socialWorker'
   invoke 'webserver'
 
