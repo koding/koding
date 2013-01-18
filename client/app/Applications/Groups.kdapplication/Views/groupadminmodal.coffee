@@ -1,9 +1,11 @@
-class AdminModal extends KDModalViewWithForms
+class GroupAdminModal extends KDModalViewWithForms
 
   constructor : (options = {}, data) ->
 
+    log 'Data for modal!',data
+
     options =
-      title                   : "Admin Panel"
+      title                   : "Group Administration Panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       overlay                 : yes
       width                   : 500

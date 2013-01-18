@@ -10,6 +10,8 @@ class Sidebar extends JView
     @_finderExpanded  = no
     @_popupIsActive   = no
 
+    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
@@ -21,7 +23,10 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+    @groupAvatar = new KDView
+      cssClass   : 'group-avatar-image-wrapper hidden'
+      tagName : 'div'
+    ,currentGroupData
 
     @currentGroup = new KDCustomHTMLView
       cssClass    : 'current-group-indicator'
@@ -30,6 +35,39 @@ class Sidebar extends JView
         #KD.getSingleton('router').handleRoute
         console.log @getData()
     , currentGroupData
+
+    @avatarHeader = new KDView
+      cssClass : 'avatar-header hidden'
+      pistachio : '{{#(title)}}'
+      click :=>
+        KD.getSingleton('router').handleRoute "/#{@avatarHeader.getData().slug}/Activity"
+
+    , currentGroupData
+
+    # handle group related decisions
+
+    @getSingleton('mainController').on 'GroupChangeFinished', =>
+      @utils.wait =>
+        currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+        unless currentGroupData?.data?.slug is 'koding'
+          @avatar.setClass 'shared-avatar'
+          @avatar.setWidth 80
+
+          # group avatar should be either a URL or a dataURL
+
+          @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
+          @groupAvatar.show()
+          @groupAvatar.setClass 'flash'
+          @avatarHeader.setData currentGroupData
+          @avatarHeader.show()
+        else
+          @avatar.unsetClass 'shared-avatar'
+          @avatar.setWidth 160
+          @groupAvatar.hide()
+          @groupAvatar.unsetClass 'flash'
+          @avatarHeader.setData currentGroupData
+          @avatarHeader.hide()
+        @render()
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -173,6 +211,7 @@ class Sidebar extends JView
 
     @setListeners()
 
+
   render:(account)->
 
     account or= KD.whoami()
@@ -199,11 +238,12 @@ class Sidebar extends JView
     <div id="main-nav">
       <div class="avatar-placeholder">
         <div id="avatar-area">
+          {{> @groupAvatar}}
           {{> @avatar}}
+          {{> @avatarHeader}}
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
-      {{> @currentGroup}}
       {{> @statusLEDs}}
       {{> @nav}}
       <hr />
@@ -246,6 +286,7 @@ class Sidebar extends JView
 
     @$('.avatar-placeholder').removeClass "collapsed"
     @$('#finder-panel').removeClass "expanded"
+    @avatarHeader.show() unless @avatarHeader.getData().slug is 'koding'
     if parseInt(@contentPanel.$().css("left"), 10) < 174
       @contentPanel.setClass "mouse-on-nav"
     @utils.wait 300, => callback?()
@@ -255,6 +296,7 @@ class Sidebar extends JView
     @$('.avatar-placeholder').addClass "collapsed"
     @$('#finder-panel').addClass "expanded"
     @contentPanel.unsetClass "mouse-on-nav"
+    @avatarHeader.hide()
     @utils.wait 300, =>
       callback?()
       @emit "NavigationPanelWillCollapse"

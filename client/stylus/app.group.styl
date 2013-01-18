@@ -201,15 +201,228 @@
       blockMid()
 
 
+// .kdlistitemview-groups
+//   borderBox()
+//   vertical-align top
+//   margin 5px
+//   padding 5px
+//   width 200px
+//   height 200px
+//   display inline-block
+//   clear none
+//   border 1px solid blue
 
 
 
 
 
 
+.content-page.groups
+
+  // .kdlistview-everything
+
+  .kdlistitemview-groups
+    borderBox()
+    border-bottom           1px solid #f5f5f5
+    min-height              131px
+    min-width 250px
+    clear                   none
+    width                   50%
+    display                 inline-block
+    height auto
+    vertical-align top
+
+    &:hover
+      div.groups-settings-menu
+        opacity 1
+
+    &:nth-child(2n+1)
+      border-right           1px solid #f5f5f5
+
+    div.groups-settings-menu
+        vendor            transition, opacity .1s ease-out
+        size              21px, 18px
+        opacity           .2
+        abs()
+        top               0
+        right             0
+        z-index           10
+        button.kdbutton.with-icon
+          padding         1px 2px
+          padding-right   3px!important
+          span.icon
+            bg            position, -81px -281px
+            size          16px, 16px
+            padding       0
+            margin        0
+          &:hover
+            gradient      #eee, #ddd
+            rounded       2px
+        .chevron
+          display         none
+        .chevron-separator
+          display         none
 
 
 
 
+    span.avatar
+      margin 20px 20px 5px 20px
+      padding         1px
+      border          1px solid #E3E3E3
+      fl()
+      display         block
+      size(60px,60px)
+      .avatar-image
+        display         block
+        text-decoration   none
+        background-size   cover
+        background-position   center
+        size(60px,60px)
+
+    .content
+      width auto
+      margin-left : 103px
+      borderBox()
+      padding-top 10px
+      h3
+        borderBox()
+        width auto
+        padding-bottom 10px
+        padding-right 20px
+        margin-top 12px
+        overflow-y hidden
+        overflow-x hidden
+        white-space nowrap
+        text-overflow ellipsis
+        height 30px
+        color #ff9200
+        font-size 13px
+        a
+          width auto
+          color #ff9200
+          font-weight 400
+          noTextDeco()
+
+      article
+        borderBox()
+        width auto
+        margin-right 95px
+        padding-bottom 20px
+        overflow-x hidden
+        overflow-y hidden
+        text-overflow ellipsis
+        line-height 1.2em
+        height 3.6em
+        color #5f5f5f
+        font-size 12px
+
+    .topicmeta
+      abs()
+      left 18px
+      bottom 12px
+
+      .topicstats
+        .posts
+          margin-right 5px
+        .followers, .posts
+          display inline-block
+          a
+            color black
+            font-weight bold
+            noTextDeco()
+
+    .button-container
+      abs()
+      right 10px
+      bottom 10px
+
+      button
+        fr()
+        clear both
+        display block
+        margin-top 5px
+
+        &.joined
+          bg color, #444
+
+      .enter-group
+
+        &:before
+          content               ''
+          padding 0px 10px
+          sprite()
+          bg position, -20px -263px
+          size 15px 15px
+          margin               0 6px 0 0
+          vertical-align       middle
 
 
+.group-admin-modal
+  div.image-wrapper
+    fl()
+    borderBox()
+    width 250px
+    height 250px
+    display block
+    border-bottom 1px solid #e5e5e5
+    text-align center
+    padding 5px
+    bg size, cover
+    bg size, contain
+    bg position, center center
+    bg repeat, no-repeat
+
+    img.avatar-image
+      borderBox()
+      padding 5px
+      width auto
+      height auto
+      max-width 240px
+      max-height 240px
+      shadow 0px 0px 5px black
+
+  div.group-avatar
+    borderBox()
+    width 50%
+    margin-left 50%
+    height 250px
+    label.avatar
+      display none
+    .input-wrapper
+      height 100%
+    div.kdfileupload
+      height 100%
+      min-width 0px
+      .kdfileuploadarea
+        bg size, contain
+        bg position, center center
+        bg repeat, no-repeat no-repeat
+
+        height 100%
+    .listview-wrapper
+      display none
+
+.group-header
+  button
+    &.enter
+      fl()
+      margin-right 5px!important
+    &.join
+      display block
+
+
+.kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
+  border-color          rgba(0,0,0,.2)
+  .chevron-ghost-wrapper
+    border-color        rgba(0,0,0,.2)
+    rounded             2px 2px 0 0
+    width               19px
+    span.chevron-ghost
+      margin            0 auto
+      bg                position, -80px -261px
+  .kdcontextmenutreeview
+    margin              3px 0
+    .kdview.kdtreeitemview.default
+      padding           2px
+      font-size         11px

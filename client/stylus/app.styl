@@ -272,14 +272,17 @@ body.loggedIn
   background            -moz-radial-gradient(circle, white,#ddd)
   background            -ms-radial-gradient(circle, white,#ddd)
   borderBox()
-  margin-bottom         23px
+  // margin-bottom         23px
+  bg color,             #444
   .avatar-image-wrapper
     rel()
+    fr()
     bg                  size, 160px auto
     bg                  position,center center
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
+    vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
       left              0
@@ -298,6 +301,64 @@ body.loggedIn
       a
         color             #f18932
         text-decoration   none
+    &.shared-avatar
+      fr()
+      bg                  size, 80px, auto
+      bg                  position, right center
+      size                80px!important, 76px
+
+  .group-avatar-image-wrapper
+    rel()
+    fl()
+    display               inline-block
+    bg                    color, #444
+    bg                    size, 80px auto
+    bg                    position,right center
+    bg                    repeat,no-repeat
+    shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+    size                  50%,76px
+
+    &:hover
+      div.group-title
+        opacity           1
+    div.group-title
+      opacity             0.15
+      vendor transition,  opacity 0.15s ease-in-out
+      width               100%
+      bg                  color, rgba(128,128,128,0.5)
+      color               white
+      text-shadow         1px 1px 3px rgba(64,64,64,0.25)
+
+  .avatar-header
+    abs()
+    left                  0
+    top                   0
+    right                 0
+    font-weight           300
+    borderBox()
+    padding               0px 3px
+    bg                    color, rgba(32,32,32,0.8)
+    color                 #c0c0c0
+    text-align            center
+    font-size             12px
+    height                1.5em
+    line-height           1.5em
+    overflow              none
+    white-space           nowrap
+    text-overflow         ellipsis
+    vendor box-shadow,    0 5px 15px -5px rgba(0,0,0,0.85)
+    vendor transition,    top 0.5s ease-in-out
+    cursor                pointer
+    text-shadow           0px 0px 3px rgba(0,0,0,0.33)
+
+    &.hidden
+      visibility          visible!important
+      display             block!important
+      top                 -1.5em
+
+@keyframes flashAvatar
+  50%
+    shadow inset 0px 0px 10px 5px #ff9200
 
 /* collapsed sidebar state */
 #main-nav-wrapper.collapsed

@@ -5,7 +5,7 @@
 # - a KDListView to list files after drop
 # - n KDListItemViews
 #####
-#                       
+#
 # options:
 #   limit        : 1            -> number of max amount of files to be sent to server
 #   preview      : "thumbs"     -> thumbs or list
@@ -40,10 +40,11 @@ class KDFileUploadView extends KDView
     else
       super options,data
       @setPartial "<p class='warning info'><strong>Oops sorry,</strong> file upload is only working on Chrome, Firefox and Opera at the moment. We're working on a fix.</p>"
-  
+
   addDropArea:()->
     @dropArea = new KDFileUploadArea
       title    : @getOptions().title
+      bind     : 'drop dragenter dragleave dragover dragstart dragend'
       cssClass : "kdfileuploadarea"
       delegate : @
     @addSubView @dropArea
@@ -57,7 +58,7 @@ class KDFileUploadView extends KDView
       view : @fileList
 
     @addSubView @listController.getView()
-      
+
   addFileList:()-> new KDFileUploadListView delegate : @
   addThumbnailList:()-> new KDFileUploadThumbListView delegate : @
 
@@ -65,14 +66,15 @@ class KDFileUploadView extends KDView
     reader = new FileReader()
     reader.onload = (event)=>
       @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
+      @emit "FileReadComplete", {progressEvent : event, file : file}
 
     reader.readAsDataURL file
 
-  fileReadComplete:(pubInst,event)->  
+  fileReadComplete:(pubInst,event)->
     file = event.file
     file.data = event.progressEvent.target.result
     @putFileInQueue file
-  
+
   putFileInQueue:(file)->
     if not @isDuplicate(file) and @checkLimits(file)
       @files[file.name] = file
@@ -80,19 +82,19 @@ class KDFileUploadView extends KDView
       return yes
     else
       return no
-  
+
   removeFile:(pubInst,event)->
     file = pubInst.getData()
     delete @files[file.name]
     @fileList.removeItem pubInst
-  
-  isDuplicate:(file)-> 
+
+  isDuplicate:(file)->
     if @files[file.name]?
       @notify "File is already in queue!"
       yes
-    else 
+    else
       no
-  
+
   checkLimits:(file)->
     return @checkFileAmount() and @checkFileSize(file) and @checkTotalSize(file)
 
@@ -106,7 +108,7 @@ class KDFileUploadView extends KDView
       no
     else
       yes
-    
+
   checkTotalSize:(file)->
     totalMaxSize  = @getOptions().totalMaxSize
     totalSize = file.size
@@ -118,7 +120,7 @@ class KDFileUploadView extends KDView
       no
     else
       yes
-    
+
   checkFileSize:(file)->
     fileMaxSize = @getOptions().fileMaxSize
     if file.size/1024 > fileMaxSize
@@ -132,24 +134,24 @@ class KDFileUploadView extends KDView
       title   : title
       duration: 2000
       type    : "tray"
-  
+
 class KDFileUploadArea extends KDView
   # isDroppable:()->
   #   return @droppingEnabled ? yes
-  # 
+  #
   # dropAccept:(item)=>
   #   yes
-  # 
+  #
   # dropOver:(event,ui)=>
   #   event.preventDefault()
   #   event.stopPropagation()
   #   @setClass "hover"
-  # 
+  #
   # dropOut:(event,ui)=>
   #   event.preventDefault()
   #   event.stopPropagation()
   #   @unsetClass "hover"
-  
+
   dragEnter:(e)->
     e.preventDefault()
     e.stopPropagation()
@@ -194,10 +196,10 @@ class KDFileUploadArea extends KDView
         animate   : yes
         selector  : null
         partial   : "i"
-        
+
     # TIPTIP DEPRECATED
     # @$().find("span.iconic").tipTip defaultPosition : "top"
-  
+
 
 class KDFileUploadListView extends KDListView
   constructor:(options,data)->
@@ -207,7 +209,7 @@ class KDFileUploadListView extends KDListView
   addItem:(file)->
     itemInstance = new KDKDFileUploadListItemView {delegate : @},file
     @getDelegate().listenTo
-      KDEventTypes:       
+      KDEventTypes:
         eventType:        "removeFile"
       listenedToInstance: itemInstance
       callback:           @getDelegate().removeFile
@@ -238,7 +240,7 @@ class KDFileUploadThumbListView extends KDListView
   addItem:(file)->
     itemInstance = new KDFileUploadThumbItemView {delegate : @},file
     @getDelegate().listenTo
-      KDEventTypes:       
+      KDEventTypes:
         eventType:        "removeFile"
       listenedToInstance: itemInstance
       callback:           @getDelegate().removeFile
@@ -252,7 +254,7 @@ class KDFileUploadThumbItemView extends KDListItemView
 
   click:(e)->
     @handleEvent {type : "removeFile", orgEvent : e} if $(e.target).is "span.close-icon"
-    
+
   viewAppended:()->
     @$().append @partial @data
     # @addSubView new KDInputView
@@ -276,3 +278,15 @@ class KDFileUploadThumbItemView extends KDListItemView
         <span class='file-size'>#{(file.size / 1024).toFixed(2)}kb</span>
         <span class='close-icon'></span>
        </p>"
+
+class KDFileUploadSingleView extends KDFileUploadView
+
+    putFileInQueue:(file)->
+      @files = {}
+      @fileList.empty()
+      if not @isDuplicate(file) and @checkLimits(file)
+        @files[file.name] = file
+        @fileList.addItem file
+        return yes
+      else
+        return no
