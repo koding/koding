@@ -29,6 +29,15 @@ class nginx_proxy::config {
         notify  => Class["nginx_proxy::service"],
     }
 
+    file { "/etc/nginx/conf.d/ssl_koding.com.conf":
+        ensure  => file,
+        source  => "puppet:///modules/nginx_proxy/etc/conf.d/ssl_koding.com.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["nginx_proxy::service"],
+    }
+
     file { "/opt/Apps":
         ensure => directory,
         mode => 755,

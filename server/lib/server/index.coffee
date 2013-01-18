@@ -1,6 +1,5 @@
 {argv} = require 'optimist'
-
-KONFIG = require argv.c?.trim()
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
@@ -14,7 +13,7 @@ if cluster.isMaster
 else
   processMonitor = (require 'processes-monitor').start
     name : "webServer on port #{webPort}"
-    stats_id: "webserver." + cluster.worker.id
+    stats_id: "webserver." + process.pid
     interval : 30000
     limit_hard  :
       memory   : 300
@@ -26,6 +25,38 @@ else
       middleware : (name,callback) -> koding.disconnect callback
       middlewareTimeout : 5000
     librato: KONFIG.librato
+
+  # Services (order is important here)
+  services =
+    kite_webterm:
+      pattern: 'webterm'
+    worker_auth:
+      pattern: 'auth'
+    kite_sharedhosting:
+      pattern: 'kite-sharedHosting'
+    kite_applications:
+      pattern: 'kite-application'
+    kite_databases:
+      pattern: 'kite-application'
+    webserver:
+      pattern: 'web'
+    worker_social:
+      pattern: 'social'
+    
+  incService = (serviceKey, inc) ->
+    for key, value of services
+      if serviceKey.indexOf(value.pattern) > -1
+        value.count = if value.count then value.count += inc else 1
+        break
+
+  # Presences
+  koding = require './bongo'
+  koding.connect ->
+    koding.monitorPresence
+      join: (serviceKey) ->
+        incService serviceKey, 1
+      leave: (serviceKey) ->
+        incService serviceKey, -1
 
   {extend} = require 'underscore'
   express  = require 'express'
@@ -133,6 +164,13 @@ else
         throw err if err
         res.send data
 
+  app.get "/-/presence/:service", (req, res) ->
+    {service} = req.params
+    if services[service] and services[service].count > 0
+      res.send 200
+    else
+      res.send 404
+
   app.get "/-/status/:event/:kiteName",(req,res)->
     # req.params.data
 
@@ -176,4 +214,4 @@ else
 
   app.listen webPort
 
-  console.log '[WEBSERVER] running ', "http://localhost:#{webPort} pid:#{process.pid}"
+  console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

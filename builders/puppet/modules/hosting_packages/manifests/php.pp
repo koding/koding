@@ -15,6 +15,7 @@ class hosting_packages::php {
             "php-xml",
             "php-dba",
             "php-pear",
+            "php-bcmath",
         ] 
     
     package { $php :

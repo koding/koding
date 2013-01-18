@@ -23,6 +23,7 @@ type WebtermServer struct {
 	process          *os.Process
 	currentSecond    int64
 	messageCounter   int
+	byteCounter      int
 	lineFeeedCounter int
 }
 
@@ -35,7 +36,7 @@ func main() {
 	}
 
 	k := kite.New("webterm")
-	k.Handle("createSever", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("createServer", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		remote, err := args.Map()
 		if err != nil {
 			return nil, err
@@ -111,29 +112,50 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	go func() {
 		defer log.RecoverAndLog()
 
-		buf := make([]byte, 1<<12, (1<<12)+4)
+		buf := make([]byte, (1<<12)-4, 1<<12)
+		runes := make([]rune, 1<<12)
 		for {
 			n, err := pty.Master.Read(buf)
-			for {
+			for n < cap(buf)-1 {
 				r, _ := utf8.DecodeLastRune(buf[:n])
 				if r != utf8.RuneError {
 					break
 				}
 				pty.Master.Read(buf[n : n+1])
-				n += 1
+				n++
 			}
+
 			s := time.Now().Unix()
 			if server.currentSecond != s {
 				server.currentSecond = s
 				server.messageCounter = 0
+				server.byteCounter = 0
 				server.lineFeeedCounter = 0
 			}
 			server.messageCounter += 1
+			server.byteCounter += n
 			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.lineFeeedCounter > 300 {
+			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
 				time.Sleep(time.Second)
 			}
-			server.remote["output"].(dnode.Callback)(string(buf[:n]))
+
+			// convert manually to fix invalid utf-8 chars
+			i := 0
+			c := 0
+			for {
+				r, l := utf8.DecodeRune(buf[i:n])
+				if l == 0 {
+					break
+				}
+				if r >= 0xD800 {
+					r = utf8.RuneError
+				}
+				runes[c] = r
+				i += l
+				c++
+			}
+
+			server.remote["output"].(dnode.Callback)(string(runes[:c]))
 			if err != nil {
 				break
 			}

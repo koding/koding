@@ -12,7 +12,8 @@ process.on 'uncaughtException', (err)->
 Bongo = require 'bongo'
 Broker = require 'broker'
 
-Object.defineProperty global, 'KONFIG', value: require './config'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, mongo, email, social} = KONFIG
 
 mqOptions = extend {}, mq
@@ -22,7 +23,7 @@ broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
-  stats_id: "worker.social." + argv.workerid
+  stats_id: "worker.social." + process.pid
   interval : 30000
   limit_hard  :
     memory   : 300
@@ -49,6 +50,16 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
+  toobusy:
+    interval: 10000
+    callback: ->
+      console.log "[SOCIAL WORKER #{name}] I'm too busy, accepting no more new jobs."
+      process.send?({pid: process.pid, exiting: yes})
+      koding.disconnect()
+      setTimeout ->
+        process.exit()
+       , 20000
+
   librato: KONFIG.librato
 
 koding = new Bongo
@@ -102,4 +113,4 @@ koding.connect ->
     #     process.exit()
     #   ,10*1000
 
-console.log "Koding Social Worker #{argv.workerid} has started."
+console.log "Koding Social Worker #{process.pid} has started."
