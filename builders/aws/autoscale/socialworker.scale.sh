@@ -1,8 +1,9 @@
-CFG="as_socialWorker_cfg_0.1.0" # Launch config name
-PATH_TO_USER_DATA="../user-data/socialworker-data.txt"
-GRP="as_socialWorker_grp" # Autoscale group name
-SCALE_UP_POLICY="as_socialWorker_policy" 
-SCALE_DOWN_POLICY="as_socialWorker_policy_scale_down"
+APP="socialworker"
+CFG="as_${APP}_cfg_0.1.0" # Launch config name
+PATH_TO_USER_DATA="../user-data/${APP}-data.txt"
+GRP="as_${APP}_grp" # Autoscale group name
+SCALE_UP_POLICY="as_${APP}_policy" 
+SCALE_DOWN_POLICY="as_${APP}_policy_scale_down"
 #ELB="as-webserver" # loadbalancer name
 AMI="ami-3d4ff254" # Ubuntu 12.04 LTS
 INSTANCE_TYPE="m1.small"
@@ -22,11 +23,11 @@ as-create-auto-scaling-group $GRP --min-size 2 --max-size 10 --vpc-zone-identifi
 POLICY_UP_ARN=$(as-put-scaling-policy $SCALE_UP_POLICY --auto-scaling-group $GRP --adjustment=1 --type ChangeInCapacity --cooldown 300)
 
 
-mon-put-metric-alarm HighCPUAlarm  --comparison-operator  GreaterThanThreshold  --evaluation-periods  1 --metric-name  CPUUtilization  --namespace  "AWS/EC2"  --period  300  --statistic Average --threshold  80 --alarm-actions $POLICY_UP_ARN --dimensions "AutoScalingGroupName=${GRP}"
+mon-put-metric-alarm ${APP}_HighCPUAlarm  --comparison-operator  GreaterThanThreshold  --evaluation-periods  1 --metric-name  CPUUtilization  --namespace  "AWS/EC2"  --period  300  --statistic Average --threshold  80 --alarm-actions $POLICY_UP_ARN --dimensions "AutoScalingGroupName=${GRP}"
 
 POLICY_DOWN_ARN=$(as-put-scaling-policy $SCALE_DOWN_POLICY --auto-scaling-group $GRP  --adjustment=-1 --type ChangeInCapacity  --cooldown 300)
 
-mon-put-metric-alarm LowCPUAlarm  --comparison-operator  LessThanThreshold --evaluation-periods  1 --metric-name  CPUUtilization --namespace  "AWS/EC2"  --period  600  --statistic Average --threshold  40  --alarm-actions $POLICY_DOWN_ARN --dimensions "AutoScalingGroupName=${GRP}"
+mon-put-metric-alarm ${APP}_LowCPUAlarm  --comparison-operator  LessThanThreshold --evaluation-periods  1 --metric-name  CPUUtilization --namespace  "AWS/EC2"  --period  600  --statistic Average --threshold  40  --alarm-actions $POLICY_DOWN_ARN --dimensions "AutoScalingGroupName=${GRP}"
 
 
 
