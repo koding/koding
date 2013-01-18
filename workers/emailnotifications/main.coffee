@@ -26,28 +26,36 @@ commonHeader     = (m)-> """[Koding Bot] A new notification"""
 commonTemplate   = (m)->
   action  = ''
   preview = """
-
               <hr/>
-                #{m.realContent.body}
+                <p>
+                  #{m.realContent.body}
+                </p>
               <hr/>
-
             """
   switch m.event
     when 'LikeIsAdded'
       action = "liked your"
-      preview = ''
     when 'PrivateMessageSent'
       action = "sent you a"
     when 'ReplyIsAdded'
-      action  = "commented on your"
+      if m.realContent.origin?._id is m.receiver._id
+        action = "commented on your"
+      else
+        action = "also commented on"
+        # FIXME GG Implement the details
+        # if m.realContent.origin?._id is m.sender._id
+        #   action = "#{action} own"
 
   """
-    Hi #{m.receiver.profile.firstName},
+    <p>
+      Hi #{m.receiver.profile.firstName},
+    </p>
 
-    <a href="https://koding.com/#{m.sender.profile.nickname}">#{m.sender.profile.firstName} #{m.sender.profile.lastName}</a> #{action} #{m.contentLink}.
+    <p><a href="https://koding.com/#{m.sender.profile.nickname}">#{m.sender.profile.firstName} #{m.sender.profile.lastName}</a> #{action} #{m.contentLink}.</p>
+
     #{preview}
 
-    --
+    <br /> -- <br />
     Management
   """
 
