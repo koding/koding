@@ -6,7 +6,7 @@ run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recip
 default_attributes({ "nginx" => {
                                 "worker_processes" => "1",
                                 "backend_ports" => [3020],
-                                "server_name" => "koding.local",
+                                "server_name" => "as.koding.com",
                                 "maintenance_page" => "maintenance.html",
                                 "static_files" => "/opt/koding/client"
                      },
@@ -17,6 +17,6 @@ default_attributes({ "nginx" => {
                      },
                      "launch" => {
                                 "config" => "autoscale",
-                                "programs" => ["buildClient webserver", "authWorker", "socialWorker", "guestCleanup"]
+                                "programs" => ["buildClient webserver"]
                      }
 })
