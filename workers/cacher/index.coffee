@@ -35,13 +35,13 @@ do ->
       'CInstallerBucketActivity'
     ]
 
-  cachingInProcess = no
+  cachingInProgress = no
 
   # koding.mq
   koding.connect ->
     # TODO: this is an ugly hack.  I just want it to work for now :/
     emitter = new (require('events').EventEmitter)
-    JActivityCache.on "CachingFinished", -> cachingInProcess = no
+    JActivityCache.on "CachingFinished", -> cachingInProgress = no
 
     {connection} = koding.mq
 
@@ -57,20 +57,16 @@ do ->
 
 
     emitter.on "ActivityIsCreated", (activity)->
-      console.log "ever here", activity.constructor.name
-      if not cachingInProcess and activity.constructor.name in typesToBeCached
-        cachingInProcess = yes
+      if not cachingInProgress\
+         and activity.constructor.name in typesToBeCached
+        cachingInProgress = yes
         JActivityCache.init()
 
     emitter.on "post-updated", (teaser)->
       JActivityCache.modifyByTeaser teaser
 
     emitter.on "BucketIsUpdated", (activityType, bucket)->
-      console.log bucket.constructor.name, "is being updated"
       if actvityType in typesToBeCached
         JActivityCache.modifyByTeaser bucket
 
-    console.log "\"feed-new\" event for Activity Caching is bound."
-    console.log "\"post-updated\" event for Activity Caching is bound."
-
-
+    console.log "Activity Cache Worker is ready."

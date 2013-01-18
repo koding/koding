@@ -60,6 +60,8 @@ class ActivityAppController extends AppController
 
   getFilter: -> @currentFilter
 
+  ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
+
   listControllerReady:(controller)->
 
     @listController    = controller
@@ -71,8 +73,7 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "FakeActivityHasArrived", (activity)->
       controller.fakeActivityArrived activity
 
-    @getView().widgetController.on "OwnActivityHasArrived", (activity)->
-      controller.ownActivityArrived activity
+    @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', (activities)=>
       for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -150,6 +151,8 @@ class ActivityAppController extends AppController
       if err then callback err
       else
         activities = clearQuotes activities
+        log activities
+        # return
         KD.remote.reviveFromSnapshots activities, callback
 
 
