@@ -128,15 +128,15 @@ prepareAndSendEmail = (notification)->
       constructor.fetchRelated? content._id, (err, relatedContent)->
         if err then callback err
         else
-          unless relatedContent.slug?
+          if relatedContent.slug? or constructorName in ['JReview']
+            callback null, contentTypeLinkMap(relatedContent.slug)[type]
+          else
             constructor = \
               Base.constructors[relatedContent.bongo_.constructorName]
             constructor.fetchRelated? relatedContent._id, (err, content)->
               if err then callback err
               else
                 callback null, contentTypeLinkMap(content.slug)[type]
-          else
-            callback null, contentTypeLinkMap(relatedContent.slug)[type]
 
   {JAccount, JEmailNotificationGG} = worker.models
 

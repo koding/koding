@@ -28,7 +28,8 @@ module.exports = class JEmailNotificationGG extends Model
         enum         : ['Invalid status',['queued','attempted','postponed']]
 
   @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
-                        'JOpinion', 'JCodeShare', 'JComment', 'JTutorial']
+                        'JOpinion', 'JCodeShare', 'JComment', 'JTutorial',
+                        'JReview']
   flags =
     comment           :
       eventType       : ['ReplyIsAdded']
