@@ -55,6 +55,7 @@ module.exports = class JStatusUpdate extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
+      group       : data.group
 
     if data.link_url and data.link_embed
       statusUpdate.link         =

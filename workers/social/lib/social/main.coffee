@@ -59,14 +59,15 @@ koding = new Bongo
   resourceName: social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
+    # console.log {'fetchClient', sessionToken, context, callback}
     [callback, context] = [context, callback] unless callback
-    context ?= 'koding'
-    callback ?= ->
+    context             ?= group: 'koding'
+    callback            ?= ->
     koding.models.JUser.authenticateClient sessionToken, context, (err, account)->
       if err
         koding.emit 'error', err
       else
-        callback {sessionToken, connection:delegate:account}
+        callback {sessionToken, context, connection:delegate:account}
 
 koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection

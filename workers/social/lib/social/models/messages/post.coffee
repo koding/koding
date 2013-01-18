@@ -116,6 +116,7 @@ module.exports = class JPost extends jraphical.Message
         activity.isLowQuality = yes
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
+      activity.group = data.group
       teaser = null
       daisy queue = [
         ->

@@ -154,13 +154,14 @@ module.exports = class JUser extends jraphical.Module
                 if err
                   callback createKodingError err
                 else
-                  feedData = {title: "followed"}
-                  JFeed.assureFeed account, feedData, (err, feed) ->
-                    if err
-                      callback err
-                    else
-                      #JAccount.emit "AccountAuthenticated", account
-                      callback null, account
+                  callback null, account
+                  # feedData = {title: "followed"}
+                  # JFeed.assureFeed account, feedData, (err, feed) ->
+                  #   if err
+                  #     callback err
+                  #   else
+                  #     #JAccount.emit "AccountAuthenticated", account
+                  #     callback null, account
         else @logout clientId, callback
 
 
@@ -188,10 +189,10 @@ module.exports = class JUser extends jraphical.Module
                     snapshot    : JSON.stringify(bucket)
                   $addToSet     :
                     snapshotIds : bucket.getId()
-                , ->
+                , (err)->
                   CActivity = require "./activity"
                   CActivity.emit "ActivityIsCreated", activity
-                  callback()
+                  callback err
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')

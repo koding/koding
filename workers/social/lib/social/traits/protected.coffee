@@ -26,11 +26,12 @@ module.exports = class Protected
     perms = Protected.permissionsByModule[@name] ?= []
     Protected.permissionsByModule[@name] = perms.concat permissions
 
-  fetchParentGroup:(callback)->
-    JGroup = require '../models/group'
-    JGroup.fetchParentGroup @, callback
+  @fetchParentGroup = @::fetchParentGroup =\
+    (callback)->
+      JGroup = require '../models/group'
+      JGroup.fetchParentGroup @, callback
 
-  fetchAuthorityChain:do ->
+  @fetchAuthorityChain = @::fetchAuthorityChain = do ->
     fetchChain = (group, callback, acc=[])->
       acc.push group  if group
       if group?.parent?

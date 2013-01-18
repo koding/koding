@@ -62,7 +62,7 @@ module.exports = deepFreeze
     numberOfWorkers: 1
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   feeder        :

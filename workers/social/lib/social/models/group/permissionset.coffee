@@ -2,11 +2,16 @@
 {Module} = require 'jraphical'
 
 class JPermission extends Model
-  @setSchema
-    module  : String
-    title   : String
-    body    : String
-    roles   : [String]
+  @set
+    indexes   :
+      module  : 'sparse'
+      title   : 'sparse'
+      roles   : 'sparse'
+    schema    :
+      module  : String
+      title   : String
+      body    : String
+      roles   : [String]
 
 module.exports = class JPermissionSet extends Module
 
@@ -26,9 +31,11 @@ module.exports = class JPermissionSet extends Module
       if err
         callback err
       else
+        console.log {chain}
         permissions = []
         queue = chain.map (group)->->
           delegate.fetchRoles group, (err, roles)->
+            console.log roles
             if err then queue.fin(err)
             else if roles.length
               if 'admin' in roles
@@ -38,7 +45,7 @@ module.exports = class JPermissionSet extends Module
                       group.privacy is 'public' and 'guest' in roles
                 group.fetchPermissionSet (err, permissionSet)->
                   if err then queue.fin(err)
-                  else
+                  else if permissionSet?
                     matchingPermissions = [].filter.call(
                       permissionSet.permissions
                       (savedPermission)->
@@ -48,6 +55,8 @@ module.exports = class JPermissionSet extends Module
                     )
                     permissions.push !!matchingPermissions.length
                     queue.fin()
+                  else
+                    console.log 'there was no permission set found!'
               else
                 permissions.push no
                 queue.fin()
@@ -70,11 +79,12 @@ module.exports = class JPermissionSet extends Module
       JPermissionSet.checkPermission(
         delegate
         permission
-        @, (err, hasPermission)->
+        this
+        (err, hasPermission)->
           if err
             failure err
           else if hasPermission
-            success.apply @, [client, rest..., callback]
+            success.apply this, [client, rest..., callback]
           else
             failure new KodingError 'Access denied!'
       )

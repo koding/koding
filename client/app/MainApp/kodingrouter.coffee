@@ -54,6 +54,7 @@ class KodingRouter extends KDRouter
     else
       @emit 'GroupChanged', group
       appManager.tell app, 'setGroup', group
+      appManager.openApplication app
     appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->

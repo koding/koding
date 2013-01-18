@@ -85,7 +85,8 @@ module.exports = class JGroup extends Module
   @fetchParentGroup =(source, callback)->
     Relationship.someData {
       targetName  : @name
-      sourceId    : source.getId()
+      sourceId    : source.getId?()
+      sourceType  : 'function' is typeof source and source.name
     }, {targetId: 1}, (err, cursor)=>
       if err
         callback err
@@ -176,7 +177,7 @@ module.exports = class JGroup extends Module
         else
           callback null, {
             permissionsByModule
-            permissionSet: permissionSet
+            permissionSet
           }
 
   modify: permit(['edit groups','edit own groups'],
