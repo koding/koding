@@ -75,7 +75,7 @@ class ActivityListController extends KDListViewController
         if cache.activities[item.ids.first]
           @addItem cache.activities[item.ids.first].teaser
 
-      @emit "teasersLoaded"
+    @emit "teasersLoaded"
 
 
   followedActivityArrived: (activity) ->

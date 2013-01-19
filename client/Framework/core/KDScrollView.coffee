@@ -30,6 +30,7 @@ class KDScrollView extends KDView
     willPropagateToDOM = thisEvent
 
   hasScrollBars:()->
+    log @getScrollHeight() > @getHeight()
     @getScrollHeight() > @getHeight()
 
   getScrollHeight:()-> @$()[0].scrollHeight

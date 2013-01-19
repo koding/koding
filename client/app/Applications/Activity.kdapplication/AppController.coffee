@@ -43,12 +43,19 @@ class ActivityAppController extends AppController
 
     super options
 
-    @currentFilter = activityTypes
-    @appStorage = new AppStorage 'Activity', '1.0'
-    @getSingleton('activityController').on "ActivityListControllerReady", (controller)=>
-      @listControllerReady controller
+    @currentFilter     = activityTypes
+    @appStorage        = new AppStorage 'Activity', '1.0'
+    activityController = @getSingleton('activityController')
+    activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-  bringToFront:()-> super name : 'Activity'
+  bringToFront:()->
+
+    super name : 'Activity'
+
+    if @listController then @populateActivity()
+    else
+      ac = @getSingleton('activityController')
+      ac.once "ActivityListControllerReady", @populateActivity.bind @
 
   resetList:->
 
@@ -62,7 +69,7 @@ class ActivityAppController extends AppController
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
-  listControllerReady:(controller)->
+  attachEvents:(controller)->
 
     @listController    = controller
     activityController = @getSingleton('activityController')
@@ -89,9 +96,6 @@ class ActivityAppController extends AppController
       @resetList()
       @setFilter data.type
       @populateActivity()
-
-    @populateActivity()
-
 
   populateActivity:(options = {})->
 
@@ -151,8 +155,7 @@ class ActivityAppController extends AppController
       if err then callback err
       else
         activities = clearQuotes activities
-        log activities
-        # return
+        # log activities
         KD.remote.reviveFromSnapshots activities, callback
 
 
@@ -279,15 +282,16 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
+  fetchTeasers:(selector,options,callback)->
 
-
-
-
-
-
-
-
-
+    KD.remote.api.CActivity.some selector, options, (err, data) =>
+      if err then callback err
+      else
+        data = clearQuotes data
+        KD.remote.reviveFromSnapshots data, (err, instances)->
+          if err then callback err
+          else
+            callback instances
 
   # streamByIds:(ids, callback)->
 
@@ -312,10 +316,6 @@ class ActivityAppController extends AppController
   #         # model[0].snapshot = model[0].snapshot.replace /&quot;/g, '"'
   #         # callback null, model
 
-  # fetchTeasers:(selector,options,callback)->
-  #   @performFetchingTeasers selector, options, (err, data) ->
-  #     KD.remote.reviveFromSnapshots data, (err, instances)->
-  #       callback instances
 
   # loadSomeTeasers:(range, callback)->
   #   [callback, range] = [range, callback] unless callback

@@ -37,7 +37,6 @@ do ->
 
   cachingInProgress = no
 
-  # koding.mq
   koding.connect ->
     # TODO: this is an ugly hack.  I just want it to work for now :/
     emitter = new (require('events').EventEmitter)

@@ -165,7 +165,7 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-              
+
 
 
 task 'guestCleanup',({configFile})->
@@ -195,6 +195,25 @@ task 'libratoWorker',({configFile})->
     restart: yes
     restartInterval: 100
     verbose: yes
+
+task 'cacheWorker',({configFile})->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {cacheWorker} = KONFIG
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
+
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
