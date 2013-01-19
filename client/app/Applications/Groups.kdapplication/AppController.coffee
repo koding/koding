@@ -273,27 +273,30 @@ class GroupsAppController extends AppController
 
   editPermissions:(group)->
     # log 'calling fetchPermissions'
-    # group.getData().fetchPermissions (err, permissionSet)->
-      err = null
-      permissionSet = {
-        permissionsByModule:
-          'Content' : [
-            'Post'
-            'Edit'
-            'Delete'
-            ]
-          'Members': [
-            'Invite members'
-            'Add members'
-            'Remove members'
-            ]
-          'Administration': [
-            'Change Details'
-            'Change Avatar'
-            ]
+    group.getData().fetchPermissions (err, permissionSet)->
+      # err = null
+      # permissionSet = {
+      #   permissionsByModule:
+      #     'Content' : [
+      #       'Post'
+      #       'Edit'
+      #       'Delete'
+      #       ]
+      #     'Members': [
+      #       'Invite members'
+      #       'Add members'
+      #       'Remove members'
+      #       ]
+      #     'Administration': [
+      #       'Change Details'
+      #       'Change Avatar'
+      #       ]
 
 
-      }
+      # }
+
+      log permissionSet
+
       if err
         new KDNotificationView title: err.message
       else
@@ -302,34 +305,53 @@ class GroupsAppController extends AppController
           permissionSet
         }
 
+        checkForPermission = (permissions,module,permission,role)->
+          for perm in permissions
+            if perm.module is module and perm.role is role
+              for perm1 in perm.permissions
+                if perm1 is permission then return yes
+              return no
+
+        cascadeFormElements = (set,roles,module,permission)->
+          [current,remainder...] = roles
+          data = {}
+          data[current]=
+              itemClass     : KDCheckBox
+              cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
+              name          : current
+              defaultValue  : checkForPermission set.permissions,module,permission,current
+          if current and remainder.length > 0
+            data[current].nextElement = cascadeFormElements set, remainder, module, permission
+          return data
+
         optionizePermissions = (set)->
-          options = {}
+
+          roles = ['guest','member','moderator','admin']
+
+          options =
+            head :
+              itemClass : KDView
+              partial : roles.join ' '
+              cssClass : 'permissions-header'
 
           for module, permissions of set.permissionsByModule
-            options[module] =
-              fields : {}
+            options['header-'+module] =
+              itemClass : KDView
+              partial : module
+              cssClass : 'permissions-module'
+
             for permission in permissions
-               options[module].fields[permission] =
-                  itemClass   : KDInputView
-                  name        : "guest"
-                  next        :
-                    name      : "member"
-                    next      :
-                      name    : "moderator"
-                      next    :
-                        name  : "admin"
-          log options
+              options[module+'-'+__utils.slugify(permission)] =
+                itemClass : KDView
+                partial : permission
+                nextElement :
+                  cascadeFormElements set, roles, module, permission
 
-        optionizePermissions permissionSet
+          options
 
-
-        modal = new KDModalView
-          title     : "Edit permissions"
-          content   : ""
-          overlay   : yes
-          cssClass  : "new-kdmodal permission-modal"
-          width     : 500
-          height    : "auto"
+        modal = new KDModalViewWithForms
+          title : 'Edit Permissions'
+          cssClass : 'permissions-modal'
           buttons:
             Save          :
               style       : "modal-clean-gray"
@@ -337,10 +359,10 @@ class GroupsAppController extends AppController
                 color     : "#444444"
                 diameter  : 12
               callback    : ->
-                group.getData().updatePermissions(
-                  permissionsGrid.reducedList()
-                  console.log.bind(console) # TODO: do something with this callback
-                )
+                # group.getData().updatePermissions(
+                #   permissionsGrid.reducedList()
+                #   console.log.bind(console) # TODO: do something with this callback
+                # )
                 modal.destroy()
             Cancel        :
               style       : "modal-clean-gray"
@@ -348,7 +370,38 @@ class GroupsAppController extends AppController
                 color     : "#ffffff"
                 diameter  : 16
               callback    : -> modal.destroy()
-        modal.addSubView permissionsGrid
+          tabs  :
+            forms :
+              "Permissions":
+                cssClass : 'permissions-form'
+                fields : optionizePermissions permissionSet
+
+        # modal = new KDModalView
+        #   title     : "Edit permissions"
+        #   content   : ""
+        #   overlay   : yes
+        #   cssClass  : "new-kdmodal permission-modal"
+        #   width     : 500
+        #   height    : "auto"
+        #   buttons:
+        #     Save          :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#444444"
+        #         diameter  : 12
+        #       callback    : ->
+        #         group.getData().updatePermissions(
+        #           permissionsGrid.reducedList()
+        #           console.log.bind(console) # TODO: do something with this callback
+        #         )
+        #         modal.destroy()
+        #     Cancel        :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#ffffff"
+        #         diameter  : 16
+        #       callback    : -> modal.destroy()
+        # modal.addSubView permissionsGrid
 
   loadView:(mainView, firstRun = yes)->
 

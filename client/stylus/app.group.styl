@@ -495,6 +495,41 @@
                 border-left   none
                 text-align    left
 
+.permissions-modal
+  .permissions-header
+    abs()
+    top -10px
+    left 0
+    right 0
+    .input-wrapper > .kdview
+      width 100%
+
+  .permissions-form
+    overflow-y scroll
+    overflow-x hidden
+    max-height 300px
+    margin-top 20px
+
+    .formline
+      padding 2px
+    .input-wrapper > .kdview
+      min-height 15px
+      padding 3px
+      display inline-block
+      width 100px
+
+
+    input.kdinput.permission-checkbox
+      display inline
+      margin-right 2px
+      width auto
+    .input-wrapper
+      display inline-block
+      width 100%
+
+    .permissions-module
+      background      linear-gradient(top, #555 0%,#666 93.7%)
+      color white
 
 .kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
   border-color          rgba(0,0,0,.2)
