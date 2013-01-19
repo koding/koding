@@ -23,7 +23,9 @@ module.exports = class JPermissionSet extends Module
       'permissions.roles'   : 'sparse'
       'permissions.title'   : 'sparse'
     schema                  :
-      permissions           : Array
+      permissions           :
+        type                : Array
+        default             : []
 
   {intersection} = require 'underscore'
 
@@ -53,17 +55,20 @@ module.exports = class JPermissionSet extends Module
         return callback null  if err or not permissionSet
         break   for perm in permissionSet.permissions\
                 when perm.title in permission
-        roles = (perm.roles or []).concat 'admin' # admin can do anything!
-        console.log {roles}
+        roles = (perm?.roles or []).concat 'admin' # admin can do anything!
         relationshipSelector =
           targetId: group.getId()
           sourceId: client.connection.delegate.getId()
           as: { $in: roles }
+        console.log {relationshipSelector}
         Relationship.one relationshipSelector, (err, rel)->
           return callback null, yes  if rel
           callback null
 
   @permit =(permission, promise)->
+    [promise, permission] = [permission, promise]  unless promise
+    if promise.advanced
+      return console.warn "PermissionSet#permit(promise.advanced) is not yet implemented!"
     secure (client, rest...)->
       if 'function' is typeof rest[rest.length-1]
         [rest..., callback] = rest
