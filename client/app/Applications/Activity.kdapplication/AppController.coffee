@@ -102,6 +102,7 @@ class ActivityAppController extends AppController
     return if isLoading
     isLoading = yes
     @listController.showLazyLoader()
+    @listController.noActivityItem.hide()
 
     isExempt (exempt)=>
 
@@ -110,20 +111,25 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
-          if err then warn err
+          isLoading = no
+          @listController.hideLazyLoader()
+          if err or teasers.length is 0
+            warn err
+            @listController.noActivityItem.show()
           else
-            isLoading = no
             @listController.listActivities teasers
-            @listController.hideLazyLoader()
 
       else
         @fetchCachedActivity options, (err, cache)=>
-          if err then warn err
+          isLoading = no
+          if err or cache.length is 0
+            warn err
+            @listController.hideLazyLoader()
+            @listController.noActivityItem.show()
           else
             @sanitizeCache cache, (err, cache)=>
-              isLoading = no
-              @listController.listActivitiesFromCache cache
               @listController.hideLazyLoader()
+              @listController.listActivitiesFromCache cache
 
   sanitizeCache:(cache, callback)->
 
@@ -139,10 +145,6 @@ class ActivityAppController extends AppController
 
   fetchActivity:(options = {}, callback)->
 
-    isLoading = yes
-    @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
-
     options       =
       limit       : options.limit  or 20
       to          : options.to     or Date.now()
@@ -151,33 +153,20 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
       if err then callback err
       else
-        activities = clearQuotes activities
-        # log activities
-        KD.remote.reviveFromSnapshots activities, callback
+        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
 
   fetchCachedActivity:(options = {}, callback)->
 
-    isLoading = yes
-    @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
-
     $.ajax
       url     : "/-/cache/#{options.slug or 'latest'}"
       cache   : no
-      error   : (err)-> callback? err
-      success : (cache)=>
-        @listController.hideLazyLoader()
-        if cache?.length is 0
-          @listController.noActivityItem.show()
-          isLoading = no
-          return
-
+      error   : (err)->   callback? err
+      success : (cache)->
         cache.overview.reverse()
-
         callback null, cache
 
   continueLoadingTeasers:->
@@ -197,8 +186,8 @@ class ActivityAppController extends AppController
       @populateActivity {slug : "before/#{(new Date(lastDate)).getTime()}"}
 
   teasersLoaded:->
-    {scrollView} = @listController
-    unless scrollView.hasScrollBars()
+
+    unless @listController.scrollView.hasScrollBars()
       @continueLoadingTeasers()
 
   createContentDisplay:(activity)->
@@ -228,8 +217,8 @@ class ActivityAppController extends AppController
 
   createCodeShareContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeShare
-      title       : "Code Share"
-      type        : "codeshare"
+      title : "Code Share"
+      type  : "codeshare"
     , activity
 
   createDiscussionContentDisplay:(activity)->
