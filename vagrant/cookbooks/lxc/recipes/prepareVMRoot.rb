@@ -8,7 +8,9 @@
 #
 
 execute "mkdir -p /cgroup"
-execute "mount none -t cgroup /cgroup"
+execute "mount none -t cgroup /cgroup" do
+	return [0, 1]
+end
 
 execute "mkdir -p /var/lib/lxc/vmroot"
 cookbook_file "/var/lib/lxc/vmroot/config" do
@@ -23,8 +25,8 @@ end
 ####
 # Build VM Root
 ####
-# if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
-# 	then
+if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
+	then
 	# packages are installed with debootstrap
 	# additional packages are installed later on with apt-get
 	packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
@@ -94,7 +96,7 @@ end
 	execute "lxc-attach -n vmroot -- /bin/sh /root/update-sun-jre.bin"
 	# Configure the VMs to use LDAP lookup for users
 	execute "lxc-attach -n vmroot -- /usr/sbin/auth-client-config -t nss -p lac_ldap"
-# end
+end
 
 execute "lxc-stop -n vmroot"
 

@@ -20,21 +20,7 @@ import os
 
 
 
-#centos_id     = 'ami-c49030ad' # koding ami (centos)
-centos_id     = 'ami-2f219746' # koding ami (centos)
 
-ceph_id       = 'ami-7539b41c'
-
-#cloudlinux_id = 'ami-888f2fe1' # CloudLinux
-cloudlinux_id = 'ami-dd02b4b4'
-key_name      = 'koding'
-zone          = 'us-east-1b'
-placement     = 'us-east-1'
-#instance_type = 'm1.small'
-#instance_type = 'm1.large'
-security_groups = ['koding']
-#security_groups = ['internal']
-#security_groups = ['smtp']
 
 syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
@@ -114,7 +100,7 @@ def attachVolume(volumeID,instanceID):
 def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
 
     reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
-    chef_client = 'echo { \"run_list\": [ \"role[baseServer]\"] } > /etc/chef/client-config.json; curl https://gist.github.com/raw/7bb15fe2b931feefff35/c6832d7cdfbc08678a1aedac6781b05ef748e3ac/gistfile1.txt > /etc/chef/client.rb'
+    chef_client = 'curl https://gist.github.com/raw/7bb15fe2b931feefff35/cfda8a4cbc3e6c01abe1a4d578a2cba651c228bd/gistfile1.txt > /etc/chef/client.rb'
     chef_pems = 'curl https://gist.github.com/raw/7bb15fe2b931feefff35/dcda348ba840d0ec9e5782451b4b49e9fd53295b/gistfile2.txt > /etc/chef/chris-test-validator.pem ; curl https://gist.github.com/raw/7bb15fe2b931feefff35/c1c82fa892c2bf35e57fd8dc539359ae7bf95ffb/gistfile3.txt > /etc/chef/ceph0-validator.pem'
     if type == "hosting":
         user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network && %s" % (fqdn,fqdn,reg)
@@ -125,10 +111,7 @@ def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
 
     reservation = ec2.run_instances(
         image_id = ami_id,
-<<<<<<< Updated upstream:_archive/install_ec2/install_ec2.py
         # key_name = config.key_name,
-=======
->>>>>>> Stashed changes:builders/install_ec2/install_ec2.py
         key_name = "chris",
         instance_type = instance_type,
         security_groups = config.security_groups,
@@ -184,7 +167,7 @@ if __name__ == "__main__":
     elif args.type == "cephServer":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.type, args.ec2type, ceph_id)
+        id = launchInstance(fqdn, args.type, args.ec2type, config.ceph_id)
         addr = getSystemAddr(id)
         # fqdn = route53.createCNAMErecord(fqdn, addr)
     else:
