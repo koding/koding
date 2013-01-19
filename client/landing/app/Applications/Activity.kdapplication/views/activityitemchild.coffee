@@ -53,6 +53,7 @@ class ActivityItemChild extends KDView
         @tags.render()
 
     data.on 'PostIsDeleted', =>
+      log data, ">>><><>!!!!"
       if KD.whoami().getId() is data.getAt('originId')
         log @, ">>><><>"
         @parent.destroy()
