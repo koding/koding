@@ -136,6 +136,8 @@ class ActivityListController extends KDListViewController
   addHiddenItem:(activity, index, animation = null)->
 
     instance = @getListView().addHiddenItem activity, index, animation
+    hiddenItems.push instance
+    instance
 
   unhideNewHiddenItems = (hiddenItems)->
 
