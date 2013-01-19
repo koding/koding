@@ -6,6 +6,7 @@ option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
+{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
 # exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
@@ -40,9 +41,7 @@ http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
-
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
-
 
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -103,36 +102,47 @@ task 'webserver', ({configFile}) ->
   webPort.forEach (port) ->
     runServer configFile, port
 
+  if webserver.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./server']
+          onChange  : ->
+            processes.kill "server"
+
 task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
-  startPool = (config) ->
-    exitingProcesses = {}
-    i = 0
-    runProcess = (size) ->
-      processes.fork
-        name  : "socialWorker"
-        cmd   : __dirname + "/workers/social/index -c #{config}"
-        pool  :
-          size: size
-        onMessage: (msg) ->
-          if msg.exiting
-            exitingProcesses[msg.pid] = yes
-            runProcess(0)
-        onExit: (pid, name) ->
-          unless exitingProcesses[pid]
-            runProcess(0)
-          else
-            delete exitingProcesses[pid]
+  for i in [1..social.numberOfWorkers]
+    processes.fork
+      name  : "socialWorker-#{i}"
+      cmd   : __dirname + "/workers/social/index -c #{configFile}"
+      restart : yes
+      restartInterval : 100
+      # onMessage: (msg) ->
+      #   if msg.exiting
+      #     exitingProcesses[msg.pid] = yes
+      #     runProcess(0)
+      # onExit: (pid, name) ->
+      #   unless exitingProcesses[pid]
+      #     runProcess(0)
+      #   else
+      #     delete exitingProcesses[pid]
 
-    runProcess(social.numberOfWorkers)
 
-  startPool configFile
+  if social.watch?
+    watcher = new Watcher
+      groups   :
+        social   :
+          folders   : ['./workers/social']
+          onChange  : (path) ->
+            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
+
 
 task 'authWorker',({configFile}) ->
-  {numberOfWorkers} = require('koding-config-manager').load("main.#{configFile}").authWorker
-  numberOfWorkers ?= config.numberOfWorkers ? 1
+  config = require('koding-config-manager').load("main.#{configFile}").authWorker
+  numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
   for _, i in Array +numberOfWorkers
     processes.fork
@@ -140,6 +150,16 @@ task 'authWorker',({configFile}) ->
       cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
       restart : yes
       restartInterval : 1000
+
+  if config.watch is yes
+    watcher = new Watcher
+      groups        :
+        auth        :
+          folders   : ['./workers/auth']
+          onChange  : (path) ->
+            processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
+              
+
 
 task 'guestCleanup',({configFile})->
 
@@ -168,6 +188,13 @@ task 'libratoWorker',({configFile})->
     restart: yes
     restartInterval: 100
     verbose: yes
+
+task 'checkConfig',({configFile})->
+  console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
+  require('koding-config-manager').load("main.#{configFile}")
+  require('koding-config-manager').load("kite.applications.#{configFile}")
+  require('koding-config-manager').load("kite.databases.#{configFile}")
+  require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
@@ -251,10 +278,8 @@ task 'deleteCache',(options)->
     console.log "Cache is pruned."
 
 
-run =(options)->
-  {configFile} = options
+run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
-  fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
 
   invoke 'goBroker'       if config.runGoBroker    
   invoke 'authWorker'     if config.authWorker
@@ -264,43 +289,17 @@ run =(options)->
   invoke 'webserver'
 
 
-  if config.social.watch?
-    watcher = new Watcher
-      groups        :
-        auth        :
-          folders   : ['./workers/auth']
-          onChange  : (path) ->
-            processes.kill "authWorker"
-        social      :
-          folders   : ['./workers/social']
-          onChange  : (path) ->
-            processes.kill "social"
-        server      :
-          folders   : ['./server']
-          onChange  : ->
-            processes.kill "server"
-
 
 task 'run', (options)->
   {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
+  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
 
   config.buildClient = yes if options.buildClient
-
+  
   queue = []
-  if config.vhostConfigurator?
-    queue.push -> configureVhost config, -> queue.next()
-    queue.push ->
-      # we need to clear the cache so that other modules will get the
-      # config that reflects our latest changes to the .rabbitvhost file:
-      delete require.cache[require.resolve configFile]
-      queue.next()
-
-  if options.buildClient ? config.buildClient
+  if config.buildClient is yes
     queue.push -> buildClient options, -> queue.next()
-  # if options.configureBroker ? config.configureBroker
-  #   queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options
   daisy queue
 
