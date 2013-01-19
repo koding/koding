@@ -114,7 +114,7 @@ Vagrant::Config.run do |config|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
             chef.add_role("base_server")
-            chef.add_role("web_server")
+            chef.add_role("web_server_vagrant")
           end
     end
     # ----- end of Web server configuration -----

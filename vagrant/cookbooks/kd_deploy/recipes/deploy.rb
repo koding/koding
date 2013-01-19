@@ -41,3 +41,14 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    purge_before_symlink.clear
    symlinks.clear
 end
+
+execute "killall_u_koding" do
+    command "/usr/bin/killall -u koding -9"
+    action :nothing
+    subscribes :run, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
+end
+
+execute "/usr/bin/supervisorctl start all" do
+    action :nothing
+    subscribes :run, resources(:execute => "killall_u_koding" ), :immediately
+end

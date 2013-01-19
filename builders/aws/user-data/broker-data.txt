@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e -x
-ROLE="webserver"
+ROLE="broker"
 LOGFILE="/var/log/user-data-out.log"
 mkdir -p /etc/chef
 cat > /root/.s3cfg << "EOF"
