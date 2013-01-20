@@ -27,6 +27,7 @@ module.exports = deepFreeze
     port        : 3000
     clusterSize : 4
     queueName   : socialQueueName+'web'
+    watch       : yes
   mongo         : mongo
   runGoBroker   : no
   buildClient   : yes
@@ -60,6 +61,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
+    watch       : yes  
   social        :
     login       : 'social'
     numberOfWorkers: 4
