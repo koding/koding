@@ -314,6 +314,9 @@ class GroupsAppController extends AppController
 
         cascadeFormElements = (set,roles,module,permission)->
           [current,remainder...] = roles
+          # alternative implementation:
+          # current = roles.slice().shift() # then pass roles instead of remainder
+
           data = {}
           data[current]=
               itemClass     : KDCheckBox
