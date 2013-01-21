@@ -272,28 +272,7 @@ class GroupsAppController extends AppController
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
 
   editPermissions:(group)->
-    # log 'calling fetchPermissions'
     group.getData().fetchPermissions (err, permissionSet)->
-      # err = null
-      # permissionSet = {
-      #   permissionsByModule:
-      #     'Content' : [
-      #       'Post'
-      #       'Edit'
-      #       'Delete'
-      #       ]
-      #     'Members': [
-      #       'Invite members'
-      #       'Add members'
-      #       'Remove members'
-      #       ]
-      #     'Administration': [
-      #       'Change Details'
-      #       'Change Avatar'
-      #       ]
-
-
-      # }
 
       log permissionSet
 
@@ -305,6 +284,21 @@ class GroupsAppController extends AppController
           permissionSet
         }
 
+        # here we should handle custom roles and add them for display
+        roles = ['member','moderator','admin']
+
+        roles.unshift 'guest' if group.getData().privacy is 'public'
+
+        readableText = (text)->
+          dictionary =
+            "JTag" : "Tags"
+            "JGroup": 'Groups'
+            "JReview": 'Reviews'
+            "JPost":'Posts'
+            "JVocabulary": 'Vocabularies'
+
+          return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
+
         checkForPermission = (permissions,module,permission,role)->
           for perm in permissions
             if perm.module is module and perm.role is role
@@ -313,44 +307,63 @@ class GroupsAppController extends AppController
               return no
 
         cascadeFormElements = (set,roles,module,permission)->
-          [current,remainder...] = roles
-          # alternative implementation:
-          # current = roles.slice().shift() # then pass roles instead of remainder
-
+          [current,remainder...] = roles.slice()
           data = {}
           data[current]=
               itemClass     : KDCheckBox
               cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
               name          : current
               defaultValue  : checkForPermission set.permissions,module,permission,current
+          if current is 'admin'
+            data[current].defaultValue = yes
+            data[current].disabled = yes
+
           if current and remainder.length > 0
-            data[current].nextElement = cascadeFormElements set, remainder, module, permission
+            data[current].nextElementFlat = cascadeFormElements set, remainder, module, permission
+          return data
+
+        cascadeHeaderElements = (roles)->
+          [current,remainder...] = roles.slice()
+          data = {}
+          data[current]=
+              itemClass     : KDView
+              partial       : readableText current
+              cssClass      : 'text header-item role-'+__utils.slugify(current)
+          if current and remainder.length > 0
+            data[current].nextElementFlat = cascadeHeaderElements remainder
           return data
 
         optionizePermissions = (set)->
-
-          roles = ['guest','member','moderator','admin']
-
           options =
-            head :
-              itemClass : KDView
-              partial : roles.join ' '
-              cssClass : 'permissions-header'
+            head              :
+              itemClass       : KDView
+              cssClass        : 'permissions-header col-'+roles.length
+              nextElementFlat :
+                cascadeHeaderElements roles
 
           for module, permissions of set.permissionsByModule
-            options['header-'+module] =
-              itemClass : KDView
-              partial : module
-              cssClass : 'permissions-module'
+            options['header '+module.toLowerCase()] =
+              itemClass       : KDView
+              partial         : readableText module
+              cssClass        : 'permissions-module text'
 
             for permission in permissions
               options[module+'-'+__utils.slugify(permission)] =
-                itemClass : KDView
-                partial : permission
-                nextElement :
+                itemClass     : KDView
+                partial       : readableText permission
+                cssClass      : 'text'
+                tooltip       :
+                  title       : readableText permission
+                  direction   : 'center'
+                  placement   : 'left'
+                  offset      :
+                    top       : 3
+                    left      : 0
+                nextElementFlat :
                   cascadeFormElements set, roles, module, permission
 
           options
+
 
         modal = new KDModalViewWithForms
           title : 'Edit Permissions'
@@ -376,8 +389,10 @@ class GroupsAppController extends AppController
           tabs  :
             forms :
               "Permissions":
-                cssClass : 'permissions-form'
+                cssClass : 'permissions-form col-'+roles.length
                 fields : optionizePermissions permissionSet
+
+
 
         # modal = new KDModalView
         #   title     : "Edit permissions"
