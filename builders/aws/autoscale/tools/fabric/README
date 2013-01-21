@@ -1,0 +1,59 @@
+
+tools for group server mangement
+ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/
+
+* any_sudo 
+	DESC: run any command with root privileges
+	USAGE:
+		cd any_sudo
+		export FAB_CMD='command*'; fab fabric_command** 
+		*  -- shell command for remote execution with sudo
+		** -- fab coomand. list commands with "fab help" 
+	EXAMPLE:
+	        reboot all web_server instances:
+
+		export FAB_CMD='reboot' ; fab web_server 
+
+
+* restart_services
+	DESC: hard restart koding processes (kill -9)
+	USAGE:
+		cd restart_services
+		fab fabric_command** 
+		** -- fab coomand. list commands with "fab help" 
+	EXAMPLE:
+	        restart processes on the web_server nodes:
+		fab restart_web_server
+		
+		restart processes on web servers and social worker servers:
+		fab restart_web_server restart_socialworker
+
+
+* speedup_deploy
+	DESC: kick chef-client to deploy updates
+	USAGE:
+		cd speedup_deploy
+		fab fabric_command** 
+		** -- fab coomand. list commands with "fab help" 
+	EXAMPLE:
+	        speedup deployment processes on the web_server nodes:
+		fab speedup_deploy_on_web_server
+		
+		speedup deployment processes on web servers and social worker servers:
+		fab speedup_deploy_on_web_server speedup_deploy_on_socialworker
+
+
+
+* update_os
+	DESC: update OS packages
+	USAGE:
+		cd update_os
+		fab fabric_command** 
+		** -- fab coomand. list commands with "fab help" 
+	EXAMPLE:
+	        update packages on the web_server nodes:
+		fab update_os_on_web_server
+		
+		speedup deployment processes on web servers and social worker servers:
+		fab update_os_on_web_server update_os_on_socialworker
+
