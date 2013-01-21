@@ -17,16 +17,16 @@ class Payment_Overview extends Payment_TabContent
     @wrapper.addSubView autoRecharge = new Payment_OverviewAutoRecharge delegate : @
     left  = new KDView()
     right = new KDView()
-    split = new KDSplitView
+    split = new SplitView
       views : [left,right]
       resizable : no
-      
-    
+
+
     left.addSubView new KDHeaderView type : "small", title : "Deposit History:"
-    left.addSubView historyList  = new Payment_OverviewHistoryList delegate : @, subItemClass : Payment_OverviewDepositHistoryListItem,@dummyDepositHistory
+    left.addSubView historyList  = new Payment_OverviewHistoryList delegate : @, itemClass : Payment_OverviewDepositHistoryListItem,@dummyDepositHistory
     left.setPartial "<a href='#' class='see-all propagateFullDepositHistory'>See all...</a>"
     right.addSubView new KDHeaderView type : "small", title : "Purchase History:"
-    right.addSubView historyList  = new Payment_OverviewHistoryList delegate : @, subItemClass : Payment_OverviewPurchaseHistoryListItem,@dummyPurchaseHistory
+    right.addSubView historyList  = new Payment_OverviewHistoryList delegate : @, itemClass : Payment_OverviewPurchaseHistoryListItem,@dummyPurchaseHistory
     right.setPartial "<a href='#' class='see-all propagateFullPurchaseHistory'>See all...</a>"
     @wrapper.addSubView split
 
@@ -35,7 +35,7 @@ class Payment_OverviewHistoryList extends KDListView
     options.type = "payment-history"
     super options,data
 
-class Payment_OverviewPurchaseHistoryListItem extends KDListItemView  
+class Payment_OverviewPurchaseHistoryListItem extends KDListItemView
   partial:(data)->
     @setClass data.status
     @setTooltip data.description, defaultPosition : "right" if data.description?
@@ -46,7 +46,7 @@ class Payment_OverviewPurchaseHistoryListItem extends KDListItemView
       <span class='fr'>#{data.currency} #{data.cost}</span>
       "
 
-class Payment_OverviewDepositHistoryListItem extends KDListItemView  
+class Payment_OverviewDepositHistoryListItem extends KDListItemView
   partial:(data)->
     @setClass data.status
     partial = $ "

@@ -1,23 +1,50 @@
 class MainController extends KDController
 
-  wasLoggedIn = no
+  connectedState =
+    connected   : no
+    wasLoggedIn : no
 
-  constructor:()->
-    
-    super
+  constructor:(options = {}, data)->
+
+    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+
+    super options, data
+
 
     window.appManager = new ApplicationManager
-    KD.registerSingleton "docManager", new DocumentManager
-    KD.registerSingleton "windowController", new KDWindowController
-    KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
-    KD.registerSingleton "kodingAppsController", new KodingAppsController
+    KD.registerSingleton "kiteController", new KiteController
+    KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    @appReady ->
-      KD.registerSingleton "activityController", new ActivityController
+    KD.registerSingleton "groupsController", new GroupsController this
 
+    @appReady =>
+
+      KD.registerSingleton "activityController", new ActivityController
+      KD.registerSingleton "kodingAppsController", new KodingAppsController
+      #KD.registerSingleton "bottomPanelController", new BottomPanelController
+
+      # FIXME GG
+      @getAppStorageSingleton 'Ace', '1.0'
+
+    @on 'ManageRemotesRequested', -> new ManageRemotesModal
+
+    @setFailTimer()
     @putGlobalEventListeners()
-  
+
+    @accountReadyState = 0
+
+    @appStorages = {}
+
+  getAppStorageSingleton:(appName, version)->
+    if @appStorages[appName]?
+      storage = @appStorages[appName]
+    else
+      storage = @appStorages[appName] = new AppStorage appName, version
+
+    storage.fetchStorage()
+    storage
+
   appReady:do ->
     applicationIsReady = no
     queue = []
@@ -29,59 +56,42 @@ class MainController extends KDController
         applicationIsReady = yes
         listener() for listener in queue
         @getSingleton('mainView').removeLoader()
-        queue = []
+        queue.length = 0
 
-  authorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+"/1.0/login"
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
+  getUserArea:-> @userArea
 
-  deauthorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+'/1.0/logout'
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
-  
-  initiateApplication:do->
-    fail =->
-      modal = new KDBlockingModalView
-        title   : "Couldn't connect to the backend!"
-        content : "<div class='modalformline'>
-                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.</div>"
-        height  : "auto"
-        overlay : yes
-        buttons :
-          "Refresh Now" :
-            style     : "modal-clean-red"
-            callback  : ()->
-              modal.destroy()
-              location.reload yes
-    
-    connectionFails =(connectedState)->
-      fail() unless connectedState.connected
-    ->
-      KD.registerSingleton "kiteController", new KiteController
-      connectedState = connected: no
-      setTimeout connectionFails.bind(null, connectedState), 5000
-      @getVisitor().on 'change.login', (account)=> @accountChanged account, connectedState
-      @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
+  setUserArea:(userArea)->
+    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
+    @userArea = userArea
 
-  accountChanged:(account, connectedState)->
-    
+  getGroup:-> @userArea?.group
+
+  setGroup:(group)->
+    @emit 'GroupChanged', group
+    @setUserArea {
+      group, user: KD.whoami().getAt('profile.nickname')
+    }
+
+  resetUserArea:()->
+    @setUserArea {
+      group: 'koding', user: KD.whoami().profile.nickname
+    }
+
+  accountReady:(fn)->
+    if @accountReadyState > 0 then fn()
+    else @once 'AccountChanged', fn
+
+  accountChanged:(account)->
+    @userAccount = account
+    @accountReadyState = 1
+
     connectedState.connected = yes
-    
+
+    @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
-    KDRouter.init()
+    @resetUserArea()
+
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
@@ -90,32 +100,25 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
-    if @isUserLoggedIn()
-      appManager.quitAll =>
-        @createLoggedInState account
-      @authorizeServices =>
-        account = KD.whoami()
-        unless account.getAt('isEnvironmentCreated')
-          @getSingleton('kiteController').createSystemUser (err)=>
-            if err
-              new KDNotificationView
-                title   : 'Fail!'
-                duration: 1000
-            else
-              account.update $set: isEnvironmentCreated: yes, (err)->
-                if err
-                  console.log err
-                else
-                  console.log "environment is created for #{account.getAt('profile.nickname')}"
+    unless @router?
+      @router = new KodingRouter location.pathname
+      @router.on 'GroupChanged', @bound 'setGroup'
+      KD.registerSingleton 'router', @router
 
+    if KD.checkFlag 'super-admin'
+      $('body').addClass 'super'
+    else
+      $('body').removeClass 'super'
+
+    if @isUserLoggedIn()
+      # appManager.quitAll =>
+      @createLoggedInState account
     else
       @createLoggedOutState account
-      @deauthorizeServices()
-    # @getView().removeLoader()
 
   createLoggedOutState:(account)->
 
-    if wasLoggedIn
+    if connectedState.wasLoggedIn
       @loginScreen.slideDown =>
         appManager.quitAll =>
           @mainViewController.sidebarController.accountChanged account
@@ -129,38 +132,56 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
-    wasLoggedIn = yes
+    connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
-      # appManager.openApplication "Demos", yes
+      #appManager.openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
-  goToPage:(pageInfo)=>
+  doJoin:->
+    @loginScreen.animateToForm 'lr'
 
-    path = pageInfo.appPath
-    if path is "Login"
-      @loginScreen.slideDown()
-    else
-      appManager.openApplication path, yes
+  doRegister:->
+    @loginScreen.animateToForm 'register'
+
+  doGoHome:->
+    @loginScreen.animateToForm 'home'
+
+  doLogin:->
+    @loginScreen.animateToForm 'login'
+
+  doRecover:->
+    @loginScreen.animateToForm 'recover'
+
+  doLogout:->
+    KD.logout()
+    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+      $.cookie 'clientId', replacementToken if replacementToken
+      @accountChanged account
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Come back soon!"
+        duration  : 2000
+      # fixme: get rid of reload, clean up ui on account change
+      # tightly related to application manager refactoring
+      @utils.wait 2000, -> location.reload yes
+
+  # goToPage:(pageInfo)=>
+  #   console.log 'go to page'
+  #   path = pageInfo.appPath
+  #   if path is "Login"
+  #     @loginScreen.slideDown()
+  #   else
+  #     appManager.openApplication path, yes
 
   putGlobalEventListeners:()->
 
-    @listenTo
-      KDEventTypes : "KDBackendConnectedEvent"
-      callback     : ()=>
-        @initiateApplication()
-
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.pageName is 'Logout'
-        bongo.api.JUser.logout ->
-          new KDNotificationView
-            cssClass  : "login"
-            title     : "<span></span>Come back soon!"
-            duration  : 2000
-      else
-        @goToPage pageInfo
+      if pageInfo.path
+        @router.handleRoute pageInfo.path
+      else if pageInfo.isWebTerm
+        appManager.openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
@@ -172,6 +193,85 @@ class MainController extends KDController
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
-  getAccount: -> @getVisitor().currentDelegate
+  getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof bongo.api.JAccount
+  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
+
+  unmarkUserAsTroll:(data)->
+
+    kallback = (acc)=>
+      acc.unflagAccount "exempt", (err, res)->
+        if err then warn err
+        else
+          new KDNotificationView
+            title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
+
+    if data.originId
+      KD.remote.cacheable "JAccount", data.originId, (err, account)->
+        kallback account if account
+    else if data.bongo_.constructorName is 'JAccount'
+      kallback data
+
+  markUserAsTroll:(data)->
+
+    modal = new KDModalView
+      title          : "MARK USER AS TROLL"
+      content        : """
+                        <div class='modalformline'>
+                          This is what we call "Trolling the troll" mode.<br><br>
+                          All of the troll's activity will disappear from the feeds, but the troll
+                          himself will think that people still gets his posts/comments.<br><br>
+                          Are you sure you want to mark him as a troll?
+                        </div>
+                       """
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        "YES, THIS USER IS DEFINITELY A TROLL" :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            kallback = (acc)=>
+              acc.flagAccount "exempt", (err, res)->
+                if err then warn err
+                else
+                  modal.destroy()
+                  new KDNotificationView
+                    title : "@#{acc.profile.nickname} marked as a troll!"
+
+            if data.originId
+              KD.remote.cacheable "JAccount", data.originId, (err, account)->
+                kallback account if account
+            else if data.bongo_.constructorName is 'JAccount'
+              kallback data
+
+  setFailTimer: do->
+    modal = null
+    fail  = ->
+      modal = new KDBlockingModalView
+        title   : "Couldn't connect to the backend!"
+        content : "<div class='modalformline'>
+                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.
+                   </div>"
+        height  : "auto"
+        overlay : yes
+        buttons :
+          "Refresh Now" :
+            style     : "modal-clean-red"
+            callback  : ()->
+              modal.destroy()
+              location.reload yes
+      # if location.hostname is "localhost"
+      #   KD.utils.wait 5000, -> location.reload yes
+
+    checkConnectionState = ->
+      fail() unless connectedState.connected
+    ->
+      @utils.wait @getOptions().failWait, checkConnectionState
+      @on "RemoveFailModal", =>
+        if modal
+          modal.setTitle "Connection Established"
+          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+          @utils.wait 2500, -> modal?.destroy()

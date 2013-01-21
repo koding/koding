@@ -1,17 +1,41 @@
 class AccountEditUsername extends KDView
+
   viewAppended:->
-    # =================
-    # ADDING EMAIL FORM
-    # =================
-    bongo.api.JUser.fetchUser (err,user)=>
+    KD.remote.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->
+
+    # #
+    # ADDING EMAIL FORM
+    # #
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
-        new KDNotificationView
-          type  : "mini"
-          title : "Currently disabled!"
+        KD.remote.api.JUser.changeEmail
+          email : formData.email
+        , (err, result)=>
+          log err
+          if err and err.name isnt 'PINExistsError'
+            new KDNotificationView
+              title    : err.message
+              duration : 2000
+          else
+            if err and err.name is 'PINExistsError'
+              new KDNotificationView
+                title    : err.message
+                duration : 2000
+            new VerifyPINModal 'Update E-Mail', (pin)=>
+              KD.remote.api.JUser.changeEmail
+                email : formData.email
+                pin   : pin
+              , (err)=>
+                new KDNotificationView
+                  title    : if err then err.message else "E-mail changed!"
+                  duration : 2000
+                @emit "EmailChangedSuccessfully", formData.email
+
+          emailSwappable.swapViews()
+
     emailForm.addSubView emailLabel = new KDLabelView
       title        : "Your email"
       cssClass     : "main-label"
@@ -22,6 +46,7 @@ class AccountEditUsername extends KDView
       defaultValue : user.email
       placeholder  : "you@yourdomain.com..."
       name         : "email"
+
     emailInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
     inputActions.addSubView emailSave = new KDButtonView
       title        : "Save"
@@ -38,6 +63,10 @@ class AccountEditUsername extends KDView
       tagName      : "span"
       partial      : user.email
       cssClass     : "static-text status-#{user.status}"
+
+    emailForm.on "EmailChangedSuccessfully", (email)->
+      emailSpan.updatePartial email
+
     nonEmailInputs.addSubView emailEdit = new KDCustomHTMLView
       tagName      : "a"
       partial      : "Edit"
@@ -47,13 +76,13 @@ class AccountEditUsername extends KDView
     emailForm.addSubView emailSwappable = new AccountsSwappable
       views    : [emailInputs,nonEmailInputs]
       cssClass : "clearfix"
-    
+
     @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
 
-    # =================
+    # #
     # ADDING USERNAME FORM
-    # =================
+    # #
     @addSubView usernameForm = usernameForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView
@@ -93,21 +122,21 @@ class AccountEditUsername extends KDView
     usernameForm.addSubView usernameSwappable = new AccountsSwappable
       views    : [usernameInputs,usernameNonInputs]
       cssClass : "clearfix"
-    
+
     @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews
-    
+
     @addSubView @emailOptOutView = new KDFormView
     @emailOptOutView.addSubView new KDLabelView
       title        : "Email notifications"
       cssClass     : "main-label"
-    
+
     emailFrequency = user.getAt('emailFrequency.global')
 
-    @emailOptOutView.addSubView new KDRySwitch
+    @emailOptOutView.addSubView new KDOnOffSwitch
       cssClass      : 'dark'
       defaultValue  : if emailFrequency is 'never' then off else on
-      callback      : (state)-> 
+      callback      : (state)->
         account.setEmailPreferences global: state, ->
           new KDNotificationView
             duration : 2000

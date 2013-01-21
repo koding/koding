@@ -1,16 +1,13 @@
-class AccountNavigationLink extends KDTreeItemView
+class AccountNavigationLink extends KDListItemView
+
   constructor:(options,data)->
-    super options,data
+    super
     @name = data.title
 
-  click:(event)->
-    @getDelegate().propagateEvent (KDEventType : "AccountNavLinkTitleClick"), @
-    # @getDelegate().handleEvent (type : "AccountNavLinkTitleClick", orgEvent : event, pageName : @getData().title, navItem : @)
-    
   partial:(data)->
-    $ "<div class='navigation-item account clearfix'>
+    "<div class='navigation-item account clearfix'>
         <a class='title' href='#'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>
-      </div>"
+    </div>"
 
 
 class AccountListWrapper extends KDView
@@ -45,16 +42,16 @@ class AccountListWrapper extends KDView
     data = @getData()
 
     @addSubView @header = new KDHeaderView type : "medium",title : data.item.listHeader
-    
+
     @list = new listClasses[data.section.id][data.item.listType]
       cssClass : "#{data.section.id}-#{data.item.listType}"
 
     listControllerClass = listClasses[data.section.id]["#{data.item.listType}Controller"] or KDListViewController
     listController = new listControllerClass
       view : @list
-    
+
     @addSubView listController.getView()
-    
+
     @list.on "passwordDidChange",()-> log "password"
 
 class AccountsSwappable extends KDView

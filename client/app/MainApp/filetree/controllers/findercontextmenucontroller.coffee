@@ -6,7 +6,7 @@ class NFinderContextMenuController extends KDController
   ###
 
   getMenuItems:(fileViews)->
-    
+
     if fileViews.length > 1
       @getMutilpleItemMenu fileViews
     else
@@ -18,7 +18,7 @@ class NFinderContextMenuController extends KDController
         # when "section" then @getSectionMenu fileData
 
   getContextMenu:(fileViews, event)->
-    
+
     @contextMenu.destroy() if @contextMenu
     items = @getMenuItems fileViews
     [fileView] = fileViews
@@ -27,26 +27,23 @@ class NFinderContextMenuController extends KDController
         event    : event
         delegate : fileView
       , items
-      @listenTo
-        KDEventTypes       : "ContextMenuItemReceivedClick"
-        listenedToInstance : @contextMenu
-        callback           : (pubInst, contextMenuItem)=>
-          @handleContextMenuClick fileView, contextMenuItem
+      @contextMenu.on "ContextMenuItemReceivedClick", (contextMenuItem)=>
+        @handleContextMenuClick fileView, contextMenuItem
       return @contextMenu
     else
       return no
-  
+
   destroyContextMenu:->
     @contextMenu.destroy()
 
   handleContextMenuClick:(fileView, contextMenuItem)->
-    
+
     @propagateEvent KDEventType : 'ContextMenuItemClicked', {fileView, contextMenuItem}
 
   getFileMenu:(fileView)->
-    
+
     fileData = fileView.getData()
-    
+
     items =
       'Open File'                 :
         action                    : 'openFile'
@@ -86,6 +83,10 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
         action                    : 'download'
         disabled                  : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new  NCopyUrlView {}, fileData
+        separator                 : yes
       'New File'                  :
         action                    : 'createFile'
       'New Folder'                :
@@ -96,7 +97,7 @@ class NFinderContextMenuController extends KDController
       'Clone from Github...'      :
         disabled                  : yes
         action                    : 'gitHubClone'
-    
+
     if 'archive' isnt @utils.getFileType @utils.getFileExtension fileData.name
       delete items.Extract
     else
@@ -106,9 +107,9 @@ class NFinderContextMenuController extends KDController
 
 
   getFolderMenu:(fileView)->
-    
+
     fileData = fileView.getData()
-    
+
     items =
       Expand                      :
         action                    : "expand"
@@ -123,7 +124,7 @@ class NFinderContextMenuController extends KDController
         action                    : 'rename'
       Duplicate                   :
         action                    : 'duplicate'
-      Compress                    : 
+      Compress                    :
         children                  :
           'as .zip'               :
             action                : 'zip'
@@ -140,30 +141,51 @@ class NFinderContextMenuController extends KDController
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
-      'Clone from Github...'      :
-        disabled                  : yes
-        action                    : 'gitHubClone'
-      Download                    : 
+      'Clone a repo here'         :
+        action                    : "cloneRepo"
+      Download                    :
         disabled                  : yes
         action                    : "download"
         separator                 : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new NCopyUrlView {}, fileData
+        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
+      #   separator                 : yes
+      # 'Create a CodeShare'        :
+      #   action                    : 'codeShare'
 
     if fileView.expanded
       delete items.Expand
     else
       delete items.Collapse
-      
-    if fileView.getData().getExtension() is "kdapp"
+
+    {nickname} = KD.whoami().profile
+
+    if fileData.path is "/Users/#{nickname}/Applications"
+      items.Refresh.separator         = yes
+      items["Make a new Application"] =
+        action : "makeNewApp"
+
+
+    if fileData.getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
         children                  :
           Compile                 :
             action                : "compile"
+          Run                     :
+            action                : "runApp"
             separator             : yes
-          "Publish to App Catalog":
-            action                : "publish"
+          "Download source files" :
+            action                : "downloadApp"
+
+      if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
+        items['Application menu'].children["Download source files"].separator = yes
+        items['Application menu'].children["Publish to App Catalog"] =
+          action : "publish"
 
     return items
 
@@ -171,7 +193,7 @@ class NFinderContextMenuController extends KDController
   getMountMenu:(fileView)->
 
     fileData = fileView.getData()
-    
+
     items =
       Refresh                     :
         action                    : 'refresh'
@@ -198,7 +220,7 @@ class NFinderContextMenuController extends KDController
     return items
 
   getMutilpleItemMenu:(fileViews)->
-    
+
     types =
       file    : no
       folder  : no
@@ -206,7 +228,7 @@ class NFinderContextMenuController extends KDController
 
     for fileView in fileViews
       types[fileView.getData().type] = yes
-    
+
     if types.file and not types.folder and not types.mount
       return @getMultipleFileMenu fileViews
 
@@ -229,13 +251,13 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : 'download'
-    
+
     return items
-    
-    
-    
+
+
+
   getMultipleFolderMenu:(folderViews)->
-    
+
     items =
       Expand                      :
         action                    : "expand"
@@ -308,10 +330,10 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : 'download'
-    
+
     return items
-    
-    
+
+
 # this is shorter but needs coffee script update
 
 # 'Open File'                 : action : 'openFile'

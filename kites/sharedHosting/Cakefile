@@ -1,8 +1,8 @@
-option '-c', '--config', 'select a config file (default is prod)'
+option '-c', '--config [CONFIG]', 'select a config file (default is prod)'
 
 
-processes = require 'processes'
-        
+processes = new(require 'processes')
+https = require 'https'
 
 task "install", 'install packages',(options)->
   processes.run
@@ -16,11 +16,11 @@ task "build",'builds sharedhosting client',(options)->
 task 'run','run sharedHosting',(options)->
 
   options.config ?= "config-dev"
-  
-  processes.run 
-    cmd     : "coffee index.coffee -c #{options.config} --sharedHosting"
-    log     : yes       # or provide a path for log file
-    restart : no        # or provide a function 
 
-
-  
+  processes.spawn
+    name    : "sharedHosting"
+    cmd     : "run -c #{options.config} --sharedHosting"
+    restart : yes
+    onExit  : (pid,name)->
+      if options.config is "config-prod"
+        https.get e = "https://koding.com/-/status/processIsDead/#{name}"

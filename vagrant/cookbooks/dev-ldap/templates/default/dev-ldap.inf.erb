@@ -1,0 +1,22 @@
+[General] 
+FullMachineName= ldap.local 
+SuiteSpotUserID= nobody 
+SuiteSpotGroup= nobody
+AdminDomain= koding.com
+ConfigDirectoryAdminID= admin 
+ConfigDirectoryAdminPwd= <%= @manager_pass %>
+ConfigDirectoryLdapURL= ldap://<%= @host %>:389/o=NetscapeRoot 
+
+[slapd] 
+SlapdConfigForMC= Yes 
+UseExistingMC= No 
+ServerPort= 389 
+ServerIdentifier= local
+Suffix=  <%= @suffix %> 
+RootDN= <%= @directory_manger %>
+RootDNPwd= <%= @manager_pass %>
+
+[admin] 
+Port= 9830
+ServerAdminID= admin  
+ServerAdminPwd= <%= @manager_pass %>

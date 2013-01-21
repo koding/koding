@@ -36,13 +36,13 @@ class KDLoaderView extends KDView
     super
     @active = yes
     @canvas.show() if @canvas
-  
+
   hide:->
 
     super
     @active = no
     @canvas.hide() if @canvas
-  
+
   # easter
   mouseEnter:->
 
@@ -53,7 +53,7 @@ class KDLoaderView extends KDView
 
     @canvas.setColor @getOptions().loaderOptions.color
     @canvas.setSpeed @getOptions().loaderOptions.speed
-  
+
   mouseMove:->
 
     @canvas.setColor @utils.getRandomHex()

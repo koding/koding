@@ -33,6 +33,7 @@ var testNames = [
     "ace/mode/javascript_test",
     "ace/mode/javascript_highlight_rules_test",
     "ace/mode/javascript_worker_test",
+    "ace/mode/lucene_highlight_rules_test",
     "ace/mode/python_test",
     "ace/mode/ruby_highlight_rules_test",
     "ace/mode/text_test",
@@ -42,6 +43,7 @@ var testNames = [
     "ace/mode/folding/html_test",
     "ace/mode/folding/pythonic_test",
     "ace/mode/folding/xml_test",
+    "ace/mode/folding/coffee_test",
     "ace/multi_select_test",
     "ace/range_test",
     "ace/range_list_test",
@@ -59,7 +61,7 @@ for (var i in testNames) {
 
 var nav = document.createElement("div");
 nav.innerHTML = html.join("");
-nav.style.cssText = "position:absolute;right:0;top:0"; 
+nav.style.cssText = "position:absolute;right:0;top:0";
 document.body.appendChild(nav);
 
 if (location.search)
@@ -71,7 +73,7 @@ require(testNames, function() {
         module.href = x;
         return module;
     });
-    
+
     async.list(tests)
         .expand(function(test) {
             return AsyncTest.testcase(test)

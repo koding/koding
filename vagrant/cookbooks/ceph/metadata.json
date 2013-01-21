@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0",
+  "suggestions": {
+  },
+  "recommendations": {
+  },
+  "license": "All rights reserved",
+  "maintainer_email": "<aleksey@koding.com>",
+  "replacing": {
+  },
+  "providing": {
+  },
+  "description": "Installs/Configures ceph servers and clients",
+  "groupings": {
+  },
+  "platforms": {
+  },
+  "recipes": {
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "name": "ceph",
+  "conflicting": {
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "dependencies": {
+  },
+  "attributes": {
+  }
+}

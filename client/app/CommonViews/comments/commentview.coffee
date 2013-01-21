@@ -8,26 +8,35 @@ class CommentView extends KDView
     @createSubViews data
     @resetDecoration()
     @attachListeners()
-  
+
   render:->
     @resetDecoration()
-  
+
   createSubViews:(data)->
 
     @commentList = new KDListView
       type          : "comments"
-      subItemClass  : CommentListItemView
+      itemClass  : CommentListItemView
       delegate      : @
     , data
 
     @commentController        = new CommentListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
-    @addSubView @commentList
+    @addSubView @commentController.getView()
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
-    
-    @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
+
+    @commentList.on "OwnCommentWasSubmitted", ->
+      @getDelegate()?.emit "RefreshTeaser"
+
+    @commentList.on "OwnCommentHasArrived", ->
+      showMore.ownCommentArrived()
+      @getDelegate()?.emit "RefreshTeaser"
+
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
-    
+
+    @on "RefreshTeaser",->
+      @parent?.emit "RefreshTeaser"
+
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
@@ -46,8 +55,8 @@ class CommentView extends KDView
       listenedToInstance : @commentList
       callback : (pubInst, event) =>
         @commentForm.commentInput.setFocus()
-        
-    @commentList.on "CommentCountClicked", => 
+
+    @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
 
     @listenTo
@@ -66,15 +75,15 @@ class CommentView extends KDView
     @unsetClass "active-comment"
     @unsetClass "commented"
     @setClass "no-comment"
-  
+
   decorateCommentedState:->
     @unsetClass "active-comment"
-    @unsetClass "no-comment" 
+    @unsetClass "no-comment"
     @setClass "commented"
-  
+
   decorateActiveCommentState:->
     @unsetClass "commented"
-    @unsetClass "no-comment" 
+    @unsetClass "no-comment"
     @setClass "active-comment"
 
   decorateItemAsLiked:(likeObj)->

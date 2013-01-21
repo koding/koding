@@ -1,10 +1,10 @@
 class ContentDisplayControllerMember extends KDViewController
+
   constructor:(options={}, data)->
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
     ,options
-
     super options, data
 
   loadView:(mainView)->
@@ -12,15 +12,40 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView header = new HeaderViewSection type : "big", title : "Profile"
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+    subHeader.addSubView backLink = new KDCustomHTMLView
+        tagName : "a"
+        partial : "<span>&laquo;</span> Back"
+        click: -> console.log history; history.back(); no
 
     contentDisplayController = @getSingleton "contentDisplayController"
 
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
-      callback : ()=>
-        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+      callback : (pubInst, event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+
+    # FIX THIS GG
+
+    # @updateWidget = new ActivityUpdateWidget
+    #   cssClass: 'activity-update-widget-wrapper-folded'
+
+    # @updateWidgetController = new ActivityUpdateWidgetController
+    #   view : @updateWidget
+
+    # mainView.addSubView @updateWidget
+
+    # if not contentDisplayController._updateController
+    #   contentDisplayController._updateController = {}
+    #   contentDisplayController._updateController.updateWidget = new ActivityUpdateWidget
+    #     cssClass: 'activity-update-widget-wrapper-folded'
+
+    #   contentDisplayController._updateController.updateWidgetController = new ActivityUpdateWidgetController
+    #     view : contentDisplayController._updateController.updateWidget
+
+    # mainView.addSubView contentDisplayController._updateController.updateWidget
 
     memberProfile = @addProfileView member
     memberStream  = @addActivityView member
@@ -36,11 +61,17 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
 
-    return @getView().addSubView memberProfile = new ProfileView
-      cssClass : "profilearea clearfix"
-      bind     : "mouseenter"
-      delegate : @getView()
-    , member
+    if KD.isMine member
+
+      @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
+      return memberProfile
+
+    else
+      return @getView().addSubView memberProfile = new ProfileView
+        cssClass : "profilearea clearfix"
+        bind     : "mouseenter"
+        delegate : @getView()
+      , member
 
   # mouseEnterOnFeed:->
   #
@@ -71,7 +102,7 @@ class ContentDisplayControllerMember extends KDViewController
   addActivityView:(account)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : ActivityListItemView
+      itemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
@@ -88,6 +119,7 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type = $in: [
               'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
+              'CDiscussionActivity',"CTutorialActivity"
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
@@ -105,6 +137,15 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type     = 'CCodeSnipActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
+        # Discussions Disabled
+        # discussions         :
+        #   title             : "Discussions"
+        #   dataSource        : (selector, options, callback)=>
+        #     selector.originId = account.getId()
+        #     selector.type     = 'CDiscussionActivity'
+        #     appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+        #       callback null, data
+
       sort                  :
         'sorts.likesCount'  :
           title             : "Most popular"
@@ -124,6 +165,6 @@ class ContentDisplayControllerMember extends KDViewController
       #     KDEventTypes       : "mouseenter"
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
-      log controller
+      # log controller
       @getView().addSubView controller.getView()
 

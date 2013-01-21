@@ -1,6 +1,8 @@
 class MembersMainView extends KDView
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Members"
+    header.setSearchInput()
+
     # @addSubView new CommonFeedMessage
     #   title           : "<p>Here you'll find a list of members of the Koding community. We haven't quite finished our search functionality yet, but it will be available soon.</p>"
     #   messageLocation : 'Members'
@@ -8,7 +10,7 @@ class MembersMainView extends KDView
 
 class MembersInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
-    filterController = @setListController subItemClass : MembersListGroupFilterItem,@filterMenuData
+    filterController = @setListController itemClass : MembersListGroupFilterItem,@filterMenuData
     @addSubView filterListWrapper = filterController.getView()
 
     filterItemToBeSelected = filterController.getItemsOrdered()[0]
@@ -31,6 +33,8 @@ class MembersListGroupFilterItem extends KDListItemView
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
 
   click: (event) =>
+    event.stopPropagation()
+    event.preventDefault()
     @getDelegate().propagateEvent (KDEventType : 'MembersFilter'), @getData()
 
   partial:()->
@@ -43,6 +47,8 @@ class MembersListGroupSortItem extends KDListItemView
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
 
   click: (event) =>
+    event.stopPropagation()
+    event.preventDefault()
     @getDelegate().propagateEvent (KDEventType : 'MembersSort'), @getData()
 
   partial:()->
@@ -130,6 +136,11 @@ class MembersListItemView extends KDListItemView
     @profileLink = new ProfileLinkView {}, memberData
 
   click:(event)->
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
     member = @getData()
     targetATag = $(event.target).closest('a')
     if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
@@ -150,9 +161,9 @@ class MembersListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
     {profile} = @getData()
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
+    #{currentDelegate} = @getSingleton('mainController').getVisitor()
 
-    @isMyItem() if profile.nickname is currentDelegate.profile.nickname
+    @isMyItem() if profile.nickname is KD.whoami().profile.nickname
 
   pistachio:->
     """
@@ -165,7 +176,7 @@ class MembersListItemView extends KDListItemView
           <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
 
-        <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+        <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
 
         <footer>
           <span class='button-container'>{{> @followButton}}</span>
@@ -192,8 +203,30 @@ class MembersLocationView extends KDCustomHTMLView
     locations = @getData()
     @setPartial locations?[0] or ''
 
+class MembersLikedContentDisplayView extends KDView
+  constructor:(options={}, data)->
+    options = $.extend
+      view : mainView = new KDView
+      cssClass : 'member-followers content-page-members'
+    ,options
 
+    super options, data
 
+  createCommons:(account)->
+    headerTitle = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+    @addSubView header = new HeaderViewSection type : "big", title : headerTitle
+    @listenWindowResize()
+
+    @addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
+    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+
+    contentDisplayController = @getSingleton "contentDisplayController"
+
+    @listenTo
+      KDEventTypes : "click"
+      listenedToInstance : backLink
+      callback : ()=>
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 class MembersContentDisplayView extends KDView
   constructor:(options={}, data)->
@@ -218,7 +251,7 @@ class MembersContentDisplayView extends KDView
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
-        contentDisplayController.propagateEvent {KDEventType : "ContentDisplayWantsToBeHidden"},@
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 
 class MemberFollowToggleButton extends KDToggleButton

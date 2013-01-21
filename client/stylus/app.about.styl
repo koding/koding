@@ -2,7 +2,7 @@
 @import "./client/stylus/appfn"
 
 @css {
-/*  
+/*
 ABOUT stylesheet
 app.about.styl
 */
@@ -25,49 +25,37 @@ app.about.styl
     border                none
     box-shadow            none
 
-.about.content-display
-  overflow-x              hidden
-  overflow-y              scroll
-
-  &.kdtabhandlecontainer
-    display               none  
-
-  footer.kdview
-    size                    auto,40px
-    padding                 20px
-    gradient                #222,#36332F
-    border-top              5px solid #ff9200
-
 .kdview.about-pane
   border-bottom           5px solid #ff920
   height                  auto
-  bg                      image,url(../images/sf2.jpg)
+  bg                      image, url(../images/sf2.jpg)
   bg                      position, center bottom
   bg                      repeat,no-repeat
   bg                      size, 100%
   min-width               400px
-  
+  padding-bottom          400px
+
   a
     color                   #ff9200
     noTextDeco()
-    
-    
+
+
   .about-page-right
-    position              absolute
+    abs()
     width                 30%
     height                auto
     top                   0
     right                 0
     border-left           1px solid rgba(0, 0, 0, .12)
-    padding               40px 4%
+    padding               40px 50px
     borderBox()
 
   .about-page-left
-    width                 60%
-    padding               5%
-    margin-right          30%
+    width                 70%
+    padding               40px 50px
     overflow              visible
-    
+    borderBox()
+
     h2
       color                 #111
       line-height           55px
@@ -75,105 +63,50 @@ app.about.styl
       margin                0 0 29px 0
       padding-left          0
       size                  auto,auto
-      
+
     h3
       color                 #111
       font-size             24px
       margin                24px 0
       size                  auto,auto
-      
+
       span
         color                 #FC5C32
+        text-shadow           0 -4px 10px #FED487, 0 0
         -webkit-text-stroke   1px rgba(255,216,2,0.5)
-        text-shadow           0 -4px 10px #FED487, 0 0 
-      
+
     p
-      color                 #444
-      font-size             14px
-      max-width             700px
-      margin                16px 0
-      line-height           1.5
-      
+      color                   #444
+      font-size               14px
+      max-width               700px
+      margin                  16px 0
+      line-height             1.5
+
       strong
         display               block
         font-weight           700
-      
-    .location
-      display               block
-      bg                    color,#333
-      border-radius         6px
-      padding               20px 0 20px 70px
-      color                 white
-      margin-top            50px
-      max-width             600px
-      borderBox()
-      
-      p
-        font-size           14px
-        color               rgba(255, 255, 255, 0.7)
-        &.loc-first         
-          margin-top        -4px
-                            
-        strong              
-          color             #fff
-                            
-      a                     
-        display             inline-block
-        padding-right       24px
-        width               auto
-        &:hover
-          text-decoration   underline
-                            
-      &:after               
-        content             ""
-        display             block
-        size                20px,30px
-        bg                  position,-200px 0
-        position            absolute
-        top                 24px
-        left                29px
-        sprite()
-        
-    .first-line
-      height                60px
-      border-right          2px solid #333
-      display               block
-      width                 28%
-        
-    .second-line
-      size                  34%, 90px
-      margin                0 0 80px 28%
-      border                2px solid #333
-      border-width          2px 2px 0 0
-      overflow              visible
-      &:after
-        content               ""
-        display               block
-        position              absolute
-        bottom                -2px
-        right                 -9px
-        size                  0,0
-        border-left           8px solid transparent
-        border-right          8px solid transparent
-        border-top            8px solid #333
 
   .about-page-right
     h3
-      margin-top            0
-      margin-bottom         24px
+      margin-top              0
+      margin-bottom           24px
 
     .teammember
-      color                 #777
-      display               block
-      font-size             11px
-      margin-bottom         35px
-      overflow              visible
-      
-      strong
-        color                 #333
+      color                   #777
+      display                 block
+      font-size               11px
+      margin-bottom           35px
+      overflow                visible
+
+      a
         display               block
+        vendor                transition, color .15s linear
+        &:hover
+          color               #333
+
+      strong
         font-size             14px
-        
+
       img
         width                 100%
         max-width             200px
@@ -182,16 +115,16 @@ app.about.styl
         margin-bottom         10px
         display               block
         box-sizing            border-box
-          
 
-  .sub-header                      
+
+  .sub-header
     padding               0px 0px 0px 17px
     line-height           12px
     font-size             13px
     height                27px
     color                 #4F4F4F
     border-bottom         1px solid #ECECEC
-    position              relative
+    rel()
     a
       width               50px
       display             inline-block
@@ -199,4 +132,89 @@ app.about.styl
       padding-top         7px
       font-weight         400
       cursor              pointer
-      
+
+.location-wrapper
+  abs()
+  size                    100%, 400px
+  bottom                  0
+
+  .location
+    rel()
+    display               block
+    border-radius         6px
+    padding               20px
+    width                 60%
+    max-width             700px
+    margin-left           50px
+    color                 white
+    bg                    color,#333
+    borderBox()
+
+    p
+      font-size           13px
+      line-height         25px
+      color               rgba(255, 255, 255, 0.7)
+      &.loc-first
+        margin-top        -4px
+
+      strong
+        color             #fff
+
+    address
+      font-style          normal
+      line-height         25px
+      font-size           13px
+      margin-top          10px
+      font-weight         300
+      strong
+        color             white
+        font-size         14px
+        display           block
+        font-weight       300
+      span.icon
+        bg                position, -530px -120px
+        size              30px, 50px
+        margin            12px 20px 10px 10px
+        opacity           .3
+        sprite()
+
+    a
+      display             inline-block
+      padding-right       24px
+      width               auto
+      &:hover
+        text-decoration   underline
+
+    // &:after
+    //   content             ""
+    //   display             block
+    //   size                20px,30px
+    //   bg                  position,-200px 0
+    //   abs()
+    //   top                 24px
+    //   left                29px
+    //   sprite()
+
+  .first-line
+    height                50px
+    border-right          2px solid #333
+    display               block
+    width                 28%
+
+  .second-line
+    rel()
+    size                  14%, 50px
+    margin                0 0 80px 28%
+    border                2px solid #333
+    border-width          2px 2px 0 0
+    overflow              visible
+    &:after
+      content               ""
+      display               block
+      abs()
+      bottom                -2px
+      right                 -9px
+      size                  0,0
+      border-left           8px solid transparent
+      border-right          8px solid transparent
+      border-top            8px solid #333

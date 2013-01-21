@@ -12,7 +12,8 @@ class PageRegister extends KDView
     @manageTraditional()
 
   formSubmit:(formData)=>
-    bongo.api.JUser.register formData, (error, result) =>
+    KD.remote.api.JUser.register formData, (error, result) =>
+      log arguments
       if error
         new KDNotificationView
           title   : error.message
@@ -144,7 +145,7 @@ class PageRegister extends KDView
       when 'google'   then @manageGoogle   user, @formGoogle
       when 'github'   then @manageGithub   user, @formGithub
       when 'dropbox'  then @manageDropbox  user, @formDropbox
-      else console.log 'manage error'
+      else log 'manage error'
 
 class RegisterTabs extends KDTabPaneView
   constructor:()->
@@ -154,12 +155,12 @@ class RegisterTabs extends KDTabPaneView
   splitView: (leftSide, rightSide) ->
     rightSide = new KDView() unless rightSide?
     @removeSubView @split if @split?
-    @split = new KDSplitView
+    @split = new SplitView
       domId     : "register-splitview"
       views     : [leftSide, rightSide]
       resizable : no
     @addSubView @split
-      
+
 class KDHeaderViewSet extends KDHeaderView
   setTitle:(title)->
     @getDomElement().html "<span>#{title}</span>"
@@ -369,14 +370,14 @@ class RegisterFormDefault extends RegisterFormTemplate
 
 
 # class PageRegisterBongo extends KDView
-#   
+#
 #   KD.registerPage "RegisterBongo",PageRegisterBongo
-#   
+#
 #   viewAppended:->
 #     # @setPartial "here you go"
 #     @addSubView newRegisterForm = new KDFormView
 #       callback : @formSubmit
-#     
+#
 #     newRegisterForm.addSubView labelEmail = new KDLabelView
 #       title : "Email:"
 #     newRegisterForm.addSubView inputEmail = new KDInputView
@@ -384,13 +385,13 @@ class RegisterFormDefault extends RegisterFormTemplate
 #       name  : "email"
 #       validate  :
 #         rules     : "email"
-# 
+#
 #     newRegisterForm.addSubView labelUsername = new KDLabelView
 #       title : "Username:"
 #     newRegisterForm.addSubView inputUsername = new KDInputView
 #       label : labelUsername
 #       name  : "username"
-# 
+#
 #     newRegisterForm.addSubView labelPassword = new KDLabelView
 #       title : "Password:"
 #     newRegisterForm.addSubView inputPassword = new KDInputView
@@ -402,21 +403,21 @@ class RegisterFormDefault extends RegisterFormTemplate
 #       #     minLength : 8
 #       #   messages  :
 #       #     minLength : "Password should be more than 8 characters long."
-#     
+#
 #     newRegisterForm.addSubView submit = new KDButtonView
 #       title    : "register"
-# 
+#
 #   formSubmit:(formData,event)=>
 #     log formData,"<<<<<<<< KD SUBMIT"
-#     
-#     bongo.api.JUser.register formData, (err)->
-#       console.log err
-    
+#
+#     KD.remote.api.JUser.register formData, (err)->
+#       log err
+
     #user.save (err,docs)->
     #  log err,docs,">>>>>>>>>> BONGO RESULT"
     #
-    
-    # bongo.api.Site.login credentials,(result)=>
+
+    # KD.remote.api.Site.login credentials,(result)=>
     #   log "login response :",result
     #   if result.success
     #     new KDNotificationView

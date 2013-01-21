@@ -1,7 +1,7 @@
 class InboxNewMessageBar extends KDView
   viewAppended:->
     inboxMessageView = @
-    
+
     @addSubView newMessageButton = new KDButtonView
       title     : "New Message"
       style     : "clean-gray new-message-button"
@@ -15,45 +15,47 @@ class InboxNewMessageBar extends KDView
       loader      :
         color     : "#777777"
         diameter  : 24
-      tooltip     : 
+      tooltip     :
         title     : "Refresh"
         placement : "left"
       callback    : =>
         @emit 'RefreshButtonClicked'
 
-    @addSubView markAsReadBtn = new KDButtonView
+    @addSubView @markMessageAsReadButton = new KDButtonView
       style       : "clean-gray"
       icon        : yes
       iconOnly    : yes
       iconClass   : "mark-unread"
-      tooltip     : 
+      tooltip     :
         title     : "Mark as Unread"
         placement : "left"
       callback    : =>
         @propagateEvent KDEventType: 'MessageShouldBeMarkedAsUnread'
-    
-    @addSubView deleteMessageButton = new KDButtonView
+
+    @addSubView @deleteMessageButton = new KDButtonView
       style       : "clean-gray"
       icon        : yes
       iconOnly    : yes
-      iconClass   : "delete" 
-      tooltip     : 
+      iconClass   : "delete"
+      tooltip     :
         title     : "Delete message"
         placement : "left"
-      callback    : =>
-        modal = new KDModalView
-          title          : "Delete thread"
-          content        : "<div class='modalformline'>Are you sure you want to delete this thread?</div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Delete       :
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              style      : "modal-clean-red"
-              callback   : =>
-                @propagateEvent KDEventType: 'MessageShouldBeDisowned', modal
+      callback    : => @createDeleteMessageModal()
+
+  createDeleteMessageModal:->
+    modal = new KDModalView
+      title          : "Delete thread"
+      content        : "<div class='modalformline'>Are you sure you want to delete this thread?</div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Delete       :
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          style      : "modal-clean-red"
+          callback   : =>
+            @propagateEvent KDEventType: 'MessageShouldBeDisowned', modal
 
   createNewMessageModal:->
     modal = new KDModalViewWithForms
@@ -75,11 +77,11 @@ class InboxNewMessageBar extends KDView
                 label         : "Send To:"
                 type          : "hidden"
                 name          : "dummy"
-              subject         :          
+              subject         :
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
-              Message         :          
+              Message         :
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
@@ -93,12 +95,12 @@ class InboxNewMessageBar extends KDView
                 title         : "cancel"
                 style         : "modal-cancel"
                 callback      : -> modal.destroy()
-    
+
     toField = modal.modalTabs.forms.sendForm.fields.to
-    
+
     recipientsWrapper = new KDView
       cssClass      : "completed-items"
-    
+
     recipient = new KDAutoCompleteController
       name                : "recipient"
       itemClass           : MemberAutoCompleteItemView
@@ -116,7 +118,14 @@ class InboxNewMessageBar extends KDView
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
 
-
     @propagateEvent KDEventType: "NewMessageModalShouldOpen"
 
-    
+  disableMessageActionButtons:->
+    @deleteMessageButton.hideTooltip()
+    @deleteMessageButton.disable()
+    @markMessageAsReadButton.hideTooltip()
+    @markMessageAsReadButton.disable()
+
+  enableMessageActionButtons:->
+    @deleteMessageButton.enable()
+    @markMessageAsReadButton.enable()

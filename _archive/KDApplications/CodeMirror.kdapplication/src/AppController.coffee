@@ -31,7 +31,6 @@ class AppController extends KDViewController
       
 
   initAndBringToFront:(options, callback)=>
-    console.log 'initandbringtofront'
     @initApplication options, =>
       @bringToFront()
       callback()

@@ -1,10 +1,10 @@
 ###
   todo:
-   
+
     - make save dialog a view with pistachio
     - put listeners in methods
     - make this splittable
-    
+
 ###
 
 class AceView extends JView
@@ -18,11 +18,13 @@ class AceView extends JView
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
       style         : "editor-button save-menu"
+      type          : "contextmenu"
       delegate      : @
-      menu          : [@getSaveMenu()]
-      callback      : ()=> 
+      menu          : @getSaveMenu.bind @
+      callback      : ()=>
         @ace.requestSave()
-    
+    @saveButton.disable()
+
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
       cssClass      : "caret-position section"
@@ -36,11 +38,11 @@ class AceView extends JView
       iconOnly      : yes
       iconClass     : "cog"
       type          : "contextmenu"
-      delegate      : @ace
-      subItemClass  : AceSettingsView
+      delegate      : @
+      itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
-      menu          : [@getAdvancedSettingsMenuItems()]
-
+      menu          : @getAdvancedSettingsMenuItems.bind @
+    @advancedSettings.disable()
 
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
@@ -53,17 +55,44 @@ class AceView extends JView
         return if publicPath is @getData().path
         appManager.openFileWithApplication publicPath, "Viewer"
 
-    unless publicUrlCheck.test(@getData().path) then @previewButton.hide()
+    @previewButton.hide() unless publicUrlCheck.test(@getData().path)
+    @previewButton.disable()
+
+    @compileAndRunButton = new KDButtonView
+      style     : "editor-button"
+      title     : "Compile & Run"
+      loader    :
+        color   : "#444444"
+        diameter: 12
+      callback  : =>
+        manifest = KodingAppsController.getManifestFromPath @getData().path
+        @ace.notify "Compiling...", null, yes
+        @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
+          if not err
+            @ace.notify "App compiled!", "success"
+          else
+            @ace.notify "Trying to run old version..."
+          @getSingleton('kodingAppsController').runApp manifest
+          @compileAndRunButton.hideLoader()
+
+    @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
+    @compileAndRunButton.disable()
 
     @setViewListeners()
-    
+
   setViewListeners:->
 
-    @advancedSettings.on "ace.changeSetting", (setting, value)=>
+    @ace.on "ace.ready", =>
+      @saveButton.enable()
+      @advancedSettings.enable()
+      @previewButton.enable()
+      @compileAndRunButton.enable()
+
+    @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
-    
+
     @advancedSettings.emit "ace.settingsView.setDefaults", @ace
-    
+
     $spans = @caretPosition.$('span')
 
     @ace.on "ace.change.cursor", (cursor)=>
@@ -89,6 +118,7 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
+        {{> @compileAndRunButton}}
         {{> @previewButton}}
         {{> @saveButton}}
       </div>
@@ -104,19 +134,18 @@ class AceView extends JView
 
   getAdvancedSettingsMenuItems:->
 
-    items : [
-      { type : 'customView', view : new AceSettingsView (delegate : @)}
-    ]                                           
+    settings      :
+      type        : 'customView'
+      view        : new AceSettingsView
+        delegate  : @ace
 
   getSaveMenu:->
 
-    items : [
-      title : "Save as..."
-      id    : 13
-      parentId : null
-      callback : => 
+    "Save as..." :
+      id         : 13
+      parentId   : null
+      callback   : =>
         @openSaveDialog()
-    ]
 
   _windowDidResize:->
 
@@ -141,16 +170,16 @@ class AceView extends JView
           callback  : ()=>
             [node] = @finderController.treeController.selectedNodes
             name   = @inputFileName.getValue()
-            
+
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              @_message 'Wrong file name', "Please type valid file name"
+              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
-            
+
             unless node
               @ace.notify "Please select a folder to save!", "error"
               return
-              
+
             parent = node.getData()
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
@@ -167,7 +196,7 @@ class AceView extends JView
     form.addSubView labelFileName = new KDLabelView
       title : "Filename:"
 
-    form.addSubView @inputFileName = inputFileName = new KDInputView 
+    form.addSubView @inputFileName = inputFileName = new KDInputView
       label        : labelFileName
       defaultValue : file.name
 
@@ -178,7 +207,7 @@ class AceView extends JView
     inputFileName.setFocus()
 
     @finderController = new NFinderController
-      treeItemClass     : NFinderItem 
+      treeItemClass     : NFinderItem
       nodeIdPath        : "path"
       nodeParentIdPath  : "parentPath"
       dragdrop          : yes

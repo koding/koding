@@ -10,14 +10,14 @@ class InboxMessageDetail extends KDView
     group = data.participants.map (participant)->
       constructorName : participant.sourceName
       id              : participant.sourceId
-    
+
     @author     = new ProfileLinkView {origin}
     @group      = new LinkGroup {group}
     @commentBox = new InboxMessageThreadView null, data
     @replyView  = new InboxReplyForm delegate : @commentBox.commentList
 
   pistachio:->
-    """ 
+    """
     <div class='message-body'>
       <header>
         <h1>{{@utils.applyTextExpansions #(subject) or '(No Title)'}}</h1>
@@ -42,12 +42,11 @@ class InboxMessageDetail extends KDView
 
     @fetchComments (err, comments)=>
       if comments.length
-        @commentBox.commentListViewController.replaceAllComments comments 
+        @commentBox.commentController.replaceAllComments comments
 
   fetchComments:(callback)->
     pm = @getData()
     pm.commentsByRange to: 3, (err, comments)->
-      comments.reverse() # temporary solution until we refactor InboxMessageThreadView - 07/2012 Sinan
       callback err, comments
 
   enhanceBody:(body)->

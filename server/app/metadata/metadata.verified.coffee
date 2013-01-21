@@ -1,3 +1,0 @@
-class Metadata.Verified
-  
-  

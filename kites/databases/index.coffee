@@ -1,7 +1,8 @@
-api = require './api'
-config = require './config'
+config  = require './config'
+api     = require './api'
 
 api.run config
+console.log "databases kite just restarted"
 
 
 

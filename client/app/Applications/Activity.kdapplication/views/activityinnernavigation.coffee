@@ -1,22 +1,22 @@
 class ActivityInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
-    
-    feedController = @setListController
-      type : "feed"
-      subItemClass : ListGroupShowMeItem
-    , @feedMenuData
-    @addSubView feedController.getView()
-    feedController.selectItem feedController.getItemsOrdered()[0]
+
+    # feedController = @setListController
+    #   type : "feed"
+    #   itemClass : ListGroupShowMeItem
+    # , @feedMenuData
+    # @addSubView feedController.getView()
+    # feedController.selectItem feedController.getItemsOrdered()[0]
 
     filterController = @setListController
       type : "showme"
-      subItemClass : ListGroupShowMeItem
+      itemClass : ListGroupShowMeItem
     , @showMenuData
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
-    
+
     @addSubView helpBox = new HelpBox
-      subtitle    : "About Your Activity Feed" 
+      subtitle    : "About Your Activity Feed"
       tooltip     :
         title     : "<p class=\"bigtwipsy\">The Activity feed displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community. </p>"
         placement : "above"
@@ -25,12 +25,12 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         html      : yes
         animate   : yes
 
-  feedMenuData :
-    title : "FEED"
-    items : [
-        # { title : "Followed", type : "follow" }
-        { title : "Public" }
-      ]
+  # feedMenuData :
+  #   title : "FEED"
+  #   items : [
+  #       { title : "Public"  , type : "public" }
+  #       { title : "Followed", type : "private" }
+  #     ]
 
   showMenuData :
     title : "SHOW ME"
@@ -38,9 +38,10 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Everything" }
         { title : "Status Updates",   type : "CStatusActivity" }
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
-        { title : "Q&A",              type : "qa",         disabledForBeta : yes }
-        { title : "Discussions",      type : "discussion", disabledForBeta : yes }
-        { title : "Links",            type : "link",       disabledForBeta : yes }
+        { title : "Discussions",      type : "CDiscussionActivity" }
+        { title : "Tutorials",        type : "CTutorialActivity" }
+        { title : "Q&A",              type : "qa",disabledForBeta : yes }
+        { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }
         # { title : "Projects",         type : "newproject", disabledForBeta : yes }

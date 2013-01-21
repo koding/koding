@@ -1,0 +1,5 @@
+node_modules
+*.log
+*.ldif
+*.tar*
+docs/pkg

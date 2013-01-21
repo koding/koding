@@ -6,14 +6,28 @@ node hosting inherits base {
     yumrepos { 'koding':
         repo => 'koding',
     }
+    yumrepos { 'erlang':
+        repo => 'erlang',
+    }
+
+    group { "secure":
+      ensure => present,
+      gid => 66,
+   }
+
 
     include hosting_configs
+    include hosting_crontabs
+    include clamav
     include sudo
     include hosting_packages
     include hosting_ssh
     include postfix 
     include nodejs_rpm
     include cloudlinux
+    include aide
+    include traffcalc
+    include rsyslog
 
     
     if $nodeuser {
@@ -66,31 +80,37 @@ node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
     #bind_dir { "/Users": mpoint => "/Users", device => "/mnt/storage0/Users"}
     #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
 
-    monit::nodeapp { "terminal":
-        appname   => "terminal",
-        isenabled => 'enabled',
-        nodeuser  => false,
-        require_deploy => false,
-    }
-    monit::nodeapp { "SharedHosting":
-        appname   => "SharedHosting",
-        isenabled => 'enabled', 
-        nodeuser  => false,
-        require_deploy => false,
-    }
-    monit::nodeapp { "Databases":
-          appname   => "Databases",
+   # monit::nodeapp { "terminal":
+   #     appname   => "terminal",
+   #     isenabled => 'enabled',
+   #     nodeuser  => false,
+   #     require_deploy => false,
+   # }
+   # monit::nodeapp { "SharedHosting":
+   #     appname   => "SharedHosting",
+   #     isenabled => 'enabled', 
+   #     nodeuser  => false,
+   #     require_deploy => false,
+   # }
+   # monit::nodeapp { "Databases":
+   #       appname   => "Databases",
+   #       isenabled => 'enabled',
+   #       nodeuser  => true,
+   #       require_deploy => false,
+   # }
+   #  monit::nodeapp { "pinger":
+   #       appname   => "pinger",
+   #       isenabled => 'enabled',
+   #       nodeuser  => true,
+   #       require_deploy => false,
+   # }
+    monit::nodeapp { "kiteCake":
+          appname   => "kiteCake",
           isenabled => 'enabled',
-          nodeuser  => true,
+          nodeuser  => false,
           require_deploy => false,
     }
-     monit::nodeapp { "pinger":
-          appname   => "pinger",
-          isenabled => 'enabled',
-          nodeuser  => true,
-          require_deploy => false,
-    }
- 
+
 }
 
 

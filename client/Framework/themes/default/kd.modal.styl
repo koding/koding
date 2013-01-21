@@ -3,23 +3,25 @@
 @import "nib/gradients"
 @import "nib/vendor"
 
-/* 
+/*
 **  KDModal STYLES
 */
 .dragInAction
   .kdmodal
-    vendor            transition, none  
+    vendor            transition, none
 
 .kdmodal
-  position            absolute
+  abs()
   background-color    browser-bg
   z-index             10001
-  top                 50%
-  left                50%
+  top                 -1000%
+  left                -1000%
   vendor              transition, top .15s ease-in-out\, left .15s ease-in-out
   shadow              0 3px 15px #444
   rounded             5px
   opacity             0.0001
+  &.initial
+    vendor            transition, none
   .kdmodal-title
     color             k-orange
     font-size         16px
@@ -36,7 +38,7 @@
     line-height       18px
     margin            2px
     padding           2px 10px
-    position          relative
+    rel()
     overflow          visible
 
     span.hint
@@ -51,7 +53,7 @@
       font-size         .9em
 
   a.close-icon
-    position          absolute
+    abs()
     cursor            pointer
     display           block
     top               8px
@@ -71,7 +73,7 @@
     background-color  #eee
     bottom            0
     rounded(0,0,5px,5px)
-    
+
     .kdbutton
       padding-right   10px
       padding-left    10px
@@ -89,25 +91,49 @@
 .kdmodal.fx
   visibility            hidden
   opacity               0
+
+  // fade
+
   vendor                transition,opacity 0.15s linear
+
+  // scale
+
   // -webkit-transform     scale(3) translate(0, 0)
   // -moz-transform        scale(.1) translate(0, 0)
   // -o-transform          scale(.7) translate(0, 0)
   // -ms-transform         scale(.7) translate(0, 0)
-  // transform             scale(.7) translate(0, 0)
+  // transform             scale(3) translate(0, 0)
 
-  // vendor                transform-origin,center center
+  // vendor                transform-origin, center center
 
   // -webkit-transition    -webkit-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -moz-transition       -moz-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -o-transition         -o-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -ms-transition        -ms-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // transition            transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+
+  // salto
+  // vendor                        transform-style, preserve-3d
+  // vendor                        transition-duration, 1s
+  // -webkit-transition-property   -webkit-transform
+  // -moz-transition-property      -moz-transform
+  // -o-transition-property        -o-transform
+  // -khtml-transition-property    -khtml-transform
+  // transition-property           transform
+
   &.active
     visibility          visible
     opacity             1
-    // vendor              transform,scale(1)
-    // vendor              transition-delay,0s
+
+    // scale
+
+    // vendor              transform, scale(1)
+    // vendor              transition-delay, 0s
+
+    // salto
+
+    // vendor              transform-origin, right center
+    // vendor              transform, rotateZ( -360deg ) rotateY( 0deg )
 
 
 .kdmodal
@@ -122,7 +148,7 @@
       padding               0 10px
       shadow                inset 0 2px 5px rgba(0,0,0,.1)
       borderBox()
-      .kdtabhandle          
+      .kdtabhandle
         // border              1px solid transparent
         border-width        0
         height              21px
@@ -136,7 +162,7 @@
         rounded(0)
         b
           margin-right      0
-        &.active            
+        &.active
           // border-color      #ccc
           height            21px
           background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
@@ -145,9 +171,9 @@
           shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
           b
             font-weight       600
-          
+
 .button-pre-box
-  position              absolute
+  abs()
   left                  10px
   top                   5px
   line-height           33px

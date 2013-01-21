@@ -4,7 +4,6 @@ class TagAutoCompleteController extends KDAutoCompleteController
     options.allowNewSuggestions or= yes
     super
 
-  
 class TagAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
     options.cssClass = "clearfix"
@@ -16,14 +15,14 @@ class TagAutoCompleteItemView extends KDAutoCompleteListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   partial:()-> ''
 
 class TagAutoCompletedItemView extends KDAutoCompletedItem
   constructor:(options, data)->
     options.cssClass = "clearfix"
     super
-    @tag = new TagLinkView {},data
+    @tag = new TagLinkView { clickable:no },data
 
   pistachio:->
     "{{> @tag}}"
@@ -32,10 +31,14 @@ class TagAutoCompletedItemView extends KDAutoCompletedItem
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   partial:()-> ''
 
 class SuggestNewTagItem extends KDAutoCompleteListItemView
+
+  constructor:(options, data)->
+    options.cssClass = "suggest clearfix"
+    super options, data
 
   partial:->
     "Suggest <span class='ttag'>#{@getOptions().userInput}</span> as a new topic?"

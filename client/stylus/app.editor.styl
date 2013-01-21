@@ -4,9 +4,9 @@
 @import "nib/vendor"
 
 active-color = rgb(246,162,32)
-  
+
 @css {
-/*  
+/*
 EDITOR stylesheet
 app.editor.styl
 */
@@ -21,7 +21,7 @@ app.editor.styl
 
     input.kdinput.text
       width             100%
-    
+
     label
       display           block
       margin            10px 0 0 0
@@ -33,14 +33,14 @@ app.editor.styl
       borderBox()
     ul
       margin-left       0
-    
-  
 
 
 
-.kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button
-  .chevron-arrow-ghost-wrapper
-    .chevron-arrow-ghost
+
+
+.kdview.jcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button
+  .chevron-ghost-wrapper
+    .chevron-ghost
       bg              position,-100px -560px
 
   span
@@ -49,26 +49,34 @@ app.editor.styl
     width           20px
     &.icon
       display: none
-    
+
   .kdcontextmenutreeview
     min-width       130px
-    
+
     .kdview.kdtreeitemview-default
       .context-menu-item
         margin          0
 
-.kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu
-    
+.kdview.jcontextmenu.kdbuttonmenu.editor-advanced-settings-menu
+
   .kdcontextmenutreeview
     min-width       200px
 
 
-.kdview.kdcontextmenu.kdbuttonmenu.add-editor-menu
-  .chevron-arrow-ghost-wrapper
+.kdview.jcontextmenu.kdbuttonmenu.add-editor-menu
+  .chevron-ghost-wrapper
     width             24px
     rounded           0 3px 0 0
     border-top-color  transparent
 
-    .chevron-arrow-ghost
+    .chevron-ghost
       bg              position,-120px -360px
       margin          2px
+
+.webterm .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
+  abs()
+  background-color    #ffffff
+  rounded             3px 0 0 0
+  // border-left         1px solid #e2e2e2
+  bottom              4px
+  right               4px

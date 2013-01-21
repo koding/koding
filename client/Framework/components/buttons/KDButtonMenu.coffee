@@ -1,70 +1,40 @@
-class KDButtonMenu extends KDContextMenu
-  constructor:(options,data)->
-    options = options ? {}
-    # options.parent = "body"
-    super options,data
-    @setClass "kdbuttonmenu"
-    @setPartial "<div class='chevron-arrow-ghost-wrapper'><span class='chevron-arrow-ghost'></span></div>"
-
-  positionContextMenu:()->
-    button        = @getDelegate()
-    mainHeight    = $(window).height()
-    buttonHeight  = button.$().outerHeight()
-    buttonWidth   = button.$().outerWidth()
-    top           = button.getY() + buttonHeight
-    menuHeight    = @$().outerHeight()
-    menuWidth     = @$().outerWidth()
-
-    # log buttonHeight, buttonWidth, button
-
-    if top + menuHeight > mainHeight
-      top = button.getY() - menuHeight
-      @setClass "top-menu"
-      ghostCss = 
-        top     : "100%"
-        height  : buttonHeight
-    else
-      ghostCss = 
-        top     : -(buttonHeight + 1)
-        height  : buttonHeight
-
-    @$(".chevron-arrow-ghost-wrapper").css ghostCss
-    
-    @$().css
-      top       : top
-      left      : button.getX() + buttonWidth - menuWidth
-
 class JButtonMenu extends JContextMenu
 
-  constructor:->
+  constructor:(options = {}, data)->
 
+    options.cssClass        = @utils.curryCssClass "kdbuttonmenu", options.cssClass
+    # options.type            = "buttonmenu"
+    options.listViewClass or= JContextMenuTreeView
+
+    super options, data
+
+  viewAppended:->
     super
-    @setClass "kdbuttonmenu"
-    @setPartial "<div class='chevron-arrow-ghost-wrapper'><span class='chevron-arrow-ghost'></span></div>"
+    @setPartial "<div class='chevron-ghost-wrapper'><span class='chevron-ghost'></span></div>"
+    @positionContextMenu()
 
   positionContextMenu:()->
 
     button        = @getDelegate()
     mainHeight    = $(window).height()
-    buttonHeight  = button.$().outerHeight()
-    buttonWidth   = button.$().outerWidth()
+    buttonHeight  = button.getHeight()
+    buttonWidth   = button.getWidth()
     top           = button.getY() + buttonHeight
-    menuHeight    = @$().outerHeight()
-    menuWidth     = @$().outerWidth()
+    menuHeight    = @getHeight()
+    menuWidth     = @getWidth()
 
-    if top + menuHeight > mainHeight
+
+    ghostCss = if top + menuHeight > mainHeight
       top = button.getY() - menuHeight
       @setClass "top-menu"
-      ghostCss = 
-        top     : "100%"
-        height  : buttonHeight
+      top     : "100%"
+      height  : buttonHeight
     else
-      ghostCss = 
-        top     : -(buttonHeight + 1)
-        height  : buttonHeight
+      top     : -(buttonHeight + 1)
+      height  : buttonHeight
 
-    @$(".chevron-arrow-ghost-wrapper").css ghostCss
-    
+    @$(".chevron-ghost-wrapper").css ghostCss
+
     @$().css
       top       : top
       left      : button.getX() + buttonWidth - menuWidth

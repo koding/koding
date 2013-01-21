@@ -2,7 +2,7 @@
 @import "./client/stylus/appfn"
 
 @css {
-/*  
+/*
 LOGIN SIGNUP stylesheet
 app.login-signup.styl
 */
@@ -74,7 +74,7 @@ body.login
     .reqLink
     .login-options-holder.log
       visible()
-    
+
   &.register
     .rf
     .logLink
@@ -115,7 +115,7 @@ body.login
 
   .up-arrow
     display               block
-    position              absolute
+    abs()
     bottom                12px
     left                  50%
     size                  50px,50px
@@ -141,24 +141,24 @@ body.login
         content           '↑'
 
   // .login-lights
-  //   position              absolute
+  //   abs()
   //   top                   0
   //   left                  0
   //   background            transparent url("../images/bgflare.png") no-repeat center top
   //   size                  100%,416px
   //   z-index               0
-                              
+
   .flex-wrapper
-    position              relative
+    rel()
     size                  220px, 342px
     border                1px solid rgba(255,255,255,0.16)
     rounded               8px
-    margin                -1px auto 30px auto
+    margin                30px auto 30px auto
     shadow                0 0 150px rgba(0, 0, 0, 0.32)
     bg                    color, rgba(255,255,255,0.05)
     vendor                transition, height .4s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
     overflow              hidden
-  
+
   .login-hint
     color                 #B4B3B3
     margin                0 auto 10px auto
@@ -166,7 +166,7 @@ body.login
     font-size             11px
 
   .kdnotification.mini.register
-    position              absolute
+    abs()
     top                   181px!important
     padding               0
     rounded               3px
@@ -178,12 +178,32 @@ body.login
       line-height         10px
       padding             0
       color               #ccc
-      
+
       img
         margin            0px 3px 0 0
         vertical-align    bottom
         size              12px, 11px
-  
+
+  .head-banner
+    position              fixed
+    z-index               10000
+    width                 100%
+    top                   0
+    height                0px
+    font-size             16px
+    padding-top           6px
+    color                 white
+    cursor                pointer
+    border-bottom         1px solid rgba(15,15,15,0.16)
+    bg                    color, rgba(15,15,15,0.45)
+    vendor                transition, height .4s ease-in-out
+
+    &.show
+      height              26px
+
+    span
+      color               #ffb500
+
   .video-wrapper
     overflow              visible
     iframe
@@ -206,18 +226,19 @@ body.login
       color               transparent
       text-shadow         none
       rounded             13px
-  a 
+  a
     color                 #ffb500
     noTextDeco()
     &:hover
       color               white
 
   hr
-    size                80%,1px
+    size                80%,2px
     border-top          1px solid rgba(0,0,0,0.6)
     background          rgba(255,255,255,.1)
     margin              40px auto
     vendor              transition, margin .3s ease-in
+    borderBox()
 
   .reviews
     p
@@ -237,24 +258,24 @@ body.login
   .footer-links
     a
       color               #aaa
-      &:hover 
+      &:hover
         color             white
-  
+
   footer.copy
     font-size             11px
     color                 #444
     padding-bottom        30px
 
 .login-box-header
-  position                relative
+  rel()
   padding                 30px 0 0 0
   text-align              center
   overflow                visible
   height                  98px
-  borderBox()             
-  .betatag                
+  borderBox()
+  .betatag
     text-indent           -9999px
-    position              absolute
+    abs()
     top                   -2px
     right                 -3px
     size                  64px,38px
@@ -270,7 +291,7 @@ body.login
     bg(position,-400px 0)
   a.back-to-login
     font-size             11px
-    position              absolute
+    abs()
     width                 100%
     bottom                10px
     left                  0
@@ -346,22 +367,22 @@ body.login
 .login-form
 
   section
-    position              relative
+    rel()
     margin                40px 0
     top                   0
     text-align            center
     overflow              hidden
     p
       height              220px
-      padding             76px 10px      
+      padding             76px 10px
       b
         font-size         13px
         display           block
         line-height       28px
         text-shadow       0 1px 0 rgba(0,0,0,.5)
-  
+
   >div
-    position              relative
+    rel()
     text-align            center
     .kdview
       width               78%
@@ -387,7 +408,7 @@ body.login
         .validation-icon
           bg              position, -480px -40px!important
           opacity         1
-      
+
   p
     size              78%, 0
     margin            0 auto
@@ -418,7 +439,7 @@ body.login
     margin-bottom       0!important
     vendor              transition, height .15s ease-out
 
-  input.kdinput.text                 
+  input.kdinput.text
     padding             7px 6px 7px 6px
     border              1px solid rgba(0, 0, 0, 0.9)
     color               #444
@@ -438,9 +459,9 @@ body.login
     color               #666
   input:-moz-placeholder
     color               #666
-  
+
   .validation-icon
-    position            absolute
+    abs()
     right               5px
     top                 6px
     size                20px,20px
@@ -450,22 +471,22 @@ body.login
     sprite()
 
   .kdloader.input-laoder
-    position            absolute
+    abs()
     right               28px
     top                 8px
 
   .avatarview
-    position            absolute
+    abs()
     right               69px
     top                 4px
     border              1px solid #ccc
     rounded             2px
     padding             1px
     fl()
-  
-  
-  .invitation-field     
-    position            relative
+
+
+  .invitation-field
+    rel()
     text-align          left
     color               #B4B3B3
     margin              5px auto 0 auto
@@ -475,15 +496,15 @@ body.login
     font-size           12px
     bg                  color, rgba(0, 0, 0, 0.2)
     overflow            hidden
-    borderBox()         
+    borderBox()
 
     .kdview.half-size
-      position          absolute
+      abs()
       right             2px
       top               2px
       width             48.5%
 
-    span.icon           
+    span.icon
       bg                position,-480px -80px
       size              40px,20px
       margin            8px 0 0 2px
@@ -491,17 +512,17 @@ body.login
       sprite()
     .wrapper
       width             48.5%
-      fr()              
+      fr()
 
     .avatarview
-      position          static
+      sta()
       border            1px solid #000
       margin            2px 10px 0 0
       padding           0
       shadow            inset 0 0 0 1px rgba(255,255,255,.3)
-      fl()              
+      fl()
 
-    .profile            
+    .profile
       max-width         100px
       display           block
       overflow          hidden
@@ -509,8 +530,8 @@ body.login
       text-overflow     ellipsis
       white-space       nowrap
       padding-right     5px
-      
-  
+
+
   button
     width               78%
     margin-top          5px
@@ -530,7 +551,7 @@ p.login-tip
     margin-bottom       30px
   p.bigLink
     text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    display             inline-block                     
+    display             inline-block
     font-size           20px
     line-height         40px
     margin-right        40px
@@ -540,13 +561,13 @@ p.login-tip
 
 
 .login-footer
-  position              relative
+  rel()
   height                auto
   font-size             12px
   text-align            center
   z-index               10
   //font-family           mono
-  p                     
+  p
     color               #b4b3b3
     //text-shadow         1px solid #444
     //margin-bottom       7px
@@ -561,8 +582,6 @@ p.login-tip
     vertical-align      middle
     sprite()
 
-
-
-
-
-
+.recovery
+  .kdnotification.mini
+    top                   33px!important

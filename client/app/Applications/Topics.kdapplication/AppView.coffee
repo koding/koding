@@ -13,11 +13,7 @@ class TopicsComingSoon extends KDView
     """
 
 class TopicsMainView extends KDView
-  listControllerClassMap = ->
-    all         : TopicsListViewController
-    followed    : TopicsListViewControllerFollowed
-    recommended : TopicsListViewControllerRecommended
-    
+
   constructor:(options,data)->
     options = $.extend
       ownScrollBars : yes
@@ -26,17 +22,17 @@ class TopicsMainView extends KDView
 
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Topics"
+    header.setSearchInput()
     # @addSubView new CommonFeedMessage
     #   title           : "<p>Topic tags organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed.</p>"
     #   messageLocation : 'Topics'
-    
-  
+
   createTopicsHint:->
     listController.scrollView.addSubView notice = new KDCustomHTMLView
         cssClass  : "topics-hint"
         tagName   : "p"
         partial   : "<span class='icon'></span>Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed.<a href='#' class='closeme'></a>"
-  
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : notice
@@ -67,7 +63,7 @@ class TopicsMainView extends KDView
   #                   name          : "title"
   #                   placeholder   : "give a name to your topic..."
   #                   validate      :
-  #                     rules       : 
+  #                     rules       :
   #                       required  : yes
   #                     messages    :
   #                       required  : "Topic name is required!"
@@ -81,4 +77,4 @@ class TopicsMainView extends KDView
   #                   type          : 'submit'
   #                 Cancel          :
   #                   style         : "modal-cancel"
-  #                   callback      : ()-> modal.destroy()    
+  #                   callback      : ()-> modal.destroy()

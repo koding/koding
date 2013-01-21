@@ -1,0 +1,86 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+chatTextColor = #f2f2f2
+
+.bottom-panel
+  abs()
+  bottom                -300px
+  height                300px
+  z-index               1
+  margin-left           150px
+  bg                    color, #1B1916
+  vendor                transition, bottom .15s ease-in-out
+  &.in
+    shadow              0 0 10px rgba(0,0,0,.9)
+    bottom              0
+  .split-wrapper
+    margin-left         150px
+    size                auto, 100%
+    overflow-x          auto
+    overflow-y          hidden
+    vendor              transition, margin-left .15s ease-in-out
+
+  .chat-sidebar
+    text-shadow         0 -1px 0 #000
+    width               150px
+    abs()
+    top                 0px
+    left                0px
+    bg                  color, #4A4640
+    vendor              transition, left .15s ease-in-out
+    &.out
+      left             -140px
+    h2
+      font-size         12px
+      font-weight       400
+      gradient          #3E3A34, #2E2B26
+      border-top        1px solid rgba(255,255,255,.1)
+      padding           8px 10px 7px
+    .kdlistview
+      border-top        1px solid rgba(255,255,255,.1)
+      height            auto
+      .kdlistitemview
+        padding         0 10px
+        border-bottom   1px solid rgba(0,0,0,.1)
+        border-top      1px solid rgba(255,255,255,.05)
+        a
+          font-size     11px
+          line-height   22px
+          color         #ddd
+          noTextDeco()
+        &:first-child
+          border-top    1px solid transparent
+        &:last-child
+          border-bottom 1px solid transparent
+
+  .chat-split
+    .layer
+    &.presentation
+      b
+        &.highlight-tag
+          bg              color, rgba(255,255,0,.15)
+        &.highlight-user
+          bg              color, rgba(255,0,0,.15)
+
+    textarea
+      color             chatTextColor
+    .kdsplitview-resizer, .kdsplitview-resizer:hover
+      background        none
+    .kdsplitview-panel
+      vendor            transition, background-color .05s linear
+      >div
+        color           #ddd
+        border-left     1px solid rgba(0,0,0,.2)
+        border-right    1px solid rgba(255,255,255,.05)
+        borderBox()
+    .focused
+      bg                color, #272420
+      >div
+        color           chatTextColor
+        border-left     1px solid rgba(0,0,0,.4)
+
+
+

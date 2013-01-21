@@ -7,7 +7,7 @@ class KiteController extends KDController
     default           : "Something went wrong"
     creatingEnv       : "Creating your environment."
     stillCreatingEnv  : "...still busy with setting up your environment."
-    creationTookLong  : "...still busy with it, there might be something wrong. ಠ_ಠ"
+    creationTookLong  : "...still busy with it, there might be something wrong."
     tookTooLong       : "It seems like we couldn't set up your environment, please click here to try again."
     envCreated        : "Your server, terminal and files are ready, enjoy!"
     notResponding     : "Backend is not responding, trying to fix..."
@@ -37,26 +37,46 @@ class KiteController extends KDController
   constructor:->
 
     super
-    @account = KD.whoami()
-    @kiteIds = {}
-    @setListeners()
-    @status = no
+
+    @kiteIds   = {}
+    @status    = no
     @intervals = {}
-  
+    @setListeners()
+
+  run:(options = {}, callback)->
+
+    if "string" is typeof options
+      command = options
+      options = {}
+
+    options.kiteName or= "sharedHosting"
+    options.kiteId   or= @kiteIds.sharedHosting?[0]
+    options.method   or= "executeCommand"
+    if command
+      options.withArgs = {command}
+    # else if options.withArgs?.command
+      # options.withArgs = options.withArgs.command
+    else
+      options.withArgs or= {}
+
+    # notify "Talking to #{options.kiteName} asking #{options.toDo}"
+    KD.whoami().tellKite options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback
+
   setListeners:->
 
     mainController = @getSingleton "mainController"
-    
-    mainController.getVisitor().on 'change.login', (account)=> 
-      @accountChanged account
+
+#    mainController.getVisitor().on 'change.login', (account)=>
+#      KD.whoami()Changed account
 
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
-      mainView.putOverlay
-        isRemovable : no
-        cssClass    : "dummy"
-        animated    : yes
-        parent      : "#finder-panel"
+#      mainView.putOverlay
+#        isRemovable : no
+#        cssClass    : "dummy"
+#        animated    : yes
+#        parent      : "#finder-panel"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
@@ -70,10 +90,9 @@ class KiteController extends KDController
       mainView.removeOverlay()
       mainView.contentPanel.removeOverlay()
       _attempt = 1
-  
+
   accountChanged:(account)->
 
-    @account = account
     kiteName = "sharedHosting"
     if KD.isLoggedIn()
       @resetKiteIds kiteName, (err, res)=>
@@ -82,27 +101,20 @@ class KiteController extends KDController
           @propagateEvent KDEventType : "SharedHostingIsReady"
     else
       @status = no
-  
-  run:(options = {}, callback)->
 
 
-    options.kiteName or= "sharedHosting"
-    options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.toDo     or= "executeCommand"
-    options.withArgs or= {}
-
-    # notify "Talking to #{options.kiteName} asking #{options.toDo}"
-    # debugger
-    @account.tellKite options, (err, response)=>
-      @parseKiteResponse {err, response}, options, callback
-  
   parseKiteResponse:({err, response}, options, callback)->
 
     if err and response
         callback? err, response
         warn "there were some errors parsing kite response:", err
     else if err
-      if err.kiteNotPresent
+      if err.code is 503
+        notification = notify
+          msg         : error.message
+          duration    : 0
+          click       : -> notification.destroy()
+      else if err.kiteNotPresent
         @handleKiteNotPresent {err, response}, options, callback
       else if /No\ssuch\suser/.test err
         _tempOptions  or= options
@@ -112,6 +124,9 @@ class KiteController extends KDController
         @utils.wait 5000, =>
           _attempt++
           @run _tempOptions, _tempCallback
+      else if err.message?
+        callback? err
+        warn "An error occured:", err.message
       else
         callback? err
         warn "parsing kite response: we dont handle this yet", err
@@ -131,29 +146,29 @@ class KiteController extends KDController
         notify "Backend is not responding, try again later."
         warn "handleKiteNotPresent: we dont handle this yet", err
         callback? "handleKiteNotPresent: we dont handle this yet"
-  
+
   createSystemUser:(callback)->
 
     if _attempt > 1 and _attempt < 5
       notify _notifications.stillCreatingEnv
     else if _attempt >= 5 and _attempt < 10
-      notify 
+      notify
         msg       : _notifications.creationTookLong
         duration  : 4500
     else if _attempt >= 10
-      notify 
+      notify
         msg       : _notifications.tookTooLong
         duration  : 0
         click     : => @createSystemUser callback
       return
-    else 
+    else
       @emit "CreatingUserEnvironment"
       notify _notifications.creatingEnv
 
     @run
-      toDo       : "createSystemUser"
+      method     : "createSystemUser"
       withArgs   :
-        fullName : "#{@account.getAt 'profile.firstName'} #{@account.getAt 'profile.lastName'}"
+        fullName : "#{KD.whoami().getAt 'profile.firstName'} #{KD.whoami().getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)
     , (err, res)=>
       # this callback gets lost
@@ -164,11 +179,11 @@ class KiteController extends KDController
         @emit "UserEnvironmentIsCreated"
       else
         error "createUserEnvironment", err
-    
+
   ping:(kiteName, callback)->
 
     log "pinging : #{kiteName}"
-    @run toDo : "_ping", (err, res)=>
+    @run method : "_ping", (err, res)=>
       unless err
         @status = yes
         clearInterval @pinger if @pinger
@@ -183,19 +198,19 @@ class KiteController extends KDController
   setPinger:->
 
     return if @pinger
-    @pinger = setInterval => 
+    @pinger = setInterval =>
       @ping()
     , 10000
     @ping()
 
   resetKiteIds:(kiteName = "sharedHosting", callback)->
 #
-#    @account.fetchKiteIds {kiteName}, (err,kiteIds)=>
+#    KD.whoami().fetchKiteIds {kiteName}, (err,kiteIds)=>
 #      if err
 #        notify "Backend is not responding, trying to fix..."
 #      else
 #        notify "Backend servers are ready."
 #        @kiteIds[kiteName] = kiteIds
 #      callback err, kiteIds
-#  
+#
 

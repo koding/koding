@@ -1,354 +1,485 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
 
 
+@css {
+/*
+Temp styles
+*/
+}
 
-section.drag
-  size            100px, 100px
-  background      pink
-  margin          50px
-  fl()
-  &.drag-started
-    background    hotPink
+.content-page.groups
 
-section.drop
-  size            200px, 200px
-  background      cyan
-  fl()
-
-// Ryans Stuff for Dev landing page
-
-.devlanding
-  text-align           center
-  background           #ffffff
-  background           -moz-radial-gradient(center, ellipse cover, #ffffff 0%, #d9d9d9 100%)
-  background           -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9))
-  background           -webkit-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
-  background           -o-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
-  background           -ms-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
-  background           radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
-  position             relative
-  border               6px solid #fff
-  shadow               inset 0 0 2px rgba(0, 0, 0, 0.25)
-  borderBox()
-  
-  .devlandingholder
-    text-align             center
-  .getstartedheader
-    background             transparent
-    border                 none
-    text-align             center
-    height                 auto
-    padding-top            20px
-    margin-bottom          40px
-    .section-title
-      color                #34312e
-      text-align           center
-      font-size            18px
-      font-weight          600
-      float                none
-      em
-        display            block
-        padding-top        5px
-        font-size          13px
-        color              #6a645e
-        font-weight        normal
-        font-style         normal
-  
-  // .editorlauncher
-  //   background           #ffffff
-  //   background           -moz-radial-gradient(center, ellipse cover, #ffffff 0%, #d9d9d9 100%);
-  //   background           -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9));
-  //   background           -webkit-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
-  //   background           -o-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
-  //   background           -ms-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
-  //   background           radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
-  
-  .editorlauncher
-    margin          0 auto
-    width           95%
-    text-align      center
-    
-  
-  .editoritem
-    width                20%
-    max-width            200px
-    padding              20px
-    vendor               transition, width .2s ease-out
-    clear                none
-    text-align           center
-    display              inline-block
-    position             relative
-    -webkit-transition   all .3s ease-in-out
-    -moz-transition      all .3s ease-in-out
-    -o-transition        all .3s ease-in-out
-    transition           all .3s ease-in-out
-    rounded(4px)
+  .kdlistitemview-group
+    border-bottom           1px solid #f5f5f5
+    padding                 15px
+    min-height              127px
+    clear                   none
+    width                   50%
+    fl()
     borderBox()
-    &:hover
-      background    rgba(255,255,255,0.5)
-      shadow        0 0 20px rgba(0, 0, 0, 0.25)
-    &.appcataloglink
-      strong
-        font-weight  normal
-    &.soon
-      img
-        opacity       .5
-      strong
-        opacity       .5
-      em
-        opacity       .5
-      &:after
-        content     'Coming Soon'
-        opacity              0
-        display              none
-        visibility           none
-        -webkit-transition   opacity .3s linear
-        -moz-transition      opacity .3s linear
-        -o-transition        opacity .3s linear
-        transition           opacity .3s linear
-        position    absolute
-        bottom      -20px
-        left        0px
-        padding     5px 0px
-        color       #ff9200
-        width       100%
-        background  #000
-        rounded(0,0,4px,4px)
-      &:hover:after
-        display     block
-        opacity     1
-        visibility  visible
-    a
-      color              #333
-      text-decoration    none
-      display            block
-          
-    img
-      max-width          100%
-      padding            10% 5%
-      display            block
-      margin             0 auto
-      borderBox()
-    strong
-      display            block
-    em
-      font-style         normal
-      font-size          85%
-      color              #666
+    &:nth-child(2n)
+      border-left           1px solid #f5f5f5
+    cite
+      abs()
+      display             inline-block
+      line-height         18px
+      vertical-align      top
+      font-size           10px
+      width               74px
+      font-style          normal
+      color               white
+      text-align          center
+      // border-top          1px solid rgba(255,255,255,0.3)
+      // border-bottom       1px solid rgba(0,0,0,0.1)
+      z-index             100
+      vendor              transition, background-color .3s linear
+      bg                  color, rgba(255, 146, 0, 0.4)
+      // shadow              0 -2px 1px -1px rgba(0,0,0,0.1)
+      &.lt
+        top                 10px
+        left                -18px
+        vendor              transform, rotate(-45deg)
+      &.rt
+        top                 10px
+        right               -18px
+        vendor              transform, rotate(45deg)
+      &.l
+        width               152px
+        top                 66px
+        left                -67px
+        vendor              transform, rotate(-90deg)
+      &.r
+        width               152px
+        top                 66px
+        right               -67px
+        vendor              transform, rotate(90deg)
 
-  .recentfiles
-    position             absolute
-    height               116px
-    bottom               -116px
-    width                100%
-    background           #fff
-    shadow               -2px 0 2px rgba(0, 0, 0, 0.25)
-    border               1px solid rgba(0,0,0,0.1)
-    text-align           left
-    vendor               transition, all .3s ease-in-out
-    borderBox()
-    &.expanded
-      bottom             0px
-    ul                   
-      margin             0
-      li                  
-        display          block
-        margin           0
-        float            left
-        width            20%
-        a
-          font-size      11px
-          line-height    20px
-          display        block
-          padding        12px 20px
-          color          #ff9200
-          height         44px
-          overflow       hidden
-          color          #333
-          border-right   1px solid rgba(0,0,0,0.075)
-          border-bottom  1px solid rgba(0,0,0,0.075)
-          -webkit-transition   all .1s ease-in-out
-          -moz-transition      all .1s ease-in-out
-          -o-transition        all .1s ease-in-out
-          transition           all .1s ease-in-out
-          borderBox()
-          &:hover
-            background   #ff9200
-            color        #fff
-    span.icon.code 
-      background-position   -40px -180px
-      line-height           14px
-      margin-right          5px
-
-  
-  .workspaces
-    height                 80px
-    position               absolute
-    width                  100%
-    bottom                 -146px
-    text-align             center
-    vendor                 transition, all .5s ease-in-out
-    &.expanded
-      bottom               126px
-    h4
-      text-shadow          0 1px 0 #FFF
-      font-weight          400
-      margin               0 0 20px 0
-    .workspaceholder
-      margin                 0 auto
-      text-align             center
-      img
-        margin-right       15px
-        &:last-child
-          margin-right       0px
-    .aspace 
-      width                 41px
-      height                31px
-      shadow                0px 0px 1px rgba(0,0,0,0.3)
-      background            #fff
-      padding               2px 2px
-      display               inline-block
-      margin-right          10px
-      cursor                pointer
-      vendor                transition, all .3s ease-in-out
-      borderBox()
-      rounded(3px)
-      &:hover 
-        shadow              0px 0px 8px rgba(0,0,0,0.3)
-        .aview 
-          background        #ff9200
-      &:last-child
-        margin-right        0px
-    .aview 
-      background            #d7d6d5
+    .fl
+      rel()
+      size                  60px, 60px
+      border                1px solid #f5f5f5
+      margin-right          15px
+      padding               1px
+      button
+        vendor                transition, opacity .3s linear
+        opacity               0
+        margin-top            10px
+        padding               3px 0 4px 0
+        width                 62px
+    .avatar
       display               block
-      width                 50%
-      vendor                transition, all .3s ease-in-out
-      borderBox()
-      rounded(2px)
-    .sp1
-      .v1 
-        float               left
-        height              27px
-      .v2
-        float               right
-        height              27px
-    .sp2
-      .v1
-        float               left
-        height              13px
-        margin-bottom       1px
-      .v2
-        float               right
-        height              13px
-        margin-bottom       1px
-      .v3
-        display             block
-        height              13px
-        width               100%
-        clear               both
-    .sp3
-      .v1
-        float               left
-        height              13px
-      .v2
-        float               right
-        height              13px
-      .v3
-        display             block
-        height              13px
-        width               100%
-        clear               both
-        margin-bottom       1px
-    .sp4
-      .v1
-        margin-bottom       1px
-        height              13px
-      .v2
-        height              13px
-      .v3
-        display             block
-        height              27px
-        float               right
-    .sp5
-      .v1
-        margin-bottom       1px
-        height              13px
-        float               right
-      .v2
-        height              13px
-        float               right
-        clear               right
-      .v3
-        display             block
-        height              27px
-    .sp6
-      .v1
-        margin-bottom       1px
-        height              13px
-      .v2
-        height              13px
-      .v3
-        display             block
-        height              13px
-        float               right
-        margin-bottom       1px
-      .v4
-        display             block
-        height              13px
-        float               right
-        clear               right
+      size                  100%, 100%
+      gradient              #ddd, #f2f2f2
+    .right-overflow
+      margin-right          18px
+      section
+        p
+          display           inline-block
+          border-bottom     1px solid #f5f5f5
+          line-height       16px
+          padding-bottom    5px
+          margin-bottom     5px
+          color             #888
+          font-size         12px
+          font-weight       300
+          min-height        59px
+          max-height        59px
+          overflow          hidden
+        div
+          figure
+            display         inline-block
+            font-size       11px
+            line-height     20px
+            span
+              font-weight   bold
+          span.members
+          span.posts
+            size            20px, 20px
+            sprite()
+            fl()
+            &.members
+              bg            position, -180px -480px
+            &.posts
+              bg            position, 0 -630px
+
+    &:hover
+      cite
+        bg                  color, rgba(255, 146, 0, 1)
+      button
+        opacity             1
+  h2
+    font-size               18px
+    padding-bottom          6px
+    a
+      color                 linkColor1
+      font-weight           400
+      noTextDeco()
 
 
 
+
+
+.kdtokenizedinput
+  size                      100%, 100%
+
+  .kdtokenizedinput-inner-wrapper
+    rel()
+    size                    100%, 100%
+    borderBox()
+
+  .layer
+    size                  100%, 100px
+    padding               5px
+    font-size             12px
+    line-height           16px
+    // color                 #444
+    display               block
+    borderBox()
+
+    &.presentation
+      bg                  color, transparent
+      color               transparent
+      white-space         pre-wrap
+      z-index             1
+      overflow            hidden
+      &.hide-tokens
+        b
+          hidden()
+      b
+        font-weight       normal
+        vendor            transition, background-color .15s linear
+        bg                color, transparent
+        // &.highlight-tag
+        //   bg              color, gold
+        // &.highlight-user
+        //   bg              color, lightblue
+
+    &.input
+      abs()
+      top                 0
+      left                0
+      background-color    transparent
+      border              none
+      z-index             2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// scrollbars(a=#242424)
+//   ::-webkit-scrollbar
+//     width  10px
+//     height 10px
+
+//   ::-webkit-scrollbar-button:start:decrement,
+//   ::-webkit-scrollbar-button:end:increment
+//     height 1px
+//     width 1px
+//     display none
+//     background a
+//     background-repeat no-repeat
+
+//   ::-webkit-scrollbar-track-piece
+//     background-color a
+
+//   ::-webkit-scrollbar-corner
+//     background-color a
+
+//   ::-webkit-scrollbar-thumb:vertical
+//     height 50px
+//     background -webkit-gradient(linear, left top, right top, color-stop(0%, lighten(a,30%)), color-stop(100%, lighten(a,10%)))
+//     border 1px solid darken(a,25%)
+//     border-top 1px solid lighten(a,50%)
+//     border-left 1px solid lighten(a,50%)
+//     &:hover
+//       background -webkit-gradient(linear, left top, right top, color-stop(0%, lighten(a,50%)), color-stop(100%, lighten(a,30%)))
+//       border 1px solid darken(a,15%)
+//       border-top 1px solid lighten(a, 70%)
+//       border-left 1px solid lighten(a, 70%)
+
+//   ::-webkit-scrollbar-thumb:horizontal
+//     width 50px
+//     background -webkit-gradient(linear, left top, left bottom, color-stop(0%, lighten(a,30%)), color-stop(100%, lighten(a,10%)))
+//     border 1px solid darken(a,25%)
+//     border-top 1px solid lighten(a,50%)
+//     border-left 1px solid lighten(a,50%)
+//     &:hover
+//       background -webkit-gradient(linear, left top, left bottom, color-stop(0%, lighten(a,50%)), color-stop(100%, lighten(a,30%)))
+//       border 1px solid darken(a,15%)
+//       border-top 1px solid lighten(a, 70%)
+//       border-left 1px solid lighten(a, 70%)
+
+//   ::-webkit-resizer
+//     height 10px
+//     width 10px
+//     background a
+
+
+// wpUrl = 'http://sinan.koding.com/wp/'
+// .wordpress-installer
+//   .application-page
+//     min-width               1024px
+//     overflow                auto
+//   header
+//     size                    100%, 250px
+//     background              transparent url(wpUrl + '/wpbg.png') repeat 0 0
+//     shadow                  inset 0 0 30px rgba(0,0,0,.33)
+//     overflow                hidden
+//     figure
+//       size                  250px, 250px
+//       background            transparent url(wpUrl + '/wp1.png') no-repeat 0 0
+//       margin                0 auto
+//       opacity               .4
+//       fl()
+//     article
+//       overflow              hidden
+//       margin                0 0 15px 0
+//       h3
+//         font-size           32px
+//         line-height         60px
+//         font-weight         300
+//         margin-top          60px
+//       p
+//         font-size           13px
+//         font-weight         300px
+//         line-height         22px
+
+
+//   .wp-installer-tabs
+//     // background              #ffffff /* Old browsers */
+//     // background              -moz-radial-gradient(center, ellipse cover,  #ffffff 0%, #d9d9d9 100%) /* FF3.6+ */
+//     // background              -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9)) /* Chrome,Safari4+ */
+//     // background              -webkit-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Chrome10+,Safari5.1+ */
+//     // background              -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Opera 12+ */
+//     // background              -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* IE10+ */
+//     // background              radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* W3C */
+//     box-shadow              inset 0 0 2px rgba(0,0,0,0.25)
+//     background              linear-gradient(top, #f2f2f2 0%,#d9d9d9 93.7%)
+
+//     // .kdtabhandlecontainer
+//     //   padding-top           0
+//     //   background            linear-gradient(top, #555 0%,#666 93.7%)
+//     //   height                30px
+//     //   padding               0
+//     //   shadow                inset 0 2px 5px rgba(0,0,0,.1)
+//     //   borderBox()
+//     //   .kdtabhandle
+//     //     text-align          center
+//     //     border-width        0
+//     //     width               50%
+//     //     height              29px
+//     //     line-height         29px
+//     //     color               #ddd
+//     //     font-size           12px
+//     //     padding             0
+//     //     rounded             0
+//     //     borderBox()
+//     //     b
+//     //       margin-right      0
+//     //     &.active
+//     //       height            29px
+//     //       background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+//     //       color             #fff
+//     //       text-shadow       0 -1px 0 rgba(0,0,0,.05)
+//     //       shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+
+//   .kdsplitview-resizer
+//     bg                      color, transparent
+
+//   .kdlistview-wp-blog
+//     overflow                visible
+//     .kdlistitemview.kdlistitemview-wp-blog
+//       text-shadow           0 1px 0 white
+//       line-height           20px
+//       padding               10px 140px 10px 20px
+//       border-bottom         1px solid rgba(0,0,0,.05)
+//       shadow                0 1px 0 rgba(255,255,255,.7)
+//       bg                    color, rgba(255, 173, 0, 0.36)
+//       vendor                transition, background-color .6s ease-in-out
+//       borderBox()
+//       &.in
+//         bg                  color, transparent
+//       &:hover
+//         a.delete-link
+//           vendor            transition, opacity .15s linear
+//           opacity           .8
+//       a
+//         color               #999
+//         margin-right        10px
+//         fl()
+
+//       a.name-link
+//         font-weight         600
+//         font-size           13px
+//         color               #444
+//         noTextDeco()
+
+//       time
+//         abs()
+//         right               20px
+//         top                 11px
+//         font-size           11px
+//         color               rgba(0,0,0,.3)
+//         fr()
+
+//       a.name-link
+//         min-width           220px
+
+//       a.delete-link
+//         size                20px,20px
+//         abs()
+//         left                0
+//         top                 11px
+//         opacity             0
+//         bg                  position, -80px -520px
+//         sprite()
+
+//   .kdformview
+//     .kdview.formline
+//       label
+//       .kdinput
+//         height              28px
+//         line-height         28px
+//       label
+//         min-width           230px
+//         color               #444
+//         margin              0
+//         text-shadow         0 1px 0 white
+//         &.my-wordpress
+//           font-size         11px
+//           font-weight       300
+//           margin-left       3px
+//       input.kdinput
+//         min-width           40%
+//         display             inline-block
+//         float               none
+//         padding             4px 8px
+//         height              28px
+//         shadow              0 1px 0 rgba(255, 255, 255, 0.5)
+//       .kdinput.on-off
+//         padding             0
+//         display             inline-block
+//         float               none
+//         borderBox()
+//         >span
+//           hidden()
+//       >cite
+//         text-shadow         0 1px 0 white
+//         display             inline-block
+//         margin-left         230px
+
+//     .kdview.formline.dark
+//       // background-color      #444
+//       height                0
+//       padding               0 20px 0 20px
+//       border-bottom-width   0
+//       vendor                transition, height .075s ease-in-out\, padding .075s ease-in-out
+//       overflow              hidden
+//       &.in
+//         padding             11px 20px 11px 20px
+//         height              auto
+//         border-bottom-width 1px
+//       // input.kdinput
+//       //   shadow              0 1px 0 black
+//       // label
+//       //   color               #ddd
+//       //   text-shadow         0 1px 0 black
+//       // >cite
+//       //   text-shadow         0 1px 0 black
+
+//     .button-field
+//       bg                    color, transparent
+//       padding-left          250px
+//       borderBox()
+//       .kdbutton
+//         margin              0 10px 0 0
+//         &.transparent
+//           margin-top        5px
+
+
+//   .why-u-no
+//     font-size               24px
+//     line-height             48px
+//     font-weight             300
+//     margin                  40px 0
+//     text-align              center
 
 
 
 
 // Sinans stuff
 
-.kdview.content-area-pane.demoflipping > div
-  vendor(perspective,1800)
-  .kdview.card
-    position          absolute
-    margin            10% 20%
-    
-    borderBox()
-    size(300px,80%)
-    vendor(transform-style,preserve-3d)
-    vendor(transition-duration,1s)
-    -webkit-transition-property   -webkit-transform
-    -moz-transition-property      -moz-transform
-    -o-transition-property        -o-transform
-    -khtml-transition-property    -khtml-transform
-    transition-property           transform
-    shadow(0 5px 15px #333)
+// .kdview.content-area-pane.demoflipping > div
+//   vendor(perspective,1800)
+//   .kdview.card
+//     abs()
+//     margin            10% 20%
 
-    &.flipped
-      vendor(transform, rotateY( 180deg ))
-    &.leave-flipped
-      vendor(transform-origin,center center)
+//     borderBox()
+//     size(300px,80%)
+//     vendor(transform-style,preserve-3d)
+//     vendor(transition-duration,1s)
+//     -webkit-transition-property   -webkit-transform
+//     -moz-transition-property      -moz-transform
+//     -o-transition-property        -o-transform
+//     -khtml-transition-property    -khtml-transform
+//     transition-property           transform
+//     shadow(0 5px 15px #333)
 
-    &.artistic-flipped
-      vendor(transform-origin,right center)
-      vendor(transform, translateX( -100% ) rotateY( 180deg ))
-    &.leave-artistic-flipped
-      vendor(transform-origin,right center)
+//     &.flipped
+//       vendor(transform, rotateY( 180deg ))
+//     &.leave-flipped
+//       vendor(transform-origin,center center)
 
-    &.leave-salto
-      vendor(transform-origin,right center)
-    &.salto
-      vendor(transform-origin,right center)
-      vendor(transform, rotateZ( 180deg ) rotateY( 180deg ))
-      shadow(0 -5px 15px #333)
-      .kdview.face.back
-        vendor(transform,rotateY( 180deg ) rotateZ( 180deg ))
-    .kdview.face
-      position        absolute
-      vendor(backface-visibility,hidden)
-      &.front
-        gradient(#ddd,#aaa)
-      &.back
-        vendor(transform,rotateY( 180deg ))
-        gradient(#f2f2f2,#ddd)
+//     &.artistic-flipped
+//       vendor(transform-origin,right center)
+//       vendor(transform, translateX( -100% ) rotateY( 180deg ))
+//     &.leave-artistic-flipped
+//       vendor(transform-origin,right center)
+
+//     &.leave-salto
+//       vendor(transform-origin,right center)
+//     &.salto
+//       vendor(transform-origin,right center)
+//       vendor(transform, rotateZ( 180deg ) rotateY( 180deg ))
+//       shadow(0 -5px 15px #333)
+//       .kdview.face.back
+//         vendor(transform,rotateY( 180deg ) rotateZ( 180deg ))
+//     .kdview.face
+//       abs()
+//       vendor(backface-visibility,hidden)
+//       &.front
+//         gradient(#ddd,#aaa)
+//       &.back
+//         vendor(transform,rotateY( 180deg ))
+//         gradient(#f2f2f2,#ddd)

@@ -8,6 +8,7 @@ app.comments.styl
 */
 }
 
+.review-container
 .comment-container
   font-size           11px
   margin-top          10px
@@ -52,7 +53,7 @@ app.comments.styl
         width               auto
         overflow            hidden
         p.comment-body
-          line-height       150%
+          line-height       130%
           a.user-fullname
             font-size       12px
             font-weight     600
@@ -65,6 +66,10 @@ app.comments.styl
           line-height       11px
           color             #aaa
         &:hover
+          .edit-link
+            opacity         .5
+            &:hover
+              opacity       1
           .delete-link
             opacity         .5
             &:hover
@@ -76,7 +81,7 @@ app.comments.styl
   .delete-link
     display                 block
     size                    20px, 20px
-    position                absolute
+    abs()
     top                     5px
     right                   5px
     bg                      position, -80px -520px
@@ -85,29 +90,38 @@ app.comments.styl
     sprite()
     // border                  1px solid transparent
 
-
-
+  .item-add-review-box
   .item-add-comment-box
     .item-add-comment-form
     textarea
       rounded               4px
 
-
   &.no-comment
     display                 none
-
 
   &.commented
     .kdlistitemview-comment
       &:last-child
         border-bottom       1px solid #e0e0df
 
+    .item-add-review-box
     .item-add-comment-box
       padding               10px
       width                 auto
 
+      // span
+      //   hidden()
       span
-        hidden()
+        size              30px,30px
+        border            1px solid #e3e3e3
+        padding           1px
+        margin-right      10px
+        fl()
+        a
+          display           block
+          size              30px,30px
+          background-size   cover
+          background-position center
 
       .item-add-comment-form
         width               auto
@@ -120,7 +134,11 @@ app.comments.styl
           padding           2px 6px
           borderBox()
 
+    .item-add-review-box
+      border-bottom         1px solid #e0e0df
+
   &.active-comment
+    .item-add-review-box
     .item-add-comment-box
       margin              10px
       width               auto
@@ -148,9 +166,14 @@ app.comments.styl
           line-height     16px
           borderBox()
 
+    .item-add-review-box
+      margin              0
+      padding             10px
+      border-bottom       1px solid #e0e0df
+
   .show-more-comments
     size                  auto, 0
-    bg                    color,#F8F8F8        
+    bg                    color,#F8F8F8
     padding               0 10px
     rounded               4px 4px 0 0
     line-height           27px
@@ -163,7 +186,7 @@ app.comments.styl
     &.has-new-items
       a.new-count
         display           inline
-    
+
     a
       line-height         14px
       color               #299FC6
@@ -173,7 +196,7 @@ app.comments.styl
         font-weight       600
 
     span.small-loader
-      position            absolute
+      abs()
       right               15px
       top                 11px
 
@@ -184,12 +207,11 @@ app.comments.styl
       padding-right         2px
       font-weight           600
       color                 white
-      position              relative
+      rel()
       bg                    color, #FF9200
       border                1px solid #FF9200
       rounded(3px 3px 3px 3px)
       vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
-
 
       &.in
         opacity             1
@@ -201,7 +223,7 @@ app.comments.styl
       content               " "
       height                0
       width                 0
-      position              absolute
+      abs()
       pointer-events        none
 
     .new-items:after
@@ -215,6 +237,95 @@ app.comments.styl
       border-width          5px
       top                   50%
       margin-top            -5px
+
+
+.review-container
+  font-size           12px
+  margin-top          10px
+  border              none
+  border-top          1px solid #e0e0df
+  rounded(0)
+
+  .kdlistview-comments
+    .kdview.kdlistitemview
+      border-bottom         1px solid #e0e0df
+      &.deleted
+        .item-content-review
+          padding             5px 10px
+          bg                  color, #fcfcfc
+          color               #999
+          font-size           10px
+        a.profile
+          color               #777
+          font-weight         600
+          noTextDeco()
+
+    .item-content-review
+      color                 #666
+      font-size             11px
+      color                 #444
+      padding               10px
+      span.avatar
+        border              1px solid #E3E3E3
+        padding             1px
+        margin-right        10px
+        size(30px,30px)
+        bg(color,#fff)
+        fl()
+        a
+          display               block
+          background-position   center
+          background-image      url('../images/defaultavatar/default.avatar.30.png')
+          bg(size,cover)
+          bg(repeat,no-repeat)
+          size(30px,30px)
+
+      div.review-contents
+        width               auto
+        overflow            hidden
+        p.review-body
+          line-height       170%
+          font-weight       500
+          font-size         13px
+          span.collapsedtext
+            vendor              transition, font-size .2s linear
+            a.more-link
+            a.less-link
+              font-size         12px
+              margin-left       5px
+              vendor            transition, font-size .2s linear
+              noTextDeco()
+            &.hide
+              font-size         0!important
+              *
+                visibility      hidden
+                display         none
+              a.more-link
+                font-size       12px!important
+                visibility      visible
+                display         inline
+            &.show
+              a.more-link
+                font-size       0
+                margin-left     0
+        time
+          line-height       11px
+          color             #aaa
+          a.profile
+            font-size       11px
+            font-weight     600
+            color           linkColor1
+            noTextDeco()
+        &:hover
+          .delete-link
+            opacity         .5
+            &:hover
+              opacity       1
+              // border        1px solid #e0e0df
+              // rounded       2px
+              // bg            position, -80px -540px
+        // span.footer
+        //   float             right
 
 .activity-actions
   color               #ccc
@@ -241,3 +352,20 @@ app.comments.styl
       rounded         3px
   span.small-loader
     margin-right      5px
+
+.comment-actions
+  color               #ccc
+  size                auto,auto
+  a
+    color             #FF9200
+    font-size         11px
+
+  a.action-link
+    margin            0 2px
+    text-decoration   none
+    &:hover
+      text-decoration none
+      color           #27a3c9
+
+  a.count
+    noTextDeco()

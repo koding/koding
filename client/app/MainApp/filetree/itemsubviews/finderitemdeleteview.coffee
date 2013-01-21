@@ -16,20 +16,20 @@ class NFinderItemDeleteView extends JView
         title   : 'Cancel'
       cssClass  : 'cancel'
       click     : => @emit "FinderDeleteConfirmation", no
-    
+
     @label = new KDLabelView
       title     : 'Are you sure?'
-  
-  show:->
-    
+
+  viewAppended:->
+
     super
-    @button.focus()
+    @button.$().focus()
 
   pistachio:->
-    
+
     """
     {{> @label}}
-    {{> @button}}  
+    {{> @button}}
     {{> @cancel}}
     """
 

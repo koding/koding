@@ -2,13 +2,13 @@
 @import "./client/stylus/appfn"
 
 @css {
-/*  
+/*
 ENVIRONMENT SETTINGS stylesheet
 app.envsettings.styl
 */
 }
 
-/* 
+/*
 **  Environment-Split STYLES
 */
 #environment-split
@@ -16,10 +16,10 @@ app.envsettings.styl
     // width           1000px // dummy
     overflow        hidden  // dummy
     padding-bottom  10px
-  
+
 
 .environment-pane-split
-  > .panel-0 
+  > .panel-0
     overflow        hidden
   .kdsplitview-resizer
     background transparent none !important
@@ -51,7 +51,7 @@ app.envsettings.styl
       margin            38px 0 0 10px
       blockMid()
     .button-holder
-      position      absolute
+      abs()
       right         15px
       top           50%
       margin-top    -20px
@@ -110,7 +110,7 @@ app.envsettings.styl
     height          100%
     margin   0
     borderBox()
-    
+
     .header
       font-size             9px
       border                none
@@ -138,7 +138,7 @@ app.envsettings.styl
   min-width         208px
   text-shadow       0 1px 0 rgba(255, 255, 255, .6)
   bg(color,#e2e2e2) //new design background
-  
+
   h3
     width             83%
     margin            20px auto 5px 25px
@@ -152,13 +152,13 @@ app.envsettings.styl
     noTextSelection()
     cursor            pointer
     span
-      margin 0 
+      margin 0
       &.arrow
         sprite()
         bg(position,-182px -323px)
         size          12px,12px
         margin-right  10px
-        fl()          
+        fl()
         &.down
           sprite()
           bg(position,-182px -364px)
@@ -167,7 +167,7 @@ app.envsettings.styl
 
   .kdlistview-default
     border-bottom     none
-  
+
   .environment
     span.icon
       bg(position,-260px -160px)
@@ -347,7 +347,7 @@ app.envsettings.styl
           width       91px
           padding     11px 0 0 17px
           span
-            position    absolute
+            abs()
             left        100px
             top         10px
             z-index     2
@@ -357,26 +357,26 @@ app.envsettings.styl
             blockMid()
         .stats
           overflow      hidden
-          position      relative
+          rel()
           height        37px
           margin-right  17px
           bg(image,url("../images/usage-back.gif"))
           bg(repeat,repeat)
           .bar
-            position  absolute
+            abs()
             z-index   1
             rounded(0,3px,3px,0)
             bg(color,#FFD666)
             size(0,37px)
           .stat
-            position      absolute
+            abs()
             left          17px
             top           12px
             z-index       2
             color         white
             text-shadow   0 -1px 0 rgba(0,0,0,.3)
           .total
-            position    absolute
+            abs()
             right       17px
             top         12px
             z-index     2
@@ -387,9 +387,9 @@ app.envsettings.styl
             size(100%,37px)
             bg(image,url("../images/usage-back.png"))
             bg(repeat,repeat-x)
-            
+
   .process-stats
-    ul 
+    ul
       margin-bottom     1px
       border-bottom     1px solid #e5e5e5
       li
@@ -398,7 +398,7 @@ app.envsettings.styl
         border-bottom   1px solid #e3e3e3
         .cell
           color           #6e6d6b
-          position        relative
+          rel()
           min-width       100px
           line-height     28px
           text-shadow     0 1px 0 rgba(255,255,255,1)
@@ -419,15 +419,15 @@ app.envsettings.styl
         fl()
 
     .cpu-load-progress
-      position              absolute
+      abs()
       border-right          1px solid #fff1df
       rounded(0,2px,2px,0)
-      bg(image,url("../images/usage-back.gif")) 
+      bg(image,url("../images/usage-back.gif"))
       bg(color,transparent)
       bg(repeat,repeat-x)
       bg(position,0 -39px)
       size(0,100%)
-  
+
   .mounts-stats
     ul
       li
@@ -460,10 +460,10 @@ app.envsettings.styl
           margin          0 50px 0 10px
         a
           color     linkColor1
-          position  absolute
+          abs()
           right     27px
           top       20px
-          text-decoration   none  
+          text-decoration   none
 
 .environment-view.server
   .icon-wrapper
@@ -478,7 +478,7 @@ button.add-item-btn
   padding             3px 9px 2px 9px
   text-shadow         0 1px 0 #ffffff
   cursor              pointer
-  position            absolute
+  abs()
   right               16px
   top                 7px
   background          rgb(255,255,255)
@@ -528,7 +528,7 @@ a.add-item-btn
   bg(color,#e3e3e3)
 
 .resources-slider-container
-  position static
+  sta()
   rounded         3px
   padding         8px 8px 6px 8px
   border          1px solid #e8e8e8
@@ -542,7 +542,7 @@ a.add-item-btn
   size(435px,25px)
 
   .resources-slider
-    position  relative
+    rel()
     height    21px
     top       1px
     overflow visible
@@ -584,19 +584,19 @@ a.add-item-btn
       text-shadow   0 1px 0 #fff
 
   .price
-    position      relative
+    rel()
     right         -27px
     top           -6px
     cite
       font-size 20px
       color #FF9200
-      position absolute
+      abs()
       left -10px
     span
       font-size   40px
       font-weight 600
       color       linkColor1
-    
+
 
 
 

@@ -30,9 +30,9 @@ sharedHostingKites =
     #   fullName : String # real user name
     #   password : String # super strong password
     #
-    
+
     # requireThese ["username","password"]
-    
+
     hosting.createSystemUser options,(error,result)->
       if error
         callback? "[ERROR] hosting user #{options.username} wasn't created #{error}"
@@ -131,11 +131,6 @@ sharedHostingKites =
 
     hosting.unSuspendUser options,(error,result)->
       __resReport(error,result,callback)
-      
-      
-
-  
-
 
   executeCommand : (options,callback)->
 
@@ -177,21 +172,21 @@ sharedHostingKites =
     #
     fileops.openFile options, (error,result)->
       __resReport(error,result,callback)
-  
+
   uploadFile : (options,callback)->
-  
+
     fileops.uploadFile  options, (error,result)->
-      __resReport(error,result,callback)    
+      __resReport(error,result,callback)
 
   fetchFileFromUrl : (options,callback)->
-  
+
     fileops.fetchFileFromUrl options, (error,result)->
-      __resReport(error,result,callback)    
+      __resReport(error,result,callback)
 
   returnSafeFileName : (options,callback)->
     fileops.returnSafeFileName options, (error,result)->
-      __resReport(error,result,callback)    
-    
+      __resReport(error,result,callback)
+
 
   saveFile : (options,callback)->
 

@@ -75,7 +75,7 @@ class tank extends KDView
 
     
 
-class splitter extends KDSplitView
+class splitter extends SplitView
 
 class tankShooterGame extends KDViewController
   constructor:()->

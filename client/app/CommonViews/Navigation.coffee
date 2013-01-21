@@ -1,9 +1,11 @@
 class NavigationController extends KDListViewController
-  
+
   reset:->
+    previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
-  
+    @selectItemByName name  for {name} in previousSelection
+
   selectItemByName:(name)->
     item = no
     for navItem in @itemsOrdered
@@ -23,51 +25,58 @@ class NavigationController extends KDListViewController
 
 
 class NavigationList extends KDListView
-  
-  itemClass:(options,data)->
+
+  customizeItemOptions:(options, data)->
+
     if data.title is "Invite Friends"
-      new NavigationInviteLink options, data
-    else
-      super
+      options.childClass = NavigationInviteLink
+      return options
 
 class NavigationLink extends KDListItemView
 
   constructor:(options,data)->
-    
     super options,data
 
     @name = data.title
     @setClass 'navigation-item clearfix'
 
-  mouseDown:(event)->
+  click:(event)->
+    {appPath, title, path} = @getData()
 
-    mc = @getSingleton('mainController')
-    mc.emit "NavigationLinkTitleClick"
-      orgEvent : event
-      pageName : @getData().title
-      appPath  : @getData().path or @getData().title
-      navItem  : @
+    # This check is for Invite Friends link which has no app at all
+    return if @child?
+
+    mc = @getSingleton 'mainController'
+    mc.emit "NavigationLinkTitleClick",
+      orgEvent  : event
+      pageName  : title
+      appPath   : appPath or title
+      path      : path
+      navItem   : @
 
   partial:(data)->
-
-    "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
 class AdminNavigationLink extends NavigationLink
-  
-  mouseDown:(event)->
 
+  click:(event)->
     cb = @getData().callback
     cb.call @ if cb
 
-class NavigationInviteLink extends NavigationLink
-  
-  constructor:->
+class NavigationInviteLink extends KDCustomHTMLView
 
-    super
+  constructor:(options = {}, data)->
+
+    options.tagName  = "a"
+    options.cssClass = "title"
+
+    super options, data
 
     @hide()
     @count = new KDCustomHTMLView
-      pistachio: "{{#(quota)-#(usage)}}"
+      tagName   : "span"
+      cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
+      pistachio : "{{#(quota)-#(usage)}}"
 
     @utils.wait 10000, =>
       KD.whoami().fetchLimit? 'invite', (err, limit)=>
@@ -76,10 +85,10 @@ class NavigationInviteLink extends NavigationLink
           @count.setData limit
           limit.on 'update', => @count.render()
           @count.render()
-  
+
   sendInvite:(formData, modal)->
 
-    bongo.api.JInvitation.create
+    KD.remote.api.JInvitation.create
       emails        : [formData.recipient]
       customMessage :
         # subject     : formData.subject
@@ -87,25 +96,27 @@ class NavigationInviteLink extends NavigationLink
     , (err)=>
       modal.modalTabs.forms["Invite Friends"].buttons.Send.hideLoader()
       if err
+        message = 'This e-mail is already invited!' if err.code is 11000
         new KDNotificationView
-          title: err.message or 'Sorry, something bad happened.'
-          content: 'Please try again later!'
+          title: message or err.message or 'Sorry, something bad happened.'
+          content: 'Please try again later!' unless message
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()
-  
+
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
-  
+
   pistachio:->
-    "<a class='title' href='#'><span class='main-nav-icon #{__utils.slugify @getData().title}'>{{> @count}}</span>#{@getData().title}</a>"
-  
-  
+    "{{> @count}}#{@getData().title}"
+
   # take this somewhere else
   # was a beta quick solution
-  mouseDown:(event)->
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
     limit = @count.getData()
     if !limit? or limit.getAt('quota') - limit.getAt('usage') <= 0
       new KDNotificationView
@@ -120,7 +131,7 @@ class NavigationInviteLink extends NavigationLink
         height                  : "auto"
         cssClass                : "invitation-modal"
         tabs                    :
-          callback              : (formData)=> 
+          callback              : (formData)=>
             @sendInvite formData, modal
           forms                 :
             "Invite Friends"    :
@@ -131,7 +142,7 @@ class NavigationInviteLink extends NavigationLink
                   name          : "recipient"
                   placeholder   : "Enter your friend's email address..."
                   validate      :
-                    rules       : 
+                    rules       :
                       required  : yes
                       email     : yes
                     messages    :
@@ -165,28 +176,30 @@ class NavigationInviteLink extends NavigationLink
                   callback      : ()->
                     modal.destroy()
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : "KDModalViewDestroyed"
       listenedToInstance : modal
       callback           : =>
         @modal = null
-    
+
     inviteForm = modal.modalTabs.forms["Invite Friends"]
     inviteForm.on "FormValidationFailed", => inviteForm.buttons["Send"].hideLoader()
 
     modalHint = new KDView
       cssClass  : "modal-hint"
-      partial   : "<p>Your friend will receive an Email from Koding that 
-                   includes a unique invite link so they can register for 
+      partial   : "<p>Your friend will receive an Email from Koding that
+                   includes a unique invite link so they can register for
                    the Koding Public Beta.</p>
                    <p><cite>* We take privacy seriously, we will not share any personal information.</cite></p>"
 
     modal.modalTabs.addSubView modalHint, null, yes
-    
+
     inviteHint = new KDView
       cssClass  : "invite-hint fl"
       pistachio : "{{#(quota)-#(usage)}} Invites remaining"
     , @count.getData()
 
     modal.modalTabs.panes[0].form.buttonField.addSubView inviteHint, null, yes
-      
+
+    return no
+

@@ -1,7 +1,9 @@
 config    = require "./config"
 mySQL     = require './mySQLApi'
 mongoDB   = require './mongodbApi'
-Kite      = require 'kite'
+
+
+Kite      = require '../../node_modules/kite-amqp'
 log4js    = require 'log4js'
 log       = log4js.getLogger("[#{config.name}]")
 
@@ -11,23 +13,27 @@ log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.lo
 
 __resReport = (error,result,callback)->
   if error
-    callback? error
+    callback? wrapErr error
   else
     callback? null,result
 
-class AccessError extends Error
-  constructor:(@message)->
+wrapErr = (err)->
+  message : err.message
+  stack   : err.stack
 
-class KodingError extends Error
-  constructor:(message)->
-    return new KodingError(message) unless @ instanceof KodingError
-    Error.call @
-    @message = message
-    @name = 'KodingError'
+# class AccessError extends Error
+#   constructor:(@message)->
 
-this.Error = KodingError
+# class KodingError extends Error
+#   constructor:(message)->
+#     return new KodingError(message) unless @ instanceof KodingError
+#     Error.call @
+#     @message = message
+#     @name = 'KodingError'
 
-module.exports = new Kite "databases"
+# this.Error = KodingError
+
+module.exports = new Kite 'databases'
 
   #**********************************************#
   #***************** MySQL **********************#
@@ -121,7 +127,7 @@ module.exports = new Kite "databases"
 
     mongoDB.fetchDatabaseList options,(error,result)->
       __resReport(error,result,callback)
-      
+
   createMongoDatabase : (options,callback)->
 
     # this method will create mongoDB database and user

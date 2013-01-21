@@ -1,27 +1,27 @@
 class AceSettingsView extends KDTreeItemView
-  
+
   constructor:->
     super
     @setClass "ace-settings-view"
 
-    button = @getDelegate().getDelegate()
+    button = @getDelegate()
 
-    @useSoftTabs    = new KDRySwitch
+    @useSoftTabs    = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "useSoftTabs", state
-    @showGutter     = new KDRySwitch
+    @showGutter     = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showGutter", state
-    @useWordWrap    = new KDRySwitch
+    @useWordWrap    = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "useWordWrap", state
-    @showPrintMargin= new KDRySwitch
+    @showPrintMargin= new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showPrintMargin", state
-    @highlightActiveLine = new KDRySwitch
+    @highlightActiveLine = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "highlightActiveLine", state
-    @highlightWord  = new KDRySwitch
+    @highlightWord  = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "highlightSelectedWord", state
-    @showInvisibles = new KDRySwitch
+    @showInvisibles = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
-    
-    @softWrap       = new KDSelectBox 
+
+    @softWrap       = new KDSelectBox
       selectOptions : __aceSettings.softWrapOptions
       callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
 
@@ -41,7 +41,7 @@ class AceSettingsView extends KDTreeItemView
     @shortcuts      = new KDCustomHTMLView
       tagName       : "a"
       cssClass      : "shortcuts"
-      attributes    : 
+      attributes    :
         href        : "#"
       partial       : "⌘ Keyboard Shortcuts"
       click         : => log "show shortcuts"
@@ -55,19 +55,19 @@ class AceSettingsView extends KDTreeItemView
     @setTemplate @pistachio()
     @template.update()
 
-    button  = @getDelegate().getDelegate()
-    aceView = button.getDelegate()
-    @setDefaultValues aceView.getSettings()
-    
-  
+    aceView = @getDelegate()
+    if aceView
+      @setDefaultValues aceView.getSettings()
+
+
   click:(event)->
-    
+
     event.preventDefault()
     event.stopPropagation()
     return no
 
   pistachio:->
-    
+
     """
     <p>Use soft tabs            {{> @useSoftTabs}}</p>
     <p>Show gutter              {{> @showGutter}}</p>

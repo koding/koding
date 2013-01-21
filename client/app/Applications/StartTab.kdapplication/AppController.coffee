@@ -1,4 +1,8 @@
-class StartTab12345 extends AppController
+class StartTabAppController extends AppController
+
+  constructor:->
+    super
+    @openTabs = []
 
   bringToFront:->
     frontTab = if !@openTabs.length then @createNewTab() else @openTabs[@openTabs.length - 1]
@@ -12,53 +16,33 @@ class StartTab12345 extends AppController
         name          : 'New Tab'
         controller    : @
       data : frontTab
-    
-    @setViewListeners frontTab
 
-  initAndBringToFront:(options,callback)->
-    @initApplication options, =>
-      @bringToFront()
-      callback()
-    
-  initApplication:(options, callback)=>
-    @openTabs       = []
-    @_storage       = no
-    # console.log 'init application called'
-    notification    = no
+    # @setViewListeners frontTab
 
-    callback()
-    
-    @setViewListeners()
-  
-  setViewListeners:(view)->
-    @listenTo 
-      KDEventTypes       : 'ViewClosed',
-      listenedToInstance : view
-      callback           : (tab)=>
-        @removeOpenTab tab
-        @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : tab
-        tab.destroy()
-  
+  # setViewListeners:(view)->
+  #   view.on 'ViewClosed', =>
+  #     @removeOpenTab view
+  #     @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : view
+  #     view.destroy()
+
   createNewTab:->
     appController = @
-    tab = new StartTabMainView
-      delegate  : @
-    # tab.listenTo KDEventTypes:'ViewClosed', callback:@closeTab
+    tab = new StartTabMainView delegate  : @
+    tab.on 'ViewClosed', => @closeTab tab
     @addOpenTab tab
-    
-    tab
+    return tab
 
   addOpenTab:(tab)->
     appManager.addOpenTab tab, @
     @openTabs.push tab
-    
+
   removeOpenTab:(tab)->
     appManager.removeOpenTab tab
     @openTabs.splice (@openTabs.indexOf tab), 1
-  
+
   openFreshTab:->
     frontTab = @createNewTab()
-    
+
     @propagateEvent
       KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
     ,
@@ -68,13 +52,13 @@ class StartTab12345 extends AppController
         name          : 'New Tab'
         controller    : @
       data : frontTab
-  
+
   closeTab: (tab) ->
     appController = @getDelegate() or @
     appController.removeOpenTab tab
     appController.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : tab
 
     tab.destroy()
-    
+
   @getName: ->
     'startTab'

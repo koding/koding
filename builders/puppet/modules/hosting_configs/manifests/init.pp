@@ -38,14 +38,24 @@ class hosting_configs {
         source => "puppet:///modules/hosting_configs/etc/profile.d/umask.sh",
         notify => Class["cloudlinux::cagefs_update"]
     }
-
+    file { "/etc/profile.d/path.sh":
+        ensure => file,
+        source => "puppet:///modules/hosting_configs/etc/profile.d/path.sh",
+        notify => Class["cloudlinux::cagefs_update"]
+    }
+   
    file { "/etc/yum.conf":
         ensure => file,
         source => "puppet:///modules/hosting_configs/etc/yum.conf",
     }
 
-
-
+   file { "/Users":
+        ensure => directory,
+        owner => "root",
+        group => "secure",
+        mode => 0755,
+        require => Group["secure"],
+  }
     
     
 }

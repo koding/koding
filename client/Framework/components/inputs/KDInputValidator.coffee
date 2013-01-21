@@ -1,5 +1,5 @@
 class KDInputValidator
-  
+
   @ruleRequired = (input, event)->
 
     return if event?.which is 9
@@ -11,7 +11,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.required or "Field is required!"
+      return ruleSet.messages?.required or "Field is required"
 
   @ruleEmail = (input, event)->
 
@@ -24,7 +24,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.email or "Please enter a valid email address!"
+      return ruleSet.messages?.email or "Please enter a valid email address"
 
   @ruleMinLength = (input, event)->
 
@@ -38,7 +38,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.minLength or "Please enter a value that includes more than #{minLength} characters!"
+      return ruleSet.messages?.minLength or "Please enter a value that has #{minLength} characters or more"
 
   @ruleMaxLength = (input, event)->
 
@@ -52,7 +52,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.maxLength or "Please enter a value that includes less than #{maxLength} characters!"
+      return ruleSet.messages?.maxLength or "Please enter a value that has #{maxLength} characters or less"
 
   @ruleRangeLength = (input, event)->
 
@@ -66,7 +66,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.rangeLength or "Please enter a value that includes more than #{rangeLength[0]} and less than #{rangeLength[0]} characters!"
+      return ruleSet.messages?.rangeLength or "Please enter a value that has more than #{rangeLength[0]} and less than #{rangeLength[1]} characters"
 
   @ruleMatch = (input, event)->
 
@@ -81,7 +81,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.match or "Values do not match!"
+      return ruleSet.messages?.match or "Values do not match"
 
   @ruleCreditCard = (input, event)->
 
@@ -111,8 +111,8 @@ class KDInputValidator
       input.emit "CreditCardTypeIdentified", type
       return null
     else
-      return ruleSet.messages?.creditCard or "Please enter a valid credit card number!"
-  
+      return ruleSet.messages?.creditCard or "Please enter a valid credit card number"
+
   @ruleJSON = (input, event)->
 
     return if event?.which is 9
@@ -130,7 +130,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.JSON or "a valid JSON is required!"
+      return ruleSet.messages?.JSON or "a valid JSON is required"
 
   @ruleRegExp = (input, event)->
 
@@ -140,16 +140,16 @@ class KDInputValidator
     ruleSet       = input.getOptions().validate
     {regExp}      = ruleSet.rules
     doesValidate  = regExp.test value
-    
+
     if doesValidate
       return null
     else
-      return ruleSet.messages?.regExp or "Validation failed!"
-  
+      return ruleSet.messages?.regExp or "Validation failed"
+
   @ruleUri = (input, event)->
-    
+
     return if event?.which is 9
-    
+
     regExp = ///
         ^
         	([a-z0-9+.-]+):							                            #scheme
@@ -174,11 +174,11 @@ class KDInputValidator
     value         = $.trim input.getValue()
     ruleSet       = input.getOptions().validate
     doesValidate  = regExp.test value
-    
+
     if doesValidate
       return null
     else
-      return ruleSet.messages?.uri or "Not a valid uri!"
+      return ruleSet.messages?.uri or "Not a valid URI"
 
 ###
 Credits

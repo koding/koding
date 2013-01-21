@@ -9,28 +9,25 @@ class KDButtonView extends KDView
     options.cssClass  or= options.style or= "clean-gray"            # a String
     options.icon      or= no            # a Boolean value
     options.iconOnly  or= no            # a Boolean value
-    options.iconClass or= ""            # a String  
+    options.iconClass or= ""            # a String
     options.disabled  or= no            # a Boolean value
     options.hint      or= null          # a String of HTML ---> not yet implemented
     options.loader    or= no
-    
+
     super options,data
-    
+
     @setClass options.style
 
     @setCallback options.callback
     @setTitle options.title
     @setIconClass options.iconClass if options.iconClass
-    @unhideIcon()                   if options.icon
+    @showIcon()                     if options.icon
     @setIconOnly options.iconOnly   if options.iconOnly
     @disable()                      if options.disabled
-    
+
     if options.loader
-      @listenTo 
-        KDEventTypes       : "viewAppended"
-        listenedToInstance : @
-        callback           : -> @setLoader()
-    
+      @on "viewAppended", @setLoader.bind @
+
 
   setDomElement:(cssClass)->
     @domElement = $ """
@@ -47,14 +44,17 @@ class KDButtonView extends KDView
 
   setCallback:(callback)->
     @buttonCallback = callback
-  
+
   getCallback:()-> @buttonCallback
-  
-  unhideIcon:()->
+
+  showIcon:()->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
-  
-  
+
+  hideIcon:()->
+    @unsetClass "with-icon"
+    @$('span.icon').addClass 'hidden'
+
   setIconClass:(iconClass)->
     @$('.icon').attr 'class','icon'
     @$('.icon').addClass iconClass
@@ -65,15 +65,15 @@ class KDButtonView extends KDView
     @$().addClass('icon-only')
     $icon = @$('span.icon')
     @$().html $icon
-  
+
   setLoader:->
     @setClass "w-loader"
     {loader} = @getOptions()
     loaderSize = @getHeight()
     @loader = new KDLoaderView
-      size          : 
+      size          :
         width       : loader.diameter || loaderSize
-      loaderOptions :                
+      loaderOptions :
         color       : loader.color    || "#222222"
         shape       : loader.shape    || "spiral"
         diameter    : loader.diameter || loaderSize
@@ -90,21 +90,25 @@ class KDButtonView extends KDView
       marginTop   : -(loader.diameter/2)
       marginLeft  : -(loader.diameter/2)
     @loader.hide()
-  
+
   showLoader:->
+    {icon, iconOnly} = @getOptions()
     @setClass "loading"
     @loader.show()
+    @hideIcon() if icon and not iconOnly
 
   hideLoader:->
+    {icon, iconOnly} = @getOptions()
     @unsetClass "loading"
     @loader.hide()
-  
+    @showIcon() if icon and not iconOnly
+
   disable:-> @$().attr "disabled",yes
 
   enable:-> @$().attr "disabled",no
-  
+
   focus:-> @$().trigger "focus"
-  
+
   click:(event)->
     if @loader and @loader.active
       event.stopPropagation()
@@ -117,10 +121,10 @@ class KDButtonView extends KDView
     if type is "button"
       event.stopPropagation()
       event.preventDefault()
-      
+
     @getCallback().call @,event
     no
-  
+
   triggerClick:()-> @doOnSubmit()
 
 class KDToggleButton extends KDButtonView
@@ -134,9 +138,9 @@ class KDToggleButton extends KDButtonView
     ,options
 
     super options,data
-    
+
     @setState options.defaultState
-    
+
   getStateIndex:(name)->
 
     {states} = @getOptions()
@@ -146,19 +150,19 @@ class KDToggleButton extends KDButtonView
       for state,index in states
         if name is state
           return index
-  
+
   decorateState:(name)-> @setTitle @state
-  
+
   getState:-> @state
-  
+
   setState:(name)->
-    
+
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
     @decorateState name
-    
-    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
+
+    @setCallback states[index + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
 
@@ -168,16 +172,3 @@ class KDToggleButton extends KDButtonView
       @setState nextState
     else
       warn err.msg or "there was an error, couldn't switch to #{nextState} state!"
-
-
-
-
-
-
-
-
-
-
-
-
-

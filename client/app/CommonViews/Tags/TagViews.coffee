@@ -5,18 +5,18 @@ class TagGroup extends KDCustomHTMLView
       cssClass      : 'tag-group'
     , options
     super options, data
-    
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
   fetchTags:(stringTags, callback)->
     if stringTags.length > 0
-      bongo.api.JTag.some
+      KD.remote.api.JTag.some
         title     :
           $in     : stringTags
       ,
-        sort      : 
+        sort      :
           'title' : 1
       , (err,tags)=>
         unless err and not tags
@@ -27,7 +27,6 @@ class TagGroup extends KDCustomHTMLView
     else
       warn "no tag info was given!"
 
-      
 class SkillTagGroup extends TagGroup
   constructor:(options, data)->
     super options, data
@@ -38,10 +37,10 @@ class SkillTagGroup extends TagGroup
       tagName   : "span"
       cssClass  : "noskilltags"
       partial   : "#{@getData().profile.firstName} hasn't entered any skills yet."
-    
+
     controller = new KDListViewController
       view            : new KDListView
-        subItemClass  : TagCloudListItemView
+        itemClass     : TagCloudListItemView
         cssClass      : "skilltag-cloud"
 
     @listViewWrapper = controller.getView()
@@ -58,12 +57,12 @@ class SkillTagGroup extends TagGroup
       '{{> @noTags}}'
     else
       '{{> @listViewWrapper}}'
-   
+
 class TagCloudListItemView extends KDListItemView
   constructor:(options, data)->
     options = $.extend
       tagName     : "a"
-      attributes  : 
+      attributes  :
         href      : "#"
     , options
     super options, data
@@ -75,10 +74,15 @@ class TagCloudListItemView extends KDListItemView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    
+
   pistachio:->
     super "{{#(title)}}"
 
-  click:->
+  click:(event)->
+    event?.stopPropagation()
+    event?.preventDefault()
     tag = @getData()
-    appManager.tell "Topics", "createContentDisplay", tag
+    KD.getSingleton('router').handleRoute(
+      "/Topics/#{tag.slug}"
+      state: tag
+    )

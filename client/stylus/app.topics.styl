@@ -4,7 +4,7 @@
 @import "nib/vendor"
 
 @css {
-/*  
+/*
 TOPICS stylesheet
 app.topics.styl
 */
@@ -12,14 +12,14 @@ app.topics.styl
 .content-page.topics
   .activityhead
     button.kdbutton
-      position      absolute
+      abs()
       right         3px
       top           4px
   // .listview-wrapper
   //   margin-top      28px
-    
+
   .topics-hint
-    position        relative
+    rel()
     background      #fff7da
     padding         15px 17px 15px 40px
     font-size       12px
@@ -32,13 +32,13 @@ app.topics.styl
     span.icon
       size          20px,20px
       bg            position,0 -671px
-      position      absolute
+      abs()
       left          14px
       top           13px
     a.closeme
       size          20px,20px
       bg            position,-80px -240px
-      position      absolute
+      abs()
       right         14px
       top           13px
 
@@ -52,7 +52,7 @@ app.topics.styl
     borderBox()
     fl()
     &.clone
-      position      absolute
+      abs()
       top           0
       left          0
       vendor        transition-property, height
@@ -64,7 +64,7 @@ app.topics.styl
             height    auto
 
     .edit-topic
-      position      absolute
+      abs()
       width         46px
       right         0
       top           2px
@@ -82,7 +82,7 @@ app.topics.styl
     &:hover
       .edit-topic
         visibility  visible
-    
+
   .topictext
     h3
       color           #fff
@@ -93,7 +93,7 @@ app.topics.styl
       padding         0
       margin-top      0
       max-width       100%
-      a               
+      a
         color         #fff
         background    #ee8800
         display       inline-block
@@ -107,7 +107,7 @@ app.topics.styl
         noTextDeco()
         &:hover
           bg          color,#333
-        	
+
     article
       margin-bottom   15px
       margin-top      0px
@@ -116,7 +116,7 @@ app.topics.styl
       padding         0
       color           #353535
       height          65px
-      overflow        hidden    
+      overflow        hidden
     p
       margin-bottom   8px
       font-size       11px
@@ -145,7 +145,7 @@ app.topics.styl
   .extra-narrow
     .kdlistitemview-topics.topic-item
       width             100%
-    
+
   .narrow
     .kdlistitemview-topics.topic-item
       width             50%
@@ -158,27 +158,22 @@ app.topics.styl
     .kdlistitemview-topics.topic-item
       width             20%
 
-/*  
+/*
   Content Display
 */
 
 .content-display.topic
   .profilestats
     .posts
-      span
-        bg                position, 0 -631px
-        sprite()
+      a
         cursor            default
-        color             #a5a5a5
-        font-size         12px
-        font-weight       300
-        line-height       12px
-        padding-left      23px
-        size              20px,20px
         noTextDeco()
-        
+        cite
+          bg                position, 0 -631px
+
     .fers
       a
-        bg            position, 0 -710px
+        cite
+          bg                position, -180px -580px
 
 

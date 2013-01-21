@@ -1,0 +1,2 @@
+do ->
+  appManager.openApplication "Ace"

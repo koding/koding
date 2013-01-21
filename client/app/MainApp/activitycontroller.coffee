@@ -4,5 +4,5 @@ class ActivityController extends KDObject
 
     super
 
-    bongo.api.CActivity.on 'feed.new', (activities) =>
+    KD.remote.api.CActivity.on 'feed-new', (activities) =>
       @emit 'ActivitiesArrived', activities

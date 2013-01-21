@@ -8,6 +8,11 @@ class AppController extends KDViewController
       options : options
       data    : view
 
-  initAndBringToFront:(options, callback)->
-    @bringToFront()
-    callback()
+  createContentDisplay:(tag, doShow, callback)->
+    [callback, doShow] = [doShow, callback] unless callback
+    @showContentDisplay tag, callback
+
+  handleQuery:(query)->
+    @ready => @feedController?.handleQuery? query
+
+  setGroup:(group)-> @bringToFront()

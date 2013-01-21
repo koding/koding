@@ -1,37 +1,45 @@
 class FinderBottomControlsListItem extends KDListItemView
-  constructor:(options,data)->
-    options = $.extend
-      tagName      : "li"
-    ,options
-    super options,data
+
+  constructor:(options = {},data)->
+
+    options.tagName or= "li"
+
+    super options, data
+
+    @title = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass : 'title'
+      partial : data.title
+      tooltip :
+        unless data.appPath or data.action
+          title : "<p class='login-tip'>Coming Soon</p>"
+          placement : "right"
+          direction : 'center'
 
   click:(event)->
-    if @getData().path?
-      appManager.openApplication @getData().path if @getData().path? 
+    {appPath} = @getData()
+    event.preventDefault()
+    if appPath?
+      appManager.openApplication appPath if appPath?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
+    else if @getData().action is "manageRemotes"
+      @getSingleton('mainController').emit 'ManageRemotesRequested'
     else
       new KDNotificationView
         title : "Coming Soon!"
         duration : 1000
-  
+
   viewAppended:->
-    super
+    @setTemplate @pistachio()
+    @template.update()
 
-    data = @getData()
-    unless data.path or data.action
-      @$().twipsy
-        title     : "<p class='login-tip'>Coming Soon</p>"
-        placement : "right"
-        offset    : 3
-        delayIn   : 300
-        html      : yes
-        animate   : yes
-        offset    : -60
-
-  partial:(data)->
+  pistachio:->
     """
-      <a href="#"><span class='icon #{data.icon}'></span>#{data.title}</a>
+      <a href="#">
+        <span class='icon #{@getData().icon}'></span>
+        {{>@title}}
+      </a>
     """
 
   showShortcuts:->
@@ -77,4 +85,3 @@ class FinderBottomControlsListItem extends KDListItemView
 
     @_keyHelperModal.addSubView filetreeKeyHelperController.getView()
     @_keyHelperModal.addSubView editorKeyHelperController.getView()
-    

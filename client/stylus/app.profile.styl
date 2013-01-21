@@ -4,7 +4,7 @@
 @import "nib/vendor"
 
 @css {
-/*  
+/*
 PROFILE stylesheet
 app.profile.styl
 */
@@ -19,12 +19,12 @@ app.profile.styl
       button.clean-red
       button.cupid-green
         display         none
-        
+
       .active
         input.kdinput.text
         textarea.kdinput.text
           display         inline-block
-          
+
         button.clean-red
         button.cupid-green
           display         inline-block
@@ -32,10 +32,10 @@ app.profile.styl
           padding         16px 20px
           vertical-align  middle
           width           auto
-          
-    .profilestats
-      > div.contact
-        min-width           250px
+
+    // .profilestats
+    //   > div.contact
+    //     min-width           250px
 
 .content-display-wrapper
   .content-display
@@ -43,22 +43,22 @@ app.profile.styl
       .profilename-form
         display     inline-block
         width       auto
-        
+
         p
           color         #222
           font-size     30px
           font-weight   bold
           padding       4px 3px 4px 4px
-          
+
           &:hover
             background-color  #FFFBD3
-      
+
       form.profilename-form.active
         margin       -1px 20px -2px 0
-        
+
         p
           display     none
-      
+
         input.kdinput.text
           background-color  white
           border            1px solid #AAA
@@ -69,32 +69,32 @@ app.profile.styl
           height            auto
           margin-right      8px
           width             auto
-      
+
         input.kdinput.text.validation-error
           border-color        red
-          
-        
+
+
       .profilelocation-form
         display             inline-block
         vertical-align		  baseline
-          
+
         p
           color               #A5A5A5
           font-size           16px
           font-weight         300
           margin              0 4px 0 8px
           width               auto
-          
+
           &:hover
             background-color  #FFFBD3
-      
+
       .profilelocation-form.active
         margin            0 0 4px 0
         vertical-align    bottom
-      
+
         p
           display: none
-        
+
         input.kdinput.text
           background-color    white
           border              1px solid #AAA
@@ -103,39 +103,38 @@ app.profile.styl
           font-size           16px
           margin              0 8px 0 4px
           width               120px
-      
+
         button.clean-red
         button.cupid-green
           padding         5px 12px
-      
+
       .profilename-form.active + .profilelocation-form
         vertical-align      bottom
-      
+
       .personal-profile-about
         p
           font-size         15px
           font-weight       300
           margin            3px 4px
           max-width         750px
-          
+
           &:hover
             background-color      #FFFBD3
-          
-          
+
+
       .personal-profile-about.active
         p
           display     none
-          
-        .profileabout-form
-          textarea.kdinput.text
-            display         inline-block
-            height          100px
-            width           500px
-            
-          button.clean-red
-          button.cupid-green
-            margin          0 0 6px 8px
-            vertical-align  bottom
+
+        textarea.kdinput.text
+          display         inline-block
+          height          100px
+          width           500px
+
+        // button.clean-red
+        // button.cupid-green
+        //   margin          0 0 6px 8px
+        //   vertical-align  bottom
 
 
 .content-display-wrapper
@@ -156,7 +155,7 @@ app.profile.styl
           height          auto
           width           auto
           margin-bottom   0
-          
+
       .profileavatar-form.active
         button.clean-red
         button.cupid-green
@@ -166,52 +165,52 @@ app.profile.styl
 .content-display.member
   .profilearea
     // overflow              visible
-  
+
     a.tag
       color               white
-  
+
     .kdfileupload
       height              88px
       min-width           10px
       width               88px
-      
+
       .kdfileuploadarea
         height            88px
         min-width         10px
         width             88px
-        
+
         span
           bg              color,rgba(255,255,255,.5)
           color           #333
           line-height     24px
           size            82px,82px
-  
+
     .skilltagslabel
       font-size           10px
       color               #a5a5a5
       margin              0 0 0 4px
       width               74px
-      fl()                
-                          
-    .skilltagadd          
+      fl()
+
+    .skilltagadd
       font-size           11px
       line-height         18px
       margin              0 4px
       noTextDeco()
       fl()
-    
+
     .personal-skilltags
       margin              10px 0 16px 0
-  
+
       span.noskilltags
         display           none
-                          
-      span.skilltagadd    
+
+      span.skilltagadd
         background        none
         color             #333
         display           inline-block
         font-weight       300
-        
+
       .kdlistitemview
         bg                color,#e80
         color             #fff
@@ -219,11 +218,11 @@ app.profile.styl
         display           inline-block
         font-size         10px
         font-weight       700
-        rounded(3px)      
+        rounded(3px)
         margin            0 5px 6px 0
         padding           0 20px 0 0
         width             auto
-      
+
       .form-actions-holder
         padding-top       6px
         &:hover
@@ -237,26 +236,26 @@ app.profile.styl
           border          none
           margin          0 5px 6px 0
           padding         0
-          rounded(3px)    
+          rounded(3px)
           transition      padding .1s ease-in-out
-          &:hover         
+          &:hover
             bg            color,#0A92BA
-            a             
+            a
               bg          color,#0A92BA
-          a               
+          a
             color         white
             cursor        pointer
             margin        0
-            &:hover       
+            &:hover
               bg          color,#0A92BA
-          
+
           span.close-icon
             sprite()
             display       none
             z-index       10
             bg            position,-60px -240px
             top           -1px
-      
+
         .kdautocompletewrapper
           width           70%
           background      none
@@ -264,21 +263,21 @@ app.profile.styl
           display         block
           margin          8px 0
           outline         none
-          
+
           input.kdinput
             width         100%
-        
+
         .button-container
           width           70%
           display         none
           margin-top      8px
           text-align      right
-          
+
           button
             padding       10px 18px
             margin        0 0 0 8px
-            width         auto  
-        
+            width         auto
+
       form.kdformview.active
         // background-color  #FFFBD3
         .skilltagadd
@@ -288,7 +287,7 @@ app.profile.styl
           padding         0 20px 0 0
           span.close-icon
             display       inline-block
-        
+
         input.kdinput
         .button-container
           display         block

@@ -34,7 +34,7 @@ class KDModalViewWithForms extends KDModalView
 #                   required  : yes
 #                 messages    :
 #                   required  : "topic name is required!"
-#             Zikko           :          
+#             Zikko           :
 #               label         : "Zikkko"
 #               type          : "textarea"
 #               name          : "zikko"
@@ -45,7 +45,7 @@ class KDModalViewWithForms extends KDModalView
 #                   name        : "lulu"
 #                   placeholder : "lulu..."
 #         "My Second Form"    :
-#           buttons           :  
+#           buttons           :
 #             Submit          :
 #               title         : "Submit"
 #               style         : "modal-clean-gray"
@@ -55,8 +55,8 @@ class KDModalViewWithForms extends KDModalView
 #               style         : "modal-clean-red"
 #               type          : "reset"
 #           # callback          : (formOutput)-> log formOutput,"Form 2 ::::::"
-#           fields            :  
-#             Hoho            :           
+#           fields            :
+#             Hoho            :
 #               label         : "Hoho:"
 #               type          : "text"
 #               name          : "title"

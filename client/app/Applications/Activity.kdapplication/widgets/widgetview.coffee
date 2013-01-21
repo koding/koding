@@ -1,11 +1,14 @@
 class ActivityUpdateWidget extends KDView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    options.cssClass = "activity-update-widget-wrapper"
+
+    super options, data
+
     @windowController = @getSingleton('windowController')
     @listenWindowResize()
-    
+
   setMainSections:->
 
     @addSubView widgetWrapper = new KDView
@@ -26,10 +29,15 @@ class ActivityUpdateWidget extends KDView
 
     @mainInputTabs.on 'ReceivedClickElsewhere', (event)=>
       unless $(event.target).closest('.activity-status-context').length > 0
-        @resetWidgets()
+
+        # if there is a modal present, it MIGHT be used to enter
+        # large amounts of text   --arvid
+        unless $(event.target).closest('.kdmodal').length > 0
+          @resetWidgets()
 
   resetWidgets:->
 
+    @windowController.removeLayer @mainInputTabs
     @unsetClass "edit-mode"
     @changeTab "update", "Status Update"
     @mainInputTabs.emit "MainInputTabsReset"
@@ -38,9 +46,9 @@ class ActivityUpdateWidget extends KDView
   addWidgetPane:(options)->
 
     {paneName,mainContent} = options
-    
+
     @mainInputTabs.addPane main = new KDTabPaneView
-      name : paneName 
+      name : paneName
     main.addSubView mainContent if mainContent?
     return main
 
@@ -54,11 +62,11 @@ class ActivityUpdateWidget extends KDView
   showPane:(paneName)->
 
     @mainInputTabs.showPane @mainInputTabs.getPaneByName paneName
-  
+
   viewAppended:->
     @setMainSections()
     super
-  
+
   _windowDidResize:->
 
     width = @getWidth()
@@ -71,42 +79,32 @@ class ActivityUpdateWidget extends KDView
     icon              : yes
     iconClass         : "update"
     delegate          : @
-    menu              : [
-      items           : [
-        {
-          title       : "Status Update"
-          type        : "default update"
-          callback    : (treeItem, event)=> @changeTab "update", treeItem.getData().title
-        }
-        {
-          title       : "Ask a Question"
-          type        : "default question disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "question", treeItem.getData().title
-        }             
-        {             
-          title       : "Code Snip"
-          type        : "default codesnip"
-          callback    : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
-        }             
-        {             
-          title       : "Start a Discussion"
-          type        : "default discussion disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
-        }             
-        {             
-          title       : "Link"
-          disabled    : yes
-          type        : "default link disabledForBeta"
-          callback    : (treeItem, event)=> @changeTab "link", treeItem.getData().title
-        }             
-        {             
-          title       : "Tutorial"
-          type        : "default tutorial disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
-        }
-      ]
-    ]
-    callback  : =>
+
+    menu              :
+      "Status Update" :
+        type          : "update"
+        callback      : (treeItem, event)=> @changeTab "update", treeItem.getData().title
+      "Ask a Question":
+        type          : "question"
+        disabled      : yes
+        callback      : (treeItem, event)=> @changeTab "question", treeItem.getData().title
+      "Code Snip"     :
+        type          : "codesnip"
+        callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
+      # "Code Share"    :
+      #   type          : "codeshare"
+      #   disabled      : no
+      #   callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
+      "Discussion"    :
+        type          : "discussion"
+        disabled      : no
+        callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
+      # "Link"          :
+      #   disabled      : no
+      #   type          : "link"
+      #   callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
+      "Tutorial"      :
+        type          : "tutorial"
+        disabled      : no
+        callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
+    callback          : =>

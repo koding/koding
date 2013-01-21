@@ -1,17 +1,19 @@
 class CommonInnerNavigation extends KDView
+
   constructor:->
+
     super
+
     @setClass "common-inner-nav"
-  
+
   setListController:(options,data,isSorter = no)->
+
     controller = new CommonInnerNavigationListController options, data
-    controller.getListView().registerListener 
-      KDEventTypes :"CommonInnerNavigationListItemReceivedClick"
-      listener     : @
-      callback     : (pubInst, data)=>
-        @propagateEvent  KDEventType : "CommonInnerNavigationListItemReceivedClick", data
-    if isSorter
-      @sortController = controller
+    controller.getListView().on "NavItemReceivedClick", (data)=>
+      @emit "NavItemReceivedClick", data
+
+    @sortController = controller if isSorter
+
     return controller
 
   selectSortItem:(sortType)->
@@ -26,29 +28,26 @@ class CommonInnerNavigation extends KDView
 
 class CommonInnerNavigationListController extends KDListViewController
   constructor:(options={},data)->
-    options.viewOptions or= subItemClass : options.subItemClass or CommonInnerNavigationListItem
+    options.viewOptions or= itemClass : options.itemClass or CommonInnerNavigationListItem
     options.view or= mainView = new CommonInnerNavigationList options.viewOptions
     super options,data
-    
+
     listView = @getListView()
-    
+
     listView.on 'ItemWasAdded', (view)=>
-      view.registerListener
-        KDEventTypes    : 'click'
-        listener        : @
-        callback        : (pubInst, event)=>
-          unless view.getData().disabledForBeta
-            @selectItem view
-            @propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
-            listView.propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
-    
+      view.on 'click', (event)=>
+        unless view.getData().disabledForBeta
+          @selectItem view
+          @emit 'NavItemReceivedClick', view.getData()
+          listView.emit 'NavItemReceivedClick', view.getData()
+
   loadView:(mainView)->
     list = @getListView()
     mainView.setClass "list"
     mainView.addSubView new KDHeaderView size : 'small', title : @getData().title, cssClass : "list-group-title"
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
-  
+
 class CommonInnerNavigationList extends KDListView
   constructor : (options = {},data)->
     options.tagName or= "ul"
@@ -63,7 +62,9 @@ class CommonInnerNavigationListItem extends KDListItemView
         tooltip     :
           title     : "<p class='login-tip'>Coming Soon</p>"
           placement : "right"
-          offset    : 3
+          offset    :
+            top     : 0
+            left    : 3
       ,options
     super options,data
     @setClass data.type

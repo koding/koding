@@ -1,21 +1,32 @@
-class ActivitySplitView extends KDSplitView
+class ActivitySplitView extends SplitView
+
+  constructor:(options = {}, data)->
+
+    options.sizes     or= [139,null]
+    options.minimums  or= [10,null]
+    options.resizable or= no
+
+    super options, data
 
   # until mixins are here
-  viewAppended : ()->
-    ContentPageSplitBelowHeader::viewAppended.apply @,arguments
+  viewAppended : ContentPageSplitBelowHeader::viewAppended
 
-  toggleFirstPanel: ()-> 
-    ContentPageSplitBelowHeader::toggleFirstPanel.apply @,arguments
+  toggleFirstPanel: ContentPageSplitBelowHeader::toggleFirstPanel
 
-  setRightColumnClass: ()-> 
-    ContentPageSplitBelowHeader::setRightColumnClass.apply @,arguments
+  setRightColumnClass: ContentPageSplitBelowHeader::setRightColumnClass
 
-  _windowDidResize:()=> 
+  _windowDidResize:()=>
     super
-    welcomeHeaderHeight = @$().siblings('h1').outerHeight()
-    # updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight()  # split margin top
+
+    {header, widget} = @getDelegate()
+    parentHeight        = @getDelegate().getHeight()
+    welcomeHeaderHeight = if header.$().is ":visible" then header.getHeight() else 0
+    updateWidgetHeight  = if widget.$().is ":visible" then widget.getHeight() else 0
+
+    widget?.$().css
+      top       : welcomeHeaderHeight
 
     @$().css
-      marginTop : 77 # updateWidgetHeight
-      height    : @parent.getHeight() - welcomeHeaderHeight - 77
+      marginTop : updateWidgetHeight
+      height    : parentHeight - welcomeHeaderHeight - updateWidgetHeight
 

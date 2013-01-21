@@ -1,45 +1,45 @@
-class Account12345 extends AppController
+class AccountAppController extends AppController
   constructor:(options={},data)->
     options.view = new KDView {cssClass : "content-page" }
     super options, data
     @itemsOrdered = []
-  
+
   bringToFront:()->
     super name : 'Account', type : 'background'
-    
+
   loadView:(mainView)->
     items = @items
-    
+
     # SET UP VIEWS
     @navController = new AccountSideBarController
       domId : "account-nav"
     navView = @navController.getView()
 
     @wrapperController = new AccountContentWrapperController
-      domId     : "account-content-wrapper"
-    wrapperView = @wrapperController.getView()
-    
-    
+      view    : wrapperView = new KDView
+        domId : "account-content-wrapper"
+
     #ADD CONTENT SECTIONS
     @navController.sectionControllers = []
     @wrapperController.sectionLists = []
     for own sectionKey, section of items
-      navView.addSubView navSection = new KDTreeView
-        type        : sectionKey
-        cssClass    : "settings-menu"
-      navView.addSubView new KDCustomHTMLView "hr"
-      @navController.sectionControllers.push new AccountNavigationController
-        view : navSection
-        subItemClass : AccountNavigationLink
-      , section
-      
-      navSection.registerListener
-        KDEventTypes  : "AccountNavLinkTitleClick"
-        listener      : @
-        callback      : (sectionController, navItem)=>
-          @wrapperController.scrollTo @indexOfItem navItem.getData()
-      
-      
+      do =>
+        @navController.sectionControllers.push lc = new AccountNavigationController
+          wrapper     : no
+          scrollView  : no
+          viewOptions :
+            type      : sectionKey
+            cssClass  : "settings-menu"
+          itemClass   : AccountNavigationLink
+        , section
+
+        navView.addSubView lc.getView()
+        navView.addSubView new KDCustomHTMLView "hr"
+
+        lc.getView().on 'ItemWasAdded', (view, index)=>
+          view.on "click", =>
+            @wrapperController.scrollTo @indexOfItem view.getData()
+
       for own itemKey,item of section.items
         @itemsOrdered.push item
         section.id = sectionKey
@@ -47,31 +47,31 @@ class Account12345 extends AppController
           cssClass : "settings-list-wrapper #{__utils.slugify(item.title)}"
         ,{item,section}
         @wrapperController.sectionLists.push wrapper
-    
+
 
     # SET UP SPLIT VIEW AND TOGGLERS
-    @split = split = new KDSplitView
+    @split = split = new SplitView
       domId     : "account-split-view"
       sizes     : [188,null]
       views     : [navView,wrapperView]
       minimums  : [null,null]
       resizable : yes
     mainView.addSubView split
-    
+
     split.panels[1].registerListener
       KDEventTypes : "scroll"
       listener     : @
       callback     : @contentScrolled
-    
-    split.panels[0].addSubView @leftToggler = new KDView 
+
+    split.panels[0].addSubView @leftToggler = new KDView
       cssClass : "account-sidebar-toggler left"
 
-    @listenTo 
+    @listenTo
       KDEventTypes        : "click"
       listenedToInstance  : @leftToggler
       callback            : -> @toggleSidebar show:no
-    
-    split.addSubView @rightToggler = new KDView 
+
+    split.addSubView @rightToggler = new KDView
       cssClass : "account-sidebar-toggler right"
 
     @listenTo
@@ -83,7 +83,7 @@ class Account12345 extends AppController
 
     @_windowDidResize()
     @getSingleton("windowController").registerWindowResizeListener @
-  
+
   contentScrolled:(pubInst,event)->
     @__lastScrollTop or= 0
     newScrollTop = pubInst.$().scrollTop()
@@ -91,9 +91,9 @@ class Account12345 extends AppController
 
     topIndex = @wrapperController.getSectionIndexForScrollOffset newScrollTop
     @navController.setActiveNavItem topIndex
-    
+
     @__lastScrollTop = newScrollTop
-  
+
   _windowDidResize:()->
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
@@ -101,7 +101,7 @@ class Account12345 extends AppController
   toggleSidebar:(options)->
     {show} = options
     controller = @
-    
+
     split = @split
     if show
       split.showPanel 0, ->
@@ -111,7 +111,7 @@ class Account12345 extends AppController
       split.hidePanel 0, ->
         controller.rightToggler.show()
         controller.leftToggler.hide()
-  
+
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
 
@@ -122,10 +122,10 @@ class Account12345 extends AppController
         { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
-      ]                                                                                    
-    develop :                                                                                                   
-      title : "Develop"                                                                                         
-      items : [                                                                                                 
+      ]
+    develop :
+      title : "Develop"
+      items : [
         { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
         { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
         { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
@@ -133,12 +133,12 @@ class Account12345 extends AppController
         { title : "SSH Keys",             listHeader: "SSH Keys",                   listType: "keys",           id : 40,      parentId : null }
       ]
     billing :
-      title : "Billing"                                                                    
-      items : [                                                                            
+      title : "Billing"
+      items : [
         { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
         { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
-      ]                                                                                                         
+      ]
 
 
 class AccountSideBarController extends KDViewController
@@ -150,12 +150,12 @@ class AccountSideBarController extends KDViewController
     allNavItems = []
     for controller in @sectionControllers
       allNavItems = allNavItems.concat controller.itemsOrdered
-    
+
     @allNavItems = allNavItems
-       
+
     @setActiveNavItem 0
-  
-  setActiveNavItem:(index)->    
+
+  setActiveNavItem:(index)->
     sectionControllers = @sectionControllers
     totalIndex    = 0
     controllerIndex = 0
@@ -163,42 +163,36 @@ class AccountSideBarController extends KDViewController
       activeNavController = sectionControllers[controllerIndex]
       controllerIndex++
       totalIndex += activeNavController.itemsOrdered.length
-    
+
     activeNavItem = @allNavItems[index]
-    
+
     @unselectAllNavItems activeNavController
-    activeNavController.makeItemSelected activeNavItem
-  
+    activeNavController.selectItem activeNavItem
+
   unselectAllNavItems:(clickedController)->
     for controller in @sectionControllers
-      controller.makeAllItemsUnselected() unless clickedController is controller
+      controller.deselectAllItems() unless clickedController is controller
 
 
 class AccountContentWrapperController extends KDViewController
-  constructor:(options,data)->
-    options.view = new KDView domId : options.domId
-    super options, data
-    
-  loadView:(mainView)->
-    items = @getData()
-  
+
   getSectionIndexForScrollOffset:(offset)->
+
     sectionIndex = 0
     while @sectionLists[sectionIndex + 1]?.$().position().top <= offset
       sectionIndex++
     sectionIndex
-  
+
   scrollTo:(index)->
+
     itemToBeScrolled = @sectionLists[index]
-    
-    scrollToValue = itemToBeScrolled.$().position().top
-    
+    scrollToValue    = itemToBeScrolled.$().position().top
     @getView().parent.$().animate scrollTop : scrollToValue, 300
 
 
-class AccountNavigationController extends KDTreeViewController
+class AccountNavigationController extends KDListViewController
+
   loadView:(mainView)->
+
     mainView.setPartial "<h3>#{@getData().title}</h3>"
     super
-  #overriden to make items selected only by scroll
-  itemMouseUp: (publishingInstance,event) ->

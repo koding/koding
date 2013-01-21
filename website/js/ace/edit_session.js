@@ -1,40 +1,30 @@
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *      Mihai Sucan <mihai DOT sucan AT gmail DOT com>
- *      Julian Viereck <julian DOT viereck AT gmail DOT com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
 
@@ -56,10 +46,98 @@ var SearchHighlight = require("./search_highlight").SearchHighlight;
 /**
  * class EditSession
  *
- * Stores various states related to a [[Document `Document`]]. A single `EditSession` can be in charge of several `Document`s.
+ * Stores all the data about [[Editor `Editor`]] state providing easy way to change editors state.  `EditSession` can be attached to only one [[Document `Document`]]. Same `Document` can be attached to several `EditSession`s.
  *
  **/
 
+// events 
+/**
+ * EditSession@change(e)
+ * - e (Object): An object containing a `delta` of information about the change.
+ *
+ * Emitted when the document changes.
+ **/
+/**
+ * EditSession@changeTabSize()
+ *
+ * Emitted when the tab size changes, via [[EditSession.setTabSize]].
+ **/
+/**
+ * EditSession@changeOverwrite()
+ *
+ * Emitted when the ability to overwrite text changes, via [[EditSession.setOverwrite]].
+ **/
+/**
+ * EditSession@changeBreakpoint()
+ *
+ * Emitted when the gutter changes, either by setting or removing breakpoints, or when the gutter decorations change.
+ **/
+/**
+ * EditSession@changeFrontMarker()
+ *
+ * Emitted when a front marker changes.
+ **/
+/**
+ * EditSession@changeBackMarker()
+ *
+ * Emitted when a back marker changes.
+ **/
+/**
+ * EditSession@changeAnnotation()
+ *
+ * Emitted when an annotation changes, like through [[EditSession.setAnnotations]].
+ **/
+/**
+ * EditSession@tokenizerUpdate(e)
+ * - e (Object): An object containing one property, `"data"`, that contains information about the changing rows
+ *
+ * Emitted when a background tokenizer asynchronously processes new rows.
+ *
+ **/
+/** hide
+ * EditSession@loadMode(e)
+ * 
+ *
+ *
+ **/
+/** 
+ * EditSession@changeMode()
+ * 
+ * Emitted when the current mode changes.
+ *
+ **/
+/** 
+ * EditSession@changeWrapMode()
+ * 
+ * Emitted when the wrap mode changes.
+ *
+ **/
+/** 
+ * EditSession@changeWrapLimit()
+ * 
+ * Emitted when the wrapping limit changes.
+ *
+ **/
+/**
+ * EditSession@changeFold(e)
+ *
+ * Emitted when a code fold is added or removed.
+ *
+ **/
+ /**
+ * EditSession@changeScrollTop(scrollTop) 
+ * - scrollTop (Number): The new scroll top value
+ *
+ * Emitted when the scroll top changes.
+ **/
+/**
+ * EditSession@changeScrollLeft(scrollLeft) 
+ * - scrollLeft (Number): The new scroll left value
+ *
+ * Emitted when the scroll left changes.
+ **/
+     
+     
 /**
  * new EditSession(text, mode)
  * - text (Document | String): If `text` is a `Document`, it associates the `EditSession` with it. Otherwise, a new `Document` is created, with the initial text
@@ -70,16 +148,14 @@ var SearchHighlight = require("./search_highlight").SearchHighlight;
  **/
 
 var EditSession = function(text, mode) {
-    this.$modified = true;
     this.$breakpoints = [];
+    this.$decorations = [];
     this.$frontMarkers = {};
     this.$backMarkers = {};
     this.$markerId = 1;
-    this.$resetRowCache(0);
-    this.$wrapData = [];
-    this.$foldData = [];
-    this.$rowLengthCache = [];
     this.$undoSelect = true;
+    
+    this.$foldData = [];
     this.$foldData.toString = function() {
         var str = "";
         this.forEach(function(foldLine) {
@@ -87,12 +163,13 @@ var EditSession = function(text, mode) {
         });
         return str;
     }
+    this.on("changeFold", this.onChangeFold.bind(this));
+    this.$onChange = this.onChange.bind(this);
+    
+    if (typeof text != "object" || !text.getLine)
+        text = new Document(text);
 
-    if (typeof text == "object" && text.getLine) {
-        this.setDocument(text);
-    } else {
-        this.setDocument(new Document(text));
-    }
+    this.setDocument(text);
 
     this.selection = new Selection(this);
     this.setMode(mode);
@@ -112,16 +189,15 @@ var EditSession = function(text, mode) {
      **/
     this.setDocument = function(doc) {
         if (this.doc)
-            throw new Error("Document is already set");
+            this.doc.removeListener("change", this.$onChange);
 
         this.doc = doc;
-        doc.on("change", this.onChange.bind(this));
-        this.on("changeFold", this.onChangeFold.bind(this));
+        doc.on("change", this.$onChange);
 
-        if (this.bgTokenizer) {
+        if (this.bgTokenizer)
             this.bgTokenizer.setDocument(this.getDocument());
-            this.bgTokenizer.start(0);
-        }
+
+        this.resetCaches();
     };
 
     /**
@@ -141,14 +217,14 @@ var EditSession = function(text, mode) {
      *
      *
      **/
-    this.$resetRowCache = function(docRrow) {
-        if (!docRrow) {
+    this.$resetRowCache = function(docRow) {
+        if (!docRow) {
             this.$docRowCache = [];
             this.$screenRowCache = [];
             return;
         }
 
-        var i = this.$getRowCacheIndex(this.$docRowCache, docRrow) + 1;
+        var i = this.$getRowCacheIndex(this.$docRowCache, docRow) + 1;
         var l = this.$docRowCache.length;
         this.$docRowCache.splice(i, l);
         this.$screenRowCache.splice(i, l);
@@ -174,22 +250,20 @@ var EditSession = function(text, mode) {
         return low && low -1;
     };
 
-    /**
-    * EditSession@onChangeFold(e)
-    *
-    * Emitted when a code fold changes its state.
-    *
-    **/
+    this.resetCaches = function() {
+        this.$modified = true;
+        this.$wrapData = [];
+        this.$rowLengthCache = [];
+        this.$resetRowCache(0);
+        if (this.bgTokenizer)
+            this.bgTokenizer.start(0);
+    };
+
     this.onChangeFold = function(e) {
         var fold = e.data;
         this.$resetRowCache(fold.start.row);
     };
 
-    /**
-    * EditSession@onChange(e)
-    *
-    * Emitted when the document changes.
-    **/
     this.onChange = function(e) {
         var delta = e.data;
         this.$modified = true;
@@ -250,7 +324,7 @@ var EditSession = function(text, mode) {
     };
 
     /**
-    * EditSession.getSelection() -> String
+    * EditSession.getSelection() -> Selection
     *
     * Returns the string of the current selection.
     **/
@@ -281,11 +355,11 @@ var EditSession = function(text, mode) {
     };
 
     /**
-    * EditSession.getTokenAt(row, column) -> Array
+    * EditSession.getTokenAt(row, column) -> Object
     * - row (Number): The row number to retrieve from
     * - column (Number): The column number to retrieve from
     *
-    * Returns an array of tokens at the indicated row and column.
+    * Returns an object indicating the token at the current row. The object has two properties: `index` and `start`.
     **/
     this.getTokenAt = function(row, column) {
         var tokens = this.bgTokenizer.getTokens(row);
@@ -307,14 +381,7 @@ var EditSession = function(text, mode) {
         token.start = c - token.value.length;
         return token;
     };
-
-    this.highlight = function(re) {
-        if (!this.$searchHighlight) {
-            var highlight = new SearchHighlight(null, "ace_selected_word", "text");
-            this.$searchHighlight = this.addDynamicMarker(highlight);
-        }
-        this.$searchHighlight.setRegexp(re);
-    }
+ 
     /**
     * EditSession.setUndoManager(undoManager)
     * - undoManager (UndoManager): The new undo manager
@@ -462,7 +529,9 @@ var EditSession = function(text, mode) {
     * EditSession.setOverwrite(overwrite)
     * - overwrite (Boolean): Defines wheter or not to set overwrites
     *
-    * Pass in `true` to enable overwrites in your session, or `false` to disable. If overwrites is enabled, any text you enter will type over any text after it. If the value of `overwrite` changes, this function also emites the `changeOverwrite` event.
+    * Pass in `true` to enable overwrites in your session, or `false` to disable. 
+    *
+    * If overwrites is enabled, any text you enter will type over any text after it. If the value of `overwrite` changes, this function also emites the `changeOverwrite` event.
     *
     **/
     this.setOverwrite = function(overwrite) {
@@ -491,6 +560,32 @@ var EditSession = function(text, mode) {
     };
 
     /**
+    * EditSession.addGutterDecoration(row, className) -> Void
+    * - row (Number): The row number
+    * - className (String): The class to add
+    *
+    * Adds `className` to the `row`, to be used for CSS stylings and whatnot.
+    **/
+    this.addGutterDecoration = function(row, className) {
+        if (!this.$decorations[row])
+            this.$decorations[row] = "";
+        this.$decorations[row] += " " + className;
+        this._emit("changeBreakpoint", {});
+    };
+
+    /**
+    * EditSession.removeGutterDecoration(row, className)-> Void
+    * - row (Number): The row number
+    * - className (String): The class to add
+    *
+    * Removes `className` from the `row`.
+    **/
+    this.removeGutterDecoration = function(row, className) {
+        this.$decorations[row] = (this.$decorations[row] || "").replace(" " + className, "");
+        this._emit("changeBreakpoint", {});
+    };
+    
+    /**
     * EditSession.getBreakpoints() -> Array
     *
     * Returns an array of numbers, indicating which rows have breakpoints.
@@ -509,7 +604,7 @@ var EditSession = function(text, mode) {
     this.setBreakpoints = function(rows) {
         this.$breakpoints = [];
         for (var i=0; i<rows.length; i++) {
-            this.$breakpoints[rows[i]] = true;
+            this.$breakpoints[rows[i]] = "ace_breakpoint";
         }
         this._emit("changeBreakpoint", {});
     };
@@ -525,13 +620,19 @@ var EditSession = function(text, mode) {
     };
 
     /**
-    * EditSession.setBreakpoint(row)
+    * EditSession.setBreakpoint(row, className)
     * - row (Number): A row index
+    * - className (String): Class of the breakpoint
     *
     * Sets a breakpoint on the row number given by `rows`. This function also emites the `'changeBreakpoint'` event.
     **/
-    this.setBreakpoint = function(row) {
-        this.$breakpoints[row] = true;
+    this.setBreakpoint = function(row, className) {
+        if (className === undefined)
+            className = "ace_breakpoint";
+        if (className)
+            this.$breakpoints[row] = className;
+        else
+            delete this.$breakpoints[row];
         this._emit("changeBreakpoint", {});
     };
 
@@ -580,11 +681,12 @@ var EditSession = function(text, mode) {
     };
 
     /**
-    * EditSession.addDynamicMarker(marker) -> {update}
-    * - marker : object with update method
-    * - inFront (Boolean): Set to `true` to establish a front marker
-    *
-    **/
+     * EditSession.addDynamicMarker(marker, inFront) -> Object
+     * - marker (Object): object with update method
+     * - inFront (Boolean): Set to `true` to establish a front marker
+     *
+     * Adds a dynamic marker to the session.
+     **/
     this.addDynamicMarker = function(marker, inFront) {
         if (!marker.update)
             return;
@@ -633,6 +735,30 @@ var EditSession = function(text, mode) {
         return inFront ? this.$frontMarkers : this.$backMarkers;
     };
 
+    this.highlight = function(re) {
+        if (!this.$searchHighlight) {
+            var highlight = new SearchHighlight(null, "ace_selected-word", "text");
+            this.$searchHighlight = this.addDynamicMarker(highlight);
+        }
+        this.$searchHighlight.setRegexp(re);
+    }
+    
+    // experimental
+    this.highlightLines = function(startRow, endRow, clazz, inFront) {
+        if (typeof endRow != "number") {
+            clazz = endRow;
+            endRow = startRow;
+        }
+        if (!clazz)
+            clazz = "ace_step";
+        
+        var range = new Range(startRow, 0, endRow, Infinity);
+        
+        var id = this.addMarker(range, clazz, "fullLine", inFront);
+        range.id = id;
+        return range;
+    },
+   
     /*
      * Error:
      *  {
@@ -649,15 +775,7 @@ var EditSession = function(text, mode) {
     * Sets annotations for the `EditSession`. This functions emits the `'changeAnnotation'` event.
     **/
     this.setAnnotations = function(annotations) {
-        this.$annotations = {};
-        for (var i=0; i<annotations.length; i++) {
-            var annotation = annotations[i];
-            var row = annotation.row;
-            if (this.$annotations[row])
-                this.$annotations[row].push(annotation);
-            else
-                this.$annotations[row] = [annotation];
-        }
+        this.$annotations = annotations;
         this._emit("changeAnnotation", {});
     };
 
@@ -667,7 +785,7 @@ var EditSession = function(text, mode) {
     * Returns the annotations for the `EditSession`.
     **/
     this.getAnnotations = function() {
-        return this.$annotations || {};
+        return this.$annotations || [];
     };
 
     /**
@@ -804,7 +922,7 @@ var EditSession = function(text, mode) {
     };
 
     /**
-    * EditSession@onReloadTokenizer(e)
+    * EditSession.onReloadTokenizer(e)
     *
     * Reloads all the tokens on the current session. This function calls [[BackgroundTokenizer.start `BackgroundTokenizer.start ()`]] to all the rows; it also emits the `'tokenizerUpdate'` event.
     **/
@@ -835,7 +953,7 @@ var EditSession = function(text, mode) {
         if (!this.$mode)
             this.$setModePlaceholder();
 
-        fetch(function() {
+        fetch(mode, function() {
             require([mode], done);
         });
 
@@ -852,13 +970,11 @@ var EditSession = function(text, mode) {
             callback(_self.$modes[mode]);
         }
 
-        function fetch(callback) {
+        function fetch(name, callback) {
             if (!config.get("packaged"))
                 return callback();
 
-            var base = mode.split("/").pop();
-            var filename = config.get("modePath") + "/mode-" + base + ".js";
-            net.loadScript(filename, callback);
+            net.loadScript(config.moduleUrl(name, "mode"), callback);
         }
     };
 
@@ -1063,7 +1179,7 @@ var EditSession = function(text, mode) {
                 if (i > foldStart) {
                     i = foldLine.end.row + 1;
                     if (i >= len)
-                        break
+                        break;
                     foldLine = this.$foldData[foldIndex++];
                     foldStart = foldLine ? foldLine.start.row : Infinity;
                 }
@@ -1111,8 +1227,8 @@ var EditSession = function(text, mode) {
     };
 
     /** related to: Document.getTextRange
-    * EditSession.getTextRange(range) -> Array
-    * - range (String): The range to work with
+    * EditSession.getTextRange(range) -> String
+    * - range (Range): The range to work with
     *
     * {:Document.getTextRange.desc}
     **/
@@ -1480,7 +1596,7 @@ var EditSession = function(text, mode) {
     this.$clipRangeToDocument = function(range) {
         if (range.start.row < 0) {
             range.start.row = 0;
-            range.start.column = 0
+            range.start.column = 0;
         } else {
             range.start.column = this.$clipColumnToRow(
                 range.start.row,
@@ -1578,7 +1694,7 @@ var EditSession = function(text, mode) {
             this.$modified = true;
             if (this.$useWrapMode) {
                 this.$updateWrapData(0, this.getLength() - 1);
-                this.$resetRowCache(0)
+                this.$resetRowCache(0);
                 this._emit("changeWrapLimit");
             }
             return true;
@@ -1757,10 +1873,8 @@ var EditSession = function(text, mode) {
     };
 
     this.$updateRowLengthCache = function(firstRow, lastRow, b) {
-        //console.log(firstRow, lastRow, b)
         this.$rowLengthCache[firstRow] = null;
         this.$rowLengthCache[lastRow] = null;
-        //console.log(this.$rowLengthCache)
     };
 
     /** internal, hide
@@ -1785,10 +1899,9 @@ var EditSession = function(text, mode) {
                 row ++;
             } else {
                 tokens = [];
-                foldLine.walk(
-                    function(placeholder, row, column, lastColumn) {
+                foldLine.walk(function(placeholder, row, column, lastColumn) {
                         var walkTokens;
-                        if (placeholder) {
+                        if (placeholder != null) {
                             walkTokens = this.$getDisplayTokens(
                                             placeholder, tokens.length);
                             walkTokens[0] = PLACEHOLDER_START;
@@ -1945,7 +2058,7 @@ var EditSession = function(text, mode) {
             addSplit(split);
         }
         return splits;
-    }
+    };
 
     /** internal, hide
     * EditSession.$getDisplayTokens(str, offset) -> Array
@@ -1983,7 +2096,7 @@ var EditSession = function(text, mode) {
             }
         }
         return arr;
-    }
+    };
 
     /** internal, hide
     * EditSession.$getStringScreenWidth(str, maxScreenColumn, screenColumn) -> [Number]
@@ -2019,19 +2132,19 @@ var EditSession = function(text, mode) {
                 screenColumn += 1;
             }
             if (screenColumn > maxScreenColumn) {
-                break
+                break;
             }
         }
 
         return [screenColumn, column];
-    }
+    };
 
     /**
     * EditSession.getRowLength(row) -> Number
     * - row (Number): The row number to check
     *
     *
-    * Returns the length of the indicated row.
+    * Returns number of screenrows in a wrapped line.
     **/
     this.getRowLength = function(row) {
         if (!this.$useWrapMode || !this.$wrapData[row]) {
@@ -2039,19 +2152,7 @@ var EditSession = function(text, mode) {
         } else {
             return this.$wrapData[row].length + 1;
         }
-    }
-
-    /**
-    * EditSession.getRowHeight(config, row) -> Number
-    * - config (Object): An object containing a parameter indicating the `lineHeight`.
-    * - row (Number): The row number to check
-    *
-    * Returns the height of the indicated row. This is mostly relevant for situations where wrapping occurs, and a single line spans across multiple rows.
-    *
-     **/
-    this.getRowHeight = function(config, row) {
-        return this.getRowLength(row) * config.lineHeight;
-    }
+    };
 
     /** internal, hide, related to: EditSession.documentToScreenColumn
     * EditSession.getScreenLastRowColumn(screenRow) -> Number
@@ -2060,7 +2161,7 @@ var EditSession = function(text, mode) {
     * Returns the column position (on screen) for the last character in the provided row.
     **/
     this.getScreenLastRowColumn = function(screenRow) {
-        var pos = this.screenToDocumentPosition(screenRow, Number.MAX_VALUE)
+        var pos = this.screenToDocumentPosition(screenRow, Number.MAX_VALUE);
         return this.documentToScreenColumn(pos.row, pos.column);
     };
 
@@ -2147,14 +2248,12 @@ var EditSession = function(text, mode) {
 
         var rowCache = this.$screenRowCache;
         var i = this.$getRowCacheIndex(rowCache, screenRow);
-        var row1 = rowCache[i];
-        var docRow1 = this.$docRowCache[i];
         if (0 < i && i < rowCache.length) {
             var row = rowCache[i];
             var docRow = this.$docRowCache[i];
             var doCache = screenRow > row || (screenRow == row && i == rowCache.length - 1);
         } else {
-            var doCache = true;
+            var doCache = i != 0 || !rowCache.length;
         }
 
         var maxRow = this.getLength() - 1;
@@ -2227,7 +2326,6 @@ var EditSession = function(text, mode) {
     * Converts document coordinates to screen coordinates. {:conversionConsiderations}
     *
     *
-    *
     **/
     this.documentToScreenPosition = function(docRow, docColumn) {
         // Normalize the passed in arguments.
@@ -2260,7 +2358,7 @@ var EditSession = function(text, mode) {
             var screenRow = this.$screenRowCache[i];
             var doCache = docRow > row || (docRow == row && i == rowCache.length - 1);
         } else {
-            var doCache = true;
+            var doCache = i != 0 || !rowCache.length;
         }
 
         var foldLine = this.getNextFoldLine(row);

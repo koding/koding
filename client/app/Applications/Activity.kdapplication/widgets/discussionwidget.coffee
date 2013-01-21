@@ -1,72 +1,156 @@
 class ActivityDiscussionWidget extends KDFormView
 
-  submit:(event)=>
-    super event
-    @reset()
-    no
+  constructor :(options,data)->
 
-  reset:=>
-    @inputDiscussionTitle.setValue ''
-    @inputContent.setValue ''
-    @addTags.input.clear()
+    super options,data
 
-  viewAppended:()->
-    @setClass "update-options discussion clearfix"
+    @preview = options.preview or {}
 
-    formline1 = new KDCustomHTMLView 
-      tagName : "div" 
-      cssClass : "clearfix form-headline input-with-extras"
-    formline2 = new KDCustomHTMLView 
-      tagName : "div" 
-      cssClass : "clearfix formline"
-    formline3 = new KDCustomHTMLView 
-      tagName : "div"
-      cssClass : "clearfix formline"
-      
-    labelContent = new KDLabelView
+    @labelTitle = new KDLabelView
+      title     : "New Discussion"
+      cssClass  : "first-label"
+
+    @labelContent = new KDLabelView
       title : "Content:"
-    labelAddTags = new KDLabelView
+
+    @labelAddTags = new KDLabelView
       title : "Add Tags:"
-    
+
     @inputDiscussionTitle = new KDInputView
-      name        : "title"
-      placeholder : "Put a discussion title here..."
-      validate  :
-        rules     : "required"
-        messages  :
+      name          : "title"
+      label         : @labelTitle
+      cssClass      : "warn-on-unsaved-data"
+      placeholder   : "Give a title to what you want to start discussing..."
+      validate      :
+        rules       :
+          required  : yes
+        messages    :
           required  : "Discussion title is required!"
 
-    @inputContent = new KDInputView
-      label       : labelContent
+    @inputContent = new KDInputViewWithPreview
+      label       : @labelContent
+      preview     : @preview
       name        : "body"
+      cssClass    : "discussion-body warn-on-unsaved-data"
       type        : "textarea"
-      placeholder : "Type what you wanna discuss here..."
-      validate  :
-        rules     : "required"
+      autogrow    : yes
+      placeholder : "What do you want to talk about? (You can use markdown here)"
+      validate    :
+        rules     :
+          required: yes
         messages  :
-          required  : "discussion body is required!"
-    
-    @addTags = new CommonView_AddTagView
-      input:
-        placeholder : "Add some tags"
-        name: 'tags'
-        itemClass : MemberAutoCompleteItemView
-      button    :
-        title     : ""
-        icon      : yes 
-        iconClass : "plus"
+          required: "discussion body is required!"
 
-    submit = new KDButtonView
+    @cancelBtn = new KDButtonView
+      title    : "Cancel"
+      style    : "modal-cancel"
+      callback : =>
+        @reset()
+        @parent.getDelegate().emit "ResetWidgets"
+
+    @submitBtn = new KDButtonView
       style : "clean-gray"
-      title : "Start the Discussion"
+      title : "Start your discussion"
+      type  : 'submit'
 
-    formline1.addSubView @inputDiscussionTitle
-    formline2.addSubView labelContent
-    formline2.addSubView @inputContent
-    formline3.addSubView labelAddTags
-    formline3.addSubView @addTags
 
-    @addSubView formline1
-    @addSubView formline2
-    @addSubView formline3
-    @addSubView submit
+    @heartBox = new HelpBox
+      subtitle : "About Discussions"
+      tooltip  :
+        title  : "This is a public wall, here you can discuss anything with the Koding community."
+
+    @selectedItemWrapper = new KDCustomHTMLView
+      tagName  : "div"
+      cssClass : "tags-selected-item-wrapper clearfix"
+
+    @tagController = new TagAutoCompleteController
+      name                : "meta.tags"
+      type                : "tags"
+      itemClass           : TagAutoCompleteItemView
+      selectedItemClass   : TagAutoCompletedItemView
+      itemDataPath        : 'title'
+      outputWrapper       : @selectedItemWrapper
+      selectedItemsLimit  : 5
+      listWrapperCssClass : "tags"
+      form                : @
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        updateWidget = @getDelegate()
+        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
+        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+
+    @tagAutoComplete = @tagController.getView()
+
+  submit:=>
+    @once "FormValidationPassed", => @reset()
+    super
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
+
+  reset:=>
+    @tagController.reset()
+    @submitBtn.setTitle "Start your discussion"
+    @removeCustomData "activity"
+    @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
+    super
+
+  viewAppended:()->
+    @setClass "update-options discussion"
+    @setTemplate @pistachio()
+    @template.update()
+
+  switchToEditView:(activity,fake=no)->
+
+    unless fake
+      @submitBtn.setTitle "Edit Discussion"
+      @addCustomData "activity", activity
+    else
+      @submitBtn.setTitle 'Submit again'
+
+    {title, body, tags} = activity
+
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
+
+    fillForm = =>
+      @inputDiscussionTitle.setValue Encoder.htmlDecode title
+      @inputContent.setValue Encoder.htmlDecode body
+
+    fillForm()
+
+  pistachio:->
+    """
+    <div class="form-actions-mask">
+      <div class="form-actions-holder">
+        <div class="formline">
+          {{> @labelTitle}}
+          <div>
+            {{> @inputDiscussionTitle}}
+          </div>
+        </div>
+        <div class="formline">
+          {{> @labelContent}}
+          <div>
+            {{> @inputContent}}
+          </div>
+        </div>
+        <div class="formline">
+          {{> @labelAddTags}}
+          <div>
+            {{> @tagAutoComplete}}
+            {{> @selectedItemWrapper}}
+          </div>
+        </div>
+        <div class="formline submit">
+          <div class='formline-wrapper'>
+            <div class="submit-box fr">
+              {{> @submitBtn}}
+              {{> @cancelBtn}}
+            </div>
+            {{> @heartBox}}
+          </div>
+        </div>
+      </div>
+    </div>
+    """

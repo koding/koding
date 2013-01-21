@@ -2,8 +2,11 @@ fs                = require 'fs'
 sys               = require 'util'
 {spawn, exec}     = require 'child_process'
 {EventEmitter}    = require 'events'
-log4js            = require "./node_modules/log4js"
-log               = log4js.getLogger("[ProcessMonitor]")
+log =
+  info  : console.log
+  error : console.log
+  debug : console.log
+  warn  : console.log
 util              = require 'util'
 _                 = require './node_modules/underscore'
 
@@ -83,29 +86,7 @@ class ProcessMonitor extends EventEmitter
     if data.match "EventEmitter memory leak detected." then return str
     if data.match "at EventEmitter.<anonymous>" then return str
     return data
-  startProcess : _.throttle ()->
-    cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
-    log.info "Starting the process $>#{cmd}"
-    @nodeServer = exec cmd
-    @nodeServer.stdout.on 'data', (data)=>
-      if ~(''+data).indexOf "Error"
-        data = @pickUpTheErrorLine(data)
-      
-      # data = @hideAnnoyingEventEmitterLog data
-      log.info "#{data}".replace /\n+$/, ''
-
-        
-    @nodeServer.stderr.on 'data', (data)-> 
-      log.info "#{data}".replace /\n+$/, ''
-    @nodeServer.on        'exit', (code)=>
-      log.warn "The nodejs server has crashed! #{code}"
-      if @flags.forever?
-        log.warn "Forever is on, I'm restarting in 1 sec."
-        @flags.restart = yes
-        @emit "processDidExit",code
-    
-      log.info "Process id: #{@nodeServer.pid} did exit with the exit code: #{code}"
-  ,1000
+  startProcess :->
     
   stopProcess : ()->
     log.info "Stopping the process... #{@nodeServer.pid}"

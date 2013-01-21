@@ -17,7 +17,7 @@ module.exports = new Kite 'pinger'
       qs            :
         data        : JSON.stringify {
           kiteName
-          toDo      : '_ping'
+          method      : '_ping'
           withArgs  : {kiteName}
         }
     }, (err, res, body)=>

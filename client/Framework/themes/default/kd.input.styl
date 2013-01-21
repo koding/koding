@@ -1,6 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 
-/* 
+/*
 **  KDInput STYLES
 */
 label.kdlabel
@@ -15,7 +15,7 @@ input.kdinput.text,textarea.kdinput.text
   outline             none
   height              24px
   line-height         20px
-  padding             2px
+  padding             2px 4px
   bg                  color,white
   rounded             4px
   shadow              0 1px 0 white
@@ -49,12 +49,16 @@ label.kdlabel
 input.kdinput.text.validation-error,textarea.kdinput.text.validation-error
   border-color red
 
-input.kdinput.checkbox  
+input.kdinput.checkbox
   &:focus
     shadow            0 0 3px rgba(125,190,241,.7)
 
+input.kdinput.autogrow
+textarea.kdinput.autogrow
+  vendor              transition, height .15s ease-in-out
+
 select.kdinput.select
-  position            relative
+  rel()
   border              1px solid #ddd
   font-size           12px
   line-height         25px
@@ -73,7 +77,7 @@ select.kdinput.select
     shadow            0 0 3px rgba(125,190,241,.7)
 
 div.kdselectbox
-  position            relative
+  rel()
   z-index             100
   overflow            hidden
   font-size           11px
@@ -91,7 +95,7 @@ div.kdselectbox
     border            1px solid #f6a238
 
   select
-    position          absolute
+    abs()
     cursor            pointer
     display           block
     vendor            appearance,none
@@ -100,7 +104,7 @@ div.kdselectbox
     left              0
     size              100%,100%
     z-index           100
-    
+
 
   span.title
     display           block
@@ -114,7 +118,7 @@ div.kdselectbox
     z-index           0
 
   span.arrows
-    position          absolute
+    abs()
     z-index           0
     size              20px,20px
     top               2px
@@ -122,8 +126,8 @@ div.kdselectbox
     opacity           .8
     sprite()
     bg                position,-60px -280px
-    
-    
+
+
 
 .kd-radio-holder
   line-height 20px
@@ -152,9 +156,9 @@ div.kdselectbox
 // # Ryan's Switch
 // #####
 
-.kdinputswitch-ry
+.on-off
   font-family           sans
-  width                 60px
+  width                 auto
   rounded               2px
   a
     display             inline-block
@@ -203,6 +207,11 @@ div.kdselectbox
       font-size         11px
       padding           9px 0px
       width             36px
+
+  &.tiny
+    a
+      padding           3px 0px 2px 0px
+
   &.dark
     a
       shadow            none
@@ -215,10 +224,10 @@ div.kdselectbox
 
 
 
-  
+
 .kdview.kdfileupload
   min-width         340px
-  
+
   .kdfileuploadlist,.kdfileuploadthumblist
     margin          5px 0
     span.file-size
@@ -230,7 +239,7 @@ div.kdselectbox
     span.file-title
       line-height   1.4em
     span.iconic.x
-      position      absolute
+      abs()
       display       block
       top           3px
       right         0
@@ -240,7 +249,7 @@ div.kdselectbox
       size(16px,16px)
       &:hover
         color       k-orange
-  
+
   .kdfileuploadthumblist
     p.meta
       margin        0 5px
@@ -270,7 +279,7 @@ div.kdselectbox
       color         dimmed-text
       font-size     1.2em
     span.info
-      position      absolute
+      abs()
       top           0
       right         0
       display       block
@@ -281,7 +290,7 @@ div.kdselectbox
       color         dimmed-text
       font-size     1.2em
       cursor        pointer
-    
+
 
   .kdfileuploadarea.hover
     border          1px solid rgba(125,190,241,1)
@@ -301,8 +310,8 @@ div.kdselectbox
 
 /* INPUT HINT */
 .kdinputwrapper
-  position          relative
+  rel()
 span.kdinputhint
-  position          absolute
+  abs()
   top               0
   left              0

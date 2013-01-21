@@ -1,15 +1,11 @@
-# ios error handling
-# if location.hostname is "localhost"
-# window.onerror = (desc,page,line,chr)=> alert "Line: #{line}, desc: #{desc}, chr:#{chr}, page:#{page}"
-
-Function::bind or= do ->  
+Function::bind or= do ->
   {slice} = []
   (context)->
     func = @
     if 1 < arguments.length
       args = slice.call arguments, 1
       return -> func.apply context, if arguments.length then args.concat slice.call arguments else args
-    -> if arguments.z then func.apply context, arguments else func.call context
+    -> if arguments.length then func.apply context, arguments else func.call context
 
 Function::swiss = (parent, names...)->
   for name in names
@@ -17,48 +13,86 @@ Function::swiss = (parent, names...)->
   @
 
 # Cross-Browser DOM dependencies
-window.URL = window.URL ? window.webkitURL ? null
-
-window.BlobBuilder = window.BlobBuilder ? window.WebKitBlobBuilder ? window.MozBlobBuilder ? null
-
-window.requestFileSystem = window.requestFileSystem ? window.webkitRequestFileSystem ? null
-
+window.URL                   = window.URL                   ? window.webkitURL                   ? null
+window.BlobBuilder           = window.BlobBuilder           ? window.WebKitBlobBuilder           ? window.MozBlobBuilder           ? null
+window.requestFileSystem     = window.requestFileSystem     ? window.webkitRequestFileSystem     ? null
 window.requestAnimationFrame = window.requestAnimationFrame ? window.webkitRequestAnimationFrame ? window.mozRequestAnimationFrame ? null
 
 # FIXME: add to utils.coffee
-String.prototype.capitalize = ()-> this.charAt(0).toUpperCase() + this.slice(1)
-String.prototype.decapitalize = ()->this.charAt(0).toLowerCase() + this.slice(1)
-String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
+String.prototype.capitalize   = ()-> this.charAt(0).toUpperCase() + this.slice(1)
+String.prototype.decapitalize = ()-> this.charAt(0).toLowerCase() + this.slice(1)
+String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
+
+unless Array.prototype.last
+  Object.defineProperty Array.prototype, "last", get : -> this[this.length-1]
+
+unless Array.prototype.first
+  Object.defineProperty Array.prototype, "first", get : -> this[0]
 
 # KD Global
 KD = @KD or {}
+
+noop  = ->
+
+KD.log   = log   = noop
+KD.warn  = warn  = noop
+KD.error = error = noop
+
 @KD = $.extend (KD), do ->
   # private member for tracking z-indexes
   zIndexContexts  = {}
+
+  create = (constructorName, options, data)->
+    konstructor = @classes[constructorName] \
+                ? @classes["KD#{constructorName}"]
+    new konstructor options, data  if konstructor?
+
+  create    : create
+  new       : create
+
+  impersonate: (username)->
+    @remote.api.JAccount.impersonate username, (err)->
+      if err then new KDNotificationView title: err.message
+      else location.reload()
+
+  # testKDML:->
+  #   {KDMLParser} = Bongo.KDML
+  #   kdml = new KDMLParser @classes
+
   debugStates     : {}
   instances       : {}
   singletons      : {}
   subscriptions   : []
   classes         : {}
-  
-  apiUri: switch KD.env
-    when 'beta'
-      'https://api.koding.com'
-    else
-      'https://dev-api.koding.com'
-  
-  whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
-  
-  isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
-  
+  apiUri          : KD.config.apiUri
+  appsUri         : KD.config.appsUri
+  utils           : __utils
+
+  whoami:-> KD.getSingleton('mainController').userAccount
+
+  logout:->
+    mainController = KD.getSingleton('mainController')
+    delete mainController?.userAccount
+
+  isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
+
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
-  
-  setAuthKey:->
+
+  checkFlag:(flagToCheck, account = KD.whoami())->
+    if account.globalFlags
+      if 'string' is typeof flagToCheck
+        return flagToCheck in account.globalFlags
+      else
+        for flag in flagToCheck
+          if flag in account.globalFlags
+            return yes
+    no
 
   requireLogin:(errMsg, callback)->
+
     [callback, errMsg] = [errMsg, callback] unless callback
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    if currentDelegate instanceof bongo.api.JGuest
+
+    if KD.whoami() instanceof KD.remote.api.JGuest
       # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'
@@ -67,19 +101,20 @@ KD = @KD or {}
         duration : 3000
     else
       callback?()
-  
+
   socketConnected:()->
     @backendIsConnected = yes
-    @propagateEvent "KDBackendConnectedEvent"
-  
+    KDObject.emit "KDBackendConnectedEvent"
+
   setApplicationPartials:(partials)->
+
     @appPartials = partials
 
   subscribe : (subscription)->
     # unless subscription.KDEventType.toLowerCase() is "resize"
     @subscriptions.push subscription
 
-# FIXME: very wasteful way to remove subscriptions, vs. splice ??
+  # FIXME: very wasteful way to remove subscriptions, vs. splice ??
   removeSubscriptions : (aKDViewInstance) ->
     newSubscriptions = for subscription,i in @subscriptions
       subscription if subscription.subscribingInstance isnt aKDViewInstance
@@ -89,23 +124,23 @@ KD = @KD or {}
     @subscriptions = []
     for subscription in newSubscriptions
       @subscriptions.push subscription if subscription?
-  
+
   getAllSubscriptions: ->
     @subscriptions
 
   registerInstance : (anInstance)->
-    warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
+    warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
-    @classes[anInstance.constructor.name] ?= anInstance.constructor
-  
+    # @classes[anInstance.constructor.name] ?= anInstance.constructor
+
   unregisterInstance: (anInstanceId)->
     # warn "Instance being unregistered doesn't exist in registry!!", anInstance unless @instances[anInstance.id]
     delete @instances[anInstanceId]
-  
+
   deleteInstance:(anInstanceId)->
     @unregisterInstance anInstanceId
     # anInstance = null #FIXME: Redundant? See unregisterInstance
-  
+
   registerSingleton:(singletonName,object,override = no)->
     if (existingSingleton = KD.singletons[singletonName])?
       if override
@@ -115,39 +150,28 @@ KD = @KD or {}
       else
         error "KD.singletons[\"#{singletonName}\"] singleton exists! if you want to override set override param to true]"
         KD.singletons[singletonName]
+      KDObject.emit "singleton.#{singletonName}.registered"
     else
       # log "singleton registered! KD.singletons[\"#{singletonName}\"]"
       KD.singletons[singletonName] = object
-      
+
   getSingleton:(singletonName)->
     if KD.singletons[singletonName]?
-      KD.singletons[singletonName] 
+      KD.singletons[singletonName]
     else
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
-  
-  emptyDataCache:()->
-    for own id,object of @getAllKDInstances
-      if object instanceof KDData
-        object.destroy()
-  
+
   getAllKDInstances:()-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
 
-
-  # for now it is just a short hand method for propagate but in nodejs fashion
-  emit: (eventType, args)->
-    for subscription in @subscriptions
-      if eventType is subscription.KDEventType
-        subscription.callback.apply null,args
-
   propagateEvent: (KDEventType, publishingInstance, value)->
     for subscription in @subscriptions
       if (!KDEventType? or !subscription.KDEventType? or !!KDEventType.match(subscription.KDEventType.capitalize()))
         subscription.callback.call subscription.subscribingInstance, publishingInstance, value, {subscription}
-        
+
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
    uniqid = context.data 'data-id'
@@ -155,35 +179,40 @@ KD = @KD or {}
      zIndexContexts[uniqid] = 0
    else
      zIndexContexts[uniqid]++
-  
+
   jsonhTest:->
     method    = 'fetchQuestionTeasers'
     testData  = {
       foo: 10
       bar: 11
     }
-    
+
     start = Date.now()
     $.ajax "/#{method}.jsonh",
       data     : testData
       dataType : 'jsonp'
       success : (data)->
         inflated = JSONH.unpack data
-        console.log 'success', inflated
-        console.log Date.now()-start
-  
-  registerPage:(name,classFunction)->
-    # log "registering a page",name
-    @pageClasses ?= {}
-    @pageClasses[name] = classFunction
+        KD.log 'success', inflated
+        KD.log Date.now()-start
 
-  getPageClass:(name)->
-    @pageClasses[name]
+  enableLogs:do->
+    oldConsole = window.console
+    window.console = {}
+    console[method] = noop  for method in ['log','warn','error','trace','time','timeEnd']
 
-noop  = ->
-# KD.log   = log   = if console?.log   and (KD.debugStates.all or KD.debugStates.log)   then console.log.bind(console)   else noop
-# KD.warn  = warn  = if console?.warn  and (KD.debugStates.all or KD.debugStates.warn)  then console.warn.bind(console)  else noop
-# KD.error = error = if console?.error and (KD.debugStates.all or KD.debugStates.error) then console.error.bind(console) else noop
-KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-KD.error = error = if console?.error then console.error.bind(console) else noop
+    enableLogs =->
+      window.console = oldConsole
+      KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+      KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+      KD.error = error = if console?.error then console.error.bind(console) else noop
+      return "Logs are enabled now."
+
+  exportKDFramework:->
+    (window[item] = KD.classes[item] for item of KD.classes)
+    KD.exportKDFramework = -> "Already exported."
+    "KDFramework loaded successfully."
+
+KD.enableLogs() if not KD.config?.suppressLogs
+
+prettyPrint = noop

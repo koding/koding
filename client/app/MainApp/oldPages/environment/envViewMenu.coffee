@@ -3,24 +3,24 @@ class EnvironmentViewMenu extends KDListView
 
   listItemClass = class EnvironmentViewMenuListItem extends KDListItemView
     partial:(data)->
-      """ 
+      """
         #{data.title}
       """
 
     setDomElement:(cssClass)->
       @domElement = $ "<li class='kdview #{cssClass} #{@getData().id}'></li>"
   # /LIST ITEM CLASS ENDS
-  
+
   constructor:(options,data)->
     options = $.extend
-      subItemClass : listItemClass
+      itemClass : listItemClass
     ,options
     super options,data
-  
+
   viewAppended:->
     @setPartial "<li class='header'>VIEW</li>"
     @setClass "common-inner-nav"
     super
-  
+
   setDomElement:(cssClass)->
     @domElement = $ "<ul class='kdview #{cssClass}'></ul>"

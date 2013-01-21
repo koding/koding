@@ -68,7 +68,7 @@ def getZoneID(fqdn):
 def createArecord(fqdn,ip):
 
     xml = """<?xml version="1.0" encoding="UTF-8"?>
-    <ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">
+    <ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012-02-29/">
         <ChangeBatch>
             <Comment>Add record</Comment>
             <Changes>
@@ -104,7 +104,7 @@ def createArecord(fqdn,ip):
 def createCNAMErecord(fqdn, addr):
 
     xml = """<?xml version="1.0" encoding="UTF-8"?>
-    <ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">
+    <ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012-02-29/">
         <ChangeBatch>
             <Comment>Add record</Comment>
             <Changes>

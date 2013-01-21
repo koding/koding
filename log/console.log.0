@@ -1,0 +1,65 @@
+2012-09-25 18:27:01.419 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:27:01.430 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:27:01.497 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:27:01.571 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:27:01.575 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:28:43.381 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:28:43.387 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:28:43.418 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:28:43.469 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:28:43.471 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:30:33.178 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:30:33.186 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:30:33.222 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:30:33.283 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:33.309 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:30:39.355 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:39.369 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:39.388 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:39.391 [error] <0.218.0> CRASH REPORT Process <0.218.0> with 0 neighbours exited with reason: precondition_failed in gen_server:init_it/6 line 320
+2012-09-25 18:30:47.500 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:48.595 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:48.623 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:48.628 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:30:48.630 [error] <0.263.0> CRASH REPORT Process <0.263.0> with 0 neighbours exited with reason: precondition_failed in gen_server:init_it/6 line 320
+2012-09-25 18:33:07.942 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:33:07.967 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:33:08.013 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:33:08.074 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:33:08.076 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:33:12.120 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:33:12.137 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:33:12.144 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:33:13.970 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:34:57.693 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:34:57.698 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:34:57.725 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:34:57.774 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:34:57.776 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:35:03.456 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:03.502 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:03.534 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:05.334 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:25.538 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:35:25.544 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:35:25.578 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:35:25.643 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:25.648 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:35:28.483 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:28.497 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:28.518 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:30.388 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:46.052 [info] <0.7.0> Application lager started on node nonode@nohost
+2012-09-25 18:35:46.057 [info] <0.72.0>@broker_app:debug_log:254  [*] Running at http://localhost:8008
+2012-09-25 18:35:46.088 [info] <0.7.0> Application amqp_client started on node nonode@nohost
+2012-09-25 18:35:46.142 [info] <0.179.0>@broker:init:85 Default connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:46.144 [info] <0.7.0> Application broker started on node nonode@nohost
+2012-09-25 18:35:51.607 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:51.626 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:51.644 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:35:53.451 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:42:36.046 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:42:55.681 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:42:55.689 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:42:55.698 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>
+2012-09-25 18:42:57.439 [info] <0.179.0>@broker:handle_call:96 Connection for vhost <<"/">> is <0.185.0>

@@ -15,11 +15,11 @@ class AccountLinkedAccountsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountLinkedAccountsListItem
+      itemClass : AccountLinkedAccountsListItem
     ,options
     super options,data
 
-    @listenTo 
+    @listenTo
       KDEventTypes : "UnlinkAccount"
       listenedToInstance : @
       callback : (pubInst,event)->
@@ -37,11 +37,11 @@ class AccountLinkedAccountsListItem extends KDListItemView
   constructor:(options,data)->
     options = tagName : "li"
     super options,data
-  
+
   click:(event)->
     if $(event.target).is "a.delete-icon"
       @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
-  
+
   partial:(data)->
     linkedString  = if data.linked then "Linked to" else "Not linked"
     linkedClass   = if data.linked then "yes" else "no"

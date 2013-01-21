@@ -1,7 +1,7 @@
 class AccountRepoListController extends KDListViewController
   constructor:->
     super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
     list = @getListView()
 
   loadView:->
@@ -32,9 +32,9 @@ class AccountRepoListController extends KDListViewController
 
 class AccountRepoList extends KDListView
   constructor:(options,data)->
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate    
+    @account = KD.whoami()
     options = $.extend
-      subItemClass : AccountRepoListItem
+      itemClass : AccountRepoListItem
     ,options
     super options,data
 
@@ -43,13 +43,13 @@ class AccountRepoList extends KDListView
       log "repos:",repos
       @instantiateListItems repos
       callback?()
-  
+
   attachListeners:()->
     @items.forEach (item)=>
       item.getData().on "update",()->
         log "update event called:",item
         item.updatePartial item.partial item.getData()
-  
+
   setDomElement:(cssClass)->
     @domElement = $ "<ul class='kdview #{cssClass}'></ul>"
 
@@ -63,7 +63,7 @@ class AccountRepoList extends KDListView
   #     iconClass : "plus"
   #     callback  : ()=>
   #       @showAddEditModal null
-  # 
+  #
   #   @propagateEvent KDEventType : "ListViewIsReady"
 
   showAddEditModal:(data,listItem)=>
@@ -78,8 +78,8 @@ class AccountRepoList extends KDListView
       width     : 500
       height    : "auto"
       buttons   : yes
-    
-    modal.addSubView form = new KDFormView 
+
+    modal.addSubView form = new KDFormView
       cssClass : "clearfix"
       callback : (formData)=>
         @updateRepo listItem, formData
@@ -130,7 +130,7 @@ class AccountRepoList extends KDListView
       name        : "url"
       placeholder : "url//to.your.repo..."
       defaultValue: data.url if data
-    
+
     if data
       form.addCustomData "operation","update"
       modal.createButton "Update", style : "modal-clean-gray", callback : form.submit
@@ -146,54 +146,54 @@ class AccountRepoList extends KDListView
 
   destroyModal:=>
     @modal.destroy()
-      
+
   # API METHODS
-  
+
   # loadItems:->
   #   @account.fetchRepositories (err,repositories)=>
-  #     items ?= []    
+  #     items ?= []
   #     for own repo in repositories
-  #       item = mapBongoInstanceToView repo          
+  #       item = mapBongoInstanceToView repo
   #       items.push item
   #     @instantiateListItems items
   # addRepo:=>
   #   log "ADD",arguments
-  #   
+  #
   #   @destroyModal()
 
   updateRepo:(listItem,formData)=>
-    
+
     f = formData
-      
+
     switch f.operation
-      
+
       when "add"
-        jr = new bongo.api[f.type]
+        jr = new KD.remote.api[f.type]
           title : f.title
           url   : f.url
           color : f.color
-        
+
         jr.save (err)=>
-          unless err          
+          unless err
             log "added"
             jr.type = f.type
             # @instantiateListItems [jr]
-            itemView = @itemClass delegate:@,jr 
+            itemView = new (@getOptions().itemClass ? KDListItemView) delegate:@,jr
             @addItemView itemView
           else
             log "failed to add.",err
       when "update"
         jr = listItem.getData()
-        
+
         jr.title = f.title  ? jr.title
         jr.url   = f.url    ? jr.url
         jr.color = f.color  ? jr.color
-        
-        # console.log jr
-        
+
+        # log jr
+
         jr.update (err)->
           log "updated",err
-    
+
       when "delete"
         jr = listItem.getData()
         jr.remove (err)=>
@@ -203,14 +203,14 @@ class AccountRepoList extends KDListView
           else
             log "failed to delete",err
     @destroyModal()
-    
+
   # deleteRepo:=>
   #   log "DELETE","do your bongo stuff here"
   #   @destroyModal()
-    
 
 
-  
+
+
 
 
 
@@ -219,7 +219,7 @@ class AccountRepoListItem extends KDListItemView
   constructor:(options,data)->
     options = tagName : "li"
     super options,data
-    
+
   click:(event)->
     # if @wasClickOn(".action-link") then @getDelegate().emit "ShowAddEditModal",@getData(),@
     if $(event.target).is ".action-link" then @getDelegate().showAddEditModal @getData(),@
@@ -227,7 +227,7 @@ class AccountRepoListItem extends KDListItemView
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>
-    """    
+    """
   # partial:(data)->
   #   """
   #     <div class='labelish'>

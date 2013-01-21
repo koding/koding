@@ -13,7 +13,7 @@ class KDNotificationView extends KDView
     @notificationSetCloseHandle options.closeManually
     @notificationDisplay()
 
-  #OVERRIDE KDView
+  # OVERRIDE KDView
   setDomElement:(cssClass = '')->
     @domElement = $ "<div class='kdnotification #{cssClass}'>
         <a class='kdnotification-close hidden'></a>
@@ -30,24 +30,29 @@ class KDNotificationView extends KDView
     @notificationRepositionOtherNotifications()
 
   viewAppended:()-> @notificationSetPositions()
-    
-  #OWN METHODS
-  notificationSetDefaults:(options)->
-    options.duration      = options.duration ? 1500
-    options.closeManually = yes if options.duration > 2999 or options.duration is 0
-    options
 
-  notificationSetTitle:(title)-> 
+  # OWN METHODS
+  notificationSetDefaults:(options)->
+    options.duration      ?= 1500
+    if options.duration > 2999 or options.duration is 0
+      options.closeManually ?= yes
+    return options
+
+  notificationSetTitle:(title)->
+    unless title instanceof KDView
+      @$().find(".kdnotification-title").html title
+    else
+      @notificationTitle.destroy() if @notificationTitle and @notificationTitle instanceof KDView
+      @addSubView title, ".kdnotification-title"
     @notificationTitle = title
-    @getDomElement().find(".kdnotification-title").html title
-  
+
   notificationSetType:(type = "main")->
     @notificationType = type
-  
+
   notificationSetPositions:()->
     @setClass @notificationType
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
-    
+
     if @getOptions().container
       winHeight = @getOptions().container.getHeight()
       winWidth  = @getOptions().container.getWidth()
@@ -58,14 +63,14 @@ class KDNotificationView extends KDView
       when "tray"
         bottomMargin = 8
         for notification,i in sameTypeNotifications
-          bottomMargin += $(notification).outerHeight() + 8 if i isnt 0
+          bottomMargin += $(notification).outerHeight(no) + 8 if i isnt 0
         styles =
           bottom: bottomMargin
           right : 8
       when "growl"
         topMargin = 8
         for notification,i in sameTypeNotifications
-          topMargin += $(notification).outerHeight() + 8 if i isnt 0
+          topMargin += $(notification).outerHeight(no) + 8 if i isnt 0
         styles =
           top   : topMargin
           right : 8
@@ -79,12 +84,12 @@ class KDNotificationView extends KDView
           left  : winWidth/2 - @getDomElement().width()/2
 
     @getDomElement().css styles
-  
+
   notificationRepositionOtherNotifications:()->
-    
+
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
-    heights = ($(elm).outerHeight() for elm,i in sameTypeNotifications)
-    
+    heights = ($(elm).outerHeight(no) for elm,i in sameTypeNotifications)
+
     for elm,i in sameTypeNotifications
       switch @notificationType
         when "tray", "growl"
@@ -108,7 +113,7 @@ class KDNotificationView extends KDView
     return if duration is 0
     @notificationTimerDiv = @getDomElement().find ".kdnotification-timer"
     @notificationTimerDiv.text Math.floor duration/1000
-    
+
     @notificationTimeout = setTimeout ()=>
       @getDomElement().fadeOut 200,()=>
         @destroy()
@@ -119,7 +124,6 @@ class KDNotificationView extends KDView
       @notificationTimerDiv.text next
     ,1000
 
-
   notificationShowTimer:()->
     @notificationTimerDiv.removeClass "hidden"
     @getDomElement().bind "mouseenter",()=>
@@ -127,7 +131,7 @@ class KDNotificationView extends KDView
     @getDomElement().bind "mouseleave",()=>
       newDuration = parseInt(@notificationTimerDiv.text(),10)*1000
       @notificationSetTimer newDuration
-  
+
   notificationStopTimer:()->
     clearTimeout @notificationTimeout
     clearInterval @notificationInterval
@@ -151,5 +155,3 @@ class KDNotificationView extends KDView
       @getOptions().container.addSubView @
     else
       KDView.appendToDOMBody @
-    
-

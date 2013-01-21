@@ -5,35 +5,32 @@ class ActivityActionsView extends KDView
     super
 
     activity = @getData()
+
     @commentLink  = new ActivityActionLink
       partial : "Comment"
+
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
-      click       : =>
+      click       : (event)=>
+        # event.preventDefault()
         @getDelegate().emit "CommentCountClicked"
     , activity
+
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
-        offset    : 3
+      click:(event)=>
+        event.preventDefault()
+        super
 
-    @likeCount    = new ActivityLikeCount {}, activity
-    @likeLink     = new ActivityActionLink
-      partial     : "Like"
-      ###
-      tooltip     :
-        title     : if @likeCount.getData() in [0, null] then "Be first" else "Hope"
-        placement : "above"
-        offset    : 3
-      ###
-
+    @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
 
   viewAppended:->
-    
+
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
@@ -48,7 +45,7 @@ class ActivityActionsView extends KDView
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
-    {{> @likeLink}}{{> @likeCount}}
+    {{> @likeView}}
     """
 
   attachListeners:->
@@ -58,29 +55,6 @@ class ActivityActionsView extends KDView
 
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
-
-    activity.on 'update', log
-    window.www = activity
-    
-    
-    @likeLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : =>
-        if KD.isLoggedIn()
-          # oldCount = @likeCount.data.meta.likes
-          activity.like (err)=>
-            # log arguments, 'you like me!'
-            if err
-              new KDNotificationView
-                title     : "You already liked this!"
-                duration  : 1300
-            # FIXME Implement Unlike behaviour
-            ###
-            newCount = @likeCount.data.meta.likes
-            if oldCount < newCount then @likeLink.updatePartial("Unlike")
-            else @likeLink.updatePartial("Like")
-            ###
 
     @commentLink.registerListener
       KDEventTypes  : "Click"
@@ -95,6 +69,7 @@ class ActivityActionLink extends KDCustomHTMLView
       cssClass  : "action-link"
       attributes:
         href    : "#"
+      partial   : "Like"
     , options
     super options,data
 
@@ -120,12 +95,15 @@ class ActivityCountLink extends KDCustomHTMLView
 
   pistachio:-> ""
 
-
 class ActivityLikeCount extends ActivityCountLink
 
+  @oldCount = 0
+
   setCount:(activity)->
-    # log "Like Count: " + activity.meta.likes
-    if activity.meta.likes == 0 then @hide() else @show()
+    if activity.meta.likes isnt @oldCount
+      @emit "countChanged", activity.meta.likes
+    @oldCount = activity.meta.likes
+    if activity.meta.likes is 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
 
@@ -133,5 +111,14 @@ class ActivityCommentCount extends ActivityCountLink
 
   setCount:(activity)->
     if activity.repliesCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.repliesCount
 
   pistachio:-> "{{ #(repliesCount)}}"
+
+class ActivityOpinionCount extends ActivityCountLink
+
+  setCount:(activity)->
+    if activity.opinionCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.opinionCount
+
+  pistachio:-> "{{ #(opinionCount)}}"

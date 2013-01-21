@@ -1,82 +1,96 @@
 class CommentListItemView extends KDListItemView
   constructor:(options,data)->
-    options = $.extend
-      type      : "comment"
-      cssClass  : "kdlistitemview kdlistitemview-comment"
-    ,options
+
+    options.type     or= "comment"
+    options.cssClass or= "kdlistitemview kdlistitemview-comment"
+
     super options,data
-    
+
     data = @getData()
-    
+
     originId    = data.getAt('originId')
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
-    
-    origin = {
+
+    origin =
       constructorName  : originType
       id               : originId
-    }
+
     @avatar = new AvatarView {
-      size    : {width: 30, height: 30}
+      size     :
+        width  : options.avatarWidth or 30
+        height : options.avatarHeight or 30
       origin
     }
-    @author = new ProfileLinkView {
-      origin
-    }
-    
+
+    @author = new ProfileLinkView { origin }
+
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
-    # if data.originId is KD.whoami().getId()
-    #   @settingsButton = new KDButtonViewWithMenu
-    #     style       : 'transparent activity-settings-context'
-    #     cssClass    : 'activity-settings-menu'
-    #     title       : ''
-    #     icon        : yes
-    #     delegate    : @
-    #     iconClass   : "cog"
-    #     menu        : [
-    #       type      : "contextmenu"
-    #       items     : [
-    #         { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
-    #       ]
-    #     ]
-    #     callback    : (event)=> @settingsButton.contextMenu event
-    # else
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
         href      : '#'
       cssClass    : 'delete-link hidden'
 
-    if data.originId is KD.whoami().getId()
+    activity = @getDelegate().getData()
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or           # if comment/review owner
+       loggedInId is activity.originId or       # if activity/app owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
       @deleteLink.unsetClass "hidden"
       @listenTo
         KDEventTypes       : "click"
         listenedToInstance : @deleteLink
         callback           : => @confirmDeleteComment data
-  
+
+    @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
+
+  applyTooltips:->
+    @$("p.status-body > span.data > a").each (i,element)->
+      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
+
+      twOptions = (title) ->
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
+
+      if $(element).attr("target") is "_blank"
+        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+
   render:->
     if @getData().getAt 'deletedAt'
       @emit 'CommentIsDeleted'
-    @setTemplate @pistachio()
+    @updateTemplate()
+    @applyTooltips()
     super
 
   viewAppended:->
-    @setTemplate @pistachio()
+    @updateTemplate yes
     @template.update()
-    # super unless @_partialUpdated
+    @applyTooltips()
 
   click:(event)->
+
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
+
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
-      bongo.cacheable originType, originId, (err, origin)->
+      KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
-  
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
+          # appManager.tell "Members", "createContentDisplay", origin
+
   confirmDeleteComment:(data)->
+    {type} = @getOptions()
     modal = new KDModalView
-      title          : "Delete comment"
-      content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
+      title          : "Delete #{type}"
+      content        : "<div class='modalformline'>Are you sure you want to delete this #{type}?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -91,32 +105,38 @@ class CommentListItemView extends KDListItemView
               modal.destroy()
               # unless err then @emit 'CommentIsDeleted'
               # else
-              if err then new KDNotificationView 
+              if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
-  
-  pistachio:->
+                title    : "Error, please try again later!"
+
+  updateTemplate:(force = no)->
+    # TODO: these pistachios are written in JS, pending a solution
+    #  to the problem of statically not being able to find pistachios unless
+    #  they are contained inside a property called "pistachio".
     if @getData().getAt 'deletedAt'
+      {type} = @getOptions()
       @setClass "deleted"
       if @deleter
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
       else
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
-    else
-      """
-      <div class='item-content-comment clearfix'>
-        <span class='avatar'>{{> @avatar}}</span>
-        <div class='comment-contents clearfix'>
-          {{> @deleteLink}}
-          <p class='comment-body'>
-            {{> @author}}
-            {{@utils.applyTextExpansions #(body)}}
-          </p>
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-        </div>
+        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+      @setTemplate pistachio
+    else if force
+      @setTemplate @pistachio()
+
+  pistachio:->
+    """
+    <div class='item-content-comment clearfix'>
+      <span class='avatar'>{{> @avatar}}</span>
+      <div class='comment-contents clearfix'>
+        <p class='comment-body'>
+          {{> @author}}
+          {{@utils.applyTextExpansions #(body), yes}}
+        </p>
+        {{> @deleteLink}}
+        <time>{{$.timeago #(meta.createdAt)}}</time>
+        {{> @likeView}}
       </div>
-      """
+    </div>
+    """

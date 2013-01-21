@@ -10,8 +10,8 @@ import hashlib
 
 
 mongo_host  = 'web0.beta.system.aws.koding.com'
-mongo_user  = 'beta_koding_user'
-mongo_pass  = 'lkalkslakslaksla1230000'
+mongo_user  = 'PROD-koding'
+mongo_pass  = '34W4BXx595ib3J72k5Mh'
 database    = 'beta_koding'
 collection  = 'jUsers'
 
@@ -46,11 +46,8 @@ except pymongo.errors.ConnectionFailure,e:
     sys.exit(1)
 
 user_data = ftp_collection.find_one({"username":username})
-password = hashlib.sha1( user_data['salt'] + password ).hexdigest()
-#print password
 
-syslog.syslog(syslog.LOG_DEBUG,str(user_data))
-
+#syslog.syslog(syslog.LOG_DEBUG,str(user_data))
 if user_data is None:
     #wrong username (no records in the mognodb collection)
     syslog.syslog(syslog.LOG_WARNING,"Can't find user %s in the mongo" % username)
@@ -58,6 +55,7 @@ if user_data is None:
     sys.stdout.write('end\n')
 else:
     #if user_data["password"] in hash.hexdigest():
+    password = hashlib.sha1( user_data['salt'] + password ).hexdigest()
     if user_data["password"] == password:
         owner = os.lstat('/Users/%s' % username)
         syslog.syslog(syslog.LOG_ERR,"user %s accepted with UID: %s and GID: %s" % (username,owner.st_uid,owner.st_gid))
@@ -72,3 +70,4 @@ else:
         sys.stdout.write('auth_ok:0\n')
         sys.stdout.write('end\n')
         sys.exit(1)
+

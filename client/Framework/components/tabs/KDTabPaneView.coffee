@@ -9,18 +9,9 @@ class KDTabPaneView extends KDView
     @setClass "clearfix"
     @setHeight @$().parent().height()
 
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneActive" ]
-      listenedToInstance  : @
-      callback            : @becameActive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneInactive" ]
-      listenedToInstance  : @
-      callback            : @becameInactive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneDestroy" ]
-      listenedToInstance  : @
-      callback            : @aboutToBeDestroyed
+    @on "KDTabPaneActive"   , @becameActive
+    @on "KDTabPaneInactive" , @becameInactive
+    @on "KDTabPaneDestroy"  , @aboutToBeDestroyed
 
   becameActive: noop
   becameInactive: noop
@@ -29,13 +20,13 @@ class KDTabPaneView extends KDView
   show:()->
     @getDomElement().removeClass("kdhiddentab").addClass("active")
     @active = yes
-    @handleEvent type : "KDTabPaneActive"
-    
+    @emit "KDTabPaneActive"
+
   hide:()->
     @getDomElement().removeClass("active").addClass("kdhiddentab")
     @active = no
-    @handleEvent type : "KDTabPaneInactive"
-  
+    @emit "KDTabPaneInactive"
+
   viewAppended:()->
     {name} = @getOptions()
     @setClass "kdtabpaneview"# #{name or ''}" Why do we need something like crazy?
@@ -45,13 +36,13 @@ class KDTabPaneView extends KDView
     @getDelegate().setPaneTitle @,title
     @setOption "name", name
     @name = title
-    
+
   getHandle: ->
     @getDelegate().getHandleByPane @
-    
+
   hideTabCloseIcon:()->
     @getDelegate().hideCloseIcon @
-  
+
 class KDTabHandleView extends KDView
   constructor:(options)->
     options = $.extend
@@ -67,16 +58,16 @@ class KDTabHandleView extends KDView
     @domElement = $ "<div class='kdtabhandle #{c}'>
                       <span class='close-tab'></span>
                     </div>"
-                    
+
   viewAppended:()->
     if (view = @getOptions().view)?
       @addSubView view
     else
       @setPartial @partial()
-  
+
   partial:->
     $ "<b>#{@getOptions().title or 'Default Title'}</b>"
-  
+
   makeActive:()->
     @getDomElement().addClass "active"
 
@@ -88,4 +79,4 @@ class KDTabHandleView extends KDView
 
   # viewAppended:()->
   #   log @getDelegate()
-    
+

@@ -1,58 +1,63 @@
-class Apps12345 extends AppController
+class AppsAppController extends AppController
   constructor:(options, data)->
     options = $.extend
-      view : new AppsMainView 
+      view : new AppsMainView
         cssClass : "content-page appstore"
     ,options
     super options,data
-  
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
-        name : 'Apps'
-      data : @getView()
-    
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-    
+        name  : 'Apps'
+      data    : @getView()
+
   loadView:(mainView)->
     mainView.createCommons()
-    # @createFeed()
+    @createFeed()
 
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : AppsListItemView
+    options =
+      itemClass          : AppsListItemView
       limitPerPage          : 10
+      noItemFoundText       : "There is no app."
       filter                :
+        allApps             :
+          title             : "All Apps"
+          dataSource        : (selector, options, callback)=>
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            selector['manifest.category'] = 'web-app'
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         kodingAddOns        :
-          title             : "Koding Add-ons"
+          title             : "Add-ons"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            selector['manifest.category'] = 'add-on'
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         serverStacks        :
           title             : "Server Stacks"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            selector['manifest.category'] = 'server-stack'
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         frameworks          :
           title             : "Frameworks"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            selector['manifest.category'] = 'framework'
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            callback 'Coming soon!'
+        miscellaneous       :
+          title             : "Miscellaneous"
+          dataSource        : (selector, options, callback)=>
+            selector['manifest.category'] = 'misc'
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
       sort                  :
-        'counts.followers'  :
-          title             : "Most popular"
-          direction         : -1
         'meta.modifiedAt'   :
           title             : "Latest activity"
+          direction         : -1
+        'counts.followers'  :
+          title             : "Most popular"
           direction         : -1
         'counts.tagged'     :
           title             : "Most activity"
@@ -66,35 +71,48 @@ class Apps12345 extends AppController
           delayIn   : 300
           html      : yes
           animate   : yes
-          
-          
-    }, (controller)=>
+
+    if KD.checkFlag 'super-admin'
+      options.filter.waitsForApprove =
+        title             : "New Apps"
+        dataSource        : (selector, options, callback)=>
+          selector.approved = no
+          KD.remote.api.JApp.someWithRelationship selector, options, callback
+
+    appManager.tell 'Feeder', 'createContentFeedController', options, (controller)=>
+      # @getSingleton("kodingAppsController").fetchAppsFromDb (err, apps)=>
+      #   log "Installed Apps:", apps
       for own name,listController of controller.resultsController.listControllers
         listController.getListView().registerListener
           KDEventTypes  : 'AppWantsToExpand'
           listener      : @
-          callback      : (pubInst, app)=>
-            @createContentDisplay app
+          callback      : (pubInst, app)->
+            KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
+
+        listController.getListView().on "AppDeleted", =>
+          log arguments, ">>>>>"
 
       @getView().addSubView controller.getView()
       @feedController = controller
-      @putAddAnAppButton()
+      @emit 'ready'
+      # @putAddAnAppButton()
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
+    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
       unless err
         callback? tags
       else
         log "there was an error fetching topics"
-  
+
   createContentDisplay:(app, doShow = yes)->
     @showContentDisplay app
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   putAddAnAppButton:->
     {facetsController} = @feedController
@@ -104,10 +122,10 @@ class Apps12345 extends AppController
       style     : "small-gray"
       callback  : => @showAppSubmissionView()
 
-  createApp:(formData,callback)->
+  createApp:(formData, callback)->
     log formData,"in createApp"
     # log JSON.stringify formData
-    bongo.api.JApp.create formData, (err, app)->
+    KD.remote.api.JApp.create formData, (err, app)->
       callback? err,app
 
   showAppSubmissionView:->
@@ -128,19 +146,16 @@ class Apps12345 extends AppController
             warn "there was an error creating the app",err
             new KDNotificationView
               title : "there was an error creating the app"
-        
-    modalTabs.registerListener
-      KDEventTypes  : "PaneDidShow"
-      listener      : @
-      callback      : (pubInst,event)=>
-        # scriptForm = forms['Technical Stuff']
-        # scriptForm.addCustomData "scriptCode", scriptForm.ace.getValue()
-        # scriptForm.addCustomData "scriptSyntax", scriptForm.ace.getActiveSyntaxName()
-        # scriptForm.addCustomData "requirementsCode", scriptForm.reqs.getValue()
-        # scriptForm.addCustomData "requirementsSyntax", scriptForm.reqs.getActiveSyntaxName()
-        if event.pane.name is "Review & Submission"
-          @createAppSummary modal, event.pane
-    
+
+    modalTabs.on "PaneDidShow", (pane)=>
+      # scriptForm = forms['Technical Stuff']
+      # scriptForm.addCustomData "scriptCode", scriptForm.ace.getValue()
+      # scriptForm.addCustomData "scriptSyntax", scriptForm.ace.getActiveSyntaxName()
+      # scriptForm.addCustomData "requirementsCode", scriptForm.reqs.getValue()
+      # scriptForm.addCustomData "requirementsSyntax", scriptForm.reqs.getActiveSyntaxName()
+      if pane.name is "Review & Submission"
+        @createAppSummary modal, pane
+
     # TAGS AUTOCOMPLETE
     selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -159,7 +174,7 @@ class Apps12345 extends AppController
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)
         @fetchAutoCompleteDataForTags inputValue,blacklist,callback
-    
+
     tagAutoComplete = tagController.getView()
     tagsField       = forms['Technical Stuff'].fields.Tags
     tagsField.addSubView tagAutoComplete
@@ -170,46 +185,46 @@ class Apps12345 extends AppController
       listener      : @
       callback      : ->
         tagController.destroy()
-    
+
     # # INSTALL SCRIPT ACE
     # scriptForm      = forms['Technical Stuff']
     # scriptField     = scriptForm.fields.Script
-    # 
+    #
     # scriptField.addSubView aceWrapper = new KDCustomHTMLView
     #   cssClass : "code-snip-holder dark-select"
-    # 
+    #
     # aceWrapper.addSubView scriptForm.ace = new MiniAceEditor
     #   defaultValue  : "# Type your install script here..."
     #   autoGrow      : yes
     #   path          : "~~~/dummy-path/dummy.coffee"
     #   name          : "dummy.coffee"
-    # 
+    #
     # scriptForm.ace.on 'sizes.height.change', (options) =>
     #   {height} = options
     #   scriptForm.ace.$().parent().height height + 25
-    # 
+    #
     # scriptForm.ace.refreshEditorView()
     # scriptForm.ace.saveSyntaxForExtension "coffee"
 
     # # REQUIREMENTS SCRIPT ACE
     # reqsField        = scriptForm.fields.Reqs
-    # 
+    #
     # reqsField.addSubView reqsWrapper = new KDCustomHTMLView
     #   cssClass : "code-snip-holder dark-select"
-    # 
+    #
     # reqsWrapper.addSubView scriptForm.reqs = new MiniAceEditor
     #   defaultValue  : "# Type your requirement options here..."
     #   autoGrow      : yes
     #   path          : "~~~/dummy-path/dummy.coffee"
     #   name          : "dummy.coffee"
-    # 
+    #
     # scriptForm.reqs.on 'sizes.height.change', (options) =>
     #   {height} = options
     #   scriptForm.ace.$().parent().height height + 55
-    # 
+    #
     # scriptForm.reqs.refreshEditorView()
     # scriptForm.reqs.saveSyntaxForExtension "coffee"
-    
+
     # IMAGE UPLOADERS
     thumbField = forms.Visuals.fields.thumbnail
     thumbField.addSubView thumbUploader = new KDImageUploadView
@@ -243,7 +258,7 @@ class Apps12345 extends AppController
           ]
       }
       title           : "Drop a logo of the app here..."
-    
+
     screenshotsField = forms.Visuals.fields.screenshots
     screenshotsField.addSubView thumbUploader = new KDImageUploadView
       limit           : 10
@@ -276,20 +291,9 @@ class Apps12345 extends AppController
           ]
       }
       title           : "Drop some screenshots here..."
-      
+
   createAppSummary:(modal, pane)->
     modal.preview.destroy() if modal.preview
     formData = modal.modalTabs.getFinalData()
     log formData
     pane.form.addSubView (modal.preview = new AppPreSubmitPreview {},formData),null,yes
-    
-    
-    
-
-
-
-
-
-
-
-

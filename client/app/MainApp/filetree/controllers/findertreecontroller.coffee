@@ -1,10 +1,3 @@
-###
-todo:
-
-  - fix dimmed/selected states
-
-###
-
 class NFinderTreeController extends JTreeViewController
 
   constructor:->
@@ -23,6 +16,7 @@ class NFinderTreeController extends JTreeViewController
       @getView().setClass "no-context-menu"
 
     @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
+    @getSingleton('mainController').on "SelectedFileChanged", (view)=> @highlightFile view
 
   addNode:(nodeData, index)->
 
@@ -53,6 +47,16 @@ class NFinderTreeController extends JTreeViewController
           @selectNode @nodes[newFile.path]
         @listenedPaths[file.path] = file.path
 
+  highlightFile:(view)->
+
+    @selectNode @nodes[view.data.path], null, no
+
+    if view.ace?
+      if view.ace.editor?
+        view.ace.editor.focus()
+      else
+        view.ace.on "ace.ready", ->
+          view.ace.editor.focus()
 
   navigateToNewFile:(newFile)=>
 
@@ -67,8 +71,6 @@ class NFinderTreeController extends JTreeViewController
       #   @addNode newFile, index
 
       @selectNode @nodes[newFile.path]
-
-
 
     # #
     # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
@@ -100,6 +102,10 @@ class NFinderTreeController extends JTreeViewController
     #   log "put", file.path
     #   @aceViews[file.path]
 
+  getOpenFolders: ->
+
+    return Object.keys(@listControllers).slice(1)
+
 
   ###
   FINDER OPERATIONS
@@ -116,6 +122,7 @@ class NFinderTreeController extends JTreeViewController
       when "file"
         @openFile nodeView
         @emit "file.opened", nodeData
+        @setBlurState()
 
   openFile:(nodeView, event)->
 
@@ -163,11 +170,14 @@ class NFinderTreeController extends JTreeViewController
       @addNodes files
       callback? nodeView
       @emit "folder.expanded", nodeView.getData()
+      @emit 'fs.retry.success'
 
     folder = nodeView.getData()
 
     folder.failTimer = @utils.wait 5000, =>
-      @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
+      @notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+      @once 'fs.retry.scheduled', =>
+        @expandFolder nodeView, callback
       folder.emit "fs.nothing.finished", []
       cb.cancel()
 
@@ -218,6 +228,8 @@ class NFinderTreeController extends JTreeViewController
 
   confirmDelete:(nodeView, event)->
 
+    extension = nodeView.data?.getExtension() or null
+
     if @selectedNodes.length > 1
       new NFinderDeleteDialog {},
         items     : @selectedNodes
@@ -235,11 +247,11 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     async.parallel stack, (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} deleted!", "success"
@@ -276,12 +288,14 @@ class NFinderTreeController extends JTreeViewController
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
     FSItem.create path, type, (err, file)=>
-      @notify null, null, err if err
-      @refreshFolder @nodes[parentPath], =>
-        @notify "#{type} created!", "success"
-        node = @nodes[file.path]
-        @selectNode node
-        @showRenameDialog node
+      if err
+        @notify null, null, err
+      else
+        @refreshFolder @nodes[parentPath], =>
+          @notify "#{type} created!", "success"
+          node = @nodes[file.path]
+          @selectNode node
+          @showRenameDialog node
 
 
   moveFiles:(nodesToBeMoved, targetNodeView, callback)->
@@ -293,12 +307,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeMoved.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.move sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} moved!", "success"
@@ -316,12 +330,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeCopied.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} copied!", "success"
@@ -333,13 +347,13 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         targetItem = @nodes[sourceItem.parentPath].getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} duplicated!", "success"
@@ -374,76 +388,130 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.compile.started"
-    name = FSHelper.trimExtension folder.path
-    @getSingleton('kodingAppsController').compileSource name, =>
-      log "ever here"
+    kodingAppsController = @getSingleton('kodingAppsController')
+
+    manifest = KodingAppsController.getManifestFromPath folder.path
+
+    kodingAppsController.compileApp manifest.name, (err)=>
       folder.emit "fs.compile.finished"
-      @notify "App compiled!", "success"
+      if not err
+        @notify "App compiled!", "success"
+        @utils.wait 500, =>
+          @refreshFolder nodeView, =>
+            @utils.wait =>
+              @selectNode @nodes["#{folder.path}/index.js"]
+      callback? err
+
+  runApp:(nodeView, callback)->
+
+    folder = nodeView.getData()
+    folder.emit "fs.run.started"
+    kodingAppsController = @getSingleton('kodingAppsController')
+
+    manifest = KodingAppsController.getManifestFromPath folder.path
+
+    kodingAppsController.runApp manifest, =>
+      folder.emit "fs.run.finished"
       callback?()
-      @utils.wait 500, =>
-        @refreshFolder nodeView, =>
-          @utils.wait =>
-            @selectNode @nodes["#{folder.path}/index.js"]
+
+
+  cloneRepo:(nodeView)->
+
+    folder = nodeView.getData()
+
+    @notify "not yet there!", "error"
+
+    # folder.emit "fs.clone.started"
+    # @getSingleton('kodingAppsController').cloneApp folder.path, =>
+    #   folder.emit "fs.clone.finished"
+    #   @refreshFolder @nodes[folder.parentPath], =>
+    #     @utils.wait 500, =>
+    #       @selectNode @nodes[folder.path]
+    #       @refreshFolder @nodes[folder.path]
+    #   @notify "App cloned!", "success"
 
   publishApp:(nodeView)->
 
-    folder               = nodeView.getData()
-    name                 = FSHelper.trimExtension folder.path
-    kodingAppsController = @getSingleton('kodingAppsController')
-    kiteController       = @getSingleton('kiteController')
+    folder = nodeView.getData()
 
     folder.emit "fs.publish.started"
+    @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
+      folder.emit "fs.publish.finished"
+      unless err
+        @notify "App published!", "success"
+      else
+        @notify "Publish failed!", "error", err
 
-    kodingAppsController.getApp name, (appScript)=>
+  makeNewApp:(nodeView)->
+    @getSingleton('kodingAppsController').makeNewApp()
 
-      log "got the app", name
-      manifest    = KodingAppsController.apps[name]
-      {nickname}  = KD.whoami().profile
-      publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
+  downloadAppSource:(nodeView)->
 
-      log "trying to publish"
-      log options =
-        toDo          : "publishApp"
-        withArgs      :
-          version     : manifest.version
-          appName     : manifest.name
-          userAppPath : "#{folder.path}/index.js"
+    folder = nodeView.getData()
 
-      kiteController.run options, (err, res)=>
-        log "publish finished", err, res
-        if err then warn err
-        else
-          log res
-          folder.emit "fs.publish.finished"
-          @notify "App published!", "success"
+    folder.emit "fs.sourceDownload.started"
+    @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+      folder.emit "fs.sourceDownload.finished"
+      @refreshFolder @nodes[folder.parentPath]
+      unless err
+        @notify "Source downloaded!", "success"
+      else
+        @notify "Download failed!", "error", err
 
+  createCodeShare:({data})->
 
+    CodeShares = []
+    @notify "Fetching file list..."
+
+    data.fetchContents (items)=>
+      @notify "Fetching file contents..."
+      files = (file for file in items when file.constructor.name is 'FSFile')
+      count = 0
+      # Poor mans queue mechanism
+      for file in files
+        do (file)->
+          file.fetchContents (err, content)->
+            count+=1
+            if not err and content
+              CodeShare =
+                CodeShareItemOptions : {}
+                CodeShareItemSource  : content
+                CodeShareItemTitle   : file.name
+                CodeShareItemType    :
+                  syntax             : @utils.getFileExtension file.path
+              CodeShares.push CodeShare
+            if count == files.length
+              @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   ###
   CONTEXT MENU OPERATIONS
   ###
 
-  contextMenuOperationExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  contextMenuOperationCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  contextMenuOperationRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  contextMenuOperationCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
-  contextMenuOperationCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  contextMenuOperationRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  contextMenuOperationDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  contextMenuOperationDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  contextMenuOperationExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
-  contextMenuOperationZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  contextMenuOperationTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  contextMenuOperationUpload:       (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationDownload:     (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
+  cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
+  cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
+  cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
+  cmDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
+  cmDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
+  cmExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
+  cmZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
+  cmTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
+  cmUpload:       (nodeView, contextMenuItem)-> appManager.notify()
+  cmDownload:     (nodeView, contextMenuItem)-> appManager.notify()
+  cmGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
+  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
+  cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
+  cmMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
+  cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
+  cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
 
-  contextMenuOperationOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
-
-  contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
-  contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
-  contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE
@@ -466,9 +534,9 @@ class NFinderTreeController extends JTreeViewController
 
     {action} = contextMenuItem.getData()
     if action
-      if @["contextMenuOperation#{action.capitalize()}"]?
+      if @["cm#{action.capitalize()}"]?
         @contextMenuController.destroyContextMenu()
-      @["contextMenuOperation#{action.capitalize()}"]? nodeView, contextMenuItem
+      @["cm#{action.capitalize()}"]? nodeView, contextMenuItem
 
   ###
   RESET STATES
@@ -499,7 +567,7 @@ class NFinderTreeController extends JTreeViewController
 
   click:(nodeView, event)->
 
-    if $(event.target).is ".chevron-arrow"
+    if $(event.target).is ".chevron"
       @contextMenu nodeView, event
       return no
     super
@@ -581,7 +649,7 @@ class NFinderTreeController extends JTreeViewController
   performDownKey:(nodeView, event)->
 
     if event.altKey
-      offset = nodeView.$('.chevron-arrow').offset()
+      offset = nodeView.$('.chevron').offset()
       event.pageY = offset.top
       event.pageX = offset.left
       @contextMenu nodeView, event
@@ -621,7 +689,7 @@ class NFinderTreeController extends JTreeViewController
 
   notification = null
 
-  notify:(msg, style, details)->
+  notify:(msg, style, details, reconnect=no)->
 
     return unless @getView().parent?
 
@@ -631,6 +699,7 @@ class NFinderTreeController extends JTreeViewController
       msg = "Permission denied!"
 
     style or= 'error' if details
+    duration = if reconnect then 0 else if details then 5000 else 2500
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
@@ -638,9 +707,19 @@ class NFinderTreeController extends JTreeViewController
       cssClass  : "filetree #{style}"
       container : @getView().parent
       # duration  : 0
-      duration  : if details then 5000 else 2500
+      duration  : duration
       details   : details
-      click     : ->
+      click     : =>
+        if reconnect
+          @emit 'fs.retry.scheduled'
+          @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
+          notification.notificationSetTitle 'Attempting to fetch files'
+          notification.notificationSetPositions()
+          notification.setClass 'loading'
+          @once 'fs.retry.success', =>
+            notification.destroy()
+          return
+
         if notification.getOptions().details
           details = new KDNotificationView
             title     : "Error details"
@@ -650,6 +729,5 @@ class NFinderTreeController extends JTreeViewController
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          details.on 'ReceivedClickElsewhere', =>
+          details.on 'ReceivedClickElsewhere', ->
             details.destroy()
-

@@ -6,11 +6,11 @@ print <<HTML;
 <head>  <meta charset=\"utf-8\">
   <title>Hello World from Perl by Koding</title>
   <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-  <link rel=\"stylesheet\" href=\"http://koding.com/hello/css/style.css\">
+  <link rel=\"stylesheet\" href=\"//koding.com/hello/css/style.css\">
   <!--[if IE]>
-          <script src=\"http://html5shiv.googlecode.com/svn/trunk/html5.js\"></script>
+          <script src=\"//html5shiv.googlecode.com/svn/trunk/html5.js\"></script>
   	<![endif]-->
-  <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 </head>
 <body class=\"perl\">
   <div id=\"container\">

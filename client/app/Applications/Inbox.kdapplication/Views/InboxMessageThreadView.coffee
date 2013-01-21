@@ -3,33 +3,31 @@ class InboxMessageThreadView extends CommentView
     super
     @unsetClass "comment-container"
     @setClass "thread-container"
-  
+
   createSubViews:(data)->
 
     @commentList = new KDListView
       type          : "comments"
-      subItemClass  : InboxMessageReplyView
+      itemClass  : InboxMessageReplyView
       delegate      : @
     , data
 
-    @commentListViewController = new CommentListViewController 
-      view: @commentList
-    , data
-    
+    @commentController = new CommentListViewController view: @commentList
     @addSubView showMore = new CommentViewHeader
       delegate: @commentList
       itemTypeString: "replies"
     , data
 
+    @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
+    @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
+
     showMore.unsetClass "show-more-comments"
     showMore.setClass "show-more"
     @addSubView @commentList
     # @addSubView @commentForm = new InboxReplyForm delegate : @commentList
-    
+
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
-        log reply.meta.createdAt, 'gjskhdfkgs'
 
     @commentList.emit "BackgroundActivityFinished"
-

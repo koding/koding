@@ -1,4 +1,4 @@
-class Home12345 extends AppController
+class HomeAppController extends AppController
   constructor:(options = {}, data)->
     options.view = new KDView
     # options.view = new HomeMainView
@@ -23,23 +23,23 @@ class Home12345 extends AppController
     widgetHolder.showLoaders()
 
     @bringFeeds()
-  
+
   bringFeeds:->
-    appManager.tell "Topics", "fetchFeedForHomePage", (err,topics)=>
+    appManager.tell "Topics", "fetchSomeTopics", null, (err,topics)=>
       unless err
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
 
-    appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
-      if activity
-        @mainView.widgetHolder.activityLoader.hide()
-        @activityController.instantiateListItems activity
+    # appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
+    #   if activity
+    #     @mainView.widgetHolder.activityLoader.hide()
+    #     @activityController.instantiateListItems activity
 
     appManager.tell "Members", "fetchFeedForHomePage", (err,topics)=>
       unless err
         @mainView.widgetHolder.membersLoader.hide()
         @membersController.instantiateListItems topics
-      
+
   createListControllers:->
     @createTopicsList()
     @createActivity()
@@ -48,7 +48,7 @@ class Home12345 extends AppController
   createTopicsList:->
     @topicsController = new KDListViewController
       view            : new KDListView
-        subItemClass  : HomeTopicItemView
+        itemClass  : HomeTopicItemView
 
     @mainView.widgetHolder.topics = @topicsController.getView()
 
@@ -56,14 +56,14 @@ class Home12345 extends AppController
     @activityController = new KDListViewController
       view            : new KDListView
         lastToFirst   : no
-        subItemClass  : HomeActivityItem
+        itemClass  : HomeActivityItem
 
     @mainView.widgetHolder.activity = @activityController.getView()
 
   createMembersList:->
     @membersController = new KDListViewController
       view            : new KDListView
-        subItemClass  : HomeMemberItemView
-        
+        itemClass  : HomeMemberItemView
+
 
     @mainView.widgetHolder.members = @membersController.getView()

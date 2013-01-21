@@ -36,6 +36,8 @@ class JTreeViewController extends KDViewController
     o.listViewControllerClass   or= KDListViewController
     o.treeItemClass             or= JTreeItemView
     o.listViewClass             or= JTreeView
+    o.itemChildClass            or= null
+    o.itemChildOptions          or= {}
     o.nodeIdPath                or= "id"
     o.nodeParentIdPath          or= "parentId"
     o.contextMenu                ?= no
@@ -136,29 +138,30 @@ class JTreeViewController extends KDViewController
     node2PId = @getNodePId node2.getData()
 
     return node1PId is node2PId
-  
+
   ###
   DECORATORS
   ###
-  
+
   setFocusState:->
-    
+
     view = @getView()
     @getSingleton("windowController").addLayer view
     view.unsetClass "dim"
-  
+
   setBlurState:->
 
     view = @getView()
     @getSingleton("windowController").removeLayer view
     view.setClass "dim"
-  
+
   ###
   CRUD OPERATIONS FOR NODES
   ###
 
   addNode:(nodeData, index)->
 
+    return if @nodes[@getNodeId nodeData]
     nodeData = @repairIds nodeData
     return unless nodeData
     @getData().push nodeData
@@ -286,14 +289,16 @@ class JTreeViewController extends KDViewController
 
     options = @getOptions()
     @listControllers[listId] = new options.listViewControllerClass
-      id             : "#{@getId()}_#{listId}"
-      wrapper        : no
-      scrollView     : no
-      selection      : no
-      view           : new options.listViewClass
-        tagName      : "ul"
-        type         : "jtree"
-        subItemClass : options.treeItemClass
+      id                 : "#{@getId()}_#{listId}"
+      wrapper            : no
+      scrollView         : no
+      selection          : no
+      view               : new options.listViewClass
+        tagName          : "ul"
+        type             : options.type
+        itemClass        : options.treeItemClass
+        itemChildClass   : options.itemChildClass
+        itemChildOptions : options.itemChildOptions
     , items : listItems
 
     @setListenersForList listId
@@ -306,7 +311,7 @@ class JTreeViewController extends KDViewController
     if nodeView
       nodeView.$().after listToBeAdded.$()
       listToBeAdded.parentIsInDom = yes
-      listToBeAdded.propagateEvent KDEventType: 'viewAppended'
+      listToBeAdded.emit 'viewAppended'
       if o.addListsCollapsed
         @collapse nodeView
       else
@@ -323,11 +328,7 @@ class JTreeViewController extends KDViewController
 
   setMainListeners:->
 
-    @listenTo
-      KDEventTypes       : "ReceivedMouseUpElsewhere"
-      listenedToInstance : @getSingleton("windowController")
-      callback           : (windowController, event)=>
-        @mouseUp windowController, event
+    @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUp event
 
     @getView().on "ReceivedClickElsewhere", => @setBlurState()
 
@@ -353,11 +354,7 @@ class JTreeViewController extends KDViewController
 
   setItemListeners:(view, index)->
 
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : view
-      callback           : (view)=> @nodeWasAdded view
-
+    view.on "viewAppended", @nodeWasAdded.bind @, view
 
     mouseEvents = ["dblclick", "click", "mousedown", "mouseup", "mouseenter", "mousemove"]
 
@@ -400,10 +397,10 @@ class JTreeViewController extends KDViewController
         listController.deselectAllItems()
     @selectedNodes = []
 
-  selectNode:(nodeView, event)->
+  selectNode:(nodeView, event, setFocus = yes)->
 
     return unless nodeView
-    @setFocusState()
+    if setFocus then @setFocusState()
     @listControllers[@getNodePId nodeView.getData()].selectItem nodeView, event
 
   deselectNode:(nodeView, event)->
@@ -452,7 +449,7 @@ class JTreeViewController extends KDViewController
   showDragOverFeedback: do ->
     _.throttle (nodeView, event)->
 
-      # log "show", nodeView.getData().name    
+      # log "show", nodeView.getData().name
       nodeData = nodeView.getData()
       if nodeData.type isnt "file"
         nodeView.setClass "drop-target"
@@ -466,7 +463,7 @@ class JTreeViewController extends KDViewController
 
   clearDragOverFeedback: do ->
     _.throttle (nodeView, event)->
-    
+
       # log "clear", nodeView.getData().name
       nodeData = nodeView.getData()
       if nodeData.type isnt "file"
@@ -550,8 +547,8 @@ class JTreeViewController extends KDViewController
       @mouseIsDown = no
       @mouseDownTempItem = null
 
-  mouseUp:(pubInst, event)->
-    
+  mouseUp:(event)->
+
     clearTimeout @mouseDownTimer
     @mouseIsDown = no
     @cancelDrag = no
@@ -598,7 +595,7 @@ class JTreeViewController extends KDViewController
     #     tagName      : "ul"
     #     type         : "jtree"
     #     cssClass     : "drag-helper-list"
-    #     subItemClass : JTreeItemView
+    #     itemClass : JTreeItemView
     # , {items}
     #
     # @tempDragList = draggedListController.getView()
@@ -645,6 +642,8 @@ class JTreeViewController extends KDViewController
 
     key = keyMap()[event.which]
     [nodeView] = @selectedNodes
+
+    @emit "keyEventPerformedOnTreeView", event
 
     return unless nodeView
 

@@ -7,7 +7,7 @@ active-color = rgb(246,162,32)
 finderDimmedColor1 = #cccccc
 finderDimmedColor2 = #c2c2c2
 @css {
-/*  
+/*
 FINDER stylesheet
 app.finder.styl
 */
@@ -21,7 +21,8 @@ dimmed()
   border-color      #ccc transparent #c2c2c2 transparent
   color             #282828
   text-shadow       none
-  background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
+  // background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
+  bg                color, #ccc
 
 dimmedNeighbor()
   border-top-color  finderDimmedColor1
@@ -44,7 +45,7 @@ dimmedNeighbor()
 .nfinder
   .no-context-menu
     .kdlistitemview-finderitem
-      .chevron-arrow
+      .chevron
         hidden()
   .dim
     .kdlistitemview-finderitem.selected
@@ -56,10 +57,10 @@ dimmedNeighbor()
           &:first-child
             &.selected
               dimmedNeighbor()
-      
+
     .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
       dimmedNeighbor()
-    
+
 
 .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
   selectedNeighbor()
@@ -76,8 +77,8 @@ dimmedNeighbor()
   &:first-child
     margin-top 0px
 
-  .chevron-arrow
-    position          absolute
+  .chevron
+    abs()
     top               1px
     right             10px
     z-index           1
@@ -85,7 +86,7 @@ dimmedNeighbor()
     display           none
     size              16px,16px
     margin            0
-    sprite()          
+    sprite()
     bg                position,-180px -360px
 
   &.selected
@@ -93,7 +94,8 @@ dimmedNeighbor()
     border-width      1px 0
     color             white
     text-shadow       0 -1px 0 rgba(0,0,0,0.22)
-    background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+    // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+    bg                color, finderSelectedColor1
     .title
       color white
       text-shadow none
@@ -114,15 +116,15 @@ dimmedNeighbor()
       vertical-align  top
       &:before
         content       "*"
-    
+
 
   &.selected
-    span.chevron-arrow
+    span.chevron
       display       block
       bg            position,-180px -380px
 
   &:hover
-    span.chevron-arrow
+    span.chevron
       display       block
 
   &.expanded
@@ -131,7 +133,7 @@ dimmedNeighbor()
         bg          position,-40px -120px
 
   &.being-inline-edited
-    .chevron-arrow
+    .chevron
       hidden()
 
   &.being-deleted
@@ -148,7 +150,7 @@ dimmedNeighbor()
       width           auto
       font-weight     normal
       fr()
-  
+
   &.items-hovering
     background        rgba(136, 183, 214, 0.25)
     text-shadow       none
@@ -159,7 +161,7 @@ dimmedNeighbor()
     text-shadow       none
 
   a.cancel
-    position        absolute
+    abs()
     size            15px, 15px
     bg              position, -82px -222px
     right           5px
@@ -216,11 +218,11 @@ dimmedNeighbor()
         margin      2px 0
       a.cancel
         bg          position, -62px -242px
-      
-        
+
+
 
 .drop-helper
-  position          absolute
+  abs()
   border            2px solid finderSelectedColor1
   rounded           4px
 
@@ -228,7 +230,7 @@ dimmedNeighbor()
 
 
 #finder-panel
-  position          absolute
+  abs()
   overflow          hidden
   size              208px,100%
   top               0
@@ -245,8 +247,8 @@ dimmedNeighbor()
     overflow        hidden
 
   .finder-resize-handle
-    cursor            ew-resize           
-    position          absolute
+    cursor            ew-resize
+    abs()
     width             4px
     top               0!important
     right             0!important
@@ -254,7 +256,7 @@ dimmedNeighbor()
     overflow          visible
     span
       display         block
-      position        absolute
+      abs()
       height          45px
       width           14px
       bg              position, -55px -173px
@@ -271,10 +273,11 @@ dimmedNeighbor()
       font-size         10px
       line-height       10px
       padding           0 10px
-
+    &.clickable
+      cursor pointer
 
   // .finder-settings-border
-  //   position                relative
+  //   rel()
   //   margin                  0 auto
   //   width                   85%
   //   top                     1px
@@ -285,17 +288,17 @@ dimmedNeighbor()
   //   height                  13px
   //   shadow(0 -1px 0 rgba(0,0,0,.05))
   //   bg(color,transparent)
-  
+
   button.kdbutton.add-project
     font-weight     normal
     padding         5px 8px
     width           auto
-  
+
   .separator
     border-top      1px solid #d9d9d9
     border-bottom   1px solid #f2f2f2
     margin          0 20px
-  
+
 
 #finder-header-holder
   size              auto,45px
@@ -312,12 +315,12 @@ dimmedNeighbor()
     min-width       208px
     span
       margin-left   5px
-  
+
 
 #finder-bottom-controls
-  position                  absolute
+  abs()
   bottom                    0
-  margin                    0 
+  margin                    0
   size                      100%,auto
   ul
     min-width               208px
@@ -327,10 +330,10 @@ dimmedNeighbor()
     shadow                  0 -1px 0 rgba(0,0,0,.05)
     li
       margin                0 10px 2px 10px
-      padding               0 
+      padding               0
       cursor                pointer
       width                 auto
-      span.icon             
+      span.icon
         margin-right        10px
         size                17px, 20px
         blockMid()
@@ -340,7 +343,7 @@ dimmedNeighbor()
       text-decoration       none
       &:hover
         color               linkColor1
-      span
+      span:not(.title)
         sprite()
       span.terminal
         bg(position,-100px -300px)
@@ -350,124 +353,127 @@ dimmedNeighbor()
         bg(position,-140px -300px)
       span.shortcuts
         bg(position,-160px -300px)
-      
-/* 
+      span.remotes
+        bg(position,-280px -160px)
+
+/*
 **  Overriding Treeview STYLES
 */
 
-#finder > .kdview.kdtreeitemview:first-child .finder-item
-  margin-left   17px
-    
-.kdtreeview-filetree
-  .kdtreeitemview
-    min-width     208px
-    height        auto
-    border        1px solid transparent
-    border-width  1px 0
-    font-size     11px
-    color         #282828
-    // min-width:    150px
-    noTextSelection()
+// #finder > .kdview.kdtreeitemview:first-child .finder-item
+//   margin-left   17px
 
-    &:first-child
-      margin-top 0px
+// .kdtreeview-filetree
+//   .kdtreeitemview
+//     min-width     208px
+//     height        auto
+//     border        1px solid transparent
+//     border-width  1px 0
+//     font-size     11px
+//     color         #282828
+//     // min-width:    150px
+//     noTextSelection()
 
-    .title
-      /*text-transform  uppercase*/
-      font-weight     bold
-      text-shadow     0 1px 0 white
-      color           #444
-      &:hover
-        color         #222
+//     &:first-child
+//       margin-top 0px
 
-    .chevron-arrow
-      position      absolute
-      top           1px
-      right         10px
-      z-index       1
-      float         none
-      display       none
-      size          16px,16px
-      margin        0
-      sprite()
-      bg            position,-180px -360px
+//     .title
+//       /*text-transform  uppercase*/
+//       font-weight     bold
+//       text-shadow     0 1px 0 white
+//       color           #444
+//       &:hover
+//         color         #222
 
-    &.selected
-      border        1px solid #F6A220
-      border-width  1px 0
-      color         white
-      text-shadow   0 -1px 0 rgba(0,0,0,0.22)
-      background    linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
-      .title
-        color white
-        text-shadow none
+//     .chevron
+//       abs()
+//       top           1px
+//       right         10px
+//       z-index       1
+//       float         none
+//       display       none
+//       size          16px,16px
+//       margin        0
+//       sprite()
+//       bg            position,-180px -360px
 
-    &.unsaved
-      span.icon
-        color           black!important
-        font-size       14px
-        text-indent     -2px
-        line-height     10px
-        vertical-align  top
-        &:before
-          content       "*"
-        // bg              color,black
-        // opacity         .5
-      // border-left       5px solid #333
-      // borderBox()
-      // font-weight   bold
-      // color         #282828
-      // text-shadow   none
-      
+//     &.selected
+//       border        1px solid #F6A220
+//       border-width  1px 0
+//       color         white
+//       text-shadow   0 -1px 0 rgba(0,0,0,0.22)
+//       bg            color, finderSelectedColor1
+//       // background    linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+//       .title
+//         color white
+//         text-shadow none
 
-    &.selected
-      span.chevron-arrow
-        display       block
-        bg            position,-180px -380px
+//     &.unsaved
+//       span.icon
+//         color           black!important
+//         font-size       14px
+//         text-indent     -2px
+//         line-height     10px
+//         vertical-align  top
+//         &:before
+//           content       "*"
+//         // bg              color,black
+//         // opacity         .5
+//       // border-left       5px solid #333
+//       // borderBox()
+//       // font-weight   bold
+//       // color         #282828
+//       // text-shadow   none
 
-    &:hover
-      span.chevron-arrow
-        display       block
 
-    &.folder.expanded
-      .finder-item
-        span.icon
-          bg          position,-40px -120px
-  
-    &.being-inline-edited
-      .chevron-arrow
-        hidden()
-  
-    &.being-deleted
-      border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
-      background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
-      height            22px
-      .kdview.delete-container
-        margin          0!important
-      span.icon
-        display         none
-      label
-        position        absolute
-        color           white
-        font-size       12px
-        top             2px
-        left            10px
-      button.kdbutton
-        margin          2px 10px 0 0
-        padding         2px 4px 2px 4px
-        width           auto
-        font-weight     normal
-        fr()
-      a.cancel
-        color           white
-        line-height     24px
-        margin-right    10px
+//     &.selected
+//       span.chevron
+//         display       block
+//         bg            position,-180px -380px
 
-  .drop-helper
-    position          absolute
-    border            2px solid finderSelectedColor1
-    rounded           4px
-  
+//     &:hover
+//       span.chevron
+//         display       block
+
+//     &.folder.expanded
+//       .finder-item
+//         span.icon
+//           bg          position,-40px -120px
+
+//     &.being-inline-edited
+//       .chevron
+//         hidden()
+
+//     &.being-deleted
+//       border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
+//       background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
+//       height            22px
+//       .kdview.delete-container
+//         margin          0!important
+//       span.icon
+//         display         none
+//       label
+//         abs()
+//         color           white
+//         font-size       12px
+//         top             2px
+//         left            10px
+//       button.kdbutton
+//         margin          2px 10px 0 0
+//         padding         2px 4px 2px 4px
+//         width           auto
+//         font-weight     normal
+//         fr()
+//       a.cancel
+//         color           white
+//         line-height     24px
+//         margin-right    10px
+
+//   .drop-helper
+//     abs()
+//     border            2px solid finderSelectedColor1
+//     rounded           4px
+
 
 .finder-item
   line-height       22px
@@ -513,8 +519,8 @@ dimmedNeighbor()
   .icon
     margin        2px 3px
     size          16px,16px
-    
-  .section-title 
+
+  .section-title
     span.icon.domain
       bg          position,-40px -40px
     span.icon.ftp
@@ -544,27 +550,27 @@ dimmedNeighbor()
   .file
     span.icon
       bg            position, -40px -140px
-      &.code                  
+      &.code
         bg          position, -40px -180px
-      &.image                 
+      &.image
         bg          position, -40px -200px
-      &.archive               
+      &.archive
         bg          position, -40px -220px
-      &.new-file              
+      &.new-file
         bg          position, -40px -240px
-      &.video                 
+      &.video
         bg          position, -40px -260px
-      &.sound                 
+      &.sound
         bg          position, -40px -280px
-      &.text                  
+      &.text
         bg          position, -40px -300px
-      
 
-  
+
+
 .finder-drag-container
-  position          absolute
+  abs()
   width             208px
-  
+
   .drag-helper
     height            22px
     margin-bottom     1px
@@ -577,7 +583,7 @@ dimmedNeighbor()
     borderBox()
     &.multiple-items
       padding-left    5px
-    
+
     .title
       display         inline-block
       margin-right    0

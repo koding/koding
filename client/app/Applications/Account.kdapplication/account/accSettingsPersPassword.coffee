@@ -24,7 +24,7 @@ class AccountEditSecurity extends KDView
         messages    :
           required  : "Password can't be empty..."
 
-        
+
     passwordInputs.addSubView passwordConfirm = new KDInputView
       type          : "password"
       placeholder   : "re-type new password"
@@ -34,7 +34,7 @@ class AccountEditSecurity extends KDView
           match     : passwordInput
         messages    :
           match     : "Passwords do not match."
-      
+
     passwordInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
     inputActions.addSubView passwordSave = new KDButtonView
       title         : "Save"
@@ -60,10 +60,10 @@ class AccountEditSecurity extends KDView
     passwordForm.addSubView @passwordSwappable = passwordSwappable = new AccountsSwappable
       views    : [passwordInputs,nonPasswordInputs]
       cssClass : "clearfix"
-    
+
     @listenTo KDEventTypes : "click", listenedToInstance : passwordCancel, callback : passwordSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : passwordEdit,   callback : passwordSwappable.swapViews
-    
+
   passwordDidUpdate:->
     @passwordSwappable.swapViews()
     new KDNotificationView
@@ -72,30 +72,29 @@ class AccountEditSecurity extends KDView
       duration : 1000
   
   saveNewPassword:(formData)->    
-    bongo.api.JUser.changePassword formData.password,(err,docs)=>
+    KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

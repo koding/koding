@@ -1,14 +1,14 @@
 class Payment_Settings extends Payment_TabContent
   constructor:->
     super
-  
+
   dummyStoredPaymentMethods:
     items : [{ type : "paypal", medium : { title : "PayPal", id : "mail@sinanyasar.com"}},{ type : "visa", default : yes, medium : { title : "VISA", id : "xxxx-0123"}}]
-      
+
   viewAppended:->
     super
     @wrapper.addSubView   form1     = new KDFormView delegate : @
-    
+
     form1.addSubView                  new KDHeaderView      type : "small", title : "Auto-Recharge:"
     form1.addSubView      fieldset1 = new KDCustomHTMLView  "fieldset"
     fieldset1.addSubView  label1    = new KDLabelView       title : "Enable or disable Auto-Recharge"
@@ -28,12 +28,12 @@ class Payment_Settings extends Payment_TabContent
 
     @wrapper.addSubView form2       = new KDFormView delegate : @
     form2.addSubView                  new KDHeaderView      type : "small", title : "Stored Payment Methods:"
-    form2.addSubView    historyList = new Payment_OverviewHistoryList delegate : @, subItemClass : Payment_PaymentMethodListItem,@dummyStoredPaymentMethods
+    form2.addSubView    historyList = new Payment_OverviewHistoryList delegate : @, itemClass : Payment_PaymentMethodListItem,@dummyStoredPaymentMethods
 
-    # form2.addSubView    addPayPal   = new KDButtonView title : "Add a Paypal Account", style : "small-gray" 
-    # form2.addSubView    addCC       = new KDButtonView title : "Add a Credit Card", style : "small-gray" 
+    # form2.addSubView    addPayPal   = new KDButtonView title : "Add a Paypal Account", style : "small-gray"
+    # form2.addSubView    addCC       = new KDButtonView title : "Add a Credit Card", style : "small-gray"
     form2.addSubView    addPaymentMethod = new KDButtonView title : "Add Payment Method", style : "small-gray" ,callback:@addNewPaymentMethod
-  
+
   addNewPaymentMethod:->
     modal = new KDModalView
       title   : "Add a new Payment Method"
@@ -41,7 +41,7 @@ class Payment_Settings extends Payment_TabContent
       overlay : yes
       width   : 600
       height  : 300
-    
+
     #@modal.addSubView (appTabs = new Payment_ModalTabs delegate : @),'.kdmodal-content'
     # modal.addSubView (new KDButtonView (title : "Add Payment Method", style : "small-gray")),'.kdmodal-content'
     #tabNames = ["Credit Card","Direct Debit"]#"Google checkout","Amazon","PayPal","Moneybookers"]
@@ -51,7 +51,7 @@ class Payment_Settings extends Payment_TabContent
     #tabs = {}
     #for name in tabNames
     #  tab = new KDTabPaneView null,null
-    #  appTabs.addPane tab 
+    #  appTabs.addPane tab
     #  tab.setTitle name
     #  tabs[name] = tab
     #
@@ -72,7 +72,7 @@ class Payment_AddCreditCardView extends KDFormView
   constructor:(options={})->
     options.callback = @formSubmit
     super options
-  
+
   viewAppended:->
     modal = @parent
     #@addSubView form = new KDFormView
@@ -80,17 +80,17 @@ class Payment_AddCreditCardView extends KDFormView
     #    log formData
     @addSubView fieldset1                = new KDCustomHTMLView "fieldset"
     fieldset1.addSubView cardNumberLabel = new KDLabelView title : "Card Number"
-    fieldset1.addSubView cardNumber      = new KDInputView 
+    fieldset1.addSubView cardNumber      = new KDInputView
       name : "card-number"
       cssClass : "big"
       label : cardNumberLabel
       defaultValue : "xxxx-xxxx-xxxx-xxxx"
-      validate  : 
+      validate  :
         event     : "blur"
         rules     : "creditCard"
         messages  :
           creditCard : "correct credit card please"
-    
+
     @listenTo
       KDEventTypes : "ValidatorHasToSay"
       listenedToInstance : cardNumber
@@ -104,7 +104,7 @@ class Payment_AddCreditCardView extends KDFormView
     fieldset2.addSubView cardOwner       = new KDInputView name : "card-owner",cssClass : "middle",label : cardOwnerLabel,defaultValue : "Justin Bieber"
 
     fieldset2.addSubView expiryLabel     = new KDLabelView title : "Expiry Date"
-    fieldset2.addSubView expiryMonths    = new KDInputView 
+    fieldset2.addSubView expiryMonths    = new KDInputView
       type : "select"
       name : "card-exp-month"
       cssClass : "small"
@@ -112,7 +112,7 @@ class Payment_AddCreditCardView extends KDFormView
       defaultValue  : (new Date().getMonth())
       selectOptions : __utils.getMonthOptions()
 
-    fieldset2.addSubView expiryMonths    = new KDInputView 
+    fieldset2.addSubView expiryMonths    = new KDInputView
       type : "select"
       name : "card-exp-year"
       cssClass : "small"
@@ -132,16 +132,16 @@ class Payment_AddCreditCardView extends KDFormView
         modal.destroy()
         no
     buttons.addSubView okButton = new KDButtonView title: 'Add a payment method', style: 'cupid-green'
-    
+
   formSubmit:(formData)->
     KDData::invokeServerSide
       addPaymentMethod  :
         params: formData
         middleware: (err, params, result)->
-          console.log arguments
+          log arguments
     no
-    
-    
+
+
 class Payment_AddDirectDebitView extends KDView
   viewAppended:->
     @addSubView label = new KDLabelView title : "Bank Account"
@@ -160,4 +160,3 @@ class Payment_PaymentMethodListItem extends KDListItemView
       <a href='#' class='propagateRemovePaymentMethod fr'>Remove</a>
       <span class='fr'>#{data.medium.id}</span>
       "
-  

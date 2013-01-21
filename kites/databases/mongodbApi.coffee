@@ -103,7 +103,7 @@ class MongoDB
                   queue.push ->
                     callback null, dbInfo
                   daisy queue
-          
+
 
   createDatabase : (options,callback)->
 
@@ -113,14 +113,14 @@ class MongoDB
 
     #
     # options =
-    #   username : koding user that makes the call    
+    #   username : koding user that makes the call
     #   dbUser    : String # db username
     #   dbName    : String # database name
     #   dbPass    : String that holds the password
     #
 
     {username,dbUser,dbName,dbPass} = options
-    
+
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
     #
@@ -131,8 +131,8 @@ class MongoDB
     # so we can count how many databases this user already has.
     # if user is granted permission to another database
     # we know how many he owns, how many he can access separately.
-    # -------------------------------    
-    
+    # -------------------------------
+
     dbConf = {dbName,dbUser,dbPass}
 
     dbConf.dbHost = @mongoHost
@@ -151,7 +151,7 @@ class MongoDB
           callback err
         else
           callback null,dbsArray.length
-  
+
     dbCount username,(err,dbNr)=>
       unless err
         if dbNr > 4 # 0..4
@@ -222,13 +222,13 @@ class MongoDB
     #   dbUser   : String # database username
     #   dbName   : String # database name
     #
-    
+
     {username,dbUser,dbName} = options
 
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
-    #  
-    console.log dbUser.substr(0,username.length+1) 
+    #
+    console.log dbUser.substr(0,username.length+1)
     console.log username+"_"
     console.log dbName.substr(0,username.length+1)
 

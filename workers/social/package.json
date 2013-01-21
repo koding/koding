@@ -1,0 +1,11 @@
+{
+  "name": "koding-social",
+  "version": "0.9.0",
+  "description": "Social side of koding.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christopher Thorn <chris@koding.com>",
+  "license": "Closed-source"
+}

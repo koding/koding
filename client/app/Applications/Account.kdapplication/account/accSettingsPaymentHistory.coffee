@@ -12,16 +12,16 @@ class AccountPaymentHistoryListController extends KDListViewController
         # { createdAt : "01/12/2011", status : "paid",      amount : "12.50", currency : "$", paidVia : "Visa 1256" }
       ]
     ,data
-    super options,data    
+    super options,data
 
 class AccountPaymentHistoryList extends KDListView
 
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountPaymentHistoryListItem
+      itemClass : AccountPaymentHistoryListItem
     ,options
-    super options,data    
+    super options,data
 
 class AccountPaymentHistoryListItem extends KDListItemView
   constructor:(options,data)->
@@ -38,7 +38,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
   click:(event)->
     if $(event.target).is "a.delete-icon"
       @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
-  
+
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>

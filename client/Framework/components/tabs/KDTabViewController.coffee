@@ -9,19 +9,14 @@ class KDTabViewController extends KDScrollView
     @setTabHandleContainer options.tabHandleContainer ? null
 
     @listenWindowResize()
-    
-    @listenTo
-      KDEventTypes        : ["PaneRemoved","paneAdded"]
-      listenedToInstance  : @
-      callback            : @resizeTabHandles
+
+    @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
+    @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
 
     if options.tabNames?
-      @listenTo
-        KDEventTypes        : "viewAppended"
-        listenedToInstance  : @
-        callback            : @createPanes
-          
-  
+      @on "viewAppended", @createPanes.bind @
+
+
   handleMouseDownDefaultAction:(clickedTabHandle,event)->
     for handle,index in @handles
       if clickedTabHandle is handle
@@ -51,9 +46,9 @@ class KDTabViewController extends KDScrollView
     for title in paneTitlesArray
       @addPane pane = new @tabConstructor title : title,null
       pane.setTitle title
-  
+
   addPane:(paneInstance)->
-    if paneInstance instanceof KDTabPaneView 
+    if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
       @addHandle newTabHandle = new tabHandleClass
@@ -61,21 +56,21 @@ class KDTabViewController extends KDScrollView
         title   : paneInstance.options.name
         hidden  : paneInstance.options.hiddenHandle
         view    : paneInstance.options.tabHandleView
-      paneInstance.tabHandle = newTabHandle      
+      paneInstance.tabHandle = newTabHandle
       @listenTo
         KDEventTypes : "click"
         listenedToInstance : newTabHandle
         callback : @handleMouseDownDefaultAction
       @appendPane paneInstance
       @showPane paneInstance
-      @handleEvent type : "PaneAdded",pane : paneInstance
+      @emit "PaneAdded", paneInstance
       return paneInstance
     else
-      warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead." 
+      warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
       false
 
   removePane:(pane)->
-    pane.handleEvent type : "KDTabPaneDestroy"
+    pane.emit "KDTabPaneDestroy"
     index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
     @panes.splice(index,1)
@@ -86,7 +81,7 @@ class KDTabViewController extends KDScrollView
     if isActivePane
       newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
       @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
-    @handleEvent type : "PaneRemoved"
+    @emit "PaneRemoved"
 
   # ADD/REMOVE HANDLES
   addHandle:(handle)->
@@ -96,7 +91,7 @@ class KDTabViewController extends KDScrollView
       handle.setClass "hidden" if handle.getOptions().hidden
       return handle
     else
-      warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead." 
+      warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead."
 
   removeHandle:()->
 
@@ -130,56 +125,57 @@ class KDTabViewController extends KDScrollView
   getHandleByIndex:(index)-> @handles[index]
 
   getPaneIndex:(aPane)->
+    return unless aPane
     result = 0
     for pane,index in @panes
       result = index if pane is aPane
     result
-  
+
   #NAVIGATING
   showPaneByIndex:(index)->
     @showPane @getPaneByIndex index
-  
+
   showPaneByName:(name)->
     @showPane @getPaneByName name
-    
+
   showNextPane:->
     activePane  = @getActivePane()
     activeIndex = @getPaneIndex activePane
     @showPane @getPaneByIndex activeIndex + 1
-    
+
   showPreviousPane:->
     activePane  = @getActivePane()
     activeIndex = @getPaneIndex activePane
     @showPane @getPaneByIndex activeIndex - 1
-    
+
 
   #MODIFY PANES/HANDLES
   setPaneTitle:(pane,title)->
     handle = @getHandleByPane pane
     handle.getDomElement().find("b").html title
-    
+
   getHandleByPane: (pane) ->
     index   = @getPaneIndex pane
     handle  = @getHandleByIndex index
-  
+
   hideCloseIcon:(pane)->
     index = @getPaneIndex pane
     handle = @getHandleByIndex index
     handle.getDomElement().addClass("hide-close-icon")
-    
+
   resizeTabHandles:->
     return if @_tabHandleContainerHidden
-    # 
+    #
     # visibleHandles = []
     # visibleTotalSize = 0
-    # 
+    #
     # #FIX hardcoded values
     # containerSize = @tabHandleContainer.getWidth()
     # for handle in @handles
     #   unless handle.$().hasClass("hidden")
     #     visibleHandles.push handle
     #     visibleTotalSize += handle.getWidth()
-    # 
+    #
     # if containerSize-50 < visibleTotalSize
     #   for handle in visibleHandles
     #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15,200
@@ -190,7 +186,5 @@ class KDTabViewController extends KDScrollView
     #   for handle in visibleHandles
     #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15
 
-  _windowDidResize:(event)=>
-    @resizeTabHandles @,event
-    
-    
+  _windowDidResize:(event)=> @resizeTabHandles event
+

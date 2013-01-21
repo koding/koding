@@ -33,19 +33,19 @@ class HomeSlideShowHolder extends JView
 
 
   pistachio:->
-    
+
     # <h1>Isn't it about time to say goodbye to localhost? </h1>
     # <h2>We're a few developers who think there is a better way to work. </h2>
     """
     {{> @leftArrow}}
     {{> @rightArrow}}
     {{> @slideShow}}
-    """    
+    """
 
 class HomeSlideShow extends KDScrollView
 
   viewAppended:->
-    
+
     @setTemplate @pistachio()
     @template.update()
     @listenWindowResize()
@@ -88,12 +88,12 @@ class HomeSlideShow extends KDScrollView
     one    = total / amount
     pos    = index or Math.round actual / one
     pos    = pos + addend
-    
+
     if pos < 0 then pos = 0
     else if pos > amount-1 then pos = amount-1
-    
+
     @$().animate scrollLeft : pos * one, 500
-    
+
     # @$('li').removeClass "in"
     # @$('li').eq(pos).addClass "in"
 
@@ -138,42 +138,42 @@ class HomeMainView extends KDScrollView
     # mainController = @getSingleton("mainController")
     @registerListener
       KDEventTypes : "AboutButtonClicked"
-      listener     : @ 
+      listener     : @
       callback     : (pubInst,event)=>
         @showAboutDisplay()
-  
+
 
   putSlideShow:->
 
     @addSubView @slideHolder = new KDView
       tagName  : "header"
       cssClass : "slide-holder"
-    
+
     @slideHolder.addSubView slide = new IntroView
       cssClass : "slide"
       delegate : @
-  
+
     return @slideHolder
 
   putWidgets:->
 
     @addSubView @widgetHolder = new HomeWidgetHolder
       cssClass : 'widget-holder clearfix'
-    
+
     return @widgetHolder
 
   putTechnologies:->
-    
-    @addSubView @technologies = new TechnologyView 
+
+    @addSubView @technologies = new TechnologyView
       tagName     : 'section'
 
     return @technologies
-      
+
   putScreenshotDemo:->
-    
+
     @addSubView @screenshotDemo  = new ScreenshotDemoView
       tagName     : 'section'
-      
+
     return @screenshotDemo
 
   putFooter:->
@@ -186,7 +186,7 @@ class HomeMainView extends KDScrollView
       about    : no
 
     return @footer
-  
+
   _windowDidResize:->
     # h = @getHeight()
     # @slideHolder.setHeight h - 100
@@ -194,18 +194,12 @@ class HomeMainView extends KDScrollView
 
   showAboutDisplay:->
     if not @aboutIsOpen
-      @aboutIsOpen = yes
+      @aboutIsOpen             = yes
       contentDisplayController = @getSingleton "contentDisplayController"
-      controller = new ContentDisplayControllerAbout null, null
-      contentDisplay = controller.getView()
-      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-      
-      # we should only do this here because this is the only place where there's only one contentDisplayController
-      contentDisplayController.registerListener
-        KDEventTypes  : "ContentDisplayWantsToBeHidden"
-        listener      : @
-        callback      : ()=>
-          @aboutIsOpen = no
+      controller               = new ContentDisplayControllerAbout null, null
+      contentDisplay           = controller.getView()
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+      contentDisplayController.on "ContentDisplayWantsToBeHidden", => @aboutIsOpen = no
 
 
 class IntroView extends KDView
@@ -242,7 +236,7 @@ class IntroView extends KDView
       </div>
     </div>
     """
-  
+
   click:(event)->
     if $(event.target).is('.reg')
       @getSingleton('mainController').loginScreen.slideDown =>
@@ -250,24 +244,24 @@ class IntroView extends KDView
     else if $(event.target).is('.learn')
       homeView = @getDelegate()
       homeView.$().animate scrollTop : homeView.technologies.$().position().top, 400
-      
+
 
 class HomeWidgetHolder extends KDView
-  
+
   constructor:->
     super
-    loaderOptions = 
+    loaderOptions =
       size          :
         width       : 30
       loaderOptions :
         color       : "#666666"
-        shape       : "spiral" 
+        shape       : "spiral"
         diameter    : 30
         density     : 30
         range       : 0.6
         speed       : 1.2
         FPS         : 25
-    
+
     @membersLoader  = new KDLoaderView loaderOptions
     @activityLoader = new KDLoaderView loaderOptions
     @topicsLoader   = new KDLoaderView loaderOptions
@@ -278,7 +272,7 @@ class HomeWidgetHolder extends KDView
         count   : "00000"
       Websites  :
         count   : "00000"
-    
+
     @moreActivity = new KDCustomHTMLView
       tagName : 'a'
       partial : "Want to See More Activity"
@@ -291,17 +285,17 @@ class HomeWidgetHolder extends KDView
       tagName : 'a'
       partial : "View More Members"
       click   : => @notify()
-  
+
   notify:->
     new KDNotificationView
       title : 'Please login/register!'
-    
+
   showLoaders:->
     @membersLoader.show()
     @activityLoader.show()
     @topicsLoader.show()
     @countersLoader.show()
-  
+
   pistachio:->
     """
     <aside>
@@ -337,7 +331,7 @@ class CounterGroupView extends KDCustomHTMLView
   constructor:(options = {},data)->
     options.tagName = "div"
     super options,data
-    
+
   viewAppended:->
     counters = @getData()
     for title, options of counters
@@ -366,15 +360,15 @@ class CounterGroupView extends KDCustomHTMLView
       </div>
       #{title}
     </div>
-    """  
+    """
 
 class HomeMemberItemView extends KDListItemView
   constructor:(options,data)->
-    options = options ? {} 
+    options = options ? {}
     options.type = "member"
     super options,data
-    
-    @avatar  = new AvatarStaticView 
+
+    @avatar  = new AvatarStaticView
       size        :
         width     : 30
         height    : 30
@@ -386,8 +380,8 @@ class HomeMemberItemView extends KDListItemView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    
-  
+
+
   timeago:(timestamp = 0)->
     $.timeago timestamp
 
@@ -402,7 +396,7 @@ class HomeMemberItemView extends KDListItemView
 
 class HomeTopicItemView extends KDListItemView
   constructor:(options,data)->
-    options = options ? {} 
+    options = options ? {}
     options.type = "topic"
     super options,data
 
@@ -434,12 +428,12 @@ class HomeActivityItem extends KDListItemView
     CNewMemberBucket    : "new-member"
 
   constructor:(options,data)->
-    options = options ? {} 
+    options = options ? {}
     options.type = "activity"
     super options,data
 
 
-    if data.anchor?.constructorName is "JTag"    
+    if data.anchor?.constructorName is "JTag"
       @user = new ProfileTextView
         tagName           : "strong"
         origin            :
@@ -492,15 +486,15 @@ class TechnologyView extends KDView
       domId       : 'technologies'
     , options
     super options, data
-    
+
   viewAppended:->
     @addSubView techHeader = new KDCustomHTMLView
       tagName     : 'h3'
       partial     : 'Pre-Supported Technologies'
-    
+
     for technology in @getTechnologies()
       @addSubView techItem = new TechnologyItemView {}, technology
-      
+
     @addSubView techNote = new KDCustomHTMLView
       tagName     : 'p'
       cssClass    : 'tech-note'
@@ -543,7 +537,7 @@ class TechnologyView extends KDView
     ]
 
 
-    
+
 class TechnologyItemView extends KDView
   constructor:(options, data)->
     options = $.extend
@@ -553,23 +547,23 @@ class TechnologyItemView extends KDView
       click       :-> noop
     , options
     super options, data
-    
-    
+
+
 class ScreenshotDemoView extends KDView
   constructor:(options, data)->
     options = $.extend
       cssClass    : 'screenshot-demo'
     , options
     super options, data
-    
+
   viewAppended:->
     screenshotArray = []
     mainController = @getSingleton('mainController')
-    
+
     @addSubView ScreenshotHeader = new KDCustomHTMLView
       tagName     : 'h3'
       partial     : 'Screenshot Demo'
-      
+
     @addSubView ScreenshotSub = new KDCustomHTMLView
       tagName     : 'p'
       cssClass    : 'screenshot-sub'
@@ -578,13 +572,13 @@ class ScreenshotDemoView extends KDView
         if $(event.target).is '.screenshot-login'
           mainController.loginScreen.slideDown =>
             mainController.loginScreen.animateToForm "register"
-        
+
     for screenshot in @screenshots
-      @addSubView screenshotItem = new ScreenshotItemView 
+      @addSubView screenshotItem = new ScreenshotItemView
         cssClass    : 'screenshot-item'
       , screenshot
       screenshotArray.push screenshotItem
-      
+
     @registerListener
       KDEventTypes  : "SetScreenshotModal"
       listener      : @
@@ -618,41 +612,41 @@ class ScreenshotDemoView extends KDView
         thumb         : '../images/demo-screenshots/sc-apps-thumb.png'
       }
     ]
-    
+
   createScreenshotModal:(itemCalling, screenshot, screenshotArray)->
     @newModal = new ScreenshotDemoModalView { parent: itemCalling }, { screenToShow : screenshot, screenshots : @screenshots, allScreenItems : screenshotArray }
 
 class ScreenshotItemView extends KDView
   constructor:->
     super
-    
+
   viewAppended:->
     @setPartial @partial()
     @prepend screenshotLink = new ScreenshotItemLinkView
       tagName     : 'a'
       cssClass    : 'zoom-shot'
       parent      : @
-    , @getData()  
+    , @getData()
 
   partial:->
     {title, description} = @getData()
     """
       <h4>#{title}</h4><p>#{description}</p>
     """
-   
+
 class ScreenshotItemLinkView extends KDView
   constructor:->
     super
-    
+
   viewAppended:->
     @setPartial @partial()
-    
+
   partial:->
     {thumb} = @getData()
     """
       <img src="#{thumb}" />
     """
-  
+
   click:(event)=>
     @parent.parent.propagateEvent {KDEventType : 'SetScreenshotModal'}, {screenshot : @getData(), itemCalling : @}
 
@@ -671,7 +665,7 @@ class ScreenshotDemoModalView extends KDModalView
       overlay     : yes
     , options
     super options, data
-    
+
   setDomElement:(cssClass)->
     @domElement = $ "
     <div class='kdmodal #{cssClass}'>
@@ -688,13 +682,13 @@ class ScreenshotDemoModalView extends KDModalView
     @animateUp()
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
-    
+
   _windowDidResize:->
     {winWidth, winHeight} = @getSingleton("windowController")
     if (winHeight / winWidth) > .625
       widthToGoTo = winWidth * .8
       heightToGoTo = winHeight * .625
-    else 
+    else
       heightToGoTo = winHeight * .8
       widthToGoTo = heightToGoTo * 1.6
     topToGoTo = (winHeight / 2) - (heightToGoTo / 2) - 10
@@ -705,14 +699,14 @@ class ScreenshotDemoModalView extends KDModalView
       top       : topToGoTo
       left      : leftToGoTo
 
-  
+
   animateUp:->
     # .6282, 1.591
     {winWidth, winHeight} = @getSingleton("windowController")
     if (winHeight / winWidth) > .625
       widthToGoTo = winWidth * .8
       heightToGoTo = widthToGoTo * .628
-    else 
+    else
       heightToGoTo = winHeight * .8
       widthToGoTo = heightToGoTo * 1.591
     topToGoTo = (winHeight / 2) - (heightToGoTo / 2) - 10
@@ -723,8 +717,8 @@ class ScreenshotDemoModalView extends KDModalView
       top       : topToGoTo
       left      : leftToGoTo
     , 500
-    
-    
+
+
   animateDown:(item)->
     modal = @
     newHeight = Math.floor item.$('img').height()
@@ -735,7 +729,7 @@ class ScreenshotDemoModalView extends KDModalView
       left      : item.getX() + 10
     , 500, => modal.destroy()
 
-    
+
   setNextScreenshot:(oldScreenshot)->
     {screenshots} = @getData()
     thisOne = no
@@ -744,30 +738,30 @@ class ScreenshotDemoModalView extends KDModalView
         theScreenshot = screenshot
         break
       thisOne = yes if screenshot.title is oldScreenshot.title
-    
+
     if not theScreenshot?
       theScreenshot = screenshots[0]
-    
+
     for screenshot in @getSubViews()
       screenshot.setClass 'active' if screenshot.getData().title is theScreenshot.title
-      
+
   onBeforeDestroy:->
     {allScreenItems} = @getData()
     for screenshot in @getSubViews()
       theScreenshot = screenshot if screenshot.$().hasClass 'active'
-      
+
     for screenshotItem in allScreenItems
       theReturnSpot = screenshotItem if screenshotItem.getData().title is theScreenshot.getData().title
-    
+
     @animateDown theReturnSpot
-    
+
   click:(e)->
     @onBeforeDestroy() if $(e.target).is(".closeModal")
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
   keyUp:(e)->
     @onBeforeDestroy() if e.which is 27
-    
+
   putOverlay:()->
     @$overlay = $ "<div/>"
       class : "kdoverlay"
@@ -781,15 +775,13 @@ class ScreenshotDemoModalView extends KDModalView
 class ScreenshotModalItemView extends KDView
   viewAppended:->
     @setPartial @partial()
-    
+
   partial:->
     {title, image} = @getData()
     """
       <img src="#{image}" alt="#{title}" />
     """
-    
+
   click:(event)->
     @unsetClass 'active'
     @parent.setNextScreenshot @getData()
-    
-  

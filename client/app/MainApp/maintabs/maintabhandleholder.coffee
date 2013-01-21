@@ -4,14 +4,12 @@ class MainTabHandleHolder extends KDView
 
     mainView = @getDelegate()
     @addPlusHandle()
-        
-    @listenTo
-      KDEventTypes       : ["PaneDidShow","PaneRemoved"]
-      listenedToInstance : mainView.mainTabView
-      callback           : @_repositionPlusHandle
-      
+
+    mainView.mainTabView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
+    mainView.mainTabView.on "PaneRemoved", => @_repositionPlusHandle()
+
     @listenWindowResize()
-  
+
   click:(event)->
     @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
 
@@ -30,21 +28,21 @@ class MainTabHandleHolder extends KDView
           contextMenu = new JContextMenu
             event    : event
             delegate : @plusHandle
-          , 
-            'New Tab'              :            
-              callback             : (source, event)=> 
+          ,
+            'New Tab'              :
+              callback             : (source, event)=>
                 appManager.tell "StartTab", 'openFreshTab'
                 contextMenu.destroy()
               separator            : yes
-            'Ace Editor'           :         
-              callback             : (source, event)=> 
+            'Ace Editor'           :
+              callback             : (source, event)=>
                 appManager.newFileWithApplication "Ace"
                 contextMenu.destroy()
-            'CodeMirror'           :         
+            'CodeMirror'           :
               callback             : (source, event)=> appManager.notify()
-            'yMacs'                :          
+            'yMacs'                :
               callback             : (source, event)=> appManager.notify()
-            'Pixlr'                :          
+            'Pixlr'                :
               callback             : (source, event)=> appManager.notify()
               separator            : yes
             'Search the App Store' :
@@ -55,23 +53,26 @@ class MainTabHandleHolder extends KDView
 
   removePlusHandle:()->
     @plusHandle.destroy()
-  
+
   _plusHandleClicked: () ->
     if @plusHandle?.__shouldAdd
       @plusHandle.delegate.propagateEvent KDEventType : 'AddEditorClick', @plusHandle
       # appManager.newFileWithApplication "Ace"
     else
       appManager.openApplication "StartTab"
-  
-  _repositionPlusHandle:(pubInst,event)->
+      # @getSingleton('router').handleRoute "/Develop"
+
+  _repositionPlusHandle:(event)->
+
     appTabCount = 0
     visibleTabs = []
-    for pane in pubInst.panes
+
+    for pane in @getDelegate().mainTabView.panes
       if pane.options.type is "application"
         visibleTabs.push pane
         pane.tabHandle.unsetClass "first"
         appTabCount++
-    
+
     if appTabCount is 0
       @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"

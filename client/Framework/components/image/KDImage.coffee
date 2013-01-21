@@ -1,17 +1,17 @@
 class KDImage
   {round} = Math
-  
+
   daisy = (args, fn) ->
     setTimeout args.next = ->
       if (f = args.shift()) then !!f(args) or yes else no
     , 0
-  
+
   @dataURItoBlob = (dataURI) ->
     byteString = atob(dataURI.split(",")[1])
     mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]
     ab = new ArrayBuffer byteString.length
     ia = new Uint8Array ab
-    
+
     i = 0
     while i < byteString.length
       ia[i] = byteString.charCodeAt(i)
@@ -21,11 +21,11 @@ class KDImage
     bb.append ab
     bb.getBlob mimeString
 
-  
+
   constructor:(@data, @format='image/png')->
     # {@data} = file
     @queue = []
-  
+
   @process =(action, algorithm)->
     @::[action] = (options, callback)->
       kallback = (@data)=> callback data
@@ -33,15 +33,15 @@ class KDImage
         @load @data, (data)=> algorithm.call @, data, options, kallback
       else
         algorithm.call @, @data, options, kallback
-  
+
   load:(src, callback)->
     img = new Image
     img.src = src
     img.onload = ->
       callback img
-  
+
   toBlob:-> KDImage.dataURItoBlob @data
-  
+
   processAll:(action, callback)->
     img = @
     steps = (process for process, i in action when i % 2 is 0)
@@ -50,7 +50,7 @@ class KDImage
       -> img[process] options, queue.next
     queue.push -> callback img
     daisy queue
-  
+
   @process 'scale', (data, {shortest, width, height}, callback)->
     if shortest?
       if data.width < data.height
@@ -67,7 +67,7 @@ class KDImage
       0, 0, width, height
     )
     callback canvas.toDataURL(@format)
-  
+
   @process 'crop', (data, {top, left, width, height}, callback)->
     top ?= round (height - data.height) / 2
     left ?= round (width - data.width) / 2
@@ -79,7 +79,7 @@ class KDImage
       left, top, data.width, data.height
     )
     callback canvas.toDataURL(@format)
-  
+
   createView:->
     new KDCustomHTMLView
       tagName: 'img'

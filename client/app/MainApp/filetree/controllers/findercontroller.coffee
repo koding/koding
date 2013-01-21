@@ -3,7 +3,7 @@ class NFinderController extends KDViewController
   constructor:(options = {}, data)->
 
     {nickname}  = KD.whoami().profile
-    
+
     options.view = new KDView cssClass : "nfinder file-container"
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
@@ -25,8 +25,8 @@ class NFinderController extends KDViewController
     super options, data
 
     @kiteController = @getSingleton('kiteController')
-    @treeController = new NFinderTreeController treeOptions, []
 
+    @treeController = new NFinderTreeController treeOptions, []
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
     @treeController.on "folder.expanded", (folder)=> @setRecentFolder folder.path
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
@@ -35,13 +35,23 @@ class NFinderController extends KDViewController
 
     mainView.addSubView @treeController.getView()
     @reset()
+    @viewLoaded = yes
+    @utils.killWait @loadDefaultStructureTimer
 
-    if @treeController.getOptions().useStorage
-      appManager.on "AppManagerOpensAnApplication", (appInst)=>
-        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
-          @loadDefaultStructure()
 
-  reset:->
+    # temp hack, if page opens in develop section.
+    @utils.wait 2500, =>
+      @getSingleton("mainView").sidebar._windowDidResize()
+
+#    if @treeController.getOptions().useStorage
+#      appManager.on "AppManagerOpensAnApplication", (appInst)=>
+#        if appInst instanceof StartTabAppController and not @defaultStructureLoaded
+#          @loadDefaultStructure()
+
+    # if @treeController.getOptions().useStorage
+    #   @loadDefaultStructure()
+
+  reset:()->
 
     delete @_storage
     {initialPath} = @treeController.getOptions() # not used, fix this
@@ -52,7 +62,6 @@ class NFinderController extends KDViewController
         name        : nickname
         path        : "/Users/#{nickname}"
         type        : "mount"
-
     else
       FSHelper.createFile
         name        : "guest"
@@ -60,9 +69,12 @@ class NFinderController extends KDViewController
         type        : "mount"
     @defaultStructureLoaded = no
     @treeController.initTree [@mount]
-    
+
     if @treeController.getOptions().useStorage
-      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+      unless @viewLoaded
+        @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+          @loadDefaultStructure()
+      else
         @loadDefaultStructure()
 
   loadDefaultStructure:->
@@ -71,7 +83,7 @@ class NFinderController extends KDViewController
     @defaultStructureLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
-    return unless KD.isLoggedIn()    
+    return unless KD.isLoggedIn()
     {nickname}     = KD.whoami().profile
     kiteController = KD.getSingleton('kiteController')
     @fetchStorage (storage)=>
@@ -90,18 +102,35 @@ class NFinderController extends KDViewController
       # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       @mount.emit "fs.fetchContents.started"
-      kiteController.run
-        withArgs  :
-          command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
-      , (err, response)=>
+
+      @utils.killWait kiteFailureTimer if kiteFailureTimer
+      kiteFailureTimer = @utils.wait 5000, =>
+        @treeController.notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+        @mount.emit "fs.fetchContents.finished"
+
+        @treeController.once 'fs.retry.scheduled', =>
+          @defaultStructureLoaded = no
+          @loadDefaultStructure()
+
+      @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
+          @utils.killWait kiteFailureTimer
           @treeController.addNodes files
+          @treecontroller?.emit 'fs.retry.success'
+
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller
         kiteController.emit "UserEnvironmentIsCreated"
         @mount.emit "fs.fetchContents.finished"
 
+
+  multipleLs:(pathArray, callback)->
+
+    KD.getSingleton('kiteController').run
+      withArgs  :
+        command : "ls \"#{pathArray.join("\" \"")}\" -lpva --group-directories-first --time-style=full-iso"
+    , callback
 
   fetchStorage:(callback)->
 

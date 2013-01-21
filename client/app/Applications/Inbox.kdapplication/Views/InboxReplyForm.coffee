@@ -7,17 +7,20 @@ class InboxReplyForm extends NewCommentForm
     super options,data
 
   viewAppended:()->
-    {profile} = @getSingleton('mainController').getVisitor().currentDelegate
-    @addSubView @commentInput = new KDHitEnterInputView
+    {profile} = KD.whoami()
+    @addSubView @commentInput = new KDInputView
       type          : "textarea"
-      delegate      : @
       placeholder   : "Click here to reply..."
       # autogrow      : yes
       validate      :
-        rules       : 
-          required  : yes 
+        rules       :
+          required  : yes
         messages    :
           required  : "Reply field is empty..."
-      callback      : @commentInputReceivedEnter
+
+    @addSubView @sendButton = new KDButtonView
+      title     : "Send"
+      style     : "clean-gray inside-button"
+      callback  : @commentInputReceivedEnter
 
     @attachListeners()

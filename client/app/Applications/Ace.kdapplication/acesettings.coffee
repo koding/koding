@@ -1,10 +1,10 @@
-__aceSettings =    
+__aceSettings =
 
-  compilerCallNames: 
+  compilerCallNames:
     coffee    :
       class   : 'CoffeeScript'
       method  : 'compile'
-      options : 
+      options :
         bare  : on
 
   softWrapOptions: [
@@ -19,8 +19,8 @@ __aceSettings =
     ,
       value: 'free'
       title: 'Free'
-  ]  
-  
+  ]
+
   fontSizes: [
       value: 10
       title: '10px'
@@ -42,7 +42,7 @@ __aceSettings =
     ,
       value: 24
       title: '24px'
-  ]  
+  ]
 
   tabSizes: [
       value: 2
@@ -54,200 +54,108 @@ __aceSettings =
       value: 8
       title: '8 chars'
   ]
-  
-  # syntaxes: [
-  #     value: 'c_cpp'
-  #     title: 'C++'
-  #   ,
-  #     value: 'javascript'
-  #     title: 'Javascript'
-  #   ,
-  #     value: 'json'
-  #     title: 'JSON'
-  #   ,
-  #     value: 'coffee'
-  #     title: 'Coffee-script'
-  #   ,
-  #     value: 'css'
-  #     title: 'CSS'
-  #   ,
-  #     value: 'html'
-  #     title: 'HTML'
-  #   ,
-  #     value: 'java'
-  #     title: 'Java'
-  #   ,
-  #     value: 'perl'
-  #     title: 'Perl'
-  #   ,
-  #     value: 'php'
-  #     title: 'PHP'
-  #   ,
-  #     value: 'python'
-  #     title: 'Python'
-  #   ,
-  #     value: 'scss'
-  #     title: 'SCSS'
-  #   ,
-  #     value: 'ruby'
-  #     title: 'Ruby'
-  #   ,
-  #     value: 'svg'
-  #     title: 'SVG'
-  #   ,
-  #     value: 'xml'
-  #     title: 'XML'
-  #   ,
-  #     value: 'groovy'
-  #     title: 'Groovy'
-  #   ,
-  #     value: 'ocaml'
-  #     title: 'Ocaml'
-  #   ,
-  #     value: 'scad'
-  #     title: 'Scad'
-  #   ,
-  #     value: 'scala'
-  #     title: 'Scala'
-  #   , 
-  #     title: 'ColdFusion'
-  #     value: 'coldfusion'
-  #   , 
-  #     value: 'haxe'
-  #     title: 'Haxe'
-  #   ,
-  #     value: 'latex'
-  #     title: 'Latex'
-  #   ,
-  #     title: 'Lua'
-  #     value: 'lua'
-  #   ,
-  #     title: 'Markdown'
-  #     value: 'markdown'
-  #   ,
-  #     title: 'PowerShell'
-  #     value: 'powershell'
-  #   ,
-  #     title: 'SQL'
-  #     value: 'sql'
-  #   ].sort (a, b) ->
-  #     if a.title < b.title then -1 else 1
-  themes: [
-      value: 'clouds'
-      title: 'Clouds'
-    ,
-      value: 'clouds_midnight'
-      title: 'Clouds Midnight'
-    ,
-      value: 'cobalt'
-      title: 'Cobalt'
-    ,
-      value: 'dawn'
-      title: 'Dawn'
-    ,
-      value: 'eclipse'
-      title: 'Eclipse'
-    ,
-      value: 'idle_fingers'
-      title: 'Idle Fingers'
-    ,
-      value: 'kr_theme'
-      title: 'KR Theme'
-    ,
-      value: 'merbivore'
-      title: 'Merbivore'
-    ,
-      value: 'merbivore_soft'
-      title: 'Merbivore Soft'
-    ,
-      value: 'mono_industrial'
-      title: 'Mono Industrial'
-    ,
-      value: 'monokai'
-      title: 'Monokai'
-    ,
-      value: 'pastel_on_dark'
-      title: 'Pastel On Dark'
-    ,
-      value: 'twilight'
-      title: 'Twilight'
-    ,
-      value: 'vibrant_ink'
-      title: 'Vibtrant Ink'
-    ,
-      value: 'crimson_editor'
-      title: 'Crimson Editor'
-    ,
-      value: 'solarized_dark'
-      title: 'Solarized Dark'
-    ,
-      value: 'solarized_light'
-      title: 'Solarized Light'
-    ,
-      title: 'Tomorrow'
-      value: 'tomorrow'
-    ,
-      title: 'Tomorrow Night'
-      value: 'tomorrow_night'
-    ,
-      title: 'Tomorrow Night Blue'
-      value: 'tomorrow_night_blue'
-    ,
-      title: 'Tomorrow Night Bright'
-      value: 'tomorrow_night_bright'
-    ,
-      title: 'Tomorrow Night Eighties'
-      value: 'tomorrow_night_eighties'
-    ].sort (a, b) ->
-      if a.title < b.title then -1 else 1
+
+  themes:
+    Bright : [
+      { title: 'Chrome',                value: 'chrome' }
+      { title: 'Clouds',                value: 'clouds' }
+      { title: 'Crimson Editor',        value: 'crimson_editor' }
+      { title: 'Dawn',                  value: 'dawn' }
+      { title: 'Dreamweaver',           value: 'dreamweaver' }
+      { title: 'Eclipse',               value: 'eclipse' }
+      { title: 'GitHub',                value: 'GitHub' }
+      { title: 'Solarized Light',       value: 'solarized_light' }
+      { title: 'TextMate',              value: 'textmate' }
+      { title: 'Tomorrow',              value: 'tomorrow' }
+      { title: 'XCode',                 value: 'xcode' }
+    ].sort (a, b) -> if a.title < b.title then -1 else 1
+
+    Dark : [
+      { title: 'Ambiance',              value: 'ambiance' }
+      { title: 'Clouds Midnight',       value: 'clouds_midnight' }
+      { title: 'Cobalt',                value: 'cobalt' }
+      { title: 'Idle Fingers',          value: 'idle_fingers' }
+      { title: 'KR Theme',              value: 'kr_theme' }
+      { title: 'Merbivore',             value: 'merbivore' }
+      { title: 'Merbivore Soft',        value: 'merbivore_soft' }
+      { title: 'Mono Industrial',       value: 'mono_industrial' }
+      { title: 'Monokai',               value: 'monokai' }
+      { title: 'Pastel on Dark',        value: 'pastel_on_dark' }
+      { title: 'Solarized Dark',        value: 'solarized_dark' }
+      { title: 'Twilight',              value: 'twilight' }
+      { title: 'Tomorrow Night',        value: 'tomorrow_night' }
+      { title: 'Tomorrow Night Blue',   value: 'tomorrow_night_blue' }
+      { title: 'Tomorrow Night Bright', value: 'tomorrow_night_bright' }
+      { title: 'Tomorrow Night 80s',    value: 'tomorrow_night_eighties' }
+      { title: 'Vibrant Ink',           value: 'vibrant_ink' }
+    ].sort (a, b) -> if a.title < b.title then -1 else 1
+
 
   syntaxAssociations :
 
+    abap        : ["ABAP"         , "abap"]
+    asciidoc    : ["ASCIIDoc"     , "AsciiDoc"]
     coffee      : ["CoffeeScript" , "coffee|Cakefile"]
     coldfusion  : ["ColdFusion"   , "cfm"]
     csharp      : ["C#"           , "cs"]
     css         : ["CSS"          , "css"]
+    dart        : ["Dart"         , "dart"]
     diff        : ["Diff"         , "diff|patch"]
     golang      : ["Go"           , "go"]
+    glsl        : ["GLSL"         , "glsl"]
     groovy      : ["Groovy"       , "groovy"]
     haxe        : ["haXe"         , "hx"]
+    haml        : ["HAML"         , "haml"]
     html        : ["HTML"         , "htm|html|xhtml"]
     c_cpp       : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
     clojure     : ["Clojure"      , "clj"]
+    jade        : ["Jade"         , "jade"]
     java        : ["Java"         , "java"]
     javascript  : ["JavaScript"   , "js"]
     json        : ["JSON"         , "json|manifest|kdapp"]
+    jsx         : ["JSX"          , "jsx"]
     latex       : ["LaTeX"        , "latex|tex|ltx|bib"]
     less        : ["LESS"         , "less"]
     liquid      : ["Liquid"       , "liquid"]
+    lisp        : ["Lisp"         , "lisp"]
+    lucene      : ["Lucene"       , "cfs"]
     lua         : ["Lua"          , "lua"]
+    luapage     : ["LuaPage"      , "lp"]
+    makefile    : ["MAKEFILE"     , "makefile"]
     markdown    : ["Markdown"     , "md|markdown"]
     ocaml       : ["OCaml"        , "ml|mli"]
     perl        : ["Perl"         , "pl|pm"]
     pgsql       : ["pgSQL"        , "pgsql"]
     php         : ["PHP"          , "php|phtml"]
+    rhtml       : ["RHTML"        , "rhtml"]
+    r           : ["R"            , "r"]
+    rdoc        : ["RDOC"         , "rdoc"]
     powershell  : ["Powershell"   , "ps1"]
     python      : ["Python"       , "py"]
     ruby        : ["Ruby"         , "ru|gemspec|rake|rb"]
     scad        : ["OpenSCAD"     , "scad"]
     scala       : ["Scala"        , "scala"]
     scss        : ["SCSS"         , "scss|sass"]
+    stylus      : ["Stylus"       , "styl"]
     sh          : ["SH"           , "sh|bash|bat"]
     sql         : ["SQL"          , "sql"]
     svg         : ["SVG"          , "svg"]
+    tex         : ["TeX"          , "tex"]
     text        : ["Text"         , "txt"]
     textile     : ["Textile"      , "textile"]
+    typescript  : ["Typescript"   , "ts"]
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
     yaml        : ["YAML"         , "yaml"]
+    objectivec  : ["Objective C"  , "__dummy__"]
 
-  getSyntaxOptions : -> 
+  getSyntaxOptions : ->
 
     o = for syntax, info of __aceSettings.syntaxAssociations
       { title : info[0], value : syntax }
-    
+
     o.sort (a, b) -> if a.title < b.title then -1 else 1
-    
+
     return o
 
   aceToHighlightJsSyntaxMap :
@@ -257,36 +165,45 @@ __aceSettings =
     csharp      : "cs"
     css         : "css"
     diff        : "diff"
+    dart        : "dart"
     golang      : "go"
     # groovy      : null
     # haxe        : null
+    haml        : "haml"
     html        : "xml"
     c_cpp       : "cpp"
     # clojure     : null
+    jade        : "jade"
     java        : "java"
     javascript  : "javascript"
     json        : "javascript"
     # json        : "json"
     latex       : "tex"
     less        : "css"
+    lisp        : "lisp"
     # liquid      : null
     lua         : "lua"
-    # markdown    : "markdown"
-    # ocaml       : null
+    markdown    : "markdown"
+    ocaml       : "ocaml"
     perl        : "perl"
     pgsql       : "sql"
     php         : "php"
     powershell  : "bash"
     python      : "python"
+    r           : "r"
+    rhtml       : "rhtml"
     ruby        : "ruby"
     # scad        : null
     scala       : "scala"
     scss        : "css"
+    stylus      : "stylus"
     sh          : "bash"
     sql         : "sql"
+    typescript  : "ts"
     # svg         : null
     # text        : null
     # textile     : null
     xml         : "xml"
+    objectivec  : "objectivec"
     # xquery      : null
     # yaml        : null

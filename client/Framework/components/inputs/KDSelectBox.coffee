@@ -53,9 +53,20 @@ class KDSelectBox extends KDInputView
     @_$select.removeAttr "disabled"
 
   setSelectOptions:(options)->
-    for option in options
-      @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
+    unless options.length
+      for optGroup, subOptions of options
+        $optGroup = $ "<optgroup label='#{optGroup}'/>"
+        @_$select.append $optGroup
+        for option in subOptions
+          $optGroup.append "<option value='#{option.value}'>#{option.title}</option>"
+    else if options.length
+      for option in options
+        @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
+    else
+      warn "no valid options specified for the input:", @
+    
     @_$select.val @getDefaultValue()
+
     value = @getDefaultValue() + "" # casting number to string
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()

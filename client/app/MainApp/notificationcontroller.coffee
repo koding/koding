@@ -2,32 +2,38 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JStatusUpdate       : "status"
-    JCodeSnip           : "code snippet"
-    JQuestionActivity   : "question"
-    JDiscussionActivity : "discussion"
-    JLinkActivity       : "link"
-    JPrivateMessage     : "private message"
+    JStatusUpdate       : "<a href='#'>status</a>"
+    JCodeSnip           : "<a href='#'>code snippet</a>"
+    JQuestionActivity   : "<a href='#'>question</a>"
+    JDiscussion         : "<a href='#'>discussion</a>"
+    JLinkActivity       : "<a href='#'>link</a>"
+    JPrivateMessage     : "<a href='#'>private message</a>"
+    JOpinion            : "<a href='#'>opinion</a>"
+    JTutorial           : "<a href='#'>tutorial</a>"
+    JComment            : "<a href='#'>comment</a>"
+    JReview             : "<a href='#'>review</a>"
 
   constructor:->
 
     super
 
     @getSingleton('mainController').on "AccountChanged", (account)=>
-      @setListeners account
+      if account.bongo_.constructorName is 'JAccount'
+        @setListeners account
 
   setListeners:(account)->
 
     nickname = account.getAt('profile.nickname')
     if nickname
-      channelName = 'private-'+nickname+'-private'
-      bongo.mq.fetchChannel channelName, (channel)=>
-        channel.on 'notification', (notification)=>
-          @emit "NotificationHasArrived", notification
-          @prepareNotification notification if notification.contents
+      # channelName = 'private-'+nickname+'-private'
+      # KD.remote.fetchChannel channelName, (channel)=>
+      #  channel.on 'notificationArrived', (notification)=>
+      account.on 'notificationArrived', (notification) =>
+        @emit "NotificationHasArrived", notification
+        @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
-    
+
     # NOTIFICATION SAMPLES
 
     # 1 - < actor fullname > commented on your < activity type >.
@@ -39,24 +45,24 @@ class NotificationController extends KDObject
 
     options = {}
     {origin, subject, actionType, replier, liker, sender} = notification.contents
-    
-    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no    
+
+    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
     actor  = replier or liker or sender
-    
-    bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
-      
+
+    KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
+
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
-      
+
       options.title = switch actionType
-        when "reply"
+        when "reply", "opinion"
           if isMine
-            switch subject.constructorName 
+            switch subject.constructorName
               when "JPrivateMessage"
                 "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
               else
                 "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
           else
-            switch subject.constructorName 
+            switch subject.constructorName
               when "JPrivateMessage"
                 "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
               else
@@ -77,26 +83,34 @@ class NotificationController extends KDObject
       options.click = ->
         view = @
         if subject.constructorName is "JPrivateMessage"
-          appManager.openApplication "Inbox"          
+          appManager.openApplication "Inbox"
+        else if subject.constructorName in ["JComment", "JOpinion"]
+          KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+            # appManager.tell "Activity", "createContentDisplay", post
+            view.destroy()
         else
-          # ask chris if bongo.cacheable is good for this
-          bongo.api[subject.constructorName].one _id : subject.id, (err, post)->
-            appManager.tell "Activity", "createContentDisplay", post
+          # ask chris if KD.remote.cacheable is good for this
+          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
+            # appManager.tell "Activity", "createContentDisplay", post
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
             view.destroy()
       options.type  = actionType or ''
-      
+
       @notify options
 
   notify:(options  = {})->
 
     options.title or= 'notification arrived'
 
-    new KDNotificationView
+    notification = new KDNotificationView
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
-      duration : 5000
+      duration : 10000
+      showTimer: yes
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
-      click    : options.click    or noop
+
+    notification.once 'click', options.click
 
 

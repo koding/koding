@@ -8,13 +8,13 @@ class NFileItemView extends KDCustomHTMLView
     fileData = @getData()
 
     @loader = new KDLoaderView
-      size          : 
+      size          :
         width       : 16
       loaderOptions :
         # color       : @utils.getRandomHex()
         color       : "#222222"
         shape       : "spiral"
-        diameter    : 16    
+        diameter    : 16
         density     : 30
         range       : 0.4
         speed       : 1.5
@@ -23,7 +23,7 @@ class NFileItemView extends KDCustomHTMLView
     @icon = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon"
-    
+
     data.on "fs.*.started", => @showLoader()
     data.on "fs.*.finished", => @hideLoader()
 
@@ -31,7 +31,7 @@ class NFileItemView extends KDCustomHTMLView
     #   oldFile.emit "folderNeedsToRefresh", newFile
 
   destroy:->
-    
+
     @getData().off "fs.*.started"
     @getData().off "fs.*.finished"
     @getData().off "fs.saveAs.finished"
@@ -45,10 +45,11 @@ class NFileItemView extends KDCustomHTMLView
       @icon.$().attr "class", "icon #{extension} #{fileType}"
 
   render:->
-    
+
     super
     @decorateItem()
-    
+
+  mouseDown:-> yes
 
   viewAppended:->
 
@@ -58,12 +59,12 @@ class NFileItemView extends KDCustomHTMLView
     @decorateItem()
 
   showLoader:->
-    
+
     @parent?.isLoading = yes
     @icon.hide()
     @loader.show()
-  
-  hideLoader:->  
+
+  hideLoader:->
 
     @parent?.isLoading = no
     @icon.show()
@@ -76,5 +77,5 @@ class NFileItemView extends KDCustomHTMLView
       {{> @icon}}
       {{> @loader}}
       {span.title{ #(name)}}
-      <span class='chevron-arrow'></span>
+      <span class='chevron'></span>
     """

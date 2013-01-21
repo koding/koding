@@ -9,15 +9,15 @@ class AccountEditorListController extends KDListViewController
         # { title : "CodeMirror",     extensions : ["js","py"],            type : "codemirror"}
       ]
     ,data
-    super options,data    
+    super options,data
 
 class AccountEditorList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountEditorListItem
+      itemClass : AccountEditorListItem
     ,options
-    super options,data    
+    super options,data
 
 class AccountEditorExtensionTagger extends KDFormView
   viewAppended:->
@@ -28,7 +28,7 @@ class AccountEditorExtensionTagger extends KDFormView
 
     @addSubView actions = new KDView
       cssClass : "actions-wrapper"
-    
+
     actions.addSubView save = new KDButtonView
       title        : "Save"
 
@@ -36,25 +36,25 @@ class AccountEditorExtensionTagger extends KDFormView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
-    
-    @listenTo 
+
+    @listenTo
       KDEventTypes : "click"
       listenedToInstance : cancel
       callback:() =>
         @handleEvent type : "FormCancelled"
-  
-  
+
+
 class AccountEditorTags extends KDView
   viewAppended:->
     @setPartial @partial @data
-    
+
   partial:(data)->
     extHTMLArr = for extension in data
       "<span class='blacktag'>#{extension}</span>"
     """
       #{extHTMLArr.join("")}
     """
-  
+
 class AccountEditorListItem extends KDListItemView
   constructor:(options,data)->
     options = tagName : "li"
@@ -62,37 +62,37 @@ class AccountEditorListItem extends KDListItemView
 
   # viewAppended:()->
   #   super
-  #   @form = form = new AccountEditorExtensionTagger 
+  #   @form = form = new AccountEditorExtensionTagger
   #     delegate : @
   #     cssClass : "posstatic"
   #   ,@data.extensions
-  # 
+  #
   #   @info = info = new AccountEditorTags
   #     cssClass : "posstatic"
   #     delegate : @
   #   ,@data.extensions
-  # 
+  #
   #   info.addSubView editLink = new KDCustomHTMLView
   #     tagName      : "a"
   #     partial      : "Edit"
   #     cssClass     : "action-link"
-  # 
+  #
   #   @swappable = swappable = new AccountsSwappable
   #     views : [form,info]
   #     cssClass : "posstatic"
-  # 
+  #
   #   @addSubView swappable,".swappable-wrapper"
-  # 
+  #
   #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
   #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
 
   swapSwappable:()=>
     @swappable.swapViews()
-  
+
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>
-    """    
+    """
     # """
     #   <div class='labelish'>
     #     <span class="icon #{data.type}"></span>

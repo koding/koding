@@ -1,11 +1,43 @@
-BONGO_MQ = do->
-  options = {
-    encrypted: yes
-  }
-  switch KD.env
-    when 'beta'
-      new Pusher 'a19c8bf6d2cad6c7a006', options
-    else
-      new Pusher 'a6f121a130a44c7f5325', options
+KD.remote = new Bongo
 
-# _addFlashFallback BONGO_MQ, connectionTimeout: 10000
+  resourceName: KD.config.resourceName ? 'koding-social'
+
+  getUserArea:-> KD.getSingleton('mainController').getUserArea()
+
+  getSessionToken:-> $.cookie('clientId')
+
+  # createRoutingKey:(service, event)->
+    # "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
+
+  fetchName:do->
+    cache = {}
+    (nameStr, callback)->
+      if cache[nameStr]?
+        {model, name} = cache[nameStr]
+        return callback null, model, name
+      @api.JName.one {name:nameStr}, (err, name)=>
+        if err then return callback err
+        else unless name?
+          return callback new Error "Unknown name: #{nameStr}"
+        else if name.constructorName is 'JUser'
+          # SPECIAL CASE: map JUser over to JAccount...
+          name = new @api.JName {
+            name            : name.name
+            constructorName : 'JAccount'
+            usedAsPath      : 'profile.nickname'
+          }
+        selector = {}
+        selector[name.usedAsPath] = name.name
+        @api[name.constructorName].one? selector, (err, model)->
+          if err then callback err
+          else unless model?
+            callback new Error(
+              "Unable to find model: #{nameStr} of type #{name.constructorName}"
+            )
+          else
+            cache[nameStr] = {model, name}
+            callback null, model, name
+
+  mq: do->
+    {broker} = KD.config
+    broker = new KDBroker.Broker broker.sockJS, autoReconnect: yes

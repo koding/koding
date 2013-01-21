@@ -1,7 +1,7 @@
 page_demoTabView = (parentView)->
   top = new KDView()
   bottom = new KDView()
-  HomeView = new KDSplitView
+  HomeView = new SplitView
     type  : "horizontal"
     views : [top,bottom]
     sizes : ["20%","80%"]
@@ -10,7 +10,7 @@ page_demoTabView = (parentView)->
   bottomMiddle = new KDView()
   bottomRight = new KDView()
 
-  bottomSplit = new KDSplitView
+  bottomSplit = new SplitView
     views : [bottomLeft,bottomMiddle,bottomRight]
     sizes : ["33%","34%","33%"]
 
