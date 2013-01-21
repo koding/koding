@@ -16,7 +16,6 @@ class WebTerm.Terminal
 
     @appStorage = new AppStorage 'WebTerm', '1.0'
     @appStorage.fetchStorage (storage) =>
-    @inSession = false
     @server = null
     @sessionEndedCallback = null
     @setTitleCallback = null
@@ -34,6 +33,7 @@ class WebTerm.Terminal
     @inputHandler = new WebTerm.InputHandler(this)
     @screenBuffer = new WebTerm.ScreenBuffer(this)
     @cursor = new WebTerm.Cursor(this)
+    @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
     @measurebox = $(document.createElement("div"))
     @measurebox.css "position", "absolute"
@@ -47,19 +47,9 @@ class WebTerm.Terminal
     @container.append @outputbox
 
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
-      @inputHandler.mouseEvent event if @inSession
+      @inputHandler.mouseEvent event
 
     @clientInterface =
-      sessionStarted: () =>
-        @inSession = true
-        @scrollToBottom()
-        @cursor.resetBlink()
-        @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
-
-      sessionEnded: () =>
-        @inSession = false
-        @sessionEndedCallback()
-
       output: (data) =>
         log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
         @controlCodeReader.addData data
@@ -78,20 +68,17 @@ class WebTerm.Terminal
           atEnd = @controlCodeReader.process() until atEnd
           @screenBuffer.flush()
 
-  createSession: (name) ->
-    @server.createSession name, @sizeX, @sizeY
-
-  joinSession: (id) ->
-    @server.joinSession id, @sizeX, @sizeY
+      sessionEnded: () =>
+        @sessionEndedCallback()
 
   keyDown: (event) ->
-    @inputHandler.keyDown event if @inSession
+    @inputHandler.keyDown event
 
   keyPress: (event) ->
-    @inputHandler.keyPress event if @inSession
+    @inputHandler.keyPress event
 
   keyUp: (event) ->
-    @inputHandler.keyUp event if @inSession
+    @inputHandler.keyUp event
 
   setFocused: (value) ->
     @cursor.setFocused value
@@ -105,7 +92,7 @@ class WebTerm.Terminal
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
-    @server.setSize x, y if @inSession
+    @server.setSize x, y if @server
 
   updateSize: (force=no) ->
     return if not force and @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
