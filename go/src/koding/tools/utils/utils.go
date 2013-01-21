@@ -42,9 +42,8 @@ func Startup(serviceName string, needRoot bool) {
 
 	config.LoadConfig(profile)
 
-	log.Service = serviceName
-	log.Profile = profile
-	log.LogToLoggr = config.Current.LogToLoggr
+	log.Init(serviceName, profile)
+	log.LogToCloud = config.Current.LogToCloud
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
@@ -61,17 +60,20 @@ func Startup(serviceName string, needRoot bool) {
 func BeginShutdown() {
 	ShuttingDown = true
 	ChangeNumClients <- 0
+	log.Info("Beginning shutdown.")
 }
 
 func RunStatusLogger() {
 	go func() {
 		for {
-			message := "Status: Serving %d clients."
 			if ShuttingDown {
-				message = "Status: Shutting down, still %d clients."
+				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients), fmt.Sprintf("Number of goroutines: %d"))
 			}
-			log.Info(fmt.Sprintf(message, numClients), fmt.Sprintf("Number of goroutines: %d", runtime.NumGoroutine()))
-			time.Sleep(10 * time.Minute)
+			log.Gauges(map[string]float64{
+				"clients":    float64(numClients),
+				"goroutines": float64(runtime.NumGoroutine()),
+			})
+			time.Sleep(time.Minute)
 		}
 	}()
 }
