@@ -13,6 +13,8 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  console.log {Validators}
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -167,7 +169,6 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else if permissionSet?
-          # TODO: permissionSet.permissionSet is botched.
           permissionSet.update $set:{permissions}, callback
         else
           permissionSet = new JPermissionSet {permissions}
@@ -186,12 +187,10 @@ module.exports = class JGroup extends Module
             permissions: permissionSet.permissions
           }
 
-  'member'/'admin'
-
   modify: permit
     advanced : [
+      { permission: 'edit own groups', validateWith: Validators.own }
       { permission: 'edit groups' }
-      { permission: 'edit own groups', validateUsing: Validators.own }
     ]
     success : (client, formData, callback)->
       @update {$set:formData}, callback
@@ -209,5 +208,3 @@ module.exports = class JGroup extends Module
   #       env.save (err)->
   #         if err then callback err
   #         else callback null
-
-
