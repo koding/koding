@@ -11,6 +11,8 @@ module.exports = class JGroup extends Module
 
   KodingError = require '../../error'
 
+  Validators = require './validators'
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -189,7 +191,7 @@ module.exports = class JGroup extends Module
   modify: permit
     advanced : [
       { permission: 'edit groups' }
-      { permission: 'edit own groups', validateUsing: -> "Validators.own" }
+      { permission: 'edit own groups', validateUsing: Validators.own }
     ]
     success : (client, formData, callback)->
       @update {$set:formData}, callback
