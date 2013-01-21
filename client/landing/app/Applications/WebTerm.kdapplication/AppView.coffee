@@ -111,12 +111,14 @@ class WebTermView extends KDView
 
     KD.singletons.kiteController.run
       kiteName: 'os',
-      method: 'createWebtermServer',
-      withArgs: @terminal.clientInterface
+      method: 'webterm.createSession',
+      withArgs:
+        remote: @terminal.clientInterface
+        name: "none"
+        sizeX: @terminal.sizeX
+        sizeY: @terminal.sizeY
     , (err, remote) =>
       @terminal.server = remote
-      #@terminal.showSessions()
-      @terminal.createSession ""
       @setKeyView()
 
   destroy: ->
