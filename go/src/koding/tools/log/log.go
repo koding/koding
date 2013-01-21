@@ -11,22 +11,22 @@ import (
 	"strings"
 )
 
-var source string
-var sourceWithUnderscores string
+var loggrSource string
+var libratoSource string
 var tags string
 var LogDebug bool = false
 var LogToCloud bool = false
 
 func Init(service, profile string) {
 	hostname, _ := os.Hostname()
-	source = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
-	sourceWithUnderscores = strings.Replace(source, " ", "_", -1)
+	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
+	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
 	tags = service + " " + profile
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
 	event := url.Values{
-		"source": {source},
+		"source": {loggrSource},
 		"tags":   {LEVEL_TAGS[level] + " " + tags},
 		"text":   {text},
 	}
@@ -143,7 +143,7 @@ func Gauges(gauges map[string]float64) {
 	}
 	event.Gauges = make([]Gauge, 0, len(gauges))
 	for name, value := range gauges {
-		event.Gauges = append(event.Gauges, Gauge{name, value, sourceWithUnderscores})
+		event.Gauges = append(event.Gauges, Gauge{name, value, libratoSource})
 	}
 	b, err := json.Marshal(event)
 	if err != nil {
@@ -156,7 +156,7 @@ func Gauges(gauges map[string]float64) {
 		fmt.Println("logger error: http.NewRequest failed.", err)
 		return
 	}
-	request.SetBasicAuth("mail@richard-musiol.de", "83d92f0a3f593b951e4265c4600f19156b33dc3417424506d042612fb473019d")
+	request.SetBasicAuth("devrim@koding.com", "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0")
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)

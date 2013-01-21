@@ -76,7 +76,7 @@ func RunStatusLogger() {
 				"goroutines": float64(runtime.NumGoroutine()),
 				"memory":     float64(m.Alloc),
 			})
-			time.Sleep(time.Minute)
+			time.Sleep(30 * time.Second)
 		}
 	}()
 }
