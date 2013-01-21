@@ -16,6 +16,22 @@
 #
 # some_setting false
 #
+
+require 'net/http'
+require 'ohai'
+
+uri = URI('http://169.254.169.254/latest/meta-data/instance-id')
+instance_id = Net::HTTP.get(uri)
+o = Ohai::System.new()
+o.all_plugins
+ipaddr = ''
+o['network']['interfaces']['eth0']['addresses'].keys.each do |key|
+        if o['network']['interfaces']['eth0']['addresses'][key]['family'].eql?('inet')
+                ipaddr = key
+        end
+end
+node_name  "#{instance_id}--#{ipaddr}"
+
 # log_level specifies the level of verbosity for output.
 # valid values are: :debug, :info, :warn, :error, :fatal.
 # Corresponds to chef-client -l
@@ -82,4 +98,4 @@ json_attribs "/etc/chef/client-config.json"
 # valid values are true or false. The printed timestamp is rfc2822, for example:
 # Fri, 31 Jul 2009 19:19:46 -0600
 
-Mixlib::Log::Formatter.show_time = true
+ixlib::Log::Formatter.show_time = true
