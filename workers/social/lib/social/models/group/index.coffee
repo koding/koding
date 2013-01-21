@@ -184,10 +184,15 @@ module.exports = class JGroup extends Module
             permissions: permissionSet.permissions
           }
 
-  modify: permit(['edit groups','edit own groups'],
-    success:(client, formData, callback)->
+  'member'/'admin'
+
+  modify: permit
+    advanced : [
+      { permission: 'edit groups' }
+      { permission: 'edit own groups', validateUsing: -> "Validators.own" }
+    ]
+    success : (client, formData, callback)->
       @update {$set:formData}, callback
-  )
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
