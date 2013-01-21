@@ -45,6 +45,7 @@ end
 execute "killall_u_koding" do
     command "/usr/bin/killall -u koding -9"
     action :nothing
+    returns [0, 1]
     subscribes :run, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
 end
 
