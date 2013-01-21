@@ -1,7 +1,7 @@
 name "broker"
 description "The  role for Broker servers"
 
-run_list ["recipe[nodejs]","recipe[golang]"]
+run_list ["recipe[nodejs]","recipe[golang]","recipe[supervisord]"]
 
 default_attributes({
                      "kd_deploy" => {

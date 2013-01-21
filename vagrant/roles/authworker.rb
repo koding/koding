@@ -1,7 +1,7 @@
 name "authworker"
 description "The  role for authworker servers"
 
-run_list ["recipe[nodejs]","recipe[golang]"]
+run_list ["recipe[nodejs]","recipe[golang]","recipe[supervisord]"]
 
 default_attributes({ 
                      "kd_deploy" => {
