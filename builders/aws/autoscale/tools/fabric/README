@@ -15,7 +15,7 @@ ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/fabric/
 	EXAMPLE:
 	        reboot all web_server instances:
 
-		export FAB_CMD='reboot' ; fab web_server 
+		    export FAB_CMD='reboot' ; fab web_server 
 
 
 * restart_services
@@ -26,10 +26,10 @@ ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/fabric/
 		** -- fab coomand. list commands with "fab help" 
 	EXAMPLE:
 	        restart processes on the web_server nodes:
-		fab restart_web_server
+		    fab restart_web_server
 		
-		restart processes on web servers and social worker servers:
-		fab restart_web_server restart_socialworker
+		    restart processes on web servers and social worker servers:
+		    fab restart_web_server restart_socialworker
 
 
 * speedup_deploy
@@ -40,10 +40,10 @@ ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/fabric/
 		** -- fab coomand. list commands with "fab help" 
 	EXAMPLE:
 	        speedup deployment processes on the web_server nodes:
-		fab speedup_deploy_on_web_server
+		    fab speedup_deploy_on_web_server
 		
-		speedup deployment processes on web servers and social worker servers:
-		fab speedup_deploy_on_web_server speedup_deploy_on_socialworker
+		    speedup deployment processes on web servers and social worker servers:
+		    fab speedup_deploy_on_web_server speedup_deploy_on_socialworker
 
 
 
@@ -55,8 +55,8 @@ ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/fabric/
 		** -- fab coomand. list commands with "fab help" 
 	EXAMPLE:
 	        update packages on the web_server nodes:
-		fab update_os_on_web_server
+		    fab update_os_on_web_server
 		
-		speedup deployment processes on web servers and social worker servers:
-		fab update_os_on_web_server update_os_on_socialworker
+		    speedup deployment processes on web servers and social worker servers:
+		    fab update_os_on_web_server update_os_on_socialworker
 
