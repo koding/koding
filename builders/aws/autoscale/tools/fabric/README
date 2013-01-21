@@ -1,6 +1,9 @@
 
-tools for group server mangement
-ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/
+tools for group server mangement in the AWS autoscale system
+any command will automatically retrieve required addresses for role
+
+ssh to the admin server (current ec2-user@107.23.159.233) and cd tools/fabric/
+
 
 * any_sudo 
 	DESC: run any command with root privileges
