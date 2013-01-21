@@ -7,7 +7,7 @@ Broker   = require 'broker'
 {mongo, cacheWorker, mq} = KONFIG
 
 mqOptions = extend {}, mq
-mqOptions.login = cacheWorker.login if cacheWorker?.login?
+# mqOptions.login = cacheWorker.login if cacheWorker?.login?
 
 koding = new Bongo {
   mongo

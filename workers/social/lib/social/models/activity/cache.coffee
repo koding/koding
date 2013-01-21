@@ -117,7 +117,9 @@ module.exports = class JActivityCache extends jraphical.Module
         from    : from or now - timespan
 
       @prepareCacheData options, (err, overview)=>
-        if err then console.warn err
+        if err
+          console.warn err
+          @emit "CachingFinished"
         else
 
           ###
