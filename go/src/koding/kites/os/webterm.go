@@ -16,8 +16,7 @@ import (
 )
 
 type WebtermServer struct {
-	session          *kite.Session
-	remote           dnode.Remote
+	remote           WebtermRemote
 	pty              *pty.PTY
 	process          *os.Process
 	currentSecond    int64
@@ -26,48 +25,21 @@ type WebtermServer struct {
 	lineFeeedCounter int
 }
 
-func (server *WebtermServer) GetSessions(callback dnode.Callback) {
-	dir, err := os.Open("/var/run/screen/S-" + server.session.User.Name)
-	if err != nil {
-		if os.IsNotExist(err) {
-			callback(map[string]string{})
-			return
-		}
-		panic(err)
-	}
-	names, err := dir.Readdirnames(0)
-	if err != nil {
-		panic(err)
-	}
-	sessions := make(map[string]string)
-	for _, name := range names {
-		parts := strings.SplitN(name, ".", 2)
-		sessions[parts[0]] = parts[1]
-	}
-	callback(sessions)
+type WebtermRemote struct {
+	Output       dnode.Callback
+	SessionEnded dnode.Callback
 }
 
-func (server *WebtermServer) CreateSession(name string, sizeX, sizeY float64) {
-	server.runScreen([]string{"-S", name}, sizeX, sizeY)
-}
-
-func (server *WebtermServer) JoinSession(sessionId, sizeX, sizeY float64) {
-	server.runScreen([]string{"-x", strconv.Itoa(int(sessionId))}, sizeX, sizeY)
-}
-
-func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
-	if server.pty != nil {
-		panic("Trying to open more than one session.")
+func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
+	server := &WebtermServer{
+		remote: remote,
+		pty:    pty.New(),
 	}
+	server.SetSize(float64(sizeX), float64(sizeY))
+	session.CloseOnDisconnect(server)
 
-	// command = append(command, args...)
-
-	pty := pty.New()
-	server.pty = pty
-	server.SetSize(sizeX, sizeY)
-
-	cmd := virt.GetDefaultVM(server.session.User).AttachCommand(server.session.User.Id) // empty command is default shell
-	pty.AdaptCommand(cmd)
+	cmd := virt.GetDefaultVM(session.User).AttachCommand(session.User.Id) // empty command is default shell
+	server.pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {
 		panic(err)
@@ -78,11 +50,9 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		defer log.RecoverAndLog()
 
 		cmd.Wait()
-		pty.Master.Close()
-		pty.Slave.Close()
-		server.pty = nil
-		server.process = nil
-		server.remote["sessionEnded"].(dnode.Callback)()
+		server.pty.Master.Close()
+		server.pty.Slave.Close()
+		server.remote.SessionEnded()
 	}()
 
 	go func() {
@@ -91,13 +61,13 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		buf := make([]byte, (1<<12)-4, 1<<12)
 		runes := make([]rune, 1<<12)
 		for {
-			n, err := pty.Master.Read(buf)
+			n, err := server.pty.Master.Read(buf)
 			for n < cap(buf)-1 {
 				r, _ := utf8.DecodeLastRune(buf[:n])
 				if r != utf8.RuneError {
 					break
 				}
-				pty.Master.Read(buf[n : n+1])
+				server.pty.Master.Read(buf[n : n+1])
 				n++
 			}
 
@@ -131,75 +101,29 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 				c++
 			}
 
-			server.remote["output"].(dnode.Callback)(string(runes[:c]))
+			server.remote.Output(string(runes[:c]))
 			if err != nil {
 				break
 			}
 		}
 	}()
 
-	server.remote["sessionStarted"].(dnode.Callback)()
+	return server
 }
 
 func (server *WebtermServer) Input(data string) {
-	if server.pty != nil {
-		server.pty.Master.Write([]byte(data))
-	}
+	server.pty.Master.Write([]byte(data))
 }
 
 func (server *WebtermServer) ControlSequence(data string) {
-	if server.pty != nil {
-		server.pty.MasterEncoded.Write([]byte(data))
-	}
+	server.pty.MasterEncoded.Write([]byte(data))
 }
 
 func (server *WebtermServer) SetSize(x, y float64) {
-	if server.pty != nil {
-		server.pty.SetSize(uint16(x), uint16(y))
-	}
+	server.pty.SetSize(uint16(x), uint16(y))
 }
 
 func (server *WebtermServer) Close() error {
-	if server.process != nil {
-		server.process.Signal(syscall.SIGHUP)
-	}
+	server.process.Signal(syscall.SIGHUP)
 	return nil
 }
-
-//func runWebsocket() {
-//	fmt.Println("WebSocket server started. Please open terminal.html in your browser.")
-//	http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
-//		fmt.Printf("WebSocket opened: %p\n", ws)
-//
-//		server := &WebtermServer{session: kite.NewSession(config.Current.User)}
-//		defer server.Close()
-//
-//		d := dnode.New()
-//		defer d.Close()
-//		d.SendRemote(server)
-//		d.OnRemote = func(remote dnode.Remote) {
-//			server.remote = remote
-//		}
-//
-//		go func() {
-//			for data := range d.SendChan {
-//				websocket.Message.Send(ws, data)
-//			}
-//		}()
-//
-//		for {
-//			var data []byte
-//			err := websocket.Message.Receive(ws, &data)
-//			if err != nil {
-//				break
-//			}
-//			d.ProcessMessage(data)
-//		}
-//
-//		fmt.Printf("WebSocket closed: %p\n", ws)
-//	}))
-//	err := http.ListenAndServe(":8080", nil)
-//	if err != nil {
-//		panic(err)
-//	}
-//}

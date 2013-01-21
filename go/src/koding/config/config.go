@@ -46,7 +46,7 @@ var configs = map[string]Config{
 		AmqpUser:     "STAGE-sg46lU8J17UkVUq",
 		AmqpPassword: "TV678S1WT221t1q",
 		HomePrefix:   "/Users/",
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"prod": {
@@ -54,7 +54,7 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"prod-new": {
@@ -62,7 +62,7 @@ var configs = map[string]Config{
 		AmqpUser:     "prod-<component>",
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"vagrant": {
@@ -92,7 +92,7 @@ type Config struct {
 	AmqpUser     string
 	AmqpPassword string
 	HomePrefix   string
-	LogToLoggr   bool
+	LogToCloud   bool
 }
 
 var Current Config

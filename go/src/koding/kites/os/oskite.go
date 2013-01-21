@@ -28,7 +28,7 @@ var states = make(map[string]*VMState)
 var statesMutex sync.Mutex
 
 func main() {
-	utils.Startup("os kite", true)
+	utils.Startup("kite.os", true)
 
 	go LimiterLoop()
 	k := kite.New("os")
@@ -112,15 +112,50 @@ func main() {
 		return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
 	})
 
-	k.Handle("createWebtermServer", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		remote, err := args.Map()
+	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		dir, err := os.Open("/var/run/screen/S-" + session.User)
 		if err != nil {
-			return nil, err
+			if os.IsNotExist(err) {
+				return make(map[string]string), nil
+			}
+			panic(err)
 		}
-		server := &WebtermServer{session: session}
-		server.remote = remote
-		session.OnDisconnect(func() { server.Close() })
-		return server, nil
+		names, err := dir.Readdirnames(0)
+		if err != nil {
+			panic(err)
+		}
+		sessions := make(map[string]string)
+		for _, name := range names {
+			parts := strings.SplitN(name, ".", 2)
+			sessions[parts[0]] = parts[1]
+		}
+		return sessions, nil
+	})
+
+	k.Handle("webterm.createSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Remote       WebtermRemote
+			Name         string
+			SizeX, SizeY int
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{"{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		return newWebtermServer(session, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY), nil
+	})
+
+	k.Handle("webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Remote       WebtermRemote
+			SessionId    int
+			SizeX, SizeY int
+		}
+		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{"{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		return newWebtermServer(session, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY), nil
 	})
 
 	k.Run()

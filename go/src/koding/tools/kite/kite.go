@@ -65,28 +65,33 @@ func (k *Kite) Run() {
 
 				switch message.RoutingKey {
 				case "auth.join":
-					arguments := make(map[string]interface{})
-					json.Unmarshal(message.Body, &arguments)
-					username := arguments["username"].(string)
-					routingKey := arguments["routingKey"].(string)
+					var client struct {
+						Username   string
+						RoutingKey string
+					}
+					err := json.Unmarshal(message.Body, &client)
+					if err != nil || client.Username == "" || client.RoutingKey == "" {
+						log.Err("Invalid auth.join message.", message.Body)
+						continue
+					}
 
-					if _, found := routeMap[routingKey]; found {
+					if _, found := routeMap[client.RoutingKey]; found {
 						continue // duplicate key
 					}
 					channel := make(chan []byte, 1024)
-					routeMap[routingKey] = channel
+					routeMap[client.RoutingKey] = channel
 
 					go func() {
 						defer log.RecoverAndLog()
 
 						utils.ChangeNumClients <- 1
-						log.Debug("Client connected: " + username)
+						log.Debug("Client connected: " + client.Username)
 						defer func() {
 							utils.ChangeNumClients <- -1
-							log.Debug("Client disconnected: " + username)
+							log.Debug("Client disconnected: " + client.Username)
 						}()
 
-						session := NewSession(username)
+						session := NewSession(client.Username)
 						defer session.Close()
 
 						d := dnode.New()
@@ -105,7 +110,9 @@ func (k *Kite) Run() {
 								panic(err)
 							}
 
-							var options map[string]*dnode.Partial
+							var options struct {
+								WithArgs *dnode.Partial
+							}
 							err = partials[0].Unmarshal(&options)
 							if err != nil {
 								panic(err)
@@ -123,10 +130,11 @@ func (k *Kite) Run() {
 							}
 
 							execHandler := func() {
-								result, err := handler.Callback(options["withArgs"], session)
+								result, err := handler.Callback(options.WithArgs, session)
 								if b, ok := result.([]byte); ok {
 									result = string(b)
 								}
+
 								if err != nil {
 									resultCallback(err.Error(), result)
 								} else if result != nil {
@@ -146,8 +154,8 @@ func (k *Kite) Run() {
 						go func() {
 							defer log.RecoverAndLog()
 							for data := range d.SendChan {
-								log.Debug("Write", routingKey, data)
-								err := publishChannel.Publish("broker", routingKey, false, false, amqp.Publishing{Body: data})
+								log.Debug("Write", client.RoutingKey, data)
+								err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data})
 								if err != nil {
 									log.LogError(err, 0)
 								}
@@ -157,19 +165,25 @@ func (k *Kite) Run() {
 						d.Send("ready", "kite-"+k.Name)
 
 						for message := range channel {
-							log.Debug("Read", routingKey, message)
+							log.Debug("Read", client.RoutingKey, message)
 							d.ProcessMessage(message)
 						}
 					}()
 
 				case "auth.leave":
-					arguments := make(map[string]interface{})
-					json.Unmarshal(message.Body, &arguments)
-					routingKey := arguments["routingKey"].(string)
-					channel, found := routeMap[routingKey]
+					var client struct {
+						RoutingKey string
+					}
+					err := json.Unmarshal(message.Body, &client)
+					if err != nil || client.RoutingKey == "" {
+						log.Err("Invalid auth.leave message.", message.Body)
+						continue
+					}
+
+					channel, found := routeMap[client.RoutingKey]
 					if found {
 						close(channel)
-						delete(routeMap, routingKey)
+						delete(routeMap, client.RoutingKey)
 					}
 
 				default:

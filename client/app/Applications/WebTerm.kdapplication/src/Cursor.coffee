@@ -9,6 +9,7 @@ class WebTerm.Cursor
     @blinkInterval = null
     @savedX = 0
     @savedY = 0
+    @resetBlink()
   
   move: (x, y) ->
     @moveTo @x + x, @y + y
