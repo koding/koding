@@ -8,5 +8,5 @@ user "koding" do
     gid "koding"
     comment "Koding system user"
     shell "/bin/bash"
-    home node['kd_clone']['deploy_dir']
+    home "/opt/koding"
 end

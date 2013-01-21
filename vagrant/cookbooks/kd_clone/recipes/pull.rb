@@ -21,18 +21,18 @@ cookbook_file "/tmp/private_code/.ssh/id_deploy" do
   mode 0600
 end
 
-directory node['kd_clone']['clone_dir'] do
+directory "/opt/koding" do
   owner "koding"
   group "koding"
   recursive true
 end
 
-git node['kd_clone']['clone_dir'] do
+git "/opt/koding" do
    user              "koding"
    group             "koding"
    repository        'git@kodingen.beanstalkapp.com:/koding.git'
    # branch            'virtualization'
-   revision          node['kd_clone']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
-   action            node['kd_clone']['release_action']
+   revision          "virtualization" # or "HEAD" or "TAG_for_1.0" 
+   action            :sync
    ssh_wrapper       "/tmp/private_code/wrap-ssh4git.sh"
 end

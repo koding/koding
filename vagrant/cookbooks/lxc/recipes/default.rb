@@ -7,20 +7,12 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( libapparmor1 libseccomp0 bridge-utils dnsmasq-base python3 debootstrap )
+packages = %w( libapparmor1 libseccomp0 bridge-utils dnsmasq-base python3 debootstrap libcap2 )
 
 packages.each do |pkg|
     package pkg do
         action :install
     end
-end
-
-package "libapparmor1" do
-	action :install
-end
-
-package "libseccomp0" do
-	action :install
 end
 
 if (! ::File.exists?("/tmp/lxc"))

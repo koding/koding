@@ -7,9 +7,8 @@
 # All rights reserved - Do Not Redistribute
 #
 
-execute "mkdir -p /cgroup"
-execute "mount none -t cgroup /cgroup" do
-	return [0, 1]
+package "cgroup-lite" do
+	action :install	
 end
 
 execute "mkdir -p /var/lib/lxc/vmroot"
@@ -36,7 +35,7 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	target="/var/lib/lxc/vmroot/rootfs"
 	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
-	mirror="http://us.archive.ubuntu.com/ubuntu"
+	mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
 
 	# Not REALLY necessary because we have our if clause, but nice for testing when if is commented
 	execute "lxc-stop -n vmroot"
