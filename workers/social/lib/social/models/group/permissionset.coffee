@@ -53,9 +53,8 @@ module.exports = class JPermissionSet extends Module
           else unless permissionSet then callback null, no
           else
             queue = advanced.map ({permission, validateWith})->->
-              console.log {permission, validateWith}
               validateWith ?= require('./validators').any
-              validateWith.call target, client, permission, permissionSet,
+              validateWith.call target, client, group, permission, permissionSet,
                 (err, hasPermission)->
                   if err then queue.next err
                   else if hasPermission

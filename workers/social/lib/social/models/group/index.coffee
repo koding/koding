@@ -13,8 +13,6 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
-  console.log {Validators}
-
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
