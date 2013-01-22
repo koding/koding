@@ -74,7 +74,7 @@ node webnode inherits base {
     
 }
 
-node /^web\d+\.prod\.system\.aws\.koding\.com$/  inherits webnode {
+node /^web\d+\.dev\.system\.aws\.koding\.com$/  inherits webnode {
 }    
 
 node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {

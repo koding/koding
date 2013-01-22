@@ -1,87 +1,91 @@
-{Model, secure, dash} = require 'bongo'
-{Module} = require 'jraphical'
+{Model, secure, dash, daisy} = require 'bongo'
+{Module, Relationship} = require 'jraphical'
 
-class JPermission extends Model
-  @set
-    indexes   :
-      module  : 'sparse'
-      title   : 'sparse'
-      roles   : 'sparse'
-    schema    :
-      module  : String
-      title   : String
-      body    : String
-      roles   : [String]
+# class JPermission extends Model
+#   @set
+#     indexes   :
+#       module  : 'sparse'
+#       title   : 'sparse'
+#       roles   : 'sparse'
+#     schema    :
+#       module  : String
+#       title   : String
+#       body    : String
+#       roles   : [String]
 
 module.exports = class JPermissionSet extends Module
 
   @share()
 
   @set
-    schema        :
-      permissions : [JPermission]
+    index                   :
+      'permissions.module'  : 'sparse'
+      'permissions.roles'   : 'sparse'
+      'permissions.title'   : 'sparse'
+    schema                  :
+      permissions           :
+        type                : Array
+        default             : []
 
   {intersection} = require 'underscore'
 
   KodingError = require '../../error'
 
-  @checkPermission =(delegate, permission, target, callback)->
-    permission = [permission] unless Array.isArray permission
-    target.fetchAuthorityChain (err, chain)->
-      if err
-        callback err
+  @checkPermission =(client, advanced, target, callback)->
+    JGroup = require '../group'
+    # permission = [permission]  unless Array.isArray permission
+    groupName =\
+      if 'function' is typeof target
+        module = target.name
+        client.context.group ? 'koding'
+      else if target instanceof JGroup
+        module = 'JGroup'
+        target.slug
       else
-        permissions = []
-        queue = chain.map (group)->->
-          delegate.fetchRoles group, (err, roles)->
-            console.log roles
-            if err then queue.fin(err)
-            else if roles.length
-              if 'admin' in roles
-                permissions.push yes
-                queue.fin()
-              else if ('moderator' in roles or 'member' in roles) or \
-                      group.privacy is 'public' and 'guest' in roles
-                group.fetchPermissionSet (err, permissionSet)->
-                  if err then queue.fin(err)
-                  else
-                    matchingPermissions = [].filter.call(
-                      permissionSet.permissions
-                      (savedPermission)->
-                        savedPermission.module is target.constructor.name and\
-                        savedPermission.role in roles and\
-                        !!intersection permission, savedPermission.permissions
-                    )
-                    permissions.push !!matchingPermissions.length
-                    queue.fin()
-              else
-                permissions.push no
-                queue.fin()
-            else permissions.push no
-        dash queue, ->
-          hasPermission = yes in permissions
-          callback null, hasPermission
+        module = target.constructor.name
+        target.group
+    JGroup.one {slug: groupName}, (err, group)->
+      if err then callback err, no
+      else unless group?
+      else
+        group.fetchPermissionSet (err, permissionSet)->
+          if err then callback err, no
+          else unless permissionSet then callback null, no
+          else
+            queue = advanced.map ({permission, validateWith})->->
+              validateWith ?= require('./validators').any
+              validateWith.call target, client, group, permission, permissionSet,
+                (err, hasPermission)->
+                  if err then queue.next err
+                  else if hasPermission
+                    callback null, yes  # we can stop here.  One permission is enough.
+                  else queue.next()
+            queue.push ->
+              # if we ever get this far, it means the user doesn't have permission.
+              callback null, no
+            daisy queue
 
   @permit =(permission, promise)->
+    [promise, permission] = [permission, promise]  unless promise
+    advanced =
+      if promise.advanced
+        promise.advanced
+      else
+        [{permission, validateWith: require('./validators').any}]
     secure (client, rest...)->
       if 'function' is typeof rest[rest.length-1]
         [rest..., callback] = rest
       else
         callback =->
       success =
-        if 'function' is typeof promise then promise.bind(@)
-        else promise.success.bind(@)
-      failure = promise.failure?.bind(@) ? (args...)-> callback args...
+        if 'function' is typeof promise then promise.bind this
+        else promise.success.bind this
+      failure = (promise.failure?.bind this) ? (args...)-> callback args...
       {delegate} = client.connection
-      JPermissionSet.checkPermission(
-        delegate
-        permission
-        this
+      JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
-          if err
-            failure err
+          if err then failure err
           else if hasPermission
-            success.apply @, [client, rest..., callback]
+            success.apply null, [client, rest..., callback]
           else
-            failure new KodingError 'Access denied!'
-      )
+            failure new KodingError 'Access denied'

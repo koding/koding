@@ -2,6 +2,15 @@ class PermissionsGrid extends KDView
 
   viewAppended:->
     @setPartial @partial()
+    @replayPermissions()
+
+  replayPermissions:->
+    for {module, role, permissions} in @getOptions().permissionSet.permissions
+      for permission in permissions
+        name = _getCheckboxName module, permission, role
+        selector = "[name=\"#{name}\"]"
+        @$(selector).prop 'checked', 'checked'
+
 
   ['list','reducedList','tree'].forEach (method)=>
     @::[method] =-> @getPermissions method
@@ -42,8 +51,12 @@ class PermissionsGrid extends KDView
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
+
+  _getCheckboxName =(module, permission, role)->
+    ['permission', module].join('-')+'|'+[role, permission].join('|')
+
   _getCheckbox =(module, permission, role)->
-    name = ['permission', module].join('-')+'|'+[role, permission].join('|')
+    name = _getCheckboxName module, permission, role
     """
     <input type=checkbox name='#{name}'#{
       if role is 'admin' then ' disabled checked' else ''

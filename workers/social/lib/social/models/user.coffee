@@ -154,13 +154,14 @@ module.exports = class JUser extends jraphical.Module
                 if err
                   callback createKodingError err
                 else
-                  feedData = {title: "followed"}
-                  JFeed.assureFeed account, feedData, (err, feed) ->
-                    if err
-                      callback err
-                    else
-                      #JAccount.emit "AccountAuthenticated", account
-                      callback null, account
+                  callback null, account
+                  # feedData = {title: "followed"}
+                  # JFeed.assureFeed account, feedData, (err, feed) ->
+                  #   if err
+                  #     callback err
+                  #   else
+                  #     #JAccount.emit "AccountAuthenticated", account
+                  #     callback null, account
         else @logout clientId, callback
 
 

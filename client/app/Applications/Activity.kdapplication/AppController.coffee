@@ -42,13 +42,20 @@ class ActivityAppController extends AppController
     options.view = new ActivityAppView
 
     super options
-    @currentGroup = 'koding'
-    @currentFilter = activityTypes
-    @appStorage = new AppStorage 'Activity', '1.0'
-    @getSingleton('activityController').on "ActivityListControllerReady", (controller)=>
-      @listControllerReady controller
 
-  bringToFront:()-> super name : 'Activity'
+    @currentFilter     = activityTypes
+    @appStorage        = new AppStorage 'Activity', '1.0'
+    activityController = @getSingleton('activityController')
+    activityController.on "ActivityListControllerReady", @attachEvents.bind @
+
+  bringToFront:()->
+
+    super name : 'Activity'
+
+    if @listController then @populateActivity()
+    else
+      ac = @getSingleton('activityController')
+      ac.once "ActivityListControllerReady", @populateActivity.bind @
 
   resetList:->
 
@@ -61,7 +68,9 @@ class ActivityAppController extends AppController
 
   getFilter: -> @currentFilter
 
-  listControllerReady:(controller)->
+  ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
+
+  attachEvents:(controller)->
 
     @listController    = controller
     activityController = @getSingleton('activityController')
@@ -72,8 +81,7 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "FakeActivityHasArrived", (activity)->
       controller.fakeActivityArrived activity
 
-    @getView().widgetController.on "OwnActivityHasArrived", (activity)->
-      controller.ownActivityArrived activity
+    @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', (activities)=>
       for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -90,14 +98,12 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
-    @populateActivity()
-
-
   populateActivity:(options = {})->
 
     return if isLoading
     isLoading = yes
     @listController.showLazyLoader()
+    @listController.noActivityItem.hide()
 
     isExempt (exempt)=>
       bypassCache = exempt or (@getFilter() isnt activityTypes) or @currentGroup isnt 'koding'
@@ -106,20 +112,26 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
-          if err then warn err
+          isLoading = no
+          @listController.hideLazyLoader()
+          if err or teasers.length is 0
+            warn err
+            @listController.noActivityItem.show()
           else
-            isLoading = no
             @loadedGroup = @currentGroup
             @listController.listActivities teasers
 
       else
         @fetchCachedActivity options, (err, cache)=>
-          if err then warn err
+          isLoading = no
+          if err or cache.length is 0
+            warn err
+            @listController.hideLazyLoader()
+            @listController.noActivityItem.show()
           else
             @sanitizeCache cache, (err, cache)=>
-              isLoading = no
-              @listController.listActivitiesFromCache cache
               @listController.hideLazyLoader()
+              @listController.listActivitiesFromCache cache
 
   sanitizeCache:(cache, callback)->
 
@@ -134,9 +146,6 @@ class ActivityAppController extends AppController
       callback null, cache
 
   fetchActivity:(options = {}, callback)->
-    isLoading = yes
-    @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
 
     options       =
       limit       : options.limit  or 20
@@ -147,54 +156,41 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities) =>
+    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
       if err then callback err
-      else if activities.length
-        activities = clearQuotes activities
-        KD.remote.reviveFromSnapshots activities, callback
       else
-        @listController.noActivityItem.show()
-      @listController.hideLazyLoader()
-      isLoading = no
+        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
 
   fetchCachedActivity:(options = {}, callback)->
-    isLoading = yes
-    @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
 
     $.ajax
       url     : "/-/cache/#{options.slug or 'latest'}"
       cache   : no
-      error   : (err)-> callback? err
-      success : (cache)=>
-        @listController.hideLazyLoader()
-        if cache?.length is 0
-          @listController.noActivityItem.show()
-          isLoading = no
-          return
-
+      error   : (err)->   callback? err
+      success : (cache)->
         cache.overview.reverse()
-
         callback null, cache
 
   continueLoadingTeasers:->
 
     unless isLoading
-      lastItemData = @listController.itemsOrdered.last.getData()
-
-      # memberbucket data has no serverside model it comes from cache
-      # so it has no meta, that's why we check its date by its overview
-      lastDate = if lastItemData.createdAt
-        lastItemData.createdAt.first
+      if @listController.itemsOrdered.last
+        lastItemData = @listController.itemsOrdered.last.getData()
+        # memberbucket data has no serverside model it comes from cache
+        # so it has no meta, that's why we check its date by its overview
+        lastDate = if lastItemData.createdAt
+          lastItemData.createdAt.first
+        else
+          lastItemData.meta.createdAt
       else
-        lastItemData.meta.createdAt
+        lastDate = Date.now()
 
       @populateActivity {slug : "before/#{(new Date(lastDate)).getTime()}"}
 
   teasersLoaded:->
-    {scrollView} = @listController
-    unless scrollView.hasScrollBars()
+
+    unless @listController.scrollView.hasScrollBars()
       @continueLoadingTeasers()
 
   createContentDisplay:(activity)->
@@ -224,8 +220,8 @@ class ActivityAppController extends AppController
 
   createCodeShareContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeShare
-      title       : "Code Share"
-      type        : "codeshare"
+      title : "Code Share"
+      type  : "codeshare"
     , activity
 
   createDiscussionContentDisplay:(activity)->
@@ -283,15 +279,16 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
+  fetchTeasers:(selector,options,callback)->
 
-
-
-
-
-
-
-
-
+    KD.remote.api.CActivity.some selector, options, (err, data) =>
+      if err then callback err
+      else
+        data = clearQuotes data
+        KD.remote.reviveFromSnapshots data, (err, instances)->
+          if err then callback err
+          else
+            callback instances
 
   # streamByIds:(ids, callback)->
 
@@ -316,10 +313,6 @@ class ActivityAppController extends AppController
   #         # model[0].snapshot = model[0].snapshot.replace /&quot;/g, '"'
   #         # callback null, model
 
-  # fetchTeasers:(selector,options,callback)->
-  #   @performFetchingTeasers selector, options, (err, data) ->
-  #     KD.remote.reviveFromSnapshots data, (err, instances)->
-  #       callback instances
 
   # loadSomeTeasers:(range, callback)->
   #   [callback, range] = [range, callback] unless callback

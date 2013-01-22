@@ -1,9 +1,10 @@
 jraphical      = require 'jraphical'
-JActivityCache = require './cache'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
+
+  {permit} = require '../group/permissionset'
 
   @getFlagRole =-> 'activity'
 
@@ -11,7 +12,9 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @share()
 
-  @trait __dirname, '../../traits/followable', override: no
+  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/restrictedquery'
 
   @set
     feedable          : yes
@@ -24,7 +27,7 @@ module.exports = class CActivity extends jraphical.Capsule
       group                 : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','each','cursor','teasers'
+        'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
@@ -225,62 +228,27 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
-  @fetchFacets = (options, callback)->
-    {to, limit, facets, lowQuality} = options
+  @fetchFacets = permit 'read activity'
+    success:(client, options, callback)->
+      {to, limit, facets, lowQuality} = options
 
-    selector =
-      type         : { $in : facets }
-      createdAt    : { $lt : new Date to }
-      isLowQuality : { $ne : lowQuality }
-      group        : options.group ? 'koding'
+      selector =
+        type         : { $in : facets }
+        createdAt    : { $lt : new Date to }
+        isLowQuality : { $ne : lowQuality }
+        group        : options.group ? 'koding'
 
-    options =
-      limit : limit or 20
-      sort  : createdAt : -1
+      options =
+        limit : limit or 20
+        sort  : createdAt : -1
 
-
-    console.log JSON.stringify selector
-
-    @some selector, options, (err, activities)->
-      if err then callback err
-      else
-        callback null, activities
+      @some selector, options, (err, activities)->
+        if err then callback err
+        else
+          callback null, activities
 
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
     , callback
-
-
-# temp, couldn't find a better place to put this
-
-do ->
-  typesToBeCached = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-    ]
-
-  CActivity.on "ActivityIsCreated", (activity)->
-    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
-    # if activity.constructor.name in typesToBeCached
-      JActivityCache.init()
-
-  CActivity.on "post-updated", (teaser)->
-    #if activity.group is 'koding' then 
-    JActivityCache.modifyByTeaser teaser
-
-  CActivity.on "BucketIsUpdated", (activity, bucket)->
-    console.log bucket.constructor.name, "is being updated"
-    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
-    # if activity.constructor.name in typesToBeCached
-      JActivityCache.modifyByTeaser bucket
-
-  console.log "\"feed-new\" event for Activity Caching is bound."
-  console.log "\"post-updated\" event for Activity Caching is bound."
-

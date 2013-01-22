@@ -42,6 +42,12 @@ class ActivityListController extends KDListViewController
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
 
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
+        @activityHeader.setClass "scrolling-up-outset"
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
       if firstHiddenItem.length > 0
@@ -60,7 +66,7 @@ class ActivityListController extends KDListViewController
     for activity in activities
       @addItem activity
 
-    @teasersLoaded()
+    @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
 
@@ -75,42 +81,7 @@ class ActivityListController extends KDListViewController
         if cache.activities[item.ids.first]
           @addItem cache.activities[item.ids.first].teaser
 
-    @teasersLoaded()
-
-  teasersLoaded:->
     @emit "teasersLoaded"
-
-    return
-    for group in hiddenNewMemberItemGroups
-
-      if group.length > 0
-        activity = new NewMemberBucketData {}, group.map (view)-> view.getData()
-        for item, i in @itemsOrdered
-          a = new Date(activity.buckets[0].meta.createdAt).getTime()
-          b = new Date(item.getData().meta.createdAt).getTime()
-          if a > b
-            @addItem activity, i
-            break
-
-      item.destroy() for item in group
-
-    resetNewMemberGroups()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   followedActivityArrived: (activity) ->
@@ -131,13 +102,6 @@ class ActivityListController extends KDListViewController
       else
         view = @addHiddenItem activity, 0
         @activityHeader.newActivityArrived()
-    # else
-    #   # i don't know what this does
-    #   {CFolloweeBucket} = KD.remote.api
-    #   switch activity.constructor
-    #     when CFolloweeBucket
-    #       @addItem activity, 0
-    #   @ownActivityArrived activity
 
   updateNewMemberBucket:(activity)->
 
@@ -148,10 +112,15 @@ class ActivityListController extends KDListViewController
       for item in @itemsOrdered
         if item.getData() instanceof NewMemberBucketData
           data = item.getData()
-          data.buckets.unshift bucket
-          item.destroySubViews()
-          item.addChildView data
+          data.anchors.pop()
+          data.anchors.unshift bucket.anchor
+          data.count++
+          item.slideOut =>
+            @removeItem item, data
+            newItem = @addHiddenItem data, 0
+            @utils.wait 500, -> newItem.slideIn()
           break
+
 
   fakeItems = []
 
@@ -170,30 +139,11 @@ class ActivityListController extends KDListViewController
     @ownActivityArrived activity
     fakeItems.push activity
 
-
   addHiddenItem:(activity, index, animation = null)->
 
     instance = @getListView().addHiddenItem activity, index, animation
-
-    # if the item is a new member bucket
-    # (don't let the name mislead you it is not a bucket, contains only one member)
-    # we make a separate group of new member groups
-    if activity instanceof KD.remote.api.CNewMemberBucket
-      hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].push instance
-    else
-      hiddenItems.push instance
-      prepareNewMemberGroup()
-
-    return instance
-
-  # addItem:(activity, index, animation = null) ->
-
-  #   @noActivityItem.hide()
-  #   if activity instanceof KD.remote.api.CNewMemberBucket
-  #     @addHiddenItem activity, index, animation
-  #   else
-  #     @getListView().addItem activity, index, animation
-  #     prepareNewMemberGroup()
+    hiddenItems.push instance
+    instance
 
   unhideNewHiddenItems = (hiddenItems)->
 

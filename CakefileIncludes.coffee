@@ -256,6 +256,7 @@ Includes =
         permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
+        groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
@@ -487,6 +488,9 @@ Includes =
         MainTabPane                 : "./client/app/MainApp/maintabs/maintabpaneview.coffee"
         MainTabHandleHolder         : "./client/app/MainApp/maintabs/maintabhandleholder.coffee"
 
+        # global notifications
+        GlobalNotification          : "./client/app/MainApp/globalnotification.coffee"
+
         ### SINANS FINDER ###
 
         NFinderController             : "./client/app/MainApp/filetree/controllers/findercontroller.coffee"
@@ -642,6 +646,7 @@ Includes =
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
+        groups              : "./client/stylus/app.group.styl"
 
         temp             : "./client/stylus/temp.styl"
 

@@ -4,7 +4,7 @@ Broker      = require 'broker'
 {argv}      = require 'optimist'
 {extend}    = require 'underscore'
 
-{mongo, mq, projectRoot, authWorker} = require argv.c
+{mongo, mq, projectRoot, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
 
 mqOptions = extend {}, mq
 mqOptions.login = authWorker.login if authWorker?.login?

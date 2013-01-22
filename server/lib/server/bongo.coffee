@@ -4,18 +4,17 @@ Broker   = require 'broker'
 {argv}   = require 'optimist'
 {extend} = require 'underscore'
 
-{mongo, mq, projectRoot, webserver} = require argv.c
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+{mongo, mq, projectRoot, webserver} = KONFIG
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
 mqOptions.productName = 'koding-webserver'
 
-modelsDir = 'workers/social/lib/social/models/'
-
 module.exports = new Bongo {
   mongo
   models: [
-    "#{modelsDir}activity/cache.coffee"
+    "workers/social/lib/social/models/activity/cache.coffee"
   ].map (path)-> nodePath.join projectRoot, path
   mq: new Broker mqOptions
   resourceName: webserver.queueName

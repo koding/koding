@@ -11,6 +11,8 @@ module.exports = class JGroup extends Module
 
   KodingError = require '../../error'
 
+  Validators = require './validators'
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -27,6 +29,11 @@ module.exports = class JGroup extends Module
       'create groups'
       'edit groups'
       'edit own groups'
+      'query collection'
+      'drop collection'
+      'update collection'
+      'assure collection'
+      'remove documents from collection'
     ]
     indexes         :
       slug          : 'unique'
@@ -85,7 +92,8 @@ module.exports = class JGroup extends Module
   @fetchParentGroup =(source, callback)->
     Relationship.someData {
       targetName  : @name
-      sourceId    : source.getId()
+      sourceId    : source.getId?()
+      sourceType  : 'function' is typeof source and source.name
     }, {targetId: 1}, (err, cursor)=>
       if err
         callback err
@@ -155,13 +163,11 @@ module.exports = class JGroup extends Module
 
   updatePermissions: permit 'grant permissions'
     success:(client, permissions, callback=->)->
-      @fetchPermissions client, (err, permissionSet)=>
+      @fetchPermissionSet (err, permissionSet)=>
         if err
           callback err
         else if permissionSet?
-          # TODO: permissionSet.permissionSet is botched.
-          console.log 'there is a permission set', permissionSet, permissionSet.constructor
-          permissionSet.permissionSet.update $set:{permissions}, callback
+          permissionSet.update $set:{permissions}, callback
         else
           permissionSet = new JPermissionSet {permissions}
           permissionSet.save callback
@@ -176,13 +182,16 @@ module.exports = class JGroup extends Module
         else
           callback null, {
             permissionsByModule
-            permissionSet: permissionSet
+            permissions: permissionSet.permissions
           }
 
-  modify: permit(['edit groups','edit own groups'],
-    success:(client, formData, callback)->
+  modify: permit
+    advanced : [
+      { permission: 'edit own groups', validateWith: Validators.own }
+      { permission: 'edit groups' }
+    ]
+    success : (client, formData, callback)->
       @update {$set:formData}, callback
-  )
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
@@ -197,5 +206,3 @@ module.exports = class JGroup extends Module
   #       env.save (err)->
   #         if err then callback err
   #         else callback null
-
-

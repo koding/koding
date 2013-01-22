@@ -94,6 +94,7 @@ class NewMemberLinkGroup extends LinkGroup
     if totalCount > @getData().length
       tmpl += " and {{> @more}}"
 
+    tmpl += " became a member."
     tmpl += "{{> @loader }}"
 
 
