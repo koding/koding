@@ -41,7 +41,7 @@ url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
 
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
+KODING_CAKE        = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -154,7 +154,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
       restart : yes
       restartInterval : 1000
 
@@ -165,7 +165,6 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-              
 
 
 task 'guestCleanup',({configFile})->
@@ -195,6 +194,25 @@ task 'libratoWorker',({configFile})->
     restart: yes
     restartInterval: 100
     verbose: yes
+
+task 'cacheWorker',({configFile})->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {cacheWorker} = KONFIG
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
+
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -276,7 +294,6 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
-  
 
 
 
@@ -288,10 +305,11 @@ task 'deleteCache',(options)->
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  invoke 'goBroker'       if config.runGoBroker    
+  invoke 'goBroker'       if config.runGoBroker
   invoke 'authWorker'     if config.authWorker
   invoke 'guestCleanup'   if config.guests
   invoke 'libratoWorker'  if config.librato?.push
+  invoke 'cacheWorker'    if config.cacheWorker?.run is yes
   invoke 'socialWorker'
   invoke 'webserver'
 
@@ -301,9 +319,8 @@ task 'run', (options)->
   {configFile} = options
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
-
   config.buildClient = yes if options.buildClient
-  
+
   queue = []
   if config.buildClient is yes
     queue.push -> buildClient options, -> queue.next()

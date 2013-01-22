@@ -81,7 +81,7 @@ class ActivityListController extends KDListViewController
         if cache.activities[item.ids.first]
           @addItem cache.activities[item.ids.first].teaser
 
-      @emit "teasersLoaded"
+    @emit "teasersLoaded"
 
 
   followedActivityArrived: (activity) ->
@@ -142,6 +142,8 @@ class ActivityListController extends KDListViewController
   addHiddenItem:(activity, index, animation = null)->
 
     instance = @getListView().addHiddenItem activity, index, animation
+    hiddenItems.push instance
+    instance
 
   unhideNewHiddenItems = (hiddenItems)->
 

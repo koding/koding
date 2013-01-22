@@ -29,8 +29,7 @@ class KDScrollView extends KDView
     thisEvent = thisEvent ? superResponse #only return superResponse if local handle didn't happen
     willPropagateToDOM = thisEvent
 
-  hasScrollBars:()->
-    @getScrollHeight() > @getHeight()
+  hasScrollBars:()-> @getScrollHeight() > @getHeight()
 
   getScrollHeight:()-> @$()[0].scrollHeight
   getScrollWidth:()->  @$()[0].scrollWidth

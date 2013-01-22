@@ -37,7 +37,6 @@ do ->
 
   cachingInProgress = no
 
-  # koding.mq
   koding.connect ->
     # TODO: this is an ugly hack.  I just want it to work for now :/
     emitter = new (require('events').EventEmitter)
@@ -62,11 +61,12 @@ do ->
         cachingInProgress = yes
         JActivityCache.init()
 
-    emitter.on "post-updated", (teaser)->
-      JActivityCache.modifyByTeaser teaser
+    emitter.on "post-updated",  JActivityCache.modifyByTeaser.bind JActivityCache
+    emitter.on "PostIsDeleted", JActivityCache.removeActivity.bind JActivityCache
 
-    emitter.on "BucketIsUpdated", (activityType, bucket)->
-      if actvityType in typesToBeCached
-        JActivityCache.modifyByTeaser bucket
+    emitter.on "BucketIsUpdated", (bucketOptions)->
+      {type, teaserId, createdAt} = bucketOptions
+      if type in typesToBeCached
+        JActivityCache.modifyByTeaser {teaserId, createdAt}
 
     console.log "Activity Cache Worker is ready."
