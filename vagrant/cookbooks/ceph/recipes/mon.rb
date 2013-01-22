@@ -7,3 +7,8 @@
 # All rights reserved - Do Not Redistribute
 #
 
+directory "/var/lib/ceph/mon/ceph-#{node['ceph']['server_id']}" do
+    mode 0755
+    owner 'root'
+    group 'root'
+end
