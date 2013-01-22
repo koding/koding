@@ -23,9 +23,6 @@ class GroupsAppController extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
-      # feedMessage           :
-      #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
-      #   messageLocation       : 'Topics'
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
@@ -264,12 +261,19 @@ class GroupsAppController extends AppController
                       # }
                     ]
                 }
+          "Members" :
+            title   : "User permissions"
+          "Manage Roles" :
+            title   : "Manage Roles"
+            partial : "we'll Manage roles here..."
     , group
 
     modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       # modal.$('img.avatar-image').attr 'src' : stuff.file.data
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
+
+    modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
   editPermissions:(group)->
     log 'calling fetchPermissions'

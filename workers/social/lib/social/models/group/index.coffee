@@ -44,7 +44,8 @@ module.exports = class JGroup extends Module
         'one','create','each','byRelevance','someWithRelationship'
         '__resetAllGroups', 'fetchMyMemberships'
       ]
-      instance      : ['join','leave','fetchPermissions','updatePermissions','modify']
+      instance      : ['join','leave','modify','fetchPermissions'
+                       'updatePermissions', 'fetchMembers', 'fetchRoles']
     schema          :
       title         :
         type        : String
@@ -86,6 +87,9 @@ module.exports = class JGroup extends Module
       tag           :
         targetType  : 'JTag'
         as          : 'tag'
+      role          :
+        targetType  : 'JGroupRole'
+        as          : 'role'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -115,39 +119,50 @@ module.exports = class JGroup extends Module
     JName.claim formData.slug, 'JGroup', 'slug', (err)=>
       if err then callback err
       else
-        group = new @ formData
-        group.save (err)->
-          if err
-            callback err
-          else
-            console.log 'group is saved'
-            group.addMember delegate, (err)->
-              if err
-                callback err
+        group         = new @ formData
+        permissionSet = null
+
+        queue = [
+          -> group.save (err)->
+              if err then callback err
+              else
+                console.log 'group is saved'
+                queue.next()
+          -> group.addMember delegate, (err)->
+              if err then callback err
               else
                 console.log 'member is added'
-                group.addAdmin delegate, (err)->
-                  if err
-                    callback err
-                  else
-                    console.log 'admin is added'
-                    permissionSet = new JPermissionSet
-                    permissionSet.save (err)->
-                      if err
-                        callback err
-                      else
-                        console.log 'permissionSet is saved'
-                        group.addPermissionSet permissionSet, (err)->
-                          if err
-                            callback err
-                          else
-                            console.log 'permissionSet is added'
-                            delegate.addGroup group, 'admin', (err)->
-                              if err
-                                callback err
-                              else
-                                console.log 'group is added'
-                                callback null, group
+                queue.next()
+          -> group.addAdmin delegate, (err)->
+              if err then callback err
+              else
+                console.log 'admin is added'
+                permissionSet = new JPermissionSet
+                queue.next()
+          -> permissionSet.save (err)->
+              if err then callback err
+              else
+                console.log 'permissionSet is saved'
+                queue.next()
+          -> group.addPermissionSet permissionSet, (err)->
+              if err then callback err
+              else
+                console.log 'permissionSet is added'
+                queue.next()
+          # -> group.addDefaultRoles (err)->
+          #     if err then callback err
+          #     else
+          #       console.log 'roles is added'
+          #       queue.next()
+          -> delegate.addGroup group, 'admin', (err)->
+              if err then callback err
+              else
+                console.log 'group is added'
+                queue.next()
+          -> callback null, group
+        ]
+
+        daisy queue
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -162,6 +177,21 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  addDefaultRoles:(callback)->
+
+    # group = @
+    # JGroupRole = require './role'
+    # queue = [
+    #   ->
+    #     role = new JGroupRole {title, value}
+
+    #     # role.save (err, callback)->
+    #     group.addRole role, (err, callback)->
+    # ]
+
+
+    callback null
 
   updatePermissions: permit 'grant permissions'
     success:(client, permissions, callback=->)->
