@@ -415,13 +415,11 @@ module.exports = class JActivityCache extends jraphical.Module
       @update $set: setModifier, (err)-> callback?()
 
 
-  @modifyByTeaser = (teaser, callback)->
+  @modifyByTeaser = ({teaserId, createdAt}, callback)->
 
     CActivity = require './index'
 
-    log "ever here", teaser.meta.createdAt
-
-    @containsTimestamp teaser.meta.createdAt, (err, cache)->
+    @containsTimestamp createdAt, (err, cache)->
       if err then callback? err
       else
 
@@ -430,9 +428,8 @@ module.exports = class JActivityCache extends jraphical.Module
         # this is to get the activity
         idToUpdate = null
         for id, activity of cache.activities
-          if activity.snapshotIds[0].equals teaser.getId()
+          if activity.snapshotIds[0].equals teaserId
             idToUpdate = id
-            # log "found the activity, now perform an atomic update to:", id
 
         CActivity.one _id : idToUpdate, (err, activity)->
           if err then callback? err
@@ -443,6 +440,37 @@ module.exports = class JActivityCache extends jraphical.Module
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
             cache.update {$set : setModifier}, -> #console.log.bind(console)
+
+  @removeActivity = ({teaserId, createdAt}, callback)->
+
+    CActivity = require './index'
+
+    log "ever here", teaserId, createdAt
+
+    @containsTimestamp createdAt, (err, cache)->
+      if err then callback? err
+      else
+
+        return log "couldn't find cache instance!" unless cache
+
+        # this is to get the activity
+        idToDelete = null
+        for id, activity of cache.activities
+          if activity.snapshotIds[0].equals teaserId
+            idToDelete = id
+
+        if idToDelete
+          overviewIndexToDelete = null
+          for item, i in cache.overview
+            if item.ids[0] is idToDelete
+              overviewIndexToDelete = i
+              break
+
+          unsetModifier = {}
+          unsetModifier["activities.#{idToDelete}"] = 1
+          unsetModifier["overview.#{overviewIndexToDelete}"] = 1
+
+          cache.update {$unset : unsetModifier}, -> log "activity removed from cache!"
 
   # update:do ->
   #   updateQueue = []

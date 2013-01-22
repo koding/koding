@@ -1,5 +1,4 @@
 jraphical      = require 'jraphical'
-JActivityCache = require './cache'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
