@@ -53,13 +53,16 @@ class ActivityItemChild extends KDView
         @tags.render()
 
     data.on 'PostIsDeleted', =>
+      log data, ">>><><>!!!!"
       if KD.whoami().getId() is data.getAt('originId')
+        log @, ">>><><>"
         @parent.destroy()
       else
         @parent.putOverlay
           isRemovable : no
           parent      : @parent
           cssClass    : 'half-white'
+
 
     data.watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
