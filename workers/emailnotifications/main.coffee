@@ -6,7 +6,7 @@ Broker    = require 'broker'
 {Base}    = Bongo
 Emailer   = require '../social/lib/social/emailer'
 
-{mq, mongo, email} = require('koding-config-manager').load("main.#{argv.c}")
+{mq, mongo, email, uri} = require('koding-config-manager').load("main.#{argv.c}")
 
 broker = new Broker mq
 
@@ -33,6 +33,9 @@ commonTemplate   = (m)->
               <hr/>
             """
 
+  turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
+  eventName   = flags[m.notification.eventFlag].definition
+
   switch m.event
     when 'FollowHappened'
       action = "is started to following you"
@@ -56,10 +59,11 @@ commonTemplate   = (m)->
       Hi #{m.receiver.profile.firstName},
     </p>
 
-    <p><a href="https://koding.com/#{m.sender.profile.nickname}">#{m.sender.profile.firstName} #{m.sender.profile.lastName}</a> #{action} #{m.contentLink}.</p>
+    <p><a href="#{uri.address}/#{m.sender.profile.nickname}">#{m.sender.profile.firstName} #{m.sender.profile.lastName}</a> #{action} #{m.contentLink}.</p>
 
     #{preview}
 
+    You can turn off e-mail notifications for <a href="#{turnOffLink}">#{eventName}</a> or <a href="#{turnOffLink}/all">any kind of e-mails</a>.
     <br /> -- <br />
     Management
   """
@@ -67,12 +71,16 @@ commonTemplate   = (m)->
 flags =
   comment           :
     template        : commonTemplate
+    definition      : "comments"
   likeActivities    :
     template        : commonTemplate
+    definition      : "activity likes"
   followActions     :
     template        : commonTemplate
+    definition      : "following states"
   privateMessage    :
     template        : commonTemplate
+    definition      : "private messages"
 
 prepareAndSendEmail = (notification)->
 
@@ -110,7 +118,7 @@ prepareAndSendEmail = (notification)->
   fetchSubjectContentLink = (content, type, callback)->
 
     contentTypeLinkMap = (link)->
-      pre = "<a href='https://koding.com/Activity/#{link}'>"
+      pre = "<a href='#{uri.address}/Activity/#{link}'>"
 
       JReview           : "#{pre}review</a>"
       JComment          : "#{pre}comment</a>"
@@ -160,7 +168,7 @@ prepareAndSendEmail = (notification)->
         event       : event
         contentType : contentType
         username    : receiver.profile.nickname
-      , (err, state, email, key)->
+      , (err, state, key, email)->
         if err
           console.error "Could not load user record"
           callback err

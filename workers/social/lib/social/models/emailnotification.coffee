@@ -1,5 +1,10 @@
 {Model, Base, ObjectId, secure} = require 'bongo'
 
+# Poor mans unique ID generator
+getUniqueId=->
+  r = Math.floor Math.random()*9000000+1
+  "#{r}#{Date.now()}"
+
 module.exports = class JEmailNotificationGG extends Model
 
   @set
@@ -14,6 +19,8 @@ module.exports = class JEmailNotificationGG extends Model
         default      : -> new Date
       dateAttempted  : Date
       event          : String
+      eventFlag      : String
+      unsubscribeId  : String
       receiver       : ObjectId
       sender         : ObjectId
       contentId      : ObjectId
@@ -21,28 +28,28 @@ module.exports = class JEmailNotificationGG extends Model
       priority       :
         type         : String
         default      : 'instant'
-        enum         : ['Invalid priority',['instant','daily']]
+        enum         : ['Invalid priority', ['instant','daily']]
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status',['queued','attempted','postponed']]
+        enum         : ['Invalid status', ['queued','attempted','postponed']]
 
   @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
                         'JOpinion', 'JCodeShare', 'JComment', 'JTutorial',
                         'JReview']
   flags =
-    comment           :
-      eventType       : ['ReplyIsAdded']
-      contentTypes    : @commonActivities
-    likeActivities    :
-      eventType       : ['LikeIsAdded']
-      contentTypes    : @commonActivities
-    followActions     :
-      eventType       : ['FollowHappened']
-      contentTypes    : ['JAccount']
-    privateMessage    :
-      eventType       : ['ReplyIsAdded', 'PrivateMessageSent']
-      contentTypes    : ['JPrivateMessage']
+    comment          :
+      eventType      : ['ReplyIsAdded']
+      contentTypes   : @commonActivities
+    likeActivities   :
+      eventType      : ['LikeIsAdded']
+      contentTypes   : @commonActivities
+    followActions    :
+      eventType      : ['FollowHappened']
+      contentTypes   : ['JAccount']
+    privateMessage   :
+      eventType      : ['ReplyIsAdded', 'PrivateMessageSent']
+      contentTypes   : ['JPrivateMessage']
 
   @checkEmailChoice = (options, callback)->
 
@@ -63,7 +70,7 @@ module.exports = class JEmailNotificationGG extends Model
               if contentType in type.contentTypes and event in type.eventType
                 if emailFrequency[key]
                   state = emailFrequency[key]
-                  callback null, state, email, key
+                  callback null, state, key, email
                   return
           callback null
 
@@ -93,7 +100,7 @@ module.exports = class JEmailNotificationGG extends Model
       contentId   = if activity.content then \
                        activity.content.id else contents.subject.id
 
-    @checkEmailChoice {username, event, contentType}, (err, state)->
+    @checkEmailChoice {username, event, contentType}, (err, state, key)->
       if err or state not in ['daily', 'instant']
         console.log "User disabled e-mail notifications."
         callback? err
@@ -104,7 +111,8 @@ module.exports = class JEmailNotificationGG extends Model
         (err, count)->
           if not err and count is 0
             notification = new JEmailNotificationGG {
-              event, sender, receiver, contentId, activity, priority: state
+              event, sender, receiver, contentId, activity,
+              eventFlag: key, priority: state, unsubscribeId: getUniqueId()
             }
             # console.log "OK good to go."
             notification.save (err)->
