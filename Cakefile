@@ -59,6 +59,9 @@ compileGoBinaries = (configFile,callback)->
     processes.spawn
       name: 'build'
       cmd : './go/build.sh'
+      stdout : process.stdout
+      stderr : process.stderr
+      verbose : yes 
       onExit :->
         callback null  
   else
