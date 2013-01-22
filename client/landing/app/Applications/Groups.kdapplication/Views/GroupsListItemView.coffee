@@ -105,12 +105,15 @@ class GroupsListItemView extends KDListItemView
     mainController = @getSingleton('mainController')
 
     menu =
-      'Group Settings'     :
+      'Group settings'     :
         callback : =>
           mainController.emit 'EditGroupButtonClicked', @
       'Permissions'     :
         callback : =>
           mainController.emit 'EditPermissionsButtonClicked', @
+      'My roles'        :
+        callback : =>
+          mainController.emit 'MyRolesRequested', @
 
     # if KD.checkFlag 'super-admin'
     #   menu =

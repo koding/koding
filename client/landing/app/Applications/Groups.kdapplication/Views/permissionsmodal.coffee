@@ -31,7 +31,7 @@ class PermissionsModal extends KDView
       for perm in permissions
         if perm.module is module and perm.role is role
           for perm1 in perm.permissions
-            if perm1 is permission then return yes
+            return yes  if perm1 is permission
           return no
 
     cascadeFormElements = (set,roles,module,permission)->
