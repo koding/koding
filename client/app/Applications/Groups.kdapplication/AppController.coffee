@@ -112,7 +112,8 @@ class GroupsAppController extends AppController
     unless group?
       group = {}
       isNewGroup = yes
-    modal = new KDModalViewWithForms #GroupAdminModal
+
+    modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
       # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
@@ -261,19 +262,24 @@ class GroupsAppController extends AppController
                       # }
                     ]
                 }
-          "Members" :
-            title   : "User permissions"
-          "Manage Roles" :
-            title   : "Manage Roles"
-            partial : "we'll Manage roles here..."
-    , group
+
+    unless isNewGroup
+      modalOptions.tabs.forms.Members =
+        title   : "User permissions"
+      modalOptions.tabs.forms["Manage Roles"] =
+        title   : "Manage Roles"
+        partial : "we'll Manage roles here..."
+
+
+    modal = new KDModalViewWithForms modalOptions, group
 
     modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       # modal.$('img.avatar-image').attr 'src' : stuff.file.data
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
 
-    modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+    unless isNewGroup
+      modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->

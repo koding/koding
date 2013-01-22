@@ -20,10 +20,6 @@ module.exports = class JGroupRole extends Module
     { title : "guest",  isDefault : yes}
   ]
 
-  @fetchDefaultRoles = (callback)->
-    # fetch
-    callback roles
-
   @create = (formData, callback)->
     JGroup = require '../group'
 

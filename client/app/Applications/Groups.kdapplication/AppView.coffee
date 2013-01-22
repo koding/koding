@@ -95,11 +95,15 @@ class GroupsMemberPermissionsView extends JView
       size          :
         width       : 32
 
-    groupData.fetchMembers (err, members)=>
+    groupData.fetchRoles (err, roles)=>
       if err then warn err
       else
-        @listController.instantiateListItems members
-        @loader.hide()
+        @listController.getListView().getOptions().roles = roles
+        groupData.fetchMembers (err, members)=>
+          if err then warn err
+          else
+            @listController.instantiateListItems members
+            @loader.hide()
 
   viewAppended:->
 
@@ -124,15 +128,14 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     super options, data
 
+    list         = @getDelegate()
     @profileLink = new ProfileTextView {}, @getData()
     @selectBox   = new KDSelectBox
       name          : "role"
-      selectOptions : [
-        { title : "Select a role" }
-        { title : "Admin",  value : "admin" }
-        { title : "Member", value : "member" }
-      ]
       callback      : @selectBoxCallback.bind @
+      selectOptions : list.getOptions().roles.map (role)->
+        {title : role.title.capitalize(), value : role.title}
+
 
   selectBoxCallback:(event)->
 

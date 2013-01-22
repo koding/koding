@@ -4,7 +4,7 @@ module.exports = class JGroup extends Module
 
   {Relationship} = require 'jraphical'
 
-  {Inflector, ObjectRef, secure} = require 'bongo'
+  {Inflector, ObjectRef, secure, daisy, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
   {permit} = JPermissionSet
@@ -66,7 +66,7 @@ module.exports = class JGroup extends Module
         as          : 'owner'
       member        :
         targetType  : 'JAccount'
-        as          : 'group'
+        as          : 'member'
       moderator     :
         targetType  : 'JAccount'
         as          : 'group'
@@ -150,7 +150,7 @@ module.exports = class JGroup extends Module
           -> group.addDefaultRoles (err)->
               if err then callback err
               else
-                console.log 'roles is added'
+                console.log 'roles are added'
                 queue.next()
           -> delegate.addGroup group, 'admin', (err)->
               if err then callback err
@@ -181,10 +181,10 @@ module.exports = class JGroup extends Module
     group = @
     JGroupRole = require './role'
 
-    JGroupRole.fetchDefaultRoles (err, roles)->
+    JGroupRole.all {isDefault: yes}, (err, roles)->
       if err then callback err
       else
-        queue = roles.map (roleData)->
+        queue = roles.map (role)->
           ->
             group.addRole role, queue.fin.bind queue
 
