@@ -273,126 +273,18 @@ class GroupsAppController extends AppController
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
-
-      log permissionSet
-
       if err
         new KDNotificationView title: err.message
       else
-        permissionsGrid = new PermissionsGrid {
+        permissionsModal = new PermissionsModal {
           privacy: group.getData().privacy
           permissionSet
-        }
+        }, group
 
-        # here we should handle custom roles and add them for display
-        roles = ['member','moderator','admin']
-
-        roles.unshift 'guest' if group.getData().privacy is 'public'
-
-        readableText = (text)->
-          dictionary =
-            "JTag" : "Tags"
-            "JGroup": 'Groups'
-            "JReview": 'Reviews'
-            "JPost":'Posts'
-            "JVocabulary": 'Vocabularies'
-
-          return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
-
-        checkForPermission = (permissions,module,permission,role)->
-          for perm in permissions
-            if perm.module is module and perm.role is role
-              for perm1 in perm.permissions
-                if perm1 is permission then return yes
-              return no
-
-        cascadeFormElements = (set,roles,module,permission)->
-          [current,remainder...] = roles.slice()
-          data = {}
-          data[current]=
-              itemClass     : KDCheckBox
-              cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
-              name          : current
-              defaultValue  : checkForPermission set.permissions,module,permission,current
-          if current is 'admin'
-            data[current].defaultValue = yes
-            data[current].disabled = yes
-
-          if current and remainder.length > 0
-            data[current].nextElementFlat = cascadeFormElements set, remainder, module, permission
-          return data
-
-        cascadeHeaderElements = (roles)->
-          [current,remainder...] = roles.slice()
-          data = {}
-          data[current]=
-              itemClass     : KDView
-              partial       : readableText current
-              cssClass      : 'text header-item role-'+__utils.slugify(current)
-          if current and remainder.length > 0
-            data[current].nextElementFlat = cascadeHeaderElements remainder
-          return data
-
-        optionizePermissions = (set)->
-          options =
-            head              :
-              itemClass       : KDView
-              cssClass        : 'permissions-header col-'+roles.length
-              nextElementFlat :
-                cascadeHeaderElements roles
-
-          for module, permissions of set.permissionsByModule
-            options['header '+module.toLowerCase()] =
-              itemClass       : KDView
-              partial         : readableText module
-              cssClass        : 'permissions-module text'
-
-            for permission in permissions
-              options[module+'-'+__utils.slugify(permission)] =
-                itemClass     : KDView
-                partial       : readableText permission
-                cssClass      : 'text'
-                tooltip       :
-                  title       : readableText permission
-                  direction   : 'center'
-                  placement   : 'left'
-                  offset      :
-                    top       : 3
-                    left      : 0
-                nextElementFlat :
-                  cascadeFormElements set, roles, module, permission
-
-          options
-
-
-        modal = new KDModalViewWithForms
-          title : 'Edit Permissions'
-          cssClass : 'permissions-modal'
-          buttons:
-            Save          :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#444444"
-                diameter  : 12
-              callback    : ->
-                # group.getData().updatePermissions(
-                #   permissionsGrid.reducedList()
-                #   console.log.bind(console) # TODO: do something with this callback
-                # )
-                modal.destroy()
-            Cancel        :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#ffffff"
-                diameter  : 16
-              callback    : -> modal.destroy()
-          tabs  :
-            forms :
-              "Permissions":
-                cssClass : 'permissions-form col-'+roles.length
-                fields : optionizePermissions permissionSet
-
-
+        # permissionsGrid = new PermissionsGrid {
+        #   privacy: group.getData().privacy
+        #   permissionSet
+        # }
 
         # modal = new KDModalView
         #   title     : "Edit permissions"
@@ -408,10 +300,11 @@ class GroupsAppController extends AppController
         #         color     : "#444444"
         #         diameter  : 12
         #       callback    : ->
-        #         group.getData().updatePermissions(
-        #           permissionsGrid.reducedList()
-        #           console.log.bind(console) # TODO: do something with this callback
-        #         )
+        #         log permissionsGrid.reducedList()
+        #         # group.getData().updatePermissions(
+        #         #   permissionsGrid.reducedList()
+        #         #   console.log.bind(console) # TODO: do something with this callback
+        #         # )
         #         modal.destroy()
         #     Cancel        :
         #       style       : "modal-clean-gray"
