@@ -89,9 +89,17 @@ koding.on 'authenticateUser', (client, callback)->
 
 #     # if delegate instanceof koding.models.JAccount
 #     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
-      
+
 #     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
+
+  # create default roles for groups
+  JGroupRole = require './models/group/role'
+
+  JGroupRole.createDefaultRoles (err)->
+    if err then console.log err.message
+    else console.log "Default group roles created"
+
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
 

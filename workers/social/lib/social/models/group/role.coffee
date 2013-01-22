@@ -2,25 +2,34 @@
 
 module.exports = class JGroupRole extends Module
 
-  {daisy}       = require 'bongo'
-  {KodingError} = require '../error'
-
-  @trait __dirname, '../traits/protected'
+  {dash}        = require 'bongo'
+  KodingError   = require '../../error'
 
   @set
     schema          :
       title         : String
       value         : String
-      exclusive     :
+      isDefault     :
         type        : Boolean
         default     : no
 
+  @defaultRoles = [
+    { title : "owner",  isDefault : yes}
+    { title : "admin",  isDefault : yes}
+    { title : "member", isDefault : yes}
+    { title : "guest",  isDefault : yes}
+  ]
+
+  @fetchDefaultRoles = (callback)->
+    # fetch
+    callback roles
+
   @create = (formData, callback)->
-    JGroup = require './group'
+    JGroup = require '../group'
 
     JGroupRole.one
-      title : options.title
-    , (err, role)->
+      title : formData.title
+    , (err, role)=>
       if err
         console.log err
         callback err
@@ -32,14 +41,22 @@ module.exports = class JGroupRole extends Module
       else
         callback null
 
+  createDefaultRolesHelper = (callback)->
 
-do ->
+    queue = JGroupRole.defaultRoles.map (roleData)->
+      ->
+        JGroupRole.create roleData, queue.fin.bind queue
 
-  defaultRoles = [
-    { title : "Admin",  value : "admin"}
-    { title : "Member", value : "member"}
-    { title : "Guest",  value : "guest"}
-  ]
+    dash queue, callback
 
-  defaultRoles.forEach (roleData)-> JGroupRole.create roleData
+  @createDefaultRoles = (callback)->
+
+    @count isDefault : yes, (err, count)=>
+
+      unless count is @defaultRoles.length
+        createDefaultRolesHelper callback
+      else
+        callback new KodingError "Default rules are already created"
+
+
 

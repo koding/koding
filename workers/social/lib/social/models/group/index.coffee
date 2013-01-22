@@ -44,7 +44,7 @@ module.exports = class JGroup extends Module
         'one','create','each','byRelevance','someWithRelationship'
         '__resetAllGroups', 'fetchMyMemberships'
       ]
-      instance      : ['join','leave','modify','fetchPermissions'
+      instance      : ['join','leave','modify','fetchPermissions', 'createRole'
                        'updatePermissions', 'fetchMembers', 'fetchRoles']
     schema          :
       title         :
@@ -149,11 +149,11 @@ module.exports = class JGroup extends Module
               else
                 console.log 'permissionSet is added'
                 queue.next()
-          # -> group.addDefaultRoles (err)->
-          #     if err then callback err
-          #     else
-          #       console.log 'roles is added'
-          #       queue.next()
+          -> group.addDefaultRoles (err)->
+              if err then callback err
+              else
+                console.log 'roles is added'
+                queue.next()
           -> delegate.addGroup group, 'admin', (err)->
               if err then callback err
               else
@@ -180,18 +180,17 @@ module.exports = class JGroup extends Module
 
   addDefaultRoles:(callback)->
 
-    # group = @
-    # JGroupRole = require './role'
-    # queue = [
-    #   ->
-    #     role = new JGroupRole {title, value}
+    group = @
+    JGroupRole = require './role'
 
-    #     # role.save (err, callback)->
-    #     group.addRole role, (err, callback)->
-    # ]
+    JGroupRole.fetchDefaultRoles (err, roles)->
+      if err then callback err
+      else
+        queue = roles.map (roleData)->
+          ->
+            group.addRole role, queue.fin.bind queue
 
-
-    callback null
+        dash queue, callback
 
   updatePermissions: permit 'grant permissions'
     success:(client, permissions, callback=->)->
@@ -216,6 +215,11 @@ module.exports = class JGroup extends Module
             permissionsByModule
             permissions: permissionSet.permissions
           }
+
+  createRole: permit 'grant permissions'
+    success:(client, formData, callback)->
+      JGroupRole = require './role'
+      JGroupRole.create {title : formData.title}, callback
 
   modify: permit
     advanced : [
