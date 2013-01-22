@@ -27,7 +27,7 @@ end
 
 template "/etc/ceph/ceph.conf" do
     source "ceph.conf.erb"
-    mode 0640
+    mode 0644
     owner "root"
     group "root"
     variables({
