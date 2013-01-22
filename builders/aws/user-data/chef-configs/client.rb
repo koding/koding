@@ -98,4 +98,4 @@ json_attribs "/etc/chef/client-config.json"
 # valid values are true or false. The printed timestamp is rfc2822, for example:
 # Fri, 31 Jul 2009 19:19:46 -0600
 
-ixlib::Log::Formatter.show_time = true
+Mixlib::Log::Formatter.show_time = true
