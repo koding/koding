@@ -1,6 +1,8 @@
 package log
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,23 +11,23 @@ import (
 	"strings"
 )
 
-var Service string
-var Profile string
-var Pid int
-var Hostname string
+var source string
+var sourceWithUnderscores string
+var tags string
 var LogDebug bool = false
-var LogToLoggr bool = false
+var LogToCloud bool = false
 
-func init() {
-	fullName, _ := os.Hostname()
-	Hostname = strings.Split(fullName, ".")[0]
-	Pid = os.Getpid()
+func Init(service, profile string) {
+	hostname, _ := os.Hostname()
+	source = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
+	sourceWithUnderscores = strings.Replace(source, " ", "_", -1)
+	tags = service + " " + profile
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
 	event := url.Values{
-		"source": {fmt.Sprintf("%s %d on %s", Service, Pid, Hostname)},
-		"tags":   {LEVEL_TAGS[level] + " " + Service + " " + Profile},
+		"source": {source},
+		"tags":   {LEVEL_TAGS[level] + " " + tags},
 		"text":   {text},
 	}
 	if len(data) != 0 {
@@ -43,21 +45,20 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 }
 
 func Send(event url.Values) {
-	if !LogToLoggr {
-		tagPrefix := "[" + event.Get("tags") + "] "
-		data := event.Get("data")
-		if data != "" {
-			linePrefix := "\n" + strings.Repeat(" ", len(tagPrefix))
-			data = linePrefix + strings.Replace(data, "\n", linePrefix, -1)
+	if !LogToCloud {
+		fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
+		if event.Get("data") != "" {
+			for _, line := range strings.Split(event.Get("data"), "\n") {
+				fmt.Printf("%-30s %s\n", "", line)
+			}
 		}
-		fmt.Println(tagPrefix + event.Get("text") + data)
 		return
 	}
 
 	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
 	resp, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
-	if err != nil {
-		fmt.Println("logger error: http.PostForm failed")
+	if err != nil || resp.StatusCode != http.StatusCreated {
+		fmt.Println("logger error: http.PostForm failed.", resp, err)
 		return
 	}
 	resp.Body.Close()
@@ -119,4 +120,49 @@ func RecoverAndLog() {
 	if err != nil {
 		LogError(err, 2)
 	}
+}
+
+type Gauge struct {
+	Name   string  `json:"name"`
+	Value  float64 `json:"value"`
+	Source string  `json:"source"`
+}
+
+func Gauges(gauges map[string]float64) {
+	if !LogToCloud {
+		tagPrefix := "[gauges " + tags + "]"
+		for name, value := range gauges {
+			fmt.Printf("%-30s %s: %v\n", tagPrefix, name, value)
+			tagPrefix = ""
+		}
+		return
+	}
+
+	var event struct {
+		Gauges []Gauge `json:"gauges"`
+	}
+	event.Gauges = make([]Gauge, 0, len(gauges))
+	for name, value := range gauges {
+		event.Gauges = append(event.Gauges, Gauge{name, value, sourceWithUnderscores})
+	}
+	b, err := json.Marshal(event)
+	if err != nil {
+		fmt.Println("logger error: json.Marshal failed.", err)
+		return
+	}
+
+	request, err := http.NewRequest("POST", "https://metrics-api.librato.com/v1/metrics", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println("logger error: http.NewRequest failed.", err)
+		return
+	}
+	request.SetBasicAuth("mail@richard-musiol.de", "83d92f0a3f593b951e4265c4600f19156b33dc3417424506d042612fb473019d")
+	request.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		fmt.Println("logger error: http.Post failed.", resp, err)
+		return
+	}
+	resp.Body.Close()
 }

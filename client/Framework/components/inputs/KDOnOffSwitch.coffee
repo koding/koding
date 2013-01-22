@@ -8,11 +8,13 @@ class KDOnOffSwitch extends KDInputView
     options.type   or= "switch"       # mandatory
     options.size   or= "small"        # a String tiny/small/big
     options.labels or= ["ON", "OFF"]
-
     super options, data
 
     @setClass options.size
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
+
+    if @getOptions().defaultValue?
+      @setDefaultValue @getOptions().defaultValue
 
   setDomElement:(cssClass)->
     {title, labels, name} = @getOptions()
@@ -70,3 +72,12 @@ class KDOnOffSwitch extends KDInputView
     else if $(event.target).is('a.off')
       @setValue off
     # no
+
+
+
+class KDCheckBox extends KDInputView
+  constructor:(options = {}, data)->
+    options.type   or= "checkbox"       # mandatory
+    options.attributes ?= {}
+    options.attributes.checked ?= options.defaultValue or no
+    super options, data

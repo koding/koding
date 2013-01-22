@@ -2551,3 +2551,130 @@ div.kdtooltip
         .follow-btn
           margin-top 15px
 
+.notification.sticky
+  abs()
+  borderBox()
+  rounded 0 0 4px 4px
+  vendor transition, top 1.5s ease-in-out \, margin-left 0.5s ease-in-out
+  // \, -webkit-transform 0.5s ease-in-out
+  top 0px
+  left 50%
+  margin-left -150px
+  min-width 300px
+  max-width 90%
+  width auto
+  height auto
+  background-color rgba(48,48,48,0.5)
+  z-index 20001
+  border 1px solid black
+  border-top none
+  border-bottom-color #5f5f5f
+  border-left-color #5F5F5F
+  border-right-color #5F5F5F
+
+  // gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+
+  shadow 0px 0px 30px 5px rgba(0, 0, 0, 0.5)
+  cursor default
+  // vendor transform-origin, top center
+  // vendor transform-style, flat
+  // vendor transform , rotateX(0deg)
+  // vendor backface-visibility, hidden
+  // &.wobble
+  //   animation-name wobble
+  //   animation-duration 1s
+  //   animation-iteration-count 1
+
+  &.hidden
+    top -54px
+    // vendor transform , rotateX(-90deg)
+    display block!important
+    visibility visible!important
+
+  .header
+    borderBox()
+    padding 2px 10px 3px 10px
+    width 100%
+    height auto
+    background-color rgba(0,0,0,0.333)
+    span.icon
+      display inline-block
+      fl()
+      margin-top -1px
+      margin-left -9px
+      size 18px 18px
+      sprite()
+      bg position, -20px -320px
+  .slider-wrapper
+    borderBox()
+    border-top 1px solid darken(#5F5F5F,25%)
+    padding 5px
+    height 14px
+    vendor transition, height 0.5s ease-in-out \, padding 0.5s ease-in-out
+    &.done
+      border none
+      height 0px
+      padding 0px 5px
+      .slider
+        opacity 0
+    .slider
+      borderBox()
+      width 100%
+      height 4px
+      bg color, #5f5f5f//#adadad
+      vendor transition, opacity 0.4s ease-in-out
+      opacity 1
+      rounded 2px
+      shadow inset 0px 0px 2px 0px rgba(255, 255, 255, 0.25) //\, 0px 0px 5px rgba(0,0,0,0.25)
+
+      .current
+        vendor transition, width 1s linear
+        borderBox()
+        width 100%
+        height 4px
+        background-color #ff9200
+        border-top 1px solid darken(#ff9200,15%)
+        border-right 1px solid lighten(#ff9200,50%)
+        border-bottom 1px solid lighten(#ff9200,33%)
+        border-left 1px solid darken(#ff9200,30%)
+        rounded 2px
+        &.flash
+          animation-name flashSlider
+          animation-duration 0.5s
+          animation-iteration-count infinite
+
+  .notification-timer
+    vertical-align top
+    text-align center
+    width auto
+    font-size 13px
+    font-weight 300
+    color lighten(#adadad,95%)
+    // white-space pre
+    overflow hidden
+    &:hover
+      cursor pointer
+
+  .notification-content
+    borderBox()
+    width auto
+    vendor transition, height 0.25s linear
+    height 32px
+    overflow-y scroll
+    &.hidden
+      height 0px!important
+      display block!important
+      visibility visible!important
+    .content
+      borderBox()
+      height auto
+      color white!important
+      rounded 3px
+      text-shadow 0px 0px 1px black
+      font-weight 300
+      font-size 11px
+      padding 10px
+
+
+
+
