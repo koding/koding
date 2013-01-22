@@ -100,6 +100,7 @@ config =
       watch       : 1
     mongo         : 1
     runGoBroker   : 1
+    compileGo     : 1
     buildClient   : 1
     misc          :
       claimGlobalNamesForUsers: 1
@@ -118,6 +119,12 @@ config =
       email     : 1
       token     : 1
       interval  : 1
+    goConfig:
+      AmqpHost:     1
+      AmqpUser:     1
+      AmqpPassword: 1
+      HomePrefix:   1
+      UseLVE:       1      
     bitly :
       username  : 1
       apiKey    : 1

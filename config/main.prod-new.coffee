@@ -30,6 +30,7 @@ module.exports = deepFreeze
     watch       : no
   mongo         : mongo
   runGoBroker   : yes
+  compileGo     : yes
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -51,6 +52,14 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  goConfig:
+    AmqpHost:     "web0.beta.system.aws.koding.com"
+    AmqpUser:     "prod-<component>"
+    AmqpPassword: "Dtxym6fRJXx4GJz"
+    HomePrefix:   "/Users/"
+    UseLVE:       true
+    LogToLoggr:   true
+
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
