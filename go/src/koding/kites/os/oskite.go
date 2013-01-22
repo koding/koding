@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	utils.Startup("os kite", true)
+	utils.Startup("kite.os", true)
 
 	k := kite.New("os")
 

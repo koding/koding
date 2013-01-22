@@ -69,7 +69,6 @@ class WebTerm.InputHandler
     @terminal.outputbox.css "cursor", if @trackMouseDown then "pointer" else "text"
   
   mouseEvent: (event) ->
-    return if not @terminal.inSession
     offset = @terminal.container.offset()
     x = Math.floor((event.originalEvent.clientX - offset.left + @terminal.container.scrollLeft()) * @terminal.sizeX / @terminal.container.prop("scrollWidth"))
     y = Math.floor((event.originalEvent.clientY - offset.top + @terminal.container.scrollTop()) * @terminal.screenBuffer.lineDivs.length / @terminal.container.prop("scrollHeight") - @terminal.screenBuffer.lineDivs.length + @terminal.sizeY)

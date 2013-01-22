@@ -22,9 +22,7 @@ func Startup(serviceName string, needRoot bool) {
 		os.Exit(1)
 	}
 
-	if serviceName != "broker" {
-		runtime.GOMAXPROCS(runtime.NumCPU())
-	}
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
 	var profile string
@@ -44,9 +42,8 @@ func Startup(serviceName string, needRoot bool) {
 
 	config.LoadConfig(profile)
 
-	log.Service = serviceName
-	log.Profile = profile
-	log.LogToLoggr = config.Current.LogToLoggr
+	log.Init(serviceName, profile)
+	log.LogToCloud = config.Current.LogToCloud
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
@@ -63,17 +60,23 @@ func Startup(serviceName string, needRoot bool) {
 func BeginShutdown() {
 	ShuttingDown = true
 	ChangeNumClients <- 0
+	log.Info("Beginning shutdown.")
 }
 
 func RunStatusLogger() {
 	go func() {
 		for {
-			message := "Status: Serving %d clients."
 			if ShuttingDown {
-				message = "Status: Shutting down, still %d clients."
+				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients), fmt.Sprintf("Number of goroutines: %d"))
 			}
-			log.Info(fmt.Sprintf(message, numClients), fmt.Sprintf("Number of goroutines: %d", runtime.NumGoroutine()))
-			time.Sleep(10 * time.Minute)
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+			log.Gauges(map[string]float64{
+				"clients":    float64(numClients),
+				"goroutines": float64(runtime.NumGoroutine()),
+				"memory":     float64(m.Alloc),
+			})
+			time.Sleep(30 * time.Second)
 		}
 	}()
 }
