@@ -15,9 +15,9 @@ getRoleSelector = (delegate, group, permission, permissionSet)->
   }
 
 createExistenceCallback = (callback)-> (err, count)->
-  if err then this err, no
-  else if count > 0 then this null, yes
-  else this null, no
+  if err then callback err, no
+  else if count > 0 then callback null, yes
+  else callback null, no
 
 module.exports =
 
