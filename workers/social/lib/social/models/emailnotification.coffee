@@ -38,8 +38,8 @@ module.exports = class JEmailNotificationGG extends Model
       eventType       : ['LikeIsAdded']
       contentTypes    : @commonActivities
     followActions     :
-      eventType       : ''
-      contentTypes    : []
+      eventType       : ['FollowHappened']
+      contentTypes    : ['JAccount']
     privateMessage    :
       eventType       : ['ReplyIsAdded', 'PrivateMessageSent']
       contentTypes    : ['JPrivateMessage']
@@ -85,9 +85,13 @@ module.exports = class JEmailNotificationGG extends Model
     # console.log "RECEIVER:", receiver
     # console.log "ACTIVITY:", activity
 
-    contentType = contents.subject.constructorName
-    contentId   = if activity.content then \
-                     activity.content.id else contents.subject.id
+    if event is 'FollowHappened'
+      contentType = 'JAccount'
+      contentId   = receiver
+    else
+      contentType = contents.subject.constructorName
+      contentId   = if activity.content then \
+                       activity.content.id else contents.subject.id
 
     @checkEmailChoice {username, event, contentType}, (err, state)->
       if err or state not in ['daily', 'instant']
@@ -102,6 +106,7 @@ module.exports = class JEmailNotificationGG extends Model
             notification = new JEmailNotificationGG {
               event, sender, receiver, contentId, activity, priority: state
             }
+            # console.log "OK good to go."
             notification.save (err)->
               if err then console.error err
               else console.log "Saved to queue."

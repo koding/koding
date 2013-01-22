@@ -28,11 +28,16 @@ commonTemplate   = (m)->
   preview = """
               <hr/>
                 <p>
-                  #{m.realContent.body}
+                  #{m.realContent?.body}
                 </p>
               <hr/>
             """
+
   switch m.event
+    when 'FollowHappened'
+      action = "is started to following you"
+      m.contentLink = ''
+      preview = ''
     when 'LikeIsAdded'
       action = "liked your"
     when 'PrivateMessageSent'
@@ -141,7 +146,10 @@ prepareAndSendEmail = (notification)->
   {JAccount, JEmailNotificationGG} = worker.models
 
   {event}     = notification.data
-  contentType = notification.activity.subject.constructorName
+  if event is 'FollowHappened'
+    contentType = 'JAccount'
+  else
+    contentType = notification.activity.subject.constructorName
 
   # Fetch Receiver
   JAccount.one {_id:notification.receiver.id}, (err, receiver)->
@@ -167,33 +175,37 @@ prepareAndSendEmail = (notification)->
             JAccount.one {_id:notification.sender}, (err, sender)->
               if err then callback err
               else
-                # Fetch Subject Content
-                fetchSubjectContent notification.activity, \
-                (err, subjectContent)->
-                  if err then callback err
-                  else
-                    realContent = subjectContent
-                    # Create object which we pass to template later
-                    details = {sender, receiver, event, email, key, \
-                               subjectContent, realContent, notification}
-                    # Fetch Subject Content-Link
-                    # If Subject is a secondary level content like JComment
-                    # we need to get its parent's slug to show link correctly
-                    fetchSubjectContentLink subjectContent, contentType, \
-                    (err, link)->
-                      if err then callback err
-                      else
-                        details.contentLink = link
-                        if event is 'ReplyIsAdded'
-                          # Fetch RealContent
-                          fetchContent notification.activity.content, \
-                          (err, content)->
-                            if err then callback err
-                            else
-                              details.realContent = content
-                              sendEmail details
+                details = {sender, receiver, event, email, key, notification}
+                if event is 'FollowHappened'
+                  sendEmail details
+                else
+                  # Fetch Subject Content
+                  fetchSubjectContent notification.activity, \
+                  (err, subjectContent)->
+                    if err then callback err
+                    else
+                      realContent = subjectContent
+                      # Create object which we pass to template later
+                      details.subjectContent = subjectContent
+                      details.realContent    = realContent
+                      # Fetch Subject Content-Link
+                      # If Subject is a secondary level content like JComment
+                      # we need to get its parent's slug to show link correctly
+                      fetchSubjectContentLink subjectContent, contentType, \
+                      (err, link)->
+                        if err then callback err
                         else
-                          sendEmail details
+                          details.contentLink = link
+                          if event is 'ReplyIsAdded'
+                            # Fetch RealContent
+                            fetchContent notification.activity.content, \
+                            (err, content)->
+                              if err then callback err
+                              else
+                                details.realContent = content
+                                sendEmail details
+                          else
+                            sendEmail details
 
 job = new CronJob email.notificationCron, ->
 

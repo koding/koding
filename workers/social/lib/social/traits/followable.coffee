@@ -4,7 +4,7 @@ CBucket = require '../models/bucket'
 
 module.exports = class Followable
 
-  {Model, dash, secure} = require 'bongo'
+  {Model, dash, secure, ObjectRef} = require 'bongo'
   {Relationship, Module} = jraphical
   {extend} = require 'underscore'
 
@@ -128,10 +128,10 @@ module.exports = class Followable
               follower        : follower
               action          : action
 
-            # JAccount.emit 'FollowingRelationshipChanged'
-            #   follower: follower.getId()
-            #   followee: @getId()
-            #   action  : action
+            @emit 'FollowHappened'
+              origin    : @
+              actorType : 'follower'
+              follower  : ObjectRef(follower).data
 
             follower.updateFollowingCount @, action
 
@@ -144,12 +144,7 @@ module.exports = class Followable
                 emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
                 if emitActivity
                   CBucket.addActivities relationship, @, follower, (err)->
-                    if err
-                      console.log "An Error occured: ", err
-                      # callback err
-                #     else
-                #       callback null, count
-                # else callback null, count
+                    console.log "An Error occured: #{err}" if err
 
   unfollow: secure (client,callback)->
     JAccount = require '../models/account'
@@ -167,11 +162,6 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           follower        : follower
           action          : action
-
-        # JAccount.emit 'FollowingRelationshipChanged'
-        #   follower: follower.getId()
-        #   followee: @getId()
-        #   action  : action
 
         follower.updateFollowingCount @, action
 

@@ -169,7 +169,7 @@ module.exports = class JAccount extends jraphical.Module
 
   constructor:->
     super
-    @notifyOriginWhen 'PrivateMessageSent'
+    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client
