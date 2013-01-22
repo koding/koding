@@ -77,3 +77,74 @@ class GroupsMainView extends KDView
   #                 Cancel          :
   #                   style         : "modal-cancel"
   #                   callback      : ()-> modal.destroy()
+
+
+class GroupsMemberPermissionsView extends JView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass = "groups-member-permissions-view"
+
+    super
+
+    groupData       = @getData()
+    @listController = new KDListViewController
+      itemClass     : GroupsMemberPermissionsListItemView
+    @listWrapper    = @listController.getView()
+    @loader         = new KDLoaderView
+      size          :
+        width       : 32
+
+    groupData.fetchRoles (err, roles)=>
+      if err then warn err
+      else
+        @listController.getListView().getOptions().roles = roles
+        groupData.fetchMembers (err, members)=>
+          if err then warn err
+          else
+            @listController.instantiateListItems members
+            @loader.hide()
+
+  viewAppended:->
+
+    super
+
+    @loader.show()
+
+
+  pistachio:->
+
+    """
+      {{> @loader}}
+      {{> @listWrapper}}
+    """
+
+class GroupsMemberPermissionsListItemView extends KDListItemView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass = "formline clearfix"
+    options.type     = "member-item"
+
+    super options, data
+
+    list         = @getDelegate()
+    @profileLink = new ProfileTextView {}, @getData()
+    @selectBox   = new KDSelectBox
+      name          : "role"
+      callback      : @selectBoxCallback.bind @
+      selectOptions : list.getOptions().roles.map (role)->
+        {title : role.title.capitalize(), value : role.title}
+
+
+  selectBoxCallback:(event)->
+
+    log "make here #{@getData().profile.nickname} #{@selectBox.getValue()}"
+
+  viewAppended:JView::viewAppended
+
+  pistachio:->
+    """
+    {{> @profileLink}}
+    {{> @selectBox}}
+    """
