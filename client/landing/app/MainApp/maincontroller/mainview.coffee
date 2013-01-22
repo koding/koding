@@ -158,8 +158,6 @@ class MainView extends KDView
           title      : systemStatus.restartTitle
           content    : systemStatus.restartContent
 
-
-
   createSideBar:->
 
     @sidebar = new Sidebar domId : "sidebar", delegate : @

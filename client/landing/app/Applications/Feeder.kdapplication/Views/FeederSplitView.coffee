@@ -6,9 +6,9 @@ class FeederSplitView extends ContentPageSplitBelowHeader
     options.bind      = "mouseenter"
 
     super options
-    
+
     # loook what this is, there is some sabotage going on here 6/2012 Sinan
-    
+
     @listenTo
       KDEventTypes    : 'FeedMessageDialogClosed'
       callback        : (pubInst, {data}, event)=>

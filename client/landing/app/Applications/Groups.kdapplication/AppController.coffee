@@ -276,42 +276,47 @@ class GroupsAppController extends AppController
     modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
   editPermissions:(group)->
-    log 'calling fetchPermissions'
     group.getData().fetchPermissions (err, permissionSet)->
-      log arguments
       if err
         new KDNotificationView title: err.message
       else
-        permissionsGrid = new PermissionsGrid {
+        permissionsModal = new PermissionsModal {
           privacy: group.getData().privacy
           permissionSet
-        }
-        modal = new KDModalView
-          title     : "Edit permissions"
-          content   : ""
-          overlay   : yes
-          cssClass  : "new-kdmodal"
-          width     : 500
-          height    : "auto"
-          buttons:
-            Save          :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#444444"
-                diameter  : 12
-              callback    : ->
-                group.getData().updatePermissions(
-                  permissionsGrid.reducedList()
-                  console.log.bind(console) # TODO: do something with this callback
-                )
-                modal.destroy()
-            Cancel        :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#ffffff"
-                diameter  : 16
-              callback    : -> modal.destroy()
-        modal.addSubView permissionsGrid
+        }, group
+
+        # permissionsGrid = new PermissionsGrid {
+        #   privacy: group.getData().privacy
+        #   permissionSet
+        # }
+
+        # modal = new KDModalView
+        #   title     : "Edit permissions"
+        #   content   : ""
+        #   overlay   : yes
+        #   cssClass  : "new-kdmodal permission-modal"
+        #   width     : 500
+        #   height    : "auto"
+        #   buttons:
+        #     Save          :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#444444"
+        #         diameter  : 12
+        #       callback    : ->
+        #         log permissionsGrid.reducedList()
+        #         # group.getData().updatePermissions(
+        #         #   permissionsGrid.reducedList()
+        #         #   console.log.bind(console) # TODO: do something with this callback
+        #         # )
+        #         modal.destroy()
+        #     Cancel        :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#ffffff"
+        #         diameter  : 16
+        #       callback    : -> modal.destroy()
+        # modal.addSubView permissionsGrid
 
   loadView:(mainView, firstRun = yes)->
 
