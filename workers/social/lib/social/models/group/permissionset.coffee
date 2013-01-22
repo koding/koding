@@ -1,4 +1,4 @@
-{Model, secure, dash} = require 'bongo'
+{Model, secure, dash, daisy} = require 'bongo'
 {Module, Relationship} = require 'jraphical'
 
 # class JPermission extends Model
@@ -31,9 +31,9 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
-  @checkPermission =(client, permission, target, callback)->
+  @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
-    permission = [permission]  unless Array.isArray permission
+    # permission = [permission]  unless Array.isArray permission
     groupName =\
       if 'function' is typeof target
         module = target.name
@@ -45,30 +45,34 @@ module.exports = class JPermissionSet extends Module
         module = target.constructor.name
         target.group
     JGroup.one {slug: groupName}, (err, group)->
-      return callback null  if err
-      # permissionSelector = 'permissions.title':
-      #   if permission.length is 1 then permission[0]
-      #   else $in: permission
-      # options = targetOptions: selector: permissionSelector
-      # group.fetchPermissionSet {}, options, (err, permissionSet)->
-      group.fetchPermissionSet (err, permissionSet)->
-        return callback null  if err or not permissionSet
-        break   for perm in permissionSet.permissions\
-                when perm.title in permission
-        roles = (perm?.roles or []).concat 'admin' # admin can do anything!
-        relationshipSelector =
-          targetId: group.getId()
-          sourceId: client.connection.delegate.getId()
-          as: { $in: roles }
-        console.log {relationshipSelector}
-        Relationship.one relationshipSelector, (err, rel)->
-          return callback null, yes  if rel
-          callback null
+      if err then callback err, no
+      else unless group?
+      else
+        group.fetchPermissionSet (err, permissionSet)->
+          if err then callback err, no
+          else unless permissionSet then callback null, no
+          else
+            queue = advanced.map ({permission, validateWith})->->
+              console.log {permission, validateWith}
+              validateWith ?= require('./validators').any
+              validateWith.call target, client, permission, permissionSet,
+                (err, hasPermission)->
+                  if err then queue.next err
+                  else if hasPermission
+                    callback null, yes  # we can stop here.  One permission is enough.
+                  else queue.next()
+            queue.push ->
+              # if we ever get this far, it means the user doesn't have permission.
+              callback null, no
+            daisy queue
 
   @permit =(permission, promise)->
     [promise, permission] = [permission, promise]  unless promise
-    if promise.advanced
-      return console.warn "PermissionSet#permit(promise.advanced) is not yet implemented!"
+    advanced =
+      if promise.advanced
+        promise.advanced
+      else
+        [{permission, validateWith: require('./validators').any}]
     secure (client, rest...)->
       if 'function' is typeof rest[rest.length-1]
         [rest..., callback] = rest
@@ -79,12 +83,10 @@ module.exports = class JPermissionSet extends Module
         else promise.success.bind this
       failure = (promise.failure?.bind this) ? (args...)-> callback args...
       {delegate} = client.connection
-      JPermissionSet.checkPermission(client, permission, this,
+      JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
-          if err
-            failure err
+          if err then failure err
           else if hasPermission
-            success.apply this, [client, rest..., callback]
+            success.apply null, [client, rest..., callback]
           else
-            failure new KodingError 'Access denied!'
-      )
+            failure new KodingError 'Access denied'
