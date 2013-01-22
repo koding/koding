@@ -5,55 +5,27 @@ import (
 	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/log"
+	"os"
 	"strings"
-	"time"
 )
 
-func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *amqp.Connection)) {
+func CreateAmqpConnection(component string) *amqp.Connection {
 	user := strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1)
 	url := "amqp://" + user + ":" + config.Current.Mq.Password + "@" + config.Current.Mq.Host
-
-	for !ShuttingDown {
-		func() {
-			defer time.Sleep(time.Second)
-			defer log.RecoverAndLog()
-
-			log.Info("Connecting to AMQP server...")
-
-			consumeConn, err := amqp.Dial(url)
-			if err != nil {
-				panic(err)
-			}
-			defer consumeConn.Close()
-
-			publishConn, err := amqp.Dial(url)
-			if err != nil {
-				panic(err)
-			}
-			defer publishConn.Close()
-
-			go func() {
-				for err := range consumeConn.NotifyClose(make(chan *amqp.Error)) {
-					log.Warn("AMQP connection: " + err.Error())
-				}
-				publishConn.Close()
-			}()
-			go func() {
-				for err := range publishConn.NotifyClose(make(chan *amqp.Error)) {
-					log.Warn("AMQP connection: " + err.Error())
-				}
-				consumeConn.Close()
-			}()
-
-			log.Info("Successfully connected to AMQP server.")
-
-			handler(consumeConn, publishConn)
-
-			if !ShuttingDown {
-				log.Warn("Connection to AMQP server lost.")
-			}
-		}()
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		log.LogError(err, 0)
+		os.Exit(1)
 	}
+
+	go func() {
+		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
+			log.Err("AMQP connection: " + err.Error())
+			os.Exit(1)
+		}
+	}()
+
+	return conn
 }
 
 func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {

@@ -44,168 +44,172 @@ func (k *Kite) Run() {
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
-	utils.AmqpAutoReconnect(k.Name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
-		routeMap := make(map[string](chan<- []byte))
-		defer func() {
-			for _, channel := range routeMap {
-				close(channel)
+	consumeConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	defer consumeConn.Close()
+
+	publishConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	defer publishConn.Close()
+
+	routeMap := make(map[string](chan<- []byte))
+	defer func() {
+		for _, channel := range routeMap {
+			close(channel)
+		}
+	}()
+
+	publishChannel := utils.CreateAmqpChannel(publishConn)
+	defer publishChannel.Close()
+
+	consumeChannel := utils.CreateAmqpChannel(consumeConn)
+	utils.DeclareAmqpPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
+	stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
+
+	for {
+		select {
+		case message, ok := <-stream:
+			if !ok {
+				return
 			}
-		}()
 
-		publishChannel := utils.CreateAmqpChannel(publishConn)
-		defer publishChannel.Close()
-
-		consumeChannel := utils.CreateAmqpChannel(consumeConn)
-		utils.DeclareAmqpPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
-		stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
-
-		for {
-			select {
-			case message, ok := <-stream:
-				if !ok {
-					return
+			switch message.RoutingKey {
+			case "auth.join":
+				var client struct {
+					Username   string
+					RoutingKey string
+				}
+				err := json.Unmarshal(message.Body, &client)
+				if err != nil || client.Username == "" || client.RoutingKey == "" {
+					log.Err("Invalid auth.join message.", message.Body)
+					continue
 				}
 
-				switch message.RoutingKey {
-				case "auth.join":
-					var client struct {
-						Username   string
-						RoutingKey string
-					}
-					err := json.Unmarshal(message.Body, &client)
-					if err != nil || client.Username == "" || client.RoutingKey == "" {
-						log.Err("Invalid auth.join message.", message.Body)
-						continue
-					}
+				if _, found := routeMap[client.RoutingKey]; found {
+					continue // duplicate key
+				}
+				channel := make(chan []byte, 1024)
+				routeMap[client.RoutingKey] = channel
 
-					if _, found := routeMap[client.RoutingKey]; found {
-						continue // duplicate key
+				go func() {
+					defer log.RecoverAndLog()
+
+					utils.ChangeNumClients <- 1
+					log.Debug("Client connected: " + client.Username)
+					defer func() {
+						utils.ChangeNumClients <- -1
+						log.Debug("Client disconnected: " + client.Username)
+					}()
+
+					session := NewSession(client.Username)
+					defer session.Close()
+
+					d := dnode.New()
+					defer d.Close()
+					d.OnRootMethod = func(method string, args *dnode.Partial) {
+						defer log.RecoverAndLog()
+
+						if method == "ping" {
+							d.Send("pong")
+							return
+						}
+
+						var partials []*dnode.Partial
+						err := args.Unmarshal(&partials)
+						if err != nil {
+							panic(err)
+						}
+
+						var options struct {
+							WithArgs *dnode.Partial
+						}
+						err = partials[0].Unmarshal(&options)
+						if err != nil {
+							panic(err)
+						}
+						var resultCallback dnode.Callback
+						err = partials[1].Unmarshal(&resultCallback)
+						if err != nil {
+							panic(err)
+						}
+
+						handler, found := k.Handlers[method]
+						if !found {
+							resultCallback(fmt.Sprintf("Method '%v' not known.", method), nil)
+							return
+						}
+
+						execHandler := func() {
+							result, err := handler.Callback(options.WithArgs, session)
+							if err != nil {
+								resultCallback(err.Error(), result)
+							} else if result != nil {
+								resultCallback(nil, result)
+							}
+						}
+						if handler.Concurrent {
+							go func() {
+								defer log.RecoverAndLog()
+								execHandler()
+							}()
+						} else {
+							execHandler()
+						}
 					}
-					channel := make(chan []byte, 1024)
-					routeMap[client.RoutingKey] = channel
 
 					go func() {
 						defer log.RecoverAndLog()
-
-						utils.ChangeNumClients <- 1
-						log.Debug("Client connected: " + client.Username)
-						defer func() {
-							utils.ChangeNumClients <- -1
-							log.Debug("Client disconnected: " + client.Username)
-						}()
-
-						session := NewSession(client.Username)
-						defer session.Close()
-
-						d := dnode.New()
-						defer d.Close()
-						d.OnRootMethod = func(method string, args *dnode.Partial) {
-							defer log.RecoverAndLog()
-
-							if method == "ping" {
-								d.Send("pong")
-								return
-							}
-
-							var partials []*dnode.Partial
-							err := args.Unmarshal(&partials)
+						for data := range d.SendChan {
+							log.Debug("Write", client.RoutingKey, data)
+							err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data})
 							if err != nil {
-								panic(err)
+								log.LogError(err, 0)
 							}
-
-							var options struct {
-								WithArgs *dnode.Partial
-							}
-							err = partials[0].Unmarshal(&options)
-							if err != nil {
-								panic(err)
-							}
-							var resultCallback dnode.Callback
-							err = partials[1].Unmarshal(&resultCallback)
-							if err != nil {
-								panic(err)
-							}
-
-							handler, found := k.Handlers[method]
-							if !found {
-								resultCallback(fmt.Sprintf("Method '%v' not known.", method), nil)
-								return
-							}
-
-							execHandler := func() {
-								result, err := handler.Callback(options.WithArgs, session)
-								if err != nil {
-									resultCallback(err.Error(), result)
-								} else if result != nil {
-									resultCallback(nil, result)
-								}
-							}
-							if handler.Concurrent {
-								go func() {
-									defer log.RecoverAndLog()
-									execHandler()
-								}()
-							} else {
-								execHandler()
-							}
-						}
-
-						go func() {
-							defer log.RecoverAndLog()
-							for data := range d.SendChan {
-								log.Debug("Write", client.RoutingKey, data)
-								err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data})
-								if err != nil {
-									log.LogError(err, 0)
-								}
-							}
-						}()
-
-						d.Send("ready", "kite-"+k.Name)
-
-						for message := range channel {
-							log.Debug("Read", client.RoutingKey, message)
-							d.ProcessMessage(message)
 						}
 					}()
 
-				case "auth.leave":
-					var client struct {
-						RoutingKey string
-					}
-					err := json.Unmarshal(message.Body, &client)
-					if err != nil || client.RoutingKey == "" {
-						log.Err("Invalid auth.leave message.", message.Body)
-						continue
-					}
+					d.Send("ready", "kite-"+k.Name)
 
-					channel, found := routeMap[client.RoutingKey]
-					if found {
-						close(channel)
-						delete(routeMap, client.RoutingKey)
+					for message := range channel {
+						log.Debug("Read", client.RoutingKey, message)
+						d.ProcessMessage(message)
 					}
+				}()
 
-				default:
-					channel, found := routeMap[message.RoutingKey]
-					if found {
-						select {
-						case channel <- message.Body:
-							// successful
-						default:
-							close(channel)
-							delete(routeMap, message.RoutingKey)
-							log.Warn("Dropped client because of message buffer overflow.")
-						}
-					}
+			case "auth.leave":
+				var client struct {
+					RoutingKey string
+				}
+				err := json.Unmarshal(message.Body, &client)
+				if err != nil || client.RoutingKey == "" {
+					log.Err("Invalid auth.leave message.", message.Body)
+					continue
 				}
 
-			case <-sigtermChannel:
-				log.Info("Received TERM signal. Beginning shutdown...")
-				utils.BeginShutdown()
-				consumeChannel.Close()
+				channel, found := routeMap[client.RoutingKey]
+				if found {
+					close(channel)
+					delete(routeMap, client.RoutingKey)
+				}
+
+			default:
+				channel, found := routeMap[message.RoutingKey]
+				if found {
+					select {
+					case channel <- message.Body:
+						// successful
+					default:
+						close(channel)
+						delete(routeMap, message.RoutingKey)
+						log.Warn("Dropped client because of message buffer overflow.")
+					}
+				}
 			}
+
+		case <-sigtermChannel:
+			log.Info("Received TERM signal. Beginning shutdown...")
+			utils.BeginShutdown()
+			consumeChannel.Close()
 		}
-	})
+	}
 }
 
 type Session struct {
