@@ -42,7 +42,7 @@ module.exports = class JGroup extends Module
         'one','create','each','byRelevance','someWithRelationship'
         '__resetAllGroups', 'fetchMyMemberships'
       ]
-      instance      : ['join','leave','fetchPermissions','updatePermissions','modify']
+      instance      : ['join','leave','fetchPermissions','updatePermissions','modify','fetchRoles']
     schema          :
       title         :
         type        : String
@@ -184,6 +184,21 @@ module.exports = class JGroup extends Module
             permissionsByModule
             permissions: permissionSet.permissions
           }
+
+  fetchRoles: secure (client, callback)->
+    console.log 'do we get here?'
+    {delegate} = client.connection
+    Relationship.someData {
+      sourceId: delegate.getId()
+      targetId: @getId()
+    }, {as:1}, (err, cursor)->
+      console.log arguments
+      if err then callback err
+      else
+        cursor.toArray (err, arr)->
+          if err then callback err
+          else callback null, (doc.as for doc in arr)
+    
 
   modify: permit
     advanced : [

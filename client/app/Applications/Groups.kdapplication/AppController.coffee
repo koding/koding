@@ -333,6 +333,8 @@ class GroupsAppController extends AppController
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
             @showGroupSubmissionView groupItem.getData()
+          @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
+            groupItem.getData().fetchRoles console.log.bind console
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
