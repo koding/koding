@@ -72,7 +72,7 @@ class GroupView extends JView
           @joinButton.redecorateState()
           @enterButton.show()
 
-
+    @getData().fetchMembers console.log.bind console
     # @homeLink = new KDCustomHTMLView
     #   tagName     : 'a'
     #   attributes  :
