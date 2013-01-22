@@ -31,6 +31,7 @@ template "/etc/ceph/ceph.conf" do
     owner "root"
     group "root"
     variables({
-            :mon_nodes => node[:ceph][:mon_nodes]
+            :mon_nodes => node[:ceph][:mon_nodes],
+            :osd_nodes => node[:ceph][:osd_nodes]
             })
 end
