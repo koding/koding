@@ -10,6 +10,9 @@ include_recipe "ceph::ssh_keys"
 include_recipe "apt::ceph"
 
 # install ruby AWS sdk
+package "ruby-dev"
+package "libxml2-dev"
+package "libxslt1-dev"
 
 gem_package "aws-sdk" do
     action :install
