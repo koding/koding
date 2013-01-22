@@ -233,7 +233,7 @@ class KodingRouter extends KDRouter
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
-        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
+        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
           location.replace '#'
           if err
             throw err
