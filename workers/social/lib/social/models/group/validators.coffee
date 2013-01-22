@@ -1,57 +1,45 @@
 {Relationship} = require 'jraphical'
 
-fetchGroup =(model, failure, success)->
-  JGroup = require '../group'
-  if model instanceof JGroup
-    success model, model.slug
-  else
-    groupName = @group
-    JGroup.one {slug:groupName}, (err, group)->
-      if err then failure err
-      else unless group then failure null, no
-      else success group, groupName
-
-getRoles =(permission, permissionSet)->
+getRoles = (permission, permissionSet)->
   roles = (perm.role for perm in permissionSet.permissions\
           when permission in perm.permissions)
-  roles.concat 'admin' # admin can do anything!
+  roles.push 'admin' # admin can do anything!
+  return roles
+
+getRoleSelector = (delegate, group, permission, permissionSet)->
+  roles       = getRoles permission, permissionSet
+  return {
+    targetId  : group.getId()
+    sourceId  : delegate.getId()
+    as        : { $in: roles }
+  }
+
+createExistenceCallback = (callback)-> (err, count)->
+  if err then callback err, no
+  else if count > 0 then callback null, yes
+  else callback null, no
 
 module.exports =
 
-  own:(client, permission, permissionSet, callback)->
+  own:(client, group, permission, permissionSet, callback)->
     {delegate} = client.connection
-    fetchGroup this, callback, (group, groupName)=>
-      roles = getRoles permission, permissionSet
-      relationshipSelector =
-        targetId  : group.getId()
-        sourceId  : client.connection.delegate.getId()
-        as        : { $in: roles }
-      Relationship.count relationshipSelector, (err, count)=>
-        if err then callback err, no
-        else if count is 0 then callback null, no
+    roleSelector = getRoleSelector delegate, group, permission, permissionSet
+    Relationship.count roleSelector, (err, count)=>
+      if err then callback err, no
+      else if count is 0 then callback null, no
+      else
+        delegateId = delegate.getId()
+        if @originId? and delegateId.equals @originId
+          callback null, yes
         else
-          delegateId = delegate.getId()
-          if @originId? and delegateId.equals @originId
-            callback null, yes
-          else
-            Relationship.count {
-              sourceId  : delegateId
-              targetId  : @getId()
-              as        : 'owner'
-            }, (err, count)->
-              if err then callback err, no
-              else if count > 0 then callback null, yes
-              else callback null, no
+          ownerSelector = {
+            sourceId  : delegateId
+            targetId  : @getId()
+            as        : 'owner'
+          }
+          Relationship.count ownerSelector, createExistenceCallback callback
 
-  any:(client, permission, permissionSet, callback)->
+  any:(client, group, permission, permissionSet, callback)->
     {delegate} = client.connection
-    fetchGroup this, callback, (group, groupName)->
-      roles = getRoles permission, permissionSet
-      relationshipSelector =
-        targetId  : group.getId()
-        sourceId  : client.connection.delegate.getId()
-        as        : { $in: roles }
-      Relationship.count relationshipSelector, (err, count)->
-        if err then callback err, no
-        else if count > 0 then callback null, yes
-        else callback null
+    roleSelector = getRoleSelector delegate, group, permission, permissionSet
+    Relationship.count roleSelector, createExistenceCallback callback

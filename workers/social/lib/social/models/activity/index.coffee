@@ -229,7 +229,7 @@ module.exports = class CActivity extends jraphical.Capsule
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
   @fetchFacets = permit 'read activity'
-    success:(options, callback)->
+    success:(client, options, callback)->
       {to, limit, facets, lowQuality} = options
 
       selector =
@@ -252,36 +252,3 @@ module.exports = class CActivity extends jraphical.Capsule
     @update
       $addToSet: readBy: delegate.getId()
     , callback
-
-
-# temp, couldn't find a better place to put this
-
-do ->
-  typesToBeCached = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-    ]
-
-  CActivity.on "ActivityIsCreated", (activity)->
-    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
-    # if activity.constructor.name in typesToBeCached
-      JActivityCache.init()
-
-  CActivity.on "post-updated", (teaser)->
-    #if activity.group is 'koding' then 
-    JActivityCache.modifyByTeaser teaser
-
-  CActivity.on "BucketIsUpdated", (activity, bucket)->
-    console.log bucket.constructor.name, "is being updated"
-    if activity.group is 'koding' and activity.constructor.name in typesToBeCached
-    # if activity.constructor.name in typesToBeCached
-      JActivityCache.modifyByTeaser bucket
-
-  console.log "\"feed-new\" event for Activity Caching is bound."
-  console.log "\"post-updated\" event for Activity Caching is bound."
-

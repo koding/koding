@@ -713,7 +713,9 @@ class KDView extends KDObject
     o.viewCssClass or= null
 
     @on "viewAppended", =>
-      @bindTooltipEvents o
+      @utils.wait =>
+        unless o.showOnlyWhenOverflowing and (@$()[0]?.scrollWidth<=@getWidth()+parseInt(@$().css('padding-right'),10)+parseInt(@$().css('padding-left'),10))
+          @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']

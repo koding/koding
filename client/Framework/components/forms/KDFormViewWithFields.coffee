@@ -43,6 +43,12 @@ class KDFormViewWithFields extends KDFormView
         next.title or= key
         @createField next, inputWrapper
 
+    if data.nextElementFlat
+      for key, next of data.nextElementFlat
+        next.title or= key
+        @createField next, field
+
+
     return field
 
   createLabel:(data)->
