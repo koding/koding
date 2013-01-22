@@ -114,15 +114,16 @@ config =
         awsAccessKeyId      : 1
         awsSecretAccessKey  : 1
         bucket              : 1
+    loggr:
+      push: 1
+      url: 1
+      apiKey: 1
     librato :
       push      : 1
       email     : 1
       token     : 1
       interval  : 1
     goConfig:
-      AmqpHost:     1
-      AmqpUser:     1
-      AmqpPassword: 1
       HomePrefix:   1
       UseLVE:       1      
     bitly :
@@ -169,6 +170,7 @@ config =
     mq            :
       host        : 1
       login       : 1
+      componentUser: 1
       password    : 1
       heartbeat   : 1
       vhost       : 1

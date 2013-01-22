@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io"
-	"koding/config"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"koding/tools/utils"
@@ -232,7 +232,7 @@ func NewSession(username string) *Session {
 	}
 	return &Session{
 		User: username,
-		Home: config.Current.HomePrefix + username,
+		Home: config.Current.GoConfig.HomePrefix + username,
 		Uid:  uid,
 		Gid:  gid,
 	}
@@ -251,7 +251,7 @@ func (session *Session) Close() {
 
 func (session *Session) CreateCommand(command ...string) *exec.Cmd {
 	var cmd *exec.Cmd
-	if config.Current.UseLVE {
+	if config.Current.GoConfig.UseLVE {
 		cmd = exec.Command("/bin/lve_exec", command...)
 	} else {
 		cmd = exec.Command(command[0], command[1:]...)

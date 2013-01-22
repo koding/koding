@@ -53,12 +53,8 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   goConfig:
-    AmqpHost:     "web0.beta.system.aws.koding.com"
-    AmqpUser:     "prod-<component>"
-    AmqpPassword: "Dtxym6fRJXx4GJz"
     HomePrefix:   "/Users/"
     UseLVE:       true
-    LogToLoggr:   true
 
   authWorker    :
     login       : 'prod-authworker'
@@ -102,6 +98,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
@@ -124,6 +121,10 @@ module.exports = deepFreeze
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
+  loggr:
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
     push: yes
     email: "devrim@koding.com"

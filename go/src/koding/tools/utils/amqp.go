@@ -3,15 +3,15 @@ package utils
 import (
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/config"
+	"koding/tools/config"
 	"koding/tools/log"
 	"strings"
 	"time"
 )
 
 func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *amqp.Connection)) {
-	user := strings.Replace(config.Current.AmqpUser, "<component>", component, 1)
-	url := "amqp://" + user + ":" + config.Current.AmqpPassword + "@" + config.Current.AmqpHost
+	user := strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1)
+	url := "amqp://" + user + ":" + config.Current.Mq.Password + "@" + config.Current.Mq.Host
 
 	for !ShuttingDown {
 		func() {
