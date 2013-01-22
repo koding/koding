@@ -25,20 +25,12 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+template "/etc/ceph/ceph.conf" do
+    source "ceph.conf.erb"
+    mode 0640
+    owner "root"
+    group "root"
+    variables({
+            :mon_nodes => node[:ceph][:mon_nodes]
+            })
+end
