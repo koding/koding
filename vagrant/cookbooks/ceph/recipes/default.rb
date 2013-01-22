@@ -10,10 +10,40 @@ execute "sudo mkdir -p /var/lib/ceph/osd/ceph-0"
 execute "sudo mkdir -p /var/lib/ceph/mon/ceph-a"
 
 cookbook_file "/etc/ceph/ceph.conf" do
-  action :create_if_missing
+  action :create
   source "ceph.conf"
   mode 0744
 end
+
+execute "mkdir /root/.ssh" do
+	creates "/root/.ssh"
+end
+
+cookbook_file "/root/.ssh/id_rsa" do
+  action :create
+  source "id_rsa"
+  mode 0600
+end
+
+cookbook_file "/root/.ssh/id_rsa.pub" do
+  action :create
+  source "id_rsa.pub"
+  mode 0766
+end
+
+cookbook_file "/root/.ssh/authorized_keys" do
+  action :create
+  source "id_rsa.pub"
+  mode 0600
+end
+
+cookbook_file "/root/.ssh/config" do
+  action :create
+  source "ssh-config"
+  mode 0644
+end
+
+# execute "echo '127.0.0.1    localhost.localdomain' >> /etc/hosts"
 
 execute "sudo mkcephfs -a -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.keyring" do
 	creates "/etc/ceph/ceph.keyring"

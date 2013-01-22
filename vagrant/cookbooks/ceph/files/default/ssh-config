@@ -1,0 +1,3 @@
+Host localhost.*
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null

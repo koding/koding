@@ -117,6 +117,7 @@ def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
         security_groups = config.security_groups,
         user_data  = user_data,
         placement = config.zone,
+        subnet_id = "subnet-dcd019b6"
         #block_device_map = bdm,
     )
     if os.environ.has_key("BUILD_ID"):
