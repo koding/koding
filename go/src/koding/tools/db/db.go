@@ -6,7 +6,7 @@ import (
 )
 
 type Counter struct {
-	Value int "v"
+	Value int `bson:"v"`
 }
 
 var database *mgo.Database

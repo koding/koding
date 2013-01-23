@@ -8,10 +8,10 @@ import (
 const DEFAULT_VM = "defaultVM"
 
 type User struct {
-	Id        int           "_id"
-	Name      string        "name"
-	Password  string        "password"
-	DefaultVM bson.ObjectId "defaultVM"
+	Id        int           `bson:"_id"`
+	Name      string        `bson:"name"`
+	Password  string        `bson:"password"`
+	DefaultVM bson.ObjectId `bson:"defaultVM"`
 }
 
 var Users *mgo.Collection

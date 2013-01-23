@@ -56,7 +56,7 @@ func main() {
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
-			return nil, &kite.ArgumentError{"array of strings"}
+			return nil, &kite.ArgumentError{Expected: "array of strings"}
 		}
 
 		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, command...).CombinedOutput()
@@ -65,7 +65,7 @@ func main() {
 	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var line string
 		if args.Unmarshal(&line) != nil {
-			return nil, &kite.ArgumentError{"string"}
+			return nil, &kite.ArgumentError{Expected: "string"}
 		}
 
 		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, "/bin/bash", "-c", line).CombinedOutput()
@@ -77,7 +77,7 @@ func main() {
 			OnChange dnode.Callback `json:"onChange"`
 		}
 		if args.Unmarshal(&params) != nil || params.OnChange == nil {
-			return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
 		absPath := path.Join("/home", session.User.Name, params.Path)
@@ -141,7 +141,7 @@ func main() {
 			SizeX, SizeY int
 		}
 		if args.Unmarshal(&params) != nil || params.Name == "" || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{"{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
 		}
 
 		return newWebtermServer(session, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY), nil
@@ -154,7 +154,7 @@ func main() {
 			SizeX, SizeY int
 		}
 		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{"{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
 		}
 
 		return newWebtermServer(session, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY), nil

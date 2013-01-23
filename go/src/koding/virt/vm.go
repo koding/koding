@@ -17,16 +17,16 @@ import (
 )
 
 type VM struct {
-	Id           bson.ObjectId "_id"
-	Name         string        "name"
-	Users        []*UserEntry  "users"
-	LdapPassword string        "ldapPassword"
-	IP           net.IP        "ip"
+	Id           bson.ObjectId `bson:"_id"`
+	Name         string        `bson:"name"`
+	Users        []*UserEntry  `bson:"users"`
+	LdapPassword string        `bson:"ldapPassword"`
+	IP           net.IP        `bson:"ip"`
 }
 
 type UserEntry struct {
-	Id   int  "id"
-	Sudo bool "sudo"
+	Id   int  `bson:"id"`
+	Sudo bool `bson:"sudo"`
 }
 
 const VMROOT_ID = 1000000

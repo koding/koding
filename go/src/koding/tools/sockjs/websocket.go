@@ -102,4 +102,4 @@ func unmarshal(msg []byte, payloadType byte, v interface{}) (err error) {
 	return nil
 }
 
-var WebsocketCodec = websocket.Codec{marshal, unmarshal}
+var WebsocketCodec = websocket.Codec{Marshal: marshal, Unmarshal: unmarshal}

@@ -18,7 +18,7 @@ func main() {
 			OnMessage dnode.Callback `json:"onMessage"`
 		}
 		if args.Unmarshal(&params) != nil || params.Host == "" || params.OnMessage == nil {
-			return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
+			return nil, &kite.ArgumentError{Expected: "{ host: [string], onMessage: [function] }"}
 		}
 
 		conn, err := irc.NewConn(params.Host, log.RecoverAndLog)

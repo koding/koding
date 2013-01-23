@@ -72,7 +72,7 @@ func RunStatusLogger() {
 	go func() {
 		for {
 			if ShuttingDown {
-				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients), fmt.Sprintf("Number of goroutines: %d"))
+				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients))
 			}
 			var m runtime.MemStats
 			runtime.ReadMemStats(&m)
