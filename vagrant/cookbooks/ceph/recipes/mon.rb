@@ -33,7 +33,7 @@ if node[:ceph].has_key?(:mon_nodes)
             end
 
             execute "mon.#{ceph_node[:CephID]} mkfs" do
-                command "/usr/bin/ceph-mon -i a --mkfs --fsid #{node[:ceph][:fsid]} -c /etc/ceph/ceph.conf"
+                command "/usr/bin/ceph-mon -i #{ceph_node[:CephID]} --mkfs --fsid #{node[:ceph][:fsid]} -c /etc/ceph/ceph.conf"
                 creates "/var/lib/ceph/mon/ceph-#{ceph_node[:CephID]}/cluster_uuid"
                 notifies :start, "service[ceph-mon]", :immediately
             end
