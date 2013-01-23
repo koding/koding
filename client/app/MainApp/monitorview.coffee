@@ -10,7 +10,7 @@ class StatusLEDView extends KDView
     @ledList = new KDListView
       itemClass : StatusLEDItemView
 
-    @ledList.hide() unless KD.checkFlag "super-admin", KD.whoami()
+    @ledList.hide() unless KD.checkFlag "super-admin"
 
     @ledLabel = new KDView
       cssClass : 'status-label'
@@ -23,13 +23,7 @@ class StatusLEDView extends KDView
     monitorController.on 'ServiceWentOnline', (key,serviceData={})=>
       for item in @ledList.items
         if item.getData() is key
-          # if @utils.getRandomNumber(2) is 1
-          #   item.setOffline()
-          # else
-          #   item.setOnline()
-
           item.setOnline()
-
           if serviceData.count
             item.setCount serviceData.count
 

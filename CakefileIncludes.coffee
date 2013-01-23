@@ -486,6 +486,9 @@ Includes =
         MainTabPane                 : "./client/app/MainApp/maintabs/maintabpaneview.coffee"
         MainTabHandleHolder         : "./client/app/MainApp/maintabs/maintabhandleholder.coffee"
 
+        # global notifications
+        GlobalNotification          : "./client/app/MainApp/globalnotification.coffee"
+
         ### SINANS FINDER ###
 
         NFinderController             : "./client/app/MainApp/filetree/controllers/findercontroller.coffee"
