@@ -52,7 +52,7 @@ var configs = map[string]Config{
 		AmqpPassword: "TV678S1WT221t1q",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"prod": {
@@ -61,7 +61,7 @@ var configs = map[string]Config{
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"prod-new": {
@@ -70,7 +70,7 @@ var configs = map[string]Config{
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
-		LogToLoggr:   true,
+		LogToCloud:   true,
 	},
 
 	"vagrant": {
@@ -108,7 +108,7 @@ type Config struct {
 	AmqpPassword string
 	HomePrefix   string
 	UseLVE       bool
-	LogToLoggr   bool
+	LogToCloud   bool
 
 	// for webterm's websockets mode
 	UseWebsockets bool

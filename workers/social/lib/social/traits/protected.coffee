@@ -2,7 +2,10 @@ module.exports = class Protected
 
   {ObjectId} = require 'bongo'
 
+  {extend} = require 'underscore'
+
   Protected.permissionsByModule = {}
+  Protected.permissionDefaultsByModule = {}
 
   @setRelationships =do ->
     setRelationships =(relationships)->
@@ -24,4 +27,7 @@ module.exports = class Protected
 
   @setPermissions =(permissions)->
     perms = Protected.permissionsByModule[@name] ?= []
-    Protected.permissionsByModule[@name] = perms.concat permissions
+    Protected.permissionsByModule[@name] = perms.concat Object.keys permissions
+    defaults = Protected.permissionDefaultsByModule[@name] ?= {}
+    extend defaults, permissions
+

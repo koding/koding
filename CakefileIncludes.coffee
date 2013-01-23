@@ -254,6 +254,7 @@ Includes =
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
         groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
         permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
+        permissionsModal              : "./client/app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
         groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"

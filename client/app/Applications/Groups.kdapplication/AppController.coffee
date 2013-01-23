@@ -23,9 +23,6 @@ class GroupsAppController extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
-      # feedMessage           :
-      #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
-      #   messageLocation       : 'Topics'
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
@@ -115,7 +112,8 @@ class GroupsAppController extends AppController
     unless group?
       group = {}
       isNewGroup = yes
-    modal = new KDModalViewWithForms #GroupAdminModal
+
+    modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
       # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
@@ -264,50 +262,67 @@ class GroupsAppController extends AppController
                       # }
                     ]
                 }
-    , group
+
+    unless isNewGroup
+      modalOptions.tabs.forms.Members =
+        title   : "User permissions"
+      modalOptions.tabs.forms["Manage Roles"] =
+        title   : "Manage Roles"
+        partial : "we'll Manage roles here..."
+
+
+    modal = new KDModalViewWithForms modalOptions, group
 
     modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
     modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       # modal.$('img.avatar-image').attr 'src' : stuff.file.data
       modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
 
+    unless isNewGroup
+      modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+
   editPermissions:(group)->
-    log 'calling fetchPermissions'
     group.getData().fetchPermissions (err, permissionSet)->
-      log arguments
       if err
         new KDNotificationView title: err.message
       else
-        permissionsGrid = new PermissionsGrid {
+        permissionsModal = new PermissionsModal {
           privacy: group.getData().privacy
           permissionSet
-        }
-        modal = new KDModalView
-          title     : "Edit permissions"
-          content   : ""
-          overlay   : yes
-          cssClass  : "new-kdmodal"
-          width     : 500
-          height    : "auto"
-          buttons:
-            Save          :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#444444"
-                diameter  : 12
-              callback    : ->
-                group.getData().updatePermissions(
-                  permissionsGrid.reducedList()
-                  console.log.bind(console) # TODO: do something with this callback
-                )
-                modal.destroy()
-            Cancel        :
-              style       : "modal-clean-gray"
-              loader      :
-                color     : "#ffffff"
-                diameter  : 16
-              callback    : -> modal.destroy()
-        modal.addSubView permissionsGrid
+        }, group
+
+        # permissionsGrid = new PermissionsGrid {
+        #   privacy: group.getData().privacy
+        #   permissionSet
+        # }
+
+        # modal = new KDModalView
+        #   title     : "Edit permissions"
+        #   content   : ""
+        #   overlay   : yes
+        #   cssClass  : "new-kdmodal permission-modal"
+        #   width     : 500
+        #   height    : "auto"
+        #   buttons:
+        #     Save          :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#444444"
+        #         diameter  : 12
+        #       callback    : ->
+        #         log permissionsGrid.reducedList()
+        #         # group.getData().updatePermissions(
+        #         #   permissionsGrid.reducedList()
+        #         #   console.log.bind(console) # TODO: do something with this callback
+        #         # )
+        #         modal.destroy()
+        #     Cancel        :
+        #       style       : "modal-clean-gray"
+        #       loader      :
+        #         color     : "#ffffff"
+        #         diameter  : 16
+        #       callback    : -> modal.destroy()
+        # modal.addSubView permissionsGrid
 
   loadView:(mainView, firstRun = yes)->
 
@@ -328,6 +343,8 @@ class GroupsAppController extends AppController
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
             @showGroupSubmissionView groupItem.getData()
+          @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
+            groupItem.getData().fetchRoles console.log.bind console
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData

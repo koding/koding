@@ -31,6 +31,23 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
+  constructor:->
+    super
+    # initialize the permission set with some sane defaults:
+    {permissionDefaultsByModule} = require '../../traits/protected'
+    permissionsByRole = {}
+
+    for own module, modulePerms of permissionDefaultsByModule
+      for own perm, roles of modulePerms
+        for role in roles
+          permissionsByRole[module] ?= {}
+          permissionsByRole[module][role] ?= []
+          permissionsByRole[module][role].push perm
+    @permissions = []
+    for own module, moduleRoles of permissionsByRole
+      for own role, modulePerms of moduleRoles
+        @permissions.push {module, role, permissions: modulePerms}
+
   @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
     # permission = [permission]  unless Array.isArray permission

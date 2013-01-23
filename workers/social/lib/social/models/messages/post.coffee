@@ -46,15 +46,14 @@ module.exports = class JPost extends jraphical.Message
     indexes     :
       slug      : 'unique'
       group     : 'sparse'
-    permissions: [
-      'read posts'
-      'create posts'
-      'edit posts'
-      'delete posts'
-      'edit own posts'
-      'delete own posts'
-      'reply to posts'
-    ]
+    permissions :
+      'read posts'        : ['member', 'moderator']
+      'create posts'      : ['member', 'moderator']
+      'edit posts'        : ['moderator']
+      'delete posts'      : ['moderator']
+      'edit own posts'    : ['member', 'moderator']
+      'delete own posts'  : ['member', 'moderator']
+      'reply to posts'    : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
