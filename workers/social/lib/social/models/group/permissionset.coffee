@@ -34,7 +34,6 @@ module.exports = class JPermissionSet extends Module
   constructor:->
     super
     # initialize the permission set with some sane defaults:
-    # TODO: this is a disaster!  Reimplement? - C.T.
     {permissionDefaultsByModule} = require '../../traits/protected'
     permissionsByRole = {}
 
