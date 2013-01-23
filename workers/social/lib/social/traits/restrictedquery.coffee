@@ -5,9 +5,6 @@ module.exports = class RestrictedQuery
   makeGroupSelector =(group)->
     if Array.isArray group then $in: group else group
 
-  @drop$ = permit 'drop collection'
-    success:(client, callback)-> @drop callback
-
   @update$ = permit 'update collection'
     success:(client, selector, operation, options, callback)->
       selector.group = makeGroupSelector client.context.group
