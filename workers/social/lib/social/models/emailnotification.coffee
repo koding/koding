@@ -7,12 +7,16 @@ getUniqueId=->
 
 module.exports = class JEmailNotificationGG extends Model
 
+  @share()
+
   @set
     indexes          :
       event          : 'sparse'
       sender         : 'sparse'
       receiver       : 'sparse'
       contentId      : 'sparse'
+    sharedMethods    :
+      static         : ['unsubscribeWithId']
     schema           :
       dateIssued     :
         type         : Date
@@ -41,15 +45,19 @@ module.exports = class JEmailNotificationGG extends Model
     comment          :
       eventType      : ['ReplyIsAdded']
       contentTypes   : @commonActivities
+      definition     : 'about comments'
     likeActivities   :
       eventType      : ['LikeIsAdded']
       contentTypes   : @commonActivities
+      definition     : 'about activity likes'
     followActions    :
       eventType      : ['FollowHappened']
       contentTypes   : ['JAccount']
+      definition     : 'about following changes'
     privateMessage   :
       eventType      : ['ReplyIsAdded', 'PrivateMessageSent']
       contentTypes   : ['JPrivateMessage']
+      definition     : 'about private messages'
 
   @checkEmailChoice = (options, callback)->
 
@@ -120,3 +128,28 @@ module.exports = class JEmailNotificationGG extends Model
               else console.log "Saved to queue."
           else
             console.log "Already exists"
+
+  @unsubscribeWithId = (unsubscribeId, all, callback)->
+
+    JEmailNotificationGG.one {unsubscribeId}, (err, notification)->
+      if err then callback err
+      else
+        JAccount = require './account'
+        JAccount.one {_id: notification.receiver}, (err, account)->
+          if err then callback err
+          else
+            prefs = {}
+            if all is 'all'
+              prefs.global  = 'never'
+              definition = ''
+            else
+              prefs[notification.eventFlag] = 'never'
+              {definition} = flags[notification.eventFlag]
+            username = account.profile.nickname
+            JUser = require './user'
+            JUser.one {username}, (err, user)->
+              if err then callback err
+              else account.setEmailPreferences user, prefs, (err)->
+                if err then callback err
+                else
+                  callback null, "You will no longer get e-mails #{definition}"

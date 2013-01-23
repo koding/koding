@@ -232,18 +232,21 @@ module.exports = class JAccount extends jraphical.Module
           results.push doc.profile.fullname
         callback err, results
 
-  setEmailPreferences: secure (client, prefs, callback)->
+  setEmailPreferences: (user, prefs, callback)->
+    current = user.getAt('emailFrequency') or {}
+    Object.keys(prefs).forEach (granularity)->
+      state = prefs[granularity]
+      state = 'never' if state not in ['never', 'instant', 'daily']
+      current[granularity] = state# then 'instant' else 'never'
+    user.update {$set: emailFrequency: current}, callback
+
+  setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
-    JUser.fetchUser client, (err, user)->
+    JUser.fetchUser client, (err, user)=>
       if err
         callback err
       else
-        current = user.getAt('emailFrequency') or {}
-        Object.keys(prefs).forEach (granularity)->
-          state = prefs[granularity]
-          state = 'never' if state not in ['never', 'instant', 'daily']
-          current[granularity] = state# then 'instant' else 'never'
-        user.update {$set: emailFrequency: current}, callback
+        @setEmailPreferences user, prefs, callback
 
   glanceMessages: secure (client, callback)->
 
