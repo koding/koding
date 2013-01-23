@@ -1,5 +1,6 @@
 nodePath = require 'path'
 # configuration
+cwd = process.cwd()
 
 module.exports =
   name                  : "sharedhosting"
@@ -8,25 +9,25 @@ module.exports =
   logFile               : "/var/log/node/SharedHosting.log"
   amqp                  :
     host                : 'web0.beta.system.aws.koding.com'
-    username            : 'prod-sharedhosting-kite'
+    login               : 'prod-sharedhosting-kite'
     password            : 'Dtxym6fRJXx4GJz'
-    vhost               : '/'
-  apiUri                : 'https://api.koding.com/1.0'
+    heartbeat           : 10
+  apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
   suspendDir            : '/var/www/suspended_vhosts/'
-  defaultVhostFiles     : nodePath.join process.cwd(), '..', 'sharedHosting', 'defaultVhostFiles'
+  defaultVhostFiles     : nodePath.join cwd, 'kites', 'sharedHosting', 'defaultVhostFiles'
   freeUsersGroup        : 'freeusers'
   liteSpeedUser         : 'lsws'
-  defaultDomain         : 'koding.com' # We use this domain in createVHost method
+  defaultDomain         : 'koding.com'
   minAllowedUid         : 600 # minumum allowed UID for OS commands
   debugApi              : true
-  processBaseDir        : process.cwd()
+  processBaseDir        : cwd
   cagefsctl             : "/usr/sbin/cagefsctl"
   baseMountDir          : 'RemoteDrives'
   maxAllowedRemotes     : 5
   usersMountsFile       : ".cagefs/.mounts"
-  encryptKey            : "aljhbvohebrfupoyeqbrpvuyq38047f08q3740r8y34bfokjberfaldsjbfh"
+  encryptKey            : "aljhfupoyeqbrpvkjhsdjhjsdf82323uyq38047f08q3748y34bfokjberfaldsjbfh"
   ftpfs                 :
     curlftpfs           : '/usr/bin/curlftpfs'
     opts                : "connect_timeout=15,direct_io,allow_other"

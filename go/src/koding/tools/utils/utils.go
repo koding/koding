@@ -3,7 +3,7 @@ package utils
 import (
 	"flag"
 	"fmt"
-	"koding/config"
+	"koding/tools/config"
 	"koding/tools/log"
 	"math/rand"
 	"os"
@@ -43,7 +43,6 @@ func Startup(serviceName string, needRoot bool) {
 	config.LoadConfig(profile)
 
 	log.Init(serviceName, profile)
-	log.LogToCloud = config.Current.LogToCloud
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
@@ -69,11 +68,14 @@ func RunStatusLogger() {
 			if ShuttingDown {
 				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients), fmt.Sprintf("Number of goroutines: %d"))
 			}
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
 			log.Gauges(map[string]float64{
 				"clients":    float64(numClients),
 				"goroutines": float64(runtime.NumGoroutine()),
+				"memory":     float64(m.Alloc),
 			})
-			time.Sleep(time.Minute)
+			time.Sleep(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
 		}
 	}()
 }
