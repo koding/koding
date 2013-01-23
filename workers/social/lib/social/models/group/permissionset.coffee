@@ -18,14 +18,14 @@ module.exports = class JPermissionSet extends Module
   @share()
 
   @set
-    index                   :
+    indexes                 :
       'permissions.module'  : 'sparse'
       'permissions.roles'   : 'sparse'
       'permissions.title'   : 'sparse'
     schema                  :
       permissions           :
         type                : Array
-        default             : []
+        default             : -> []
 
   {intersection} = require 'underscore'
 
