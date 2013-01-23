@@ -132,11 +132,11 @@ module.exports = class JEmailNotificationGG extends Model
   @unsubscribeWithId = (unsubscribeId, all, callback)->
 
     JEmailNotificationGG.one {unsubscribeId}, (err, notification)->
-      if err then callback err
+      if err or not notification then callback err
       else
         JAccount = require './account'
         JAccount.one {_id: notification.receiver}, (err, account)->
-          if err then callback err
+          if err or not account then callback err
           else
             prefs = {}
             if all is 'all'
@@ -148,7 +148,7 @@ module.exports = class JEmailNotificationGG extends Model
             username = account.profile.nickname
             JUser = require './user'
             JUser.one {username}, (err, user)->
-              if err then callback err
+              if err or not user then callback err
               else account.setEmailPreferences user, prefs, (err)->
                 if err then callback err
                 else

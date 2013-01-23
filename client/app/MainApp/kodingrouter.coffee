@@ -253,9 +253,23 @@ class KodingRouter extends KDRouter
         unsubscribeToken = decodeURIComponent unsubscribeToken
         KD.remote.api.JEmailNotificationGG.unsubscribeWithId \
         unsubscribeToken, all, (err, content)=>
-          if err then log err
+          if err or not content
+            title   = 'An error occured'
+            content = 'Invalid unsubscribe token provided.'
+            log err
           else
-            new KDNotificationView {content, duration: 4000}
+            title   = 'E-mail settings updated'
+
+          modal = new KDModalView
+            title        : title
+            overlay      : yes
+            cssClass     : "new-kdmodal"
+            content      : "<div class='modalformline'>#{content}</div>"
+            buttons      :
+              "Close"    :
+                style    : "modal-clean-gray"
+                callback : (event)->
+                  modal.destroy()
           @clear()
 
       # top level names
