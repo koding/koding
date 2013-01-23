@@ -95,15 +95,26 @@ class GroupsMemberPermissionsView extends JView
       size          :
         width       : 32
 
+    list = @listController.getListView()
     groupData.fetchRoles (err, roles)=>
       if err then warn err
       else
-        @listController.getListView().getOptions().roles = roles
-        groupData.fetchMembers (err, members)=>
+        list.getOptions().roles = roles
+
+        groupData.fetchUserRoles (err, userRoles)=>
           if err then warn err
           else
-            @listController.instantiateListItems members
-            @loader.hide()
+            userRolesHash = {}
+            for userRole in userRoles
+              userRolesHash[userRole.sourceId] = userRole.as
+
+            list.getOptions().userRoles = userRolesHash
+
+            groupData.fetchMembers (err, members)=>
+              if err then warn err
+              else
+                @listController.instantiateListItems members
+                @loader.hide()
 
   viewAppended:->
 
@@ -128,23 +139,15 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     super options, data
 
-    list         = @getDelegate()
-    @profileLink = new ProfileTextView {}, @getData()
-    @selectBox   = new KDSelectBox
-      name          : "role"
-      callback      : @selectBoxCallback.bind @
-      selectOptions : list.getOptions().roles.map (role)->
-        {title : role.title.capitalize(), value : role.title}
+    list               = @getDelegate()
+    {roles, userRoles} = list.getOptions()
+    @profileLink       = new ProfileTextView {}, @getData()
+    log roles, userRoles
 
-
-  selectBoxCallback:(event)->
-
-    log "make here #{@getData().profile.nickname} #{@selectBox.getValue()}"
 
   viewAppended:JView::viewAppended
 
   pistachio:->
     """
     {{> @profileLink}}
-    {{> @selectBox}}
     """
