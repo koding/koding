@@ -55,7 +55,6 @@ module.exports = deepFreeze
   goConfig:
     HomePrefix:   "/Users/"
     UseLVE:       true
-
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
