@@ -9,7 +9,8 @@ module.exports = class JUrlAlias extends Model
   @share()
 
   @set
-    permissions   : ['administer url aliases']
+    permissions   :
+      'administer url aliases'  : []
     sharedMethods :
       static      : ['create','resolve']
     schema        :
