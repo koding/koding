@@ -21,13 +21,12 @@ module.exports = class JTag extends jraphical.Module
   @set
     slugifyFrom     : 'title'
     slugTemplate    : 'Topics/#{slug}'
-    permissions     : [
-      'create tags'
-      'edit tags'
-      'delete tags'
-      'edit own tags'
-      'delete own tags'
-    ]
+    permissions     :
+      'create tags'     : ['member', 'moderator']
+      'edit tags'       : ['moderator']
+      'delete tags'     : ['moderator']
+      'edit own tags'   : ['moderator']
+      'delete own tags' : ['moderator']
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'

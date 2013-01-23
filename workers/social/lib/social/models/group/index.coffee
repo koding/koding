@@ -24,17 +24,15 @@ module.exports = class JGroup extends Module
   @set
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
-    permissions     : [
-      'grant permissions'
-      'create groups'
-      'edit groups'
-      'edit own groups'
-      'query collection'
-      'drop collection'
-      'update collection'
-      'assure collection'
-      'remove documents from collection'
-    ]
+    permissions     :
+      'grant permissions'                 : []
+      'create groups'                     : ['moderator']
+      'edit groups'                       : ['moderator']
+      'edit own groups'                   : ['member', 'moderator']
+      'query collection'                  : ['member', 'moderator']
+      'update collection'                 : ['moderator']
+      'assure collection'                 : ['moderator']
+      'remove documents from collection'  : ['moderator']
     indexes         :
       slug          : 'unique'
     sharedMethods   :
