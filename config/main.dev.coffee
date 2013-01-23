@@ -59,9 +59,6 @@ module.exports = deepFreeze
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo
   goConfig:
-    AmqpHost:     "web0.dev.system.aws.koding.com:5672"
-    AmqpUser:     "broker"
-    AmqpPassword: "s486auEkPzvUjYfeFTMQ"
     HomePrefix:   "/Users/"
     UseLVE:       true
   bitly :
