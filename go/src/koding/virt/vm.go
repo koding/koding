@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"syscall"
 	"text/template"
 	"time"
 )
@@ -142,12 +143,6 @@ func FetchUnusedVM(user *db.User) *VM {
 
 	// create new vm
 	vm = VM{Id: bson.NewObjectId(), Users: []*UserEntry{&UserEntry{Id: user.Id, Sudo: true}}}
-
-	// create disk
-	if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
-		panic(err)
-	}
-
 	if err := VMs.Insert(bson.M{"_id": vm.Id, "users": vm.Users}); err != nil {
 		panic(err)
 	}
@@ -159,7 +154,18 @@ func FetchUnusedVM(user *db.User) *VM {
 func (vm *VM) MapRBD() {
 	// map image to block device
 	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
-		panic(err)
+		exitError, isExitError := err.(*exec.ExitError)
+		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+			panic(err)
+		}
+
+		// create disk and try to map again
+		if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
+			panic(err)
+		}
+		if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+			panic(err)
+		}
 	}
 
 	// wait for block device to appear
