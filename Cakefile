@@ -70,8 +70,6 @@ compileGoBinaries = (configFile,callback)->
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
 
-
-
 task 'runKites', ({configFile})->
 
   compileGoBinaries configFile,->
@@ -200,6 +198,12 @@ task 'emailWorker',({configFile})->
     restart         : yes
     restartInterval : 100
 
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailnotifications']
+        onChange  : (path) ->
+          processes.kill "emailWorker"
 
 task 'goBroker',({configFile})->
 
