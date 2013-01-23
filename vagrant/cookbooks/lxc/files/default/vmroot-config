@@ -2,8 +2,8 @@ lxc.network.type = veth
 lxc.network.link = lxcbr0
 lxc.network.veth.pair = vethVMRoot
 lxc.network.flags = up
-lxc.network.ipv4 = 10.0.0.10/24
-lxc.network.ipv4.gateway = 10.0.0.1
+lxc.network.ipv4 = 172.16.0.10/24
+lxc.network.ipv4.gateway = 172.16.0.1
 lxc.rootfs = /var/lib/lxc/vmroot/rootfs
 
 lxc.devttydir = lxc

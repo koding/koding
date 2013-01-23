@@ -1,0 +1,9 @@
+#!/bin/bash
+/bin/hostname ceph1.beta.system.aws.koding.com
+apt-get update
+DEBIAN_FRONTEND=noninteractive
+apt-get install chef curl -q -y
+curl https://gist.github.com/raw/7bb15fe2b931feefff35/cfda8a4cbc3e6c01abe1a4d578a2cba651c228bd/gistfile1.txt > /etc/chef/client.rb
+curl https://gist.github.com/raw/7bb15fe2b931feefff35/dcda348ba840d0ec9e5782451b4b49e9fd53295b/gistfile2.txt > /etc/chef/chris-test-validator.pem
+curl https://gist.github.com/raw/7bb15fe2b931feefff35/c1c82fa892c2bf35e57fd8dc539359ae7bf95ffb/gistfile3.txt > /etc/chef/ceph0-validator.pem
+service chef-client restart

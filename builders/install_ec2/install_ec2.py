@@ -111,13 +111,12 @@ def launchInstance(fqdn, type ,instance_type, ami_id = config.centos_id):
 
     reservation = ec2.run_instances(
         image_id = ami_id,
-        # key_name = config.key_name,
-        key_name = "chris",
+        key_name = config.key_name,
         instance_type = instance_type,
         security_groups = config.security_groups,
         user_data  = user_data,
         placement = config.zone,
-        subnet_id = "subnet-dcd019b6"
+        # subnet_id = "subnet-dcd019b6"
         #block_device_map = bdm,
     )
     if os.environ.has_key("BUILD_ID"):

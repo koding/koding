@@ -35,8 +35,8 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	target="/var/lib/lxc/vmroot/rootfs"
 	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
-	mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
-	# mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
+	# mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
+	mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
 
 	# Not REALLY necessary because we have our if clause, but nice for testing when if is commented
 	execute "lxc-stop -n vmroot"
@@ -47,9 +47,9 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 file "#{target}/etc/apt/sources.list" do
 		mode "0644"
 		content <<-EOH
-deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename} main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename}-updates main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt #{node["lsb"].codename}-security main restricted universe multiverse
+deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
+deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
+deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
 EOH
 end
 
