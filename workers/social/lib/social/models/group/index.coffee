@@ -41,7 +41,7 @@ module.exports = class JGroup extends Module
         '__resetAllGroups', 'fetchMyMemberships'
       ]
       instance      : ['join','leave','modify','fetchPermissions', 'createRole'
-                       'updatePermissions', 'fetchMembers', 'fetchRoles']
+                       'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles']
     schema          :
       title         :
         type        : String
@@ -212,7 +212,7 @@ module.exports = class JGroup extends Module
             permissions: permissionSet.permissions
           }
 
-  fetchRoles: secure (client, callback)->
+  fetchMyRoles: secure (client, callback)->
     console.log 'do we get here?'
     {delegate} = client.connection
     Relationship.someData {

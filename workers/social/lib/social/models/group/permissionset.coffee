@@ -49,9 +49,6 @@ module.exports = class JPermissionSet extends Module
       for own role, modulePerms of moduleRoles
         @permissions.push {module, role, permissions: modulePerms}
 
-
-    console.log 'eyo', this
-
   @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
     # permission = [permission]  unless Array.isArray permission
