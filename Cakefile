@@ -61,9 +61,9 @@ compileGoBinaries = (configFile,callback)->
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
-      verbose : yes 
+      verbose : yes
       onExit :->
-        callback null  
+        callback null
   else
     callback null
 
@@ -183,8 +183,6 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-              
-
 
 task 'guestCleanup',({configFile})->
 
@@ -233,14 +231,15 @@ task 'checkConfig',({configFile})->
 
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
-  
+
   compileGoBinaries configFile,->
-    invoke 'goBroker'       if config.runGoBroker    
+    invoke 'goBroker'       if config.runGoBroker
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
+    invoke 'emailWorker'
     invoke 'webserver'
 
 
@@ -250,7 +249,7 @@ task 'run', (options)->
 
 
   config.buildClient = yes if options.buildClient
-  
+
   queue = []
   if config.buildClient is yes
     queue.push -> buildClient options, -> queue.next()
