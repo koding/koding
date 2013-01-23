@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: ceph
-# Recipe:: server
+# Recipe:: mon
 #
 # Copyright 2012, YOUR_COMPANY_NAME
 #
