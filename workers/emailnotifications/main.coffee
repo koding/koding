@@ -18,9 +18,9 @@ worker = new Bongo {
 }
 
 log = ->
-  console.log "[E-MAIL NOTIFIER]", arguments...
+  console.log "[E-MAIL]", arguments...
 
-log "Koding E-Mail Notification Worker has started with PID #{process.pid}"
+log "E-Mail Notification Worker has started with PID #{process.pid}"
 
 commonHeader     = (m)-> """[Koding Bot] A new notification"""
 commonTemplate   = (m)->
@@ -220,12 +220,13 @@ job = new CronJob email.notificationCron, ->
   {JEmailNotificationGG} = worker.models
   # log "Checking for waiting queue..."
 
-  JEmailNotificationGG.some {status: "queued"}, {limit:10}, (err, emails)->
+  JEmailNotificationGG.some {status: "queued", priority: "instant"}, \
+  {limit:100}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "There are #{emails.length} mail in queue."
+        # log "There are #{emails.length} mail in queue."
         for email in emails
           prepareAndSendEmail email
       # else

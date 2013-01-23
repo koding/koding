@@ -110,7 +110,7 @@ module.exports = class JEmailNotificationGG extends Model
 
     @checkEmailChoice {username, event, contentType}, (err, state, key)->
       if err or state not in ['daily', 'instant']
-        console.log "User disabled e-mail notifications."
+        # console.log "User disabled e-mail notifications."
         callback? err
       else
         # console.log "STATE:", state
@@ -125,9 +125,9 @@ module.exports = class JEmailNotificationGG extends Model
             # console.log "OK good to go."
             notification.save (err)->
               if err then console.error err
-              else console.log "Saved to queue."
-          else
-            console.log "Already exists"
+              # else console.log "Saved to queue."
+          # else
+          #   console.log "Already exists"
 
   @unsubscribeWithId = (unsubscribeId, all, callback)->
 
@@ -139,9 +139,9 @@ module.exports = class JEmailNotificationGG extends Model
           if err or not account then callback err
           else
             prefs = {}
+            definition = ''
             if all is 'all'
               prefs.global  = 'never'
-              definition = ''
             else
               prefs[notification.eventFlag] = 'never'
               {definition} = flags[notification.eventFlag]
