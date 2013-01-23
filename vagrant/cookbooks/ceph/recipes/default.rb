@@ -24,14 +24,21 @@ package "ceph" do
 end
 
 
+if node[:ceph].has_key?(:mon_nodes)
+    template "/etc/ceph/ceph.conf" do
+        source "ceph.conf.erb"
+        mode 0644
+        owner "root"
+        group "root"
+        variables({
+                :mon_nodes => node[:ceph][:mon_nodes],
+                :osd_nodes => node[:ceph][:osd_nodes]
+                })
+    end
+end
 
-template "/etc/ceph/ceph.conf" do
-    source "ceph.conf.erb"
-    mode 0644
+directory "/var/run/ceph/" do
+    mode 0755
     owner "root"
     group "root"
-    variables({
-            :mon_nodes => node[:ceph][:mon_nodes],
-            :osd_nodes => node[:ceph][:osd_nodes]
-            })
 end
