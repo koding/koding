@@ -181,6 +181,7 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
+      notificationCron  : 1
     guests        :
       poolSize        : 1
       batchSize       : 1
