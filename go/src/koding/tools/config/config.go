@@ -36,7 +36,7 @@ var Current Config
 func LoadConfig(profile string) {
 	j, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')").CombinedOutput()
 	if err != nil {
-		fmt.Printf("Could execute Koding config manager: %s\n", err.Error())
+		fmt.Printf("Could not execute Koding config manager: %s\n", err.Error())
 		os.Exit(1)
 	}
 
