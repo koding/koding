@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	utils.Startup("irc kite", false)
+	utils.Startup("kite.irc", false)
 
 	k := kite.New("irc")
 	k.Handle("connect", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {

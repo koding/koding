@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
-	"koding/config"
+	"koding/tools/config"
 	"koding/tools/log"
 	"math/rand"
 	"net"
@@ -49,7 +49,6 @@ func Startup(serviceName string, needRoot bool) {
 	config.LoadConfig(profile)
 
 	log.Init(serviceName, profile)
-	log.LogToCloud = config.Current.LogToCloud
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {
@@ -82,7 +81,7 @@ func RunStatusLogger() {
 				"goroutines": float64(runtime.NumGoroutine()),
 				"memory":     float64(m.Alloc),
 			})
-			time.Sleep(30 * time.Second)
+			time.Sleep(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
 		}
 	}()
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"koding/tools/config"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,7 +16,6 @@ var loggrSource string
 var libratoSource string
 var tags string
 var LogDebug bool = false
-var LogToCloud bool = false
 
 func Init(service, profile string) {
 	hostname, _ := os.Hostname()
@@ -45,7 +45,7 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 }
 
 func Send(event url.Values) {
-	if !LogToCloud {
+	if !config.Current.Loggr.Push {
 		fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
 		if event.Get("data") != "" {
 			for _, line := range strings.Split(event.Get("data"), "\n") {
@@ -55,8 +55,8 @@ func Send(event url.Values) {
 		return
 	}
 
-	event.Add("apikey", "eb65f620b72044118015d33b4177f805")
-	resp, err := http.PostForm("http://post.loggr.net/1/logs/koding/events", event)
+	event.Add("apikey", config.Current.Loggr.ApiKey)
+	resp, err := http.PostForm(config.Current.Loggr.Url, event)
 	if err != nil || resp.StatusCode != http.StatusCreated {
 		fmt.Println("logger error: http.PostForm failed.", resp, err)
 		return
@@ -129,7 +129,7 @@ type Gauge struct {
 }
 
 func Gauges(gauges map[string]float64) {
-	if !LogToCloud {
+	if !config.Current.Librato.Push {
 		tagPrefix := "[gauges " + tags + "]"
 		for name, value := range gauges {
 			fmt.Printf("%-30s %s: %v\n", tagPrefix, name, value)
@@ -156,7 +156,7 @@ func Gauges(gauges map[string]float64) {
 		fmt.Println("logger error: http.NewRequest failed.", err)
 		return
 	}
-	request.SetBasicAuth("devrim@koding.com", "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0")
+	request.SetBasicAuth(config.Current.Librato.Email, config.Current.Librato.Token)
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)

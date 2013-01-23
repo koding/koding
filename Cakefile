@@ -48,13 +48,37 @@ mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
+compileGoBinaries = (configFile,callback)->
+
+  ###
+  #   TBD - CHECK FOR ERRORS
+  ###
+
+  compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
+  if compileGo
+    processes.spawn
+      name: 'build'
+      cmd : './go/build.sh'
+      stdout : process.stdout
+      stderr : process.stderr
+      verbose : yes 
+      onExit :->
+        callback null  
+  else
+    callback null
+
+task 'compileGo',({configFile})->
+  compileGoBinaries configFile,->
+
+
 
 task 'runKites', ({configFile})->
 
-  invoke 'sharedHostingKite'
-  invoke 'databasesKite'
-  invoke 'applicationsKite'
-  invoke 'webtermKite'
+  compileGoBinaries configFile,->
+    invoke 'sharedHostingKite'
+    invoke 'databasesKite'
+    invoke 'applicationsKite'
+    invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
   configFile = "dev-new" if configFile in ["",undefined,"undefined"]
@@ -196,6 +220,35 @@ task 'checkConfig',({configFile})->
   require('koding-config-manager').load("kite.databases.#{configFile}")
   require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
 
+
+run =({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+  
+  compileGoBinaries configFile,->
+    invoke 'goBroker'       if config.runGoBroker    
+    invoke 'authWorker'     if config.authWorker
+    invoke 'guestCleanup'   if config.guests
+    invoke 'libratoWorker'  if config.librato?.push
+    invoke 'compileGo'      if config.compileGo
+    invoke 'socialWorker'
+    invoke 'webserver'
+
+
+task 'run', (options)->
+  {configFile} = options
+  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+
+  config.buildClient = yes if options.buildClient
+  
+  queue = []
+  if config.buildClient is yes
+    queue.push -> buildClient options, -> queue.next()
+  queue.push -> run options
+  daisy queue
+
+
+
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
@@ -278,30 +331,7 @@ task 'deleteCache',(options)->
     console.log "Cache is pruned."
 
 
-run =({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
 
-  invoke 'goBroker'       if config.runGoBroker    
-  invoke 'authWorker'     if config.authWorker
-  invoke 'guestCleanup'   if config.guests
-  invoke 'libratoWorker'  if config.librato?.push
-  invoke 'socialWorker'
-  invoke 'webserver'
-
-
-
-task 'run', (options)->
-  {configFile} = options
-  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
-
-  config.buildClient = yes if options.buildClient
-  
-  queue = []
-  if config.buildClient is yes
-    queue.push -> buildClient options, -> queue.next()
-  queue.push -> run options
-  daisy queue
 
 
 

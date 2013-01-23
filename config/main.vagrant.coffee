@@ -30,6 +30,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
+  compileGo     : yes
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -93,6 +94,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'rabbitmq.local'
     login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
@@ -115,6 +117,10 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
+  loggr:
+    push: no
+    url: ""
+    apiKey: ""
   librato:
     push: no
     email: ""

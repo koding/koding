@@ -1,31 +1,33 @@
 nodePath = require 'path'
 # configuration
+cwd = process.cwd()
 
 module.exports =
   name                  : "sharedhosting"
+  numberOfWorkers       : 4
   pidPath               : "/var/run/node/SharedHosting.pid"
   logFile               : "/var/log/node/SharedHosting.log"
   amqp                  :
-    host                : 'zb.koding.com'
-    username            : 'guest'
+    host                : 'web0.dev.system.aws.koding.com'
+    login               : 'kite-sharedHosting'
     password            : 's486auEkPzvUjYfeFTMQ'
-    vhost               : 'kite'
+    heartbeat           : 10
   apiUri                : 'https://dev-api.koding.com/1.0'
   usersPath             : '/Users/'
   vhostDir              : 'Sites'
   suspendDir            : '/var/www/suspended_vhosts/'
-  defaultVhostFiles     : nodePath.join process.cwd(), '..', 'sharedHosting', 'defaultVhostFiles'
+  defaultVhostFiles     : nodePath.join cwd, 'kites', 'sharedHosting', 'defaultVhostFiles'
   freeUsersGroup        : 'freeusers'
   liteSpeedUser         : 'lsws'
   defaultDomain         : 'koding.com'
   minAllowedUid         : 600 # minumum allowed UID for OS commands
   debugApi              : true
-  processBaseDir        : process.cwd()
+  processBaseDir        : cwd
   cagefsctl             : "/usr/sbin/cagefsctl"
   baseMountDir          : 'RemoteDrives'
   maxAllowedRemotes     : 5
   usersMountsFile       : ".cagefs/.mounts"
-  encryptKey            : "aljhbvohebrfupoyeqbrpvuyq38047f08q3740r8y34bfokjberfaldsjbfh"
+  encryptKey            : "aljhbvohebuyq38047f5723kkkksdfkjhg8q3740r8y34bfokjberfaldsjbfh"
   ftpfs                 :
     curlftpfs           : '/usr/bin/curlftpfs'
     opts                : "connect_timeout=15,direct_io,allow_other"

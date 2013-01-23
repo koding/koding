@@ -80,7 +80,7 @@ func main() {
 			return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
 		}
 
-		absPath := path.Join(session.Home, params.Path)
+		absPath := path.Join("/home", session.User.Name, params.Path)
 		info, err := os.Stat(absPath)
 		if err != nil {
 			return nil, err
