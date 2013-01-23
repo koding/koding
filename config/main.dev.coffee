@@ -44,6 +44,10 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  loggr:
+    push   : no
+    url    : ""
+    apiKey : ""
   librato :
     push      : no
     email     : ""
@@ -105,6 +109,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
+    componentUser: "prod-<component>"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'

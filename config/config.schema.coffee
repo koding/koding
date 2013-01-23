@@ -1,6 +1,6 @@
 config =
   _selfConfig :
-    defaultConfig : "dev-new"
+    defaultConfig : "dev"
   kite :
     applications :
       name              : 1
@@ -124,8 +124,11 @@ config =
       token     : 1
       interval  : 1
     goConfig:
-      HomePrefix:   1
-      UseLVE:       1      
+      AmqpHost     : 1
+      AmqpUser     : 1
+      AmqpPassword : 1
+      HomePrefix   : 1
+      UseLVE       : 1
     bitly :
       username  : 1
       apiKey    : 1
