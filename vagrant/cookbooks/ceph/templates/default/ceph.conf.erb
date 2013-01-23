@@ -2,10 +2,14 @@
 
     # For version 0.55 and beyond, you must explicitly enable 
     # or disable authentication with "auth" entries in [global].
+    debug ms = 1
     
     auth cluster required = none
     auth service required = none
     auth client required = none
+    osd mkfs type = xfs
+    osd mkfs options xfs = "-f"   
+    osd mount options xfs = "rw,noatime" 
 
 [osd]
     osd journal size = 1000
@@ -14,10 +18,18 @@
     filestore xattr use omap = true
 
 
-<% @mon_nodes.each do |node| -%>
-[mon.<%= node[:id] %>]
+<% @mon_nodes.each_with_index do |node, index| -%>
+[mon.<%= index %>]
 
     mon addr = <%= node[:addr] %>:6789
+
+<% end -%>
+
+<% @osd_nodes.each_with_index do |node, index| -%>
+[osd.<%= index %>]
+
+    host = <%= node[:id] %>
+    devs = /dev/xvdb
 
 <% end -%>
 
