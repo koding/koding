@@ -8,6 +8,8 @@ import (
 	"koding/virt"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -113,7 +115,7 @@ func main() {
 	})
 
 	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		dir, err := os.Open("/var/run/screen/S-" + session.User)
+		dir, err := os.Open("/var/run/screen/S-" + session.User.Name)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return make(map[string]string), nil

@@ -8,8 +8,6 @@ import (
 	"koding/tools/pty"
 	"koding/virt"
 	"os"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 	"unicode/utf8"
@@ -36,7 +34,7 @@ func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string
 		pty:    pty.New(),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
-	session.CloseOnDisconnect(server)
+	session.OnDisconnect(func() { server.Close() })
 
 	cmd := virt.GetDefaultVM(session.User).AttachCommand(session.User.Id) // empty command is default shell
 	server.pty.AdaptCommand(cmd)
