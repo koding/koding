@@ -46,7 +46,7 @@ commonTemplate   = (m)->
     when 'PrivateMessageSent'
       action = "sent you a"
     when 'ReplyIsAdded'
-      if m.realContent.origin?._id is m.receiver._id
+      if m.receiver.getId().equals m.subjectContent.data.originId
         action = "commented on your"
       else
         action = "also commented on"
