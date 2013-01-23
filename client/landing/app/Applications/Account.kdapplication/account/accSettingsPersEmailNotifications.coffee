@@ -36,7 +36,7 @@ class AccountEmailNotifications extends KDView
         labels        : labels
         defaultValue  : field.current
         callback      : (state)->
-          flag  = do @getData
+          flag  = @getData()
           prefs = {}
 
           if flag is 'global'
@@ -48,7 +48,7 @@ class AccountEmailNotifications extends KDView
           account.setEmailPreferences prefs, (err)=>
             fields[flag].loader.hide()
             if err
-              do @fallBackToOldState
+              @fallBackToOldState()
               new KDNotificationView
                 duration : 2000
                 title    : 'Failed to change state'

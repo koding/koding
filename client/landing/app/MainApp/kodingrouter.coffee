@@ -247,6 +247,17 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
+      '/:name?/Unsubscribe/:unsubscribeToken/:all?': \
+      ({params:{unsubscribeToken, all}})->
+        all              = decodeURIComponent all
+        unsubscribeToken = decodeURIComponent unsubscribeToken
+        KD.remote.api.JEmailNotificationGG.unsubscribeWithId \
+        unsubscribeToken, all, (err, content)=>
+          if err then log err
+          else
+            new KDNotificationView {content, duration: 4000}
+          @clear()
+
       # top level names
       '/:name':do->
 
