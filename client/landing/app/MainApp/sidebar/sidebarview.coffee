@@ -46,28 +46,30 @@ class Sidebar extends JView
 
     # handle group related decisions
 
-    @getSingleton('mainController').on 'GroupChangeFinished', =>
-      @utils.wait =>
-        currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
-        unless currentGroupData?.data?.slug is 'koding'
-          @avatar.setClass 'shared-avatar'
-          @avatar.setWidth 80
+    @getSingleton('groupsController').on 'GroupChanged', =>
+      console.log 'group changed', arguments
+      console.trace()
+      @switchNav()
+      currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+      unless currentGroupData?.data?.slug is 'koding'
+        @avatar.setClass 'shared-avatar'
+        @avatar.setWidth 80
 
-          # group avatar should be either a URL or a dataURL
+        # group avatar should be either a URL or a dataURL
 
-          @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
-          @groupAvatar.show()
-          @groupAvatar.setClass 'flash'
-          @avatarHeader.setData currentGroupData
-          @avatarHeader.show()
-        else
-          @avatar.unsetClass 'shared-avatar'
-          @avatar.setWidth 160
-          @groupAvatar.hide()
-          @groupAvatar.unsetClass 'flash'
-          @avatarHeader.setData currentGroupData
-          @avatarHeader.hide()
-        @render()
+        @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
+        @groupAvatar.show()
+        @groupAvatar.setClass 'flash'
+        @avatarHeader.setData currentGroupData
+        @avatarHeader.show()
+      else
+        @avatar.unsetClass 'shared-avatar'
+        @avatar.setWidth 160
+        @groupAvatar.hide()
+        @groupAvatar.unsetClass 'flash'
+        @avatarHeader.setData currentGroupData
+        @avatarHeader.hide()
+      @render()
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -212,19 +214,25 @@ class Sidebar extends JView
     @setListeners()
 
 
-  render:(account)->
+    @navController.reset()
+    @accNavController.reset()
+    @footerMenuController.reset()
+    @resetAdminNavController()
 
+
+  switchNav:(group)->
+    nav = $ "#main-nav .kdlistview-navigation"
+    nav.addClass 'out'
+    @utils.wait 300, -> nav.removeClass 'out'
+
+  render:(account)->
+    log 'render is called'
     account or= KD.whoami()
 
     @avatar.setData account
     @avatar.render()
     @finderHeader.setData account
     @finderHeader.render()
-
-    @navController.reset()
-    @accNavController.reset()
-    @footerMenuController.reset()
-    @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
 

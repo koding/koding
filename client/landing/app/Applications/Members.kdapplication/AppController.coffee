@@ -11,6 +11,8 @@ class MembersAppController extends AppController
         name : 'Members'
       data : @getView()
 
+  setGroup:-> console.trace()
+
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
