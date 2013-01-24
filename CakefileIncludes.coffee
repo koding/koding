@@ -396,6 +396,7 @@ Includes =
         # COMMON VIEWS
 
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
+        customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
         profileLinkView             : "./client/app/CommonViews/linkviews/profilelinkview.coffee"
         profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"

@@ -96,6 +96,7 @@ class GroupsMemberPermissionsView extends JView
         width       : 32
 
     list = @listController.getListView()
+    list.getOptions().group = groupData
     groupData.fetchRoles (err, roles)=>
       if err then warn err
       else
@@ -134,20 +135,126 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "formline clearfix"
-    options.type     = "member-item"
+    options.cssClass = 'formline clearfix'
+    options.type     = 'member-item'
 
     super options, data
 
+    data               = @getData()
     list               = @getDelegate()
     {roles, userRoles} = list.getOptions()
-    @profileLink       = new ProfileTextView {}, @getData()
-    log roles, userRoles
+    @profileLink       = new ProfileTextView {}, data
+    @usersRole         = userRoles[data.getId()]
 
+    @userRole          = new KDCustomHTMLView
+      partial          : @usersRole
+      cssClass         : 'ib role'
+
+    @editLink          = new CustomLinkView
+      title            : 'Edit'
+      cssClass         : 'fr'
+      icon             :
+        cssClass       : 'edit'
+      click            : @showEditMemberRolesView.bind @
+
+    @saveLink        = new CustomLinkView
+      title            : 'Save'
+      cssClass         : 'fr hidden'
+      icon             :
+        cssClass       : 'save'
+      click            : =>
+        @hideEditMemberRolesView()
+        log "save"
+
+    @cancelLink        = new CustomLinkView
+      title            : 'Cancel'
+      cssClass         : 'fr hidden'
+      icon             :
+        cssClass       : 'delete'
+      click            : @hideEditMemberRolesView.bind @
+
+    @editContainer     = new KDView
+      cssClass         : 'edit-container hidden'
+
+  showEditMemberRolesView:->
+
+    list           = @getDelegate()
+    editView       = new GroupsMemberRolesEditView delegate : @
+    editorsRoles   = list.getOptions().editorsRoles
+    {group, roles} = list.getOptions()
+
+    @editLink.hide()
+    @cancelLink.show()
+    @saveLink.show()
+    @editContainer.show()
+    @editContainer.addSubView editView
+
+    unless editorsRoles
+      group.fetchMyRoles (err, editorsRoles)=>
+        if err
+          log err
+        else
+          list.getOptions().editorsRoles = editorsRoles
+          editView.setRoles editorsRoles, roles
+    else
+      editView.setRoles editorsRoles, roles
+
+  hideEditMemberRolesView:->
+
+    @editLink.show()
+    @cancelLink.hide()
+    @saveLink.hide()
+    @editContainer.hide()
+    @editContainer.destroySubViews()
 
   viewAppended:JView::viewAppended
 
   pistachio:->
     """
-    {{> @profileLink}}
+    <section>
+      {{> @profileLink}}
+      {{> @userRole}}
+      {{> @editLink}}
+      {{> @saveLink}}
+      {{> @cancelLink}}
+    </section>
+    {{> @editContainer}}
     """
+
+class GroupsMemberRolesEditView extends JView
+
+  constructor:(options = {}, data)->
+
+    super
+
+    @loader   = new KDLoaderView
+      size    :
+        width : 22
+
+  setRoles:(editorsRoles, allRoles)->
+
+    @loader.hide()
+
+    @roles      = {
+      usersRole    : @getDelegate().usersRole
+      allRoles     : allRoles.map (role)-> role.title
+      editorsRoles
+    }
+
+    radioGroup = new KDInputRadioGroup
+      name         : 'user-role'
+      defaultValue : @roles.usersRole
+      radios       : @roles.allRoles.map (role)-> {value : role, title: role.capitalize()}
+
+    @addSubView radioGroup
+
+
+
+  pistachio:->
+    """
+      {{> @loader}}
+    """
+
+  viewAppended:->
+    super
+    @loader.show()
