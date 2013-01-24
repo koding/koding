@@ -51,7 +51,7 @@ func handleConnection(conn net.Conn) {
 
 			if name == "vmhost" && password == "abc" {
 				bound = true
-			} else if strings.HasPrefix(name, "vm-") {
+			} else if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
 				vm, err = virt.FindVMById(bson.ObjectIdHex(name[3:]))
 				bound = (err == nil && password == vm.LdapPassword)
 			} else {
