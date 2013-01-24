@@ -168,6 +168,7 @@ class GroupsAppController extends AppController
                 name              : "body"
                 defaultValue      : group.body ? ""
               "Privacy settings"  :
+                itemClass         : KDSelectBox
                 label             : "Privacy settings"
                 type              : "select"
                 name              : "privacy"
@@ -177,6 +178,7 @@ class GroupsAppController extends AppController
                   { title : "Private",   value : "private" }
                 ]
               "Visibility settings"  :
+                itemClass         : KDSelectBox
                 label             : "Visibility settings"
                 type              : "select"
                 name              : "visibility"
@@ -266,9 +268,6 @@ class GroupsAppController extends AppController
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
-      modalOptions.tabs.forms["Manage Roles"] =
-        title   : "Manage Roles"
-        partial : "we'll Manage roles here..."
 
 
     modal = new KDModalViewWithForms modalOptions, group

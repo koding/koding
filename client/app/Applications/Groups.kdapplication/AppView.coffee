@@ -95,15 +95,27 @@ class GroupsMemberPermissionsView extends JView
       size          :
         width       : 32
 
+    list = @listController.getListView()
+    list.getOptions().group = groupData
     groupData.fetchRoles (err, roles)=>
       if err then warn err
       else
-        @listController.getListView().getOptions().roles = roles
-        groupData.fetchMembers (err, members)=>
+        list.getOptions().roles = roles
+
+        groupData.fetchUserRoles (err, userRoles)=>
           if err then warn err
           else
-            @listController.instantiateListItems members
-            @loader.hide()
+            userRolesHash = {}
+            for userRole in userRoles
+              userRolesHash[userRole.sourceId] = userRole.as
+
+            list.getOptions().userRoles = userRolesHash
+
+            groupData.fetchMembers (err, members)=>
+              if err then warn err
+              else
+                @listController.instantiateListItems members
+                @loader.hide()
 
   viewAppended:->
 
@@ -123,28 +135,158 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "formline clearfix"
-    options.type     = "member-item"
+    options.cssClass = 'formline clearfix'
+    options.type     = 'member-item'
 
     super options, data
 
-    list         = @getDelegate()
-    @profileLink = new ProfileTextView {}, @getData()
-    @selectBox   = new KDSelectBox
-      name          : "role"
-      callback      : @selectBoxCallback.bind @
-      selectOptions : list.getOptions().roles.map (role)->
-        {title : role.title.capitalize(), value : role.title}
+    data               = @getData()
+    list               = @getDelegate()
+    {roles, userRoles} = list.getOptions()
+    @profileLink       = new ProfileTextView {}, data
+    @usersRole         = userRoles[data.getId()]
 
+    @userRole          = new KDCustomHTMLView
+      partial          : @usersRole
+      cssClass         : 'ib role'
 
-  selectBoxCallback:(event)->
+    @editLink          = new CustomLinkView
+      title            : 'Edit'
+      cssClass         : 'fr'
+      icon             :
+        cssClass       : 'edit'
+      click            : @showEditMemberRolesView.bind @
 
-    log "make here #{@getData().profile.nickname} #{@selectBox.getValue()}"
+    @saveLink        = new CustomLinkView
+      title            : 'Save'
+      cssClass         : 'fr hidden'
+      icon             :
+        cssClass       : 'save'
+      click            : =>
+        @hideEditMemberRolesView()
+        log "save"
+
+    @cancelLink        = new CustomLinkView
+      title            : 'Cancel'
+      cssClass         : 'fr hidden'
+      icon             :
+        cssClass       : 'delete'
+      click            : @hideEditMemberRolesView.bind @
+
+    @editContainer     = new KDView
+      cssClass         : 'edit-container hidden'
+
+    list.on "EditMemberRolesViewShown", (listItem)=>
+      if listItem isnt @
+        @hideEditMemberRolesView()
+
+  showEditMemberRolesView:->
+
+    list           = @getDelegate()
+    editView       = new GroupsMemberRolesEditView delegate : @
+    editorsRoles   = list.getOptions().editorsRoles
+    {group, roles} = list.getOptions()
+    list.emit "EditMemberRolesViewShown", @
+
+    @editLink.hide()
+    @cancelLink.show()
+    @saveLink.show()
+    @editContainer.show()
+    @editContainer.addSubView editView
+
+    unless editorsRoles
+      group.fetchMyRoles (err, editorsRoles)=>
+        if err
+          log err
+        else
+          list.getOptions().editorsRoles = editorsRoles
+          editView.setRoles editorsRoles, roles
+          editView.addViews()
+    else
+      editView.setRoles editorsRoles, roles
+      editView.addViews()
+
+  hideEditMemberRolesView:->
+
+    @editLink.show()
+    @cancelLink.hide()
+    @saveLink.hide()
+    @editContainer.hide()
+    @editContainer.destroySubViews()
 
   viewAppended:JView::viewAppended
 
   pistachio:->
     """
-    {{> @profileLink}}
-    {{> @selectBox}}
+    <section>
+      {{> @profileLink}}
+      {{> @userRole}}
+      {{> @editLink}}
+      {{> @saveLink}}
+      {{> @cancelLink}}
+    </section>
+    {{> @editContainer}}
     """
+
+class GroupsMemberRolesEditView extends JView
+
+  constructor:(options = {}, data)->
+
+    super
+
+    @loader   = new KDLoaderView
+      size    :
+        width : 22
+
+  setRoles:(editorsRoles, allRoles)->
+
+    allRoles = allRoles.reduce (acc, role)->
+      acc.push role.title  unless role.title in ['owner', 'guest']
+      return acc
+    , []
+
+    @roles      = {
+      usersRole    : @getDelegate().usersRole
+      allRoles
+      editorsRoles
+    }
+
+
+  addViews:->
+
+    @loader.hide()
+
+    radioGroup = new KDInputRadioGroup
+      name         : 'user-role'
+      defaultValue : @roles.usersRole
+      radios       : @roles.allRoles.map (role)-> {value : role, title: role.capitalize()}
+
+    @addSubView radioGroup, '.radios'
+
+    @addSubView (new KDButtonView
+      title    : "Make Owner"
+      cssClass : 'modal-clean-gray'
+      callback : -> log "Transfer Ownership"
+    ), '.buttons'
+
+    @addSubView (new KDButtonView
+      title    : "Kick"
+      cssClass : 'modal-clean-red'
+      callback : -> log "Kick user"
+    ), '.buttons'
+
+    @$('.buttons').removeClass 'hidden'
+
+
+  pistachio:->
+    """
+      {{> @loader}}
+      <div class='radios'/>
+      <div class='buttons hidden'/>
+    """
+
+  viewAppended:->
+
+    super
+
+    @loader.show()

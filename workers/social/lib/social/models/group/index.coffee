@@ -26,6 +26,7 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
+      'list members'                      : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member', 'moderator']
@@ -40,8 +41,11 @@ module.exports = class JGroup extends Module
         'one','create','each','byRelevance','someWithRelationship'
         '__resetAllGroups', 'fetchMyMemberships'
       ]
-      instance      : ['join','leave','modify','fetchPermissions', 'createRole'
-                       'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles']
+      instance      : [
+        'join','leave','modify','fetchPermissions', 'createRole'
+        'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
+        'fetchUserRoles'
+      ]
     schema          :
       title         :
         type        : String
@@ -213,18 +217,36 @@ module.exports = class JGroup extends Module
           }
 
   fetchMyRoles: secure (client, callback)->
-    console.log 'do we get here?'
+
     {delegate} = client.connection
     Relationship.someData {
       sourceId: delegate.getId()
       targetId: @getId()
     }, {as:1}, (err, cursor)->
-      console.log arguments
       if err then callback err
       else
         cursor.toArray (err, arr)->
           if err then callback err
           else callback null, (doc.as for doc in arr)
+
+  fetchUserRoles: permit 'grant permissions'
+    success:(client, callback)->
+      @fetchRoles (err, roles)=>
+        roleTitles = (role.title for role in roles)
+        Relationship.someData {
+          sourceName  : 'JAccount'
+          targetId    : @getId()
+          as          : { $in: roleTitles }
+        }, {as:1, sourceId:1}, (err, cursor)->
+          if err then callback err
+          else
+            cursor.toArray (err, arr)->
+              if err then callback err
+              else callback null, arr
+
+  fetchMembers$: permit 'list members'
+    success:(client, rest...)->
+      @fetchMembers rest...
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->

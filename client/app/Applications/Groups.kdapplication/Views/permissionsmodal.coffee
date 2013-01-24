@@ -6,11 +6,11 @@ class PermissionsModal extends KDView
   constructor:(options,data)->
     super options,data
 
-    group = @getData()
-    {privacy,permissionSet}=@getOptions()
+    group                   = @getData()
+    {privacy,permissionSet} = @getOptions()
 
     # here we should handle custom roles and add them for display
-    roles = ['member','moderator','admin']
+    roles = ['member','moderator','admin', 'zira']
 
     roles.unshift 'guest' if group.getData().privacy is 'public'
 

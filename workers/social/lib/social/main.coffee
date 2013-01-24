@@ -98,7 +98,7 @@ koding.connect ->
 
   JGroupRole.createDefaultRoles (err)->
     if err then console.log err.message
-    else console.log "Default group roles created"
+    else console.log "Default group roles created!"
 
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log

@@ -81,6 +81,7 @@ Includes =
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
         KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
+        KDMultipleChoice      : "./client/Framework/components/inputs/KDMultipleChoice.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -396,6 +397,7 @@ Includes =
         # COMMON VIEWS
 
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
+        customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
         profileLinkView             : "./client/app/CommonViews/linkviews/profilelinkview.coffee"
         profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"
