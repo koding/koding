@@ -1,10 +1,10 @@
 jraphical = require 'jraphical'
 
-unless Array.prototype.last
+unless 'last' of Array.prototype
   Object.defineProperty Array.prototype, "last",
     get : -> this[this.length-1]
 
-unless Array.prototype.first
+unless 'first' of Array.prototype
   Object.defineProperty Array.prototype, "first",
     get : -> this[0]
 
