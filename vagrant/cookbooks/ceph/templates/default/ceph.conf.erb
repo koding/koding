@@ -25,3 +25,10 @@
 
 <% end -%>
 
+<% @osd_nodes.each do |node| -%>
+[osd.<%= node[:CephID] %>]
+    # instance ID <%= node[:id] %>
+    host = <%= node[:id] %>
+
+<% end -%>
+

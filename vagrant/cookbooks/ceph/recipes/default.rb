@@ -25,6 +25,9 @@ end
 
 
 if node[:ceph].has_key?(:mon_nodes)
+
+    include_recipe "ceph::hosts"
+
     template "/etc/ceph/ceph.conf" do
         source "ceph.conf.erb"
         mode 0644

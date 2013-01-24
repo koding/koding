@@ -31,7 +31,12 @@ if node[:ceph].has_key?(:osd_nodes)
                 stop_command "/sbin/stop ceph-osd id=#{ceph_node[:CephID]}"
                 restart_command "/sbin/restart ceph-osd id=#{ceph_node[:CephID]}"
             end
-
+            execute "osd.#{ceph_node[:CephID]} mkfs" do
+                command "/usr/sbin/ceph-disk-prepare --cluster-uuid #{node[:ceph][:fsid]} --fs-type xfs #{node[:ceph][:drive]}"
+                creates "/var/lib/ceph/osd/ceph-#{ceph_node[:CephID]}/cluster_uuid"
+                notifies :start, "service[ceph-osd]", :immediately
+                not_if { ::File.blockdev?("#{node[:ceph][:drive]}1")}
+            end
         end # ceph_node[:id] == node[:ceph][:server_id]
     end
 
