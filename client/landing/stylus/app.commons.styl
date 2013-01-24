@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -1376,6 +1377,23 @@ figure.code-container
       padding           2px
       margin-right      5px
       padding-left      0
+
+
+.custom-link-view
+  display               inline-block
+  line-height           20px
+  clearfix()
+  noTextDeco()
+  span.icon
+    size                20px, 20px
+    display             inline-block
+    vertical-align      top
+    sprite()
+  span.title
+    text-decoration     underline
+    color               linkColor1
+
+
 
 // /*
 //   Animation tests

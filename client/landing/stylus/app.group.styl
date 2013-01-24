@@ -407,14 +407,63 @@
 
 .groups-member-permissions-view
 
+  .kdview.kdloader
+    display           block
+    margin            10px auto
+
   .kdview.kdlistitemview.kdlistitemview-member-item
+    line-height       24px
+
     .kdselectbox
       display         inline-block
       float           right
 
     .profile
       font-size       13px
-      line-height     24px
+
+    .role
+      color           #999
+
+    span.icon
+      &.edit
+        bg            position, -120px -400px
+      &.delete
+        bg            position, -80px -520px
+      &.save
+        bg            position, -80px -500px
+
+    .kd-radio-holder
+      line-height       30px
+      margin-right      10px
+      display           inline-block
+
+      input[type=radio]
+        vertical-align  middle
+        display         inline
+        width           auto
+        margin          0 10px 0 3px
+
+      label
+        float           none
+        display         inline
+
+
+  .edit-container
+    padding             5px 10px
+    border              1px solid #ccc
+    rounded             4px
+    bg                  color, #f5f5f5
+    borderBox()
+
+    .buttons
+      margin            10px 0 5px 0
+      padding           10px
+      bg                color, #e2e2e2
+      rounded           3px
+      border            1px solid #ccc
+      .kdbutton
+        width           auto
+        margin-right    10px
 
 .group-header
   button
