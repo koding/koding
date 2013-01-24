@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/tools/config"
 	"koding/tools/db"
 	"koding/tools/utils"
 	"labix.org/v2/mgo"
@@ -35,9 +36,9 @@ var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
 var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(10, 0, 0, 2)))
 
-func init() {
+func LoadTemplates() {
 	var err error
-	templates, err = template.ParseGlob("templates/lxc/*")
+	templates, err = template.ParseGlob(config.Current.ProjectRoot + "/go/templates/lxc/*")
 	if err != nil {
 		panic(err)
 	}

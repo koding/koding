@@ -31,6 +31,7 @@ var statesMutex sync.Mutex
 
 func main() {
 	utils.Startup("kite.os", true)
+	virt.LoadTemplates()
 
 	go LimiterLoop()
 	k := kite.New("os")
