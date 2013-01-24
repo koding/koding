@@ -176,12 +176,17 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     @editContainer     = new KDView
       cssClass         : 'edit-container hidden'
 
+    list.on "EditMemberRolesViewShown", (listItem)=>
+      if listItem isnt @
+        @hideEditMemberRolesView()
+
   showEditMemberRolesView:->
 
     list           = @getDelegate()
     editView       = new GroupsMemberRolesEditView delegate : @
     editorsRoles   = list.getOptions().editorsRoles
     {group, roles} = list.getOptions()
+    list.emit "EditMemberRolesViewShown", @
 
     @editLink.hide()
     @cancelLink.show()
@@ -196,8 +201,10 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
         else
           list.getOptions().editorsRoles = editorsRoles
           editView.setRoles editorsRoles, roles
+          editView.addViews()
     else
       editView.setRoles editorsRoles, roles
+      editView.addViews()
 
   hideEditMemberRolesView:->
 
@@ -233,28 +240,53 @@ class GroupsMemberRolesEditView extends JView
 
   setRoles:(editorsRoles, allRoles)->
 
-    @loader.hide()
+    allRoles = allRoles.reduce (acc, role)->
+      acc.push role.title  unless role.title in ['owner', 'guest']
+      return acc
+    , []
 
     @roles      = {
       usersRole    : @getDelegate().usersRole
-      allRoles     : allRoles.map (role)-> role.title
+      allRoles
       editorsRoles
     }
+
+
+  addViews:->
+
+    @loader.hide()
 
     radioGroup = new KDInputRadioGroup
       name         : 'user-role'
       defaultValue : @roles.usersRole
       radios       : @roles.allRoles.map (role)-> {value : role, title: role.capitalize()}
 
-    @addSubView radioGroup
+    @addSubView radioGroup, '.radios'
 
+    @addSubView (new KDButtonView
+      title    : "Make Owner"
+      cssClass : 'modal-clean-gray'
+      callback : -> log "Transfer Ownership"
+    ), '.buttons'
+
+    @addSubView (new KDButtonView
+      title    : "Kick"
+      cssClass : 'modal-clean-red'
+      callback : -> log "Kick user"
+    ), '.buttons'
+
+    @$('.buttons').removeClass 'hidden'
 
 
   pistachio:->
     """
       {{> @loader}}
+      <div class='radios'/>
+      <div class='buttons hidden'/>
     """
 
   viewAppended:->
+
     super
+
     @loader.show()
