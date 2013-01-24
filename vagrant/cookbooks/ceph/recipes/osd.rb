@@ -8,9 +8,13 @@
 #
 #
 
+include_recipe "ceph::ssh_keys"
 
 
 if node[:ceph].has_key?(:osd_nodes)
+
+    include_recipe "ceph::server_cfg"
+
     node[:ceph][:osd_nodes].each do |ceph_node|
         if ceph_node[:id] == node[:ceph][:server_id]
             directory "/var/lib/ceph/osd/ceph-#{ceph_node[:CephID]}" do
