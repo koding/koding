@@ -21,7 +21,7 @@ type VM struct {
 	Name         string        `bson:"name"`
 	Users        []*UserEntry  `bson:"users"`
 	LdapPassword string        `bson:"ldapPassword"`
-	IP           net.IP        `bson:"ip"`
+	IP           net.IP        `bson:"ip,omitempty"`
 }
 
 type UserEntry struct {
@@ -60,17 +60,14 @@ func FindVMByName(name string) (*VM, error) {
 // may panic
 func GetDefaultVM(user *db.User) *VM {
 	if user.DefaultVM == "" {
-		vm := FetchUnusedVM(user)
-
-		// create file system
-		vm.MapRBD()
-		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
-			panic(err)
+		// create new vm
+		vm := VM{
+			Id:           bson.NewObjectId(),
+			Name:         user.Name,
+			Users:        []*UserEntry{&UserEntry{Id: user.Id, Sudo: true}},
+			LdapPassword: utils.RandomString(),
 		}
-
-		vm.Name = user.Name
-		vm.LdapPassword = utils.RandomString()
-		if err := VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"name": vm.Name, "ldapPassword": vm.LdapPassword}}); err != nil {
+		if err := VMs.Insert(vm); err != nil {
 			panic(err)
 		}
 
@@ -79,7 +76,7 @@ func GetDefaultVM(user *db.User) *VM {
 		}
 		user.DefaultVM = vm.Id
 
-		return vm
+		return &vm
 	}
 
 	vm, err := FindVMById(user.DefaultVM)
@@ -131,28 +128,26 @@ func LowerdirFile(path string) string {
 }
 
 // may panic
-func FetchUnusedVM(user *db.User) *VM {
-	var vm VM
-	_, err := VMs.Find(bson.M{"users": bson.M{"$size": 0}}).Limit(1).Apply(mgo.Change{Update: bson.M{"$push": bson.M{"users": bson.M{"id": user.Id, "sudo": true}}}, ReturnNew: true}, &vm)
-	if err == nil {
-		return &vm // existing unused VM found
-	}
-	if err != mgo.ErrNotFound {
+func (vm *VM) Prepare() {
+	vm.Unprepare()
+
+	ip := utils.IntToIP(<-ipPoolFetch)
+	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+		ipPoolRelease <- utils.IPToInt(ip)
 		panic(err)
 	}
+	vm.IP = ip
 
-	// create new vm
-	vm = VM{Id: bson.NewObjectId(), Users: []*UserEntry{&UserEntry{Id: user.Id, Sudo: true}}}
-	if err := VMs.Insert(bson.M{"_id": vm.Id, "users": vm.Users}); err != nil {
-		panic(err)
-	}
+	// prepare directories
+	vm.prepareDir(vm.File(""), 0)
+	vm.prepareDir(vm.File("rootfs"), VMROOT_ID)
+	vm.prepareDir(vm.UpperdirFile("/"), VMROOT_ID)
 
-	return &vm
-}
+	// write LXC files
+	vm.generateFile(vm.File("config"), "config", 0, false)
+	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
 
-// may panic
-func (vm *VM) MapRBD() {
-	// map image to block device
+	// map rbd image to block device
 	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
@@ -166,52 +161,25 @@ func (vm *VM) MapRBD() {
 		if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
 			panic(err)
 		}
-	}
+		vm.waitForRBD()
 
-	// wait for block device to appear
-	for {
-		_, err := os.Stat(vm.RbdDevice())
-		if err == nil {
-			break
-		}
-		if !os.IsNotExist(err) {
+		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
 			panic(err)
 		}
-		time.Sleep(time.Second / 2)
+	} else {
+		vm.waitForRBD()
 	}
-}
 
-// may panic
-func (vm *VM) Prepare() {
-	vm.Unprepare()
-
-	ip := utils.IntToIP(<-ipPoolFetch)
-	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-		ipPoolRelease <- utils.IPToInt(ip)
-		panic(err)
-	}
-	vm.IP = ip
-
-	// prepare directories
-	vm.PrepareDir(vm.File(""), 0)
-	vm.PrepareDir(vm.File("rootfs"), VMROOT_ID)
-	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)
-
-	// write LXC files
-	vm.GenerateFile(vm.File("config"), "config", 0, false)
-	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
-
-	// mount rbd/ceph
-	vm.MapRBD()
+	// mount block device to upperdir
 	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
 		panic(err)
 	}
 
 	// prepare directories in upperdir
-	vm.PrepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
-	vm.PrepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
-	vm.PrepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
-	vm.PrepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
+	vm.prepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
+	vm.prepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
+	vm.prepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
+	vm.prepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
 
 	// create user homes
 	for i, entry := range vm.Users {
@@ -219,19 +187,19 @@ func (vm *VM) Prepare() {
 		if err != nil {
 			panic(err)
 		}
-		if vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id) && i == 0 {
-			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
-			vm.PrepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
+		if vm.prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id) && i == 0 {
+			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
+			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
 			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			vm.PrepareDir(vm.UpperdirFile(websiteDir), user.Id)
+			vm.prepareDir(vm.UpperdirFile(websiteDir), user.Id)
 			files, err := ioutil.ReadDir("templates/website")
 			if err != nil {
 				panic(err)
 			}
 			for _, file := range files {
-				CopyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
+				copyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
 			}
-			vm.PrepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
+			vm.prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
 				panic(err)
 			}
@@ -239,9 +207,9 @@ func (vm *VM) Prepare() {
 	}
 
 	// generate upperdir files
-	vm.GenerateFile(vm.UpperdirFile("/etc/hostname"), "hostname", VMROOT_ID, false)
-	vm.GenerateFile(vm.UpperdirFile("/etc/hosts"), "hosts", VMROOT_ID, false)
-	vm.GenerateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", VMROOT_ID, false)
+	vm.generateFile(vm.UpperdirFile("/etc/hostname"), "hostname", VMROOT_ID, false)
+	vm.generateFile(vm.UpperdirFile("/etc/hosts"), "hosts", VMROOT_ID, false)
+	vm.generateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", VMROOT_ID, false)
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
 	vm.MergeDpkgDatabase()
@@ -269,8 +237,21 @@ func (vm *VM) Unprepare() {
 	}
 }
 
+func (vm *VM) waitForRBD() {
+	for {
+		_, err := os.Stat(vm.RbdDevice())
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		time.Sleep(time.Second / 2)
+	}
+}
+
 // may panic
-func (vm *VM) PrepareDir(path string, id int) bool {
+func (vm *VM) prepareDir(path string, id int) bool {
 	created := true
 	if err := os.Mkdir(path, 0755); err != nil {
 		if os.IsExist(err) {
@@ -288,7 +269,7 @@ func (vm *VM) PrepareDir(path string, id int) bool {
 }
 
 // may panic
-func (vm *VM) GenerateFile(path, template string, id int, executable bool) {
+func (vm *VM) generateFile(path, template string, id int, executable bool) {
 	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
@@ -314,7 +295,7 @@ func (vm *VM) GenerateFile(path, template string, id int, executable bool) {
 }
 
 // may panic
-func CopyFile(src, dst string, id int) {
+func copyFile(src, dst string, id int) {
 	sf, err := os.Open(src)
 	if err != nil {
 		panic(err)
