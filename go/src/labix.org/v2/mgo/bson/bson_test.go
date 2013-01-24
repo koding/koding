@@ -903,6 +903,9 @@ type condInt struct {
 type condUInt struct {
 	V uint ",omitempty"
 }
+type condFloat struct {
+	V float64 ",omitempty"
+}
 type condIface struct {
 	V interface{} ",omitempty"
 }
@@ -1076,6 +1079,7 @@ var twoWayCrossItems = []crossTypeItem{
 	{&condInt{}, map[string]int{}},
 	{&condUInt{1}, map[string]uint{"v": 1}},
 	{&condUInt{}, map[string]uint{}},
+	{&condFloat{}, map[string]int{}},
 	{&condStr{"yo"}, map[string]string{"v": "yo"}},
 	{&condStr{}, map[string]string{}},
 	{&condStrNS{"yo"}, map[string]string{"v": "yo"}},
@@ -1188,6 +1192,18 @@ func (s *S) TestObjectIdHex(c *C) {
 	id := bson.ObjectIdHex("4d88e15b60f486e428412dc9")
 	c.Assert(id.String(), Equals, `ObjectIdHex("4d88e15b60f486e428412dc9")`)
 	c.Assert(id.Hex(), Equals, "4d88e15b60f486e428412dc9")
+}
+
+func (s *S) TestIsObjectIdHex(c *C) {
+	test := []struct{ id string; valid bool }{
+		{"4d88e15b60f486e428412dc9", true},
+		{"4d88e15b60f486e428412dc", false},
+		{"4d88e15b60f486e428412dc9e", false},
+		{"4d88e15b60f486e428412dcx", false},
+	}
+	for _, t := range test {
+		c.Assert(bson.IsObjectIdHex(t.id), Equals, t.valid)
+	}
 }
 
 // --------------------------------------------------------------------------
