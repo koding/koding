@@ -1,4 +1,5 @@
 import boto
+import string
 
 # Ubuntu
 AMI = 'ami-3d4ff254'
@@ -43,12 +44,15 @@ def ceph_get_ids(ceph_type):
         return chr(max(ids + [96]) + 1)
 
 def ceph_new(ceph_type, count=1):
+    # List of created Ceph names
+    ceph_names = []
     # Get next available Ceph ID for given type
     ceph_id = ceph_get_ids(ceph_type)
     # Create <count> instances
     for i in range(count):
         # Instance name
         name = 'ceph-%s.%s' % (ceph_type, ceph_id)
+        ceph_names.append(name)
         # Tags
         tags = {'Name': name, 'CephType': ceph_type, 'CephID': ceph_id}
         # Create instance
@@ -58,7 +62,28 @@ def ceph_new(ceph_type, count=1):
             ceph_id += 1
         else:
             ceph_id = chr(ord(ceph_id) + 1)
+    return ceph_names
+
+def ceph_new_disk(ceph_id, size):
+    # Get instance ID of the Ceph OSD machine
+    reservations = conn.get_all_instances(filters={"tag:Name": ceph_id})
+    ids = [i for r in reservations for i in r.instances]
+    if len(ids):
+        instance = ids[0]
+        # Get list mounted disks
+        devices = instance.get_attribute('blockDeviceMapping')['blockDeviceMapping']
+        devices = [i.split('/dev/sd')[1].strip(string.digits) for i in devices.keys()]
+        # Find next available device ID
+        device_path = '/dev/sd%s' % chr(ord(max(devices)) + 1)
+        # Create volume
+        vol = conn.create_volume(size, instance.placement)
+        vol.add_tag({'Name': ceph_id})
+        # Attach to instance
+        conn.attach_volume(vol.id, instance.id, device_path)
+        return vol.id
 
 # Example
-ceph_new('mon', 2)
-ceph_new('osd', 2)
+# ceph_new('mon', 2)
+# ceph_new('osd', 2)
+
+# ceph_new_disk('ceph-osd.1', 1)
