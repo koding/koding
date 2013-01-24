@@ -124,9 +124,6 @@ config =
       token     : 1
       interval  : 1
     goConfig:
-      AmqpHost     : 1
-      AmqpUser     : 1
-      AmqpPassword : 1
       HomePrefix   : 1
       UseLVE       : 1
     bitly :
