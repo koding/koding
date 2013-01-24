@@ -222,8 +222,28 @@ div.kdselectbox
         &.off
           shadow        none
 
+  &.multiple-choice
+    a
+      border-radius       0
+      padding-left        6px
+      padding-right       6px
+      width               auto
+      border-right        none
+      min-width           16px
 
+    a:first-of-type
+      border-top-left-radius     3px
+      border-bottom-left-radius  3px
 
+    a:last-of-type
+      border-top-right-radius    3px
+      border-bottom-right-radius 3px
+      border-right               1px solid #cfcfcf
+      &.active
+        border-color             #e2963f
+
+    .big
+      width               auto
 
 .kdview.kdfileupload
   min-width         340px
