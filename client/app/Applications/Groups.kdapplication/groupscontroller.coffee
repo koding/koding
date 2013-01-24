@@ -16,13 +16,48 @@ class GroupData extends KDEventEmitter
 
 class GroupsController extends KDObject
 
-  constructor:(parentController)->
+  constructor:->
+    super
+    router = @getSingleton 'router'
+    router.on 'GroupChanged', @bound 'setGroup'
+    mainController = @getSingleton 'mainController'
+    mainController.on 'AccountChanged', @bound 'resetUserArea'
+    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
+      if pageInfo.path
+        {group} = @userArea
+        console.log 'UA', @userArea
+        route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
+        router.handleRoute route
     @groups = {}
-    @currentGroupData = groupData = new GroupData
-
-    parentController.on 'GroupChanged', (groupName)->
-      KD.remote.cacheable groupName, (err, group)->
-        groupData.setGroup group
-        parentController.emit 'GroupChangeFinished'
-
+    @currentGroupData = new GroupData
+  
   getCurrentGroupData:-> @currentGroupData
+
+  changeGroup:(groupName)->
+    groupName ?= "koding"
+    unless @currentGroup is groupName
+      @setGroup groupName
+      KD.remote.cacheable groupName, (err, group)=>
+        @currentGroupData.setGroup group
+        @emit 'GroupChanged', groupName, group
+
+  getUserArea:-> @userArea
+
+  setUserArea:(userArea)->
+    console.log 'set user area', arguments
+    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
+    @userArea = userArea
+
+  getGroup:-> @userArea?.group
+
+  setGroup:(groupName)->
+    @currentGroup = groupName
+    @setUserArea {
+      group: groupName, user: KD.whoami().profile.nickname
+    }
+
+  resetUserArea:(account)->
+    console.log 'reset user area', arguments
+    @setUserArea {
+      group: 'koding', user: account.profile.nickname
+    }

@@ -94,7 +94,8 @@ class GroupsListItemView extends KDListItemView
       # icon : yes
       # iconClass : 'enter-group'
       callback        : (event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
+        group = @getData().slug
+        KD.getSingleton('router').handleRoute "#{unless group is 'koding' then '/'+group else ''}/Activity"
 
     , data
 

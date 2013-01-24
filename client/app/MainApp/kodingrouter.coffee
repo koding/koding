@@ -5,6 +5,10 @@ class KodingRouter extends KDRouter
     @openRoutesById = {}
     @getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
+    @ready = no
+    @getSingleton('mainController').once 'AccountChanged', =>
+      @ready = yes
+      @utils.defer => @emit 'ready'
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -47,13 +51,14 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query, rest...)->
+    return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
+    @getSingleton('groupsController').changeGroup group
     unless group?
       appManager.openApplication app
     else
-      @emit 'GroupChanged', group
-      appManager.tell app, 'setGroup', group
+      # appManager.tell app, 'setGroup', group
       appManager.openApplication app
     appManager.tell app, 'handleQuery', query
 

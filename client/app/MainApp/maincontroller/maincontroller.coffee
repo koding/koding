@@ -4,6 +4,7 @@ class MainController extends KDController
     connected   : no
     wasLoggedIn : no
 
+
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
@@ -16,7 +17,8 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    KD.registerSingleton "groupsController", new GroupsController this
+    KD.registerSingleton 'router', new KodingRouter location.pathname
+    KD.registerSingleton "groupsController", new GroupsController
 
     @appReady =>
 
@@ -58,25 +60,6 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue.length = 0
 
-  getUserArea:-> @userArea
-
-  setUserArea:(userArea)->
-    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
-    @userArea = userArea
-
-  getGroup:-> @userArea?.group
-
-  setGroup:(group)->
-    @emit 'GroupChanged', group
-    @setUserArea {
-      group, user: KD.whoami().getAt('profile.nickname')
-    }
-
-  resetUserArea:()->
-    @setUserArea {
-      group: 'koding', user: KD.whoami().profile.nickname
-    }
-
   accountReady:(fn)->
     if @accountReadyState > 0 then fn()
     else @once 'AccountChanged', fn
@@ -90,8 +73,6 @@ class MainController extends KDController
     @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
-    @resetUserArea()
-
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
@@ -99,11 +80,6 @@ class MainController extends KDController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
       @appReady()
-
-    unless @router?
-      @router = new KodingRouter location.pathname
-      @router.on 'GroupChanged', @bound 'setGroup'
-      KD.registerSingleton 'router', @router
 
     if KD.checkFlag 'super-admin'
       $('body').addClass 'super'
@@ -178,9 +154,7 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.path
-        @router.handleRoute pageInfo.path
-      else if pageInfo.isWebTerm
+      if pageInfo.isWebTerm
         appManager.openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
