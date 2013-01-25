@@ -142,11 +142,11 @@ class OpinionViewHeader extends JView
 
     if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
       if @getData().opinionCount > 1
-        @allItemsLink.updatePartial "View #{@getData().opinionCount} answers"+commentText
+        @allItemsLink.updatePartial "View #{@getData().opinionCount} Answers"+commentText
       else if @getData().opinionCount is 1
         @allItemsLink.updatePartial "View one Answer"+commentText
       else
-        @allItemsLink.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comments' else ''}"
+        @allItemsLink.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
     else
       remainingOpinions = @getData().opinionCount-@getDelegate().items.length
       if (remainingOpinions)<@maxCommentToShow
