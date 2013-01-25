@@ -66,3 +66,5 @@ do ->
         JActivityCache.modifyByTeaser {teaserId, createdAt}
 
     console.log "Activity Cache Worker is ready."
+
+    JActivityCache.init()
