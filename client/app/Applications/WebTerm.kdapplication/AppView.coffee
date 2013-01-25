@@ -4,7 +4,7 @@ class WebTermView extends KDView
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
     @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
-    @container.setClass @appStorage.getValue('theme') or 'black-on-white'
+    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
     @container.$().css fontSize:@appStorage.getValue('fontSize')+'px' or '14px'
   viewAppended: ->
 
