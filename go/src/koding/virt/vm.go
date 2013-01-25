@@ -198,7 +198,7 @@ func (vm *VM) Prepare() {
 				panic(err)
 			}
 			for _, file := range files {
-				copyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
+				copyFile(config.Current.ProjectRoot+"/go/templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
 			}
 			vm.prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
