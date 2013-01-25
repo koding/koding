@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/utils"
@@ -37,21 +38,21 @@ func main() {
 	k := kite.New("os")
 
 	k.Handle("vm.start", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		vm := virt.GetDefaultVM(session.User)
+		vm := virt.GetDefaultVM(SessionUser(session))
 		AddSession(vm, session)
 		return vm.StartCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.shutdown", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		return virt.GetDefaultVM(session.User).ShutdownCommand().CombinedOutput()
+		return virt.GetDefaultVM(SessionUser(session)).ShutdownCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.stop", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		return virt.GetDefaultVM(session.User).StopCommand().CombinedOutput()
+		return virt.GetDefaultVM(SessionUser(session)).StopCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.state", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		return states[virt.GetDefaultVM(session.User).String()], nil
+		return states[virt.GetDefaultVM(SessionUser(session)).String()], nil
 	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -60,7 +61,8 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "array of strings"}
 		}
 
-		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, command...).CombinedOutput()
+		user := SessionUser(session)
+		return virt.GetDefaultVM(user).AttachCommand(user.Uid, command...).CombinedOutput()
 	})
 
 	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -69,7 +71,8 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "string"}
 		}
 
-		return virt.GetDefaultVM(session.User).AttachCommand(session.User.Id, "/bin/bash", "-c", line).CombinedOutput()
+		user := SessionUser(session)
+		return virt.GetDefaultVM(user).AttachCommand(user.Uid, "/bin/bash", "-c", line).CombinedOutput()
 	})
 
 	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -81,12 +84,13 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
-		absPath := path.Join("/home", session.User.Name, params.Path)
+		user := SessionUser(session)
+		absPath := path.Join("/home", user.Name, params.Path)
 		info, err := os.Stat(absPath)
 		if err != nil {
 			return nil, err
 		}
-		if int(info.Sys().(*syscall.Stat_t).Uid) != session.User.Id {
+		if int(info.Sys().(*syscall.Stat_t).Uid) != user.Uid {
 			return nil, fmt.Errorf("You can only watch your own directories.")
 		}
 
@@ -116,7 +120,7 @@ func main() {
 	})
 
 	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		dir, err := os.Open("/var/run/screen/S-" + session.User.Name)
+		dir, err := os.Open("/var/run/screen/S-" + SessionUser(session).Name)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return make(map[string]string), nil
@@ -162,6 +166,14 @@ func main() {
 	})
 
 	k.Run()
+}
+
+func SessionUser(session *kite.Session) *db.User {
+	user, err := db.FindUserByName(session.Username)
+	if err != nil {
+		panic(err)
+	}
+	return user
 }
 
 func AddSession(vm *virt.VM, session *kite.Session) {

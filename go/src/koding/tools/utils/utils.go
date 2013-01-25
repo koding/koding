@@ -4,7 +4,6 @@ import (
 	cryptorand "crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"flag"
 	"fmt"
 	"koding/tools/config"
 	"koding/tools/log"
@@ -31,24 +30,7 @@ func Startup(serviceName string, needRoot bool) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
-	var profile string
-	flag.StringVar(&profile, "c", "", "Configuration profile")
-	flag.BoolVar(&log.LogDebug, "d", false, "Log debug messages")
-
-	flag.Parse()
-	if flag.NArg() != 0 {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	if profile == "" {
-		fmt.Println("Please specify a configuration profile (-c).")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	config.LoadConfig(profile)
-
-	log.Init(serviceName, profile)
+	log.Init(serviceName)
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 
 	go func() {

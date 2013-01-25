@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"koding/tools/utils"
@@ -213,23 +212,15 @@ func (k *Kite) Run() {
 }
 
 type Session struct {
-	User         *db.User
+	Username     string
 	Alive        bool
 	onDisconnect []func()
 }
 
 func NewSession(username string) *Session {
-	user, err := db.FindUserByName(username)
-	if err != nil {
-		panic(err)
-	}
-	if user.Id == 0 {
-		panic("SECURITY BREACH: User lookup returned root.")
-	}
-
 	return &Session{
-		User:  user,
-		Alive: true,
+		Username: username,
+		Alive:    true,
 	}
 }
 

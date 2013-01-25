@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 
 type Config struct {
 	ProjectRoot string
+	Mongo       string
 	Mq          struct {
 		Host          string
 		ComponentUser string
@@ -27,10 +29,26 @@ type Config struct {
 	}
 }
 
+var Profile string
 var Current Config
+var LogDebug bool
 
-func LoadConfig(profile string) {
-	j, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')").CombinedOutput()
+func init() {
+	flag.StringVar(&Profile, "c", "", "Configuration profile")
+	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
+
+	flag.Parse()
+	if flag.NArg() != 0 {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if Profile == "" {
+		fmt.Println("Please specify a configuration profile (-c).")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	j, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+Profile+"')").CombinedOutput()
 	if err != nil {
 		fmt.Printf("Could not execute Koding config manager: %s\n", err.Error())
 		os.Exit(1)

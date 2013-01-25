@@ -15,13 +15,12 @@ import (
 var loggrSource string
 var libratoSource string
 var tags string
-var LogDebug bool = false
 
-func Init(service, profile string) {
+func Init(service string) {
 	hostname, _ := os.Hostname()
 	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
 	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
-	tags = service + " " + profile
+	tags = service + " " + config.Profile
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
@@ -65,7 +64,7 @@ func Send(event url.Values) {
 }
 
 func Log(level int, text string, data ...interface{}) {
-	if level == DEBUG && !LogDebug {
+	if level == DEBUG && !config.LogDebug {
 		return
 	}
 	Send(NewEvent(level, text, data...))

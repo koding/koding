@@ -5,6 +5,7 @@ import (
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
+	"koding/tools/utils"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	utils.Startup("ldapserver", true)
+
 	ln, err := net.Listen("tcp", ":389")
 	if err != nil {
 		fmt.Println(err)
@@ -56,7 +59,7 @@ func handleConnection(conn net.Conn) {
 				bound = (err == nil && password == vm.LdapPassword)
 			} else {
 				user, err := db.FindUserByName(name)
-				bound = (err == nil && user.Password == password)
+				bound = (err == nil && user.HasPassword(password))
 			}
 
 			if bound {
@@ -110,7 +113,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 
 		} else if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
 			gid, _ := strconv.Atoi(gidStr)
-			user, err := db.FindUserById(gid)
+			user, err := db.FindUserByUid(gid)
 			if err != nil || (vm != nil && vm.GetUserEntry(user) != nil) {
 				return true
 			}
@@ -132,7 +135,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			user, err = db.FindUserByName(name)
 		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
 			uid, _ := strconv.Atoi(uidStr)
-			user, err = db.FindUserById(uid)
+			user, err = db.FindUserByUid(uid)
 		} else {
 			return false
 		}
@@ -145,8 +148,8 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"cn":            user.Name,
 			"uid":           user.Name,
 			"userPassword":  "{SSHA}MmhmXrqch9NbAcRA6Z79OTSj6MqNXQxF",
-			"uidNumber":     strconv.Itoa(user.Id),
-			"gidNumber":     strconv.Itoa(user.Id),
+			"uidNumber":     strconv.Itoa(user.Uid),
+			"gidNumber":     strconv.Itoa(user.Uid),
 			"homeDirectory": "/home/" + user.Name,
 			"loginShell":    "/bin/bash",
 		}).Bytes())

@@ -36,7 +36,8 @@ func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string
 	server.SetSize(float64(sizeX), float64(sizeY))
 	session.OnDisconnect(func() { server.Close() })
 
-	cmd := virt.GetDefaultVM(session.User).AttachCommand(session.User.Id) // empty command is default shell
+	user := SessionUser(session)
+	cmd := virt.GetDefaultVM(user).AttachCommand(user.Uid) // empty command is default shell
 	server.pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

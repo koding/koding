@@ -1,6 +1,7 @@
 package db
 
 import (
+	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -13,14 +14,14 @@ var database *mgo.Database
 var counters *mgo.Collection
 
 func init() {
-	session, err := mgo.Dial("dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2")
+	session, err := mgo.Dial(config.Current.Mongo)
 	if err != nil {
 		panic(err)
 	}
 	session.SetSafe(&mgo.Safe{})
-	database = session.DB("koding_dev2")
+	database = session.DB("")
 	counters = database.C("jCounters")
-	Users = database.C("jUsers2")
+	Users = database.C("jUsers")
 }
 
 func Collection(name string) *mgo.Collection {

@@ -26,8 +26,8 @@ type VM struct {
 }
 
 type UserEntry struct {
-	Id   int  `bson:"id"`
-	Sudo bool `bson:"sudo"`
+	Id   bson.ObjectId `bson:"id"`
+	Sudo bool          `bson:"sudo"`
 }
 
 const VMROOT_ID = 1000000
@@ -65,14 +65,14 @@ func GetDefaultVM(user *db.User) *VM {
 		vm := VM{
 			Id:           bson.NewObjectId(),
 			Name:         user.Name,
-			Users:        []*UserEntry{&UserEntry{Id: user.Id, Sudo: true}},
+			Users:        []*UserEntry{&UserEntry{Id: user.ObjectId, Sudo: true}},
 			LdapPassword: utils.RandomString(),
 		}
 		if err := VMs.Insert(vm); err != nil {
 			panic(err)
 		}
 
-		if err := db.Users.Update(bson.M{"_id": user.Id, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
+		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
 			panic(err)
 		}
 		user.DefaultVM = vm.Id
@@ -117,7 +117,7 @@ func (vm *VM) UpperdirFile(path string) string {
 
 func (vm *VM) GetUserEntry(user *db.User) *UserEntry {
 	for _, entry := range vm.Users {
-		if entry.Id == user.Id {
+		if entry.Id == user.ObjectId {
 			return entry
 		}
 	}
@@ -184,21 +184,21 @@ func (vm *VM) Prepare() {
 
 	// create user homes
 	for i, entry := range vm.Users {
-		user, err := db.FindUserById(entry.Id)
+		user, err := db.FindUserByObjectId(entry.Id)
 		if err != nil {
 			panic(err)
 		}
-		if vm.prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Id) && i == 0 {
-			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Id)
-			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Id)
+		if vm.prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Uid) && i == 0 {
+			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Uid)
+			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
 			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			vm.prepareDir(vm.UpperdirFile(websiteDir), user.Id)
+			vm.prepareDir(vm.UpperdirFile(websiteDir), user.Uid)
 			files, err := ioutil.ReadDir("templates/website")
 			if err != nil {
 				panic(err)
 			}
 			for _, file := range files {
-				copyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Id)
+				copyFile("templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
 			}
 			vm.prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
