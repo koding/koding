@@ -20,7 +20,7 @@ func LimiterLoop() {
 		vmCount := len(states)
 		memoryUsages := make([]int, 0, vmCount)
 		for name, state := range states {
-			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.memsw.usage_in_bytes", name))
+			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes", name))
 			state.MemoryUsage = usage
 			memoryUsages = append(memoryUsages, usage)
 		}
