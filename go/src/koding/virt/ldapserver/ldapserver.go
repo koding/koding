@@ -114,7 +114,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		} else if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
 			gid, _ := strconv.Atoi(gidStr)
 			user, err := db.FindUserByUid(gid)
-			if err != nil || (vm != nil && vm.GetUserEntry(user) != nil) {
+			if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
 				return true
 			}
 
@@ -139,7 +139,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		} else {
 			return false
 		}
-		if err != nil || (vm != nil && vm.GetUserEntry(user) != nil) {
+		if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
 			return true
 		}
 
