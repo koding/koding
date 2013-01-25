@@ -23,7 +23,7 @@ var Users *mgo.Collection
 func FindUser(query interface{}) (*User, error) {
 	var user User
 	err := Users.Find(query).One(&user)
-	if user.Uid == 0 {
+	if err == nil && user.Uid == 0 {
 		panic("User lookup returned uid 0.")
 	}
 	return &user, err
