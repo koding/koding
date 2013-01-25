@@ -5,6 +5,7 @@ import (
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
+	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
@@ -32,6 +33,8 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
+	defer log.RecoverAndLog()
+
 	bound := false
 	var vm *virt.VM
 
