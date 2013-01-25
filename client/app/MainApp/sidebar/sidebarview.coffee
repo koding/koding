@@ -47,8 +47,6 @@ class Sidebar extends JView
     # handle group related decisions
 
     @getSingleton('groupsController').on 'GroupChanged', =>
-      console.log 'group changed', arguments
-      console.trace()
       @switchNav()
       currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
       unless currentGroupData?.data?.slug is 'koding'

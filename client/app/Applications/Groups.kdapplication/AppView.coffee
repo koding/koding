@@ -101,7 +101,6 @@ class GroupsMemberPermissionsView extends JView
       if err then warn err
       else
         list.getOptions().roles = roles
-
         groupData.fetchUserRoles (err, userRoles)=>
           if err then warn err
           else
@@ -110,7 +109,6 @@ class GroupsMemberPermissionsView extends JView
               userRolesHash[userRole.sourceId] = userRole.as
 
             list.getOptions().userRoles = userRolesHash
-
             groupData.fetchMembers (err, members)=>
               if err then warn err
               else

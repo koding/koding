@@ -10,7 +10,7 @@ class PermissionsModal extends KDView
     {privacy,permissionSet} = @getOptions()
 
     # here we should handle custom roles and add them for display
-    roles = ['member','moderator','admin', 'zira']
+    roles = ['member','moderator','admin']
 
     roles.unshift 'guest' if group.getData().privacy is 'public'
 
