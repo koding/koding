@@ -12,9 +12,9 @@ package "cgroup-lite" do
 end
 
 execute "mkdir -p /var/lib/lxc/vmroot"
-cookbook_file "/var/lib/lxc/vmroot/config" do
-	source "vmroot-config"
-	mode "0755"
+template "/var/lib/lxc/vmroot/config" do
+  source "vmroot-config.erb"
+  mode 0644
 end
 
 # execute "sudo bash /opt/koding/builders/buildVMRoot.sh" do
@@ -35,8 +35,8 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	target="/var/lib/lxc/vmroot/rootfs"
 	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
-	# mirror="http://ftp.halifax.rwth-aachen.de/ubuntu/"
-	mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
+	mirror=node[:apt][:source]
+	# mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
 
 	# Not REALLY necessary because we have our if clause, but nice for testing when if is commented
 	execute "lxc-stop -n vmroot"
@@ -47,9 +47,9 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 file "#{target}/etc/apt/sources.list" do
 		mode "0644"
 		content <<-EOH
-deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
-deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
-deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
+deb #{mirror} #{node["lsb"].codename} main restricted universe multiverse
+deb #{mirror} #{node["lsb"].codename}-updates main restricted universe multiverse
+deb #{mirror} #{node["lsb"].codename}-security main restricted universe multiverse
 EOH
 end
 

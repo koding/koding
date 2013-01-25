@@ -76,14 +76,14 @@ then
 end 
 execute "service lxc-net stop"
 
-cookbook_file "/etc/default/lxc" do
-  source "lxc"
-  mode "0644"
+template "/etc/default/lxc" do
+  source "lxc.erb"
+  mode 0644
 end
 
-cookbook_file "/etc/init/lxc-net.conf" do
-  source "lxc-net.conf"
-  mode "0644"
+template "/etc/init/lxc-net.conf" do
+  source "lxc-net.conf.erb"
+  mode 0644
 end
 
 execute "service lxc-net start"

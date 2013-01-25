@@ -275,53 +275,53 @@ Vagrant::Config.run do |config|
     # ----- end of RabbitMQ server configuration -----
 
     # ---- CloudLinux server configuration -------
-    config.vm.define :cloudlinux do |cloudlinux_config|
+    # config.vm.define :cloudlinux do |cloudlinux_config|
 
-          cloudlinux_config.vm.box = "cloudlinux64"
-          cloudlinux_config.vm.box_url = template_cloudlinux_url
-          cloudlinux_config.vm.host_name = "cl.local"
-          #cloudlinux_config.vm.forward_port 55672, 55672 
-          cloudlinux_config.vm.network :hostonly, hosts["cl.local"]
-          cloudlinux_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
-          cloudlinux_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
-          cloudlinux_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1,
-                                    "--name", "koding_cloudlinux"
-                                  ]
+    #       cloudlinux_config.vm.box = "cloudlinux64"
+    #       cloudlinux_config.vm.box_url = template_cloudlinux_url
+    #       cloudlinux_config.vm.host_name = "cl.local"
+    #       #cloudlinux_config.vm.forward_port 55672, 55672 
+    #       cloudlinux_config.vm.network :hostonly, hosts["cl.local"]
+    #       cloudlinux_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+    #       cloudlinux_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+    #       cloudlinux_config.vm.customize [
+    #                                 "modifyvm", :id,
+    #                                 "--memory", 368,
+    #                                 "--cpus", 1,
+    #                                 "--name", "koding_cloudlinux"
+    #                               ]
 
-          cloudlinux_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("hosting_server")
-          end
-    end
-    # ----- end of cloudlinux server configuration -----
+    #       cloudlinux_config.vm.provision :chef_solo do |chef|
+    #         chef.cookbooks_path = cookbooks_dir
+    #         chef.roles_path = roles_dir
+    #         chef.add_role("base_server")
+    #         chef.add_role("hosting_server")
+    #       end
+    # end
+    # # ----- end of cloudlinux server configuration -----
 
-    # ---- LDAP server configuration -------
-    config.vm.define :ldap do |ldap_config|
+    # # ---- LDAP server configuration -------
+    # config.vm.define :ldap do |ldap_config|
 
-          ldap_config.vm.box = "centos64"
-          ldap_config.vm.box_url = template_centos_url
-          ldap_config.vm.host_name = "ldap.local"
-          #ldap_config.vm.forward_port 55672, 55672 
-          ldap_config.vm.network :hostonly, hosts["ldap.local"]
-          ldap_config.vm.customize [
-                                    "modifyvm", :id,
-                                    "--memory", 368,
-                                    "--cpus", 1,
-                                    "--name", "koding_ldap"
-                                  ]
+    #       ldap_config.vm.box = "centos64"
+    #       ldap_config.vm.box_url = template_centos_url
+    #       ldap_config.vm.host_name = "ldap.local"
+    #       #ldap_config.vm.forward_port 55672, 55672 
+    #       ldap_config.vm.network :hostonly, hosts["ldap.local"]
+    #       ldap_config.vm.customize [
+    #                                 "modifyvm", :id,
+    #                                 "--memory", 368,
+    #                                 "--cpus", 1,
+    #                                 "--name", "koding_ldap"
+    #                               ]
 
-          ldap_config.vm.provision :chef_solo do |chef|
-            chef.cookbooks_path = cookbooks_dir
-            chef.roles_path = roles_dir
-            chef.add_role("dev-ldap_server")
-         end
-    end
-    # ----- end of ldap server configuration -----
+    #       ldap_config.vm.provision :chef_solo do |chef|
+    #         chef.cookbooks_path = cookbooks_dir
+    #         chef.roles_path = roles_dir
+    #         chef.add_role("dev-ldap_server")
+    #      end
+    # end
+    # # ----- end of ldap server configuration -----
 
 end
 

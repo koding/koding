@@ -6,11 +6,11 @@ stop on stopped lxc
 
 env USE_LXC_BRIDGE="false"
 env LXC_BRIDGE="lxcbr0"
-env LXC_ADDR="172.16.0.1"
+env LXC_ADDR="<%= node[:lxc][:network][:bridge_ip] %>"
 env LXC_NETMASK="255.255.248.0"
-env LXC_NETWORK="172.16.0.0/24"
-env LXC_DHCP_RANGE="172.16.0.2,172.16.0.254"
-env LXC_DHCP_MAX="2000"
+env LXC_NETWORK="<%= node[:lxc][:network][:netmask] %>"
+env LXC_DHCP_RANGE="<%= node[:lxc][:network][:dhcp_start] %>,<%= node[:lxc][:network][:dhcp_end] %>"
+env LXC_DHCP_MAX="2046"
 env varrun="/var/run/lxc"
 
 pre-start script

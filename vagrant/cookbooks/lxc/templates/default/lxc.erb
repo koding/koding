@@ -21,10 +21,10 @@ USE_LXC_BRIDGE="true"
 # If you have the dnsmasq daemon installed, you'll also have to update
 # /etc/dnsmasq.d/lxc and restart the system wide dnsmasq daemon.
 LXC_BRIDGE="lxcbr0"
-LXC_ADDR="172.16.0.1"
+LXC_ADDR="<%= node[:lxc][:network][:bridge_ip] %>"
 LXC_NETMASK="255.255.248.0"
-LXC_NETWORK="172.16.0.0/24"
-LXC_DHCP_RANGE="172.16.0.2,172.16.0.254"
-LXC_DHCP_MAX="253"
+LXC_NETWORK="<%= node[:lxc][:network][:netmask] %>"
+LXC_DHCP_RANGE="<%= node[:lxc][:network][:dhcp_start] %>,<%= node[:lxc][:network][:dhcp_end] %>"
+LXC_DHCP_MAX="2046"
 
 LXC_SHUTDOWN_TIMEOUT=120
