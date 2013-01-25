@@ -50,7 +50,7 @@ func init() {
 
 	j, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+Profile+"')").CombinedOutput()
 	if err != nil {
-		fmt.Printf("Could not execute Koding config manager: %s\n", err.Error())
+		fmt.Printf("Koding config manager output:\n%s\nCould not execute Koding config manager: %s\n", j, err.Error())
 		os.Exit(1)
 	}
 
