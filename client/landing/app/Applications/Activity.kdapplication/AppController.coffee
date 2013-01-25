@@ -459,8 +459,7 @@ class ActivityListController extends KDListViewController
     @_state = 'public'
 
     @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 10
-        # scrollshadow and switch off liveupdates
+      if event.delegateTarget.scrollTop > 0
         @activityHeader.setClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue off
 
