@@ -58,12 +58,6 @@ module.exports = deepFreeze
   #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo
-  goConfig:
-    AmqpHost:     "web0.dev.system.aws.koding.com:5672"
-    AmqpUser:     "broker"
-    AmqpPassword: "s486auEkPzvUjYfeFTMQ"
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -109,7 +103,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
-    componentUser: "prod-<component>"
+    componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
