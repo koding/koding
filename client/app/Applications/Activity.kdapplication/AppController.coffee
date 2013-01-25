@@ -166,7 +166,7 @@ class ActivityAppController extends AppController
       cache   : no
       error   : (err)->   callback? err
       success : (cache)->
-        cache.overview.reverse()
+        cache.overview.reverse()  if cache?.overview
         callback null, cache
 
   continueLoadingTeasers:->
@@ -232,33 +232,6 @@ class ActivityAppController extends AppController
       title : "Tutorial"
       type  : "tutorial"
     ,activity
-
-
-
-  # delete
-  fetchActivityOverview:(callback)->
-
-    @appStorage.fetchStorage (storage)=>
-
-      flags      = KD.whoami().globalFlags
-      exempt     = (flags? and 'exempt' in flags) or storage.getAt 'bucket.showLowQualityContent'
-      now        = Date.now()
-      lastTo     = if lastTo   then lastFrom else now
-      lastFrom   = if lastFrom then lastFrom - aRange else now - aRange
-      lowQuality = yes  if exempt
-
-      options =
-        lowQuality : lowQuality
-        from       : lastFrom
-        to         : lastTo
-        types      : @getFilter()
-
-      KD.remote.api.CActivity.fetchActivityOverview options, (err, overview)=>
-        if overview.length is 0
-          @fetchActivityOverview callback
-        else
-          callback?()
-          @listController.prepareToStream overview
 
   streamByIds:(ids, callback)->
 

@@ -64,7 +64,7 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
 
-    for item in cache.overview
+    for item in cache.overview when item
       if item.ids.length > 1
         @addItem new NewMemberBucketData
           type      : "CNewMemberBucketActivity"
