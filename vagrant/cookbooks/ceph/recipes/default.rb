@@ -6,6 +6,7 @@
 # 
 # All rights reserved - Do Not Redistribute 
 # 
+include_recipe 'ceph::ohai_plugin'
 include_recipe "apt::ceph"
 
 package "ceph" do
