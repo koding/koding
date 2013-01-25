@@ -34,7 +34,7 @@ const VMROOT_ID = 1000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
-var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(10, 0, 0, 2)))
+var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)))
 
 func LoadTemplates() {
 	var err error
