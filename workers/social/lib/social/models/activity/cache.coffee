@@ -34,6 +34,7 @@ module.exports = class JActivityCache extends jraphical.Module
   @set
     indexes                 :
       to                    : 'unique'
+      from                  : 'unique'
     sharedMethods           :
       static                : ["init", "createCacheFromEarliestTo"]
     schema                  :
@@ -89,9 +90,8 @@ module.exports = class JActivityCache extends jraphical.Module
 
   @containsTimestamp = (timestamp, callback)->
 
-    selector =
-      to     : { $gte : new Date(timestamp) }
-      from   : { $lte : new Date(timestamp) }
+    date     = new Date timestamp
+    selector = to : { $gte : date }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -300,7 +300,6 @@ module.exports = class JActivityCache extends jraphical.Module
 
 
   @createInstance = (overview, callback)->
-
     @fetchOverviewTeasers overview, (err, activities)->
       if err then callback? err
       else
@@ -321,10 +320,6 @@ module.exports = class JActivityCache extends jraphical.Module
           from
           to
         }
-
-        # console.log instance
-        # console.log "\n", o for o in overview
-
         instance.save (err, inst)->
           if err then console.warn err
           else
@@ -371,7 +366,6 @@ module.exports = class JActivityCache extends jraphical.Module
 
       setModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
-      # if @newMemberBucketIndex?
       oldOverview = overview
       overview = []
       freshNewMemberBuckets = []
@@ -413,7 +407,6 @@ module.exports = class JActivityCache extends jraphical.Module
       if overview.length
         @update $pushAll: pushAllModifier, ->
 
-      # log {setModifier}
       @update $set: setModifier, (err)-> callback?()
 
 
@@ -447,8 +440,6 @@ module.exports = class JActivityCache extends jraphical.Module
 
     CActivity = require './index'
 
-    log "ever here", teaserId, createdAt
-
     @containsTimestamp createdAt, (err, cache)->
       if err then callback? err
       else
@@ -463,8 +454,8 @@ module.exports = class JActivityCache extends jraphical.Module
 
         if idToDelete
           overviewIndexToDelete = null
-          for item, i in cache.overview
-            if item.ids[0] is idToDelete
+          for item, i in cache.overview when item
+            if item.ids[0].equals idToDelete
               overviewIndexToDelete = i
               break
 
@@ -472,7 +463,14 @@ module.exports = class JActivityCache extends jraphical.Module
           unsetModifier["activities.#{idToDelete}"] = 1
           unsetModifier["overview.#{overviewIndexToDelete}"] = 1
 
-          cache.update {$unset : unsetModifier}, -> log "activity removed from cache!"
+
+          log ">>>", unsetModifier
+
+          cache.update
+            $unset : unsetModifier
+            $set   : isFull : no
+          , ->
+            log "activity removed from cache!"
 
   # update:do ->
   #   updateQueue = []
