@@ -14,11 +14,7 @@ koding = new Bongo {
   root         : __dirname
   mq           : new Broker mqOptions
   resourceName : cacheWorker.queueName
-  models       : [
-    '../social/lib/social/models/activity/cache.coffee'
-    '../social/lib/social/models/activity/index.coffee'
-    '../social/lib/social/models/messages'
-  ]
+  models       : '../social/lib/social/models'
 }
 
 {JActivityCache, CActivity} = koding.models
