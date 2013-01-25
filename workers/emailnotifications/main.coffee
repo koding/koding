@@ -68,6 +68,7 @@ commonTemplate   = (m)->
     Management
   """
 
+
 flags =
   comment           :
     template        : commonTemplate
@@ -173,7 +174,7 @@ prepareAndSendEmail = (notification)->
           console.error "Could not load user record"
           callback err
         else
-          if state not in ['instant', 'daily']
+          if state isnt 'on'
             log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
@@ -220,13 +221,12 @@ job = new CronJob email.notificationCron, ->
   {JEmailNotificationGG} = worker.models
   # log "Checking for waiting queue..."
 
-  JEmailNotificationGG.some {status: "queued", priority: "instant"}, \
-  {limit:100}, (err, emails)->
+  JEmailNotificationGG.some {status: "queued"}, {limit:100}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
       if emails.length > 0
-        # log "There are #{emails.length} mail in queue."
+        log "There are #{emails.length} mail in queue."
         for email in emails
           prepareAndSendEmail email
       # else

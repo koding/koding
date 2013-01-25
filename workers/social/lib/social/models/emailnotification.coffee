@@ -29,18 +29,15 @@ module.exports = class JEmailNotificationGG extends Model
       sender         : ObjectId
       contentId      : ObjectId
       activity       : Object
-      priority       :
-        type         : String
-        default      : 'instant'
-        enum         : ['Invalid priority', ['instant','daily']]
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued','attempted','postponed']]
+        enum         : ['Invalid status', ['queued', 'attempted', 'postponed']]
 
   @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
                         'JOpinion', 'JCodeShare', 'JComment', 'JTutorial',
                         'JReview']
+
   flags =
     comment          :
       eventType      : ['ReplyIsAdded']
@@ -73,7 +70,7 @@ module.exports = class JEmailNotificationGG extends Model
         unless emailFrequency?
           callback null
         else
-          if emailFrequency.global is 'instant'
+          if emailFrequency.global is 'on'
             for key, type of flags
               if contentType in type.contentTypes and event in type.eventType
                 if emailFrequency[key]
@@ -108,26 +105,25 @@ module.exports = class JEmailNotificationGG extends Model
       contentId   = if activity.content then \
                        activity.content.id else contents.subject.id
 
-    @checkEmailChoice {username, event, contentType}, (err, state, key)->
-      if err or state not in ['daily', 'instant']
-        # console.log "User disabled e-mail notifications."
-        callback? err
-      else
-        # console.log "STATE:", state
+    # I know that looks sucks. ~ GG
+    # Its walking on notification flags and tries to find correct eventFlag
+    eventFlag = [[key, type] for key, type of flags                \
+                             when contentType in type.contentTypes \
+                             and event in type.eventType][0][0]?[0]
 
-        JEmailNotificationGG.count {event, sender, receiver, contentId}, \
-        (err, count)->
-          if not err and count is 0
-            notification = new JEmailNotificationGG {
-              event, sender, receiver, contentId, activity,
-              eventFlag: key, priority: state, unsubscribeId: getUniqueId()
-            }
-            # console.log "OK good to go."
-            notification.save (err)->
-              if err then console.error err
-              # else console.log "Saved to queue."
-          # else
-          #   console.log "Already exists"
+    JEmailNotificationGG.count {event, sender, receiver, contentId}, \
+    (err, count)->
+      if not err and count is 0
+        notification = new JEmailNotificationGG {
+          event, sender, receiver, eventFlag, contentId, activity, \
+          unsubscribeId: getUniqueId()
+        }
+        # console.log "OK good to go."
+        notification.save (err)->
+          if err then console.error err
+          else console.log "Saved to queue."
+      # else
+      #   console.log "Already exists"
 
   @unsubscribeWithId = (unsubscribeId, all, callback)->
 
@@ -141,9 +137,9 @@ module.exports = class JEmailNotificationGG extends Model
             prefs = {}
             definition = ''
             if all is 'all'
-              prefs.global  = 'never'
+              prefs.global  = 'off'
             else
-              prefs[notification.eventFlag] = 'never'
+              prefs[notification.eventFlag] = 'off'
               {definition} = flags[notification.eventFlag]
             username = account.profile.nickname
             JUser = require './user'

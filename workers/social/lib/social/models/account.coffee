@@ -236,7 +236,7 @@ module.exports = class JAccount extends jraphical.Module
     current = user.getAt('emailFrequency') or {}
     Object.keys(prefs).forEach (granularity)->
       state = prefs[granularity]
-      state = 'never' if state not in ['never', 'instant', 'daily']
+      state = 'off' if state not in ['on', 'off']
       current[granularity] = state# then 'instant' else 'never'
     user.update {$set: emailFrequency: current}, callback
 

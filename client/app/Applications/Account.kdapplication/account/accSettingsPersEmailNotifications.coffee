@@ -9,6 +9,8 @@ class AccountEmailNotifications extends KDView
     fields =
       global         :
         title        : 'Email notifications'
+      daily          :
+        title        : 'Daily digest'
       privateMessage :
         title        : 'When someone send me a private message'
       followActions  :
@@ -25,11 +27,7 @@ class AccountEmailNotifications extends KDView
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
       field.current = user.getAt("emailFrequency.#{flag}")
-      labels        = ['never', 'instant', 'daily']
-
-      if flag is 'global'
-        labels = ['on', 'off']
-        field.current = if field.current is 'instant' then 'on' else 'off'
+      labels = ['on', 'off']
 
       field.formView.addSubView field.switch = new KDMultipleChoice
         cssClass      : 'dark'
@@ -38,9 +36,6 @@ class AccountEmailNotifications extends KDView
         callback      : (state)->
           flag  = @getData()
           prefs = {}
-
-          if flag is 'global'
-            state = if state is 'on' then 'instant' else 'never'
 
           prefs[flag] = state
           fields[flag].loader.show()
@@ -66,7 +61,7 @@ class AccountEmailNotifications extends KDView
 
     toggleFieldStates = (state)->
       for flag, field of fields when flag isnt 'global'
-        if state in ['off', 'never']
+        if state is 'off'
           field.formView.hide()
         else
           field.formView.show()
