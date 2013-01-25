@@ -15,7 +15,7 @@ class DiscussionActivityOpinionView extends KDView
 
     @opinionController = new OpinionListViewController view: @opinionList
 
-    @getData().on 'update', (updatedData)=>
+    @getData().on 'update', =>
       if @opinionList.items.length < 2 and @getData().opinions
         @opinionList.addItem @getData().opinions[@getData().opinions.length-1]
 
