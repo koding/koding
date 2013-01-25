@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"koding/tools/db"
 	"koding/tools/utils"
+	"labix.org/v2/mgo/bson"
 	"os/user"
+	"strconv"
 )
 
 func main() {
@@ -13,9 +15,12 @@ func main() {
 	iter := db.Users.Find(nil).Iter()
 	var mongoUser db.User
 	for iter.Next(&mongoUser) {
-		_, err := user.Lookup(mongoUser.Name)
+		sysUser, err := user.Lookup(mongoUser.Name)
 		if err != nil {
 			fmt.Println(mongoUser.Name, err.Error())
+		} else {
+			uid, _ := strconv.Atoi(sysUser.Uid)
+			db.Users.UpdateId(mongoUser.ObjectId, bson.M{"$set": bson.M{"uid": uid}})
 		}
 	}
 	if iter.Err() != nil {
