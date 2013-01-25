@@ -13,7 +13,6 @@ log = console.log
 module.exports = class JActivityCache extends jraphical.Module
 
   {daisy}   = require 'bongo'
-  # CActivity = require './index'
 
   typesToBeCached = [
     'CStatusActivity'
@@ -45,7 +44,7 @@ module.exports = class JActivityCache extends jraphical.Module
       isFull                :
         type                : Boolean
         default             : no
-        get                 : -> this.overview.length is lengthPerCache
+        get                 : -> @overview.length is lengthPerCache
       overview              : Array
       activities            : Object
       newMemberBucketIndex  : Number
@@ -55,13 +54,9 @@ module.exports = class JActivityCache extends jraphical.Module
     sort  : to : -1
 
   kallback = (err, cache, callback)->
-    if err
-      callback err
-    else if cache
-      callback err, cache
-    else
-      callback null, null
-
+    if err        then callback err
+    else if cache then callback err, cache
+    else               callback null, null
 
   @latest = (callback)->
 
@@ -82,22 +77,12 @@ module.exports = class JActivityCache extends jraphical.Module
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
-  @byId = (id, callback)->
-
-    selector = _id : id
-
-    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
-
   @containsTimestamp = (timestamp, callback)->
 
     date     = new Date timestamp
     selector = to : { $gte : date }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
-
-  # create initial activity cache
-  # FIXME: this would fail if there are more than 1000 activities
-  # between from and to
 
   @init = (from, to)->
 
@@ -122,13 +107,7 @@ module.exports = class JActivityCache extends jraphical.Module
           @emit "CachingFinished"
         else
 
-          ###
-          # TEST - better not to delete this
-          # logs all items' dates
-
-          console.log item.createdAt[0] for item in overview
-          return
-          ###
+          # printOverview overview
 
           # cap latest
           if latest and not latest.isFull
@@ -160,15 +139,7 @@ module.exports = class JActivityCache extends jraphical.Module
           while overview.length >= lengthPerCache
             overview2d.push overview.splice 0,lengthPerCache
 
-          ###
-          # TEST - better not to delete this
-          # logs item dates in batches
-
-          for ov,i in overview2d
-            console.log "batch #{i}:\n"
-            for it in ov
-              console.log it.createdAt[0]
-          ###
+          # printBatches overview2d
 
           @createCache overview2d, =>
             @emit "CachingFinished"
@@ -203,7 +174,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
           cb = \
             if eternity
-              JActivityCache.createCacheFromEarliestTo.bind JActivityCache
+              JActivityCache.createCacheFromEarliestTo.bind JActivityCache, yes
             else
               ->
 
@@ -237,6 +208,7 @@ module.exports = class JActivityCache extends jraphical.Module
       lastDocType = doc.type
       return acc
     , []
+
     memberBucket   = null
     bucketIndex    = 0
     processedCache = []
@@ -252,8 +224,8 @@ module.exports = class JActivityCache extends jraphical.Module
           if processedCache[bucketIndex].ids.length < 3
             newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
             processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
-          processedCache[bucketIndex].count += item.count
-          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
+          processedCache[bucketIndex].count        += item.count
+          processedCache[bucketIndex].createdAt[1]  = item.createdAt.last
       else
         processedCache.push item
 
@@ -463,23 +435,23 @@ module.exports = class JActivityCache extends jraphical.Module
           unsetModifier["activities.#{idToDelete}"] = 1
           unsetModifier["overview.#{overviewIndexToDelete}"] = 1
 
-
-          log ">>>", unsetModifier
-
           cache.update
             $unset : unsetModifier
             $set   : isFull : no
           , ->
-            log "activity removed from cache!"
+            log "activity removed from cache!", Object.keys(cache.activities).length
 
-  # update:do ->
-  #   updateQueue = []
-  #   update =(rest..., callback)->
 
-  #     updateQueue.push =>
-  #       jraphical.Module::update.apply @, rest.concat =>
-  #         callback arguments
-  #         updateQueue.next()
+  printOverview = (overview)->
+    # TEST - better not to delete this
+    # logs all items' dates
 
-  #     unless updateQueue.length
-  #       daisy updateQueue
+    console.log item.createdAt[0] for item in overview when item
+
+  printBatches = (overview2d)->
+    # TEST - better not to delete this
+    # logs item dates in batches
+
+    for ov,i in overview2d
+      console.log "batch #{i}:\n"
+      printOverview ov
