@@ -105,6 +105,7 @@ module.exports = class JActivityCache extends jraphical.Module
         if err
           console.warn err
           @emit "CachingFinished"
+          log "caching finished.\n"
         else
 
           # printOverview overview
@@ -123,7 +124,7 @@ module.exports = class JActivityCache extends jraphical.Module
             # terminate only if there are no new items to be cached
             if overview.length is 0
               cacheQueue.push =>
-                log "caching finished"
+                log "caching finished.\n"
                 @emit "CachingFinished"
               daisy cacheQueue
               return
@@ -143,7 +144,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
           @createCache overview2d, =>
             @emit "CachingFinished"
-            log "caching finished"
+            log "caching finished.\n"
 
 
   @createCacheFromEarliestTo = (eternity)->
@@ -431,15 +432,33 @@ module.exports = class JActivityCache extends jraphical.Module
               overviewIndexToDelete = i
               break
 
-          unsetModifier = {}
+          updateTo   = if overviewIndexToDelete is cache.overview.length-1 then yes else no
+          updateFrom = if overviewIndexToDelete is 0 then yes else no
+
+          unsetModifier      = {}
+          setModifier        = {}
+          setModifier.isFull = no
           unsetModifier["activities.#{idToDelete}"] = 1
           unsetModifier["overview.#{overviewIndexToDelete}"] = 1
+
+          if Object.keys(cache.activities).length > 1
+            if updateTo
+              newLastIndex   = overviewIndexToDelete - 1
+              setModifier.to = cache.overview[newLastIndex].createdAt[cache.overview[newLastIndex].createdAt.length-1]
+
+            if updateFrom
+              newFirstIndex    = overviewIndexToDelete + 1
+              setModifier.from = cache.overview[newFirstIndex].createdAt[0]
 
           cache.update
             $unset : unsetModifier
             $set   : isFull : no
           , ->
             log "activity removed from cache!", Object.keys(cache.activities).length
+            if Object.keys(cache.activities).length is 0
+              cache.remove ->
+                log "cache instance removed!"
+
 
 
   printOverview = (overview)->
