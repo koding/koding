@@ -10,15 +10,15 @@ class AccountEmailNotifications extends KDView
       global         :
         title        : 'Email notifications'
       daily          :
-        title        : 'Daily digest'
+        title        : 'Send me a daily email about everything below'
       privateMessage :
-        title        : 'When someone send me a private message'
+        title        : 'Someone sends me a private message'
       followActions  :
-        title        : 'When someone followed me'
+        title        : 'Someone follows me'
       comment        :
-        title        : 'When a comment related with me'
+        title        : 'My post receives a comment'
       likeActivities :
-        title        : 'When someone liked my activities'
+        title        : 'When I receive likes'
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView
