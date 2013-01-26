@@ -1,8 +1,7 @@
 name "web_server"
 description "The  role for WEB servers"
 
-
-run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]", "recipe[build-go]"]
+run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]", "recipe[supervisord]", "recipe[build-go]"]
 
 default_attributes({ "nginx" => {
                                 "worker_processes" => "1",
@@ -12,6 +11,7 @@ default_attributes({ "nginx" => {
                                 "static_files" => "/opt/koding/current/client"
                      },
                      "kd_deploy" => {
+                                "git_branch" => "master_autoscale",
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',

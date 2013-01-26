@@ -1,0 +1,117 @@
+{
+  "name": "ntp",
+  "description": "Installs and configures ntp as a client or server",
+  "long_description": "# NTP [![Build Status](https://secure.travis-ci.org/opscode-cookbooks/ntp.png?branch=master)](http://travis-ci.org/opscode-cookbooks/ntp)\n\n## Description\n\nInstalls and configures ntp, optionally configure ntpdate on debian family platforms.\n\n### About the refactor\n\nThis recipe was heavily re-factored as a Hackday exercise at Chefconf 2012.\nThe purpose of refactoring was to have a simple community cookbook which\nserves as a testing documentation reference.  We chose a lightweight testing method\nusing minitest to validate the sanity of our default attributes.\n\nMore information on our testing strategy used in this cookbook is available\nin the TESTING.  Along with information on how to use this type of lightweight\ntesting in your own cookbooks.\n\n#### IMPORTANT NOTES\n\nBreaking changes are the absence of an ntp::disable recipe.  This was factored\nout into an ntp::undo corresponding to the default recipe and a separate\nntp::ntpdate recipe.\n\nThe ntp::undo recipe stops and removes ntp components.  The ntp::ntpdate\nrecipe configures the ntpdate component.  The ntp['ntpdate']['disable'] boolean\nwill disable the ntpdate-debian command on Debian family distributions.\n\n## Requirements\n\nShould work on Red Hat-family and Debian-family Linux distributions, or FreeBSD.\n\n# Attributes\n\n## Recommended tunables\n\n* ntp['servers'] (applies to NTP Servers and Clients)\n\n  - Array, should be a list of upstream NTP public servers.  The NTP protocol\n    works best with at least 3 servers.  The NTPD maximum is 7 upstream\n    servers, any more than that and some of them will be ignored by the daemon.\n\n* ntp['peers'] (applies to NTP Servers ONLY)\n\n  - Array, should be a list of local NTP private servers.  Configuring peer\n    servers on your LAN will reduce traffic to upstream time sources, and\n    provide higher availability of NTP on your LAN.  Again the maximum is 7\n    peers\n\n* ntp['restrictions'] (applies to NTP Servers only)\n\n  - Array, should be a list of restrict lines to restrict access to NTP\n    clients on your LAN.\n\n* ntp['ntpdate']['disable']\n\n  - Boolean, disables the use of ntpdate-debian if set to true.\n  - Defaults to false, and will not disable ntpdate.  There is usually no\n    init service to manage with ntpdate.  Therefore it should not conflict\n    with ntpd in most cases.\n\n## Platform specific\n\n* ntp['packages']\n\n  - Array, the packages to install\n  - Default, ntp for everything, ntpdate depending on platform\n\n* ntp['service']\n\n  - String, the service to act on\n  - Default, ntp or ntpd, depending on platform\n\n* ntp['driftfile']\n\n  - String, the path to the frequency file.\n  - Default, platform-specific location.\n\n* ntp['varlibdir']\n\n  - String, the path to /var/lib files such as the driftfile.\n  - Default, platform-specific location.\n\n* ntp['statsdir']\n\n  - String, the directory path for files created by the statistics facility.\n  - Default, platform-specific location.\n\n* ntp['conf\\_owner'] and ntp['conf\\_group']\n\n  - String, the owner and group of the sysconf directory files, such as /etc/ntp.conf.\n  - Default, platform-specific root:root or root:wheel\n\n* ntp['var\\_owner'] and ntp['var\\_group']\n\n  - String, the owner and group of the /var/lib directory files, such as /var/lib/ntp.\n  - Default, platform-specific ntp:ntp or root:wheel\n\n## Usage\n\n### default recipe\n\nSet up the ntp attributes in a role. For example in a base.rb role applied to all nodes:\n\n    name \"base\"\n    description \"Role applied to all systems\"\n    default_attributes(\n      \"ntp\" => {\n        \"servers\" => [\"time0.int.example.org\", \"time1.int.example.org\"]\n      }\n    )\n\nThen in an ntpserver.rb role that is applied to NTP servers (e.g., time.int.example.org):\n\n    name \"ntp_server\"\n    description \"Role applied to the system that should be an NTP server.\"\n    default_attributes(\n      \"ntp\" => {\n        \"is_server\" => \"true\",\n        \"servers\" => [\"0.pool.ntp.org\", \"1.pool.ntp.org\"],\n        \"peers\" => [\"time0.int.example.org\", \"time1.int.example.org\"],\n        \"restrictions\" => [\"10.0.0.0 mask 255.0.0.0 nomodify notrap\"]\n      }\n    )\n\nThe timeX.int.example.org used in these roles should be the names or IP addresses of internal NTP servers.\nThen simply add ntp, or ntp::default to your run\\_list to apply the ntp daemon's configuration.\n\n### ntpdate recipe\n\nOn Debian-family platforms, and newer versions of RedHat, there is a separate ntpdate package.\n\nYou may blank out the ntpdate configuration file by overriding ntp['ntpdate']['disable'] to `true`.\nThen include the ntp::ntpdate recipe in your run\\_list.\n\nYou may re-enable the ntpdate configuration by ensuring ntp['ntpdate']['disable'] is `false`.\nThen include the ntp::ntpdate recipe in your run\\_list.\n\n### undo recipe\n\nIf for some reason you need to stop and remove the ntp daemon, you can apply this recipe by adding\nntp::undo to your run\\_list.\n\n## License and Author\n\nAuthor:: Joshua Timberman (<joshua@opscode.com>)\nContributor:: Eric G. Wolfe (<wolfe21@marshall.edu>)\nContributor:: Fletcher Nichol (<fletcher@nichol.ca>)\n\nCopyright 2009-2011, Opscode, Inc.\nCopyright 2012, Eric G. Wolfe\nCopyright 2012, Fletcher Nichol\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n",
+  "maintainer": "Opscode, Inc.",
+  "maintainer_email": "cookbooks@opscode.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "ubuntu": ">= 0.0.0",
+    "debian": ">= 0.0.0",
+    "redhat": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "scientific": ">= 0.0.0",
+    "amazon": ">= 0.0.0",
+    "oracle": ">= 0.0.0",
+    "freebsd": ">= 0.0.0"
+  },
+  "dependencies": {
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+    "ntp": {
+      "display_name": "NTP",
+      "description": "Hash of NTP attributes",
+      "type": "hash",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "required": "optional",
+      "recipes": [
+
+      ]
+    },
+    "ntp/servers": {
+      "display_name": "NTP Servers",
+      "description": "Array of servers we should talk to",
+      "type": "array",
+      "default": [
+        "0.pool.ntp.org",
+        "1.pool.ntp.org",
+        "2.pool.ntp.org",
+        "3.pool.ntp.org"
+      ],
+      "required": "recommended",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "recipes": [
+
+      ]
+    },
+    "ntp/peers": {
+      "display_name": "NTP Peers",
+      "description": "Array of local NTP servers, we should peer with",
+      "type": "array",
+      "default": [
+
+      ],
+      "required": "recommended",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "recipes": [
+
+      ]
+    },
+    "ntp/restrictions": {
+      "display_name": "Restriction lines",
+      "description": "Array of restriction lines to apply to NTP servers",
+      "type": "array",
+      "default": [
+
+      ],
+      "required": "recommended",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "recipes": [
+
+      ]
+    },
+    "ntp/ntpdate/disable": {
+      "display_name": "ntpdate-debian script disable",
+      "description": "Defaults to false. Set to true to disable ntpdate-debian script",
+      "type": "string",
+      "default": "false",
+      "required": "recommended",
+      "choice": [
+
+      ],
+      "calculated": false,
+      "recipes": [
+
+      ]
+    }
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "ntp": "Installs and configures ntp either as a server or client"
+  },
+  "version": "1.3.2"
+}

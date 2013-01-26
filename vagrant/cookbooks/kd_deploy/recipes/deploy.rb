@@ -28,7 +28,7 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    deploy_to         node['kd_deploy']['deploy_dir']
    repo              'git@kodingen.beanstalkapp.com:/koding.git'
    revision          node['kd_deploy']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
-   branch            "master_autoscale"
+   branch            node['kd_deploy']['git_branch']
    action            node['kd_deploy']['release_action']
    shallow_clone     true
    enable_submodules false
@@ -45,6 +45,7 @@ end
 execute "killall_u_koding" do
     command "/usr/bin/killall -u koding -9"
     action :nothing
+    returns [0, 1]
     subscribes :run, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
 end
 

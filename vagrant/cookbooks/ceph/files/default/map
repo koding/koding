@@ -1,0 +1,69 @@
+# begin crush map
+
+# devices
+device 0 osd.0
+device 1 osd.1
+
+# types
+type 0 osd
+type 1 host
+type 2 rack
+type 3 row
+type 4 room
+type 5 datacenter
+type 6 pool
+
+host i-aecf34de {
+        id -2           # do not change unnecessarily
+        alg straw
+        hash 0  # rjenkins1
+        item osd.0 weight 0.150
+}
+host i-90cf34e0 {
+        id -3           # do not change unnecessarily
+        alg straw
+        hash 0  # rjenkins1
+        item osd.1 weight 0.150
+}
+datacenter us-east-1a {
+        id -4           # do not change unnecessarily
+        alg straw
+        hash 0  # rjenkins1
+        item i-aecf34de weight 0.150
+        item i-90cf34e0 weight 0.150
+}
+pool vms {
+        id -1
+        alg straw
+        hash 0  # rjenkins1
+        item us-east-1a weight 0.300
+}
+
+rule data {
+        ruleset 0
+        type replicated
+        min_size 1
+        max_size 10
+        step take vms
+        step chooseleaf firstn 0 type host
+        step emit
+}
+rule metadata {
+        ruleset 1
+        type replicated
+        min_size 1
+        max_size 10
+        step take vms
+        step choose firstn 0 type osd
+        step emit
+}
+rule rbd {
+        ruleset 2
+        type replicated
+        min_size 1
+        max_size 10
+        step take vms
+        step choose firstn 0 type osd
+        step emit
+}
+# end crush map

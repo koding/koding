@@ -16,6 +16,22 @@
 #
 # some_setting false
 #
+
+require 'net/http'
+require 'ohai'
+
+uri = URI('http://169.254.169.254/latest/meta-data/instance-id')
+instance_id = Net::HTTP.get(uri)
+o = Ohai::System.new()
+o.all_plugins
+ipaddr = ''
+o['network']['interfaces']['eth0']['addresses'].keys.each do |key|
+        if o['network']['interfaces']['eth0']['addresses'][key]['family'].eql?('inet')
+                ipaddr = key
+        end
+end
+node_name  "#{instance_id}--#{ipaddr}"
+
 # log_level specifies the level of verbosity for output.
 # valid values are: :debug, :info, :warn, :error, :fatal.
 # Corresponds to chef-client -l
