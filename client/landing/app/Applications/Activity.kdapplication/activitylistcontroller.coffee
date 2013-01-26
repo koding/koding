@@ -57,7 +57,7 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
 
-    for activity in activities
+    for activity in activities when activity
       @addItem activity
 
     @emit "teasersLoaded"
@@ -72,7 +72,7 @@ class ActivityListController extends KDListViewController
           count     : item.count
           createdAt : item.createdAt
       else
-        if cache.activities[item.ids.first]
+        if cache.activities[item.ids.first]?.teaser
           @addItem cache.activities[item.ids.first].teaser
 
     @emit "teasersLoaded"
