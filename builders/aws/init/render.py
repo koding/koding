@@ -2,7 +2,7 @@
 
 
 NETWORK = [
-    {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.large'},
+    {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
     {'roles': ['rabbitmq_server', 'broker']},
     {'roles': ['socialworker']}
 ]
@@ -35,6 +35,7 @@ TEMPLATE = 'userdata.txt.template'
 
 import boto
 import copy
+import time
 
 def get_file_content(filename):
     return file(filename).read()
@@ -65,8 +66,7 @@ def get_user_data(roles, attributes):
 
 conn = boto.connect_ec2()
 def aws_run_interface(name, ami, ssh_key_name, sec_groups, user_data, instance_type, subnet_id, roles):
-    print name, ami, ssh_key_name, sec_groups, len(user_data), instance_type, subnet_id
-    return
+    print 'Creating instance: %s (%s)' % (name, instance_type)
     reservation = conn.run_instances(image_id=ami,
                                      key_name=ssh_key_name,
                                      security_group_ids=sec_groups,
@@ -75,6 +75,16 @@ def aws_run_interface(name, ami, ssh_key_name, sec_groups, user_data, instance_t
                                      subnet_id=subnet_id)
     instance = reservation.instances[0]
     instance.add_tag('Name', name)
+
+    status = instance.update()
+    while status == 'pending':
+        time.sleep(3)
+        status = instance.update()
+    if status == 'running':
+        print '  Created: %s' % (instance.private_ip_address)
+    else:
+        print '  Error: %s' % (status)
+
     return instance
 
 def render():
