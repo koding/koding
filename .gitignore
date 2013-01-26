@@ -45,3 +45,4 @@ sftp-config.json
 *.orig
 
 .vagrant
+.pyc

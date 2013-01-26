@@ -1,0 +1,34 @@
+[global]
+
+    # For version 0.55 and beyond, you must explicitly enable 
+    # or disable authentication with "auth" entries in [global].
+    #debug ms = 1
+    
+    auth cluster required = none
+    auth service required = none
+    auth client required = none
+    osd mkfs type = xfs
+    osd mkfs options xfs = "-f"   
+    osd mount options xfs = "rw,noatime" 
+
+[osd]
+    osd journal size = 1000
+    
+    #The following assumes ext4 filesystem.
+    filestore xattr use omap = true
+
+
+<% @mon_nodes.each do |node| -%>
+[mon.<%= node[:CephID] %>]
+    # instance ID <%= node[:id] %>
+    mon addr = <%= node[:addr] %>:6789
+
+<% end -%>
+
+<% @osd_nodes.each do |node| -%>
+[osd.<%= node[:CephID] %>]
+    # instance ID <%= node[:id] %>
+    host = <%= node[:id] %>
+
+<% end -%>
+

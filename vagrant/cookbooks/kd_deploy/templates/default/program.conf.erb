@@ -1,0 +1,10 @@
+[program:<%= @name %>]
+command=<%= @command %>
+user=<%= @user %>
+directory=<%= @directroy %>
+environment=HOME=<%= @directroy %>
+stdout_logfile=/var/log/<%= @name %>.log
+stderr_logfile=/var/log/<%= @name %>.log
+autostart=true
+startretries=5
+killasgroup=true
