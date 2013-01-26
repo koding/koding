@@ -5,6 +5,7 @@ Bongo     = require 'bongo'
 Broker    = require 'broker'
 {Base}    = Bongo
 Emailer   = require '../social/lib/social/emailer'
+template  = require './templates'
 
 {mq, mongo, email, uri} = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -22,65 +23,18 @@ log = ->
 
 log "E-Mail Notification Worker has started with PID #{process.pid}"
 
-commonHeader     = (m)-> """[Koding Bot] A new notification"""
-commonTemplate   = (m)->
-  action  = ''
-  preview = """
-              <hr/>
-                <p>
-                  #{m.realContent?.body}
-                </p>
-              <hr/>
-            """
-
-  turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
-  eventName   = flags[m.notification.eventFlag].definition
-
-  switch m.event
-    when 'FollowHappened'
-      action = "is started to following you"
-      m.contentLink = ''
-      preview = ''
-    when 'LikeIsAdded'
-      action = "liked your"
-    when 'PrivateMessageSent'
-      action = "sent you a"
-    when 'ReplyIsAdded'
-      if m.receiver.getId().equals m.subjectContent.data.originId
-        action = "commented on your"
-      else
-        action = "also commented on"
-        # FIXME GG Implement the details
-        # if m.realContent.origin?._id is m.sender._id
-        #   action = "#{action} own"
-
-  """
-    <p>
-      Hi #{m.receiver.profile.firstName},
-    </p>
-
-    <p><a href="#{uri.address}/#{m.sender.profile.nickname}">#{m.sender.profile.firstName} #{m.sender.profile.lastName}</a> #{action} #{m.contentLink}.</p>
-
-    #{preview}
-
-    You can turn off e-mail notifications for <a href="#{turnOffLink}">#{eventName}</a> or <a href="#{turnOffLink}/all">any kind of e-mails</a>.
-    <br /> -- <br />
-    Management
-  """
-
-
 flags =
   comment           :
-    template        : commonTemplate
+    template        : template.instantMail
     definition      : "comments"
   likeActivities    :
-    template        : commonTemplate
+    template        : template.instantMail
     definition      : "activity likes"
   followActions     :
-    template        : commonTemplate
+    template        : template.instantMail
     definition      : "following states"
   privateMessage    :
-    template        : commonTemplate
+    template        : template.instantMail
     definition      : "private messages"
 
 prepareAndSendEmail = (notification)->
@@ -91,7 +45,7 @@ prepareAndSendEmail = (notification)->
 
     Emailer.send
       To        : details.email
-      Subject   : commonHeader details
+      Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details
     , (err, status)->
       log "An error occured: #{err}" if err
@@ -119,7 +73,7 @@ prepareAndSendEmail = (notification)->
   fetchSubjectContentLink = (content, type, callback)->
 
     contentTypeLinkMap = (link)->
-      pre = "<a href='#{uri.address}/Activity/#{link}'>"
+      pre = "<a href='#{uri.address}/Activity/#{link}' #{template.linkStyle}>"
 
       JReview           : "#{pre}review</a>"
       JComment          : "#{pre}comment</a>"
@@ -133,7 +87,7 @@ prepareAndSendEmail = (notification)->
       JQuestionActivity : "#{pre}question</a>"
 
     if type is 'JPrivateMessage'
-      callback null, "<a href='https://koding.com/Inbox'>private message</a>"
+      callback null, "<a href='https://koding.com/Inbox' #{template.linkStyle}>private message</a>"
     else if content.slug
       callback null, contentTypeLinkMap(content.slug)[type]
     else
