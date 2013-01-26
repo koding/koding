@@ -1,29 +1,31 @@
 {
-  "recipes": {
-  },
   "suggestions": {
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "conflicting": {
   },
   "platforms": {
   },
+  "groupings": {
+  },
+  "replacing": {
+  },
   "license": "All rights reserved",
-  "maintainer_email": "aleksey@koding.com",
-  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
-  "maintainer": "Aleksey Mykhailov",
+  "description": "Installs/Configures nodejs and coffee-script for Koding web server",
+  "version": "0.1.0",
+  "recipes": {
+  },
   "attributes": {
   },
   "providing": {
   },
   "dependencies": {
+    "yum": ">= 0.0.0",
+    "apt": ">= 0.0.0"
   },
-  "replacing": {
-  },
-  "description": "Installs/Configures nodejs and coffee-script for Koding web server",
-  "version": "0.1.0",
+  "maintainer": "Aleksey Mykhailov",
+  "maintainer_email": "aleksey@koding.com",
   "name": "nodejs",
-  "groupings": {
-  },
-  "conflicting": {
-  },
   "recommendations": {
   }
 }

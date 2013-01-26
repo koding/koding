@@ -51,6 +51,7 @@ when "debian"
 
     dpkg_package "#{Chef::Config[:file_cache_path]}/rabbitmq-server_#{node['rabbitmq']['version']}-1_all.deb" do
       action :install
+      options "--force-depends"
     end
 
   end

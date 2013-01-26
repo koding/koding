@@ -106,7 +106,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
-    componentUser: "prod-<component>"
+    componentUser: "<component>"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'

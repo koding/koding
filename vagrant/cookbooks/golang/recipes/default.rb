@@ -7,15 +7,17 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe "yum::golang"
 
-yum_package "go-dev" do
-    action :remove
+case node['platform_family']
+when "rhel", "cloudlinux"
+    include_recipe "yum::golang"
+    yum_package "go" do
+        version "#{node["go"]["rpm_version"]}"
+        action :install
+    end
+when "debian"
+    include_recipe "apt::golang"
+    apt_package "golang-#{node['go']['dpkg_version']}"
 end
 
-
-yum_package "go" do
-    version "#{node["go"]["version"]}"
-    action :install
-end
 
