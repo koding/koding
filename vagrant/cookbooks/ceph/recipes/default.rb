@@ -20,6 +20,7 @@ directory "/var/run/ceph/" do
     mode 0755
     owner "root"
     group "root"
+end
 
 execute "sudo mkdir -p /var/lib/ceph/osd/ceph-0"
 execute "sudo mkdir -p /var/lib/ceph/mon/ceph-a"

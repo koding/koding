@@ -11,12 +11,12 @@
 # execute "echo deb http://ceph.com/debian/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list"
 # execute "sudo apt-get update"
 
-package "ceph" do
-	action :install
-end
+# package "ceph" do
+# 	action :install
+# end
 
-package "ceph-common" do
-	action :install
-end
+# package "ceph-common" do
+# 	action :install
+# end
 
 execute "modprobe rbd"
