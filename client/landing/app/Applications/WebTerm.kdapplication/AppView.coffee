@@ -106,6 +106,7 @@ class WebTermView extends KDView
 
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
+      @setKeyView()
 
     @bindEvent 'contextmenu'
 
@@ -147,6 +148,7 @@ class WebTermView extends KDView
   contextMenu: (event) ->
     # invisible textarea will be placed under the cursor when rightclick
     @createInvisibleTextarea event
+    @setKeyView()
     event
 
   createInvisibleTextarea:(eventData)->
@@ -178,6 +180,7 @@ class WebTermView extends KDView
 
     # remove on any of these events
     @textarea.on 'copy cut paste', (event)=>
+      @setKeyView()
       @utils.wait 1000, => @textarea.remove()
       yes
 
