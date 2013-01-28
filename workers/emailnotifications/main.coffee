@@ -44,7 +44,7 @@ prepareAndSendEmail = (notification)->
     # log "MAIL", flags[details.key].template details
 
     Emailer.send
-      To        : details.email
+      To        : 'gokmen+testing@koding.com' # details.email
       Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details
     , (err, status)->
