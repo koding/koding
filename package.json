@@ -12,7 +12,7 @@
   "main": "server/index.js",
   "scripts" : {
     "preinstall"  : "rm -rf ./node_modules",
-    "install"     : "cd node_modules/ && ln -s ../node_modules_koding/* .",
+    "install"     : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
     "preupdate"   : "echo pre-update... ",
     "update"      : "echo update..."
   },
@@ -21,6 +21,7 @@
     "coffee-script"   : "1.4.0",
     "dateformat"      : "1.0.2-1.2.3",
     "express"         : "3.0.2",
+    "embedly"         : "0.6.0",
     "hashish"         : "0.0.4",
     "hat"             : "0.0.3",
     "log"             : "1.2.0",

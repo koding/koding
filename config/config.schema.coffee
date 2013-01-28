@@ -1,6 +1,6 @@
 config =
   _selfConfig :
-    defaultConfig : "dev-new"
+    defaultConfig : "dev"
   kite :
     applications :
       name              : 1
@@ -97,8 +97,10 @@ config =
       port        : []
       clusterSize : 1
       queueName   : 1
+      watch       : 1
     mongo         : 1
     runGoBroker   : 1
+    compileGo     : 1
     buildClient   : 1
     misc          :
       claimGlobalNamesForUsers: 1
@@ -112,19 +114,27 @@ config =
         awsAccessKeyId      : 1
         awsSecretAccessKey  : 1
         bucket              : 1
+    loggr:
+      push: 1
+      url: 1
+      apiKey: 1
     librato :
       push      : 1
       email     : 1
       token     : 1
       interval  : 1
+    goConfig:
+      HomePrefix   : 1
+      UseLVE       : 1
     bitly :
       username  : 1
       apiKey    : 1
     authWorker    :
-      login       : 1
-      queueName   : 1
+      login           : 1
+      queueName       : 1
       authResourceName: 1
-      numberOfWorkers: 1
+      numberOfWorkers : 1
+      watch           : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -160,6 +170,7 @@ config =
     mq            :
       host        : 1
       login       : 1
+      componentUser: 1
       password    : 1
       heartbeat   : 1
       vhost       : 1

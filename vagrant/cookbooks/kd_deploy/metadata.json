@@ -11,7 +11,7 @@
   "providing": {
   },
   "long_description": "Description\n===========\ndeploy main koding code\nstart apps\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "groupings": {
   },
   "conflicting": {

@@ -11,6 +11,7 @@ default_attributes({ "nginx" => {
                                 "static_files" => "/opt/koding/current/client"
                      },
                      "kd_deploy" => {
+                                "git_branch" => "master_autoscale",
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',

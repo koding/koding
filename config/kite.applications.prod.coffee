@@ -6,12 +6,12 @@ module.exports =
   logFile           : "/var/log/node/Applications.log"
   amqp              :
     host            : 'web0.beta.system.aws.koding.com'
-    username        : 'prod-applications-kite'
+    login           : 'prod-applications-kite'
     password        : 'Dtxym6fRJXx4GJz'
-    vhost           : '/'
-  apiUri            : 'https://api.koding.com/1.0'
+    heartbeat       : 10
+  apiUri            : 'https://dev-api.koding.com/1.0'
   usersPath         : '/Users/'
   vhostDir          : 'Sites'
-  defaultDomain     : 'koding.com' # We use this domain in createVHost method
+  defaultDomain     : 'koding.com'
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true

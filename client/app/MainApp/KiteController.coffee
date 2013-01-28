@@ -62,7 +62,30 @@ class KiteController extends KDController
     # notify "Talking to #{options.kiteName} asking #{options.toDo}"
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
+    ###
+    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
 
+      run:(options = {}, callback)->
+        
+        if "string" is typeof options
+          command = options
+          options = {}
+
+        options.kiteName or= "os"
+        options.method   or= "exec"
+        if command
+          options.withArgs = {command}
+        else if options.withArgs?.command
+          options.withArgs = options.withArgs.command
+        else
+          options.withArgs or= {}
+
+        # notify "Talking to #{options.kiteName} asking #{options.toDo}"
+        KD.whoami().tellKite options, (err, response)=>
+          @parseKiteResponse {err, response}, options, callback
+
+    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
+    ###
   setListeners:->
 
     mainController = @getSingleton "mainController"
