@@ -54,7 +54,7 @@ rule metadata {
         min_size 1
         max_size 10
         step take vms
-        step choose firstn 0 type osd
+        step chooseleaf firstn 0 type host
         step emit
 }
 rule rbd {
@@ -63,7 +63,7 @@ rule rbd {
         min_size 1
         max_size 10
         step take vms
-        step choose firstn 0 type osd
+        step chooseleaf firstn 0 type host
         step emit
 }
 # end crush map
