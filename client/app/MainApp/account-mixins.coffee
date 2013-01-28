@@ -53,13 +53,13 @@ AccountMixin = do ->
 
       cycleChannel =->
         @off()
-        @stopPinging()
+        @stopPinging?()
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
       messageHandler =(kiteName, args) ->
         {method} = args
-        callback = 
+        callback =
           if method is 'ready'
             ready.bind this
           else if method is 'error'
@@ -88,7 +88,7 @@ AccountMixin = do ->
         namesCache[kiteName] = channelName
         return channelName
 
-      fetchChannel =(kiteName, callback)-> 
+      fetchChannel =(kiteName, callback)->
         channelName = getChannelName "kite-#{kiteName}"
         return callback readyChannels[channelName]  if readyChannels[channelName]
         channel = KD.remote.mq.subscribe channelName
