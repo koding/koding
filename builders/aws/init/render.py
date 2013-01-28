@@ -1,18 +1,19 @@
 #!/usr/bin/python
 
-DOMAIN = 'devrim.dev.service.aws.koding.com'
+DOMAIN = 'gokmen.dev.service.aws.koding.com'
 NETWORK = [
     # {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
-    #{'roles': ['rabbitmq_server', 'broker', 'web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
-    #{'roles': ['socialworker', 'authworker'], 'autoscale': (2, 5)}
-    #{'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
-    {'roles': ['broker']},
-    {'roles': ['authworker'], 'autoscale': (2, 5)},
+    # {'roles': ['rabbitmq_server', 'broker', 'web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
+    # {'roles': ['socialworker', 'authworker'], 'autoscale': (2, 5)}
+    # {'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
+    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm1.xlarge'},
+    {'roles': ['web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
+    {'roles': ['authworker', 'socialworker'], 'autoscale': (4, 5), 'instance_type': 'm1.large'},
 ]
 ATTRIBUTES = {
-    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'master_autoscale'},
+    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'dev-gokmen'},
     'nginx': {'server_name': DOMAIN},
-    'launch': {'config': 'autoscale'},
+    'launch': {'config': 'gokmen'},
 }
 
 NAME_PATTERN = '%(username)s-%(roles)s'
