@@ -7,14 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe "yum::nodejs"
+include_recipe "nodejs::nodejs"
+include_recipe "nodejs::coffee-script"
 
-
-yum_package "nodejs" do
-    version "#{node["nodejs"]["version"]}"
-end
-
-execute "install coffee-script" do
-    command "/usr/bin/npm -g install coffee-script@#{node["coffee-script"]["version"]}"
-    creates "/usr/bin/coffee"
-end

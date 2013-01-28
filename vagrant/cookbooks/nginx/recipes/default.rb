@@ -27,6 +27,8 @@ when 'package'
   case node['platform']
   when 'redhat','centos','scientific','amazon','oracle'
     include_recipe 'yum::nginx'
+  when "ubuntu"
+    include_recipe 'apt::nginx'
   end
   package 'nginx'
   service 'nginx' do

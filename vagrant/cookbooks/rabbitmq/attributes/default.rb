@@ -13,7 +13,7 @@ default['rabbitmq']['version'] = '2.8.5'
 # Override this if you have a yum repo with rabbitmq available.
 default['rabbitmq']['use_yum'] = false
 # Override this if you do not want to use an apt repo
-default['rabbitmq']['use_apt'] = true
+default['rabbitmq']['use_apt'] = false
 # The distro versions may be more stable and have back-ported patches
 default['rabbitmq']['use_distro_version'] = false
 

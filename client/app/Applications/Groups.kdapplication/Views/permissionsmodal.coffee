@@ -113,7 +113,7 @@ class PermissionsModal extends KDView
           loader      :
             color     : "#ffffff"
             diameter  : 16
-          callback    : -> @modal.destroy()
+          callback    : => @modal.destroy()
       tabs  :
         forms :
           "Permissions":
