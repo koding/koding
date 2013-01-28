@@ -459,10 +459,13 @@ class ActivityListController extends KDListViewController
     @_state = 'public'
 
     @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 10
+      if event.delegateTarget.scrollTop > 0
         @activityHeader.setClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue off
+
       else
         @activityHeader.unsetClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue on
 
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
       cssClass : "lazy-loader"
