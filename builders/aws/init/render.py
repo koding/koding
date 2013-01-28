@@ -1,37 +1,53 @@
 #!/usr/bin/python
 
-DOMAIN = 'gokmen.dev.service.aws.koding.com'
+# Owner of the setup
+USERNAME = 'gokmen'
+
+# GIT repository to deploy
+GIT_BRANCH = 'dev-gokmen'
+GIT_REVISION = 'HEAD'
+
+# Configuration to deploy (main.<name>.coffee)
+CONFIG = 'gokmen'
+
+# Network topology
 NETWORK = [
-    # {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
-    # {'roles': ['rabbitmq_server', 'broker', 'web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
-    # {'roles': ['socialworker', 'authworker'], 'autoscale': (2, 5)}
-    # {'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
     {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm1.xlarge'},
-    {'roles': ['web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
+    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm1.xlarge'},
     {'roles': ['authworker', 'socialworker'], 'autoscale': (4, 5), 'instance_type': 'm1.large'},
 ]
+
+#
+# You shouldn't mess with the rest.
+#
+
+# Domain name populated from USERNAME
+DOMAIN = '%s.dev.service.aws.koding.com' % USERNAME
+
+# AWS DNS Zone ID for 'dev.service.aws.koding.com'
+ZONE_ID = 'Z3OWM4DB88IDTJ'
+
 ATTRIBUTES = {
-    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'dev-gokmen'},
+    'kd_deploy': {'revision_tag': GIT_REVISION, 'git_branch': GIT_BRANCH},
     'nginx': {'server_name': DOMAIN},
-    'launch': {'config': 'gokmen'},
+    'launch': {'config': CONFIG},
 }
 
 NAME_PATTERN = '%(username)s-%(roles)s'
 
-ZONE_ID = 'Z3OWM4DB88IDTJ'
 
+# Instance defaults
 DEFAULTS = {
     'ami': 'ami-3d4ff254',
     'instance_type': 'm1.small',
     'ssh_key_name': 'koding',
     'sec_groups': ['sg-26167d4f'],
     'subnet_id': '',
-    # 'sec_groups': ['sg-b17399de'],
-    # 'subnet_id': 'subnet-dcd019b6',
     'roles': [],
     'tags': {},
 }
 
+# Expanded roles, don't edit if you are not familiar with Chef roles/cookbooks
 ROLES = {
     'authworker': ['role[base_server]', 'role[authworker]', 'recipe[kd_deploy]'],
     'broker': ['role[base_server]', 'role[broker]', 'recipe[kd_deploy]'],
@@ -40,6 +56,7 @@ ROLES = {
     'rabbitmq_server': ['role[base_server]', 'role[rabbitmq_server]'],
     'socialworker': ['role[base_server]', 'role[socialworker]', 'recipe[kd_deploy]'],
     'web_server': ['role[base_server]', 'role[web_server]', 'recipe[kd_deploy]'],
+    'emailworker': ['role[base_server]', 'role[emailworker]', 'recipe[kd_deploy]'],
 }
 
 TEMPLATE = 'userdata.txt.template'
@@ -54,7 +71,6 @@ conn_r53 = boto.connect_route53()
 
 import copy
 import time
-import getpass
 
 class DNSRecord:
     def __init__(self, zone, name, value, ttl=600):
@@ -187,12 +203,12 @@ def render():
         spec['user_data'] = get_user_data(spec['roles'], ATTRIBUTES)
 
         # Name
-        spec['name'] = NAME_PATTERN % {'username': getpass.getuser(),
+        spec['name'] = NAME_PATTERN % {'username': USERNAME,
                                        'roles': '_'.join(spec['roles']),
                                        'domain': DOMAIN}
 
         # Tags
-        tags = {'init-username': getpass.getuser(),
+        tags = {'init-username': USERNAME,
                 'init-roles': ', '.join(spec['roles'])}
         spec.setdefault('tags', {}).update(tags)
 
