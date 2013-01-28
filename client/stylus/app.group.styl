@@ -390,7 +390,7 @@
     // bg color, white
     // border-left 1px solid #e5e5e5
     border-bottom none
-    padding 11px 11px 0 11px
+    padding 11px 11px 0 21px
     width 115px
     fl()
     z-index 10000
@@ -406,7 +406,7 @@
       bg color, white
     div.kdfileupload
       height 71px
-      width 93px
+      width 71px
       // height 100%
       min-width 0px
       .kdfileuploadarea
@@ -425,6 +425,15 @@
   .kdlabel.title
   .kdlabel.slug
     display none
+  .SlugText
+    .input-wrapper:last-child
+      display none
+    .input-wrapper:first-child
+      height 25px
+      line-height 25px
+      .slug-url
+        .base
+          color lighten(#5f5f5f,50%)
 .groups-member-permissions-view
 
   .kdview.kdloader

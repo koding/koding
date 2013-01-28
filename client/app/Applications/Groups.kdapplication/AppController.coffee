@@ -115,7 +115,6 @@ class GroupsAppController extends AppController
 
     modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
-      # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
       cssClass    : "compose-message-modal admin-kdmodal group-admin-modal"
       width       : 500
@@ -182,9 +181,6 @@ class GroupsAppController extends AppController
                         width   : 60
                         height  : 60
                       }
-                      # 'blur', {
-                      #   radius : 0
-                      # }
                     ]
                 }
               Title               :
@@ -195,21 +191,29 @@ class GroupsAppController extends AppController
                   setTimeout =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
                   , 1
-                defaultValue      : group.title ? ""
+                defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
-              Slug                :
-                label             : "Slug"
-                itemClass         : KDInputView
-                name              : "slug"
-                defaultValue      : group.slug ? ""
-                placeholder       : 'This value will be automatically generated'
+              SlugText                :
+                itemClass : KDView
+                cssClass : 'slug-url'
+                partial : '<span class="base">http://www.koding.com/Groups/</span>'
+                nextElementFlat :
+                  Slug :
+                    label             : "Slug"
+                    itemClass         : KDInputView
+                    name              : "slug"
+                    cssClass          : 'hidden'
+                    defaultValue      : group.slug ? ""
+                    placeholder       : 'This value will be automatically generated'
+                    disabled          : yes
               Description         :
                 label             : "Description"
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                defaultValue      : group.body ? ""
+                defaultValue      : Encoder.htmlDecode group.body ? ""
                 placeholder       : 'Please enter a description here.'
               "Privacy settings"  :
                 itemClass         : KDSelectBox
@@ -232,95 +236,17 @@ class GroupsAppController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
 
-
-          # "Avatar":
-          #   title : "Select an Avatar"
-          #   #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
-          #   partial : "<div class='image-wrapper'></div>"
-          #   callback :(formData)=>
-          #     log 'image data, ready for S3 upload',formData
-
-          #     for image in formData.images
-          #       if image
-          #         modal.$('.image-wrapper').css backgroundImage : "url(#{image.small})"
-          #         modal.modalTabs.forms["General Settings"].addCustomData 'avatar', image.small
-          #     # access data like this. formData.images may have undefined values for some reason
-          #     # for image in formData.images
-          #     #   if image
-          #     #     modal.$('.image-wrapper').append("<img src='#{image.small}'/>")
-          #     #     modal.$('.image-wrapper').append("<img src='#{image.medium}'/>")
-          #     #     modal.$('.image-wrapper').append("<img src='#{image.big}'/>")
-
-          #     modal.modalTabs.forms['Avatar'].buttons['Use this image'].hideLoader()
-          #     # modal.destroy()
-
-          #   buttons:
-          #     "Use this image"    :
-          #       style             : "modal-clean-gray"
-          #       type              : "submit"
-          #       loader            :
-          #         color           : "#444444"
-          #         diameter        : 12
-          #     Cancel              :
-          #       style             : "modal-clean-gray"
-          #       loader            :
-          #         color           : "#ffffff"
-          #         diameter        : 16
-          #       callback          :=>
-          #         modal.destroy()
-          #   fields:
-          #     "Drop Image here"              :
-          #       label             : "Avatar"
-          #       itemClass         : KDImageUploadSingleView
-          #       name              : "group-avatar"
-          #       limit             : 1
-          #       preview           : 'thumbs'
-          #       actions         : {
-          #         big    :
-          #           [
-          #             'scale', {
-          #               shortest: 400
-          #             }
-          #             'crop', {
-          #               width   : 400
-          #               height  : 400
-          #             }
-          #           ]
-          #         medium         :
-          #           [
-          #             'scale', {
-          #               shortest: 200
-          #             }
-          #             'crop', {
-          #               width   : 200
-          #               height  : 200
-          #             }
-          #           ]
-          #         small         :
-          #           [
-          #             'scale', {
-          #               shortest: 60
-          #             }
-          #             'crop', {
-          #               width   : 60
-          #               height  : 60
-          #             }
-          #             # 'blur', {
-          #             #   radius : 0
-          #             # }
-          #           ]
-          #       }
-
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
-
 
     modal = new KDModalViewWithForms modalOptions, group
 
     modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('span').addClass 'hidden'
+
+    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
       modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
