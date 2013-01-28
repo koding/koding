@@ -63,14 +63,14 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
 
-    for activity in activities
+    for activity in activities when activity
       @addItem activity
 
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
 
-    for item in cache.overview
+    for item in cache.overview when item
       if item.ids.length > 1
         @addItem new NewMemberBucketData
           type      : "CNewMemberBucketActivity"
@@ -78,7 +78,7 @@ class ActivityListController extends KDListViewController
           count     : item.count
           createdAt : item.createdAt
       else
-        if cache.activities[item.ids.first]
+        if cache.activities[item.ids.first]?.teaser
           @addItem cache.activities[item.ids.first].teaser
 
     @emit "teasersLoaded"
