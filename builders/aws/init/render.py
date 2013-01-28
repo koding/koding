@@ -3,12 +3,14 @@
 DOMAIN = 'devrim.dev.service.aws.koding.com'
 NETWORK = [
     # {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
-    # {'roles': ['rabbitmq_server', 'broker']},
-    #{'roles': ['socialworker']}
-    {'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
+    #{'roles': ['rabbitmq_server', 'broker', 'web_server', 'cacheworker'], 'instance_type': 'm1.xlarge'},
+    #{'roles': ['socialworker', 'authworker'], 'autoscale': (2, 5)}
+    #{'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
+    {'roles': ['broker']},
+    {'roles': ['authworker'], 'autoscale': (2, 5)},
 ]
 ATTRIBUTES = {
-    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'dev-bahadir-aws'},
+    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'master_autoscale'},
     'nginx': {'server_name': DOMAIN},
     'launch': {'config': 'autoscale'},
 }
@@ -43,10 +45,22 @@ TEMPLATE = 'userdata.txt.template'
 
 import boto
 import boto.ec2
+import boto.ec2.autoscale
+
+conn_ec2 = boto.connect_ec2()
+conn_as = boto.connect_autoscale()
+conn_r53 = boto.connect_route53()
 
 import copy
 import time
 import getpass
+
+class DNSRecord:
+    def __init__(self, zone, name, value, ttl=600):
+        self.zone = zone
+        self.name = name
+        self.value = value
+        self.ttl = ttl
 
 def get_file_content(filename):
     return file(filename).read()
@@ -77,57 +91,79 @@ def get_user_data(roles, attributes):
     return tmp
 
 def aws_run_interface(**kwargs):
-    print 'Creating instance: %s (%s)' % (kwargs['name'], kwargs['instance_type'])
-    # Create instance
-    conn_ec2 = boto.connect_ec2()
-    reservation = conn_ec2.run_instances(image_id=kwargs['ami'],
-                                         key_name=kwargs['ssh_key_name'],
-                                         security_group_ids=kwargs['sec_groups'],
-                                         user_data=kwargs['user_data'],
-                                         instance_type=kwargs['instance_type'],
-                                         subnet_id=kwargs['subnet_id'])
-    instance = reservation.instances[0]
+    if 'autoscale' in kwargs:
+        as_min, as_max = kwargs['autoscale']
+        as_group = '%s-group' % kwargs['name']
+        as_config = '%s-config' % kwargs['name']
+        print 'Creating autoscaling instance group: %s (%s)' % (as_group, kwargs['instance_type'])
 
-    # Set instance name
-    instance.add_tag('Name', kwargs['name'])
+        lc = boto.ec2.autoscale.LaunchConfiguration(name=as_config,
+                                                    image_id=kwargs['ami'],
+                                                    key_name=kwargs['ssh_key_name'],
+                                                    security_groups=kwargs['sec_groups'],
+                                                    user_data=kwargs['user_data'])
+        conn_as.create_launch_configuration(lc)
 
-    # Wait for instance to get ready
-    status = instance.update()
-    while status == 'pending':
-        time.sleep(3)
-        status = instance.update()
-    if status == 'running':
-        print '  ID: %s' % instance.id
-        print '  Private IP: %s' % instance.private_ip_address
-        if instance.public_dns_name:
-            print '  Public IP: %s' % instance.public_dns_name
+        ag = boto.ec2.autoscale.AutoScalingGroup(group_name=as_group,
+                                                 launch_config=lc,
+                                                 availability_zones=['us-east-1a'],
+                                                 min_size=as_min,
+                                                 max_size=as_max,
+                                                 connection=conn_as)
+        conn_as.create_auto_scaling_group(ag)
+
+        return [ag, lc]
     else:
-        print '  Error: %s' % (status)
-        return []
+        print 'Creating instance: %s (%s)' % (kwargs['name'], kwargs['instance_type'])
+        # Create instance
+        reservation = conn_ec2.run_instances(image_id=kwargs['ami'],
+                                             key_name=kwargs['ssh_key_name'],
+                                             security_group_ids=kwargs['sec_groups'],
+                                             user_data=kwargs['user_data'],
+                                             instance_type=kwargs['instance_type'],
+                                             subnet_id=kwargs['subnet_id'])
+        instance = reservation.instances[0]
 
-    # Set instance tags
-    for key, value in kwargs['tags'].iteritems():
-     instance.add_tag(key, value)
+        # Wait for instance to get ready
+        status = instance.update()
+        while status == 'pending':
+            time.sleep(3)
+            status = instance.update()
+        if status == 'running':
+            print '  ID: %s' % instance.id
+            print '  Private IP: %s' % instance.private_ip_address
+            if instance.public_dns_name:
+                print '  Public IP: %s' % instance.public_dns_name
+        else:
+            print '  Error: %s' % (status)
+            return []
 
-    domains = []
-    if 'broker' in kwargs['roles']:
-        domains.append('broker.%s' % DOMAIN)
-    if 'web_server' in kwargs['roles']:
-        domains.append(DOMAIN)
-    if 'rabbitmq_server' in kwargs['roles']:
-        domains.append('mq.%s' % DOMAIN)
+        # Set instance name
+        instance.add_tag('Name', kwargs['name'])
+        # Set instance tags
+        for key, value in kwargs['tags'].iteritems():
+            instance.add_tag(key, value)
 
-    # Add/update Route 53 entry
-    if instance.public_dns_name:
-        for domain in domains:
-            conn_r53 = boto.connect_route53()
-            record_sets = conn_r53.get_all_rrsets(ZONE_ID)
-            change = record_sets.add_change('CREATE', domain, 'CNAME')
-            change.add_value(instance.public_dns_name)
-            record_sets.commit()
-            print '  Domain: %s' % domain
+        domains = []
+        if 'broker' in kwargs['roles']:
+            domains.append('broker.%s' % DOMAIN)
+        if 'web_server' in kwargs['roles']:
+            domains.append(DOMAIN)
+        if 'rabbitmq_server' in kwargs['roles']:
+            domains.append('mq.%s' % DOMAIN)
 
-    return [instance]
+        # Add/update Route 53 entry
+        dns_records = []
+        if instance.public_dns_name:
+            for domain in domains:
+                record_sets = conn_r53.get_all_rrsets(ZONE_ID)
+                change = record_sets.add_change('CREATE', domain, 'CNAME', 300)
+                change.add_value(instance.public_dns_name)
+                record_sets.commit()
+                print '  Domain: %s' % domain
+                dns_records.append(DNSRecord(ZONE_ID, domain, instance.public_dns_name, 300))
+
+        return [instance] + dns_records
 
 def render():
     instance_no = 0
@@ -165,7 +201,34 @@ def render():
 
     print 'Created objects:'
     for item in aws_objects:
-        print '  Instance  : %s' % item.id
+        if isinstance(item, boto.ec2.autoscale.group.AutoScalingGroup):
+            print '  AS Group  : %s' % item.name
+        elif isinstance(item, boto.ec2.autoscale.launchconfig.LaunchConfiguration):
+            print '  AS Config : %s' % item.name
+        elif isinstance(item, boto.ec2.instance.Instance):
+            print '  Instance  : %s' % item.id
+        elif isinstance(item, DNSRecord):
+            print '  R53 Entry : %s' % item.name
+
+    print 'Press ENTER to delete everything.'
+    raw_input()
+    for item in aws_objects:
+        if isinstance(item, boto.ec2.autoscale.group.AutoScalingGroup):
+            print 'Shutting down AS group %s' % item.name
+            item.shutdown_instances()
+            conn_as.delete_auto_scaling_group(item.name, force_delete=True)
+        elif isinstance(item, boto.ec2.autoscale.launchconfig.LaunchConfiguration):
+            print 'Deleting AS config %s' % item.name
+            conn_as.delete_launch_configuration(item.name)
+        elif isinstance(item, boto.ec2.instance.Instance):
+            print 'Terminating %s' % item.id
+            conn_ec2.terminate_instances([item.id])
+        elif isinstance(item, DNSRecord):
+            print 'Removing %s' % item.name
+            record_sets = conn_r53.get_all_rrsets(ZONE_ID)
+            change = record_sets.add_change('DELETE', item.name, 'CNAME', item.ttl)
+            change.add_value(item.value)
+            record_sets.commit()
 
 def main():
     render()
