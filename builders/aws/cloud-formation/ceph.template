@@ -1,0 +1,68 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy Ceph OSD",
+    "Parameters": {
+        "KeyName": {
+            "Default" : "koding",
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access into the OSD server",
+            "Type": "String"
+        },
+        "InstanceType": {
+            "Default": "m1.small",
+            "Description": "The type of EC2 instance used for the ceph OSD server",
+            "Type": "String",
+            "AllowedPattern": "[a-zA-Z0-9\\.]+"
+        },
+        "OsdID": {
+            "Description": "The osd ID",
+            "Type": "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "HostedZone" : {
+            "Default": "prod.aws.koding.com",
+            "Type": "String",
+            "Description": "The DNS name of an existing Amazon Route 53 hosted zone"
+        }
+    },
+    "Resources": {
+        "CephInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-3d4ff254",
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "SubnetId": "subnet-dcd019b6",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Join": ["",["osd",{"Ref": "OsdID"},"-",{"Ref" : "AWS::Region"}]]}
+                    },
+                    {
+                        "Key": "CephType",
+                        "Value": "osd"
+                    },
+                    {
+                        "Key": "CephID",
+                        "Value": {
+                            "Ref": "OsdID"
+                        }
+                    }
+                ],
+                "SecurityGroupIds": [
+                    "sg-b17399de"
+                 ]
+            }
+        },
+        "CephHostRecord":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": { "Fn::Join" : [ "", [{"Ref" : "HostedZone"}, "." ]]},
+                "Name" : { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-", {"Ref" : "AWS::Region"}, ".", {"Ref" : "HostedZone"} ,"."]]},
+                "Type" : "A",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "CephInstance", "PrivateIp" ] } ]
+            }
+        }
+    }
+}

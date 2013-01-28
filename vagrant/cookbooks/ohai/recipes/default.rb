@@ -17,10 +17,13 @@
 # limitations under the License.
 #
 
+include_recipe "ohai::vpc"
+
 unless Ohai::Config[:plugin_path].include?(node['ohai']['plugin_path'])
   Ohai::Config[:plugin_path] << node['ohai']['plugin_path']
 end
 Chef::Log.info("ohai plugins will be at: #{node['ohai']['plugin_path']}")
+
 
 reload_ohai = false
 node['ohai']['plugins'].each_pair do |source_cookbook, path|
