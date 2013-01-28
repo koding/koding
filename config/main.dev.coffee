@@ -57,9 +57,6 @@ module.exports = deepFreeze
   #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo
-  goConfig:
-    HomePrefix:   "/home/"
-    UseLVE:       true
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -106,7 +103,6 @@ module.exports = deepFreeze
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
     componentUser: "guest"
-    # componentUser: "<component>"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'

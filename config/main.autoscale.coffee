@@ -51,9 +51,6 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'

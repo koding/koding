@@ -123,9 +123,6 @@ config =
       email     : 1
       token     : 1
       interval  : 1
-    goConfig:
-      HomePrefix   : 1
-      UseLVE       : 1
     bitly :
       username  : 1
       apiKey    : 1
