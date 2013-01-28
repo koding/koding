@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -89,12 +89,12 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://as.koding.com/'
       broker    :
-        sockJS  : 'https://broker.as.koding.com/subscribe'
+        sockJS  : 'https://bro.koding.com/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'mq.as.koding.com'
+    host        : 'rabbit0.beta.system.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -115,7 +115,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'mq.as.koding.com'
+      host          : 'rabbit0.beta.system.aws.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
