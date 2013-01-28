@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-DOMAIN = 'xyz.bk.koding.com'
+DOMAIN = 'devrim.dev.service.aws.koding.com'
 NETWORK = [
     # {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
     # {'roles': ['rabbitmq_server', 'broker']},
@@ -8,14 +8,14 @@ NETWORK = [
     {'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
 ]
 ATTRIBUTES = {
-    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'sinan'},
+    'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'dev-bahadir-aws'},
     'nginx': {'server_name': DOMAIN},
-    'launch': {'config': 'dev-new'},
+    'launch': {'config': 'autoscale'},
 }
 
 NAME_PATTERN = '%(username)s-%(roles)s'
 
-ZONE_ID = 'Z2LM9L2FI08RU8'
+ZONE_ID = 'Z3OWM4DB88IDTJ'
 
 DEFAULTS = {
     'ami': 'ami-3d4ff254',
