@@ -315,7 +315,6 @@ class GroupsAppController extends AppController
 
     modal = new KDModalViewWithForms modalOptions, group
 
-    modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
     modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('span').addClass 'hidden'
