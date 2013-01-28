@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
-DOMAIN = 'test.bk.koding.com'
+DOMAIN = 'xyz.bk.koding.com'
 NETWORK = [
     # {'roles': ['authworker', 'socialworker', 'web_server', 'cacheworker'], 'instance_type': 'm1.small'},
-    {'roles': ['rabbitmq_server', 'broker']},
+    # {'roles': ['rabbitmq_server', 'broker']},
     #{'roles': ['socialworker']}
+    {'roles': ['authworker', 'socialworker', 'web_server', 'rabbitmq_server', 'broker']}
 ]
 ATTRIBUTES = {
     'kd_deploy': {'revision_tag': 'HEAD', 'git_branch': 'sinan'},
@@ -12,15 +13,18 @@ ATTRIBUTES = {
     'launch': {'config': 'dev-new'},
 }
 
-
 NAME_PATTERN = '%(username)s-%(roles)s'
+
+ZONE_ID = 'Z2LM9L2FI08RU8'
 
 DEFAULTS = {
     'ami': 'ami-3d4ff254',
-    'ssh_key_name': 'koding',
-    'sec_groups': ['sg-b17399de'],
     'instance_type': 'm1.small',
-    'subnet_id': 'subnet-dcd019b6',
+    'ssh_key_name': 'koding',
+    'sec_groups': ['sg-26167d4f'],
+    'subnet_id': '',
+    # 'sec_groups': ['sg-b17399de'],
+    # 'subnet_id': 'subnet-dcd019b6',
     'roles': [],
     'tags': {},
 }
@@ -75,14 +79,17 @@ def get_user_data(roles, attributes):
 def aws_run_interface(**kwargs):
     print 'Creating instance: %s (%s)' % (kwargs['name'], kwargs['instance_type'])
     # Create instance
-    conn = boto.connect_ec2()
-    reservation = conn.run_instances(image_id=kwargs['ami'],
-                                     key_name=kwargs['ssh_key_name'],
-                                     security_group_ids=kwargs['sec_groups'],
-                                     user_data=kwargs['user_data'],
-                                     instance_type=kwargs['instance_type'],
-                                     subnet_id=kwargs['subnet_id'])
+    conn_ec2 = boto.connect_ec2()
+    reservation = conn_ec2.run_instances(image_id=kwargs['ami'],
+                                         key_name=kwargs['ssh_key_name'],
+                                         security_group_ids=kwargs['sec_groups'],
+                                         user_data=kwargs['user_data'],
+                                         instance_type=kwargs['instance_type'],
+                                         subnet_id=kwargs['subnet_id'])
     instance = reservation.instances[0]
+
+    # Set instance name
+    instance.add_tag('Name', kwargs['name'])
 
     # Wait for instance to get ready
     status = instance.update()
@@ -92,20 +99,33 @@ def aws_run_interface(**kwargs):
     if status == 'running':
         print '  ID: %s' % instance.id
         print '  Private IP: %s' % instance.private_ip_address
+        if instance.public_dns_name:
+            print '  Public IP: %s' % instance.public_dns_name
     else:
         print '  Error: %s' % (status)
         return []
 
     # Set instance tags
-    instance.add_tag('Name', kwargs['name'])
     for key, value in kwargs['tags'].iteritems():
-        instance.add_tag(key, value)
+     instance.add_tag(key, value)
 
-    # # Assign elastic IP if necessary
-    # if 'broker' in kwargs['roles'] or 'web_server' in kwargs['roles']:
-    #     elastic_ip = conn.allocate_address()
-    #     print '  Public IP: %s' % elastic_ip.public_ip
-    #     elastic_ip.associate(instance.id)
+    domains = []
+    if 'broker' in kwargs['roles']:
+        domains.append('broker.%s' % DOMAIN)
+    if 'web_server' in kwargs['roles']:
+        domains.append(DOMAIN)
+    if 'rabbitmq_server' in kwargs['roles']:
+        domains.append('mq.%s' % DOMAIN)
+
+    # Add/update Route 53 entry
+    if instance.public_dns_name:
+        for domain in domains:
+            conn_r53 = boto.connect_route53()
+            record_sets = conn_r53.get_all_rrsets(ZONE_ID)
+            change = record_sets.add_change('CREATE', domain, 'CNAME')
+            change.add_value(instance.public_dns_name)
+            record_sets.commit()
+            print '  Domain: %s' % domain
 
     return [instance]
 

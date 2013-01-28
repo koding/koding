@@ -18,7 +18,7 @@ socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   uri           :
-    address     : "https://as.koding.com"
+    address     : "https://xyz.bk.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -87,14 +87,14 @@ module.exports = deepFreeze
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'https://as.koding.com/'
+      mainUri   : 'https://xyz.bk.koding.com/'
       broker    :
-        sockJS  : 'https://bro.koding.com/subscribe'
+        sockJS  : 'https://broker.xyz.bk.koding.com/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'rabbit0.beta.system.aws.koding.com'
+    host        : 'mq.xyz.bk.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -115,7 +115,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.beta.system.aws.koding.com'
+      host          : 'mq.xyz.bk.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
