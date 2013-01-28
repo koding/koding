@@ -31,7 +31,7 @@ type WebtermRemote struct {
 func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
 	server := &WebtermServer{
 		remote: remote,
-		pty:    pty.New(),
+		pty:    pty.New(pty.DefaultPtsPath),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 	session.OnDisconnect(func() { server.Close() })

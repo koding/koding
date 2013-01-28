@@ -17,26 +17,31 @@ type PTY struct {
 	Slave         *os.File
 }
 
-func New() *PTY {
+const DefaultPtsPath = "/dev/pts"
+
+func New(ptsPath string) *PTY {
 	// open master
-	master, err := os.OpenFile("/dev/pts/ptmx", os.O_RDWR, 0)
+	master, err := os.OpenFile(ptsPath+"/ptmx", os.O_RDWR, 0)
 	if err != nil {
 		panic(err)
 	}
 
 	// unlock slave
 	var unlock int32
-	syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock)))
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock)))
+	if errno != 0 {
+		panic("Failed to unlock pty")
+	}
 
 	// find out slave name
 	var ptyno uint32
-	syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno)))
-	if ptyno == 0 {
+	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno)))
+	if errno != 0 {
 		panic("Failed to get ptyno")
 	}
 
 	// open slave
-	slave, err := os.OpenFile("/dev/pts/"+strconv.Itoa(int(ptyno)), os.O_RDWR|syscall.O_NOCTTY, 0)
+	slave, err := os.OpenFile(ptsPath+"/"+strconv.Itoa(int(ptyno)), os.O_RDWR|syscall.O_NOCTTY, 0)
 	if err != nil {
 		panic(err)
 	}
