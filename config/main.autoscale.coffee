@@ -18,7 +18,7 @@ socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   uri           :
-    address     : "http://devrim.dev.service.aws.koding.com"
+    address     : "https://as.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -37,7 +37,7 @@ module.exports = deepFreeze
     debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
-    distribution: 'http://d2mehr5c6bceom.cloudfront.net'
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
@@ -82,19 +82,19 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://as.koding.com/'
+    staticFilesBaseUrl: 'https://as.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://devrim.dev.service.aws.koding.com/'
+      mainUri   : 'https://as.koding.com/'
       broker    :
-        sockJS  : 'http://broker.devrim.dev.service.aws.koding.com:8008/subscribe'
-      apiUri    : 'http://dev-api.koding.com'
+        sockJS  : 'https://broker.as.koding.com/subscribe'
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'mq.devrim.dev.service.aws.koding.com'
+    host        : 'mq.as.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -115,7 +115,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'mq.devrim.dev.service.aws.koding.com'
+      host          : 'mq.as.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
