@@ -18,7 +18,7 @@ socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   uri           :
-    address     : "https://devrim.dev.service.aws.koding.com"
+    address     : "http://devrim.dev.service.aws.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -37,7 +37,7 @@ module.exports = deepFreeze
     debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
-    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    distribution: 'http://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
@@ -82,17 +82,17 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://as.koding.com/'
+    staticFilesBaseUrl: 'http://as.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'https://devrim.dev.service.aws.koding.com/'
+      mainUri   : 'http://devrim.dev.service.aws.koding.com/'
       broker    :
-        sockJS  : 'https://broker.devrim.dev.service.aws.koding.com/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS  : 'http://broker.devrim.dev.service.aws.koding.com:8008/subscribe'
+      apiUri    : 'http://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
     host        : 'mq.devrim.dev.service.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
