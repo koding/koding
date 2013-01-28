@@ -12,6 +12,6 @@ default_attributes({
                      },
                      "launch" => {
                                 "config" => "autoscale",
-                                "programs" => ["emailworker"]
+                                "programs" => ["emailWorker"]
                      }
 })
