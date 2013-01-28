@@ -58,7 +58,9 @@ class ActivityListItemView extends KDListItemView
         getActivityChildConstructors()[constructorName]
 
     if childConstructor
-      childView = new childConstructor({}, data)
+      childView = new childConstructor
+        delegate : @
+      , data
       @addSubView childView
       callback?()
 
