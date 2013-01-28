@@ -6,19 +6,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 	"unsafe"
 )
-
-/*
-#ifdef __APPLE__
-#  include <util.h>
-#else
-#  include <pty.h>
-#endif
-#cgo LDFLAGS: -lutil
-*/
-import "C"
 
 type PTY struct {
 	Master        *os.File
@@ -27,15 +18,36 @@ type PTY struct {
 }
 
 func New() *PTY {
-	var master, slave C.int
-	C.openpty(&master, &slave, nil, nil, nil)
-	masterFile := os.NewFile(uintptr(master), "")
-	slaveFile := os.NewFile(uintptr(slave), "")
-	encodedMaster, err := charset.NewWriter("ISO-8859-1", masterFile)
+	// open master
+	master, err := os.OpenFile("/dev/pts/ptmx", os.O_RDWR, 0)
 	if err != nil {
 		panic(err)
 	}
-	return &PTY{masterFile, encodedMaster, slaveFile}
+
+	// unlock slave
+	var unlock int32
+	syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock)))
+
+	// find out slave name
+	var ptyno uint32
+	syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno)))
+	if ptyno == 0 {
+		panic("Failed to get ptyno")
+	}
+
+	// open slave
+	slave, err := os.OpenFile("/dev/pts/"+strconv.Itoa(int(ptyno)), os.O_RDWR|syscall.O_NOCTTY, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// apply proper encoding
+	encodedMaster, err := charset.NewWriter("ISO-8859-1", master)
+	if err != nil {
+		panic(err)
+	}
+
+	return &PTY{master, encodedMaster, slave}
 }
 
 func (pty *PTY) AdaptCommand(cmd *exec.Cmd) {
@@ -50,13 +62,10 @@ func (pty *PTY) AdaptCommand(cmd *exec.Cmd) {
 }
 
 type winsize struct {
-	ws_row, ws_col, ws_xpixel, ws_ypixel C.ushort
+	ws_row, ws_col, ws_xpixel, ws_ypixel uint16
 }
 
 func (pty *PTY) SetSize(x, y uint16) {
-	winsize := winsize{
-		ws_col: C.ushort(x),
-		ws_row: C.ushort(y),
-	}
+	winsize := winsize{ws_col: x, ws_row: y}
 	syscall.Syscall(syscall.SYS_IOCTL, pty.Slave.Fd(), syscall.TIOCSWINSZ, uintptr(unsafe.Pointer(&winsize)))
 }
