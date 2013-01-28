@@ -78,9 +78,11 @@
                  ],
                  "UserData":{"Fn::Base64": {"Fn::Join": ["",[ 
                                         <%= bootstrap_script.to_json %>,
-                                        "hostname:",
-                                        {"Fn::Join": ["",["osd",{"Ref": "OsdID"},"-",{"Ref" : "AWSZone"} ]]} 
-                                        ] 
+                                        "hostname: ",
+                                        { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"} ,"."]]}
+                                        ],
+                                        "\nfqdn: ",
+                                        { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"} ,"."]]}
                                     ] 
                                 } 
                             }
@@ -90,7 +92,7 @@
             "Type": "AWS::Route53::RecordSet",
             "Properties":{
                 "HostedZoneName": { "Fn::Join" : [ "", [{"Ref" : "HostedZone"}, "." ]]},
-                "Name" : { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-", {"Fn::GetAtt" : [ "CephInstance", "AvailabilityZone" ]}, ".", {"Ref" : "HostedZone"} ,"."]]},
+                "Name" : { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"} ,"."]]},
                 "Type" : "A",
                 "TTL" : "900",
                 "ResourceRecords" : [ { "Fn::GetAtt" : [ "CephInstance", "PrivateIp" ] } ]
@@ -101,6 +103,10 @@
         "InstanceId" : {
           "Description" : "InstanceId of the newly created EC2 instance",
           "Value" : { "Ref" : "CephInstance" }
+        },
+        "CephID" : {
+          "Description" : "ID of the newly created OSD server ",
+          "Value" : { "Ref" : "OsdID" }
         },
         "AZ" : {
           "Description" : "Availability Zone of the newly created EC2 instance",
