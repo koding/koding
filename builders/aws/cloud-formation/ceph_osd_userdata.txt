@@ -89,3 +89,7 @@ runcmd:
   - [/etc/init.d/chef-client, restart ]
 
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
+
+resolv_conf:
+    searchdomains:
+        - prod.aws.koding.com

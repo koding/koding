@@ -28,6 +28,11 @@
             "Type": "String",
             "Description": "AWS availability zone us-east-1a|us-east-1b|us-east-1c|us-east-1d ",
             "AllowedPattern": "[a-z0-9\\-]+"
+        },
+        "VolumeSize": {
+            "Type": "String",
+            "Description": "EBS volume size in GiBs. Two volumes will be attached for LVM striping",
+            "AllowedPattern": "[0-9]+"
         }
     },
 
@@ -49,6 +54,28 @@
     },
 
     "Resources": {
+
+        "Volume0": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": { 
+                "AvailabilityZone": { "Ref" : "AWSZone" },
+                "Size": { "Ref" : "VolumeSize"},
+                "Tags": [
+                    {"Key": "Name", "Value":{"Fn::Join": ["",["osd",{"Ref": "OsdID"},"-",{"Ref" : "AWSZone"} ]]}  }
+                ]
+             }
+        },
+        "Volume1": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": { 
+                "AvailabilityZone": { "Ref" : "AWSZone" },
+                "Size": { "Ref" : "VolumeSize"},
+                "Tags": [
+                    {"Key": "Name", "Value":{"Fn::Join": ["",["osd",{"Ref": "OsdID"},"-",{"Ref" : "AWSZone"} ]]} }
+                ]
+             }
+        },
+
         "CephInstance": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
@@ -57,6 +84,16 @@
                     "Ref": "KeyName"
                 },
                 "SubnetId": { "Fn::FindInMap" : [ "AWSZoneMap", { "Ref" : "AWSZone" }, "subnet" ]},
+                "Volumes": [
+                    {
+                        "Device": "/dev/sdf",
+                        "VolumeId": {"Ref": "Volume0"}
+                    },
+                    {
+                        "Device": "/dev/sdg",
+                        "VolumeId": {"Ref": "Volume1"}
+                    }
+                ],
                 "Tags": [
                     {
                         "Key": "Name",
@@ -79,11 +116,11 @@
                  "UserData":{"Fn::Base64": {"Fn::Join": ["",[ 
                                         <%= bootstrap_script.to_json %>,
                                         "hostname: ",
-                                        { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"} ,"."]]}
-                                        ],
+                                        { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"}]]},
                                         "\nfqdn: ",
                                         { "Fn::Join" : [ "", ["osd",{"Ref" : "OsdID"}, "-",{"Ref" : "AWSZone"} , ".", {"Ref" : "HostedZone"} ,"."]]}
                                     ] 
+                                  ]
                                 } 
                             }
             }
