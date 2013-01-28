@@ -170,26 +170,6 @@ class Sidebar extends JView
 
     @setListeners()
 
-  render:(account)->
-
-    account or= KD.whoami()
-
-    @avatar.setData account
-    @avatar.render()
-    @finderHeader.setData account
-    @finderHeader.render()
-
-    @navController.reset()
-    @accNavController.reset()
-    @footerMenuController.reset()
-    @resetAdminNavController()
-
-    @avatarAreaIconMenu.accountChanged account
-
-    @finderController.reset()
-
-    super
-
   pistachio:->
 
     """
