@@ -5,7 +5,6 @@ import (
 	_ "code.google.com/p/go-charset/data"
 	"io"
 	"os"
-	"os/exec"
 	"strconv"
 	"syscall"
 	"unsafe"
@@ -14,6 +13,7 @@ import (
 type PTY struct {
 	Master        *os.File
 	MasterEncoded io.WriteCloser
+	No            int
 	Slave         *os.File
 }
 
@@ -52,18 +52,7 @@ func New(ptsPath string) *PTY {
 		panic(err)
 	}
 
-	return &PTY{master, encodedMaster, slave}
-}
-
-func (pty *PTY) AdaptCommand(cmd *exec.Cmd) {
-	if cmd.SysProcAttr == nil {
-		cmd.SysProcAttr = new(syscall.SysProcAttr)
-	}
-	//pty.Slave.Chown(int(cmd.SysProcAttr.Credential.Uid), -1)
-	cmd.Stdin = pty.Slave
-	cmd.Stdout = pty.Slave
-	cmd.Stderr = pty.Slave
-	cmd.SysProcAttr.Setsid = true
+	return &PTY{master, encodedMaster, int(ptyno), slave}
 }
 
 type winsize struct {

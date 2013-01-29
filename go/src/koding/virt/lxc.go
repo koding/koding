@@ -1,8 +1,8 @@
 package virt
 
 import (
-	"fmt"
 	"os/exec"
+	"strconv"
 )
 
 func (vm *VM) StartCommand() *exec.Cmd {
@@ -17,10 +17,15 @@ func (vm *VM) ShutdownCommand() *exec.Cmd {
 	return exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String(), "--timeout", "5")
 }
 
-func (vm *VM) AttachCommand(uid int, command ...string) *exec.Cmd {
-	args := []string{"--name", vm.String(), "--", "/usr/bin/sudo", "-i", "-u", fmt.Sprintf("#%d", uid)}
+func (vm *VM) AttachCommand(uid int, pty string, command ...string) *exec.Cmd {
+	args := []string{"--name", vm.String()}
+	if pty != "" {
+		args = append(args, "--pty", pty, "--setsid")
+	}
+	args = append(args, "--", "/usr/bin/sudo", "-i", "-u", "#"+strconv.Itoa(uid))
 	args = append(args, command...)
 	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd = exec.Command("/bin/bash")
 	//cmd.Env = []string{"TERM=xterm"}
 	return cmd
 }

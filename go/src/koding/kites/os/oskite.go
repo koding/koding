@@ -62,7 +62,7 @@ func main() {
 		}
 
 		user := SessionUser(session)
-		return virt.GetDefaultVM(user).AttachCommand(user.Uid, command...).CombinedOutput()
+		return virt.GetDefaultVM(user).AttachCommand(user.Uid, "", command...).CombinedOutput()
 	})
 
 	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -72,7 +72,7 @@ func main() {
 		}
 
 		user := SessionUser(session)
-		return virt.GetDefaultVM(user).AttachCommand(user.Uid, "/bin/bash", "-c", line).CombinedOutput()
+		return virt.GetDefaultVM(user).AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
 	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {

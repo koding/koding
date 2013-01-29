@@ -8,6 +8,7 @@ import (
 	"koding/tools/pty"
 	"koding/virt"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 	"unicode/utf8"
@@ -29,16 +30,23 @@ type WebtermRemote struct {
 }
 
 func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
+	user := SessionUser(session)
+	vm := virt.GetDefaultVM(user)
+
 	server := &WebtermServer{
 		remote: remote,
-		pty:    pty.New(pty.DefaultPtsPath),
+		pty:    pty.New(vm.PtsDir()),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 	session.OnDisconnect(func() { server.Close() })
 
-	user := SessionUser(session)
-	cmd := virt.GetDefaultVM(user).AttachCommand(user.Uid) // empty command is default shell
-	server.pty.AdaptCommand(cmd)
+	server.pty.Slave.Chown(virt.VMROOT_ID, virt.VMROOT_ID+5)
+	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No), "/bin/bash")
+	cmd.Stdin = server.pty.Slave
+	cmd.Stdout = server.pty.Slave
+	cmd.Stderr = server.pty.Slave
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+
 	err := cmd.Start()
 	if err != nil {
 		panic(err)
@@ -49,8 +57,8 @@ func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string
 		defer log.RecoverAndLog()
 
 		cmd.Wait()
-		server.pty.Master.Close()
 		server.pty.Slave.Close()
+		server.pty.Master.Close()
 		server.remote.SessionEnded()
 	}()
 

@@ -115,6 +115,10 @@ func (vm *VM) UpperdirFile(path string) string {
 	return vm.File("overlayfs-upperdir/" + path)
 }
 
+func (vm *VM) PtsDir() string {
+	return vm.File("rootfs/dev/pts2")
+}
+
 func (vm *VM) GetUserEntry(user *db.User) *UserEntry {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
@@ -139,12 +143,8 @@ func (vm *VM) Prepare() {
 	}
 	vm.IP = ip
 
-	// prepare directories
-	vm.prepareDir(vm.File(""), 0)
-	vm.prepareDir(vm.File("rootfs"), VMROOT_ID)
-	vm.prepareDir(vm.UpperdirFile("/"), VMROOT_ID)
-
 	// write LXC files
+	prepareDir(vm.File(""), 0)
 	vm.generateFile(vm.File("config"), "config", 0, false)
 	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
 
@@ -172,15 +172,16 @@ func (vm *VM) Prepare() {
 	}
 
 	// mount block device to upperdir
+	prepareDir(vm.UpperdirFile(""), VMROOT_ID)
 	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
 		panic(err)
 	}
 
 	// prepare directories in upperdir
-	vm.prepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
-	vm.prepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
-	vm.prepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
-	vm.prepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
+	prepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
+	prepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
+	prepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
+	prepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
 
 	// create user homes
 	for i, entry := range vm.Users {
@@ -188,11 +189,11 @@ func (vm *VM) Prepare() {
 		if err != nil {
 			panic(err)
 		}
-		if vm.prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Uid) && i == 0 {
-			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Uid)
-			vm.prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
+		if prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Uid) && i == 0 {
+			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Uid)
+			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
 			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			vm.prepareDir(vm.UpperdirFile(websiteDir), user.Uid)
+			prepareDir(vm.UpperdirFile(websiteDir), user.Uid)
 			files, err := ioutil.ReadDir("templates/website")
 			if err != nil {
 				panic(err)
@@ -200,7 +201,7 @@ func (vm *VM) Prepare() {
 			for _, file := range files {
 				copyFile(config.Current.ProjectRoot+"/go/templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
 			}
-			vm.prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
+			prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
 				panic(err)
 			}
@@ -216,13 +217,23 @@ func (vm *VM) Prepare() {
 	vm.MergeDpkgDatabase()
 
 	// mount overlayfs
+	prepareDir(vm.File("rootfs"), VMROOT_ID)
 	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).Run(); err != nil {
 		panic(err)
 	}
+
+	// mount devpts
+	prepareDir(vm.PtsDir(), VMROOT_ID)
+	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=5,mode=0620", "devpts", vm.PtsDir()).Run(); err != nil {
+		panic(err)
+	}
+	chown(vm.PtsDir(), VMROOT_ID, VMROOT_ID)
+	chown(vm.PtsDir()+"/ptmx", VMROOT_ID, VMROOT_ID+5)
 }
 
 func (vm *VM) Unprepare() {
 	vm.StopCommand().Run()
+	exec.Command("/bin/umount", vm.PtsDir()).Run()
 	exec.Command("/bin/umount", vm.File("rootfs")).Run()
 	exec.Command("/bin/umount", vm.UpperdirFile("")).Run()
 	exec.Command("/usr/bin/rbd", "unmap", vm.String(), "--pool", "rbd").Run()
@@ -252,7 +263,7 @@ func (vm *VM) waitForRBD() {
 }
 
 // may panic
-func (vm *VM) prepareDir(path string, id int) bool {
+func prepareDir(path string, id int) bool {
 	created := true
 	if err := os.Mkdir(path, 0755); err != nil {
 		if os.IsExist(err) {
@@ -262,9 +273,7 @@ func (vm *VM) prepareDir(path string, id int) bool {
 		}
 	}
 
-	if err := os.Chown(path, id, id); err != nil {
-		panic(err)
-	}
+	chown(path, id, id)
 
 	return created
 }
@@ -281,16 +290,21 @@ func (vm *VM) generateFile(path, template string, id int, executable bool) {
 		panic(err)
 	}
 
-	if err := file.Chown(id, id); err != nil {
-		panic(err)
-	}
-
 	if executable {
 		err = file.Chmod(0755)
 	} else {
 		err = file.Chmod(0644)
 	}
 	if err != nil {
+		panic(err)
+	}
+
+	chown(path, id, id)
+}
+
+// may panic
+func chown(path string, uid, gid int) {
+	if err := os.Chown(path, uid, gid); err != nil {
 		panic(err)
 	}
 }
