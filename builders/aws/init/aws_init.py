@@ -14,7 +14,7 @@ CONFIG = 'bahadir'
 NETWORK = [
     {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm2.2xlarge'},
     {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm2.2xlarge'},
-    {'roles': ['authworker', 'socialworker'], 'autoscale': (4, 10), 'instance_type': 'm1.large'},
+    {'roles': ['authworker', 'socialworker'], 'autoscale': (2, 6), 'instance_type': 'm1.large'},
 ]
 
 #
@@ -110,9 +110,21 @@ def get_user_data(roles, attributes):
             attrs.append('    %s: "%s"' % (key, value))
     attrs = '\n        '.join(attrs)
     tmp = tmp.replace('{{CHEF_ATTRIBUTES}}', attrs)
+
+    # Add keys
+    key_list = '- ' + '\n  - '.join(get_user_keys())
+    tmp = tmp.replace('{{SSH_KEYS}}', key_list)
     
     return tmp
 
+def get_user_keys():
+    keys = []
+    ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+    for filename in os.listdir(ssh_dir):
+        if filename.endswith('.pub'):
+            filename = os.path.join(ssh_dir, filename)
+            keys.append(get_file_content(filename))
+    return keys
 
 def create_alarm(as_group):
     scale_up_policy = boto.ec2.autoscale.ScalingPolicy(name='scale_up',
@@ -139,7 +151,7 @@ def create_alarm(as_group):
                                                      metric='CPUUtilization',
                                                      statistic='Average',
                                                      comparison='>',
-                                                     threshold='55',
+                                                     threshold='60',
                                                      period='120',
                                                      evaluation_periods=2,
                                                      alarm_actions=[scale_up_policy.policy_arn],
@@ -332,7 +344,7 @@ def main():
     save_file_content(AWS_DUMP, aws_data)
 
     print
-    print "Run this to terminate all: %s -x" % sys.arg[0]
+    print "Run this to terminate all: %s -x" % sys.argv[0]
 
 if __name__ == '__main__':
     main()
