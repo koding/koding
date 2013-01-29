@@ -45,7 +45,7 @@ module.exports = class JAccount extends jraphical.Module
       'profile.nickname' : 'unique'
     sharedMethods :
       static      : [
-        'one', 'some', 'someWithRelationship'
+        'one', 'some', 'cursor', 'each', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
         'byRelevance', 'fetchVersion','reserveNames'
         'impersonate'

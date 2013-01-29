@@ -5,9 +5,6 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
-mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
-mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10004/gokmen?auto_reconnect'
 mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -29,6 +26,7 @@ module.exports = deepFreeze
     port        : 3000
     clusterSize : 4
     queueName   : socialQueueName+'web'
+    watch       : yes
   mongo         : mongo
   runGoBroker   : no
   buildClient   : yes
@@ -62,11 +60,17 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
+    watch       : yes  
   social        :
     login       : 'social'
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no    # don't run this, this should only run by prod or one at a time for testing
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"

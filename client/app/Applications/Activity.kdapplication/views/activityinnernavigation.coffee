@@ -1,12 +1,12 @@
 class ActivityInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
 
-    feedController = @setListController
-      type : "feed"
-      itemClass : ListGroupShowMeItem
-    , @feedMenuData
-    @addSubView feedController.getView()
-    feedController.selectItem feedController.getItemsOrdered()[0]
+    # feedController = @setListController
+    #   type : "feed"
+    #   itemClass : ListGroupShowMeItem
+    # , @feedMenuData
+    # @addSubView feedController.getView()
+    # feedController.selectItem feedController.getItemsOrdered()[0]
 
     filterController = @setListController
       type : "showme"
@@ -25,12 +25,12 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         html      : yes
         animate   : yes
 
-  feedMenuData :
-    title : "FEED"
-    items : [
-        { title : "Public"  , type : "public" }
-        # { title : "Followed", type : "private" }
-      ]
+  # feedMenuData :
+  #   title : "FEED"
+  #   items : [
+  #       { title : "Public"  , type : "public" }
+  #       { title : "Followed", type : "private" }
+  #     ]
 
   showMenuData :
     title : "SHOW ME"

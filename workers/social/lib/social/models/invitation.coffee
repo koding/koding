@@ -142,53 +142,56 @@ module.exports = class JInvitation extends jraphical.Module
         if err then callback err
         else callback "There are #{waitingInvite} people who is waiting for invite."
 
-  @sendBetaInvite = (options,callback) ->
 
-    betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
+  @sendBetaInvite = do ->
+    betaTestersHTML = null
+    (options,callback) ->
 
-    Bitly = require 'bitly'
-    bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
-    protocol = 'http://'
-    email   = options.email ? "devrim+#{Date.now()}@koding.com"
+      betaTestersHTML ?= fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
 
-    JInvitation.one {inviteeEmail: email}, (err, invite)=>
-      if err
-        console.log err
-      else if invite?
-        url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
-        personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
+      Bitly = require 'bitly'
+      bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
+      protocol = 'http://'
+      email   = options.email ? "devrim+#{Date.now()}@koding.com"
 
-        emailerObj =
-          From      : @getInviteEmail()
-          To        : email
-          Subject   : '[Koding] Here is your beta invite!'
-          TextBody  : personalizedMail
+      JInvitation.one {inviteeEmail: email}, (err, invite)=>
+        if err
+          console.log err
+        else if invite?
+          url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
+          personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
-        # console.log emailerObj
-        if options.justInviteNoEmail
-          callback null,"invite link: #{url}"
-          bitly.shorten url, (err, response)->
-            if err
-              callback err
-            else
-              shortenedUrl = response.data.url
-              callback err,shortenedUrl
-        else
-          Emailer.send emailerObj, (err)->
-            if err
-              console.log '[ERROR SENDING MAIL]', email,err
-              callback err
-            else
-              callback null
-          # else console.log email
-      else
-        # console.log "no invitation was found for #{email}"
-        createBetaInvite inviteeEmail:email,(err)->
-          unless err
-            options.email = email
-            JInvitation.sendBetaInvite options,callback
+          emailerObj =
+            From      : @getInviteEmail()
+            To        : email
+            Subject   : '[Koding] Here is your beta invite!'
+            TextBody  : personalizedMail
+
+          # console.log emailerObj
+          if options.justInviteNoEmail
+            callback null,"invite link: #{url}"
+            bitly.shorten url, (err, response)->
+              if err
+                callback err
+              else
+                shortenedUrl = response.data.url
+                callback err,shortenedUrl
           else
-            log "[JInvitation.sendBetaInvite] something got messed up."
+            Emailer.send emailerObj, (err)->
+              if err
+                console.log '[ERROR SENDING MAIL]', email,err
+                callback err
+              else
+                callback null
+            # else console.log email
+        else
+          # console.log "no invitation was found for #{email}"
+          createBetaInvite inviteeEmail:email,(err)->
+            unless err
+              options.email = email
+              JInvitation.sendBetaInvite options,callback
+            else
+              log "[JInvitation.sendBetaInvite] something got messed up."
 
   @grantInvitesFromClient = secure (client, options, callback)->
 

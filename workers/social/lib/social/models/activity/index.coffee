@@ -1,4 +1,4 @@
-jraphical = require 'jraphical'
+jraphical      = require 'jraphical'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -20,8 +20,8 @@ module.exports = class CActivity extends jraphical.Capsule
     #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','teasers','each'
-        'captureSortCounts','addGlobalListener'
+        'one','some','all','someData','each','cursor','teasers'
+        'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -69,6 +69,41 @@ module.exports = class CActivity extends jraphical.Capsule
   #                   $addToSet:
   #                     snapshotIds: subject.getId()
   #                 , callback
+
+  @fetchCacheCursor =(options = {}, callback)->
+
+    {to, from, lowQuality, types, limit, sort} = options
+
+    selector =
+      createdAt    :
+        $lt        : new Date to
+        $gt        : new Date from
+      type         :
+        $in        : types
+      isLowQuality :
+        $ne        : lowQuality
+
+    fields  =
+      type      : 1
+      createdAt : 1
+
+    options =
+      sort  : sort  or {createdAt: -1}
+      limit : limit or 1000
+
+    @someData selector, fields, options, (err, cursor)->
+      if err then callback err
+      else
+        callback null, cursor
+
+  @fetchRangeForCache = (options = {}, callback)->
+    @fetchCacheCursor options, (err, cursor)->
+      if err then console.warn err
+      else
+        cursor.toArray (err, arr)->
+          if err then callback err
+          else
+            callback null, arr
 
   @captureSortCounts =(callback)->
     selector = {
@@ -145,6 +180,28 @@ module.exports = class CActivity extends jraphical.Capsule
     @someData {snapshot:$exists:1}, {snapshot:1}, {limit:20}, (err, cursor)->
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
+
+  @fetchFacets = (options, callback)->
+
+    {to, limit, facets, lowQuality} = options
+
+    selector =
+      type         : { $in : facets }
+      createdAt    : { $lt : new Date to }
+      isLowQuality : { $ne : lowQuality }
+
+    options =
+      limit : limit or 20
+      sort  : createdAt : -1
+
+
+    console.log JSON.stringify selector
+
+    @some selector, options, (err, activities)->
+      if err then callback err
+      else
+        callback null, activities
+
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

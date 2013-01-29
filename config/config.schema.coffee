@@ -140,6 +140,11 @@ config =
       numberOfWorkers: 1
       watch       : 1
       queueName   : 1
+    cacheWorker       :
+      login           : 1
+      watch           : 1
+      queueName       : 1
+      run             : 1
     feeder        :
       queueName   : 1
       exchangePrefix: 1

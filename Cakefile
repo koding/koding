@@ -225,6 +225,25 @@ task 'libratoWorker',({configFile})->
     restartInterval: 100
     verbose: yes
 
+task 'cacheWorker',({configFile})->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {cacheWorker} = KONFIG
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
+
+
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -241,6 +260,7 @@ run =({configFile})->
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
+    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'
