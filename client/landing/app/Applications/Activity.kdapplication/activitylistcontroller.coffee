@@ -64,16 +64,17 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
 
-    for item in cache.overview when item
-      if item.ids.length > 1
+    for overviewItem in cache.overview when overviewItem
+      if overviewItem.ids.length > 1
         @addItem new NewMemberBucketData
-          type      : "CNewMemberBucketActivity"
-          anchors   : (cache.activities[id].teaser.anchor for id in item.ids)
-          count     : item.count
-          createdAt : item.createdAt
+          type                : "CNewMemberBucketActivity"
+          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
+          count               : overviewItem.count
+          createdAtTimestamps : overviewItem.createdAt
       else
-        if cache.activities[item.ids.first]?.teaser
-          @addItem cache.activities[item.ids.first].teaser
+        if cache.activities[overviewItem.ids.first]?.teaser
+          cache.activities[overviewItem.ids.first].teaser.createdAtTimestamps = overviewItem.createdAt
+          @addItem cache.activities[overviewItem.ids.first].teaser
 
     @emit "teasersLoaded"
 
