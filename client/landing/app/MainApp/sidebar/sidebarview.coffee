@@ -211,32 +211,10 @@ class Sidebar extends JView
 
     @setListeners()
 
-
-    @navController.reset()
-    @accNavController.reset()
-    @footerMenuController.reset()
-    @resetAdminNavController()
-
-
   switchNav:(group)->
     nav = $ "#main-nav .kdlistview-navigation"
     nav.addClass 'out'
     @utils.wait 300, -> nav.removeClass 'out'
-
-  render:(account)->
-    log 'render is called'
-    account or= KD.whoami()
-
-    @avatar.setData account
-    @avatar.render()
-    @finderHeader.setData account
-    @finderHeader.render()
-
-    @avatarAreaIconMenu.accountChanged account
-
-    @finderController.reset()
-
-    super
 
   pistachio:->
 
