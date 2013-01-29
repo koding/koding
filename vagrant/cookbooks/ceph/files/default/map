@@ -3,6 +3,7 @@
 # devices
 device 0 osd.0
 device 1 osd.1
+device 2 osd.2
 
 # types
 type 0 osd
@@ -13,31 +14,60 @@ type 4 room
 type 5 datacenter
 type 6 pool
 
-host i-aecf34de {
+host osd-0-us-east-1a {
+        id -1           # do not change unnecessarily
+        alg straw
+        hash 0  # rjenkins1
+        item osd.0 weight 0.05
+}
+host osd-1-us-east-1b {
         id -2           # do not change unnecessarily
         alg straw
         hash 0  # rjenkins1
-        item osd.0 weight 0.150
+        item osd.1 weight 0.05
 }
-host i-90cf34e0 {
+host osd-2-us-east-1c {
         id -3           # do not change unnecessarily
         alg straw
         hash 0  # rjenkins1
-        item osd.1 weight 0.150
+        item osd.2 weight 0.05
 }
+
+
+
+
+
 datacenter us-east-1a {
         id -4           # do not change unnecessarily
         alg straw
         hash 0  # rjenkins1
-        item i-aecf34de weight 0.150
-        item i-90cf34e0 weight 0.150
+        item osd-0-us-east-1a weight 0.05
 }
-pool vms {
-        id -1
+datacenter us-east-1b {
+        id -5           # do not change unnecessarily
         alg straw
         hash 0  # rjenkins1
-        item us-east-1a weight 0.300
+        item osd-1-us-east-1b weight 0.05
 }
+datacenter us-east-1c {
+        id -6           # do not change unnecessarily
+        alg straw
+        hash 0  # rjenkins1
+        item osd-2-us-east-1c weight 0.05
+}
+
+
+
+
+pool vms {
+        id -7
+        alg straw
+        hash 0  # rjenkins1
+        item us-east-1a
+        item us-east-1b
+        item us-east-1c
+}
+
 
 rule data {
         ruleset 0
@@ -48,22 +78,5 @@ rule data {
         step chooseleaf firstn 0 type host
         step emit
 }
-rule metadata {
-        ruleset 1
-        type replicated
-        min_size 1
-        max_size 10
-        step take vms
-        step chooseleaf firstn 0 type host
-        step emit
-}
-rule rbd {
-        ruleset 2
-        type replicated
-        min_size 1
-        max_size 10
-        step take vms
-        step chooseleaf firstn 0 type host
-        step emit
-}
+
 # end crush map
