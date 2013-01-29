@@ -22,12 +22,11 @@ app.activity.styl
   a,&:visited
     color #FF9200
 
-.notification-header
-  background-color      #F4F4F4!important
-  font-weight           400px!important
-  display               block!important
-  height                75px!important
-  border-bottom         1px solid #E5E5E5!important
+h1.kdheaderview.notification-header
+  background-color      #F4F4F4
+  font-weight           400px
+  height                75px
+  border-bottom         1px solid #E5E5E5
   div
     display             inline-block
     margin              11px 10px 10px 25px
@@ -141,6 +140,9 @@ app.activity.styl
       border-width        0
       background-color    #FDF5D9
       left                -100%
+    .kdloader
+      vertical-align      bottom
+      margin-bottom       2px
 
   .system-message
     font-weight           600
@@ -152,6 +154,8 @@ app.activity.styl
       width               auto
       margin              2px 0 2px 33px
       padding             2px 0 0 0
+      &.new-member
+        overflow          visible
 
 
     .ttag
@@ -162,6 +166,16 @@ app.activity.styl
       sprite()
       size(20px,20px)
       blockMid()
+      &.fx
+        vendor            transition, opacity .3s ease-in\, left .3s ease-in
+        top               2px
+        opacity           1
+        left              0
+        abs()
+      &.out
+        opacity           .5
+        left              -50px
+
     a
       color               #5F5F5F
       font-weight         600
