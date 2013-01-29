@@ -86,14 +86,18 @@ class GroupsMemberPermissionsView extends JView
     options.cssClass = "groups-member-permissions-view"
 
     super
-
+    
     groupData       = @getData()
+    
     @listController = new KDListViewController
       itemClass     : GroupsMemberPermissionsListItemView
     @listWrapper    = @listController.getView()
     @loader         = new KDLoaderView
       size          :
         width       : 32
+
+    @listController.getListView().on 'ItemWasAdded', (view)=>
+      view.on 'RolesChanged', @bound 'memberRolesChange'
 
     list = @listController.getListView()
     list.getOptions().group = groupData
@@ -114,6 +118,9 @@ class GroupsMemberPermissionsView extends JView
               else
                 @listController.instantiateListItems members
                 @loader.hide()
+
+  memberRolesChange:(member, roles)->
+    @getData().changeMemberRoles member, roles, (err)-> console.log {arguments}
 
   viewAppended:->
 
@@ -153,7 +160,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       cssClass         : 'fr'
       icon             :
         cssClass       : 'edit'
-      click            : @showEditMemberRolesView.bind @
+      click            : @bound 'showEditMemberRolesView'
 
     @saveLink        = new CustomLinkView
       title            : 'Save'
@@ -161,6 +168,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       icon             :
         cssClass       : 'save'
       click            : =>
+        @emit 'RolesChanged', @getData(), @editView.getSelectedRoles()
         @hideEditMemberRolesView()
         log "save"
 
@@ -169,7 +177,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       cssClass         : 'fr hidden'
       icon             :
         cssClass       : 'delete'
-      click            : @hideEditMemberRolesView.bind @
+      click            : @bound 'hideEditMemberRolesView'
 
     @editContainer     = new KDView
       cssClass         : 'edit-container hidden'
@@ -181,16 +189,17 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
   showEditMemberRolesView:->
 
     list           = @getDelegate()
-    editView       = new GroupsMemberRolesEditView delegate : @
+    @editView       = new GroupsMemberRolesEditView delegate : @
+    @editView.setMember @getData()
     editorsRoles   = list.getOptions().editorsRoles
     {group, roles} = list.getOptions()
     list.emit "EditMemberRolesViewShown", @
 
     @editLink.hide()
     @cancelLink.show()
-    @saveLink.show()
+    @saveLink.show()  unless KD.whoami().getId() is @getData().getId()
     @editContainer.show()
-    @editContainer.addSubView editView
+    @editContainer.addSubView @editView
 
     unless editorsRoles
       group.fetchMyRoles (err, editorsRoles)=>
@@ -198,11 +207,11 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
           log err
         else
           list.getOptions().editorsRoles = editorsRoles
-          editView.setRoles editorsRoles, roles
-          editView.addViews()
+          @editView.setRoles editorsRoles, roles
+          @editView.addViews()
     else
-      editView.setRoles editorsRoles, roles
-      editView.addViews()
+      @editView.setRoles editorsRoles, roles
+      @editView.addViews()
 
   hideEditMemberRolesView:->
 
@@ -237,7 +246,6 @@ class GroupsMemberRolesEditView extends JView
         width : 22
 
   setRoles:(editorsRoles, allRoles)->
-
     allRoles = allRoles.reduce (acc, role)->
       acc.push role.title  unless role.title in ['owner', 'guest']
       return acc
@@ -249,28 +257,37 @@ class GroupsMemberRolesEditView extends JView
       editorsRoles
     }
 
+  setMember:(@member)->
+
+  getSelectedRoles:->
+    [@radioGroup.getValue()]
 
   addViews:->
 
     @loader.hide()
 
-    radioGroup = new KDInputRadioGroup
+    isMe = KD.whoami().getId() is @member.getId()
+
+    @radioGroup = new KDInputRadioGroup
       name         : 'user-role'
       defaultValue : @roles.usersRole
       radios       : @roles.allRoles.map (role)-> {value : role, title: role.capitalize()}
+      disabled     : isMe
 
-    @addSubView radioGroup, '.radios'
+    @addSubView @radioGroup, '.radios'
 
     @addSubView (new KDButtonView
       title    : "Make Owner"
       cssClass : 'modal-clean-gray'
       callback : -> log "Transfer Ownership"
+      disabled : isMe
     ), '.buttons'
 
     @addSubView (new KDButtonView
       title    : "Kick"
       cssClass : 'modal-clean-red'
       callback : -> log "Kick user"
+      disabled : isMe
     ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'

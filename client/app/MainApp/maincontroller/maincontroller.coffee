@@ -17,11 +17,13 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
+    
+
     KD.registerSingleton 'router', new KodingRouter location.pathname
     KD.registerSingleton "groupsController", new GroupsController
 
-    @appReady =>
 
+    @appReady =>
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController

@@ -7,18 +7,14 @@ Broker   = require 'broker'
 {mongo, cacheWorker, mq} = KONFIG
 
 mqOptions = extend {}, mq
-mqOptions.login = cacheWorker.login if cacheWorker?.login?
+# mqOptions.login = cacheWorker.login if cacheWorker?.login?
 
 koding = new Bongo {
   mongo
   root         : __dirname
   mq           : new Broker mqOptions
   resourceName : cacheWorker.queueName
-  models       : [
-    '../social/lib/social/models/activity/cache.coffee'
-    '../social/lib/social/models/activity/index.coffee'
-    '../social/lib/social/models/messages'
-  ]
+  models       : '../social/lib/social/models'
 }
 
 {JActivityCache, CActivity} = koding.models
@@ -70,3 +66,5 @@ do ->
         JActivityCache.modifyByTeaser {teaserId, createdAt}
 
     console.log "Activity Cache Worker is ready."
+
+    JActivityCache.init()

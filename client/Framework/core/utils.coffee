@@ -472,7 +472,7 @@ __utils =
 
     return if location.hostname isnt "localhost"
 
-    status = KD.utils.generatePassword(10, yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    status = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err

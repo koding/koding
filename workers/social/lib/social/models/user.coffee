@@ -129,8 +129,8 @@ module.exports = class JUser extends jraphical.Module
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
-  @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+  @authenticateClient =(clientId, context, callback)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
@@ -266,7 +266,7 @@ module.exports = class JUser extends jraphical.Module
                         callback null, account, replacementToken
 
   @logout = secure (client, callback)->
-    if 'string' is typeof clientId
+    if 'string' is typeof client
       sessionToken = client
     else
       {sessionToken} = client

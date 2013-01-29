@@ -29,9 +29,6 @@ class KodingRouter extends KDRouter
     sectionName = nicenames[model.bongo_.constructorName]
     if sectionName? then " - #{sectionName}" else ''
 
-  handleRoute =(groupId, route)->
-    console.log 'invoking a route by group id...'
-
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
     @utils.defer => @addRoute route, ->

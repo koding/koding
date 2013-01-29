@@ -44,7 +44,7 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles'
+        'fetchUserRoles','changeMemberRoles'
       ]
     schema          :
       title         :
@@ -177,6 +177,10 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  changeMemberRoles: permit 'grant permissions'
+    success:(client, member, roles, callback)->
+      callback '123 sfsfsf'
 
   addDefaultRoles:(callback)->
 

@@ -1,29 +1,30 @@
 {
-  "version": "0.1.0",
-  "suggestions": {
-  },
-  "recommendations": {
-  },
-  "license": "All rights reserved",
-  "maintainer_email": "<aleksey@koding.com>",
-  "replacing": {
-  },
-  "providing": {
-  },
   "description": "Installs/Configures ceph servers and clients",
-  "groupings": {
+  "recommendations": {
   },
   "platforms": {
   },
-  "recipes": {
-  },
-  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
-  "name": "ceph",
-  "conflicting": {
+  "providing": {
   },
   "maintainer": "Aleksey Mykhailov",
-  "dependencies": {
+  "long_description": "Description\n===========\nrecipe[ceph::server] installs and configure ceph osd/mon\nrecipe[ceph::client] installs and configure ceph client\nRequirements\n============\nrecipe[apt::cepth]\nAttributes\n==========\ndefault[\"ceph\"][\"version\"]\nUsage\n=====\n\n",
+  "conflicting": {
+  },
+  "license": "All rights reserved",
+  "name": "ceph",
+  "groupings": {
+  },
+  "replacing": {
+  },
+  "suggestions": {
+  },
+  "maintainer_email": "<aleksey@koding.com>",
+  "recipes": {
   },
   "attributes": {
-  }
+  },
+  "dependencies": {
+    "apt": ">= 0.0.0"
+  },
+  "version": "0.1.0"
 }

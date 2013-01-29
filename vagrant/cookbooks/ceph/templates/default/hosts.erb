@@ -1,0 +1,13 @@
+127.0.0.1 localhost
+
+# mon nodes
+<% @mon_nodes.each do |node| -%>
+<%= node[:addr] %> <%= node[:id] %>
+<% end -%>
+
+# osd nodes
+<% @osd_nodes.each do |node| -%>
+<%= node[:addr] %> <%= node[:id] %>
+<% end -%>
+
+

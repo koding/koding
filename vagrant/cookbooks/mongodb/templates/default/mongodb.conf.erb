@@ -1,0 +1,31 @@
+# deployed by Chef
+logpath=<%= @logpath %>/mongod.log
+logappend=true
+port = <%= @port %>
+dbpath=<%= @dbpath %>
+<% if @journal %>
+journal=true
+<% else -%>
+nojournal=true
+<% end -%>
+<% if File.exists?("#{node['mongodb']['dbpath']}/admin.1") %>
+auth = true
+<% else -%>
+noauth = true
+<% end -%>
+<% if @httpinterface %>
+rest=true
+<% else -%>
+nohttpinterface=false
+<% end -%>
+<% if @master %>
+master=true
+<% if @oplogsize %>
+oplogSize = <% @oplogsize %>
+<% end -%>
+<% end -%>
+<% if @slave %>
+slave=true
+source = <%= @source %>
+<% end -%>
+
