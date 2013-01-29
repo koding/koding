@@ -107,16 +107,19 @@ module.exports = class JPost extends jraphical.Message
       if data?.meta?.tags
         {tags} = data.meta
         delete data.meta.tags
-      status = new constructor data
+
+      status   = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
+
       if delegate.checkFlag 'exempt'
-        status.isLowQuality = yes
+        status.isLowQuality   = yes
         activity.isLowQuality = yes
-      activity.originId = delegate.getId()
+
+      activity.originId   = delegate.getId()
       activity.originType = delegate.constructor.name
-      activity.group = data.group
-      teaser = null
+      teaser              = null
+
       daisy queue = [
         ->
           status.createSlug (err, slug)->

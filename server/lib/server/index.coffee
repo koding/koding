@@ -42,7 +42,7 @@ else
       pattern: 'web'
     worker_social:
       pattern: 'social'
-    
+
   incService = (serviceKey, inc) ->
     for key, value of services
       if serviceKey.indexOf(value.pattern) > -1
@@ -103,19 +103,13 @@ else
     JActivityCache.latest (err, cache)->
       if err then console.warn err
       console.log "latest: #{Date.now() - startTime} msecs!"
-      res.send if cache then cache.data else []
+      return res.send if cache then cache.data else {}
 
   app.get "/-/cache/before/:timestamp", (req, res)->
     {JActivityCache} = koding.models
     JActivityCache.before req.params.timestamp, (err, cache)->
       if err then console.warn err
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/id/:id", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.byId req.params.id, (err, cache)->
-      if err then console.warn err
-      res.send if cache then cache.data else []
+      res.send if cache then cache.data else {}
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'
