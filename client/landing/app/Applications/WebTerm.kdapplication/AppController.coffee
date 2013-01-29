@@ -24,7 +24,19 @@ class WebTermController extends AppController
 
   bringToFront: ->
 
-    data = @getOptions().view
+    data = new WebTermView
+    data.on "WebTerm.terminated", =>
+      @propagateEvent
+       KDEventType  : "ApplicationWantsToClose"
+       globalEvent  : yes
+      , data: data
+
+    data.on 'ViewClosed', =>
+      @propagateEvent
+        KDEventType : 'ApplicationWantsToClose'
+        globalEvent : yes
+      ,
+        data : data
 
     options =
       name         : "Terminal"
