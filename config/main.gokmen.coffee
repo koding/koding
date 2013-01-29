@@ -5,8 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -15,19 +14,19 @@ projectRoot = nodePath.join __dirname, '..'
 #   catch e then ""
 # ).trim()
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   uri           :
-    address     : "https://koding.com"
+    address     : "http://gokmen.dev.service.aws.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 10
+    clusterSize : 2
     queueName   : socialQueueName+'web'
-    watch       : no
+    watch       : yes
   mongo         : mongo
   runGoBroker   : yes
   compileGo     : yes
@@ -56,57 +55,57 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : no
+    watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 10
-    watch       : no
+    numberOfWorkers: 1
+    watch       : yes
     queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
-    numberOfWorkers: 2
+    numberOfWorkers: 1
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
-    minify      : yes
-    watch       : no
+    minify      : no
+    watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://koding.com'
+    staticFilesBaseUrl: 'http://gokmen.dev.service.aws.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: yes
+      suppressLogs: no
       version   : version
-      mainUri   : 'https://koding.com'
+      mainUri   : 'http://gokmen.dev.service.aws.koding.com/'
       broker    :
-        sockJS  : 'https://mq.koding.com/subscribe'
-      apiUri    : 'https://api.koding.com'
+        sockJS  : 'http://broker.gokmen.dev.service.aws.koding.com:8008/subscribe'
+      apiUri    : 'http://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://app.koding.com'
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
-    host        : 'localhost'
+    host        : 'mq.gokmen.dev.service.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
-    vhost       : '/'
+    vhost       : 'kite'
   email         :
-    host        : 'koding.com'
-    protocol    : 'https:'
+    host        : 'gokmen.dev.service.aws.koding.com'
+    protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
     notificationCronDaily    : '0 10 0 * * *'
@@ -118,17 +117,16 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
-      login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
+      host          : 'mq.gokmen.dev.service.aws.koding.com'
+      login         : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
-    push: yes
-    url: "http://post.loggr.net/1/logs/koding/events"
-    apiKey: "eb65f620b72044118015d33b4177f805"
+    push: no
+    url: ""
+    apiKey: ""
   librato:
-    push: yes
-    email: "devrim@koding.com"
-    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
+    push: no
+    email: ""
+    token: ""
     interval: 30000
-

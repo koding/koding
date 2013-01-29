@@ -3,34 +3,34 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10004/gokmen?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
+rabbitPrefix = (
+  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  catch e then ""
+).trim()
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
   uri           :
-    address     : "https://koding.com"
+    address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'prod-webserver'
-    port        : 3020
-    clusterSize : 10
+    login       : 'webserver'
+    port        : 3000
+    clusterSize : 4
     queueName   : socialQueueName+'web'
-    watch       : no
   mongo         : mongo
-  runGoBroker   : yes
-  compileGo     : yes
+  runGoBroker   : no
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -44,6 +44,11 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  librato :
+    push      : no
+    email     : ""
+    token     : ""
+    interval  : 30 * 1000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
@@ -52,19 +57,15 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'authWorker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : no
   social        :
-    login       : 'prod-social'
-    numberOfWorkers: 10
-    watch       : no
+    login       : 'social'
+    numberOfWorkers: 1
+    watch       : yes
     queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
@@ -73,40 +74,39 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
-    minify      : yes
-    watch       : no
+    minify      : no
+    watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://koding.com'
+    staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: yes
+      suppressLogs: no
       version   : version
-      mainUri   : 'https://koding.com'
+      mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'https://mq.koding.com/subscribe'
-      apiUri    : 'https://api.koding.com'
+        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'localhost'
-    login       : 'PROD-k5it50s4676pO9O'
-    componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    host        : 'web0.dev.system.aws.koding.com'
+    login       : 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
-    vhost       : '/'
+    vhost       : 'kite'
   email         :
-    host        : 'koding.com'
-    protocol    : 'https:'
+    host        : 'localhost'
+    protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
     notificationCronDaily    : '0 10 0 * * *'
@@ -118,17 +118,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
-      login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
+      host          : 'web0.dev.system.aws.koding.com'
+      login         : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-  loggr:
-    push: yes
-    url: "http://post.loggr.net/1/logs/koding/events"
-    apiKey: "eb65f620b72044118015d33b4177f805"
-  librato:
-    push: yes
-    email: "devrim@koding.com"
-    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
-    interval: 30000
-

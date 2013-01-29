@@ -214,16 +214,43 @@ div.kdselectbox
 
   &.dark
     a
+      border            none
+      text-shadow       0 1px 0 #333
+      background-image  none
+      background-color  rgba(255,255,255,0.08)
       shadow            none
       &:hover
         shadow          none
       &.active
+        gradient1       #f49f3f,82.7%,#e18931,30%
         shadow          none
         &.off
           shadow        none
+    a:last-of-type
+      border-right      none !important
 
+  &.multiple-choice
+    a
+      border-radius       0
+      padding-left        6px
+      padding-right       6px
+      width               auto
+      border-right        none
+      min-width           16px
 
+    a:first-of-type
+      border-top-left-radius     3px
+      border-bottom-left-radius  3px
 
+    a:last-of-type
+      border-top-right-radius    3px
+      border-bottom-right-radius 3px
+      border-right               1px solid #cfcfcf
+      &.active
+        border-color             #e2963f
+
+    .big
+      width               auto
 
 .kdview.kdfileupload
   min-width         340px

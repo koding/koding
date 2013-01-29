@@ -86,7 +86,7 @@ class KDRouter extends KDObject
         node[edge] or= {}
         node = node[edge]
     node[listenerKey] or= []
-    node[listenerKey].push listener
+    node[listenerKey].push listener  unless listener in node[listenerKey]
 
   addRoutes:(routes)->
     @addRoute route, listener  for own route, listener of routes

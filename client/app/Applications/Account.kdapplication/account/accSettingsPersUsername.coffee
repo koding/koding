@@ -88,6 +88,7 @@ class AccountEditUsername extends KDView
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"
+
     usernameForm.addSubView usernameLabel = new KDLabelView
       title        : "Your username"
       cssClass     : "main-label"
@@ -125,20 +126,3 @@ class AccountEditUsername extends KDView
 
     @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews
-
-    @addSubView @emailOptOutView = new KDFormView
-    @emailOptOutView.addSubView new KDLabelView
-      title        : "Email notifications"
-      cssClass     : "main-label"
-
-    emailFrequency = user.getAt('emailFrequency.global')
-
-    @emailOptOutView.addSubView new KDOnOffSwitch
-      cssClass      : 'dark'
-      defaultValue  : if emailFrequency is 'never' then off else on
-      callback      : (state)->
-        account.setEmailPreferences global: state, ->
-          new KDNotificationView
-            duration : 2000
-            title    : if state then 'You will get email notifications.' \
-                                else 'You will no longer get email notifications.'

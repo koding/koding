@@ -14,10 +14,10 @@ module.exports = class EmailQueue extends EventEmitter
     job = new CronJob cronTime, fn
     job.start()
     @tasks[taskName] = job
-  
+
   cancelTask:(taskName)->
     @tasks[taskName].stop()
-  
+
   removeItem:(notification)->
     console.log 'Attempting to remove an item.', notification._id
     @notifications.removeById notification._id, (err)->
@@ -26,13 +26,13 @@ module.exports = class EmailQueue extends EventEmitter
         console.log err
       else
         console.log 'Notification is removed'
-  
+
   markAsAttempted:(notification)->
     @notifications.update {_id: notification._id}, {$set: status: 'attempted'},
       (err)-> if err then console.log 'There was an error', err
-  
+
   next:-> if ++@index is @length then @emit 'QueueIsEmpty', @length
-  
+
   populateObjectRefs:(ctx, callback)->
     objectRefs = []
     Object.keys(ctx).forEach (key)=>

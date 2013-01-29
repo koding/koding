@@ -43,7 +43,7 @@ module.exports = class JPost extends jraphical.Message
     slugifyFrom : 'title'
     slugTemplate: 'Activity/#{slug}'
     indexes     :
-      slug      : 'unique' 
+      slug      : 'unique'
     permissions: [
       'read posts'
       'create posts'
@@ -79,8 +79,8 @@ module.exports = class JPost extends jraphical.Message
         targetType    : JTag
         as            : 'tag'
       follower        :
-        as            : 'follower'
         targetType    : JAccount
+        as            : 'follower'
 
   @getAuthorType =-> JAccount
 

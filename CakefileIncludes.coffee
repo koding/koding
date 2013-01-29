@@ -81,6 +81,7 @@ Includes =
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
         KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
+        KDMultipleChoice      : "./client/Framework/components/inputs/KDMultipleChoice.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -328,9 +329,9 @@ Includes =
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
-        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
+        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee"
         accountLinked                 : "./client/app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee"
-
+        accountEmailNotifications     : "./client/app/Applications/Account.kdapplication/account/accSettingsPersEmailNotifications.coffee"
         accountDatabases              : "./client/app/Applications/Account.kdapplication/account/accSettingsDevDatabases.coffee"
         accountEditors                : "./client/app/Applications/Account.kdapplication/account/accSettingsDevEditors.coffee"
         accountMounts                 : "./client/app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee"
