@@ -100,7 +100,8 @@ module.exports = deepFreeze
     host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-    notificationCron  : '*/10 * * * * *'
+    notificationCronInstant  : '*/10 * * * * *'
+    notificationCronDaily    : '0 10 0 * * *'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

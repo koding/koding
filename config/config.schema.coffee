@@ -16,7 +16,7 @@ config =
       vhostDir          : 1
       defaultDomain     : 1
       minAllowedUid     : 1
-      debugApi          : 1      
+      debugApi          : 1
     databases    :
       name              : 1
       pidPath           : 1
@@ -35,7 +35,7 @@ config =
           mysql         : [{ host : 1, user : 1, password:1}]
       mongo             :
         databases       :
-          mongodb       : [{ host : 1, user : 1, password:1}]    
+          mongodb       : [{ host : 1, user : 1, password:1}]
     sharedHosting :
       name                  : 1
       numberOfWorkers       : 1
@@ -86,7 +86,7 @@ config =
       FileSharing           :
         baseSharedDir       : 1
         baseDir             : 1
-        setfacl             : 1      
+        setfacl             : 1
   main :
     uri           :
       address     : 1
@@ -181,7 +181,8 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
-      notificationCron  : 1
+      notificationCronInstant  : 1
+      notificationCronDaily    : 1
     guests        :
       poolSize        : 1
       batchSize       : 1
