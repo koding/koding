@@ -72,9 +72,10 @@ class ActivityListController extends KDListViewController
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
-        if cache.activities[overviewItem.ids.first]?.teaser
-          cache.activities[overviewItem.ids.first].teaser.createdAtTimestamps = overviewItem.createdAt
-          @addItem cache.activities[overviewItem.ids.first].teaser
+        activity = cache.activities[overviewItem.ids.first]
+        if activity?.teaser
+          activity.teaser.createdAtTimestamps = overviewItem.createdAt
+          @addItem activity.teaser
 
     @emit "teasersLoaded"
 
