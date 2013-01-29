@@ -161,7 +161,8 @@ def aws_create_autoscale(**kwargs):
                                                 image_id=kwargs['ami'],
                                                 key_name=kwargs['ssh_key_name'],
                                                 security_groups=kwargs['sec_groups'],
-                                                user_data=kwargs['user_data'])
+                                                user_data=kwargs['user_data'],
+                                                instance_type=kwargs['instance_type'])
     conn_as.create_launch_configuration(lc)
 
     ag = boto.ec2.autoscale.AutoScalingGroup(group_name=as_group,
