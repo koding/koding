@@ -351,7 +351,7 @@ module.exports = class JActivityCache extends jraphical.Module
       pushAllModifier = {overview}
 
       if freshNewMemberBuckets?.length
-        if @newMemberBucketIndex
+        if @newMemberBucketIndex?
           index              = @newMemberBucketIndex
           newMemberBucketKey = "overview.#{index}"
           count              = @overview[@newMemberBucketIndex].count
