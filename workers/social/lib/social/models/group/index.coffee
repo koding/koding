@@ -4,7 +4,7 @@ module.exports = class JGroup extends Module
 
   {Relationship} = require 'jraphical'
 
-  {Inflector, ObjectRef, secure, daisy, dash} = require 'bongo'
+  {Inflector, ObjectId, ObjectRef, secure, daisy, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
   {permit} = JPermissionSet
@@ -178,9 +178,31 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
+
   changeMemberRoles: permit 'grant permissions'
-    success:(client, member, roles, callback)->
-      callback '123 sfsfsf'
+    success:(client, memberId, roles, callback)->
+      groupId = @getId()
+      # memberId = ObjectId memberId
+      console.log {memberId}
+      oldRole =
+        sourceId    : memberId
+        targetId    : groupId
+      console.log oldRole
+      Relationship.remove oldRole, (err)->
+        if err then callback err
+        else
+          queue = roles.map (role)->->
+            (new Relationship
+              sourceName  : 'JAccount'
+              sourceId    : memberId
+              targetName  : 'JGroup'
+              targetName  : groupId
+              as          : role
+            ).save (err)->
+              callback err  if err
+              queue.fin()
+          console.log queue
+          dash queue, callback
 
   addDefaultRoles:(callback)->
 
