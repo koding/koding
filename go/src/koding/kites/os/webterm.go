@@ -40,12 +40,8 @@ func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string
 	server.SetSize(float64(sizeX), float64(sizeY))
 	session.OnDisconnect(func() { server.Close() })
 
-	server.pty.Slave.Chown(virt.VMROOT_ID, virt.VMROOT_ID+5)
-	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No), "/bin/bash")
-	cmd.Stdin = server.pty.Slave
-	cmd.Stdout = server.pty.Slave
-	cmd.Stderr = server.pty.Slave
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	server.pty.Slave.Chown(virt.VMROOT_ID, -1)
+	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No)) // empty command is default shell
 
 	err := cmd.Start()
 	if err != nil {

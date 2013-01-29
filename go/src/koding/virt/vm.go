@@ -224,7 +224,7 @@ func (vm *VM) Prepare() {
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), VMROOT_ID)
-	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=5,mode=0620", "devpts", vm.PtsDir()).Run(); err != nil {
+	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=1000005,mode=0620", "devpts", vm.PtsDir()).Run(); err != nil {
 		panic(err)
 	}
 	chown(vm.PtsDir(), VMROOT_ID, VMROOT_ID)
