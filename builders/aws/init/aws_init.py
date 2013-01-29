@@ -331,25 +331,8 @@ def main():
     aws_data = '\n'.join(['%s %s' % (x, y) for x, y in aws_data])
     save_file_content(AWS_DUMP, aws_data)
 
-    # print 'Press ENTER to delete everything.'
-    # raw_input()
-    # for item in aws_objects:
-    #     if isinstance(item, boto.ec2.autoscale.group.AutoScalingGroup):
-    #         print 'Shutting down AS group %s' % item.name
-    #         item.shutdown_instances()
-    #         conn_as.delete_auto_scaling_group(item.name, force_delete=True)
-    #     elif isinstance(item, boto.ec2.autoscale.launchconfig.LaunchConfiguration):
-    #         print 'Deleting AS config %s' % item.name
-    #         conn_as.delete_launch_configuration(item.name)
-    #     elif isinstance(item, boto.ec2.instance.Instance):
-    #         print 'Terminating %s' % item.id
-    #         conn_ec2.terminate_instances([item.id])
-    #     elif isinstance(item, DNSRecord):
-    #         print 'Removing %s' % item.name
-    #         record_sets = conn_r53.get_all_rrsets(ZONE_ID)
-    #         change = record_sets.add_change('DELETE', item.name, 'CNAME', item.ttl)
-    #         change.add_value(item.value)
-    #         record_sets.commit()
+    print
+    print "Run this to terminate all: %s -x" % sys.arg[0]
 
 if __name__ == '__main__':
     main()
