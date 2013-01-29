@@ -20,7 +20,8 @@ module.exports = class JPrivateMessage extends JPost
         'unmark','fetchRelativeComments'
       ]
     schema        : jraphical.Message.schema
-    # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
+    # TODO: copying and pasting this for now...
+    # We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
 
   reply: secure (client, comment, callback)->
@@ -29,16 +30,19 @@ module.exports = class JPrivateMessage extends JPost
 
   disown: secure ({connection}, callback)->
     {delegate} = connection
-    delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, callback
+    delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, \
+    callback
 
   collectParticipants: secure ({connection}, callback)->
     {delegate} = connection
     register = new Register # a register per message...
-    jraphical.Relationship.all targetName: 'JPrivateMessage', targetId: @getId(), sourceId: $ne: delegate.getId(), (err, rels)=>
+    jraphical.Relationship.all targetName: 'JPrivateMessage', \
+      targetId: @getId(), sourceId: $ne: delegate.getId(), (err, rels)=>
       if err
         callback err
       else
-        @participants = (rel for rel in rels when register.sign rel.sourceId) # only include unique participants.
+        # only include unique participants.
+        @participants = (rel for rel in rels when register.sign rel.sourceId)
         callback null,@
 
   @create = do ->
@@ -49,23 +53,15 @@ module.exports = class JPrivateMessage extends JPost
           if err
             fin err
           else
-            # FIXME GG
-            # recipient.emit 'NewPrivateMessageHasArrived',
-            #   actorType   : 'sender'
-            #   actionType  : 'newMessage'
-            #   sender      : ObjectRef(sender).data
-            #   subject     : ObjectRef(pm).data
-            # recipient.sendNotification 'NewPrivateMessageHasArrived',
 
             recipient.emit 'PrivateMessageSent',
               origin        : recipient
               subject       : ObjectRef(pm).data
               actorType     : 'sender'
+              actionType    : 'newMessage'
               sender        : ObjectRef(sender).data
 
             fin()
-            # jraphical.Channel.fetchPrivateChannelById recipient.getId(), (err, channel)->
-            #   channel.publish sender, pm
       , callback
       deliver recipient, pm for recipient in recipients
 
@@ -80,7 +76,8 @@ module.exports = class JPrivateMessage extends JPost
 
       {to, subject, body} = data
       if 'string' is typeof to
-        to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.
+        # accept virtaully any non-wordchar delimiters for now.
+        to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ')
       JAccount.all 'profile.nickname': $in: to, (err, recipients)->
         if err
           callback err
@@ -105,6 +102,3 @@ module.exports = class JPrivateMessage extends JPost
                       callback err
                     else
                       callback null, pm
-#                      unless delegate.profile.nickname in to
-#                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
-#                          channel.publish delegate, pm
