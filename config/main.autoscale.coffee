@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -47,7 +47,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -65,6 +65,11 @@ module.exports = deepFreeze
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -107,6 +112,8 @@ module.exports = deepFreeze
     host        : 'as.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+    notificationCronInstant  : '*/10 * * * * *'
+    notificationCronDaily    : '0 10 0 * * *'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

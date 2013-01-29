@@ -2,6 +2,8 @@ class KDRouter extends KDObject
 
   {history} = window
 
+  seperateHistories = {}
+
   listenerKey = 'ಠ_ಠ'
 
   createObjectRef =(obj)->
@@ -86,7 +88,7 @@ class KDRouter extends KDObject
         node[edge] or= {}
         node = node[edge]
     node[listenerKey] or= []
-    node[listenerKey].push listener
+    node[listenerKey].push listener  unless listener in node[listenerKey]
 
   addRoutes:(routes)->
     @addRoute route, listener  for own route, listener of routes
@@ -115,14 +117,40 @@ class KDRouter extends KDObject
     path += "?#{qs}"  if qs.length
 
     if not suppressListeners and shouldPushState and not replaceState and path is @currentPath
-      @emit 'AlreadyHere', path
-      return
+      if @nextCallWillDeleteHistory is frag[0]
+        seperateHistories[frag[0]]= []
+        delete @nextCallWillDeleteHistory
+
+        new KDNotificationView
+          title : 'History for this Application was cleared'
+      else
+        @emit 'AlreadyHere', path
+        return
 
     @currentPath = path
 
     if shouldPushState
+      if frag.length is 1 and seperateHistories[frag[0]]?.length
+        @nextCallWillDeleteHistory = frag[0]
+
+        seperateItem = seperateHistories[frag[0]].pop()
+
+        {node,query,objRef,path,replaceState,frag,state} = seperateItem
+
       method = if replaceState then 'replaceState' else 'pushState'
       history[method] objRef, path, "/#{path}"
+
+      seperateHistories[frag[0]] ?= []
+      seperateHistories[frag[0]].push {
+        objRef
+        path
+        fullpath: "/#{path}"
+        replaceState
+        query
+        node
+        frag
+        state
+      }
 
     for edge in frag
       if node[edge]

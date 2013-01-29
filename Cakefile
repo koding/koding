@@ -61,16 +61,14 @@ compileGoBinaries = (configFile,callback)->
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
-      verbose : yes 
+      verbose : yes
       onExit :->
-        callback null  
+        callback null
   else
     callback null
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
-
-
 
 task 'runKites', ({configFile})->
 
@@ -116,15 +114,16 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port) ->
     processes.fork
-      name          : 'server' + port
-      cmd           : __dirname + "/server/index -c #{config} -p #{port}"
-      restart : yes
+      name            : 'server'
+      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
+      restart         : yes
       restartInterval : 100
 
   webPort = webserver.port
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port) ->
     runServer configFile, port
+    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -171,7 +170,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
       restart : yes
       restartInterval : 1000
 
@@ -182,8 +181,6 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-              
-
 
 task 'guestCleanup',({configFile})->
 
@@ -192,6 +189,21 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval: 100
+
+task 'emailWorker',({configFile})->
+
+  processes.fork
+    name            : 'emailWorker'
+    cmd             : "./workers/emailnotifications/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailnotifications']
+        onChange  : (path) ->
+          processes.kill "emailWorker"
 
 task 'goBroker',({configFile})->
 
@@ -213,6 +225,25 @@ task 'libratoWorker',({configFile})->
     restartInterval: 100
     verbose: yes
 
+task 'cacheWorker',({configFile})->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {cacheWorker} = KONFIG
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
+
+
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -223,14 +254,16 @@ task 'checkConfig',({configFile})->
 
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
-  
+
   compileGoBinaries configFile,->
-    invoke 'goBroker'       if config.runGoBroker    
+    invoke 'goBroker'       if config.runGoBroker
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
+    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
+    invoke 'emailWorker'
     invoke 'webserver'
 
 
@@ -240,7 +273,7 @@ task 'run', (options)->
 
 
   config.buildClient = yes if options.buildClient
-  
+
   queue = []
   if config.buildClient is yes
     queue.push -> buildClient options, -> queue.next()
@@ -322,7 +355,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
-  
+
 
 
 

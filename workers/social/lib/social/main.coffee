@@ -38,7 +38,7 @@ processMonitor = (require 'processes-monitor').start
       koding.disconnect()
       setTimeout ->
         process.exit()
-       , 20000
+      , 20000
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback

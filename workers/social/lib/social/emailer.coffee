@@ -16,11 +16,10 @@ module.exports = class Emailer
       to      : To
       subject : Subject
 
-    
     mailOptions.text      = TextBody  if TextBody
     mailOptions.html      = HtmlBody  if HtmlBody
     mailOptions.replyTo   = ReplyTo   if ReplyTo
-    
+
     # console.log mailOptions
     setTimeout ->
       Emailer.smtpTransport.sendMail mailOptions, (error, response) ->

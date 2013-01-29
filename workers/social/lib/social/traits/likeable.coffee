@@ -60,6 +60,7 @@ module.exports = class Likeable
                     likesCount    : count
                     relationship  : docs[0]
                   }
+
                 @flushOriginSnapshot constructor
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>

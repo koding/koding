@@ -1,4 +1,4 @@
-{Module,} = require 'jraphical'
+{Module} = require 'jraphical'
 
 class PINExistsError extends Error
   constructor:(message)->

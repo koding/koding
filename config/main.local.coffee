@@ -5,7 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
+#mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -46,7 +47,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -91,7 +92,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'localhost'
     login       : 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'guest'
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
@@ -100,6 +101,8 @@ module.exports = deepFreeze
     host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+    notificationCronInstant  : '*/10 * * * * *'
+    notificationCronDaily    : '0 10 0 * * *'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -110,7 +113,7 @@ module.exports = deepFreeze
     mq              :
       host          : 'localhost'
       login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
+      password      : 'guest'
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"
