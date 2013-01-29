@@ -52,7 +52,6 @@ Includes =
         JTreeItemView         : "./components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabViewController   : "./components/tabs/KDTabViewController.coffee"
         KDTabView             : "./components/tabs/KDTabView.coffee"
         KDTabPaneView         : "./components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./components/tabs/KDTabViewWithForms.coffee"
