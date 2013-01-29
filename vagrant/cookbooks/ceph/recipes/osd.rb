@@ -16,7 +16,7 @@ if node[:ceph].has_key?(:osd_nodes)
     include_recipe "ceph::server_cfg"
 
     node[:ceph][:osd_nodes].each do |ceph_node|
-        if ceph_node[:id] == node[:ceph][:server_id]
+        if ceph_node[:id] == node[:ec2][:instance_id]
             directory "/var/lib/ceph/osd/ceph-#{ceph_node[:CephID]}" do
                 mode 0755
                 owner 'root'
