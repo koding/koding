@@ -4,7 +4,6 @@ class GroupData extends KDEventEmitter
     super
 
     KD.remote.on 'ready', =>
-      console.log "it's ready", this
       KD.remote.cacheable currentGroup, (err, group)=> @setGroup group
 
   getAt:(path)->
