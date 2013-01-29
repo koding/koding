@@ -12,9 +12,9 @@ CONFIG = 'bahadir'
 
 # Network topology
 NETWORK = [
-    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm1.xlarge'},
-    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm1.xlarge'},
-    {'roles': ['authworker', 'socialworker'], 'autoscale': (1, 2), 'instance_type': 'm1.large'},
+    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm2.2xlarge'},
+    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm2.2xlarge'},
+    {'roles': ['authworker', 'socialworker'], 'autoscale': (4, 10), 'instance_type': 'm1.large'},
 ]
 
 #
@@ -61,6 +61,8 @@ ROLES = {
 
 TEMPLATE = 'userdata.txt.template'
 
+AWS_DUMP = 'aws_data.txt'
+
 import boto
 import boto.ec2
 import boto.ec2.autoscale
@@ -73,6 +75,8 @@ conn_cw = boto.connect_cloudwatch()
 
 import copy
 import time
+import sys
+import os
 
 class DNSRecord:
     def __init__(self, zone, name, value, ttl=600):
@@ -135,7 +139,7 @@ def create_alarm(as_group):
                                                      metric='CPUUtilization',
                                                      statistic='Average',
                                                      comparison='>',
-                                                     threshold='50',
+                                                     threshold='55',
                                                      period='120',
                                                      evaluation_periods=2,
                                                      alarm_actions=[scale_up_policy.policy_arn],
@@ -146,9 +150,9 @@ def create_alarm(as_group):
                                                        metric='CPUUtilization',
                                                        statistic='Average',
                                                        comparison='<',
-                                                       threshold='40',
-                                                       period='240',
-                                                       evaluation_periods=2,
+                                                       threshold='35',
+                                                       period='120',
+                                                       evaluation_periods=4,
                                                        alarm_actions=[scale_down_policy.policy_arn],
                                                        dimensions=alarm_dimensions)
     conn_cw.create_alarm(scale_down_alarm)
@@ -228,8 +232,47 @@ def aws_run_instance(**kwargs):
 
     return [instance] + dns_records
 
+def delete_old():
+    if not os.access(AWS_DUMP, os.R_OK):
+        print "%s does not exist." % AWS_DUMP
+        return
+    aws_objects = []
+    for line in get_file_content(AWS_DUMP).split('\n'):
+        if not len(line) or line.startswith('#') or ' ' not in line:
+            continue
+        key, value = line.split(' ', 1)
+        if key == 'as_group':
+            print 'Shutting down AS group %s' % value
+            try:
+                conn_as.delete_auto_scaling_group(value, force_delete=True)
+            except:
+                pass
+        elif key == 'as_config':
+            print 'Deleting AS config %s' % value
+            try:
+                conn_as.delete_launch_configuration(value)
+            except:
+                pass
+        elif key == 'instance':
+            print 'Terminating %s' % value
+            conn_ec2.terminate_instances([value])
+        elif key == 'domain':
+            zone, domain, target, ttl = value.split('|')
+            print 'Removing %s' % domain
+            try:
+                record_sets = conn_r53.get_all_rrsets(zone)
+                change = record_sets.add_change('DELETE', domain, 'CNAME', ttl)
+                change.add_value(target)
+                record_sets.commit()
+            except:
+                pass
+
+    save_file_content(AWS_DUMP, '')
+
 def main():
-    instance_no = 0
+    if '-x' in sys.argv[1:]:
+        delete_old()
+        return
 
     # List of AWS objects
     aws_objects = []
@@ -285,28 +328,28 @@ def main():
             aws_data.append(('domain', record))
             print '  R53 Entry : %s' % item.name
 
-    # aws_data = '\n'.join(['%s %s' % (x, y) for x, y in aws_data])
-    # save_file_content('.', aws_data)
+    aws_data = '\n'.join(['%s %s' % (x, y) for x, y in aws_data])
+    save_file_content(AWS_DUMP, aws_data)
 
-    print 'Press ENTER to delete everything.'
-    raw_input()
-    for item in aws_objects:
-        if isinstance(item, boto.ec2.autoscale.group.AutoScalingGroup):
-            print 'Shutting down AS group %s' % item.name
-            item.shutdown_instances()
-            conn_as.delete_auto_scaling_group(item.name, force_delete=True)
-        elif isinstance(item, boto.ec2.autoscale.launchconfig.LaunchConfiguration):
-            print 'Deleting AS config %s' % item.name
-            conn_as.delete_launch_configuration(item.name)
-        elif isinstance(item, boto.ec2.instance.Instance):
-            print 'Terminating %s' % item.id
-            conn_ec2.terminate_instances([item.id])
-        elif isinstance(item, DNSRecord):
-            print 'Removing %s' % item.name
-            record_sets = conn_r53.get_all_rrsets(ZONE_ID)
-            change = record_sets.add_change('DELETE', item.name, 'CNAME', item.ttl)
-            change.add_value(item.value)
-            record_sets.commit()
+    # print 'Press ENTER to delete everything.'
+    # raw_input()
+    # for item in aws_objects:
+    #     if isinstance(item, boto.ec2.autoscale.group.AutoScalingGroup):
+    #         print 'Shutting down AS group %s' % item.name
+    #         item.shutdown_instances()
+    #         conn_as.delete_auto_scaling_group(item.name, force_delete=True)
+    #     elif isinstance(item, boto.ec2.autoscale.launchconfig.LaunchConfiguration):
+    #         print 'Deleting AS config %s' % item.name
+    #         conn_as.delete_launch_configuration(item.name)
+    #     elif isinstance(item, boto.ec2.instance.Instance):
+    #         print 'Terminating %s' % item.id
+    #         conn_ec2.terminate_instances([item.id])
+    #     elif isinstance(item, DNSRecord):
+    #         print 'Removing %s' % item.name
+    #         record_sets = conn_r53.get_all_rrsets(ZONE_ID)
+    #         change = record_sets.add_change('DELETE', item.name, 'CNAME', item.ttl)
+    #         change.add_value(item.value)
+    #         record_sets.commit()
 
 if __name__ == '__main__':
     main()
