@@ -5,6 +5,7 @@ import (
 	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/kite"
+	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
 	"os"
@@ -190,6 +191,9 @@ func FindSession(session *kite.Session) (*db.User, *virt.VM) {
 	state, found := states[vm.String()]
 	if !found {
 		vm.Prepare()
+		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
+			log.Err("Could not start VM.", err, out)
+		}
 		state = &VMState{
 			sessions:      make(map[*kite.Session]bool),
 			totalCpuUsage: utils.MaxInt,
@@ -220,7 +224,9 @@ func FindSession(session *kite.Session) (*db.User, *virt.VM) {
 				if len(state.sessions) != 0 {
 					return
 				}
-				vm.ShutdownCommand().Run()
+				if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
+					log.Err("Could not shutdown VM.", err, out)
+				}
 				vm.Unprepare()
 				delete(states, vm.String())
 			})
