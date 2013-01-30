@@ -31,10 +31,10 @@ flags =
     definition      : "comments"
   likeActivities    :
     template        : template.instantMail
-    definition      : "activity likes"
+    definition      : "likes"
   followActions     :
     template        : template.instantMail
-    definition      : "following states"
+    definition      : "follows"
   privateMessage    :
     template        : template.instantMail
     definition      : "private messages"

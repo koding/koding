@@ -5,13 +5,13 @@ dateFormat  = require 'dateformat'
 
 flags =
   comment           :
-    definition      : "comments"
+    definition      : "comment"
   likeActivities    :
-    definition      : "activity likes"
+    definition      : "like"
   followActions     :
-    definition      : "following states"
+    definition      : "follow"
   privateMessage    :
-    definition      : "private messages"
+    definition      : "private message"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
@@ -102,9 +102,11 @@ Templates =
                                   border-radius:4px;">
                       #{m.realContent?.body}</div>"""
 
+    "is started to following you"
+
     switch m.event
       when 'FollowHappened'
-        action = "is started to following you"
+        action = "started following you."
         m.contentLink = ''
         preview = ''
       when 'LikeIsAdded'
@@ -137,17 +139,26 @@ Templates =
   instantMail  : (m)->
     turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
     eventName   = flags[m.notification.eventFlag].definition
-    turnOffLink = """You can turn off e-mail notifications for #{link turnOffLink, eventName} or #{link "#{turnOffLink}/all", "any kind of e-mails"}"""
+    turnOffAllURL = link turnOffLink+"/all","all"
+    turnOffSpecificType = link turnOffLink, eventName
+    turnOffLink = """Unsubscribe from #{turnOffSpecificType} notifications / Unsubscribe from #{turnOffAllURL} emails from Koding."""
     Templates.mainTemplate m, \
       Templates.singleEvent(m), Templates.footerTemplate turnOffLink
 
   dailyMail    : (m, content)->
     turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
-    turnOffLink = """You can turn off e-mail notifications for #{link "#{turnOffLink}/daily", "daily mails"} or #{link "#{turnOffLink}/all", "any kind of e-mails"}"""
+    turnOffDailyURL = link "#{turnOffLink}/daily", "daily emails"
+    turnOffAllEmailsURL = link "#{turnOffLink}/all", "all"
+    turnOffLink = """Unsubscribe from #{turnOffDailyURL} or Unsubscribe from #{turnOffAllEmailsURL} emails from Koding."""
     description = "Here what's happened in Koding today!"
     Templates.mainTemplate m, content, Templates.footerTemplate(turnOffLink), description
 
-  commonHeader : (m)-> """[Koding Bot] A new notification"""
-  dailyHeader  : (m)-> """[Koding Bot] Daily Updates"""
+  commonHeader : (m)-> 
+    eventName   = flags[m.notification.eventFlag].definition
+
+    return """You have a new #{eventName}"""
+  dailyHeader  : (m)->
+    currentDate  = dateFormat m.notification.dateIssued, "mmm dd"
+    return """Your Koding Activity for today: #{currentDate}"""
 
 module.exports = Templates

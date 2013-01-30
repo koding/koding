@@ -46,11 +46,11 @@ module.exports = class JEmailNotificationGG extends Model
     likeActivities   :
       eventType      : ['LikeIsAdded']
       contentTypes   : @commonActivities
-      definition     : 'about activity likes'
+      definition     : 'about likes'
     followActions    :
       eventType      : ['FollowHappened']
       contentTypes   : ['JAccount']
-      definition     : 'about following changes'
+      definition     : 'about follows'
     privateMessage   :
       eventType      : ['ReplyIsAdded', 'PrivateMessageSent']
       contentTypes   : ['JPrivateMessage']
