@@ -37,7 +37,7 @@ func (vm *VM) MergePasswdFile() {
 	if err != nil {
 		panic(err)
 	}
-	os.Chown(passwdFile, VMROOT_ID, VMROOT_ID)
+	os.Chown(passwdFile, RootIdOffset, RootIdOffset)
 }
 
 func (vm *VM) MergeGroupFile() {
@@ -60,7 +60,7 @@ func (vm *VM) MergeGroupFile() {
 	if err := WriteGroup(groups, groupFile); err != nil {
 		panic(err)
 	}
-	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
+	os.Chown(groupFile, RootIdOffset, RootIdOffset)
 }
 
 func ReadPasswd(fileName string) (map[int]*SysUser, error) {

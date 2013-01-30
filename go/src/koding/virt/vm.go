@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 	"text/template"
 	"time"
@@ -31,7 +32,7 @@ type UserEntry struct {
 	Sudo bool          `bson:"sudo"`
 }
 
-const VMROOT_ID = 1000000
+const RootIdOffset = 1000000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
@@ -176,17 +177,17 @@ func (vm *VM) Prepare() {
 	}
 
 	// mount block device to upperdir
-	prepareDir(vm.UpperdirFile(""), VMROOT_ID)
+	prepareDir(vm.UpperdirFile(""), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).CombinedOutput(); err != nil {
 		log.Err("mount rbd failed.", err, out)
 		panic(err)
 	}
 
 	// prepare directories in upperdir
-	prepareDir(vm.UpperdirFile("/"), VMROOT_ID)           // for chown
-	prepareDir(vm.UpperdirFile("/lost+found"), VMROOT_ID) // for chown
-	prepareDir(vm.UpperdirFile("/etc"), VMROOT_ID)
-	prepareDir(vm.UpperdirFile("/home"), VMROOT_ID)
+	prepareDir(vm.UpperdirFile("/"), RootIdOffset)           // for chown
+	prepareDir(vm.UpperdirFile("/lost+found"), RootIdOffset) // for chown
+	prepareDir(vm.UpperdirFile("/etc"), RootIdOffset)
+	prepareDir(vm.UpperdirFile("/home"), RootIdOffset)
 
 	// create user homes
 	for i, entry := range vm.Users {
@@ -206,7 +207,7 @@ func (vm *VM) Prepare() {
 			for _, file := range files {
 				copyFile(config.Current.ProjectRoot+"/go/templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
 			}
-			prepareDir(vm.UpperdirFile("/var"), VMROOT_ID)
+			prepareDir(vm.UpperdirFile("/var"), RootIdOffset)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
 				panic(err)
 			}
@@ -214,28 +215,28 @@ func (vm *VM) Prepare() {
 	}
 
 	// generate upperdir files
-	vm.generateFile(vm.UpperdirFile("/etc/hostname"), "hostname", VMROOT_ID, false)
-	vm.generateFile(vm.UpperdirFile("/etc/hosts"), "hosts", VMROOT_ID, false)
-	vm.generateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", VMROOT_ID, false)
+	vm.generateFile(vm.UpperdirFile("/etc/hostname"), "hostname", RootIdOffset, false)
+	vm.generateFile(vm.UpperdirFile("/etc/hosts"), "hosts", RootIdOffset, false)
+	vm.generateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
 	vm.MergeDpkgDatabase()
 
 	// mount overlayfs
-	prepareDir(vm.File("rootfs"), VMROOT_ID)
+	prepareDir(vm.File("rootfs"), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		log.Err("mount overlayfs failed.", err, out)
 		panic(err)
 	}
 
 	// mount devpts
-	prepareDir(vm.PtsDir(), VMROOT_ID)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=1000005,mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+	prepareDir(vm.PtsDir(), RootIdOffset)
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		log.Err("mount devpts failed.", err, out)
 		panic(err)
 	}
-	chown(vm.PtsDir(), VMROOT_ID, VMROOT_ID)
-	chown(vm.PtsDir()+"/ptmx", VMROOT_ID, VMROOT_ID+5)
+	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
+	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
 }
 
 func (vm *VM) Unprepare() {

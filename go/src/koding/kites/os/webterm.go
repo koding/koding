@@ -36,7 +36,7 @@ func newWebtermServer(vm *virt.VM, user *db.User, remote WebtermRemote, args []s
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 
-	server.pty.Slave.Chown(virt.VMROOT_ID, -1)
+	server.pty.Slave.Chown(virt.RootIdOffset, -1)
 	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No)) // empty command is default shell
 
 	err := cmd.Start()

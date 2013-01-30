@@ -16,7 +16,7 @@ func shift(path string) {
 		panic(err)
 	}
 
-	if err := os.Lchown(path, int(info.Sys().(*syscall.Stat_t).Uid+1000000), int(info.Sys().(*syscall.Stat_t).Gid+1000000)); err != nil {
+	if err := os.Lchown(path, int(info.Sys().(*syscall.Stat_t).Uid+1000000000), int(info.Sys().(*syscall.Stat_t).Gid+1000000000)); err != nil {
 		panic(err)
 	}
 
