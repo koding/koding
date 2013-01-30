@@ -25,7 +25,7 @@
                 },
                 "LBCookieStickinessPolicy":[ 
                     {
-                        "CookieExpirationPeriod":"120",
+                        "CookieExpirationPeriod":"240",
                         "PolicyName": "WebSiteLBCookie"
                     }
                 ],
