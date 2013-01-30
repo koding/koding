@@ -85,7 +85,47 @@
             "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
             "Type" : "String",
             "AllowedPattern": "[0-9]+"
+        },
+
+
+        "GuestCleanupInstanceType": {
+            "Default": "m1.small",
+            "Description": "The type of EC2 instance used for the WebServer server",
+            "Type": "String",
+            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
+        },
+      	"GuestCleanupMinGroupSize" :{
+         	"Default" : "1",
+          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+" 
+       	},
+        "GuestCleanupMaxGroupSize" : {
+          	"Default" : "10",
+           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "GuestCleanupDesiredCapacity": {
+  	        "Default" : 1,
+           	"Description" : "Specifies the desired capacity for the auto scaling group",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+
+        },
+        "GuestCleanupCpuAlarmHight":{
+            "Default" : "60",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "GuestCleanupCpuAlarmLow":{
+            "Default" : "30",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
         }
+
 
 
 
@@ -111,6 +151,16 @@
             	"KeyName" : {"Ref": "KeyName"},
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= socialworker_bootstrap_script.to_json %>}
+             } 
+          },
+      	 "GuestCleanupLaunchConfiguration" : {
+      		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
+      		"Properties" : {
+        		"InstanceType" : {"Ref":"GuestCleanupInstanceType"},
+          		"SecurityGroups" : ["sg-b17399de"],
+            	"KeyName" : {"Ref": "KeyName"},
+                "ImageId" : "ami-3d4ff254",
+                "UserData":{"Fn::Base64": <%= guestcleanup_bootstrap_script.to_json %>}
              } 
           },
 
@@ -141,6 +191,18 @@
                       "DesiredCapacity": {"Ref":"SocialWorkerDesiredCapacity"}
                      } 
           },  
+          "GuestCleanupScalingGroup" : {
+              "Type" :"AWS::AutoScaling::AutoScalingGroup",
+              "Properties" : {
+                	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
+                  	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
+                      "LaunchConfigurationName" : {"Ref": "GuestCleanupLaunchConfiguration" },
+                      "MinSize": {"Ref":"GuestCleanupMinGroupSize"},
+                      "MaxSize": {"Ref":"GuestCleanupMaxGroupSize"},
+                      "DesiredCapacity": {"Ref":"GuestCleanupDesiredCapacity"}
+                     } 
+          },  
+
 
 
 
@@ -193,6 +255,10 @@
                
           },
 
+
+
+
+
           "SocialWorkerCPUAlarmHigh" : {
               "Type" : "AWS::CloudWatch::Alarm",
               "Properties": {
@@ -240,6 +306,54 @@
                
           },
 
+          "GuestCleanupCPUAlarmHigh" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"GuestCleanupCpuAlarmHight"},
+                    "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "GuestCleanupAutoScalingUPPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "GreaterThanThreshold",
+                    "MetricName": "GuestCleanupHightCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"GuestCleanupScalingGroup",
+                        "Value": {"Ref":"GuestCleanupScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+          "GuestCleanupCPUAlarmLow" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"GuestCleanupCpuAlarmLow"},
+                    "AlarmDescription": "Alarm if CPU too low",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "GuestCleanupAutoScalingDownPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "LessThanThreshold",
+                    "MetricName": "GuestCleanupLowCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"GuestCleanupScalingGroup",
+                        "Value": {"Ref":"GuestCleanupScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+
+
 
           "WebServerAutoScalingUPPolicy" : {
 			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
@@ -273,7 +387,25 @@
         			"ScalingAdjustment" : "-1",  
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
+    	  },
+
+          "GuestCleanupAutoScalingUPPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "GuestCleanupScalingGroup"},   
+        			"ScalingAdjustment" : "1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  },
+          "GuestCleanupAutoScalingDownPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "GuestCleanupScalingGroup"},   
+        			"ScalingAdjustment" : "-1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
     	  }
+
 
     }
 }
