@@ -240,7 +240,10 @@ func (vm *VM) Prepare() {
 }
 
 func (vm *VM) Unprepare() {
-	vm.StopCommand().Run()
+	if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
+		log.Warn("lxc shutdown failed.", err, out)
+		return
+	}
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
 		log.Warn("umount devpts failed.", err, out)
 	}
