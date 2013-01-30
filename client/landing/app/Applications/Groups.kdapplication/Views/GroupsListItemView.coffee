@@ -87,17 +87,25 @@ class GroupsListItemView extends KDListItemView
 
     # TODO: hide enter button for non-admins
 
-    @enterButton = new KDButtonView
-      cssClass        : 'follow-btn following-btn enter-group hidden'
-      title           : "Enter"
-      dataPath        : "member"
-      # icon : yes
-      # iconClass : 'enter-group'
-      callback        : (event)=>
-        group = @getData().slug
-        KD.getSingleton('router').handleRoute "#{unless group is 'koding' then '/'+group else ''}/Activity"
+    # @enterButton = new KDButtonView
+    #   cssClass        : 'follow-btn following-btn enter-group hidden'
+    #   title           : "Enter"
+    #   dataPath        : "member"
+    #   # icon : yes
+    #   # iconClass : 'enter-group'
+    #   callback        : (event)=>
+    #     group = @getData().slug
+    #     KD.getSingleton('router').handleRoute "#{unless group is 'koding' then '/'+group else ''}/Activity"
 
-    , data
+    # , data
+
+    @enterButton = new KDCustomHTMLView
+      cssClass : 'enter-group'
+      tagName : 'a'
+      attributes :
+        href : '/'+@getData().slug+"/Activity"
+        target : @getData().slug
+      partial : 'Open Group'
 
 
   settingsMenu:(data)->
