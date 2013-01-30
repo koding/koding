@@ -17,7 +17,7 @@ func (vm *VM) StopCommand() *exec.Cmd {
 }
 
 func (vm *VM) ShutdownCommand() *exec.Cmd {
-	return exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String(), "--timeout", "5")
+	return exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String(), "--timeout", "2")
 }
 
 func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
@@ -32,14 +32,22 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
+func (vm *VM) GetState() (string, err) {
+	out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return strings.TrimSpace(string(out)[6:])
+}
+
 func (vm *VM) WaitForRunning(timeout time.Duration) error {
 	until := time.Now().Add(timeout)
 	for time.Now().Before(until) {
-		out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
+		state, err := vm.GetState()
 		if err != nil {
 			return err
 		}
-		if strings.Contains(string(out), "RUNNING") {
+		if state == "RUNNING" {
 			return nil
 		}
 		time.Sleep(time.Second / 10)
