@@ -1,9 +1,11 @@
+# ~ GG
 
 {argv}    = require 'optimist'
 {CronJob} = require 'cron'
 Bongo     = require 'bongo'
 Broker    = require 'broker'
 {Base}    = Bongo
+{Relationship} = require 'jraphical'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
@@ -37,12 +39,22 @@ flags =
     template        : template.instantMail
     definition      : "private messages"
 
-sendEmail = (details)->
-  {notification} = details
-  # log "MAIL", flags[details.key].template details
+sendDailyEmail = (details, content)->
+  # console.log template.dailyMail details, content
 
   Emailer.send
-    To        : "gokmen+testas@koding.com" # details.email
+    To        : details.email
+    Subject   : template.dailyHeader details
+    HtmlBody  : template.dailyMail details, content
+  , (err, status)->
+    log "An error occured: #{err}" if err
+    log "Daily e-mail sent to #{details.email}"
+
+sendInstantEmail = (details)->
+  {notification} = details
+
+  Emailer.send
+    To        : details.email
     Subject   : template.commonHeader details
     HtmlBody  : flags[details.key].template details
   , (err, status)->
@@ -104,7 +116,7 @@ fetchSubjectContentLink = (content, type, callback)->
             else
               callback null, contentTypeLinkMap(content.slug)[type]
 
-prepareEmail = (notification, cb)->
+prepareEmail = (notification, daily = no, cb)->
 
   {JAccount, JEmailNotificationGG} = worker.models
 
@@ -128,12 +140,11 @@ prepareEmail = (notification, cb)->
           console.error "Could not load user record"
           callback err
         else
-          if state isnt 'on'
+          if not daily and state isnt 'on'
             log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else
-            # log "Trying to send it... to...", email
             # Fetch Sender
             JAccount.one {_id:notification.sender}, (err, sender)->
               if err then callback err
@@ -172,8 +183,6 @@ prepareEmail = (notification, cb)->
 
 instantEmails = ->
   {JEmailNotificationGG} = worker.models
-  # log "Checking for waiting queue..."
-
   JEmailNotificationGG.some {status: "queued"}, {limit:100}, (err, emails)->
     if err
       log "Could not load email queue!"
@@ -181,9 +190,64 @@ instantEmails = ->
       if emails.length > 0
         log "There are #{emails.length} mail in queue."
         for email in emails
-          prepareEmail email, sendEmail
-      # else
-      #   log "E-Mail queue is empty. Yay."
+          prepareEmail email, no, sendInstantEmail
+
+prepareDailyEmail = (emails, index, data, callback)->
+
+  [callback, data] = [data, callback] unless callback
+  data             = [] unless data
+
+  if index < emails.length
+    prepareEmail emails[index], yes, (content)->
+      data.push content
+      prepareDailyEmail emails, index+1, data, callback
+  else
+    callback data
+
+# runnedOnce = no
+
+dailyEmails = ->
+  {JEmailNotificationGG, JUser} = worker.models
+
+  # if runnedOnce then return
+  # runnedOnce = yes
+
+  log "Creating Daily emails..."
+
+  today = new Date()
+  today.setDate    today.getDate() - 1
+  today.setHours   0
+  today.setMinutes 0
+  yesterday = today
+
+  JUser.each {"emailFrequency.daily": "on"}, {}, (err, user)->
+    if err then console.error err
+    else
+      if user
+        user.fetchOwnAccount (err, account)->
+          if err then console.error err
+          else
+            notifications = []
+            JEmailNotificationGG.each {receiver   : account.getId(),  \
+                                       dateIssued : $gte: yesterday}, \
+                                      {sort       : dateIssued: 1},
+            (err, email)->
+              if err then console.error err
+              else
+                if email
+                  notifications.push email
+                else if notifications.length > 0
+                  prepareDailyEmail notifications, 0, (emailContent)->
+                    if emailContent.length > 0
+                      content = ''
+                      for email in emailContent
+                        content += template.singleEvent email
+                      sendDailyEmail emailContent[0], content
 
 instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
+log "Instant Emails CronJob started with #{email.notificationCronInstant}"
 instantEmailsCron.start()
+
+dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
+log "Daily Emails CronJob started with #{email.notificationCronDaily}"
+dailyEmailsCron.start()
