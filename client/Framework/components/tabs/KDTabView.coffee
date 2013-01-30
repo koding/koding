@@ -22,6 +22,7 @@ class KDTabView extends KDScrollView
     @setClass "kdtabview"
 
     @handlesHidden = no
+    @resizeTimer   = null
 
     @hideHandleCloseIcons() if options.hideHandleCloseIcons
     @hideHandleContainer()  if options.hideHandleContainer
@@ -225,26 +226,28 @@ class KDTabView extends KDScrollView
     handle.getDomElement().addClass "hide-close-icon"
 
   resizeTabHandles:->
-    return if @_tabHandleContainerHidden
-    #
-    # visibleHandles = []
-    # visibleTotalSize = 0
-    #
-    # #FIX hardcoded values
-    # containerSize = @tabHandleContainer.getWidth()
-    # for handle in @handles
-    #   unless handle.$().hasClass("hidden")
-    #     visibleHandles.push handle
-    #     visibleTotalSize += handle.getWidth()
-    #
-    # if containerSize-50 < visibleTotalSize
-    #   for handle in visibleHandles
-    #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15,200
-    # else if containerSize-50 > visibleHandles.length * 113
-    #   for handle in visibleHandles
-    #     handle.$().css width : 113,200
-    # else
-    #   for handle in visibleHandles
-    #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15
+    return if not @getOptions().resizeTabHandles or @_tabHandleContainerHidden
+
+    @tabHandleContainer.$().addClass "resize-in-action"
+    clearTimeout @resizeTimer
+
+    visibleHandles   = []
+    visibleTotalSize = 0
+    containerSize    = @tabHandleContainer.getWidth()
+
+    for handle in @handles
+      unless handle.isHidden()
+        visibleHandles.push handle
+        visibleTotalSize += handle.getOptimalWidth()
+
+    if containerSize < visibleTotalSize
+      for handle in visibleHandles
+        handle.$().css width: containerSize / visibleHandles.length - 10
+    else 
+      for handle in visibleHandles
+        handle.$().css width: handle.getOptimalWidth()
+
+    @resizeTimer = @utils.wait 300, =>
+      @tabHandleContainer.$().removeClass "resize-in-action"
 
   _windowDidResize:(event)=> @resizeTabHandles event
