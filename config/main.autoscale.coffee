@@ -21,7 +21,7 @@ module.exports = deepFreeze
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://as.koding.com"
+    address     : "https://stage.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -90,19 +90,19 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://as.koding.com/'
+    staticFilesBaseUrl: 'https://stage.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'https://as.koding.com/'
+      mainUri   : 'https://stage.koding.com/'
       broker    :
-        sockJS  : 'https://bro.koding.com/subscribe'
+        sockJS  : 'https://stage-broker.koding.com/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'rabbit0.beta.system.aws.koding.com'
+    host        : 'stage-mq.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -112,7 +112,7 @@ module.exports = deepFreeze
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'as.koding.com'
+    host        : 'stage.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
@@ -125,7 +125,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.beta.system.aws.koding.com'
+      host          : 'stage-mq.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
