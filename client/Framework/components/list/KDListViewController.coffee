@@ -53,7 +53,7 @@ class KDListViewController extends KDViewController
       scrollView.addSubView @getListView()
       if options.startWithLazyLoader
         @showLazyLoader no
-      scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
+      scrollView.on 'LazyLoadThresholdReached', @showLazyLoader.bind @
 
     @instantiateListItems(@getData()?.items or [])
 
@@ -227,7 +227,7 @@ class KDListViewController extends KDViewController
   selectItem:(item, event = {})->
 
     return unless item?
-  
+
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
 
@@ -342,8 +342,7 @@ class KDListViewController extends KDViewController
           FPS         : 24
 
       @lazyLoader.canvas.show()
-      if emitWhenReached
-        @propagateEvent KDEventType : 'LazyLoadThresholdReached'
+      @emit 'LazyLoadThresholdReached'  if emitWhenReached
 
   hideLazyLoader:->
     if @lazyLoader

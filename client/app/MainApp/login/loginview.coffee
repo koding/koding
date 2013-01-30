@@ -19,7 +19,7 @@ class LoginView extends KDScrollView
     registerHandler   = handler.bind null, '/Register'
     joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
-    
+
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
@@ -378,6 +378,9 @@ class LoginView extends KDScrollView
   animateToForm: (name)->
     switch name
       when "register"
+        # @utils.wait 5000, =>
+        #   @utils.registerDummyUser()
+
         KD.remote.api.JUser.isRegistrationEnabled (status)=>
           if status is no
             @registerForm.$('div').hide()

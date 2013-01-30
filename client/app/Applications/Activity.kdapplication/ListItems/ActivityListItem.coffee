@@ -11,6 +11,7 @@ class ActivityListItemView extends KDListItemView
     JTutorial           : TutorialActivityItemView
     # THIS WILL DISABLE CODE SHARES
     JCodeShare            : CodeShareActivityItemView
+    NewMemberBucketData   : NewMemberBucketView
 
   getActivityChildCssClass = ->
 
@@ -23,6 +24,7 @@ class ActivityListItemView extends KDListItemView
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
     CInstallerBucketActivity  : "system-message"
+    NewMemberBucketData       : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
@@ -35,36 +37,30 @@ class ActivityListItemView extends KDListItemView
 
     super options, data
 
-    data = @getData()
-
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
-    unless options.isHidden
-      if 'function' is typeof data.fetchTeaser
-        data.fetchTeaser? (err, teaser)=>
-          @addChildView teaser
-      else
-        @addChildView data
-
-    data.on 'ContentMarkedAsLowQuality', =>
-      @hide() unless KD.checkFlag 'exempt'
-    data.on 'ContentUnmarkedAsLowQuality', => @show()
+  viewAppended:->
+    @addChildView @getData()
 
   addChildView:(data, callback)->
-
+    # return
+    return unless data.bongo_
     {constructorName} = data.bongo_
 
     childConstructor =
-      if /CNewMemberBucket$/.test constructorName
+      if /^CNewMemberBucket$/.test constructorName
         NewMemberBucketItemView
+        # KDView
       else if /Bucket$/.test constructorName
         getBucketMap()[data.sourceName]
       else
         getActivityChildConstructors()[constructorName]
 
     if childConstructor
-      childView = new childConstructor({}, data)
+      childView = new childConstructor
+        delegate : @
+      , data
       @addSubView childView
       callback?()
 
@@ -75,4 +71,10 @@ class ActivityListItemView extends KDListItemView
     @getData().fetchTeaser? (err, teaser)=>
       @addChildView teaser, => @slideIn()
 
-  slideIn:()-> @$().removeClass 'hidden-item'
+  slideIn:(callback=noop)->
+    @unsetClass 'hidden-item'
+    @utils.wait 601, callback.bind @
+
+  slideOut:(callback=noop)->
+    @setClass 'hidden-item'
+    @utils.wait 601, callback.bind @

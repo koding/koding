@@ -6,7 +6,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
-#mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -19,9 +19,6 @@ rabbitPrefix = (
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
-  aws           :
-    key         : ''
-    secret      : ''
   uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
@@ -32,7 +29,7 @@ module.exports = deepFreeze
     clusterSize : 4
     queueName   : socialQueueName+'web'
   mongo         : mongo
-  runGoBroker   : yes
+  runGoBroker   : no
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -50,7 +47,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -61,13 +58,15 @@ module.exports = deepFreeze
     numberOfWorkers: 1
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 0
     watch       : yes
     queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
+  presence      :
+    exchange    : 'services-presence'
   client        :
     pistachios  : no
     version     : version
@@ -93,9 +92,10 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'localhost'
+    host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
-    password    : 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
@@ -112,9 +112,9 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
+      host          : 'web0.dev.system.aws.koding.com'
       login         : 'guest'
-      password      : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
   mixpanel :
     key : "bb9dd21f58e3440e048a2c907422deed"

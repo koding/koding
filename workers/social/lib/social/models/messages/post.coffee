@@ -43,7 +43,7 @@ module.exports = class JPost extends jraphical.Message
     slugifyFrom : 'title'
     slugTemplate: 'Activity/#{slug}'
     indexes     :
-      slug      : 'unique' 
+      slug      : 'unique'
     permissions: [
       'read posts'
       'create posts'
@@ -106,15 +106,19 @@ module.exports = class JPost extends jraphical.Message
       if data?.meta?.tags
         {tags} = data.meta
         delete data.meta.tags
-      status = new constructor data
+
+      status   = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
+
       if delegate.checkFlag 'exempt'
-        status.isLowQuality = yes
+        status.isLowQuality   = yes
         activity.isLowQuality = yes
-      activity.originId = delegate.getId()
+
+      activity.originId   = delegate.getId()
       activity.originType = delegate.constructor.name
-      teaser = null
+      teaser              = null
+
       daisy queue = [
         ->
           status.createSlug (err, slug)->
@@ -200,7 +204,8 @@ module.exports = class JPost extends jraphical.Message
 
   delete: secure ({connection:{delegate}}, callback)->
     if delegate.can 'delete', this
-      id = @getId()
+      id                = @getId()
+      createdAt         = @meta.createdAt
       {getDeleteHelper} = Relationship
       queue = [
         getDeleteHelper {
@@ -221,6 +226,7 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         callback null
         @emit 'PostIsDeleted', 1
+        CActivity.emit "PostIsDeleted", {teaserId : id, createdAt}
     else
       callback new KodingError 'Access denied!'
 
@@ -437,3 +443,12 @@ module.exports = class JPost extends jraphical.Message
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
     super
+
+  update:(rest..., callback)->
+    kallback =(rest...)=>
+      callback rest...
+      eventOptions =
+        teaserId   : @getId()
+        createdAt  : @meta.createdAt
+      CActivity.emit "post-updated", eventOptions
+    jraphical.Message::update.apply @, rest.concat kallback

@@ -40,11 +40,8 @@ class FeederResultsController extends KDViewController
         itemClass      : itemClass
         type              : name
 
-    listController.registerListener
-      KDEventTypes  : 'LazyLoadThresholdReached'
-      listener      : @
-      callback      : =>
-        @propagateEvent KDEventType : "LazyLoadThresholdReached"
+    listController.on 'LazyLoadThresholdReached', =>
+      @emit "LazyLoadThresholdReached"
 
     tabView.addPane @panes[name] = new paneClass
       name : name
