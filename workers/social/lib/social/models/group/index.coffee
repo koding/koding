@@ -71,10 +71,10 @@ module.exports = class JGroup extends Module
         as          : 'member'
       moderator     :
         targetType  : 'JAccount'
-        as          : 'group'
+        as          : 'moderator'
       admin         :
         targetType  : 'JAccount'
-        as          : 'group'
+        as          : 'admin'
       application   :
         targetType  : 'JApp'
         as          : 'owner'
@@ -181,41 +181,35 @@ module.exports = class JGroup extends Module
 
   changeMemberRoles: permit 'grant permissions'
     success:(client, memberId, roles, callback)->
+      group = this
       groupId = @getId()
-      # memberId = ObjectId memberId
-      console.log {memberId}
+      roles.push 'member'  unless 'member' in roles
       oldRole =
-        sourceId    : memberId
-        targetId    : groupId
-      console.log oldRole
+        targetId    : memberId
+        sourceId    : groupId
       Relationship.remove oldRole, (err)->
         if err then callback err
         else
           queue = roles.map (role)->->
             (new Relationship
-              sourceName  : 'JAccount'
-              sourceId    : memberId
-              targetName  : 'JGroup'
-              targetName  : groupId
+              targetName  : 'JAccount'
+              targetId    : memberId
+              sourceName  : 'JGroup'
+              sourceId    : groupId
               as          : role
             ).save (err)->
               callback err  if err
               queue.fin()
-          console.log queue
           dash queue, callback
 
   addDefaultRoles:(callback)->
-
-    group = @
+    group = this
     JGroupRole = require './role'
-
     JGroupRole.all {isDefault: yes}, (err, roles)->
       if err then callback err
       else
-        queue = roles.map (role)->
-          ->
-            group.addRole role, queue.fin.bind queue
-
+        queue = roles.map (role)->->
+          group.addRole role, queue.fin.bind queue
         dash queue, callback
 
   updatePermissions: permit 'grant permissions'
@@ -243,7 +237,6 @@ module.exports = class JGroup extends Module
           }
 
   fetchMyRoles: secure (client, callback)->
-
     {delegate} = client.connection
     Relationship.someData {
       sourceId: delegate.getId()
