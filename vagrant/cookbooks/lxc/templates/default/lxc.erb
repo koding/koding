@@ -22,8 +22,8 @@ USE_LXC_BRIDGE="true"
 # /etc/dnsmasq.d/lxc and restart the system wide dnsmasq daemon.
 LXC_BRIDGE="lxcbr0"
 LXC_ADDR="<%= node[:lxc][:network][:bridge_ip] %>"
-LXC_NETMASK="255.255.248.0"
-LXC_NETWORK="<%= node[:lxc][:network][:netmask] %>"
+LXC_NETMASK="<%= node[:lxc][:network][:netmask] %>"
+LXC_NETWORK="<%= node[:lxc][:network][:network] %>"
 LXC_DHCP_RANGE="<%= node[:lxc][:network][:dhcp_start] %>,<%= node[:lxc][:network][:dhcp_end] %>"
 LXC_DHCP_MAX="2046"
 
