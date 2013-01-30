@@ -1,0 +1,79 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy ELB for Koding web stack",
+    "Parameters": {
+        "WebSiteDomainName": {
+            "Description": "koding web site domain name for loadbalancer",
+            "Type": "String"
+        },
+        "BrokerDomainName": {
+            "Description": "broker domain name for loadbalancer",
+            "Type": "String"
+        }
+
+    },
+    "Resources" :{
+        "WebSiteELB":{
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval":"5",
+                    "Target":"TCP:3020",
+                    "Timeout": "3",
+                    "UnhealthyThreshold":"5"
+                },
+                "LBCookieStickinessPolicy":[ 
+                    {
+                        "CookieExpirationPeriod":"120",
+                        "PolicyName": "WebSiteLBCookie"
+                    }
+                ],
+                "Listeners": [ 
+                    {
+                        "InstancePort":"80",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "80",
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort":"80",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "443",
+                        "Protocol": "HTTPS",
+                        "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29",
+                        "PolicyNames": [
+                            "WebSiteLBCookie"
+                        ]
+                    }
+                ],
+                "SecurityGroups":["sg-b17399de"],
+                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+            }
+        },
+
+        "BrokerELB":{
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval":"5",
+                    "Target":"TCP:8008",
+                    "Timeout": "3",
+                    "UnhealthyThreshold":"5"
+                },
+                "Listeners": [ 
+                    {
+                        "InstancePort":"8008",
+                        "InstanceProtocol": "TCP",
+                        "LoadBalancerPort": "443",
+                        "Protocol": "SSL",
+                        "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29"
+                    }
+                ],
+                "SecurityGroups":["sg-b17399de"],
+                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+            }
+        }
+    }
+}
