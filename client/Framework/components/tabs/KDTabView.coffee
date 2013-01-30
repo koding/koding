@@ -1,12 +1,15 @@
 class KDTabView extends KDScrollView
 
   constructor:(options = {}, data)->
-    @handles = []
-    @panes = []
-    @selectedIndex = []
-    @tabConstructor = options.tabClass ? KDTabPaneView
+    
+    options.resizeTabHandles  ?= no
+    @handles                   = []
+    @panes                     = []
+    @selectedIndex             = []
+    @tabConstructor            = options.tabClass ? KDTabPaneView
 
     super options, data
+
     @setTabHandleContainer options.tabHandleContainer ? null
     @listenWindowResize()
 
@@ -207,20 +210,19 @@ class KDTabView extends KDScrollView
     activeIndex = @getPaneIndex activePane
     @showPane @getPaneByIndex activeIndex - 1
 
-
   #MODIFY PANES/HANDLES
   setPaneTitle:(pane,title)->
     handle = @getHandleByPane pane
     handle.getDomElement().find("b").html title
 
   getHandleByPane: (pane) ->
-    index   = @getPaneIndex pane
-    handle  = @getHandleByIndex index
+    index  = @getPaneIndex pane
+    handle = @getHandleByIndex index
 
   hideCloseIcon:(pane)->
-    index = @getPaneIndex pane
+    index  = @getPaneIndex pane
     handle = @getHandleByIndex index
-    handle.getDomElement().addClass("hide-close-icon")
+    handle.getDomElement().addClass "hide-close-icon"
 
   resizeTabHandles:->
     return if @_tabHandleContainerHidden
