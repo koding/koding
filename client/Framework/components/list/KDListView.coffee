@@ -65,6 +65,12 @@ class KDListView extends KDView
           item.destroy()
           return
 
+  removeItemByData:(itemData)->
+    @removeItem null, itemData
+
+  removeItemByIndex:(index)->
+    @removeItem null, null, index
+
   destroy:(animated = no, animationType = "slideUp", duration = 100)->
 
     for item in @items

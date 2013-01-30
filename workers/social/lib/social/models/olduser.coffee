@@ -67,8 +67,13 @@ module.exports = class JOldUser extends jraphical.Module
 
       csv.on 'record', (line, lineNumber)->
         if iterations < limit or limit is 0
-          f_name = line[9].slice(0, line[9].indexOf(' ')) or line[9]
-          l_name = line[9].slice line[9].indexOf(' ')+1
+
+          if not line[9].indexOf(' ')
+            f_name = line[9].slice(0, line[9].indexOf(' '))
+            l_name = line[9].slice line[9].indexOf(' ')+1
+          else
+            f_name = line[9]
+            l_name = ''
 
           olduser = new JOldUser
             email     : line[4]

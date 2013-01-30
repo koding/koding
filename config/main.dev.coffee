@@ -72,7 +72,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : yes  
+    watch       : yes
   social        :
     login       : 'social'
     numberOfWorkers: 4
@@ -120,6 +120,8 @@ module.exports = deepFreeze
     host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+    notificationCronInstant  : '*/10 * * * * *'
+    notificationCronDaily    : '0 10 0 * * *'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

@@ -190,6 +190,8 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
+      notificationCronInstant  : 1
+      notificationCronDaily    : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

@@ -3,41 +3,38 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy?auto_reconnect'
-#mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
-# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitPrefix = (
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
-).trim()
+# rabbitPrefix = (
+#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+#   catch e then ""
+# ).trim()
 
-socialQueueName = "koding-social-#{rabbitPrefix}"
+socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
-  aws           :
-    key         : ''
-    secret      : ''
   uri           :
-    address     : "http://localhost:3000"
+    address     : "http://gokmen.dev.service.aws.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'webserver'
-    port        : 3000
-    clusterSize : 4
+    login       : 'prod-webserver'
+    port        : 3020
+    clusterSize : 2
     queueName   : socialQueueName+'web'
+    watch       : yes
   mongo         : mongo
   runGoBroker   : yes
+  compileGo     : yes
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
-    # debugConnectionErrors: yes
+    debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -54,20 +51,26 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
   authWorker    :
-    login       : 'authWorker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
+    watch       : yes
   social        :
-    login       : 'social'
-    numberOfWorkers: 4
+    login       : 'prod-social'
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
-    numberOfWorkers: 2
+    numberOfWorkers: 1
+  presence      :
+    exchange    : 'services-presence'
   client        :
     pistachios  : no
     version     : version
@@ -79,29 +82,29 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: 'http://gokmen.dev.service.aws.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : 'http://gokmen.dev.service.aws.koding.com/'
       broker    :
-        apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
-        vhost   : '/'
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS  : 'http://broker.gokmen.dev.service.aws.koding.com:8008/subscribe'
+      apiUri    : 'http://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
-    host        : 'localhost'
-    login       : 'guest'
-    password    : 'guest'
+    host        : 'mq.gokmen.dev.service.aws.koding.com'
+    login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
+    password    : 'djfjfhgh4455__5'
+    heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : 'gokmen.dev.service.aws.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
@@ -114,26 +117,16 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
+      host          : 'mq.gokmen.dev.service.aws.koding.com'
       login         : 'guest'
-      password      : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-  mixpanel :
-    key : "bb9dd21f58e3440e048a2c907422deed"
-  crypto :
-    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      cipher = crypto.createCipher('aes-256-cbc',""+key)
-      cipher.update(str,'utf-8')
-      a = cipher.final('hex')
-      return a
-    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      decipher = crypto.createDecipher('aes-256-cbc',""+key)
-      decipher.update(str,'hex')
-      b = decipher.final('utf-8')
-      return b
+  loggr:
+    push: no
+    url: ""
+    apiKey: ""
+  librato:
+    push: no
+    email: ""
+    token: ""
+    interval: 30000
