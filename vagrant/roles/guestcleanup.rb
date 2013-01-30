@@ -1,5 +1,5 @@
 name "guestcleanup"
-description "The  role for socialWorker servers"
+description "The  role for guestcleanup servers"
 
 run_list ["role[base_server]","recipe[nodejs]","recipe[golang]", "recipe[supervisord]","recipe[kd_deploy]"]
 
