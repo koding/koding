@@ -125,7 +125,7 @@ module.exports = class JEmailNotificationGG extends Model
       # else
       #   console.log "Already exists"
 
-  @unsubscribeWithId = (unsubscribeId, all, callback)->
+  @unsubscribeWithId = (unsubscribeId, opt, callback)->
 
     JEmailNotificationGG.one {unsubscribeId}, (err, notification)->
       if err or not notification then callback err
@@ -136,8 +136,10 @@ module.exports = class JEmailNotificationGG extends Model
           else
             prefs = {}
             definition = ''
-            if all is 'all'
-              prefs.global  = 'off'
+            if opt is 'all'
+              prefs.global = 'off'
+            else if opt is 'daily'
+              prefs.daily = 'off'
             else
               prefs[notification.eventFlag] = 'off'
               {definition} = flags[notification.eventFlag]
