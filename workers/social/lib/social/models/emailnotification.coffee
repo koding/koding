@@ -116,7 +116,7 @@ module.exports = class JEmailNotificationGG extends Model
       if not err and count is 0
         notification = new JEmailNotificationGG {
           event, sender, receiver, eventFlag, contentId, activity, \
-          unsubscribeId: getUniqueId()
+          unsubscribeId: getUniqueId()+getUniqueId()+''
         }
         # console.log "OK good to go."
         notification.save (err)->
