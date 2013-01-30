@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"koding/tools/db"
 	"koding/tools/dnode"
-	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
 	"koding/virt"
@@ -29,16 +29,12 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
-	user := SessionUser(session)
-	vm := virt.GetDefaultVM(user)
-
+func newWebtermServer(vm *virt.VM, user *db.User, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
 	server := &WebtermServer{
 		remote: remote,
 		pty:    pty.New(vm.PtsDir()),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
-	session.OnDisconnect(func() { server.Close() })
 
 	server.pty.Slave.Chown(virt.VMROOT_ID, -1)
 	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No)) // empty command is default shell
