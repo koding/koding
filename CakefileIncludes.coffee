@@ -58,7 +58,8 @@ Includes =
         JTreeItemView         : "./client/Framework/components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee"
+        KDTabHandleView       : "./client/Framework/components/tabs/KDTabHandleView.coffee" 
+        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee" 
         KDTabPaneView         : "./client/Framework/components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
 
