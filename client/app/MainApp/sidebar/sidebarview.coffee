@@ -45,10 +45,10 @@ class Sidebar extends JView
     , currentGroupData
 
     # handle group related decisions
-
-    @getSingleton('groupsController').on 'GroupChanged', =>
+    groupsController = @getSingleton 'groupsController'
+    groupsController.on 'GroupChanged', =>
       @switchNav()
-      currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+      currentGroupData = groupsController.getCurrentGroupData()
       unless currentGroupData?.data?.slug is 'koding'
         @avatar.setClass 'shared-avatar'
         @avatar.setWidth 80

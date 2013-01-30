@@ -120,7 +120,7 @@ class GroupsMemberPermissionsView extends JView
                 @loader.hide()
 
   memberRolesChange:(member, roles)->
-    @getData().changeMemberRoles member, roles, (err)-> console.log {arguments}
+    @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
   viewAppended:->
 

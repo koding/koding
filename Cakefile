@@ -6,6 +6,7 @@ option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
+{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
 # exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
@@ -40,8 +41,7 @@ http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
-
-KODING_CAKE        = './node_modules/koding-cake/bin/cake'
+KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -138,37 +138,30 @@ task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
-  startPool = (config) ->
-    exitingProcesses = {}
-    i = 0
-    runProcess = (size) ->
-      processes.fork
-        name  : "socialWorker"
-        cmd   : __dirname + "/workers/social/index -c #{config}"
-        pool  :
-          size: size
-        onMessage: (msg) ->
-          if msg.exiting
-            exitingProcesses[msg.pid] = yes
-            runProcess(0)
-        onExit: (pid, name) ->
-          unless exitingProcesses[pid]
-            runProcess(0)
-          else
-            delete exitingProcesses[pid]
+  for i in [1..social.numberOfWorkers]
+    processes.fork
+      name  : "socialWorker-#{i}"
+      cmd   : __dirname + "/workers/social/index -c #{configFile}"
+      restart : yes
+      restartInterval : 100
+      # onMessage: (msg) ->
+      #   if msg.exiting
+      #     exitingProcesses[msg.pid] = yes
+      #     runProcess(0)
+      # onExit: (pid, name) ->
+      #   unless exitingProcesses[pid]
+      #     runProcess(0)
+      #   else
+      #     delete exitingProcesses[pid]
 
-    runProcess(social.numberOfWorkers)
-
-  startPool configFile
 
   if social.watch?
-    console.log '[SOCIAL WORKER] Make sure there is only one worker active for [WATCHER] to work properly.'
     watcher = new Watcher
       groups   :
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker"
+            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
@@ -178,7 +171,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
       restart : yes
       restartInterval : 1000
 
@@ -189,6 +182,7 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
+              
 
 
 task 'guestCleanup',({configFile})->
@@ -218,25 +212,6 @@ task 'libratoWorker',({configFile})->
     restart: yes
     restartInterval: 100
     verbose: yes
-
-task 'cacheWorker',({configFile})->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {cacheWorker} = KONFIG
-
-  processes.fork
-    name            : 'cacheWorker'
-    cmd             : "./workers/cacher/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
-
-  if cacheWorker.watch is yes
-    watcher = new Watcher
-      groups        :
-        server      :
-          folders   : ['./workers/cacher']
-          onChange  : ->
-            processes.kill "cacheWorker"
-
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -347,6 +322,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
+  
 
 
 
@@ -360,7 +336,6 @@ task 'deleteCache',(options)->
 
 
 
-  config.buildClient = yes if options.buildClient
 
 
 
