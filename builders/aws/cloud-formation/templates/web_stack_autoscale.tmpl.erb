@@ -124,7 +124,50 @@
             "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
             "Type" : "String",
             "AllowedPattern": "[0-9]+"
+        },
+
+
+
+
+        "AuthWorkerInstanceType": {
+            "Default": "m1.small",
+            "Description": "The type of EC2 instance used for the WebServer server",
+            "Type": "String",
+            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
+        },
+      	"AuthWorkerMinGroupSize" :{
+         	"Default" : "1",
+          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+" 
+       	},
+        "AuthWorkerMaxGroupSize" : {
+          	"Default" : "10",
+           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "AuthWorkerDesiredCapacity": {
+  	        "Default" : 1,
+           	"Description" : "Specifies the desired capacity for the auto scaling group",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+
+        },
+        "AuthWorkerCpuAlarmHight":{
+            "Default" : "60",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "AuthWorkerCpuAlarmLow":{
+            "Default" : "30",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
         }
+
+
 
 
 
@@ -161,6 +204,16 @@
             	"KeyName" : {"Ref": "KeyName"},
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= guestcleanup_bootstrap_script.to_json %>}
+             } 
+          },
+      	 "AuthWorkerLaunchConfiguration" : {
+      		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
+      		"Properties" : {
+        		"InstanceType" : {"Ref":"AuthWorkerInstanceType"},
+          		"SecurityGroups" : ["sg-b17399de"],
+            	"KeyName" : {"Ref": "KeyName"},
+                "ImageId" : "ami-3d4ff254",
+                "UserData":{"Fn::Base64": <%= authworker_bootstrap_script.to_json %>}
              } 
           },
 
@@ -200,6 +253,17 @@
                       "MinSize": {"Ref":"GuestCleanupMinGroupSize"},
                       "MaxSize": {"Ref":"GuestCleanupMaxGroupSize"},
                       "DesiredCapacity": {"Ref":"GuestCleanupDesiredCapacity"}
+                     } 
+          },  
+          "AuthWorkerScalingGroup" : {
+              "Type" :"AWS::AutoScaling::AutoScalingGroup",
+              "Properties" : {
+                	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
+                  	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
+                      "LaunchConfigurationName" : {"Ref": "AuthWorkerLaunchConfiguration" },
+                      "MinSize": {"Ref":"AuthWorkerMinGroupSize"},
+                      "MaxSize": {"Ref":"AuthWorkerMaxGroupSize"},
+                      "DesiredCapacity": {"Ref":"AuthWorkerDesiredCapacity"}
                      } 
           },  
 
@@ -354,6 +418,54 @@
           },
 
 
+          "AuthWorkerCPUAlarmHigh" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"AuthWorkerCpuAlarmHight"},
+                    "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "AuthWorkerAutoScalingUPPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "GreaterThanThreshold",
+                    "MetricName": "AuthWorkerHightCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AuthWorkerScalingGroup",
+                        "Value": {"Ref":"AuthWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+          "AuthWorkerCPUAlarmLow" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"AuthWorkerCpuAlarmLow"},
+                    "AlarmDescription": "Alarm if CPU too low",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "AuthWorkerAutoScalingDownPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "LessThanThreshold",
+                    "MetricName": "AuthWorkerLowCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AuthWorkerScalingGroup",
+                        "Value": {"Ref":"AuthWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+
+
 
           "WebServerAutoScalingUPPolicy" : {
 			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
@@ -404,7 +516,25 @@
         			"ScalingAdjustment" : "-1",  
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
+    	  },
+
+          "AuthWorkerAutoScalingUPPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "AuthWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  },
+          "AuthWorkerAutoScalingDownPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "AuthWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "-1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
     	  }
+
 
 
     }
