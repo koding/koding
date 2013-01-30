@@ -32,10 +32,10 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
-func (vm *VM) GetState() (string, err) {
+func (vm *VM) GetState() string {
 	out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
 	if err != nil {
-		return err
+		return ""
 	}
 	return strings.TrimSpace(string(out)[6:])
 }
@@ -43,10 +43,7 @@ func (vm *VM) GetState() (string, err) {
 func (vm *VM) WaitForRunning(timeout time.Duration) error {
 	until := time.Now().Add(timeout)
 	for time.Now().Before(until) {
-		state, err := vm.GetState()
-		if err != nil {
-			return err
-		}
+		state := vm.GetState()
 		if state == "RUNNING" {
 			return nil
 		}

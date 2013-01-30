@@ -240,7 +240,7 @@ func (vm *VM) Prepare() {
 }
 
 func (vm *VM) Unprepare() {
-	out, err := vm.ShutdownCommand().Run()
+	out, err := vm.ShutdownCommand().CombinedOutput()
 	if vm.GetState() != "STOPPED" {
 		log.Err("Could not shutdown VM.", err, out)
 		return
