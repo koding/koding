@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"koding/tools/config"
 	"koding/tools/db"
+	"koding/tools/log"
 	"koding/tools/utils"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -156,15 +157,18 @@ func (vm *VM) Prepare() {
 		}
 
 		// create disk and try to map again
-		if err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").Run(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").CombinedOutput(); err != nil {
+			log.Err("rbd create failed.", err, out)
 			panic(err)
 		}
-		if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
+			log.Err("rbd map failed.", err, out)
 			panic(err)
 		}
 		vm.waitForRBD()
 
-		if err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).Run(); err != nil {
+		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
+			log.Err("mkfs.ext4 failed.", err, out)
 			panic(err)
 		}
 	} else {
@@ -173,7 +177,8 @@ func (vm *VM) Prepare() {
 
 	// mount block device to upperdir
 	prepareDir(vm.UpperdirFile(""), VMROOT_ID)
-	if err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).Run(); err != nil {
+	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).CombinedOutput(); err != nil {
+		log.Err("mount rbd failed.", err, out)
 		panic(err)
 	}
 
@@ -218,13 +223,15 @@ func (vm *VM) Prepare() {
 
 	// mount overlayfs
 	prepareDir(vm.File("rootfs"), VMROOT_ID)
-	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).Run(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+		log.Err("mount overlayfs failed.", err, out)
 		panic(err)
 	}
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), VMROOT_ID)
-	if err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=1000005,mode=0620", "devpts", vm.PtsDir()).Run(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid=1000005,mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+		log.Err("mount devpts failed.", err, out)
 		panic(err)
 	}
 	chown(vm.PtsDir(), VMROOT_ID, VMROOT_ID)
@@ -233,10 +240,18 @@ func (vm *VM) Prepare() {
 
 func (vm *VM) Unprepare() {
 	vm.StopCommand().Run()
-	exec.Command("/bin/umount", vm.PtsDir()).Run()
-	exec.Command("/bin/umount", vm.File("rootfs")).Run()
-	exec.Command("/bin/umount", vm.UpperdirFile("")).Run()
-	exec.Command("/usr/bin/rbd", "unmap", vm.String(), "--pool", "rbd").Run()
+	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
+		log.Warn("umount devpts failed.", err, out)
+	}
+	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil {
+		log.Warn("umount overlayfs failed.", err, out)
+	}
+	if out, err := exec.Command("/bin/umount", vm.UpperdirFile("")).CombinedOutput(); err != nil {
+		log.Warn("umount rbd failed.", err, out)
+	}
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
+		log.Warn("rbd unmap failed.", err, out)
+	}
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
