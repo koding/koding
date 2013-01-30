@@ -32,7 +32,7 @@ when "dev"
     end
 else
     useradd do
-        users local_users_dev
+        users local_users_prod
     end
 end
 
