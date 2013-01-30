@@ -1,0 +1,141 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy web server autoscale configuration",
+    "Parameters": {
+        "KeyName": {
+            "Default" : "koding",
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access into the mon server",
+            "Type": "String"
+        },
+        "WebServerInstanceType": {
+            "Default": "m1.small",
+            "Description": "The type of EC2 instance used for the WebServer server",
+            "Type": "String",
+            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
+        },
+      	"WebServerMinGroupSize" :{
+         	"Default" : "1",
+          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+" 
+       	},
+        "WebServerMaxGroupSize" : {
+          	"Default" : "10",
+           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        },
+        "WebServerDesiredCapacity": {
+  	        "Default" : 1,
+           	"Description" : "Specifies the desired capacity for the auto scaling group",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+
+        },
+        "WebServerCpuAlarmHight":{
+            "Default" : "60",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        }
+        "WebServerCpuAlarmLow":{
+            "Default" : "30",
+            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
+            "Type" : "String",
+            "AllowedPattern": "[0-9]+"
+        }
+
+    },
+    "Resources" :{
+
+
+      	 "WebServerLaunchConfiguration" : {
+      		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
+      		"Properties" : {
+        		"InstanceType" : {"Ref":"WebServerInstanceType"},
+          		"SecurityGroups" : ["sg-b17399de"],
+            	"KeyName" : {"Ref": "KeyName"},
+                "ImageId" : "ami-3d4ff254" 
+             } 
+          },
+          "WebServerScalingGroup" : {
+              "Type" :"AWS::AutoScaling::AutoScalingGroup",
+              "Properties" : {
+                	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
+                  	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
+                      "LaunchConfigurationName" : {"Ref": "WebServerLaunchConfiguration" },
+                      "MinSize": {"Ref":"WebServerMinGroupSize"},
+                      "MaxSize": {"Ref":"WebServerMaxGroupSize"},
+                      "DesiredCapacity": {"Ref":"WebServerDesiredCapacity"}
+                     } 
+          },  
+
+
+
+          "WebServerCPUAlarmHigh" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"WebServerCpuAlarmHight"},
+                    "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "WebServerAutoScalingUPPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "GreaterThanThreshold",
+                    "MetricName": "WebServerHightCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"WebServerScalingGroup",
+                        "Value": {"Ref":"WebServerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+          "WebServerCPUAlarmLow" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": {"Ref":"WebServerCpuAlarmLow"},
+                    "AlarmDescription": "Alarm if CPU too low",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "WebServerAutoScalingDownPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "LessThanThreshold",
+                    "MetricName": "WebServerLowCPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"WebServerScalingGroup",
+                        "Value": {"Ref":"WebServerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+
+
+          "WebServerAutoScalingUPPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "WebServerScalingGroup"},   
+        			"ScalingAdjustment" : "1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  },
+          "WebServerAutoScalingDownPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "WebServerScalingGroup"},   
+        			"ScalingAdjustment" : "-1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  }
+
+    }
+}
