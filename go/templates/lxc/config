@@ -16,11 +16,11 @@ lxc.arch = amd64
 lxc.cap.drop = sys_module mac_admin mac_override
 lxc.pivotdir = lxc_putold
 
-lxc.id_map = U 1000000000 0 1000
-lxc.id_map = U 1000 1000 999999000
+lxc.id_map = U 50000000 0 1000
+lxc.id_map = U 1000 1000 49999000
 
-lxc.id_map = G 1000000000 0 1000
-lxc.id_map = G 1000 1000 999999000
+lxc.id_map = G 50000000 0 1000
+lxc.id_map = G 1000 1000 49999000
 
 lxc.cgroup.cpu.shares = 1000
 #lxc.cgroup.memory.limit_in_bytes = 60M

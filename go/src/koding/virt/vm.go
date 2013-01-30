@@ -32,7 +32,7 @@ type UserEntry struct {
 	Sudo bool          `bson:"sudo"`
 }
 
-const RootIdOffset = 1000000000
+const RootIdOffset = 50000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
