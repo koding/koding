@@ -250,7 +250,7 @@ func (vm *VM) Unprepare() {
 	if out, err := exec.Command("/bin/umount", vm.UpperdirFile("")).CombinedOutput(); err != nil {
 		log.Warn("umount rbd failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil {
 		log.Warn("rbd unmap failed.", err, out)
 	}
 	os.Remove(vm.File("config"))
