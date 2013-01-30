@@ -18,6 +18,9 @@ rabbitPrefix = (
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
+  aws           :
+    key         : ''
+    secret      : ''
   uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot

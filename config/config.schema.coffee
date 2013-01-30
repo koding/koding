@@ -88,6 +88,10 @@ config =
         baseDir             : 1
         setfacl             : 1      
   main :
+    aws           :
+      key         : 1
+      secret      : 1
+      subdomain   : 1
     uri           :
       address     : 1
     projectRoot   : 1

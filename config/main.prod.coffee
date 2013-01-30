@@ -18,6 +18,9 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-prod"
 
 module.exports = deepFreeze
+  aws           :
+    key         : ''
+    secret      : ''
   uri           :
     address     : "https://koding.com"
   projectRoot   : projectRoot

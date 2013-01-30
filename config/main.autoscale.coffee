@@ -17,6 +17,9 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
     address     : "https://as.koding.com"
   projectRoot   : projectRoot
