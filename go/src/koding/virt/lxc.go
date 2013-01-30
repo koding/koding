@@ -1,8 +1,11 @@
 package virt
 
 import (
+	"errors"
 	"os/exec"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func (vm *VM) StartCommand() *exec.Cmd {
@@ -27,4 +30,19 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	cmd := exec.Command("/usr/bin/lxc-attach", args...)
 	//cmd.Env = []string{"TERM=xterm"}
 	return cmd
+}
+
+func (vm *VM) WaitForRunning(timeout time.Duration) error {
+	until := time.Now().Add(timeout)
+	for time.Now().Before(until) {
+		out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
+		if err != nil {
+			return err
+		}
+		if strings.Contains(string(out), "RUNNING") {
+			return nil
+		}
+		time.Sleep(time.Second / 10)
+	}
+	return errors.New("timeout")
 }

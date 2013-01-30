@@ -194,6 +194,9 @@ func FindSession(session *kite.Session) (*db.User, *virt.VM) {
 		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
 			log.Err("Could not start VM.", err, out)
 		}
+		if err := vm.WaitForRunning(time.Second); err != nil {
+			log.Warn("Waiting for VM startup failed.", err)
+		}
 		state = &VMState{
 			sessions:      make(map[*kite.Session]bool),
 			totalCpuUsage: utils.MaxInt,
