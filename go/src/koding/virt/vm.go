@@ -36,7 +36,6 @@ const RootIdOffset = 50000000
 
 var templates *template.Template
 var VMs *mgo.Collection = db.Collection("jVMs")
-var ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)))
 
 func LoadTemplates() {
 	var err error
@@ -134,16 +133,8 @@ func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-// may panic
 func (vm *VM) Prepare() {
 	vm.Unprepare()
-
-	ip := utils.IntToIP(<-ipPoolFetch)
-	if err := VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-		ipPoolRelease <- utils.IPToInt(ip)
-		panic(err)
-	}
-	vm.IP = ip
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
@@ -262,11 +253,6 @@ func (vm *VM) Unprepare() {
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
-	if vm.IP != nil {
-		VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
-		ipPoolRelease <- utils.IPToInt(vm.IP)
-		vm.IP = nil
-	}
 }
 
 func (vm *VM) waitForRBD() {

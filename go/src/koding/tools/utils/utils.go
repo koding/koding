@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"sort"
 	"time"
 )
 
@@ -74,23 +75,29 @@ func RandomString() string {
 	return base64.StdEncoding.EncodeToString(r)
 }
 
-func NewIntPool(offset int) (<-chan int, chan<- int) {
+func NewIntPool(offset int, alreadyTaken []int) (<-chan int, chan<- int) {
 	fetchChan := make(chan int)
 	releaseChan := make(chan int)
 	go func() {
-		next := offset
-		tail := offset + 1
+		tail := offset
 		unused := make([]int, 0)
-		for {
-			select {
-			case fetchChan <- next:
-				if len(unused) != 0 {
-					next = unused[len(unused)-1]
-					unused = unused[:len(unused)-1]
-				} else {
-					next = tail
-					tail += 1
+		sort.Ints(alreadyTaken)
+		for _, v := range alreadyTaken {
+			for tail <= v {
+				if tail != v {
+					unused = append(unused, tail)
 				}
+				tail += 1
+			}
+		}
+		for {
+			if len(unused) == 0 {
+				unused = append(unused, tail)
+				tail += 1
+			}
+			select {
+			case fetchChan <- unused[len(unused)-1]:
+				unused = unused[:len(unused)-1]
 			case i := <-releaseChan:
 				unused = append(unused, i)
 			}

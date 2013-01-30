@@ -8,6 +8,8 @@ import (
 	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
+	"labix.org/v2/mgo/bson"
+	"net"
 	"os"
 	"path"
 	"strconv"
@@ -18,6 +20,7 @@ import (
 )
 
 type VMState struct {
+	vmId          bson.ObjectId
 	sessions      map[*kite.Session]bool
 	timeout       *time.Timer
 	totalCpuUsage int
@@ -28,34 +31,54 @@ type VMState struct {
 	MemoryLimit int `json:"memoryLimit"`
 }
 
-var states = make(map[string]*VMState)
+var ipPoolFetch <-chan int
+var ipPoolRelease chan<- int
+var states = make(map[bson.ObjectId]*VMState)
 var statesMutex sync.Mutex
 
 func main() {
 	utils.Startup("kite.os", true)
 	virt.LoadTemplates()
 
+	takenIPs := make([]int, 0)
+	iter := virt.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
+	var vm virt.VM
+	for iter.Next(&vm) {
+		if vm.GetState() == "RUNNING" {
+			state := newState(&vm)
+			state.startTimeout()
+			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
+		} else {
+			vm.Unprepare()
+			virt.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
+		}
+	}
+	if iter.Err() != nil {
+		panic(iter.Err())
+	}
+	ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)), takenIPs)
+
 	go LimiterLoop()
 	k := kite.New("os")
 
 	k.Handle("vm.start", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := FindSession(session)
+		_, vm := findSession(session)
 		return vm.StartCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.shutdown", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := FindSession(session)
+		_, vm := findSession(session)
 		return vm.ShutdownCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.stop", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := FindSession(session)
+		_, vm := findSession(session)
 		return vm.StopCommand().CombinedOutput()
 	})
 
 	k.Handle("vm.state", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := FindSession(session)
-		return states[vm.String()], nil
+		_, vm := findSession(session)
+		return states[vm.Id], nil
 	})
 
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -64,7 +87,7 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "array of strings"}
 		}
 
-		user, vm := FindSession(session)
+		user, vm := findSession(session)
 		return vm.AttachCommand(user.Uid, "", command...).CombinedOutput()
 	})
 
@@ -74,7 +97,7 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "string"}
 		}
 
-		user, vm := FindSession(session)
+		user, vm := findSession(session)
 		return vm.AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
@@ -87,7 +110,7 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
-		user, _ := FindSession(session)
+		user, _ := findSession(session)
 		absPath := path.Join("/home", user.Name, params.Path)
 		info, err := os.Stat(absPath)
 		if err != nil {
@@ -123,7 +146,7 @@ func main() {
 	})
 
 	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		user, _ := FindSession(session)
+		user, _ := findSession(session)
 		dir, err := os.Open("/var/run/screen/S-" + user.Name)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -153,7 +176,7 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
 		}
 
-		user, vm := FindSession(session)
+		user, vm := findSession(session)
 		server := newWebtermServer(vm, user, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
 		session.OnDisconnect(func() { server.Close() })
 		return server, nil
@@ -169,7 +192,7 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
 		}
 
-		user, vm := FindSession(session)
+		user, vm := findSession(session)
 		server := newWebtermServer(vm, user, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
 		session.OnDisconnect(func() { server.Close() })
 		return server, nil
@@ -178,7 +201,7 @@ func main() {
 	k.Run()
 }
 
-func FindSession(session *kite.Session) (*db.User, *virt.VM) {
+func findSession(session *kite.Session) (*db.User, *virt.VM) {
 	statesMutex.Lock()
 	defer statesMutex.Unlock()
 
@@ -188,21 +211,23 @@ func FindSession(session *kite.Session) (*db.User, *virt.VM) {
 	}
 
 	vm := virt.GetDefaultVM(user)
-	state, found := states[vm.String()]
+	state, found := states[vm.Id]
 	if !found {
+		ip := utils.IntToIP(<-ipPoolFetch)
+		if err := virt.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+			panic(err)
+		}
+		vm.IP = ip
 		vm.Prepare()
+
 		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
 			log.Err("Could not start VM.", err, out)
 		}
 		if err := vm.WaitForRunning(time.Second); err != nil {
 			log.Warn("Waiting for VM startup failed.", err)
 		}
-		state = &VMState{
-			sessions:      make(map[*kite.Session]bool),
-			totalCpuUsage: utils.MaxInt,
-			CpuShares:     1000,
-		}
-		states[vm.String()] = state
+
+		state = newState(vm)
 	}
 
 	if !state.sessions[session] {
@@ -217,26 +242,50 @@ func FindSession(session *kite.Session) (*db.User, *virt.VM) {
 			defer statesMutex.Unlock()
 
 			delete(state.sessions, session)
-			if len(state.sessions) != 0 {
-				return
+			if len(state.sessions) == 0 {
+				state.startTimeout()
 			}
-			state.timeout = time.AfterFunc(10*time.Minute, func() {
-				statesMutex.Lock()
-				defer statesMutex.Unlock()
-
-				if len(state.sessions) != 0 {
-					return
-				}
-				if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
-					log.Err("Could not shutdown VM.", err, out)
-				}
-				vm.Unprepare()
-				delete(states, vm.String())
-			})
 		})
 	}
 
 	return user, vm
+}
+
+func newState(vm *virt.VM) *VMState {
+	state := &VMState{
+		vmId:          vm.Id,
+		sessions:      make(map[*kite.Session]bool),
+		totalCpuUsage: utils.MaxInt,
+		CpuShares:     1000,
+	}
+	states[vm.Id] = state
+	return state
+}
+
+func (state *VMState) startTimeout() {
+	state.timeout = time.AfterFunc(10*time.Minute, func() {
+		statesMutex.Lock()
+		defer statesMutex.Unlock()
+
+		if len(state.sessions) != 0 {
+			return
+		}
+
+		vm, err := virt.FindVMById(state.vmId)
+		if err != nil {
+			log.Err("Could not find VM for shutdown.", err)
+		}
+		if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
+			log.Err("Could not shutdown VM.", err, out)
+		}
+
+		vm.Unprepare()
+		virt.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
+		ipPoolRelease <- utils.IPToInt(vm.IP)
+		vm.IP = nil
+
+		delete(states, vm.Id)
+	})
 }
 
 type FileEntry struct {
