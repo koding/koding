@@ -51,9 +51,13 @@ class MainView extends KDView
     @panelWrapper.addSubView @contentPanel = new KDView
       domId    : "content-panel"
       cssClass : "transition"
+      bind     : "webkitTransitionEnd" #TODO: Cross browser support
 
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
+
+    @contentPanel.on "webkitTransitionEnd", (e) =>
+      @emit "mainViewTransitionEnd", e
 
   addHeader:()->
 
