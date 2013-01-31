@@ -228,32 +228,25 @@ class KDTabView extends KDScrollView
     handle.getDomElement().addClass "hide-close-icon"
 
   resizeTabHandles: KD.utils.throttle ->
-    return if not @getOptions().resizeTabHandles or @_tabHandleContainerHidden
+    return if not @getOptions().resizeTabHandles or @_tabHandleContainerHidden or @blockTabHandleResize
 
-    @tabHandleContainer.$().addClass "resize-in-action"
-    clearTimeout @resizeTimer
-
-    visibleHandles   = []
-    visibleTotalSize = 0
-    options          = @getOptions()
-    containerSize    = @tabHandleContainer.$().outerWidth no
-
+    visibleHandles           = []
+    visibleTotalSize         = 0
+    options                  = @getOptions()
+    containerSize            = @tabHandleContainer.$().outerWidth(no) - options.lastTabHandleMargin
+    containerMarginInPercent = 100 * options.lastTabHandleMargin / containerSize
 
     for handle in @handles
       unless handle.isHidden()
         visibleHandles.push handle
         visibleTotalSize += handle.$().outerWidth no
 
-    if containerSize < visibleTotalSize + 40
-      for handle in visibleHandles
-        possibleWidth = containerSize / visibleHandles.length - 10
-        handle.$().css width: if possibleWidth > options.maxHandleWidth then options.maxHandleWidth else possibleWidth
+    sizeWhenUsedMaxHandleWidth = visibleHandles.length * options.maxHandleWidth;
+    if visibleTotalSize > containerSize or sizeWhenUsedMaxHandleWidth > containerSize
+      possiblePercent = (100 - containerMarginInPercent) / visibleHandles.length
+      handle.setWidth(possiblePercent, "%") for handle in visibleHandles
     else 
-      for handle in visibleHandles
-        handle.$().css width: options.maxHandleWidth
-
-    @resizeTimer = @utils.wait 300, =>
-      @tabHandleContainer.$().removeClass "resize-in-action"
-  , 100
 
   _windowDidResize:(event)=> @resizeTabHandles event
+      handle.setWidth options.maxHandleWidth for handle in visibleHandles        
+  , 300
