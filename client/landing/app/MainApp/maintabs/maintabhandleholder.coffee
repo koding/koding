@@ -15,7 +15,7 @@ class MainTabHandleHolder extends KDView
 
   _windowDidResize:->
     mainView = @getDelegate()
-    @setWidth mainView.mainTabView.getWidth() - 100
+    @setWidth mainView.mainTabView.getWidth()
 
   addPlusHandle:()->
 
