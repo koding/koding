@@ -3,9 +3,10 @@ class MainTabView extends KDTabView
   lastOpenPaneIndex = null
 
   constructor:(options,data)->
-    @visibleHandles = []
-    @totalSize      = 0
-    @paneViewIndex  = {}
+    options.resizeTabHandles = yes
+    @visibleHandles   = []
+    @totalSize        = 0
+    @paneViewIndex    = {}
     super options,data
 
     @listenTo
@@ -17,6 +18,11 @@ class MainTabView extends KDTabView
       KDEventTypes : 'ApplicationWantsToClose'
       callback     :(app, {options, data})->
         @removePaneByView data
+
+    @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
+      if e.target is @getSingleton("contentPanel").domElement[0]
+        @tabHandleContainer.setWidth @getWidth()
+        @resizeTabHandles() 
 
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
