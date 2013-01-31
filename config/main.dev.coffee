@@ -85,7 +85,7 @@ module.exports = deepFreeze
     login       : 'prod-social'
     watch       : yes
     queueName   : socialQueueName+'cache'
-    run         : yes
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
