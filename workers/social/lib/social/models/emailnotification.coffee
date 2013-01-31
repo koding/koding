@@ -5,7 +5,7 @@ getUniqueId=->
   r = Math.floor Math.random()*9000000+1
   "#{r}#{Date.now()}"
 
-module.exports = class JEmailNotificationGG extends Model
+module.exports = class JMailNotification extends Model
 
   @share()
 
@@ -111,10 +111,10 @@ module.exports = class JEmailNotificationGG extends Model
                              when contentType in type.contentTypes \
                              and event in type.eventType][0][0]?[0]
 
-    JEmailNotificationGG.count {event, sender, receiver, contentId}, \
+    JMailNotification.count {event, sender, receiver, contentId}, \
     (err, count)->
       if not err and count is 0
-        notification = new JEmailNotificationGG {
+        notification = new JMailNotification {
           event, sender, receiver, eventFlag, contentId, activity, \
           unsubscribeId: getUniqueId()+getUniqueId()+''
         }
@@ -127,7 +127,7 @@ module.exports = class JEmailNotificationGG extends Model
 
   @unsubscribeWithId = (unsubscribeId, opt, callback)->
 
-    JEmailNotificationGG.one {unsubscribeId}, (err, notification)->
+    JMailNotification.one {unsubscribeId}, (err, notification)->
       if err or not notification then callback err
       else
         JAccount = require './account'

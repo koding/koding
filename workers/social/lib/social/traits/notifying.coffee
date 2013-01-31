@@ -13,7 +13,7 @@ module.exports = class Notifying
       @notify receiver, event, contents
 
   notify:(receiver, event, contents)->
-    JEmailNotificationGG  = require '../models/emailnotification'
+    JMailNotification  = require '../models/emailnotification'
     JAccount = require '../models/account'
     CBucket  = require '../models/bucket'
     JUser    = require '../models/user'
@@ -32,7 +32,7 @@ module.exports = class Notifying
     sendNotification = =>
       # console.log 'sendNotification'
       if receiver instanceof JAccount
-        JEmailNotificationGG.create {actor, receiver, event, contents}, \
+        JMailNotification.create {actor, receiver, event, contents}, \
         (err)->
           console.error err if err
 
