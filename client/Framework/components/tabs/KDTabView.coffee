@@ -59,6 +59,9 @@ class KDTabView extends KDScrollView
       @appendPane paneInstance
       @showPane paneInstance
       @emit "PaneAdded", paneInstance
+
+      newTabHandle.$().css maxWidth: @getOptions().maxHandleWidth
+
       return paneInstance
     else
       warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
