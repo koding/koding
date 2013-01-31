@@ -105,7 +105,7 @@ class GroupsListItemView extends KDListItemView
       attributes :
         href : '/'+@getData().slug+"/Activity"
         target : '_blank'
-      partial : 'Open Group'
+      partial : 'Open'
 
 
   settingsMenu:(data)->
@@ -198,7 +198,7 @@ class GroupsListItemView extends KDListItemView
           </p>
         </div>
       </div>
-      <div class="button-container">{{>@enterButton}}{{> @joinButton}}</div>
+      <div class="button-container"><div class="enter-button">{{>@enterButton}}</div>{{> @joinButton}}</div>
     </div>
     """
 
