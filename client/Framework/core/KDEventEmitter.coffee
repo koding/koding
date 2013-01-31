@@ -12,21 +12,21 @@ class KDEventEmitter
   _on = (registry, eventName, callback)->
     # on can be defined before any emit, so create
     # the event registry, if it doesn't exist.
-    registry[event] ?= []
+    registry[eventName] ?= []
     # register the listeners callback.
-    registry[event].push callback
+    registry[eventName].push callback
 
   _off = (registry, eventName, callback)->
-    if event is "*"
+    if eventName is "*"
       registry = {}
     # reset the listener container so no event
     # will be propagated to previously registered
     # listener callbacks.
-    else if callback and registry[event]
-      cbIndex = registry[event].indexOf callback
-      registry[event].splice 1, cbIndex if cbIndex >= 0
+    else if callback and registry[eventName]
+      cbIndex = registry[eventName].indexOf callback
+      registry[eventName].splice 1, cbIndex if cbIndex >= 0
     else
-      registry[event] = []
+      registry[eventName] = []
 
 
   getEventParser = (event)->
@@ -44,44 +44,44 @@ class KDEventEmitter
   @emit : ->
     # slice the arguments, 1st argument is the event name,
     # rest is args supplied with emit.
-    [event, args...] = [].slice.call arguments
+    [eventName, args...] = [].slice.call arguments
     # create listener container if it doesn't exist
-    _e[event] ?= []
+    _e[eventName] ?= []
     # call every listener inside the container with the arguments (args)
-    listener.apply null,args for listener in _e[event] if _e[event]?
+    listener.apply null,args for listener in _e[eventName] if _e[eventName]?
 
-  @on   :(event,callback)->  _on _e, event, callback
-  @off  :(event, callback)-> _off _e, event, callback
+  @on   :(eventName, callback)-> _on _e, eventName, callback
+  @off  :(eventName, callback)-> _off _e, eventName, callback
 
   constructor:->
     @KDEventEmitterEvents  = {}
     @_e = @KDEventEmitterEvents[@constructor.name] = {}
 
-  emit:(event, args...)->
-    @_e[event] ?= []
+  emit:(eventName, args...)->
+    @_e[eventName] ?= []
 
     listenerStack = []
 
-    for own eventName of @_e
-      continue if eventName is event
-      parser = getEventParser eventName
-      if parser.test event
-        listenerStack = listenerStack.concat @_e[eventName].slice(0)
+    for own eventToBeFired of @_e
+      continue if eventToBeFired is eventName
+      parser = getEventParser eventToBeFired
+      if parser.test eventName
+        listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
 
-    listenerStack = listenerStack.concat @_e[event].slice(0)
+    listenerStack = listenerStack.concat @_e[eventName].slice(0)
 
     listenerStack.forEach (listener)=>
       listener.apply @, args
 
-  on  :(event, callback) -> _on  @_e, event, callback
-  off :(event, callback) -> _off @_e, event, callback
-  unsubscribe:(event, callback) -> _off @_e, event, callback
+  on  :(eventName, callback) -> _on  @_e, eventName, callback
+  off :(eventName, callback) -> _off @_e, eventName, callback
+  unsubscribe:(eventName, callback) -> _off @_e, eventName, callback
 
-  once:(event, callback) ->
-    _callback = () =>
+  once:(eventName, callback) ->
+    _callback = =>
       args = [].slice.call arguments
-      @unsubscribe event, _callback
+      @unsubscribe eventName, _callback
       callback.apply @, args
 
-    @on event, _callback
+    @on eventName, _callback
 
