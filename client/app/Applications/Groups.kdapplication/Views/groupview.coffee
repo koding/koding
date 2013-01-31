@@ -57,7 +57,7 @@ class GroupView extends JView
     @enterLink = new CustomLinkView
       href    : "/#{slug}/Activity"
       target  : slug
-      # title   : 'Open group'
+      title   : 'Open group'
 
 
     {JGroup} = KD.remote.api
