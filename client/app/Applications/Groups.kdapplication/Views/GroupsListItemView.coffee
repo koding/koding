@@ -196,7 +196,7 @@ class GroupsListItemView extends KDListItemView
           </p>
         </div>
       </div>
-      <div class="button-container">{{>@enterLink}}{{> @joinButton}}</div>
+      <div class="button-container"><div class="enter-button">{{>@enterLink}}</div>{{> @joinButton}}</div>
     </div>
     """
 
