@@ -20,6 +20,9 @@ module.exports = deepFreeze
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
+    username    : ''
+    git_branch  : ''
+    git_rev     : ''
   uri           :
     address     : "https://stage.koding.com"
   projectRoot   : projectRoot
@@ -117,6 +120,7 @@ module.exports = deepFreeze
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
     notificationCronDaily    : '0 10 0 * * *'
+    useNotificationWorker    : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

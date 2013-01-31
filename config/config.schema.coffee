@@ -91,6 +91,9 @@ config =
     aws           :
       key         : 1
       secret      : 1
+      username    : 1
+      git_branch  : 1
+      git_rev     : 1
     uri           :
       address     : 1
     projectRoot   : 1
@@ -191,6 +194,7 @@ config =
       defaultFromAddress: 1
       notificationCronInstant  : 1
       notificationCronDaily    : 1
+      useNotificationWorker    : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

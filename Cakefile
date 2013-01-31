@@ -364,12 +364,51 @@ task 'deleteCache',(options)->
     console.log "Cache is pruned."
 
 
+task 'deploy', (options) ->
+  {configFile} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+
+  unless aws.key.length > 0 and
+         aws.secret.length > 0 and
+         aws.username.length > 0 and
+         aws.git_branch.length > 0 and 
+         aws.git_rev.length > 0
+    console.log 'AWS must be configured'
+    process.exit(0)
+
+  console.log 'GIT    : ' + aws.git_branch + '/' + aws.git_rev
+  console.log 'AWS    : ' + aws.key + ':' + aws.secret
+  console.log 'Domain : ' + aws.username
+  console.log ''
+
+  # <username> <git_branch> <git_revision> <config_name> <aws_key> <aws_secret>
+  cmd = 'builders/aws/init/aws_init.py'
+  args = [aws.username, aws.git_branch, aws.git_rev, configFile, aws.key, aws.secret]
+
+  run = spawn cmd, args
+  run.stdout.on 'data', (data) ->
+    console.log data.toString()
+  run.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 
+task 'destroy', (options) ->
+  {configFile} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  unless aws.key or aws.secret or aws.username or aws.git_branch or aws.git_rev
+    console.log 'AWS must be configured'
+    process.exit(0)
 
-
-
+  # -x <aws_key> <aws_secret>
+  cmd = '/Users/bahadir/ODIN/koding/builders/aws/init/aws_init.py'
+  args = ['-x', aws.key, aws.secret]
+  
+  run = spawn cmd, args
+  run.stdout.on 'data', (data) ->
+    console.log data.toString()
+  run.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 
 task 'buildAll',"build chris's modules", ->

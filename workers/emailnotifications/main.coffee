@@ -118,7 +118,7 @@ fetchSubjectContentLink = (content, type, callback)->
 
 prepareEmail = (notification, daily = no, cb)->
 
-  {JAccount, JEmailNotificationGG} = worker.models
+  {JAccount, JMailNotification} = worker.models
 
   {event}     = notification.data
   if event is 'FollowHappened'
@@ -131,7 +131,7 @@ prepareEmail = (notification, daily = no, cb)->
     if err then callback err
     else
       # Fetch Receiver E-Mail choices
-      JEmailNotificationGG.checkEmailChoice
+      JMailNotification.checkEmailChoice
         event       : event
         contentType : contentType
         username    : receiver.profile.nickname
@@ -182,8 +182,8 @@ prepareEmail = (notification, daily = no, cb)->
                             cb details
 
 instantEmails = ->
-  {JEmailNotificationGG} = worker.models
-  JEmailNotificationGG.some {status: "queued"}, {limit:100}, (err, emails)->
+  {JMailNotification} = worker.models
+  JMailNotification.some {status: "queued"}, {limit:100}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
@@ -207,7 +207,7 @@ prepareDailyEmail = (emails, index, data, callback)->
 # runnedOnce = no
 
 dailyEmails = ->
-  {JEmailNotificationGG, JUser} = worker.models
+  {JMailNotification, JUser} = worker.models
 
   # if runnedOnce then return
   # runnedOnce = yes
@@ -228,7 +228,7 @@ dailyEmails = ->
           if err then console.error err
           else
             notifications = []
-            JEmailNotificationGG.each {receiver   : account.getId(),  \
+            JMailNotification.each {receiver   : account.getId(),  \
                                        dateIssued : $gte: yesterday}, \
                                       {sort       : dateIssued: 1},
             (err, email)->
@@ -244,10 +244,13 @@ dailyEmails = ->
                         content += template.singleEvent email
                       sendDailyEmail emailContent[0], content
 
-instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
-log "Instant Emails CronJob started with #{email.notificationCronInstant}"
-instantEmailsCron.start()
+if email.useNotificationWorker
+  instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
+  log "Instant Emails CronJob started with #{email.notificationCronInstant}"
+  instantEmailsCron.start()
 
-dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
-log "Daily Emails CronJob started with #{email.notificationCronDaily}"
-dailyEmailsCron.start()
+  dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
+  log "Daily Emails CronJob started with #{email.notificationCronDaily}"
+  dailyEmailsCron.start()
+else
+  log "Worker is not running, please enable email.useNotificationWorker in config."
