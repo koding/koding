@@ -22,7 +22,6 @@ class MainTabView extends KDTabView
     @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
       if e.target is @getSingleton("contentPanel").domElement[0]
         @tabHandleContainer.setWidth @getWidth()
-        @resizeTabHandles() 
 
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
