@@ -3,10 +3,11 @@ class MainTabView extends KDTabView
   lastOpenPaneIndex = null
 
   constructor:(options,data)->
-    options.resizeTabHandles = yes
-    @visibleHandles   = []
-    @totalSize        = 0
-    @paneViewIndex    = {}
+    options.resizeTabHandles    = yes
+    options.lastTabHandleMargin = 40
+    @visibleHandles             = []
+    @totalSize                  = 0
+    @paneViewIndex              = {}
     super options,data
 
     @listenTo
