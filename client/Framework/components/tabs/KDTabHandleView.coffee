@@ -40,9 +40,3 @@ class KDTabHandleView extends KDView
 
   getWidth: ->
     @$().outerWidth(no) or 0
-
-  getOptimalWidth: ->
-    titleWidth   = @$().find('b').outerWidth no
-    paddingLeft  = parseInt @$().css('paddingLeft'), 10
-    paddingRight = parseInt @$().css('paddingRight'), 10
-    titleWidth + paddingLeft + paddingRight
