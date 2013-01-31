@@ -253,4 +253,4 @@ if email.useNotificationWorker
   log "Daily Emails CronJob started with #{email.notificationCronDaily}"
   dailyEmailsCron.start()
 else
-  log "Worker is not running, please enable 'email.useNotificationWorker' in config."
+  log "Worker is not running, please enable email.useNotificationWorker in config."

@@ -121,7 +121,7 @@ module.exports = class JMailNotification extends Model
         # console.log "OK good to go."
         notification.save (err)->
           if err then console.error err
-          else console.log "Saved to queue."
+          # else console.log "Saved to queue."
       # else
       #   console.log "Already exists"
 
