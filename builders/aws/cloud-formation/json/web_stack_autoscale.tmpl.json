@@ -1,187 +1,15 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Deploy Koding web stack",
-    "Parameters": {
-        "KeyName": {
-            "Default" : "koding",
-            "Description": "Name of an existing EC2 KeyPair to enable SSH access into the mon server",
-            "Type": "String"
-        },
-
-
-        "WebServerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the WebServer server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"WebServerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "WebServerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "WebServerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "WebServerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "WebServerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-
-        "SocialWorkerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the SocialWorker server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"SocialWorkerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "SocialWorkerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "SocialWorkerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "SocialWorkerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "SocialWorkerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-        "GuestCleanupInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the GuestCleanup server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"GuestCleanupMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "GuestCleanupMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "GuestCleanupDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "GuestCleanupCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "GuestCleanupCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-
-
-        "AuthWorkerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the AuthWorker server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"AuthWorkerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "AuthWorkerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "AuthWorkerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "AuthWorkerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "AuthWorkerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        }
-
-
-
-
-
-
-    },
     "Resources" :{
 
 
       	 "WebServerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"WebServerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": "#cloud-config\n\n\nresize_rootfs: true\n\napt_update: true\napt_upgrade: true\ntimezone: US/Pacific\n\n\napt_sources:\n - source: \"deb http://apt.opscode.com/ $RELEASE-0.10 main\"\n   key: |\n     -----BEGIN PGP PUBLIC KEY BLOCK-----\n     Version: GnuPG v1.4.9 (GNU/Linux)\n     \n     mQGiBEppC7QRBADfsOkZU6KZK+YmKw4wev5mjKJEkVGlus+NxW8wItX5sGa6kdUu\n     twAyj7Yr92rF+ICFEP3gGU6+lGo0Nve7KxkN/1W7/m3G4zuk+ccIKmjp8KS3qn99\n     dxy64vcji9jIllVa+XXOGIp0G8GEaj7mbkixL/bMeGfdMlv8Gf2XPpp9vwCgn/GC\n     JKacfnw7MpLKUHOYSlb//JsEAJqao3ViNfav83jJKEkD8cf59Y8xKia5OpZqTK5W\n     ShVnNWS3U5IVQk10ZDH97Qn/YrK387H4CyhLE9mxPXs/ul18ioiaars/q2MEKU2I\n     XKfV21eMLO9LYd6Ny/Kqj8o5WQK2J6+NAhSwvthZcIEphcFignIuobP+B5wNFQpe\n     DbKfA/0WvN2OwFeWRcmmd3Hz7nHTpcnSF+4QX6yHRF/5BgxkG6IqBIACQbzPn6Hm\n     sMtm/SVf11izmDqSsQptCrOZILfLX/mE+YOl+CwWSHhl+YsFts1WOuh1EhQD26aO\n     Z84HuHV5HFRWjDLw9LriltBVQcXbpfSrRP5bdr7Wh8vhqJTPjrQnT3BzY29kZSBQ\n     YWNrYWdlcyA8cGFja2FnZXNAb3BzY29kZS5jb20+iGAEExECACAFAkppC7QCGwMG\n     CwkIBwMCBBUCCAMEFgIDAQIeAQIXgAAKCRApQKupg++Caj8sAKCOXmdG36gWji/K\n     +o+XtBfvdMnFYQCfTCEWxRy2BnzLoBBFCjDSK6sJqCu5Ag0ESmkLtBAIAIO2SwlR\n     lU5i6gTOp42RHWW7/pmW78CwUqJnYqnXROrt3h9F9xrsGkH0Fh1FRtsnncgzIhvh\n     DLQnRHnkXm0ws0jV0PF74ttoUT6BLAUsFi2SPP1zYNJ9H9fhhK/pjijtAcQwdgxu\n     wwNJ5xCEscBZCjhSRXm0d30bK1o49Cow8ZIbHtnXVP41c9QWOzX/LaGZsKQZnaMx\n     EzDk8dyyctR2f03vRSVyTFGgdpUcpbr9eTFVgikCa6ODEBv+0BnCH6yGTXwBid9g\n     w0o1e/2DviKUWCC+AlAUOubLmOIGFBuI4UR+rux9affbHcLIOTiKQXv79lW3P7W8\n     AAfniSQKfPWXrrcAAwUH/2XBqD4Uxhbs25HDUUiM/m6Gnlj6EsStg8n0nMggLhuN\n     QmPfoNByMPUqvA7sULyfr6xCYzbzRNxABHSpf85FzGQ29RF4xsA4vOOU8RDIYQ9X\n     Q8NqqR6pydprRFqWe47hsAN7BoYuhWqTtOLSBmnAnzTR5pURoqcquWYiiEavZixJ\n     3ZRAq/HMGioJEtMFrvsZjGXuzef7f0ytfR1zYeLVWnL9Bd32CueBlI7dhYwkFe+V\n     Ep5jWOCj02C1wHcwt+uIRDJV6TdtbIiBYAdOMPk15+VBdweBXwMuYXr76+A7VeDL\n     zIhi7tKFo6WiwjKZq0dzctsJJjtIfr4K4vbiD9Ojg1iISQQYEQIACQUCSmkLtAIb\n     DAAKCRApQKupg++CauISAJ9CxYPOKhOxalBnVTLeNUkAHGg2gACeIsbobtaD4ZHG\n     0GLl8EkfA8uhluM=\n     =zKAm\n     -----END PGP PUBLIC KEY BLOCK-----\n\nchef:\n    install_type: \"packages\"\n    server_url: \"https://api.opscode.com/organizations/koding\"\n    \n    # Defaults to the instance-id if not present\n    # node_name: \"your-node-name\"\n    environment: \"prod\"\n\n    validation_name: \"koding-validator\"\n\n    validation_key: |\n        -----BEGIN RSA PRIVATE KEY-----\n        MIIEowIBAAKCAQEAtqDCkXW6qnlEkn4cr67s7GRK8uyL/h78I/KpBzAwA09rKyMN\n        JjkSh5JctMPmpTlKPsQsLNz4dF60V5X5UmOMs/S8QtWRv/L9aXR9WEYmCx+41mwJ\n        +TC+Fa3Qes+lqrvEIluqf1scdJQ+lV9HDXDjhx/TxYlSqtVZsaZwtXIYYFik0G6M\n        czBi3TOOTSRdrOghvyAyS5EM+bryFbm0ZRkiFg6/2A4gY6hOcAzxqv1DwIMx86uP\n        zSPb4uuqr5cSOpv2c/Uj1WSWWJsJQCko/5grxN28o/WB6KvboE7FDcGsrWjQJNj+\n        Zj4j5FIKL71gYd7eB1smQ3JNoorlInIN+oaavwIDAQABAoIBADdl/J9zPvSHZK2r\n        Y7hHL8dlhPa7mpuzenjNG0j67RWT+cZUE6EMnvpRA54x7r0f682uZFgXj6Z9M+d9\n        ruu3Fu9fxdvgPR4k74oVtBAa919YeBFTJJNanc6lsyAN7QslehGSDN4lHTSf43wc\n        Msl4/Qv4M50wUstPfK3O91GTEqHmvoQp7ZQ3XMQznvaM7YL2Zsf5KO0WTEJjXljB\n        88HoQ841yn65C/6EnKQyICzwdnBCsSQyVx/wmSG2kSWkeeaULgruaQUW7WC4tHtV\n        5zMsLEaa7+YAeDuiC/25Sq4B0a8LaoQ97JKZkH9TSR6hQptge7UTXzGYgh6LLa/2\n        lguzR4ECgYEA4rYdRTedWSwpR/4j/mE7HkqBgsUPLWJxV8pSnT49KeCtvfadDkFJ\n        9lmXUd5AmQFHdxmqSIhBogmMPmE1xJ+OT1MTkDSxhLmM/Fdx89FQScHGhfXQ2Z7X\n        Q4iaramo60LEZHkuALL+o3wmsumO3x72Xk2VfVgQcE3n8ejdSnaJPwcCgYEAzjiz\n        vbo5FyQbO1xX/QSK/rzWGQndisxYvKZCxRmEo8DYSxGBam0m4THGb+iLLL8doWug\n        tSj4J7ArXLI8OPZ0gigI+1JoCjViC9OrU/gnIVUabSosGO/4I+QgW7N3OiSGN1d/\n        GEWpKIVgstUj4M1tgdFFqAgGcI5CKV87D4N1IIkCgYEAgtLITTrsh5qeL7cNmisN\n        bEteNNH2EiBue1R7G9XggZvvZmE6/BDc11WXplx0NlawoJ+kzboi9ZhA33ZFCrNv\n        8YJlFZ/ymD5ihvMHBMVSaV1ya7cPz6SDX6siZvgyS5/5qGjtDOY9XqWzxyZTlZlO\n        XdizXONGiSfLoqLXn7KLPF0CgYA9GsoPjs150OYMycj8nMr+vj+GPckaZoBora8d\n        LfmCeBLe83nwahVaJuCQqkwK3zpNaVG+PDyDrgy7M8jqbASLyIcYyQsw8y5xKLAc\n        emxF0Sy6agOVBA33vJHl+iB65vWqElADhiigbB0CAGvYIaawD61fI7mcwlpSXfhn\n        GWGsWQKBgBuClx9H0TVZT35mSx5EYJjuvIF0hlo/7HqlZXHSDLpobHG14uLSrZy5\n        Gq9OJ6HmYF4y9Eeh5kNqcwvPBV3nzy14mKPrMadaVwjtLQtfYzicnau+9sqnPEx7\n        IFV2d9n9RwYIEWQmSl4C1ndm70kmKm0igXJFfLGNA/beEON8od/y\n        -----END RSA PRIVATE KEY-----\n    \n    # A run list for a first boot json\n    run_list:\n      - \"role[web_server]\"\n\nruncmd:\n  - [/etc/init.d/chef-client, restart ]\n\noutput: {all: '| tee -a /var/log/cloud-init-output.log'}\n"}
              } 
@@ -189,9 +17,9 @@
       	 "SocialWorkerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"SocialWorkerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": "#cloud-config\n\n\nresize_rootfs: true\n\napt_update: true\napt_upgrade: true\ntimezone: US/Pacific\n\n\napt_sources:\n - source: \"deb http://apt.opscode.com/ $RELEASE-0.10 main\"\n   key: |\n     -----BEGIN PGP PUBLIC KEY BLOCK-----\n     Version: GnuPG v1.4.9 (GNU/Linux)\n     \n     mQGiBEppC7QRBADfsOkZU6KZK+YmKw4wev5mjKJEkVGlus+NxW8wItX5sGa6kdUu\n     twAyj7Yr92rF+ICFEP3gGU6+lGo0Nve7KxkN/1W7/m3G4zuk+ccIKmjp8KS3qn99\n     dxy64vcji9jIllVa+XXOGIp0G8GEaj7mbkixL/bMeGfdMlv8Gf2XPpp9vwCgn/GC\n     JKacfnw7MpLKUHOYSlb//JsEAJqao3ViNfav83jJKEkD8cf59Y8xKia5OpZqTK5W\n     ShVnNWS3U5IVQk10ZDH97Qn/YrK387H4CyhLE9mxPXs/ul18ioiaars/q2MEKU2I\n     XKfV21eMLO9LYd6Ny/Kqj8o5WQK2J6+NAhSwvthZcIEphcFignIuobP+B5wNFQpe\n     DbKfA/0WvN2OwFeWRcmmd3Hz7nHTpcnSF+4QX6yHRF/5BgxkG6IqBIACQbzPn6Hm\n     sMtm/SVf11izmDqSsQptCrOZILfLX/mE+YOl+CwWSHhl+YsFts1WOuh1EhQD26aO\n     Z84HuHV5HFRWjDLw9LriltBVQcXbpfSrRP5bdr7Wh8vhqJTPjrQnT3BzY29kZSBQ\n     YWNrYWdlcyA8cGFja2FnZXNAb3BzY29kZS5jb20+iGAEExECACAFAkppC7QCGwMG\n     CwkIBwMCBBUCCAMEFgIDAQIeAQIXgAAKCRApQKupg++Caj8sAKCOXmdG36gWji/K\n     +o+XtBfvdMnFYQCfTCEWxRy2BnzLoBBFCjDSK6sJqCu5Ag0ESmkLtBAIAIO2SwlR\n     lU5i6gTOp42RHWW7/pmW78CwUqJnYqnXROrt3h9F9xrsGkH0Fh1FRtsnncgzIhvh\n     DLQnRHnkXm0ws0jV0PF74ttoUT6BLAUsFi2SPP1zYNJ9H9fhhK/pjijtAcQwdgxu\n     wwNJ5xCEscBZCjhSRXm0d30bK1o49Cow8ZIbHtnXVP41c9QWOzX/LaGZsKQZnaMx\n     EzDk8dyyctR2f03vRSVyTFGgdpUcpbr9eTFVgikCa6ODEBv+0BnCH6yGTXwBid9g\n     w0o1e/2DviKUWCC+AlAUOubLmOIGFBuI4UR+rux9affbHcLIOTiKQXv79lW3P7W8\n     AAfniSQKfPWXrrcAAwUH/2XBqD4Uxhbs25HDUUiM/m6Gnlj6EsStg8n0nMggLhuN\n     QmPfoNByMPUqvA7sULyfr6xCYzbzRNxABHSpf85FzGQ29RF4xsA4vOOU8RDIYQ9X\n     Q8NqqR6pydprRFqWe47hsAN7BoYuhWqTtOLSBmnAnzTR5pURoqcquWYiiEavZixJ\n     3ZRAq/HMGioJEtMFrvsZjGXuzef7f0ytfR1zYeLVWnL9Bd32CueBlI7dhYwkFe+V\n     Ep5jWOCj02C1wHcwt+uIRDJV6TdtbIiBYAdOMPk15+VBdweBXwMuYXr76+A7VeDL\n     zIhi7tKFo6WiwjKZq0dzctsJJjtIfr4K4vbiD9Ojg1iISQQYEQIACQUCSmkLtAIb\n     DAAKCRApQKupg++CauISAJ9CxYPOKhOxalBnVTLeNUkAHGg2gACeIsbobtaD4ZHG\n     0GLl8EkfA8uhluM=\n     =zKAm\n     -----END PGP PUBLIC KEY BLOCK-----\n\nchef:\n    install_type: \"packages\"\n    server_url: \"https://api.opscode.com/organizations/koding\"\n    \n    # Defaults to the instance-id if not present\n    # node_name: \"your-node-name\"\n    environment: \"prod\"\n\n    validation_name: \"koding-validator\"\n\n    validation_key: |\n        -----BEGIN RSA PRIVATE KEY-----\n        MIIEowIBAAKCAQEAtqDCkXW6qnlEkn4cr67s7GRK8uyL/h78I/KpBzAwA09rKyMN\n        JjkSh5JctMPmpTlKPsQsLNz4dF60V5X5UmOMs/S8QtWRv/L9aXR9WEYmCx+41mwJ\n        +TC+Fa3Qes+lqrvEIluqf1scdJQ+lV9HDXDjhx/TxYlSqtVZsaZwtXIYYFik0G6M\n        czBi3TOOTSRdrOghvyAyS5EM+bryFbm0ZRkiFg6/2A4gY6hOcAzxqv1DwIMx86uP\n        zSPb4uuqr5cSOpv2c/Uj1WSWWJsJQCko/5grxN28o/WB6KvboE7FDcGsrWjQJNj+\n        Zj4j5FIKL71gYd7eB1smQ3JNoorlInIN+oaavwIDAQABAoIBADdl/J9zPvSHZK2r\n        Y7hHL8dlhPa7mpuzenjNG0j67RWT+cZUE6EMnvpRA54x7r0f682uZFgXj6Z9M+d9\n        ruu3Fu9fxdvgPR4k74oVtBAa919YeBFTJJNanc6lsyAN7QslehGSDN4lHTSf43wc\n        Msl4/Qv4M50wUstPfK3O91GTEqHmvoQp7ZQ3XMQznvaM7YL2Zsf5KO0WTEJjXljB\n        88HoQ841yn65C/6EnKQyICzwdnBCsSQyVx/wmSG2kSWkeeaULgruaQUW7WC4tHtV\n        5zMsLEaa7+YAeDuiC/25Sq4B0a8LaoQ97JKZkH9TSR6hQptge7UTXzGYgh6LLa/2\n        lguzR4ECgYEA4rYdRTedWSwpR/4j/mE7HkqBgsUPLWJxV8pSnT49KeCtvfadDkFJ\n        9lmXUd5AmQFHdxmqSIhBogmMPmE1xJ+OT1MTkDSxhLmM/Fdx89FQScHGhfXQ2Z7X\n        Q4iaramo60LEZHkuALL+o3wmsumO3x72Xk2VfVgQcE3n8ejdSnaJPwcCgYEAzjiz\n        vbo5FyQbO1xX/QSK/rzWGQndisxYvKZCxRmEo8DYSxGBam0m4THGb+iLLL8doWug\n        tSj4J7ArXLI8OPZ0gigI+1JoCjViC9OrU/gnIVUabSosGO/4I+QgW7N3OiSGN1d/\n        GEWpKIVgstUj4M1tgdFFqAgGcI5CKV87D4N1IIkCgYEAgtLITTrsh5qeL7cNmisN\n        bEteNNH2EiBue1R7G9XggZvvZmE6/BDc11WXplx0NlawoJ+kzboi9ZhA33ZFCrNv\n        8YJlFZ/ymD5ihvMHBMVSaV1ya7cPz6SDX6siZvgyS5/5qGjtDOY9XqWzxyZTlZlO\n        XdizXONGiSfLoqLXn7KLPF0CgYA9GsoPjs150OYMycj8nMr+vj+GPckaZoBora8d\n        LfmCeBLe83nwahVaJuCQqkwK3zpNaVG+PDyDrgy7M8jqbASLyIcYyQsw8y5xKLAc\n        emxF0Sy6agOVBA33vJHl+iB65vWqElADhiigbB0CAGvYIaawD61fI7mcwlpSXfhn\n        GWGsWQKBgBuClx9H0TVZT35mSx5EYJjuvIF0hlo/7HqlZXHSDLpobHG14uLSrZy5\n        Gq9OJ6HmYF4y9Eeh5kNqcwvPBV3nzy14mKPrMadaVwjtLQtfYzicnau+9sqnPEx7\n        IFV2d9n9RwYIEWQmSl4C1ndm70kmKm0igXJFfLGNA/beEON8od/y\n        -----END RSA PRIVATE KEY-----\n    \n    # A run list for a first boot json\n    run_list:\n      - \"role[socialworker]\"\n\nruncmd:\n  - [/etc/init.d/chef-client, restart ]\n\noutput: {all: '| tee -a /var/log/cloud-init-output.log'}\n"}
              } 
@@ -199,9 +27,9 @@
       	 "GuestCleanupLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"GuestCleanupInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": "#cloud-config\n\n\nresize_rootfs: true\n\napt_update: true\napt_upgrade: true\ntimezone: US/Pacific\n\n\napt_sources:\n - source: \"deb http://apt.opscode.com/ $RELEASE-0.10 main\"\n   key: |\n     -----BEGIN PGP PUBLIC KEY BLOCK-----\n     Version: GnuPG v1.4.9 (GNU/Linux)\n     \n     mQGiBEppC7QRBADfsOkZU6KZK+YmKw4wev5mjKJEkVGlus+NxW8wItX5sGa6kdUu\n     twAyj7Yr92rF+ICFEP3gGU6+lGo0Nve7KxkN/1W7/m3G4zuk+ccIKmjp8KS3qn99\n     dxy64vcji9jIllVa+XXOGIp0G8GEaj7mbkixL/bMeGfdMlv8Gf2XPpp9vwCgn/GC\n     JKacfnw7MpLKUHOYSlb//JsEAJqao3ViNfav83jJKEkD8cf59Y8xKia5OpZqTK5W\n     ShVnNWS3U5IVQk10ZDH97Qn/YrK387H4CyhLE9mxPXs/ul18ioiaars/q2MEKU2I\n     XKfV21eMLO9LYd6Ny/Kqj8o5WQK2J6+NAhSwvthZcIEphcFignIuobP+B5wNFQpe\n     DbKfA/0WvN2OwFeWRcmmd3Hz7nHTpcnSF+4QX6yHRF/5BgxkG6IqBIACQbzPn6Hm\n     sMtm/SVf11izmDqSsQptCrOZILfLX/mE+YOl+CwWSHhl+YsFts1WOuh1EhQD26aO\n     Z84HuHV5HFRWjDLw9LriltBVQcXbpfSrRP5bdr7Wh8vhqJTPjrQnT3BzY29kZSBQ\n     YWNrYWdlcyA8cGFja2FnZXNAb3BzY29kZS5jb20+iGAEExECACAFAkppC7QCGwMG\n     CwkIBwMCBBUCCAMEFgIDAQIeAQIXgAAKCRApQKupg++Caj8sAKCOXmdG36gWji/K\n     +o+XtBfvdMnFYQCfTCEWxRy2BnzLoBBFCjDSK6sJqCu5Ag0ESmkLtBAIAIO2SwlR\n     lU5i6gTOp42RHWW7/pmW78CwUqJnYqnXROrt3h9F9xrsGkH0Fh1FRtsnncgzIhvh\n     DLQnRHnkXm0ws0jV0PF74ttoUT6BLAUsFi2SPP1zYNJ9H9fhhK/pjijtAcQwdgxu\n     wwNJ5xCEscBZCjhSRXm0d30bK1o49Cow8ZIbHtnXVP41c9QWOzX/LaGZsKQZnaMx\n     EzDk8dyyctR2f03vRSVyTFGgdpUcpbr9eTFVgikCa6ODEBv+0BnCH6yGTXwBid9g\n     w0o1e/2DviKUWCC+AlAUOubLmOIGFBuI4UR+rux9affbHcLIOTiKQXv79lW3P7W8\n     AAfniSQKfPWXrrcAAwUH/2XBqD4Uxhbs25HDUUiM/m6Gnlj6EsStg8n0nMggLhuN\n     QmPfoNByMPUqvA7sULyfr6xCYzbzRNxABHSpf85FzGQ29RF4xsA4vOOU8RDIYQ9X\n     Q8NqqR6pydprRFqWe47hsAN7BoYuhWqTtOLSBmnAnzTR5pURoqcquWYiiEavZixJ\n     3ZRAq/HMGioJEtMFrvsZjGXuzef7f0ytfR1zYeLVWnL9Bd32CueBlI7dhYwkFe+V\n     Ep5jWOCj02C1wHcwt+uIRDJV6TdtbIiBYAdOMPk15+VBdweBXwMuYXr76+A7VeDL\n     zIhi7tKFo6WiwjKZq0dzctsJJjtIfr4K4vbiD9Ojg1iISQQYEQIACQUCSmkLtAIb\n     DAAKCRApQKupg++CauISAJ9CxYPOKhOxalBnVTLeNUkAHGg2gACeIsbobtaD4ZHG\n     0GLl8EkfA8uhluM=\n     =zKAm\n     -----END PGP PUBLIC KEY BLOCK-----\n\nchef:\n    install_type: \"packages\"\n    server_url: \"https://api.opscode.com/organizations/koding\"\n    \n    # Defaults to the instance-id if not present\n    # node_name: \"your-node-name\"\n    environment: \"prod\"\n\n    validation_name: \"koding-validator\"\n\n    validation_key: |\n        -----BEGIN RSA PRIVATE KEY-----\n        MIIEowIBAAKCAQEAtqDCkXW6qnlEkn4cr67s7GRK8uyL/h78I/KpBzAwA09rKyMN\n        JjkSh5JctMPmpTlKPsQsLNz4dF60V5X5UmOMs/S8QtWRv/L9aXR9WEYmCx+41mwJ\n        +TC+Fa3Qes+lqrvEIluqf1scdJQ+lV9HDXDjhx/TxYlSqtVZsaZwtXIYYFik0G6M\n        czBi3TOOTSRdrOghvyAyS5EM+bryFbm0ZRkiFg6/2A4gY6hOcAzxqv1DwIMx86uP\n        zSPb4uuqr5cSOpv2c/Uj1WSWWJsJQCko/5grxN28o/WB6KvboE7FDcGsrWjQJNj+\n        Zj4j5FIKL71gYd7eB1smQ3JNoorlInIN+oaavwIDAQABAoIBADdl/J9zPvSHZK2r\n        Y7hHL8dlhPa7mpuzenjNG0j67RWT+cZUE6EMnvpRA54x7r0f682uZFgXj6Z9M+d9\n        ruu3Fu9fxdvgPR4k74oVtBAa919YeBFTJJNanc6lsyAN7QslehGSDN4lHTSf43wc\n        Msl4/Qv4M50wUstPfK3O91GTEqHmvoQp7ZQ3XMQznvaM7YL2Zsf5KO0WTEJjXljB\n        88HoQ841yn65C/6EnKQyICzwdnBCsSQyVx/wmSG2kSWkeeaULgruaQUW7WC4tHtV\n        5zMsLEaa7+YAeDuiC/25Sq4B0a8LaoQ97JKZkH9TSR6hQptge7UTXzGYgh6LLa/2\n        lguzR4ECgYEA4rYdRTedWSwpR/4j/mE7HkqBgsUPLWJxV8pSnT49KeCtvfadDkFJ\n        9lmXUd5AmQFHdxmqSIhBogmMPmE1xJ+OT1MTkDSxhLmM/Fdx89FQScHGhfXQ2Z7X\n        Q4iaramo60LEZHkuALL+o3wmsumO3x72Xk2VfVgQcE3n8ejdSnaJPwcCgYEAzjiz\n        vbo5FyQbO1xX/QSK/rzWGQndisxYvKZCxRmEo8DYSxGBam0m4THGb+iLLL8doWug\n        tSj4J7ArXLI8OPZ0gigI+1JoCjViC9OrU/gnIVUabSosGO/4I+QgW7N3OiSGN1d/\n        GEWpKIVgstUj4M1tgdFFqAgGcI5CKV87D4N1IIkCgYEAgtLITTrsh5qeL7cNmisN\n        bEteNNH2EiBue1R7G9XggZvvZmE6/BDc11WXplx0NlawoJ+kzboi9ZhA33ZFCrNv\n        8YJlFZ/ymD5ihvMHBMVSaV1ya7cPz6SDX6siZvgyS5/5qGjtDOY9XqWzxyZTlZlO\n        XdizXONGiSfLoqLXn7KLPF0CgYA9GsoPjs150OYMycj8nMr+vj+GPckaZoBora8d\n        LfmCeBLe83nwahVaJuCQqkwK3zpNaVG+PDyDrgy7M8jqbASLyIcYyQsw8y5xKLAc\n        emxF0Sy6agOVBA33vJHl+iB65vWqElADhiigbB0CAGvYIaawD61fI7mcwlpSXfhn\n        GWGsWQKBgBuClx9H0TVZT35mSx5EYJjuvIF0hlo/7HqlZXHSDLpobHG14uLSrZy5\n        Gq9OJ6HmYF4y9Eeh5kNqcwvPBV3nzy14mKPrMadaVwjtLQtfYzicnau+9sqnPEx7\n        IFV2d9n9RwYIEWQmSl4C1ndm70kmKm0igXJFfLGNA/beEON8od/y\n        -----END RSA PRIVATE KEY-----\n    \n    # A run list for a first boot json\n    run_list:\n      - \"role[guestcleanup]\"\n\nruncmd:\n  - [/etc/init.d/chef-client, restart ]\n\noutput: {all: '| tee -a /var/log/cloud-init-output.log'}\n"}
              } 
@@ -209,9 +37,9 @@
       	 "AuthWorkerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"AuthWorkerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": "#cloud-config\n\n\nresize_rootfs: true\n\napt_update: true\napt_upgrade: true\ntimezone: US/Pacific\n\n\napt_sources:\n - source: \"deb http://apt.opscode.com/ $RELEASE-0.10 main\"\n   key: |\n     -----BEGIN PGP PUBLIC KEY BLOCK-----\n     Version: GnuPG v1.4.9 (GNU/Linux)\n     \n     mQGiBEppC7QRBADfsOkZU6KZK+YmKw4wev5mjKJEkVGlus+NxW8wItX5sGa6kdUu\n     twAyj7Yr92rF+ICFEP3gGU6+lGo0Nve7KxkN/1W7/m3G4zuk+ccIKmjp8KS3qn99\n     dxy64vcji9jIllVa+XXOGIp0G8GEaj7mbkixL/bMeGfdMlv8Gf2XPpp9vwCgn/GC\n     JKacfnw7MpLKUHOYSlb//JsEAJqao3ViNfav83jJKEkD8cf59Y8xKia5OpZqTK5W\n     ShVnNWS3U5IVQk10ZDH97Qn/YrK387H4CyhLE9mxPXs/ul18ioiaars/q2MEKU2I\n     XKfV21eMLO9LYd6Ny/Kqj8o5WQK2J6+NAhSwvthZcIEphcFignIuobP+B5wNFQpe\n     DbKfA/0WvN2OwFeWRcmmd3Hz7nHTpcnSF+4QX6yHRF/5BgxkG6IqBIACQbzPn6Hm\n     sMtm/SVf11izmDqSsQptCrOZILfLX/mE+YOl+CwWSHhl+YsFts1WOuh1EhQD26aO\n     Z84HuHV5HFRWjDLw9LriltBVQcXbpfSrRP5bdr7Wh8vhqJTPjrQnT3BzY29kZSBQ\n     YWNrYWdlcyA8cGFja2FnZXNAb3BzY29kZS5jb20+iGAEExECACAFAkppC7QCGwMG\n     CwkIBwMCBBUCCAMEFgIDAQIeAQIXgAAKCRApQKupg++Caj8sAKCOXmdG36gWji/K\n     +o+XtBfvdMnFYQCfTCEWxRy2BnzLoBBFCjDSK6sJqCu5Ag0ESmkLtBAIAIO2SwlR\n     lU5i6gTOp42RHWW7/pmW78CwUqJnYqnXROrt3h9F9xrsGkH0Fh1FRtsnncgzIhvh\n     DLQnRHnkXm0ws0jV0PF74ttoUT6BLAUsFi2SPP1zYNJ9H9fhhK/pjijtAcQwdgxu\n     wwNJ5xCEscBZCjhSRXm0d30bK1o49Cow8ZIbHtnXVP41c9QWOzX/LaGZsKQZnaMx\n     EzDk8dyyctR2f03vRSVyTFGgdpUcpbr9eTFVgikCa6ODEBv+0BnCH6yGTXwBid9g\n     w0o1e/2DviKUWCC+AlAUOubLmOIGFBuI4UR+rux9affbHcLIOTiKQXv79lW3P7W8\n     AAfniSQKfPWXrrcAAwUH/2XBqD4Uxhbs25HDUUiM/m6Gnlj6EsStg8n0nMggLhuN\n     QmPfoNByMPUqvA7sULyfr6xCYzbzRNxABHSpf85FzGQ29RF4xsA4vOOU8RDIYQ9X\n     Q8NqqR6pydprRFqWe47hsAN7BoYuhWqTtOLSBmnAnzTR5pURoqcquWYiiEavZixJ\n     3ZRAq/HMGioJEtMFrvsZjGXuzef7f0ytfR1zYeLVWnL9Bd32CueBlI7dhYwkFe+V\n     Ep5jWOCj02C1wHcwt+uIRDJV6TdtbIiBYAdOMPk15+VBdweBXwMuYXr76+A7VeDL\n     zIhi7tKFo6WiwjKZq0dzctsJJjtIfr4K4vbiD9Ojg1iISQQYEQIACQUCSmkLtAIb\n     DAAKCRApQKupg++CauISAJ9CxYPOKhOxalBnVTLeNUkAHGg2gACeIsbobtaD4ZHG\n     0GLl8EkfA8uhluM=\n     =zKAm\n     -----END PGP PUBLIC KEY BLOCK-----\n\nchef:\n    install_type: \"packages\"\n    server_url: \"https://api.opscode.com/organizations/koding\"\n    \n    # Defaults to the instance-id if not present\n    # node_name: \"your-node-name\"\n    environment: \"prod\"\n\n    validation_name: \"koding-validator\"\n\n    validation_key: |\n        -----BEGIN RSA PRIVATE KEY-----\n        MIIEowIBAAKCAQEAtqDCkXW6qnlEkn4cr67s7GRK8uyL/h78I/KpBzAwA09rKyMN\n        JjkSh5JctMPmpTlKPsQsLNz4dF60V5X5UmOMs/S8QtWRv/L9aXR9WEYmCx+41mwJ\n        +TC+Fa3Qes+lqrvEIluqf1scdJQ+lV9HDXDjhx/TxYlSqtVZsaZwtXIYYFik0G6M\n        czBi3TOOTSRdrOghvyAyS5EM+bryFbm0ZRkiFg6/2A4gY6hOcAzxqv1DwIMx86uP\n        zSPb4uuqr5cSOpv2c/Uj1WSWWJsJQCko/5grxN28o/WB6KvboE7FDcGsrWjQJNj+\n        Zj4j5FIKL71gYd7eB1smQ3JNoorlInIN+oaavwIDAQABAoIBADdl/J9zPvSHZK2r\n        Y7hHL8dlhPa7mpuzenjNG0j67RWT+cZUE6EMnvpRA54x7r0f682uZFgXj6Z9M+d9\n        ruu3Fu9fxdvgPR4k74oVtBAa919YeBFTJJNanc6lsyAN7QslehGSDN4lHTSf43wc\n        Msl4/Qv4M50wUstPfK3O91GTEqHmvoQp7ZQ3XMQznvaM7YL2Zsf5KO0WTEJjXljB\n        88HoQ841yn65C/6EnKQyICzwdnBCsSQyVx/wmSG2kSWkeeaULgruaQUW7WC4tHtV\n        5zMsLEaa7+YAeDuiC/25Sq4B0a8LaoQ97JKZkH9TSR6hQptge7UTXzGYgh6LLa/2\n        lguzR4ECgYEA4rYdRTedWSwpR/4j/mE7HkqBgsUPLWJxV8pSnT49KeCtvfadDkFJ\n        9lmXUd5AmQFHdxmqSIhBogmMPmE1xJ+OT1MTkDSxhLmM/Fdx89FQScHGhfXQ2Z7X\n        Q4iaramo60LEZHkuALL+o3wmsumO3x72Xk2VfVgQcE3n8ejdSnaJPwcCgYEAzjiz\n        vbo5FyQbO1xX/QSK/rzWGQndisxYvKZCxRmEo8DYSxGBam0m4THGb+iLLL8doWug\n        tSj4J7ArXLI8OPZ0gigI+1JoCjViC9OrU/gnIVUabSosGO/4I+QgW7N3OiSGN1d/\n        GEWpKIVgstUj4M1tgdFFqAgGcI5CKV87D4N1IIkCgYEAgtLITTrsh5qeL7cNmisN\n        bEteNNH2EiBue1R7G9XggZvvZmE6/BDc11WXplx0NlawoJ+kzboi9ZhA33ZFCrNv\n        8YJlFZ/ymD5ihvMHBMVSaV1ya7cPz6SDX6siZvgyS5/5qGjtDOY9XqWzxyZTlZlO\n        XdizXONGiSfLoqLXn7KLPF0CgYA9GsoPjs150OYMycj8nMr+vj+GPckaZoBora8d\n        LfmCeBLe83nwahVaJuCQqkwK3zpNaVG+PDyDrgy7M8jqbASLyIcYyQsw8y5xKLAc\n        emxF0Sy6agOVBA33vJHl+iB65vWqElADhiigbB0CAGvYIaawD61fI7mcwlpSXfhn\n        GWGsWQKBgBuClx9H0TVZT35mSx5EYJjuvIF0hlo/7HqlZXHSDLpobHG14uLSrZy5\n        Gq9OJ6HmYF4y9Eeh5kNqcwvPBV3nzy14mKPrMadaVwjtLQtfYzicnau+9sqnPEx7\n        IFV2d9n9RwYIEWQmSl4C1ndm70kmKm0igXJFfLGNA/beEON8od/y\n        -----END RSA PRIVATE KEY-----\n    \n    # A run list for a first boot json\n    run_list:\n      - \"role[authworker]\"\n\nruncmd:\n  - [/etc/init.d/chef-client, restart ]\n\noutput: {all: '| tee -a /var/log/cloud-init-output.log'}\n"}
              } 
@@ -228,9 +56,9 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "WebServerLaunchConfiguration" },
-                      "MinSize": {"Ref":"WebServerMinGroupSize"},
-                      "MaxSize": {"Ref":"WebServerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"WebServerDesiredCapacity"},
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1",
                       "LoadBalancerNames": ["webstack-WebSiteE-1DV1IQWAGCTJC"]
                      } 
           },  
@@ -240,10 +68,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "SocialWorkerLaunchConfiguration" },
-                      "MinSize": {"Ref":"SocialWorkerMinGroupSize"},
-                      "MaxSize": {"Ref":"SocialWorkerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"SocialWorkerDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+              } 
           },  
           "GuestCleanupScalingGroup" : {
               "Type" :"AWS::AutoScaling::AutoScalingGroup",
@@ -251,10 +79,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "GuestCleanupLaunchConfiguration" },
-                      "MinSize": {"Ref":"GuestCleanupMinGroupSize"},
-                      "MaxSize": {"Ref":"GuestCleanupMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"GuestCleanupDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+               } 
           },  
           "AuthWorkerScalingGroup" : {
               "Type" :"AWS::AutoScaling::AutoScalingGroup",
@@ -262,10 +90,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "AuthWorkerLaunchConfiguration" },
-                      "MinSize": {"Ref":"AuthWorkerMinGroupSize"},
-                      "MaxSize": {"Ref":"AuthWorkerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"AuthWorkerDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+              } 
           },  
 
 
@@ -278,7 +106,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"WebServerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -301,7 +129,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"WebServerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -329,7 +157,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"SocialWorkerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -352,7 +180,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"SocialWorkerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -376,7 +204,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"GuestCleanupCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -399,7 +227,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"GuestCleanupCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -424,7 +252,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"AuthWorkerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -447,7 +275,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"AuthWorkerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [

@@ -1,187 +1,15 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Deploy Koding web stack",
-    "Parameters": {
-        "KeyName": {
-            "Default" : "koding",
-            "Description": "Name of an existing EC2 KeyPair to enable SSH access into the mon server",
-            "Type": "String"
-        },
-
-
-        "WebServerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the WebServer server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"WebServerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "WebServerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "WebServerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "WebServerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "WebServerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-
-        "SocialWorkerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the SocialWorker server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"SocialWorkerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "SocialWorkerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "SocialWorkerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "SocialWorkerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "SocialWorkerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-        "GuestCleanupInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the GuestCleanup server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"GuestCleanupMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "GuestCleanupMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "GuestCleanupDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "GuestCleanupCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "GuestCleanupCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-
-
-
-
-        "AuthWorkerInstanceType": {
-            "Default": "m1.small",
-            "Description": "The type of EC2 instance used for the AuthWorker server",
-            "Type": "String",
-            "AllowedValues": ["t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"]
-        },
-      	"AuthWorkerMinGroupSize" :{
-         	"Default" : "1",
-          	"Description" : "Minimum group size (0 <= minimum-size <= maximum-size). Required.", 
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+" 
-       	},
-        "AuthWorkerMaxGroupSize" : {
-          	"Default" : "10",
-           	"Description" : "Maximum group size (minimum-size <= maximum-size < 10000). Required.",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "AuthWorkerDesiredCapacity": {
-  	        "Default" : 1,
-           	"Description" : "Specifies the desired capacity for the auto scaling group",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-
-        },
-        "AuthWorkerCpuAlarmHight":{
-            "Default" : "60",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        },
-        "AuthWorkerCpuAlarmLow":{
-            "Default" : "30",
-            "Description":"Alarm if CPU too high or metric disappears indicating instance is down",
-            "Type" : "String",
-            "AllowedPattern": "[0-9]+"
-        }
-
-
-
-
-
-
-    },
     "Resources" :{
 
 
       	 "WebServerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"WebServerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= web_server_bootstrap_script.to_json %>}
              } 
@@ -189,9 +17,9 @@
       	 "SocialWorkerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"SocialWorkerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= socialworker_bootstrap_script.to_json %>}
              } 
@@ -199,9 +27,9 @@
       	 "GuestCleanupLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"GuestCleanupInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= guestcleanup_bootstrap_script.to_json %>}
              } 
@@ -209,9 +37,9 @@
       	 "AuthWorkerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : {"Ref":"AuthWorkerInstanceType"},
+        		"InstanceType" : "m1.small",
           		"SecurityGroups" : ["sg-b17399de"],
-            	"KeyName" : {"Ref": "KeyName"},
+            	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= authworker_bootstrap_script.to_json %>}
              } 
@@ -228,9 +56,9 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "WebServerLaunchConfiguration" },
-                      "MinSize": {"Ref":"WebServerMinGroupSize"},
-                      "MaxSize": {"Ref":"WebServerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"WebServerDesiredCapacity"},
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1",
                       "LoadBalancerNames": ["webstack-WebSiteE-1DV1IQWAGCTJC"]
                      } 
           },  
@@ -240,10 +68,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "SocialWorkerLaunchConfiguration" },
-                      "MinSize": {"Ref":"SocialWorkerMinGroupSize"},
-                      "MaxSize": {"Ref":"SocialWorkerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"SocialWorkerDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+              } 
           },  
           "GuestCleanupScalingGroup" : {
               "Type" :"AWS::AutoScaling::AutoScalingGroup",
@@ -251,10 +79,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "GuestCleanupLaunchConfiguration" },
-                      "MinSize": {"Ref":"GuestCleanupMinGroupSize"},
-                      "MaxSize": {"Ref":"GuestCleanupMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"GuestCleanupDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+               } 
           },  
           "AuthWorkerScalingGroup" : {
               "Type" :"AWS::AutoScaling::AutoScalingGroup",
@@ -262,10 +90,10 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "AuthWorkerLaunchConfiguration" },
-                      "MinSize": {"Ref":"AuthWorkerMinGroupSize"},
-                      "MaxSize": {"Ref":"AuthWorkerMaxGroupSize"},
-                      "DesiredCapacity": {"Ref":"AuthWorkerDesiredCapacity"}
-                     } 
+                      "MinSize": "1",
+                      "MaxSize": "10",
+                      "DesiredCapacity": "1"
+              } 
           },  
 
 
@@ -278,7 +106,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"WebServerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -301,7 +129,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"WebServerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -329,7 +157,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"SocialWorkerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -352,7 +180,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"SocialWorkerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -376,7 +204,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"GuestCleanupCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -399,7 +227,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"GuestCleanupCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
@@ -424,7 +252,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"AuthWorkerCpuAlarmHight"},
+                    "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
@@ -447,7 +275,7 @@
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
-                    "Threshold": {"Ref":"AuthWorkerCpuAlarmLow"},
+                    "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
