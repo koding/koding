@@ -4,6 +4,8 @@ Bongo     = require 'bongo'
 
 {mongo, amqp, guests} = require('koding-config-manager').load("main.#{argv.c}")
 
+mongo += '?auto_reconnect'
+
 error =(err)->
   err = message: err if 'string' is typeof err
   console.log 'there was an error'

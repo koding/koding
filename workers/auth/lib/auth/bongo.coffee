@@ -6,6 +6,8 @@ Broker      = require 'broker'
 
 {mongo, mq, projectRoot, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
 
+mongo += '?auto_reconnect'
+
 mqOptions = extend {}, mq
 mqOptions.login = authWorker.login if authWorker?.login?
 
