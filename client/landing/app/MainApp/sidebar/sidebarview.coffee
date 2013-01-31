@@ -40,7 +40,7 @@ class Sidebar extends JView
       cssClass : 'avatar-header hidden'
       pistachio : '{{#(title)}}'
       click :=>
-        KD.getSingleton('router').handleRoute "/#{@avatarHeader.getData().slug}/Activity"
+        # KD.getSingleton('router').handleRoute "/#{currentGroupData.slug}/Activity"
 
     , currentGroupData
 
