@@ -522,7 +522,16 @@ Includes =
         FSFolder                  : "./client/app/MainApp/fs/fsfolder.coffee"
         FSMount                   : "./client/app/MainApp/fs/fsmount.coffee"
 
-        avatarArea                : "./client/app/MainApp/avatararea.coffee"
+        avatarPopup                      : "./client/app/MainApp/avatararea/avatarareapopup.coffee"
+        avatarAreaIconMenu               : "./client/app/MainApp/avatararea/avatarareaiconmenu.coffee"
+        avatarAreaIconLink               : "./client/app/MainApp/avatararea/avatarareaiconlink.coffee"
+        avatarAreaStatusPopup            : "./client/app/MainApp/avatararea/avatarareasharestatuspopup.coffee"
+        avatarAreaMessagesPopup          : "./client/app/MainApp/avatararea/avatarareamessagespopup.coffee"
+        avatarAreaNotificationsPopup     : "./client/app/MainApp/avatararea/avatarareanotificationspopup.coffee"
+        avatarPopupList                  : "./client/app/MainApp/avatararea/avatarareapopuplist.coffee"
+        avatarPopupMessagesListItem      : "./client/app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee"
+        avatarPopupNotificationsListItem : "./client/app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee"
+
 
         # LOGIN VIEWS
         loginView                 : "./client/app/MainApp/login/loginview.coffee"
