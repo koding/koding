@@ -151,33 +151,3 @@ class MainTabView extends KDTabView
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
-
-  resizeTabHandles:(event)->
-
-    return if event.type is "PaneAdded" and event.pane.hiddenHandle
-    return if @handlesHidden
-
-    containerSize   = @tabHandleContainer.getWidth()
-    {plusHandle}    = @tabHandleContainer
-
-    if event.type in ['PaneAdded','PaneRemoved']
-      @totalSize    = 0
-      @rearrangeVisibleHandlesArray()
-      for handle in @visibleHandles
-        @totalSize += handle.$().outerWidth(no)
-
-    plusHandleWidth = plusHandle.$().outerWidth(no)
-    containerSize -= plusHandleWidth
-
-    handleSize = if containerSize < @totalSize
-      containerSize / @visibleHandles.length
-    else
-      if containerSize / @visibleHandles.length > 130
-        130
-      else
-        containerSize / @visibleHandles.length
-
-    for handle in @visibleHandles
-      handle.$().css width : handleSize
-      subtractor = if handle.$('span').length is 1 then 25 else 25 + (handle.$('span:not(".close-tab")').length * 25)
-      handle.$('> b').css width : (handleSize - subtractor)
