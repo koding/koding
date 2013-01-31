@@ -1,4 +1,10 @@
 class MainTabHandleHolder extends KDView
+  
+  constructor: (options = {}, data) ->
+
+    options.bind = "mouseenter mouseleave"
+
+    super options, data
 
   viewAppended:->
 
