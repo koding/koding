@@ -104,7 +104,7 @@ class GroupsListItemView extends KDListItemView
       tagName : 'a'
       attributes :
         href : '/'+@getData().slug+"/Activity"
-        target : '_blank'
+        target : @getData().slug
       partial : 'Open'
 
 
