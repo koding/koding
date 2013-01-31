@@ -260,7 +260,7 @@ run =({configFile})->
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
-	  invoke 'cacheWorker'    if config.cacheWorker?.run is yes
+    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'
