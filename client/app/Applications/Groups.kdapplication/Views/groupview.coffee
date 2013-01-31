@@ -52,16 +52,13 @@ class GroupView extends JView
     @joinButton.on 'Left', =>
       @enterButton.hide()
 
-    @enterButton = new KDButtonView
-      cssClass        : 'follow-btn following-btn enter hidden'
-      title           : "Enter"
-      dataPath        : "member"
-      # icon : yes
-      # iconClass : 'enter-group'
-      callback        : (event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
+    {slug} = @getData()
 
-    , data
+    @enterLink = new CustomLinkView
+      href    : "/#{slug}/Activity"
+      target  : slug
+      # title   : 'Open group'
+
 
     {JGroup} = KD.remote.api
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
@@ -70,9 +67,7 @@ class GroupView extends JView
         if data.getId() in groups
           @joinButton.setState 'Leave'
           @joinButton.redecorateState()
-          @enterButton.show()
-
-    @getData().fetchMembers console.log.bind console
+          # @enterButton.show()
     # @homeLink = new KDCustomHTMLView
     #   tagName     : 'a'
     #   attributes  :
@@ -99,7 +94,7 @@ class GroupView extends JView
       </div>
       <div class="installerbar clearfix">
         <div class="appfollowlike">
-          {{> @enterButton}}
+          {{> @enterLink}}
           {{> @joinButton}}
         </div>
       </div>

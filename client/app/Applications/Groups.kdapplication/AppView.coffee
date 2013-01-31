@@ -162,7 +162,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
         cssClass       : 'edit'
       click            : @bound 'showEditMemberRolesView'
 
-    @saveLink        = new CustomLinkView
+    @saveLink          = new CustomLinkView
       title            : 'Save'
       cssClass         : 'fr hidden'
       icon             :
