@@ -192,7 +192,7 @@ class GroupsAppController extends AppController
                   setTimeout =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
+                    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
                   , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
