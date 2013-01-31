@@ -251,7 +251,7 @@ class KodingRouter extends KDRouter
       ({params:{unsubscribeToken, opt}})->
         opt              = decodeURIComponent opt
         unsubscribeToken = decodeURIComponent unsubscribeToken
-        KD.remote.api.JEmailNotificationGG.unsubscribeWithId \
+        KD.remote.api.JMailNotification.unsubscribeWithId \
         unsubscribeToken, opt, (err, content)=>
           if err or not content
             title   = 'An error occured'
