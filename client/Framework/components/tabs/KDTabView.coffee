@@ -245,16 +245,13 @@ class KDTabView extends KDScrollView
     options                  = @getOptions()
     containerSize            = @tabHandleContainer.$().outerWidth(no) - options.lastTabHandleMargin
     containerMarginInPercent = 100 * options.lastTabHandleMargin / containerSize
-
-    for handle in @handles
-      unless handle.isHidden()
-        visibleHandles.push handle
-        visibleTotalSize += handle.$().outerWidth no
+    
+    for handle in @handles when not handle.isHidden()
+      visibleHandles.push handle
+      visibleTotalSize += handle.$().outerWidth no
 
     sizeWhenUsedMaxHandleWidth = visibleHandles.length * options.maxHandleWidth;
-    if visibleTotalSize > containerSize or sizeWhenUsedMaxHandleWidth > containerSize
-      possiblePercent = (100 - containerMarginInPercent) / visibleHandles.length
-      handle.setWidth(possiblePercent, "%") for handle in visibleHandles
-    else 
-      handle.setWidth options.maxHandleWidth for handle in visibleHandles        
+    possiblePercent = parseInt((100 - containerMarginInPercent) / visibleHandles.length, 10)
+
+    handle.setWidth(possiblePercent, "%") for handle in visibleHandles
   , 300
