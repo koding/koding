@@ -46,9 +46,9 @@
             "Properties": {
                 "HealthCheck": {
                     "HealthyThreshold": "3",
-                    "Interval":"5",
+                    "Interval":"10",
                     "Target":"TCP:8008",
-                    "Timeout": "3",
+                    "Timeout": "5",
                     "UnhealthyThreshold":"5"
                 },
                 "Listeners": [ 
