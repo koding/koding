@@ -29,7 +29,7 @@ class MainTabHandleHolder extends KDView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
-      click    : =>
+      click    : (event) =>
         unless @plusHandle.$().hasClass('first')
           contextMenu = new JContextMenu
             event    : event
