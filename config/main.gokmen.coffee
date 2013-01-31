@@ -107,9 +107,10 @@ module.exports = deepFreeze
     host        : 'gokmen.dev.service.aws.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-    notificationCronInstant  : '*/10 * * * * *'
-    notificationCronDaily    : '0 10 0 * * *'
-    useNotificationWorker    : no
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

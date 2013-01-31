@@ -9,7 +9,8 @@ Broker    = require 'broker'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
-{mq, mongo, email, uri} = require('koding-config-manager').load("main.#{argv.c}")
+{mq, mongo, email, emailWorker, uri} = \
+  require('koding-config-manager').load("main.#{argv.c}")
 
 mongo += '?auto_reconnect'
 
@@ -185,12 +186,12 @@ prepareEmail = (notification, daily = no, cb)->
 
 instantEmails = ->
   {JMailNotification} = worker.models
-  JMailNotification.some {status: "queued"}, {limit:100}, (err, emails)->
+  JMailNotification.some {status: "queued"}, {limit:300}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "There are #{emails.length} mail in queue."
+        log "Sending #{emails.length} e-mails..."
         for email in emails
           prepareEmail email, no, sendInstantEmail
 
@@ -231,8 +232,8 @@ dailyEmails = ->
           else
             notifications = []
             JMailNotification.each {receiver   : account.getId(),  \
-                                       dateIssued : $gte: yesterday}, \
-                                      {sort       : dateIssued: 1},
+                                    dateIssued : $gte: yesterday}, \
+                                   {sort       : dateIssued: 1},
             (err, email)->
               if err then console.error err
               else
@@ -246,13 +247,10 @@ dailyEmails = ->
                         content += template.singleEvent email
                       sendDailyEmail emailContent[0], content
 
-if email.useNotificationWorker
-  instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
-  log "Instant Emails CronJob started with #{email.notificationCronInstant}"
-  instantEmailsCron.start()
+instantEmailsCron = new CronJob emailWorker.cronInstant, instantEmails
+log "Instant Emails CronJob started with #{emailWorker.cronInstant}"
+instantEmailsCron.start()
 
-  dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
-  log "Daily Emails CronJob started with #{email.notificationCronDaily}"
-  dailyEmailsCron.start()
-else
-  log "Worker is not running, please enable email.useNotificationWorker in config."
+dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
+log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
+dailyEmailsCron.start()

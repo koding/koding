@@ -263,7 +263,7 @@ run =({configFile})->
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
-    invoke 'emailWorker'
+    invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'webserver'
 
 
@@ -371,7 +371,7 @@ task 'deploy', (options) ->
   unless aws.key.length > 0 and
          aws.secret.length > 0 and
          aws.username.length > 0 and
-         aws.git_branch.length > 0 and 
+         aws.git_branch.length > 0 and
          aws.git_rev.length > 0
     console.log 'AWS must be configured'
     process.exit(0)
@@ -403,7 +403,7 @@ task 'destroy', (options) ->
   # -x <aws_key> <aws_secret>
   cmd = '/Users/bahadir/ODIN/koding/builders/aws/init/aws_init.py'
   args = ['-x', aws.key, aws.secret]
-  
+
   run = spawn cmd, args
   run.stdout.on 'data', (data) ->
     console.log data.toString()

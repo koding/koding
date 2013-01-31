@@ -192,9 +192,10 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
-      notificationCronInstant  : 1
-      notificationCronDaily    : 1
-      useNotificationWorker    : 1
+    emailWorker   :
+      cronInstant : 1
+      cronDaily   : 1
+      run         : 1
     guests        :
       poolSize        : 1
       batchSize       : 1
