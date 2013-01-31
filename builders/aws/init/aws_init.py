@@ -3,9 +3,9 @@
 
 # Network topology
 NETWORK = [
-    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'c1.medium'},
-    #{'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'c1.medium'},
-    #{'roles': ['authworker', 'socialworker'], 'autoscale': (2, 4), 'instance_type': 'c1.medium'}
+    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm1.small'},
+    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm1.small'},
+    {'roles': ['authworker', 'socialworker'], 'autoscale': (2, 4), 'instance_type': 'm1.small'}
 ]
 
 import copy
@@ -96,7 +96,7 @@ ROLES = {
     'emailworker': ['role[base_server]', 'role[emailworker]', 'recipe[kd_deploy]'],
 }
 
-TEMPLATE = 'userdata.txt.template'
+TEMPLATE = os.path.dirname(__file__) + '/userdata.txt.template'
 
 AWS_DUMP = 'aws_data.txt'
 
@@ -304,6 +304,9 @@ def delete_old():
 
     save_file_content(AWS_DUMP, '')
 
+def print_usage():
+    print 'Usage: %s <username> <git_branch> <git_revision> <config_name> <aws_key> <aws_secret>' % sys.argv[0]
+
 def main():
     if '-x' in sys.argv[1:]:
         args = sys.argv[1:]
@@ -320,13 +323,16 @@ def main():
     try:
         username, git_branch, git_revision, config_name, aws_key, aws_secret = sys.argv[1:]
     except:
-        print 'Usage: %s <username> <git_branch> <git_revision> <config_name> <aws_key> <aws_secret>' % sys.argv[0]
+        print_usage()
+        return
+
+    if not len(username) or not len(git_branch) or not len(git_revision) or not len(config_name):
+        print_usage()
         return
 
     setup(username, git_branch, git_revision, config_name, aws_key, aws_secret)
-    print USERNAME
-    print DOMAIN
-    print ATTRIBUTES
+
+    # print ATTRIBUTES
     # return
 
     # List of AWS objects
@@ -385,9 +391,6 @@ def main():
 
     aws_data = '\n'.join(['%s %s' % (x, y) for x, y in aws_data])
     save_file_content(AWS_DUMP, aws_data)
-
-    print
-    print "Run this to terminate all: %s -x <aws_key> <aws_secret>" % sys.argv[0]
 
 if __name__ == '__main__':
     main()

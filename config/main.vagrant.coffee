@@ -19,8 +19,11 @@ socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
   aws           :
-    key         : ''
-    secret      : ''
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
+    username    : ''
+    git_branch  : ''
+    git_rev     : ''
   uri           :
     address     : "http://koding.local"
   projectRoot   : projectRoot
