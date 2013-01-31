@@ -14,7 +14,6 @@ class KDTabView extends KDScrollView
     super options, data
 
     @setTabHandleContainer options.tabHandleContainer ? null
-    @listenWindowResize()
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
@@ -254,7 +253,5 @@ class KDTabView extends KDScrollView
       possiblePercent = (100 - containerMarginInPercent) / visibleHandles.length
       handle.setWidth(possiblePercent, "%") for handle in visibleHandles
     else 
-
-  _windowDidResize:(event)=> @resizeTabHandles event
       handle.setWidth options.maxHandleWidth for handle in visibleHandles        
   , 300
