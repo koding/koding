@@ -1,44 +1,63 @@
-class AvatarAreaIconMenu extends KDView
-  constructor:->
-    super
-    @setClass "actions"
+class AvatarAreaIconMenu extends JView
 
-  viewAppended:->
-    mainView = @getSingleton 'mainView'
-    sidebar  = @getDelegate()
+  constructor:->
+
+    super
+
+    @setClass "actions"
     @setClass "invisible" unless KD.isLoggedIn()
 
-    mainView.addSubView @avatarNotificationsPopup = new AvatarPopupNotifications
+    sidebar  = @getDelegate()
+
+    @avatarNotificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
       delegate : sidebar
 
-    mainView.addSubView @avatarMessagesPopup = new AvatarPopupMessages
+    @avatarMessagesPopup = new AvatarPopupMessages
       cssClass : "messages"
       delegate : sidebar
 
-    mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
+    @avatarStatusUpdatePopup = new AvatarPopupShareStatus
       cssClass : "status-update"
       delegate : sidebar
 
-    @addSubView @notificationsIcon = new AvatarAreaIconLink
+    @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications'
       attributes :
         title    : 'Notifications'
       delegate   : @avatarNotificationsPopup
 
-    @addSubView @messagesIcon = new AvatarAreaIconLink
+    @messagesIcon = new AvatarAreaIconLink
       cssClass   : 'messages'
       attributes :
         title    : 'Messages'
       delegate   : @avatarMessagesPopup
 
-    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
+    @statusUpdateIcon = new AvatarAreaIconLink
       cssClass   : 'status-update'
       attributes :
         title    : 'Status Update'
       delegate   : @avatarStatusUpdatePopup
 
+  pistachio:->
+    """
+      {{> @notificationsIcon}}
+      {{> @messagesIcon}}
+      {{> @statusUpdateIcon}}
+    """
+
+  viewAppended:->
+
+    super
+
+    mainView = @getSingleton 'mainView'
+
+    mainView.addSubView @avatarNotificationsPopup
+    mainView.addSubView @avatarMessagesPopup
+    mainView.addSubView @avatarStatusUpdatePopup
+
     @attachListeners()
+
 
   attachListeners:->
 
