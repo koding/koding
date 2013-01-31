@@ -105,7 +105,6 @@ class ActivityUpdateWidgetController extends KDViewController
       mainView.setClass "edit-mode"
       switchForEditView activity.bongo_.constructorName, activity
 
-
   emitFakeData:(type, data)->
 
     fakeData = $.extend {fakeType : type}, data
@@ -115,7 +114,6 @@ class ActivityUpdateWidgetController extends KDViewController
   widgetSubmit:(data,constructorName,callback)->
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
-
     if data.activity
       {activity} = data
       delete data.activity
@@ -126,7 +124,6 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-
       @emitFakeData constructorName, data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
