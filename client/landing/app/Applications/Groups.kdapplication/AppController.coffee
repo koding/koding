@@ -123,6 +123,7 @@ class GroupsAppController extends AppController
         navigable : yes
         goToNextFormOnSubmit: no
         forms     :
+
           "General Settings":
             title: if isNewGroup then 'Create a group' else 'Edit group'
             callback:(formData)=>
@@ -198,16 +199,16 @@ class GroupsAppController extends AppController
               SlugText                :
                 itemClass : KDView
                 cssClass : 'slug-url'
-                partial : '<span class="base">http://www.koding.com/Groups/</span>'
+                partial : '<span class="base">http://www.koding.com/</span>'
                 nextElementFlat :
                   Slug :
                     label             : "Slug"
                     itemClass         : KDInputView
                     name              : "slug"
-                    cssClass          : 'hidden'
+                    # cssClass          : 'hidden'
                     defaultValue      : group.slug ? ""
                     placeholder       : 'This value will be automatically generated'
-                    disabled          : yes
+                    # disabled          : yes
               Description         :
                 label             : "Description"
                 type              : "textarea"
@@ -235,10 +236,14 @@ class GroupsAppController extends AppController
                   { title : "Visible",    value : "visible" }
                   { title : "Hidden",     value : "hidden" }
                 ]
+          "Permissions" :
+            title : 'Permissions'
+            cssClass : 'permissions-modal'
 
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
+
 
     modal = new KDModalViewWithForms modalOptions, group
 
@@ -246,10 +251,20 @@ class GroupsAppController extends AppController
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
       modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('span').addClass 'hidden'
 
-    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
+    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
       modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+    
+    group.fetchPermissions (err, permissionSet)->
+      unless err 
+        modal.modalTabs.forms["Permissions"].addSubView new PermissionsModal {
+          privacy: group.privacy
+          permissionSet
+        }, group
+      else
+        modal.modalTabs.forms['Permissions'].addSubView new KDView
+          partial : 'No access'
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
