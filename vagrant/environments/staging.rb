@@ -4,7 +4,7 @@ description "The staging environment"
 cookbook_versions({
     "local_users"   => "0.1.3",
     "apt"           => "1.7.0",
-    "base_packages" => "1.1.0",
+    "base_packages" => "0.1.0",
     "erlang"        => "1.1.2",
     "golang"        => "0.1.0",
     "golang"        => "0.1.0",
@@ -27,5 +27,12 @@ default_attributes({
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
-                     }
+                     },
+                    "nginx" => {
+                                "worker_processes" => "1",
+                                "backend_ports" => [3020],
+                                "server_name" => "www.stage.aws.koding.com",
+                                "maintenance_page" => "maintenance.html",
+                                "static_files" => "/opt/koding/current/client"
+                     },
 })
