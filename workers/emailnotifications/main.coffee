@@ -46,7 +46,7 @@ sendDailyEmail = (details, content)->
   # console.log template.dailyMail details, content
 
   Emailer.send
-    To        : details.email
+    To        : emailWorker.defaultRecepient or details.email
     Subject   : template.dailyHeader details
     HtmlBody  : template.dailyMail details, content
   , (err, status)->
@@ -57,7 +57,7 @@ sendInstantEmail = (details)->
   {notification} = details
 
   Emailer.send
-    To        : details.email
+    To        : emailWorker.defaultRecepient or details.email
     Subject   : template.commonHeader details
     HtmlBody  : flags[details.key].template details
   , (err, status)->
@@ -191,7 +191,7 @@ instantEmails = ->
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "Sending #{emails.length} e-mails..."
+        log "Sending #{emails.length} e-mail(s)..."
         for email in emails
           prepareEmail email, no, sendInstantEmail
 
@@ -254,3 +254,5 @@ instantEmailsCron.start()
 dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
 log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
 dailyEmailsCron.start()
+
+log "All e-mail notifications will be send to #{emailWorker.defaultRecepient}" if emailWorker.defaultRecepient

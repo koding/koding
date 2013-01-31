@@ -196,6 +196,7 @@ config =
       cronInstant : 1
       cronDaily   : 1
       run         : 1
+      defaultRecepient : 1
     guests        :
       poolSize        : 1
       batchSize       : 1
