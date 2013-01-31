@@ -71,7 +71,6 @@ class AccountDatabaseListController extends KDListViewController
                   """
 
   loadItems:(callback)->
-
     @removeAllItems()
     dbTypes = ['mysql', 'mongo']
     @_loaderCount = dbTypes.length
@@ -95,15 +94,17 @@ class AccountDatabaseListController extends KDListViewController
               @_timeout.destroy()
     , 10000
 
+    responseAdded = []
     for dbtype in dbTypes
       @talkToKite
-        method    : @commands[dbtype].fetch
-        withArgs  :
-          dbUser  : KD.whoami().profile.nickname
+        method : @commands[dbtype].fetch
       , (err, response)=>
         if err then warn err
         else
-          @instantiateListItems response
+          if response.length > 0
+            unless response[0].dbName in responseAdded
+              @instantiateListItems response
+              responseAdded.push response[0].dbName
           callback?()
           hideLoaderWhenFinished()
 
