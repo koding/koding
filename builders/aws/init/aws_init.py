@@ -392,5 +392,8 @@ def main():
     aws_data = '\n'.join(['%s %s' % (x, y) for x, y in aws_data])
     save_file_content(AWS_DUMP, aws_data)
 
+    print
+    print "Remember to use this domain in your configuration (main.%s.coffee)" % CONFIG
+
 if __name__ == '__main__':
     main()
