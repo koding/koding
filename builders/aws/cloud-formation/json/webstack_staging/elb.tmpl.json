@@ -1,17 +1,6 @@
-TEMPLATE  "{
+{
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Deploy ELB for Koding web stack",
-    "Parameters": {
-        "WebSiteDomainName": {
-            "Description": "koding web site domain name for loadbalancer",
-            "Type": "String"
-        },
-        "BrokerDomainName": {
-            "Description": "broker domain name for loadbalancer",
-            "Type": "String"
-        }
-
-    },
+    "Description": "Deploy Staging ELB for Koding web stack",
     "Resources" :{
         "WebSiteELB":{
             "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
@@ -74,7 +63,29 @@ TEMPLATE  "{
                 "SecurityGroups":["sg-b17399de"],
                 "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
             }
+        },
+
+        "WebSiteHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": "stage.aws.koding.com.",
+                "Name" : "www.stage.aws.koding.com.",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "WebSiteELB", "DNSName" ] } ]
+            }
+        },
+        "BrokerHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": "stage.aws.koding.com.",
+                "Name" : "mq.stage.aws.koding.com.",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "BrokerELB", "DNSName" ] } ]
+            }
         }
+
     }
 }
-"
+
