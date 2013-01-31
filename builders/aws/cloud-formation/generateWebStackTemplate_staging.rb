@@ -10,8 +10,8 @@ if type.nil?
     exit
 end 
 
-userdata = "./user-data/webstack/#{type}-userdata.txt"
-output = "./json/webstack/#{type}.tmpl.json" 
+userdata = "./user-data/webstack_staging/#{type}-userdata.txt"
+output = "./json/webstack_staging/#{type}.tmpl.json" 
 bootstrap_script = IO.read(userdata)
 
 cf_template_erb = IO.read("./templates/webstack/#{type}.tmpl.erb")

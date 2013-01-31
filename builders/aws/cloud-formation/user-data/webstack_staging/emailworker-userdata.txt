@@ -48,7 +48,7 @@ chef:
     
     # Defaults to the instance-id if not present
     # node_name: "your-node-name"
-    environment: "prod"
+    environment: "staging"
 
     validation_name: "koding-validator"
 
@@ -83,7 +83,7 @@ chef:
     
     # A run list for a first boot json
     run_list:
-      - "role[cacheworker]"
+      - "role[emailworker]"
 
 runcmd:
   - [/etc/init.d/chef-client, restart ]
