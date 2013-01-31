@@ -348,8 +348,43 @@
         &.joined
           bg color, #444
 
-      .enter-group
+      .enter-button
+        borderBox()
+        cursor            pointer
+        border            1px solid #ddd
+        border-bottom-color    #cfcfcf
+        color             #7f7f7f
+        font-size         11px
+        width             80px
+        line-height       12px
+        padding           5px 5px 4px 5px
+        text-align        center
+        text-shadow       0 1px 0 #fff
+        font-weight       700
+        vertical-align    inherit
+        background        linear-gradient(top,  white 0%,#e6e5e5 94%)
+        shadow(0 1px 0 rgb(255, 255, 255))
+        rounded(3px,3px,3px,3px)
 
+        &:hover
+          background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+          border               1px solid #ddd
+          border-bottom-color  #cfcfcf
+          -moz-box-shadow      0 1px 0 #fff
+          -webkit-box-shadow   0 1px 0 #fff
+          box-shadow           0 1px 0 #fff
+
+        &:active
+          background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+          border               1px solid #afafaf
+          border-bottom        1px solid #ddd
+          -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+          -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+          box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+
+      .enter-group
+        noTextDeco()
+        color #7f7f7f
         &:before
           content               ''
           padding 0px 10px
