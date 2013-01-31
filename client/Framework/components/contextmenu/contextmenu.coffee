@@ -2,7 +2,8 @@ class JContextMenu extends KDView
 
   constructor:(options = {},data)->
 
-    options.cssClass = @utils.curryCssClass "jcontextmenu", options.cssClass
+    options.cssClass  = @utils.curryCssClass "jcontextmenu", options.cssClass
+    options.menuWidth or= 172 
 
     super options, data
 
@@ -35,16 +36,26 @@ class JContextMenu extends KDView
     super
 
   positionContextMenu:()->
+    options     = @getOptions()
+    event       = options.event or {}
+    mainView    = @getSingleton 'mainView'
 
-    event       = @getOptions().event or {}
-    mainHeight  = @getSingleton('mainView').getHeight()
+    mainHeight  = mainView.getHeight()
+    mainWidth   = mainView.getWidth()
 
-    top         = @getOptions().y or event.pageY or 0
     menuHeight  = @getHeight()
+    menuWidth   = @getWidth()
+
+    top         = options.y or event.pageY or 0
+    left        = options.x or event.pageX or 0
+    
     if top + menuHeight > mainHeight
-      top = mainHeight - menuHeight - 15
+      top  = mainHeight - menuHeight - 15
+
+    if left + menuWidth > mainWidth
+      left  = mainWidth - menuWidth
 
     @getDomElement().css
-      width     : "172px"
+      width     : "#{options.menuWidth}px"
       top       : top
-      left      : @getOptions().x or event.pageX or 0
+      left      : left
