@@ -194,6 +194,7 @@ config =
       defaultFromAddress: 1
       notificationCronInstant  : 1
       notificationCronDaily    : 1
+      useNotificationWorker    : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

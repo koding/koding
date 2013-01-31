@@ -130,6 +130,7 @@ module.exports = deepFreeze
     defaultFromAddress: 'hello@koding.com'
     notificationCronInstant  : '*/10 * * * * *'
     notificationCronDaily    : '0 10 0 * * *'
+    useNotificationWorker    : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

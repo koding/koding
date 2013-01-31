@@ -244,10 +244,13 @@ dailyEmails = ->
                         content += template.singleEvent email
                       sendDailyEmail emailContent[0], content
 
-instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
-log "Instant Emails CronJob started with #{email.notificationCronInstant}"
-instantEmailsCron.start()
+if email.useNotificationWorker
+  instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
+  log "Instant Emails CronJob started with #{email.notificationCronInstant}"
+  instantEmailsCron.start()
 
-dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
-log "Daily Emails CronJob started with #{email.notificationCronDaily}"
-dailyEmailsCron.start()
+  dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
+  log "Daily Emails CronJob started with #{email.notificationCronDaily}"
+  dailyEmailsCron.start()
+else
+  log "Worker is not running, please enable 'email.useNotificationWorker' in config."
