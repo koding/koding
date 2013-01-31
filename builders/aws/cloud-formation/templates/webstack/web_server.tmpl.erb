@@ -7,7 +7,7 @@
       	 "WebServerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : "m1.small",
+        		"InstanceType" : "c1.medium",
           		"SecurityGroups" : ["sg-b17399de"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
@@ -22,9 +22,9 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "WebServerLaunchConfiguration" },
-                      "MinSize": "1",
-                      "MaxSize": "1",
-                      "DesiredCapacity": "1",
+                      "MinSize": "3",
+                      "MaxSize": "6",
+                      "DesiredCapacity": "3",
                       "LoadBalancerNames": ["stage-elb-WebSiteE-1KEBHX43EOA6C"]
                      } 
           },  

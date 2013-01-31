@@ -22,8 +22,11 @@ cookbook_versions({
 
 
 default_attributes({ 
+                     "launch" => {
+                                 "config" => "stage",
+                     },
                      "kd_deploy" => {
-                                "git_branch" => "master_autoscale",
+                                "git_branch" => "master_STAGE",
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',

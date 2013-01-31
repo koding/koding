@@ -7,7 +7,7 @@
       	 "BrokerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : "m1.small",
+        		"InstanceType" : "c1.medium",
           		"SecurityGroups" : ["sg-b17399de"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
@@ -25,7 +25,7 @@
                       "MinSize": "1",
                       "MaxSize": "1",
                       "DesiredCapacity": "1",
-                      "LoadBalancerNames": ["webstack-BrokerEL-1XAETEQ4F1SDT"]
+                      "LoadBalancerNames": ["stage-elb-BrokerEL-1QEJU23HWESMM"]
                      } 
           },  
 

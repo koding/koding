@@ -5,7 +5,6 @@ run_list ["role[base_server]","recipe[nginx]","recipe[nginx::koding_local]", "re
 
 default_attributes({ 
                      "launch" => {
-                                "config" => "autoscale",
                                 "programs" => ["buildClient webserver"]
                      }
 })
