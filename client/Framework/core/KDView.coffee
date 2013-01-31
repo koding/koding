@@ -336,10 +336,10 @@ class KDView extends KDObject
   getWidth:()->
     w = @getDomElement().width()
 
-  setWidth:(w)->
-    @getElement().style.width = "#{w}px"
+  setWidth:(w, unit = "px")->
+    @getElement().style.width = "#{w}#{unit}"
     # @getDomElement().width w
-    @emit "ViewResized", newWidth : w
+    @emit "ViewResized", {newWidth : w, unit}
 
   getHeight:()->
     # @getDomElement()[0].clientHeight
