@@ -5,6 +5,6 @@ run_list ["role[base_server]","recipe[nodejs]","recipe[golang]", "recipe[supervi
 
 default_attributes({ 
                      "launch" => {
-                                "programs" => ["cacheworker"]
+                                "programs" => ["cacheWorker"]
                      }
 })
