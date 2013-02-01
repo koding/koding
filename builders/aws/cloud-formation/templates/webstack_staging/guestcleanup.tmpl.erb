@@ -42,10 +42,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "GuestCleanupHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"GuestCleanupScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"GuestCleanupScalingGroup"}
                       }
                     ]
@@ -65,10 +65,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "GuestCleanupLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"GuestCleanupScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"GuestCleanupScalingGroup"}
                       }
                     ]

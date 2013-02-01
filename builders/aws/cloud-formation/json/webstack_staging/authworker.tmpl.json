@@ -41,10 +41,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "AuthWorkerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"AuthWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"AuthWorkerScalingGroup"}
                       }
                     ]
@@ -52,7 +52,7 @@
                
           },
           "AuthWorkerCPUAlarmLow" : {
-              "Type" : "AWS::CloudWatch::Alarm",
+             "Type" : "AWS::CloudWatch::Alarm",
               "Properties": {
                     "EvaluationPeriods" : "1",
                     "Statistic": "Average",
@@ -64,10 +64,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "AuthWorkerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"AuthWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"AuthWorkerScalingGroup"}
                       }
                     ]
