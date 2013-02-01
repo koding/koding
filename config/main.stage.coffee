@@ -7,6 +7,7 @@ version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'u
 
 domainName = "stage.aws.koding.com"
 
+
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
