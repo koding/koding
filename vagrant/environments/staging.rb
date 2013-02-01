@@ -35,6 +35,7 @@ default_attributes({
                                 "worker_processes" => "1",
                                 "backend_ports" => [3020],
                                 "server_name" => "www.stage.aws.koding.com",
+                                "rc_server_name" => "localhost",
                                 "maintenance_page" => "maintenance.html",
                                 "static_files" => "/opt/koding/current/client"
                      },
