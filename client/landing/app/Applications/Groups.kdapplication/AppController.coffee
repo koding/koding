@@ -95,7 +95,12 @@ class GroupsAppController extends AppController
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
 
   getErrorModalOptions =(err)->
-    switch err.accessCode
+    defaultOptions =
+      buttons:
+        Cancel   :
+          style     : "modal-cancel"
+          callback  : (event)-> @getDelegate().destroy()
+    customOptions = switch err.accessCode
       when ERROR_NO_POLICY
         {
           title     : 'Sorry, this group does not have a membership policy!'
@@ -116,6 +121,7 @@ class GroupsAppController extends AppController
                       </div>
                       """
         }
+    _.extend defaultOptions, customOptions
 
   showErrorModal:(err)->
     modal = new KDModalView getErrorModalOptions err
