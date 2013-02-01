@@ -2,6 +2,8 @@
 
 module.exports = class JGroup extends Module
 
+  [ERROR_UNKNOWN, ERROR_NO_POLICY] = [403010, 403001]
+
   {Relationship} = require 'jraphical'
 
   {Inflector, ObjectId, ObjectRef, secure, daisy, dash} = require 'bongo'
@@ -288,10 +290,13 @@ module.exports = class JGroup extends Module
     success:(client, callback)-> callback null, yes
 
     failure:(client, callback)->
-      console.log {arguments}
       @fetchMembershipPolicy (err, policy)->
-        explanation = policy?.explain() ? err?.message ? 'No membership policy!'
-        callback (err or new KodingError explanation), no
+        explanation = policy?.explain() ?
+                      err?.message ?
+                      'No membership policy!'
+        clientError = err ? new KodingError explanation
+        clientError.accessCode = policy?.code ? if err then ERROR_UNKNOWN else ERROR_NO_POLICY
+        callback clientError, no
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
