@@ -6,6 +6,7 @@
         "RabbitMQInstance": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
+                "InstanceType" : "c1.medium",
                 "ImageId": "ami-3d4ff254",
                 "KeyName": "koding",
                 "SubnetId": "subnet-dcd019b6",
