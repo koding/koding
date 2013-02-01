@@ -18,7 +18,7 @@ class PopupNotificationListItem extends NotificationListItem
 
   pistachio:->
     """
-      <span class='icon'></span>
+      <span class='icon notification-type'></span>
       <span class='avatar'>{{> @avatar}}</span>
       <div class='right-overflow'>
         <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>

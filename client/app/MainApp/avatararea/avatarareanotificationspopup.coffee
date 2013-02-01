@@ -17,8 +17,8 @@ class AvatarPopupNotifications extends AvatarPopup
 
     @avatarPopupContent.addSubView @noNotification = new KDView
       height   : "auto"
-      cssClass : "sublink hidden"
-      partial  : "You have no new notifications..."
+      cssClass : "sublink top hidden"
+      partial  : "You have no new notifications."
 
     @avatarPopupContent.addSubView @listController.getView()
 

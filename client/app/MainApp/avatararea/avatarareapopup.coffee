@@ -1,6 +1,8 @@
 class AvatarPopup extends KDView
   constructor:->
+
     super
+
     @sidebar = @getDelegate()
 
     @sidebar.on "NavigationPanelWillCollapse", => @hide()
@@ -30,13 +32,11 @@ class AvatarPopup extends KDView
     @addSubView @avatarPopupContent = new KDView cssClass : 'content'
 
   setPopupListener:->
-    @avatarPopupTab.on 'click', (event)=>
-      @hide()
+    @avatarPopupTab.on 'click', (event)=> @hide()
 
   _windowDidResize:=>
     if @listController
       {scrollView}    = @listController
       windowHeight    = $(window).height()
       avatarTopOffset = @$().offset().top
-      @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 50
-
+      @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 80
