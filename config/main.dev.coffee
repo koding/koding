@@ -54,6 +54,11 @@ module.exports = deepFreeze
     email     : ""
     token     : ""
     interval  : 30 * 1000
+  cacheWorker   :
+    login       : 'social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
