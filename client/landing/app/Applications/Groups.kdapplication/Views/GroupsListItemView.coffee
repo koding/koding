@@ -105,6 +105,9 @@ class GroupsListItemView extends KDListItemView
       href    : "/#{slug}/Activity"
       target  : slug
       title   : 'Open group'
+      click   : @bound 'privateGroupOpenHandler'
+
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   settingsMenu:(data)->
 

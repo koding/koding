@@ -1,5 +1,11 @@
 class GroupsAppController extends AppController
 
+  @privateGroupOpenHandler =(event)->
+    data = @getData()
+    return yes  unless data.privacy is 'private'
+    event.preventDefault()
+    @emit 'PrivateGroupIsOpened', data
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -48,7 +54,6 @@ class GroupsAppController extends AppController
                 everything.forEachItemByIndex groups, ({joinButton,enterButton})->
                   joinButton.setState 'Leave'
                   joinButton.redecorateState()
-                  enterButton.show()
         following           :
           title             : "Following"
           dataSource        : (selector, options, callback)=>
@@ -73,8 +78,16 @@ class GroupsAppController extends AppController
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
+      @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
       @putAddAGroupButton()
       @emit 'ready'
+
+  monitorGroupItemOpenLink:(item)->
+    item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
+
+  openPrivateGroup:(group)->
+    group.openGroup (err, policy)->
+      console.log err, policy
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -83,7 +96,6 @@ class GroupsAppController extends AppController
       title     : "Create a Group"
       style     : "small-gray"
       callback  : => @showGroupSubmissionView()
-
 
   _createGroupHandler =(formData)->
     KD.remote.api.JGroup.create formData, (err, group)=>
@@ -354,10 +366,18 @@ class GroupsAppController extends AppController
 
   showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerGroups null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
+    # controller = new ContentDisplayControllerGroups null, content
+    # contentDisplay = controller.getView()
+    groupView = new GroupView
+      cssClass : "profilearea clearfix"
+      delegate : @getView()
+    , content
+    
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
+    callback groupView
+    # console.log {contentDisplay}
+    groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
+    return groupView
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
