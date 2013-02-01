@@ -27,7 +27,7 @@ when "prod"
         users local_users_prod
     end
 when "dev"
-    userad do
+    useradd do
         users local_users_dev
     end
 else

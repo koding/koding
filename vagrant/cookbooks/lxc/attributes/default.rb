@@ -5,5 +5,5 @@ default[:lxc][:network][:dhcp_end] = '172.16.7.254'
 default[:lxc][:network][:bridge_ip] = '172.16.0.1'
 default[:lxc][:network][:vmroot_ip] = '172.16.0.10'
 
-default[:apt][:source] = "http://ftp.halifax.rwth-aachen.de/ubuntu/"
-# default[:lxc][:apt][:source] = "http://us-east-1.archive.ubuntu.com/ubuntu/"
+# default[:apt][:source] = "http://ftp.halifax.rwth-aachen.de/ubuntu/"
+default[:apt][:source] = "http://us-east-1.archive.ubuntu.com/ubuntu/"
