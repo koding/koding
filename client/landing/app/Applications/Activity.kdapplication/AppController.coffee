@@ -69,6 +69,8 @@ class ActivityAppController extends AppController
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
+  fetchCurrentGroup:(callback)-> callback @currentGroup
+
   attachEvents:(controller)->
 
     @listController    = controller

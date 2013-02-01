@@ -4,6 +4,8 @@ class GroupsListItemView extends KDListItemView
     options.type = "groups"
     super options,data
 
+    {title, slug, body} = @getData()
+
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
@@ -29,7 +31,7 @@ class GroupsListItemView extends KDListItemView
         href      : '#'
       pistachio   : '{{#(title)}}'
       tooltip     :
-        title     : @getData().title
+        title     : title
         direction : 'right'
         placement : 'top'
         offset    :
@@ -42,7 +44,7 @@ class GroupsListItemView extends KDListItemView
       tagName  : 'span'
       pistachio : '{{#(body)}}'
       tooltip     :
-        title     : @getData().body
+        title     : body
         direction : 'right'
         placement : 'top'
         offset    :
@@ -99,14 +101,13 @@ class GroupsListItemView extends KDListItemView
 
     # , data
 
-    @enterButton = new KDCustomHTMLView
-      cssClass : 'enter-group'
-      tagName : 'a'
-      attributes :
-        href : '/'+@getData().slug+"/Activity"
-        target : @getData().slug
-      partial : 'Open'
+    @enterLink = new CustomLinkView
+      href    : "/#{slug}/Activity"
+      target  : slug
+      title   : 'Open group'
+      click   : @bound 'privateGroupOpenHandler'
 
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   settingsMenu:(data)->
 
@@ -198,7 +199,7 @@ class GroupsListItemView extends KDListItemView
           </p>
         </div>
       </div>
-      <div class="button-container"><div class="enter-button">{{>@enterButton}}</div>{{> @joinButton}}</div>
+      <div class="button-container"><div class="enter-button">{{>@enterLink}}</div>{{> @joinButton}}</div>
     </div>
     """
 

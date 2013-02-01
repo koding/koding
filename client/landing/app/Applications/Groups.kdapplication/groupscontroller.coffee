@@ -43,7 +43,6 @@ class GroupsController extends KDObject
   getUserArea:-> @userArea
 
   setUserArea:(userArea)->
-    console.log 'set user area', arguments
     @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
     @userArea = userArea
 
@@ -56,7 +55,6 @@ class GroupsController extends KDObject
     }
 
   resetUserArea:(account)->
-    console.log 'reset user area', arguments
     @setUserArea {
       group: 'koding', user: account.profile.nickname
     }
