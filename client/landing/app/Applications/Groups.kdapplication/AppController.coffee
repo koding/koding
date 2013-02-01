@@ -6,6 +6,15 @@ class GroupsAppController extends AppController
     event.preventDefault()
     @emit 'PrivateGroupIsOpened', data
 
+  [
+    ERROR_UNKNOWN
+    ERROR_NO_POLICY
+    ERROR_APPROVAL_REQUIRED
+    ERROR_PERSONAL_INVITATION_REQUIRED
+    ERROR_MULTIUSE_INVITATION_REQUIRED
+    ERROR_WEBHOOK_CUSTOM_FORM
+  ] = [403010, 403001, 403002, 403003, 403004, 403005]
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -85,9 +94,42 @@ class GroupsAppController extends AppController
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
 
+  getErrorModalOptions =(err)->
+    switch err.accessCode
+      when ERROR_NO_POLICY
+        {
+          title     : 'Sorry, this group does not have a membership policy!'
+          content   : """
+                      <div class='modalformline'>
+                        The administrators have not yet defined a membership
+                        policy for this private group.  No one may join this
+                        group until a membership policy has been defined.
+                      </div>
+                      """
+        }
+      when ERROR_UNKNOWN
+        {
+          title     : 'Sorry, an unknown error has occurred!'
+          content   : """
+                      <div class='modalformline'>
+                        Please try again later.
+                      </div>
+                      """
+        }
+
+  showErrorModal:(err)->
+    modal = new KDModalView getErrorModalOptions err
+    console.log {modal}
+
+
   openPrivateGroup:(group)->
-    group.openGroup (err, policy, explanation)->
-      console.log arguments
+    group.openGroup (err, policy)=>
+      if err 
+        @showErrorModal err
+      else
+        console.log 'access is granted!'
+
+
 
   putAddAGroupButton:->
     {facetsController} = @feedController
