@@ -38,4 +38,8 @@ default_attributes({
                                 "maintenance_page" => "maintenance.html",
                                 "static_files" => "/opt/koding/current/client"
                      },
+                     :rabbitmq => {
+                                :admin_password => "dslkdscmckfjf55",
+                                :user_password => "djfjfhgh4455__5"
+                     }
 })
