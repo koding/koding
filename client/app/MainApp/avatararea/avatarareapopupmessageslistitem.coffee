@@ -35,7 +35,7 @@ class PopupMessageListItem extends KDListItemView
     appManager.openApplication 'Inbox'
     appManager.tell "Inbox", "goToMessages", @
     popupList = @getDelegate()
-    popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    popupList.emit 'AvatarPopupShouldBeHidden'
 
   pistachio:->
     """

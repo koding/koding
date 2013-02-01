@@ -9,41 +9,41 @@ class AvatarAreaIconMenu extends JView
 
     sidebar  = @getDelegate()
 
-    @avatarNotificationsPopup = new AvatarPopupNotifications
+    @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
       delegate : sidebar
 
-    @avatarMessagesPopup = new AvatarPopupMessages
+    @messagesPopup = new AvatarPopupMessages
       cssClass : "messages"
       delegate : sidebar
 
-    @avatarStatusUpdatePopup = new AvatarPopupShareStatus
-      cssClass : "status-update"
+    @groupSwitcherPopup = new AvatarPopupGroupSwitcher
+      cssClass : "group-switcher"
       delegate : sidebar
 
     @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications'
       attributes :
         title    : 'Notifications'
-      delegate   : @avatarNotificationsPopup
+      delegate   : @notificationsPopup
 
     @messagesIcon = new AvatarAreaIconLink
       cssClass   : 'messages'
       attributes :
         title    : 'Messages'
-      delegate   : @avatarMessagesPopup
+      delegate   : @messagesPopup
 
-    @statusUpdateIcon = new AvatarAreaIconLink
-      cssClass   : 'status-update'
+    @groupsSwitcherIcon = new AvatarAreaIconLink
+      cssClass   : 'group-switcher'
       attributes :
-        title    : 'Status Update'
-      delegate   : @avatarStatusUpdatePopup
+        title    : 'Your groups'
+      delegate   : @groupSwitcherPopup
 
   pistachio:->
     """
       {{> @notificationsIcon}}
       {{> @messagesIcon}}
-      {{> @statusUpdateIcon}}
+      {{> @groupsSwitcherIcon}}
     """
 
   viewAppended:->
@@ -52,9 +52,9 @@ class AvatarAreaIconMenu extends JView
 
     mainView = @getSingleton 'mainView'
 
-    mainView.addSubView @avatarNotificationsPopup
-    mainView.addSubView @avatarMessagesPopup
-    mainView.addSubView @avatarStatusUpdatePopup
+    mainView.addSubView @notificationsPopup
+    mainView.addSubView @messagesPopup
+    mainView.addSubView @groupSwitcherPopup
 
     @attachListeners()
 
@@ -65,32 +65,32 @@ class AvatarAreaIconMenu extends JView
       # No need the following
       # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
       if event is 'ActivityIsAdded'
-        @avatarNotificationsPopup.listController.fetchNotificationTeasers (notifications)=>
-          @avatarNotificationsPopup.noNotification.hide()
-          @avatarNotificationsPopup.listController.removeAllItems()
-          @avatarNotificationsPopup.listController.instantiateListItems notifications
+        @notificationsPopup.listController.fetchNotificationTeasers (notifications)=>
+          @notificationsPopup.noNotification.hide()
+          @notificationsPopup.listController.removeAllItems()
+          @notificationsPopup.listController.instantiateListItems notifications
 
-    @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
-      @utils.killWait @avatarNotificationsPopup.loaderTimeout
+    @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
+      @utils.killWait @notificationsPopup.loaderTimeout
       if count > 0
-        @avatarNotificationsPopup.noNotification.hide()
+        @notificationsPopup.noNotification.hide()
       else
-        @avatarNotificationsPopup.noNotification.show()
+        @notificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
-    @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
-      @utils.killWait @avatarMessagesPopup.loaderTimeout
+    @messagesPopup.listController.on 'MessageCountDidChange', (count)=>
+      @utils.killWait @messagesPopup.loaderTimeout
       if count > 0
-        @avatarMessagesPopup.noMessage.hide()
+        @messagesPopup.noMessage.hide()
       else
-        @avatarMessagesPopup.noMessage.show()
+        @messagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
   accountChanged:(account)->
     if KD.isLoggedIn()
       @unsetClass "invisible"
-      notificationsPopup = @avatarNotificationsPopup
-      messagesPopup      = @avatarMessagesPopup
+      notificationsPopup = @notificationsPopup
+      messagesPopup      = @messagesPopup
       messagesPopup.listController.removeAllItems()
       notificationsPopup.listController.removeAllItems()
 
@@ -105,4 +105,4 @@ class AvatarAreaIconMenu extends JView
     else
       @setClass "invisible"
 
-    @avatarMessagesPopup.accountChanged()
+    @messagesPopup.accountChanged()

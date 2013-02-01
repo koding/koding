@@ -309,7 +309,7 @@ class KDView extends KDObject
       x : @getX()
       y : @getY()
       w : @getWidth()
-      h : @getHeight()  
+      h : @getHeight()
       n : @constructor.name
 
   setRandomBG:()->@getDomElement().css "background-color", __utils.getRandomRGB()
@@ -791,12 +791,3 @@ class KDView extends KDObject
   setKeyView:->
 
     @getSingleton("windowController").setKeyView @
-
-
-# #
-# DEPRECATED METHODS
-# #
-  getParentDomElement:()->deprecated "KDView::getParentDomElement"
-
-
-

@@ -133,7 +133,6 @@ Includes =
         KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
-        DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
@@ -528,6 +527,7 @@ Includes =
         avatarAreaStatusPopup            : "./client/app/MainApp/avatararea/avatarareasharestatuspopup.coffee"
         avatarAreaMessagesPopup          : "./client/app/MainApp/avatararea/avatarareamessagespopup.coffee"
         avatarAreaNotificationsPopup     : "./client/app/MainApp/avatararea/avatarareanotificationspopup.coffee"
+        avatarAreaGroupSwitcherPopup     : "./client/app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee"
         avatarPopupList                  : "./client/app/MainApp/avatararea/avatarareapopuplist.coffee"
         avatarPopupMessagesListItem      : "./client/app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee"
         avatarPopupNotificationsListItem : "./client/app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee"
