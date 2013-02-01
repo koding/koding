@@ -6,7 +6,7 @@
       	 "SocialWorkerLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
-        		"InstanceType" : "m1.small",
+        		"InstanceType" : "c1.medium",
           		"SecurityGroups" : ["sg-b17399de"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
@@ -21,9 +21,9 @@
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
                       "LaunchConfigurationName" : {"Ref": "SocialWorkerLaunchConfiguration" },
-                      "MinSize": "2",
-                      "MaxSize": "6",
-                      "DesiredCapacity": "2"
+                      "MinSize": "4",
+                      "MaxSize": "8",
+                      "DesiredCapacity": "4"
               } 
           },  
 
