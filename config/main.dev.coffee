@@ -70,12 +70,17 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : yes  
+    watch       : yes
   social        :
     login       : 'social'
     numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
