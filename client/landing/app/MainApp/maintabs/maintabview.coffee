@@ -5,6 +5,7 @@ class MainTabView extends KDTabView
   constructor:(options,data)->
     options.resizeTabHandles    = yes
     options.lastTabHandleMargin = 40
+    options.sortable            = yes
     @visibleHandles             = []
     @totalSize                  = 0
     @paneViewIndex              = {}
