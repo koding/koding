@@ -5,7 +5,6 @@ class AvatarPopupMessages extends AvatarPopup
 
     @_popupList = new PopupList
       itemClass  : PopupMessageListItem
-      # lastToFirst   : yes
 
     @listController = new MessagesListController
       view         : @_popupList
@@ -14,28 +13,20 @@ class AvatarPopupMessages extends AvatarPopup
     @getSingleton('notificationController').on "NewMessageArrived", =>
       @listController.fetchMessages()
 
-    @listController.registerListener
-      KDEventTypes  : "AvatarPopupShouldBeHidden"
-      listener      : @
-      callback      : => @hide()
+    @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
     @avatarPopupContent.addSubView @noMessage = new KDView
       height   : "auto"
-      cssClass : "sublink"
+      cssClass : "sublink hidden"
       partial  : "You have no new messages..."
-    @noMessage.hide()
 
     @avatarPopupContent.addSubView @listController.getView()
 
-    @avatarPopupContent.addSubView redirectLink = new KDView
+    @avatarPopupContent.addSubView new KDView
       height   : "auto"
       cssClass : "sublink"
       partial  : "<a href='#'>See all messages...</a>"
-
-    @listenTo
-      KDEventTypes        : "click"
-      listenedToInstance  : redirectLink
-      callback            : ->
+      click    : =>
         appManager.openApplication('Inbox')
         appManager.tell 'Inbox', "goToMessages"
         @hide()

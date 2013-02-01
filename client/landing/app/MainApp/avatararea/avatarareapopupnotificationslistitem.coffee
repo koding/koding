@@ -31,7 +31,7 @@ class PopupNotificationListItem extends NotificationListItem
   click:(event)->
 
     popupList = @getDelegate()
-    popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    popupList.emit 'AvatarPopupShouldBeHidden'
 
     # If we need to use implement click to mark as read for notifications
     # Just un-comment following 3 line. A friend from past.

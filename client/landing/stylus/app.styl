@@ -610,12 +610,12 @@ span.main-nav-icon
   visibility            hidden
   opacity               0
   transition            opacity ease-out .2s, visibility ease-out .2s
-  // transform             scale(0.01) skew(89deg) translate(100px,-100px)
-  // transform-origin      left top
+  transform             scale(0.01) skew(89deg) translate(100px,-100px)
+  transform-origin      left top
   &.active
     visibility          visible
     opacity             1
-    // transform           scale(1) skew(0deg)
+    transform           scale(1) skew(0deg)
     transition-delay    0s
 
   .kdview.kdlistview
@@ -661,21 +661,23 @@ span.main-nav-icon
 
   &.notifications
     left                -1px
-    .tab
-      span
-        bg(position,-120px -540px)
+    .tab span
+      bg                position, -120px -540px
 
   &.messages
     left                52px
-    .tab
-      span
-        bg(position,-140px -540px)
+    .tab span
+      bg                position,-140px -540px
 
   &.friends-followers
     left                162px
-    .tab
-      span
-        bg(position,-140px -540px)
+    .tab span
+      bg                position, -140px -540px
+
+  &.group-switcher
+    left                105px
+    .tab span
+      bg                position, -200px -540px
 
   .sublink
     border-top            1px solid #e0e0df
@@ -799,34 +801,27 @@ span.main-nav-icon
       overflow        visible
       // margin          0 0 23px 0
       margin          0 0 0px 0
+      >a
+        border-right      1px solid #403d37
+        text-align        center
+        display           block
+        text-decoration   none
+        size              33.3%, 27px
+        bg                color, rgba(0,0,0,0.2)
+        borderBox()
+        rel()
+        fl()
+        &:hover
+          bg              color,rgba(0,0,0,0.4)
+        &:last-child span.icon
+          border-right    none!important
 
-    a.status-update,
-    a.notifications,
-    a.messages,
-    a.profile
-      rel()
-      border-right      1px solid #403d37
-      text-align        center
-      display           block
-      text-decoration   none
-      bg                color,rgba(0,0,0,0.2)
-      size              33.3%,27px
-      borderBox()
-      fl()
-      &:hover
-        bg(color,rgba(0,0,0,0.4))
-      span.icon
-        margin-top      4px
-        sprite()
-        bg(repeat,repeat)
-        size(20px,20px)
-        blockMid()
-    .status-update
-      span.icon
-        bg(position,-100px -520px)
-      &:hover
         span.icon
-          bg(position,-100px -540px)
+          margin-top      4px
+          bg              repeat, repeat
+          size            20px,20px
+          sprite()
+          blockMid()
     .count
       abs()
       top               -16px
@@ -862,25 +857,35 @@ span.main-nav-icon
           bg            position,-185px -549px
           size          7px,3px
 
+    .status-update
+      span.icon
+        bg              position, -100px -520px
+      &:hover span.icon
+        bg              position, -100px -540px
+
+    .group-switcher
+      span.icon
+        bg              position, -200px -520px
+      &:hover span.icon
+        bg              position, -200px -540px
+
     .notifications
       span.icon
-        bg(position,-120px -520px)
-      &:hover
-        span.icon
-          bg(position,-120px -540px)
+        bg              position, -120px -520px
+      &:hover span.icon
+        bg              position, -120px -540px
+
     .messages
       span.icon
-        bg(position,-140px -520px)
-      &:hover
-        span.icon
-          bg(position,-140px -540px)
+        bg              position, -140px -520px
+      &:hover span.icon
+        bg              position, -140px -540px
+
     .profile
       span.icon
-        bg(position,-160px -520px)
-        border-right      none      !important
-      &:hover
-        span.icon
-          bg(position,-160px -540px)
+        bg              position, -160px -520px
+      &:hover span.icon
+        bg              position, -160px -540px
 
     hr
       margin                0 11px
