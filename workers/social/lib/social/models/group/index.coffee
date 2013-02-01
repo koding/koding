@@ -47,7 +47,8 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','openGroup', 'fetchMembershipPolicy'
+        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup',
+        'fetchMembershipPolicy'
       ]
     schema          :
       title         :
@@ -286,7 +287,10 @@ module.exports = class JGroup extends Module
     success : (client, formData, callback)->
       @update {$set:formData}, callback
 
-  openGroup: permit 'open group'
+  canEditGroup: permit 'grant permissions'
+    success:(client, callback)-> callback null, yes
+
+  canOpenGroup: permit 'open group'
     success:(client, callback)-> callback null, yes
 
     failure:(client, callback)->

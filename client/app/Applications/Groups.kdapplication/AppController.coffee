@@ -96,9 +96,9 @@ class GroupsAppController extends AppController
 
   getErrorModalOptions =(err)->
     defaultOptions =
-      buttons:
-        Cancel   :
-          style     : "modal-cancel"
+      buttons       :
+        Cancel      :
+          cssClass  : "modal-clean-red"
           callback  : (event)-> @getDelegate().destroy()
     customOptions = switch err.accessCode
       when ERROR_NO_POLICY
@@ -129,7 +129,7 @@ class GroupsAppController extends AppController
 
 
   openPrivateGroup:(group)->
-    group.openGroup (err, policy)=>
+    group.canOpenGroup (err, policy)=>
       if err 
         @showErrorModal err
       else
@@ -372,7 +372,12 @@ class GroupsAppController extends AppController
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            @showGroupSubmissionView groupItem.getData()
+            groupData = groupItem.getData()
+            groupData.canEditGroup (err, hasPermission)=>
+              unless hasPermission
+                new KDNotificationView title: 'Access denied'
+              else
+                @showGroupSubmissionView groupData
           @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
             groupItem.getData().fetchRoles console.log.bind console
 
