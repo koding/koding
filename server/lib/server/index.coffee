@@ -178,7 +178,6 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
-
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account
         state = false
