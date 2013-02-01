@@ -1,5 +1,5 @@
 
-class GroupView extends JView
+class GroupView extends ActivityContentDisplay
 
   constructor:->
     super
@@ -47,18 +47,19 @@ class GroupView extends JView
 
 
     @joinButton.on 'Joined', =>
-      @enterButton.show()
+      @enterLink.show()
 
     @joinButton.on 'Left', =>
-      @enterButton.hide()
+      @enterLink.hide()
 
-    {slug} = @getData()
+    {slug, privacy} = @getData()
 
     @enterLink = new CustomLinkView
-      href    : "/#{slug}/Activity"
-      target  : slug
-      title   : 'Open group'
-
+      cssClass  : 'enter-group'
+      href      : "/#{slug}/Activity"
+      target    : slug
+      title     : 'Open group'
+      click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
 
     {JGroup} = KD.remote.api
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
@@ -80,8 +81,13 @@ class GroupView extends JView
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
 
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
+
+  viewAppended: JView::viewAppended
+
   pistachio:->
     """
+    <h2 class="sub-header">{{> @back}}</h2>
     <div class="profileleft">
       <span>
         <a class='profile-avatar' href='#'>{{> @thumb}}</a>

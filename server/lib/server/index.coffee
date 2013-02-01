@@ -91,8 +91,6 @@ else
     stack = err?.stack
     console.log stack  if stack?
 
-  koding = require './bongo'
-
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
@@ -184,6 +182,8 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
+
+    console.log {state, e: state instanceof Error}
 
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account

@@ -26,6 +26,7 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
+      'open group'                        : ['member', 'moderator']
       'list members'                      : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
@@ -44,7 +45,7 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles'
+        'fetchUserRoles','changeMemberRoles','openGroup', 'fetchMembershipPolicy'
       ]
     schema          :
       title         :
@@ -90,6 +91,9 @@ module.exports = class JGroup extends Module
       role          :
         targetType  : 'JGroupRole'
         as          : 'role'
+      membershipPolicy :
+        targetType  : 'JMembershipPolicy'
+        as          : 'owner'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -279,6 +283,14 @@ module.exports = class JGroup extends Module
     ]
     success : (client, formData, callback)->
       @update {$set:formData}, callback
+
+  openGroup: permit 'open group'
+    success:(client, callback)-> callback null, yes
+
+    failure:(client, callback)->
+      @fetchMembershipPolicy (err, policy)->
+        explanation = policy?.explain() ? 'No membership policy!'
+        callback (err or new KodingError 'Access denied!'), no, explanation
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
