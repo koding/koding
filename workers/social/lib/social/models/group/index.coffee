@@ -288,9 +288,10 @@ module.exports = class JGroup extends Module
     success:(client, callback)-> callback null, yes
 
     failure:(client, callback)->
+      console.log {arguments}
       @fetchMembershipPolicy (err, policy)->
-        explanation = policy?.explain() ? 'No membership policy!'
-        callback (err or new KodingError 'Access denied!'), no, explanation
+        explanation = policy?.explain() ? err?.message ? 'No membership policy!'
+        callback (err or new KodingError explanation), no
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback

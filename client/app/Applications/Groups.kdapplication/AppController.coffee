@@ -86,8 +86,8 @@ class GroupsAppController extends AppController
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
 
   openPrivateGroup:(group)->
-    group.openGroup (err, policy)->
-      console.log err, policy
+    group.openGroup (err, policy, explanation)->
+      console.log arguments
 
   putAddAGroupButton:->
     {facetsController} = @feedController
