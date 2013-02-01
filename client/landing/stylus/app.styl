@@ -678,6 +678,16 @@ span.main-nav-icon
     left                105px
     .tab span
       bg                position, -200px -540px
+    .avatararea-popup-list
+      li
+        span.avatar
+          border            1px solid #e3e3e3
+          margin-right      10px
+          size              20px, 20px
+        .custom-link-view .icon.new-page
+          bg                position, -180px -520px
+          opacity           .2
+
 
   .sublink
     border-top            1px solid #e0e0df
@@ -685,8 +695,27 @@ span.main-nav-icon
     padding               7px 12px
     font-weight           600
     width                 auto
-    rounded(0,0,3px,3px)
-    bg(color,#f8f8f8)
+    rounded               0 0 3px 3px
+    // bg                    color,#f8f8f8
+    gradient              #f8f8f8, #fff
+    shadow                0 -1px 5px rgba(0,0,0,.1)
+    &.top
+      border-top-width    0
+      border-bottom       1px solid #e0e0df
+      bg                  color, #fff
+      rounded             3px 3px 0 0
+      shadow              0 1px 5px rgba(0,0,0,.1)
+      gradient            #fff, #f8f8f8
+    span.icon
+      top                 4px
+      right               4px
+      size                20px, 20px
+      opacity             .5
+      sprite()
+      abs()
+      &.help
+        bg                position, -140px -460px
+
   .sublink a
     color                 #0991be
     text-decoration       none
@@ -708,7 +737,7 @@ span.main-nav-icon
     color               #8e8e8e
     cursor              default
     borderBox()
-    span.icon
+    span.icon.notification-type
       abs()
       top               33px
       left              35px
@@ -740,23 +769,23 @@ span.main-nav-icon
       size(40px,40px)
       fl()
     &.unread
-      background        rgba(250, 239, 223, .5)
-      border-left       3px solid #ff9200
-      padding           8px 10px 8px 7px
+      background          rgba(250, 239, 223, .5)
+      border-left         3px solid #ff9200
+      padding             8px 10px 8px 7px
     p
-      max-height        46px
-      overflow          hidden
-      color             #8e8e8e
+      max-height          46px
+      overflow            hidden
+      color               #8e8e8e
       span.profile
-        color           linkColor1
+        color             linkColor1
     a
-      color             linkColor1
-      text-decoration   none
-      font-weight       600
+      color               linkColor1
+      text-decoration     none
+      font-weight         600
       &:hover
-        text-decoration underline
+        text-decoration   underline
       span
-        color           linkColor1
+        color             linkColor1
     footer
       div
         color             #8e8e8e

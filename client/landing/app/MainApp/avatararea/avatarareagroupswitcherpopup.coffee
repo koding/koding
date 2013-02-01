@@ -12,15 +12,16 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
-    @avatarPopupContent.addSubView @noMessage = new KDView
+    @avatarPopupContent.addSubView switchToTitle = new KDView
       height   : "auto"
-      cssClass : "sublink hidden"
-      partial  : "You haven't joined to any groups..."
-
-    @avatarPopupContent.addSubView new KDView
-      height   : "auto"
-      cssClass : "sublink"
+      cssClass : "sublink top"
       partial  : "Switch to:"
+
+    switchToTitle.addSubView new KDCustomHTMLView
+      tagName    : 'span'
+      cssClass   : 'icon help'
+      tooltip    :
+        title    : "Here you'll find the groups that you are a member of, clicking one of them will take you to a new browser tab."
 
     @avatarPopupContent.addSubView @listController.getView()
 
@@ -28,7 +29,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       height   : "auto"
       cssClass : "sublink"
       partial  : "<a href='#'>See all groups...</a>"
-      click    : @bound 'hide'
+      click    : =>
+        appManager.openApplication "Groups"
+        @hide()
 
   accountChanged:->
     @listController.removeAllItems()
@@ -39,13 +42,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
       if err then warn err
-      else if res
+      else if res?.length
         @listController.addItem res[0]
-      else
-        log 'selin naber butun gruplar geldi'
-
-
-
 
 
 class PopupGroupListItem extends KDListItemView
@@ -56,19 +54,30 @@ class PopupGroupListItem extends KDListItemView
 
     super
 
+    {title, avatar} = @getData()
+
+    @avatar = new KDCustomHTMLView
+      tagName    : 'img'
+      cssClass   : 'avatar-image'
+      attributes :
+        src      : avatar or "http://lorempixel.com/20/20?#{@utils.getRandomNumber()}"
+
     @switchLink = new CustomLinkView
-      title : @getData().title
+      title       : title
+      icon        :
+        cssClass  : 'new-page'
+        placement : 'right'
+        tooltip   :
+          title   : "Opens in a new browser window."
+          delayIn : 300
 
   viewAppended: JView::viewAppended
 
   pistachio: ->
     """
-    <span class='avatar'></span>
+    <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
       {{> @switchLink}}
-      <footer>
-        {{ #(visibility)}}
-      </footer>
     </div>
     """
 
