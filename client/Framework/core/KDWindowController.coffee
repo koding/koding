@@ -218,7 +218,7 @@ class KDWindowController extends KDController
   unsetDragView:(e)->
 
     @setDragInAction no
-    @dragView.emit "DragFinished", e, @dragState
+    @dragView.emit "DragFinished", e
     @dragView = null
 
 
