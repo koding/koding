@@ -41,10 +41,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "CacheWorkerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"CacheWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"CacheWorkerScalingGroup"}
                       }
                     ]
@@ -64,10 +64,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "CacheWorkerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"CacheWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"CacheWorkerScalingGroup"}
                       }
                     ]

@@ -43,10 +43,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "WebServerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"WebServerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"WebServerScalingGroup"}
                       }
                     ]
@@ -66,10 +66,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "WebServerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"WebServerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"WebServerScalingGroup"}
                       }
                     ]

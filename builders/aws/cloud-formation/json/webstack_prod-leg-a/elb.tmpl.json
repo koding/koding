@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Deploy Staging ELB for Koding web stack",
+    "Description": "Deploy RC ELB for Koding web stack",
     "Resources" :{
         "WebRC":{
             "Type": "AWS::ElasticLoadBalancing::LoadBalancer",

@@ -25,7 +25,7 @@
                       "MinSize": "4",
                       "MaxSize": "8",
                       "DesiredCapacity": "4",
-                      "LoadBalancerNames": ["stage-elb-WebSiteE-1KEBHX43EOA6C"]
+                      "LoadBalancerNames": ["rc-elbs-WebRC-16LAWULODEKL"]
                      } 
           },  
 

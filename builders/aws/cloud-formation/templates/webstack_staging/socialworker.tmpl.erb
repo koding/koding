@@ -41,10 +41,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "SocialWorkerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"SocialWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"SocialWorkerScalingGroup"}
                       }
                     ]
@@ -64,10 +64,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "SocialWorkerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"SocialWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"SocialWorkerScalingGroup"}
                       }
                     ]

@@ -41,10 +41,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "EmailWorkerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"EmailWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"EmailWorkerScalingGroup"}
                       }
                     ]
@@ -64,10 +64,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "EmailWorkerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"EmailWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"EmailWorkerScalingGroup"}
                       }
                     ]
