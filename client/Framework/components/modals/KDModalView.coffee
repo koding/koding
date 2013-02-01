@@ -140,7 +140,8 @@ class KDModalView extends KDView
 
   createButton:(title,buttonOptions)->
 
-    buttonOptions.title = title
+    buttonOptions.title    = title
+    buttonOptions.delegate = @
     @buttonHolder.addSubView button = new KDButtonView buttonOptions
       # title       : title
       # style       : buttonOptions.style     if buttonOptions.style?
