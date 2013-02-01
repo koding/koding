@@ -25,7 +25,7 @@
                       "MinSize": "1",
                       "MaxSize": "1",
                       "DesiredCapacity": "1",
-                      "LoadBalancerNames": ["stage-elb-BrokerEL-1QEJU23HWESMM"]
+                      "LoadBalancerNames": ["rc-elbs-MqRC-14T0BMI06WFH1"]
                      } 
           },  
 
