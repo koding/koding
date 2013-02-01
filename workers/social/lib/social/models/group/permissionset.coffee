@@ -101,8 +101,9 @@ module.exports = class JPermissionSet extends Module
       {delegate} = client.connection
       JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
+          args = [client, rest..., callback]
           if err then failure err
           else if hasPermission
-            success.apply null, [client, rest..., callback]
+            success.apply null, args
           else
-            failure new KodingError 'Access denied'
+            failure.apply null, args #new KodingError 'Access denied'

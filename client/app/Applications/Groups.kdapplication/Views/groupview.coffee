@@ -1,5 +1,5 @@
 
-class GroupView extends JView
+class GroupView extends ActivityContentDisplay
 
   constructor:->
     super
@@ -47,21 +47,19 @@ class GroupView extends JView
 
 
     @joinButton.on 'Joined', =>
-      @enterButton.show()
+      @enterLink.show()
 
     @joinButton.on 'Left', =>
-      @enterButton.hide()
+      @enterLink.hide()
 
-    @enterButton = new KDButtonView
-      cssClass        : 'follow-btn following-btn enter hidden'
-      title           : "Enter"
-      dataPath        : "member"
-      # icon : yes
-      # iconClass : 'enter-group'
-      callback        : (event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
+    {slug, privacy} = @getData()
 
-    , data
+    @enterLink = new CustomLinkView
+      cssClass  : 'enter-group'
+      href      : "/#{slug}/Activity"
+      target    : slug
+      title     : 'Open group'
+      click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
 
     {JGroup} = KD.remote.api
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
@@ -70,9 +68,7 @@ class GroupView extends JView
         if data.getId() in groups
           @joinButton.setState 'Leave'
           @joinButton.redecorateState()
-          @enterButton.show()
-
-    @getData().fetchMembers console.log.bind console
+          # @enterButton.show()
     # @homeLink = new KDCustomHTMLView
     #   tagName     : 'a'
     #   attributes  :
@@ -85,8 +81,13 @@ class GroupView extends JView
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
 
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
+
+  viewAppended: JView::viewAppended
+
   pistachio:->
     """
+    <h2 class="sub-header">{{> @back}}</h2>
     <div class="profileleft">
       <span>
         <a class='profile-avatar' href='#'>{{> @thumb}}</a>
@@ -99,7 +100,7 @@ class GroupView extends JView
       </div>
       <div class="installerbar clearfix">
         <div class="appfollowlike">
-          {{> @enterButton}}
+          {{> @enterLink}}
           {{> @joinButton}}
         </div>
       </div>
