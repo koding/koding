@@ -6,6 +6,7 @@ class KDTabView extends KDScrollView
     options.maxHandleWidth      ?= 128
     options.minHandleWidth      ?= 30
     options.lastTabHandleMargin ?= 0
+    options.sortable            ?= no
     @handles                     = []
     @panes                       = []
     @selectedIndex               = []
@@ -51,6 +52,8 @@ class KDTabView extends KDScrollView
         title   : paneInstance.options.name
         hidden  : paneInstance.options.hiddenHandle
         view    : paneInstance.options.tabHandleView
+        sortable: @getOptions().sortable
+
       paneInstance.tabHandle = newTabHandle
       @listenTo
         KDEventTypes : "click"
@@ -245,7 +248,7 @@ class KDTabView extends KDScrollView
     options                  = @getOptions()
     containerSize            = @tabHandleContainer.$().outerWidth(no) - options.lastTabHandleMargin
     containerMarginInPercent = 100 * options.lastTabHandleMargin / containerSize
-    
+
     for handle in @handles when not handle.isHidden()
       visibleHandles.push handle
       visibleTotalSize += handle.$().outerWidth no
