@@ -12,6 +12,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
+
     @avatarPopupContent.addSubView switchToTitle = new KDView
       height   : "auto"
       cssClass : "sublink top"
@@ -22,6 +23,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass   : 'icon help'
       tooltip    :
         title    : "Here you'll find the groups that you are a member of, clicking one of them will take you to a new browser tab."
+
+    @avatarPopupContent.addSubView @loader = new KDLoaderView
+      size    :
+        width : 20
+
+    @loader.hide()
 
     @avatarPopupContent.addSubView @listController.getView()
 
@@ -36,15 +43,18 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   accountChanged:->
     @listController.removeAllItems()
 
-  show:->
-
-    super
-
+  populateGroups:->
+    @listController.removeAllItems()
+    @loader.show()
     KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
       if err then warn err
       else if res?.length
+        @loader.hide()
         @listController.addItem res[0]
 
+  show:->
+    super
+    @populateGroups()
 
 class PopupGroupListItem extends KDListItemView
 
