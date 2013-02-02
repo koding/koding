@@ -6,7 +6,7 @@ require 'erb'
 require 'json'
 
 username = "bahadir"
-git_branch = "dev-bahadir"
+git_branch = "vagrant"
 git_rev = "HEAD"
 
 env = "_default"

@@ -103,12 +103,12 @@ module.exports = deepFreeze
       version   : version
       mainUri   : "https://#{domainName}/"
       broker    :
-        sockJS  : "https://mq.#{domainName}/subscribe"
+        sockJS  : "https://broker.#{domainName}:8008/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : "rabbit.#{domainName}"
+    host        : "mq.#{domainName}"
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -134,7 +134,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : "rabbit.#{domainName}"
+      host          : "mq.#{domainName}"
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
