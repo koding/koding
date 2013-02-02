@@ -20,12 +20,6 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
-  aws           :
-    key         : ''
-    secret      : ''
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
   uri           :
     address     : "https://#{domainName}"
   projectRoot   : projectRoot
@@ -121,11 +115,8 @@ module.exports = deepFreeze
     host        : 'koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-  emailWorker   :
-    cronInstant : '*/10 * * * * *'
-    cronDaily   : '0 10 0 * * *'
-    run         : no
-    defaultRecepient : "gokmen+emailworkerstage@koding.com"
+    notificationCronInstant  : '*/10 * * * * *'
+    notificationCronDaily    : '0 10 0 * * *'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
