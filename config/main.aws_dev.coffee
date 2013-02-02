@@ -97,7 +97,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : "https://#{domainName}/"
       broker    :
-        sockJS  : "https://broker.#{domainName}:8008/subscribe"
+        sockJS  : "http://broker.#{domainName}:8008/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
