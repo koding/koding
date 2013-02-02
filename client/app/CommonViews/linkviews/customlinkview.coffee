@@ -5,7 +5,7 @@ class CustomLinkView extends KDCustomHTMLView
     options.tagName or= 'a'
     options.cssClass  = KD.utils.curryCssClass 'custom-link-view', options.cssClass
     data.title        = options.title
-    
+
     options.attributes ?= {}
     options.attributes.href     = options.href      if options.href?
     options.attributes.target   = options.target    if options.target?
@@ -35,7 +35,7 @@ class CustomLinkView extends KDCustomHTMLView
     tmpl = "{{> @icon}}"
 
     if options.icon and data.title
-      if icon.placement is 'left'
+      if options.icon.placement is 'left'
         tmpl += "{span.title{ #(title)}}"
       else
         tmpl = "{span.title{ #(title)}}" + tmpl
