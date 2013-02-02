@@ -121,13 +121,15 @@ module.exports = class JGroup extends Module
 
   @create = secure (client, formData, callback)->
     JPermissionSet = require './permissionset'
+    JMembershipPolicy = require './membershippolicy'
     JName = require '../name'
     {delegate} = client.connection
     JName.claim formData.slug, 'JGroup', 'slug', (err)=>
       if err then callback err
       else
-        group         = new @ formData
-        permissionSet = null
+        group             = new @ formData
+        permissionSet     = new JPermissionSet
+        membershipPolicy  = new JMembershipPolicy
 
         queue = [
           -> group.save (err)->
@@ -144,7 +146,6 @@ module.exports = class JGroup extends Module
               if err then callback err
               else
                 console.log 'admin is added'
-                permissionSet = new JPermissionSet
                 queue.next()
           -> permissionSet.save (err)->
               if err then callback err
@@ -166,6 +167,12 @@ module.exports = class JGroup extends Module
               else
                 console.log 'group is added'
                 queue.next()
+          -> membershipPolicy.save (err)->
+            if err then callback err
+            else queue.next()
+          -> group.addMembershipPolicy membershipPolicy, (err)->
+            if err then callback err
+            else queue.next()
           -> callback null, group
         ]
 
