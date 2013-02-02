@@ -81,6 +81,7 @@ Includes =
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
         KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
+        KDMultipleChoice      : "./client/Framework/components/inputs/KDMultipleChoice.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -181,8 +182,9 @@ Includes =
 
       ApplicationPageViews :
 
+        ActivityListController      : "./client/app/Applications/Activity.kdapplication/activitylistcontroller.coffee"
         # ACTIVITY VIEWS
-
+        ActivityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
         # Activity commons
         actActions                  : "./client/app/Applications/Activity.kdapplication/views/activityactions.coffee"
         activityinnernavigation     : "./client/app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee"
@@ -197,6 +199,7 @@ Includes =
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
         embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
         embedboxviews               : "./client/app/Applications/Activity.kdapplication/views/embedboxviews.coffee"
+        NewMemberBucket             : "./client/app/Applications/Activity.kdapplication/views/newmemberbucket.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -328,9 +331,9 @@ Includes =
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
-        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
+        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee"
         accountLinked                 : "./client/app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee"
-
+        accountEmailNotifications     : "./client/app/Applications/Account.kdapplication/account/accSettingsPersEmailNotifications.coffee"
         accountDatabases              : "./client/app/Applications/Account.kdapplication/account/accSettingsDevDatabases.coffee"
         accountEditors                : "./client/app/Applications/Account.kdapplication/account/accSettingsDevEditors.coffee"
         accountMounts                 : "./client/app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee"

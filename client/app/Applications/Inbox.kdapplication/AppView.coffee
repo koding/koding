@@ -49,10 +49,7 @@ class InboxView extends KDView
       view              : inboxMessagesList
 
     # lazyLoadThreshold : .75
-    # inboxMessageListController.registerListener
-    #   KDEventTypes  : 'LazyLoadThresholdReached'
-    #   listener      : @
-    #   callback      : => log "asdfasdfasdfasdf"
+    # inboxMessageListController.on 'LazyLoadThresholdReached', => log "asdfasdfasdfasdf"
 
     tab.addSubView @newMessageBar = new InboxNewMessageBar
       cssClass  : "new-message-bar clearfix"

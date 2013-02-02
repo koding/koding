@@ -6,7 +6,7 @@ EmailWorker = require './emailworker'
 
 config = require './' + (argv.c ? 'config-dev')
 
-db = mongo.db config.mongo ? 'localhost:27017/test?auto_reconnect'
+db = mongo.db (config.mongo ? 'localhost:27017/test') + '?auto_reconnect'
 
 queue = new EmailQueue db
 

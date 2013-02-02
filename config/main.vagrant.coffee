@@ -17,6 +17,12 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
+    username    : ''
+    git_branch  : ''
+    git_rev     : ''
   uri           :
     address     : "http://koding.local"
   projectRoot   : projectRoot
@@ -47,7 +53,7 @@ module.exports = deepFreeze
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -104,6 +110,11 @@ module.exports = deepFreeze
     host        : 'koding.local'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

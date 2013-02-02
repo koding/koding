@@ -3,17 +3,17 @@ jraphical = require 'jraphical'
 Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
-  {secure} = require 'bongo'
-  {daisy} = require 'sinkrow'
+  {secure}       = require 'bongo'
+  {daisy}        = require 'sinkrow'
 
-  JAccount  = require './account'
-  JSession  = require './session'
-  JGuest    = require './guest'
-  JInvitation = require './invitation'
-  JFeed     = require './feed'
-  JName     = require './name'
+  JAccount       = require './account'
+  JSession       = require './session'
+  JGuest         = require './guest'
+  JInvitation    = require './invitation'
+  JFeed          = require './feed'
+  JName          = require './name'
 
-  createId = require 'hat'
+  createId       = require 'hat'
 
   {Relationship} = jraphical
 
@@ -188,7 +188,10 @@ module.exports = class JUser extends jraphical.Module
                     snapshot    : JSON.stringify(bucket)
                   $addToSet     :
                     snapshotIds : bucket.getId()
-                , callback
+                , ->
+                  CActivity = require "./activity"
+                  CActivity.emit "ActivityIsCreated", activity
+                  callback()
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')

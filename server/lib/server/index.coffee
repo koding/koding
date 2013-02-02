@@ -42,7 +42,7 @@ else
       pattern: 'web'
     worker_social:
       pattern: 'social'
-    
+
   incService = (serviceKey, inc) ->
     for key, value of services
       if serviceKey.indexOf(value.pattern) > -1
@@ -59,13 +59,13 @@ else
         incService serviceKey, -1
 
   {extend} = require 'underscore'
-  express = require 'express'
-  Broker = require 'broker'
-  fs = require 'fs'
-  hat = require 'hat'
+  express  = require 'express'
+  Broker   = require 'broker'
+  fs       = require 'fs'
+  hat      = require 'hat'
   nodePath = require 'path'
 
-  app = express()
+  app      = express()
 
   # this is a hack so express won't write the multipart to /tmp
   #delete express.bodyParser.parse['multipart/form-data']
@@ -78,7 +78,6 @@ else
     app.use express.compress()
     app.use express.static "#{projectRoot}/website/"
 
-  #app.use gzippo.staticGzip "#{projectRoot}/website/"
   app.use (req, res, next)->
     res.removeHeader "X-Powered-By"
     next()
@@ -91,21 +90,26 @@ else
     console.error err
     stack = err?.stack
     console.log stack  if stack?
-    # throw err
-    # console.trace()
 
-  # koding = require './bongo'
-
-  # kiteBroker =\
-  #   if kites?.vhost?
-  #     new Broker extend {}, mq, vhost: kites.vhost
-  #   else
-  #     koding.mq
-
-  # koding.mq.connection.on 'ready', -> console.log 'webserver - message broker is ready'
+  koding = require './bongo'
 
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
+
+  startTime = null
+  app.get "/-/cache/latest", (req, res)->
+    {JActivityCache} = koding.models
+    startTime = Date.now()
+    JActivityCache.latest (err, cache)->
+      if err then console.warn err
+      console.log "latest: #{Date.now() - startTime} msecs!"
+      return res.send if cache then cache.data else {}
+
+  app.get "/-/cache/before/:timestamp", (req, res)->
+    {JActivityCache} = koding.models
+    JActivityCache.before req.params.timestamp, (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else {}
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'
@@ -174,7 +178,6 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
-
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account
         state = false

@@ -1,40 +1,77 @@
 #!/usr/bin/python
 
-# Owner of the setup
-USERNAME = 'bahadir'
-
-# GIT repository to deploy
-GIT_BRANCH = 'dev-bahadir'
-GIT_REVISION = 'HEAD'
-
-# Configuration to deploy (main.<name>.coffee)
-CONFIG = 'bahadir'
 
 # Network topology
 NETWORK = [
-    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm2.2xlarge'},
-    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm2.2xlarge'},
-    {'roles': ['authworker', 'socialworker'], 'autoscale': (2, 6), 'instance_type': 'm1.large'},
+    {'roles': ['rabbitmq_server', 'broker'], 'instance_type': 'm1.small'},
+    {'roles': ['web_server', 'cacheworker', 'emailworker', 'guestcleanup'], 'instance_type': 'm1.small'},
+    {'roles': ['authworker', 'socialworker'], 'autoscale': (2, 4), 'instance_type': 'm1.small'}
 ]
+
+import copy
+import time
+import sys
+import os
+
+try:
+    import boto
+    import boto.ec2
+    import boto.ec2.autoscale
+    import boto.ec2.cloudwatch
+except:
+    print "Python BOTO is not installed."
+    sys.exit(-1)
+
+conn_ec2 = None
+conn_as = None
+conn_r53 = None
+conn_cw = None
+
+# Required
+USERNAME = ''
+GIT_BRANCH = ''
+GIT_REVISION = ''
+CONFIG = ''
+ATTRIBUTES = ''
+ZONE_ID = ''
+DOMAIN = ''
+AWS_KEY = ''
+AWS_SECRET = ''
+
+def setup(username, git_branch, git_revision, config_name, aws_key, aws_secret):
+    global USERNAME, GIT_BRANCH, GIT_REVISION, CONFIG, ATTRIBUTES, ZONE_ID, DOMAIN, AWS_KEY, AWS_SECRET
+    global conn_ec2, conn_as, conn_cw, conn_r53
+    USERNAME = username
+    GIT_BRANCH = git_branch
+    GIT_REVISION = git_revision
+    CONFIG = config_name
+    AWS_KEY = aws_key
+    AWS_SECRET = aws_secret
+
+    ZONE_ID = 'Z3OWM4DB88IDTJ'
+    DOMAIN = '%s.dev.service.aws.koding.com' % USERNAME
+    ATTRIBUTES = {
+        'kd_deploy': {'revision_tag': GIT_REVISION, 'git_branch': GIT_BRANCH},
+        'nginx': {'server_name': DOMAIN},
+        'launch': {'config': CONFIG},
+    }
+
+    conn_ec2 = boto.connect_ec2(aws_key, aws_secret)
+    conn_as = boto.connect_autoscale(aws_key, aws_secret)
+    conn_r53 = boto.connect_route53(aws_key, aws_secret)
+    conn_cw = boto.connect_cloudwatch(aws_key, aws_secret)
+
+    try:
+       tags = conn_ec2.get_all_tags()
+    except:
+        print 'AWS key/secret is not valid'
+        sys.exit(-1)
 
 #
 # You shouldn't mess with the rest.
 #
 
-# Domain name populated from USERNAME
-DOMAIN = '%s.dev.service.aws.koding.com' % USERNAME
-
-# AWS DNS Zone ID for 'dev.service.aws.koding.com'
-ZONE_ID = 'Z3OWM4DB88IDTJ'
-
-ATTRIBUTES = {
-    'kd_deploy': {'revision_tag': GIT_REVISION, 'git_branch': GIT_BRANCH},
-    'nginx': {'server_name': DOMAIN},
-    'launch': {'config': CONFIG},
-}
-
 NAME_PATTERN = '%(username)s-%(roles)s'
-
 
 # Instance defaults
 DEFAULTS = {
@@ -59,24 +96,10 @@ ROLES = {
     'emailworker': ['role[base_server]', 'role[emailworker]', 'recipe[kd_deploy]'],
 }
 
-TEMPLATE = 'userdata.txt.template'
+TEMPLATE = os.path.dirname(__file__) + '/userdata.txt.template'
 
 AWS_DUMP = 'aws_data.txt'
 
-import boto
-import boto.ec2
-import boto.ec2.autoscale
-import boto.ec2.cloudwatch
-
-conn_ec2 = boto.connect_ec2()
-conn_as = boto.connect_autoscale()
-conn_r53 = boto.connect_route53()
-conn_cw = boto.connect_cloudwatch()
-
-import copy
-import time
-import sys
-import os
 
 class DNSRecord:
     def __init__(self, zone, name, value, ttl=600):
@@ -281,10 +304,36 @@ def delete_old():
 
     save_file_content(AWS_DUMP, '')
 
+def print_usage():
+    print 'Usage: %s <username> <git_branch> <git_revision> <config_name> <aws_key> <aws_secret>' % sys.argv[0]
+
 def main():
     if '-x' in sys.argv[1:]:
+        args = sys.argv[1:]
+        args.remove('-x')
+        try:
+            aws_key, aws_secret = args
+        except:
+            print 'Usage: %s -x <aws_key> <aws_secret>' % sys.argv[0]
+            return
+        setup(None, None, None, None, aws_key, aws_secret)
         delete_old()
         return
+
+    try:
+        username, git_branch, git_revision, config_name, aws_key, aws_secret = sys.argv[1:]
+    except:
+        print_usage()
+        return
+
+    if not len(username) or not len(git_branch) or not len(git_revision) or not len(config_name):
+        print_usage()
+        return
+
+    setup(username, git_branch, git_revision, config_name, aws_key, aws_secret)
+
+    # print ATTRIBUTES
+    # return
 
     # List of AWS objects
     aws_objects = []
@@ -344,7 +393,7 @@ def main():
     save_file_content(AWS_DUMP, aws_data)
 
     print
-    print "Run this to terminate all: %s -x" % sys.argv[0]
+    print "Remember to use this domain in your configuration (main.%s.coffee)" % CONFIG
 
 if __name__ == '__main__':
     main()

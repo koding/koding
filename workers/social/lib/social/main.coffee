@@ -16,6 +16,8 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, mongo, email, social} = KONFIG
 
+mongo += '?auto_reconnect'
+
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
@@ -38,7 +40,7 @@ processMonitor = (require 'processes-monitor').start
       koding.disconnect()
       setTimeout ->
         process.exit()
-       , 20000
+      , 20000
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback

@@ -7,6 +7,7 @@ class hosting_crontabs::gem_update {
          require => Class["hosting_crontabs::scripts_dir"],
     }
     cron { gem_update:
+        ensure  => absent,
         command => "/opt/cronscripts/gem_update.sh",
         user    => root,
         minute  => "*/15",

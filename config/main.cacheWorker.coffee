@@ -3,33 +3,34 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
+# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
+# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage'
 
 projectRoot = nodePath.join __dirname, '..'
 
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
+rabbitPrefix = (
+  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  catch e then ""
+).trim()
 
-socialQueueName = "koding-social-autoscale"
+socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
   uri           :
-    address     : "https://as.koding.com"
+    address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'prod-webserver'
-    port        : 3020
-    clusterSize : 2
+    login       : 'webserver'
+    port        : 3000
+    clusterSize : 4
     queueName   : socialQueueName+'web'
     watch       : yes
   mongo         : mongo
-  runGoBroker   : yes
-  compileGo     : yes
+  runGoBroker   : no
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -43,29 +44,39 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  librato :
+    push      : no
+    email     : ""
+    token     : ""
+    interval  : 30 * 1000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
     # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo 
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'prod-auth-worker'
+    login       : 'authWorker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :
-    login       : 'prod-social'
+    login       : 'social'
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
-    numberOfWorkers: 1
+    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -79,31 +90,35 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://as.koding.com/'
+    staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'https://as.koding.com/'
+      mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'https://bro.koding.com/subscribe'
+        sockJS  : 'http://dmq.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'rabbit0.beta.system.aws.koding.com'
-    login       : 'PROD-k5it50s4676pO9O'
-    componentUser: "prod-<component>"
-    password    : 'djfjfhgh4455__5'
+    host        : 'web0.dev.system.aws.koding.com'
+    login       : 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'as.koding.com'
+    host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -112,16 +127,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.beta.system.aws.koding.com'
+      host          : 'web0.dev.system.aws.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
-  loggr:
-    push: no
-    url: ""
-    apiKey: ""
-  librato:
-    push: no
-    email: ""
-    token: ""
-    interval: 30000

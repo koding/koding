@@ -4,6 +4,8 @@ Bongo     = require 'bongo'
 
 {mongo, amqp, guests} = require('koding-config-manager').load("main.#{argv.c}")
 
+mongo += '?auto_reconnect'
+
 error =(err)->
   err = message: err if 'string' is typeof err
   console.log 'there was an error'
@@ -28,11 +30,11 @@ job = new CronJob guests.cleanupCron, ->
     {leasedAt: $lt: new Date new Date - 1000*60*6}
     {$set: {status: 'pristine'}, $unset: {leasedAt: 1}}
     {multi:yes}
-  )
+  , ->)
   JGuest.someData(
     {status: 'needs cleanup'}, {guestId:1}, {limit: guests?.batchSize}
     (err, cursor)->
-      console.error err  if err
+      return console.error err  if err
       cursor.each (err, guest)->
         if err
           error err

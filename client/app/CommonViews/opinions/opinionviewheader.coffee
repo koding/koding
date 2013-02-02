@@ -142,23 +142,23 @@ class OpinionViewHeader extends JView
 
     if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
       if @getData().opinionCount > 1
-        @allItemsLink.updatePartial "View #{@getData().opinionCount} Answers"+commentText
+        @allItemsLink?.updatePartial "View #{@getData().opinionCount} Answers"+commentText
       else if @getData().opinionCount is 1
-        @allItemsLink.updatePartial "View one Answer"+commentText
+        @allItemsLink?.updatePartial "View one Answer"+commentText
       else
-        @allItemsLink.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
+        @allItemsLink?.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
     else
       remainingOpinions = @getData().opinionCount-@getDelegate().items.length
       if (remainingOpinions)<@maxCommentToShow
           if remainingOpinions is 1
-            @allItemsLink.updatePartial "View remaining answer"
+            @allItemsLink?.updatePartial "View remaining answer"
           else if remainingOpinions > 1
-            @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+            @allItemsLink?.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
           else
             if @newAnswers is 0
-              @allItemsLink.updatePartial ""
+              @allItemsLink?.updatePartial ""
             else
-              @allItemsLink.updatePartial "View new answers"
+              @allItemsLink?.updatePartial "View new answers"
 
   pistachio:->
     """

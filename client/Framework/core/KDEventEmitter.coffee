@@ -1,18 +1,40 @@
-#
 # KDEventEmitter
 # author : devrim - 12/27/2011
 # refactored : sinan - 05/2012
+# refactored : sinan - 01/2013
 
 class KDEventEmitter
   @KDEventEmitterEvents = {}
 
-  _e = @KDEventEmitterEvents[@name] = {}                                  # listeners will be put inside @KDEventEmitterEvents[className]
+  # listeners will be put inside @KDEventEmitterEvents[className]
+  _e = @KDEventEmitterEvents[@name] = {}
+
+  _on = (registry, eventName, callback)->
+    # on can be defined before any emit, so create
+    # the event registry, if it doesn't exist.
+    registry[eventName] ?= []
+    # register the listeners callback.
+    registry[eventName].push callback
+
+  _off = (registry, eventName, callback)->
+    if eventName is "*"
+      registry = {}
+    # reset the listener container so no event
+    # will be propagated to previously registered
+    # listener callbacks.
+    else if callback and registry[eventName]
+      cbIndex = registry[eventName].indexOf callback
+      registry[eventName].splice 1, cbIndex if cbIndex >= 0
+    else
+      registry[eventName] = []
+
 
   getEventParser = (event)->
 
     ///^
     #{event.replace(/\./g,'\\.').replace(/\*/g, '((?:\\w+\\.?)*)')}
     $///
+
   #
   # STATIC METHODS
   #####################
@@ -20,59 +42,46 @@ class KDEventEmitter
   #
 
   @emit : ->
+    # slice the arguments, 1st argument is the event name,
+    # rest is args supplied with emit.
+    [eventName, args...] = [].slice.call arguments
+    # create listener container if it doesn't exist
+    _e[eventName] ?= []
+    # call every listener inside the container with the arguments (args)
+    listener.apply null,args for listener in _e[eventName] if _e[eventName]?
 
-    [event, args...] = [].slice.call arguments                            # slice the arguments, 1st argument is the event name, rest is args supplied with emit.
-    _e[event] ?= []                                                       # create listener container if it doesn't exist
-    listener.apply null,args for listener in _e[event] if _e[event]?      # call every listener inside the container with the arguments (args)
+  @on   :(eventName, callback)-> _on _e, eventName, callback
+  @off  :(eventName, callback)-> _off _e, eventName, callback
 
-  @on   : (event,callback)->
-
-    _e[event] ?= []                                                       # on can be defined before any emit, so create the event container, if it doesn't exist.
-    _e[event].push callback                                               # register the listeners callback.
-
-  @off  : (event)->
-    if event is "*" then _e = {} else _e[event] = []                      # reset the listener container so no event will be propagated to previously registered listener callbacks.
-
-
-  constructor:()->
+  constructor:->
     @KDEventEmitterEvents  = {}
     @_e = @KDEventEmitterEvents[@constructor.name] = {}
 
-  emit : (event, args...)->
-    @_e[event] ?= []
+  emit:(eventName, args...)->
+    @_e[eventName] ?= []
 
     listenerStack = []
 
-    for own eventName of @_e
-      continue if eventName is event
-      parser = getEventParser eventName
-      if parser.test event
-        listenerStack = listenerStack.concat @_e[eventName].slice(0)
+    for own eventToBeFired of @_e
+      continue if eventToBeFired is eventName
+      parser = getEventParser eventToBeFired
+      if parser.test eventName
+        listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
 
-    listenerStack = listenerStack.concat @_e[event].slice(0)
+    listenerStack = listenerStack.concat @_e[eventName].slice(0)
 
     listenerStack.forEach (listener)=>
       listener.apply @, args
 
-  on : (event, callback) ->
-    @_e[event] ?= []
-    @_e[event].push callback
+  on  :(eventName, callback) -> _on  @_e, eventName, callback
+  off :(eventName, callback) -> _off @_e, eventName, callback
+  unsubscribe:(eventName, callback) -> _off @_e, eventName, callback
 
-  off : (event) ->
-    if event is "*" then @_e = {} else @_e[event] = []
-
-  unsubscribe: (event, callback) ->
-    if @_e[event]
-      index = @_e[event].indexOf callback
-      if index > -1
-        # log "removed event:#{event} from subscribe list"
-        @_e[event].splice index, 1
-
-  once: (event, callback) ->
-    _callback = () =>
+  once:(eventName, callback) ->
+    _callback = =>
       args = [].slice.call arguments
-      @unsubscribe event, _callback
+      @unsubscribe eventName, _callback
       callback.apply @, args
 
-    @on event, _callback
+    @on eventName, _callback
 

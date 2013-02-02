@@ -14,17 +14,21 @@ module.exports = class JSession extends Model
 
   JGuest = require './guest'
 
-  @setSchema
-    clientId      : String
-    username      : String
-    guestId       : Number
-    terminalId    : String
-    sessionBegan  :
-      type        : Date
-      default     : -> new Date
-    lastAccess    :
-      type        : Date
-      get         : -> new Date
+  @set
+    indexes         :
+      clientId      : 'unique'
+      username      : 'descending'
+    schema          :
+      clientId      : String
+      username      : String
+      guestId       : Number
+      terminalId    : String
+      sessionBegan  :
+        type        : Date
+        default     : -> new Date
+      lastAccess    :
+        type        : Date
+        get         : -> new Date
   
   @cycleSession =(clientId, callback=->)->
     @remove {clientId}, (err)=>

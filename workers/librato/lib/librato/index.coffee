@@ -32,6 +32,9 @@ db_mongo = 0
 
 # Mongo data collector
 mongoskin = require 'mongoskin'
+
+mongo += '?auto_reconnect'
+
 db = mongoskin.db mongo
 
 # Prints to console, if verbose mode is enabled
