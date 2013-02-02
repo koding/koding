@@ -299,17 +299,25 @@ class GroupsAppController extends AppController
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
+      modalOptions.tabs.forms['Membership policy'] =
+        title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
+    
+    {forms} = modal.modalTabs
 
-    modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
-      modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
-      modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('span').addClass 'hidden'
+    avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
 
-    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
+    avatarUploadView.on 'FileReadComplete', (stuff)->
+      avatarUploadView.$('.kdfileuploadarea').css
+        backgroundImage : "url(#{stuff.file.data})"
+      avatarUploadView.$('span').addClass 'hidden'
+
+    forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
-      modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+      forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+      forms["Membership policy"].addSubView new GroupsMembershipPolicyView {}, group
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
