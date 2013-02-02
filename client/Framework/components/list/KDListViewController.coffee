@@ -19,7 +19,7 @@ class KDListViewController extends KDViewController
     if options.view
       @setListView listView = options.view
     else
-      viewOptions                  = options.viewOptions or {}
+      viewOptions                    = options.viewOptions or {}
       viewOptions.lastToFirst      or= options.lastToFirst
       viewOptions.itemClass        or= options.itemClass
       viewOptions.itemChildClass   or= options.itemChildClass
