@@ -263,7 +263,7 @@ run =({configFile})->
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
-    invoke 'emailWorker'
+    invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'webserver'
 
 
@@ -364,13 +364,14 @@ task 'deleteCache',(options)->
     console.log "Cache is pruned."
 
 
+task 'deploy', (options) ->
+  {configFile} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
 
-
-
-
-
-
+task 'destroy', (options) ->
+  {configFile} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
 task 'buildAll',"build chris's modules", ->
 

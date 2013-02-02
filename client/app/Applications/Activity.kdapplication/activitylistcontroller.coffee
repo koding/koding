@@ -31,6 +31,14 @@ class ActivityListController extends KDListViewController
       cssClass : "lazy-loader"
       partial  : "There is no activity item."
 
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 0
+        @activityHeader.setClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue off
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue on
+        
     @noActivityItem.hide()
 
   loadView:(mainView)->

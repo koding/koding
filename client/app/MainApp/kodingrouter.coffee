@@ -247,12 +247,12 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      '/:name?/Unsubscribe/:unsubscribeToken/:all?': \
-      ({params:{unsubscribeToken, all}})->
-        all              = decodeURIComponent all
+      '/:name?/Unsubscribe/:unsubscribeToken/:opt?': \
+      ({params:{unsubscribeToken, opt}})->
+        opt              = decodeURIComponent opt
         unsubscribeToken = decodeURIComponent unsubscribeToken
-        KD.remote.api.JEmailNotificationGG.unsubscribeWithId \
-        unsubscribeToken, all, (err, content)=>
+        KD.remote.api.JMailNotification.unsubscribeWithId \
+        unsubscribeToken, opt, (err, content)=>
           if err or not content
             title   = 'An error occured'
             content = 'Invalid unsubscribe token provided.'

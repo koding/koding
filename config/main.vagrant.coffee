@@ -5,8 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
-# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2'
+# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -18,6 +18,9 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
 module.exports = deepFreeze
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
     address     : "http://koding.local"
   projectRoot   : projectRoot
@@ -66,6 +69,11 @@ module.exports = deepFreeze
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -108,8 +116,11 @@ module.exports = deepFreeze
     host        : 'koding.local'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-    notificationCronInstant  : '*/10 * * * * *'
-    notificationCronDaily    : '0 10 0 * * *'
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

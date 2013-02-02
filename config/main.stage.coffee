@@ -5,10 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-domainName = "stage.aws.koding.com"
-
-
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -21,13 +18,10 @@ socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   aws           :
-    key         : ''
-    secret      : ''
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
-    address     : "https://www.#{domainName}"
+    address     : "https://stage.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -67,11 +61,11 @@ module.exports = deepFreeze
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 2
+    numberOfWorkers: 1
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 2
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -96,19 +90,19 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: "https://www.#{domainName}/"
+    staticFilesBaseUrl: 'https://stage.koding.com/'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "https://www.#{domainName}/"
+      mainUri   : 'https://stage.koding.com/'
       broker    :
-        sockJS  : "https://mq.#{domainName}/subscribe"
+        sockJS  : 'https://stage-broker.koding.com/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : "rabbit.#{domainName}"
+    host        : 'stage-mq.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -118,7 +112,7 @@ module.exports = deepFreeze
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'koding.com'
+    host        : 'stage.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -134,7 +128,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : "rabbit.#{domainName}"
+      host          : 'stage-mq.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'

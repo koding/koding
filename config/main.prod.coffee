@@ -6,7 +6,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -18,6 +18,9 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-prod"
 
 module.exports = deepFreeze
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
     address     : "https://koding.com"
   projectRoot   : projectRoot
@@ -108,8 +111,11 @@ module.exports = deepFreeze
     host        : 'koding.com'
     protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
-    notificationCronInstant  : '*/10 * * * * *'
-    notificationCronDaily    : '0 10 0 * * *'
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : yes
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
