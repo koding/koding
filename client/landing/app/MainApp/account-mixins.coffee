@@ -96,7 +96,6 @@ AccountMixin = do ->
         kiteController.channels ?= {}
         kiteController.channels[kiteName] = channel
         channel.cycleChannel = -> cycleChannel.call this
-        channels[channelName] = channel
         channel.once 'broker.subscribed', ->
           onReady channel, ->
             callback channel
@@ -110,11 +109,13 @@ AccountMixin = do ->
                 callbacks   : {}
             , 5000
             channel.stopPinging =-> clearInterval i
+        unless channels[channelName]?
+          channel.on "message", messageHandler.bind channel, kiteName
+        channels[channelName] = channel
         channel.setAuthenticationInfo
           serviceType : 'kite'
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
-        channel.on "message", messageHandler.bind channel, kiteName
 
       tellKite =(options, callback=->)->
         scrubber = new Scrubber localStore

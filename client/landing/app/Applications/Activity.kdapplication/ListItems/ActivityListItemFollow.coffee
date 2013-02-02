@@ -20,8 +20,7 @@ class FollowBucketItemView extends KDView
 
     @group = new LinkGroup
       group         : data.group
-      itemsToShow   : 3
-      itemClass  : options.subItemLinkClass
+      itemClass     : options.subItemLinkClass
       separator     : if data.sourceName in ['JApp', 'JTag'] then ' ' else ', '
 
   pistachio:->
@@ -39,31 +38,6 @@ class FollowBucketItemView extends KDView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-
-
-class NewMemberBucketItemView extends KDView
-
-  constructor:(options,data)->
-    options = $.extend options,
-      cssClass : "new-member"
-    super options,data
-
-    @anchor = new ProfileLinkView origin: data.anchor
-
-  render:->
-
-  addCommentBox:->
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-    <span class='icon'></span>
-    {{> @anchor}}
-    <span class='action'>became a member.</span>
-    """
 
 
 class AccountFollowBucketItemView extends FollowBucketItemView
