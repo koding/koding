@@ -40,14 +40,13 @@ class Sidebar extends JView
       cssClass : 'avatar-header hidden'
       pistachio : '{{#(title)}}'
       click :=>
-        KD.getSingleton('router').handleRoute "/#{@avatarHeader.getData().slug}/Activity"
+        # KD.getSingleton('router').handleRoute "/#{currentGroupData.slug}/Activity"
 
     , currentGroupData
 
     # handle group related decisions
     groupsController = @getSingleton 'groupsController'
     groupsController.on 'GroupChanged', =>
-      @switchNav()
       currentGroupData = groupsController.getCurrentGroupData()
       unless currentGroupData?.data?.slug is 'koding'
         @avatar.setClass 'shared-avatar'
@@ -210,11 +209,6 @@ class Sidebar extends JView
     super
 
     @setListeners()
-
-  switchNav:(group)->
-    nav = $ "#main-nav .kdlistview-navigation"
-    nav.addClass 'out'
-    @utils.wait 300, -> nav.removeClass 'out'
 
   pistachio:->
 

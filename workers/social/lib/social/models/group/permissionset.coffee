@@ -97,12 +97,15 @@ module.exports = class JPermissionSet extends Module
       success =
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
-      failure = (promise.failure?.bind this) ? (args...)-> callback args...
+      failure = promise.failure?.bind this
       {delegate} = client.connection
       JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
+          args = [client, rest..., callback]
           if err then failure err
           else if hasPermission
-            success.apply null, [client, rest..., callback]
+            success.apply null, args
+          else if failure?
+            failure.apply null, args
           else
-            failure new KodingError 'Access denied'
+            callback new KodingError 'Access denied'

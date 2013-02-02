@@ -9,8 +9,8 @@ getRoles = (permission, permissionSet)->
 getRoleSelector = (delegate, group, permission, permissionSet)->
   roles       = getRoles permission, permissionSet
   return {
-    targetId  : group.getId()
-    sourceId  : delegate.getId()
+    sourceId  : group.getId()
+    targetId  : delegate.getId()
     as        : { $in: roles }
   }
 

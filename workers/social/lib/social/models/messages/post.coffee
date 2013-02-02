@@ -99,6 +99,7 @@ module.exports = class JPost extends jraphical.Message
     kodingErr
 
   @create = secure (client, data, callback)->
+    console.log 'sfsfsf'
     constructor = @
     {connection:{delegate}} = client
     unless delegate instanceof constructor.getAuthorType() # TODO: rethink/improve
