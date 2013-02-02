@@ -35,7 +35,7 @@ class CustomLinkView extends KDCustomHTMLView
     tmpl = "{{> @icon}}"
 
     if options.icon and data.title
-      if icon.placement is 'left'
+      if options.icon.placement is 'left'
         tmpl += "{span.title{ #(title)}}"
       else
         tmpl = "{span.title{ #(title)}}" + tmpl
