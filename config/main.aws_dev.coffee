@@ -6,7 +6,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 username = fs.readFileSync '/etc/koding-dev-username', 'utf-8'
-domainName = "#{username}.dev.aws.koding.com"
+domainName = "#{username.trim()}.dev.aws.koding.com"
 
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding?auto_reconnect'
 
