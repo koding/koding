@@ -6,6 +6,7 @@ import (
 	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/kite"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
@@ -38,7 +39,7 @@ var states = make(map[bson.ObjectId]*VMState)
 var statesMutex sync.Mutex
 
 func main() {
-	utils.Startup("kite.os", true)
+	lifecycle.Startup("kite.os", true)
 	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
 
 	takenIPs := make([]int, 0)

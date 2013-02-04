@@ -5,8 +5,8 @@ import (
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
-	"koding/tools/utils"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	utils.Startup("ldapserver", true)
+	lifecycle.Startup("ldapserver", true)
 
 	ln, err := net.Listen("tcp", ":389")
 	if err != nil {

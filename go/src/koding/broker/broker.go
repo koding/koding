@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/amqputil"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/tools/sockjs"
-	"koding/tools/utils"
 	"net"
 	"net/http"
 	"strings"
@@ -17,16 +18,16 @@ import (
 )
 
 func main() {
-	utils.Startup("broker", false)
-	utils.RunStatusLogger()
+	lifecycle.Startup("broker", false)
+	lifecycle.RunStatusLogger()
 
-	consumeConn := utils.CreateAmqpConnection("broker")
+	consumeConn := amqputil.CreateConnection("broker")
 	defer consumeConn.Close()
 
-	publishConn := utils.CreateAmqpConnection("broker")
+	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
 
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(consumeConn)
 	defer consumeChannel.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
@@ -39,10 +40,10 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 
-		utils.ChangeNumClients <- 1
+		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
 		defer func() {
-			utils.ChangeNumClients <- -1
+			lifecycle.ChangeNumClients <- -1
 			log.Debug("Client disconnected: " + socketId)
 		}()
 
@@ -190,7 +191,7 @@ func main() {
 		}
 	}()
 
-	stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#")
 	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, true, false, false, nil); err != nil {
 		panic(err)
 	}

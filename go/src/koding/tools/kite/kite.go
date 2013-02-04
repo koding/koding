@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/amqputil"
 	"koding/tools/dnode"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
-	"koding/tools/utils"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,15 +35,15 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	utils.RunStatusLogger()
+	lifecycle.RunStatusLogger()
 
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
-	consumeConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	consumeConn := amqputil.CreateConnection(k.Name + "-kite")
 	defer consumeConn.Close()
 
-	publishConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	publishConn := amqputil.CreateConnection(k.Name + "-kite")
 	defer publishConn.Close()
 
 	routeMap := make(map[string](chan<- []byte))
@@ -52,12 +53,12 @@ func (k *Kite) Run() {
 		}
 	}()
 
-	publishChannel := utils.CreateAmqpChannel(publishConn)
+	publishChannel := amqputil.CreateChannel(publishConn)
 	defer publishChannel.Close()
 
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
-	utils.DeclareAmqpPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
-	stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
+	consumeChannel := amqputil.CreateChannel(consumeConn)
+	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
 
 	for {
 		select {
@@ -87,10 +88,10 @@ func (k *Kite) Run() {
 				go func() {
 					defer log.RecoverAndLog()
 
-					utils.ChangeNumClients <- 1
+					lifecycle.ChangeNumClients <- 1
 					log.Debug("Client connected: " + client.Username)
 					defer func() {
-						utils.ChangeNumClients <- -1
+						lifecycle.ChangeNumClients <- -1
 						log.Debug("Client disconnected: " + client.Username)
 					}()
 
@@ -205,7 +206,7 @@ func (k *Kite) Run() {
 
 		case <-sigtermChannel:
 			log.Info("Received TERM signal. Beginning shutdown...")
-			utils.BeginShutdown()
+			lifecycle.BeginShutdown()
 			consumeChannel.Close()
 		}
 	}

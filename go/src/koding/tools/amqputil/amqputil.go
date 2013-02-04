@@ -1,4 +1,4 @@
-package utils
+package amqputil
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func CreateAmqpConnection(component string) *amqp.Connection {
+func CreateConnection(component string) *amqp.Connection {
 	user := strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1)
 	url := "amqp://" + user + ":" + config.Current.Mq.Password + "@" + config.Current.Mq.Host
 	conn, err := amqp.Dial(url)
@@ -28,7 +28,7 @@ func CreateAmqpConnection(component string) *amqp.Connection {
 	return conn
 }
 
-func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {
+func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	channel, err := conn.Channel()
 	if err != nil {
 		panic(err)
@@ -41,7 +41,7 @@ func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {
 	return channel
 }
 
-func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
+func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
 	if err := channel.ExchangeDeclare(exchange, kind, false, true, false, false, nil); err != nil {
 		panic(err)
 	}
@@ -62,7 +62,7 @@ func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, kind, exchange, key stri
 	return stream
 }
 
-func DeclareAmqpPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string) {
+func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string) {
 	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
