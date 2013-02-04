@@ -90,10 +90,6 @@ end
 	lxc-attach -n vmroot -- /usr/bin/apt-get install #{additional_packages} -y -qq
 		EOH
 	end
-	# Install Sun Java
-	execute "lxc-attach -n vmroot -- /bin/mkdir -p /usr/share/update-sun-jre"
-	execute "lxc-attach -n vmroot -- /usr/bin/wget http://www.duinsoft.nl/pkg/pool/all/update-sun-jre.bin -O /root/update-sun-jre.bin"
-	execute "lxc-attach -n vmroot -- /bin/sh /root/update-sun-jre.bin"
 	# Configure the VMs to use LDAP lookup for users
 	execute "lxc-attach -n vmroot -- /usr/sbin/auth-client-config -t nss -p lac_ldap"
 end
