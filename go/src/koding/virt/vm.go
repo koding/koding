@@ -195,6 +195,7 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
+	os.Remove(vm.File("rootfs.hold"))
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
 	return firstError
