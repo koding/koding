@@ -5,6 +5,8 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-u', '--username [USER]', 'Subdomain for AWS deployment'
+option '-g', '--git [BRANCH]', 'GIT branch to deploy'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -365,13 +367,24 @@ task 'deleteCache',(options)->
 
 
 task 'deploy', (options) ->
-  {configFile} = options
+  {configFile,username,git} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git]
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 task 'destroy', (options) ->
-  {configFile} = options
+  {configFile,username} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 task 'buildAll',"build chris's modules", ->
 

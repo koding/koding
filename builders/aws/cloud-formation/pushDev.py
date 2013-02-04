@@ -2,21 +2,25 @@
 
 import os
 import sys
-import time
 import subprocess
 
 CF_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_DIR = os.path.join(CF_DIR, 'json/development')
 
+def call(cmd):
+    proc = subprocess.Popen(cmd, cwd=CF_DIR)
+    proc.wait()
+
+def write(text):
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
 try:
     import boto
 except Exception, e:
-    print 'Python-boto module is not installed. Type:'
-    print '  pip install boto'
+    write('Python-boto module is not installed. Type:')
+    write('  pip install boto')
     sys.exit()
-
-def call(cmd):
-    subprocess.call(cmd)
 
 def main():
     # Parse optipns
@@ -39,23 +43,23 @@ def main():
     (options, args) = parser.parse_args()
 
     if not options.access:
-        print 'AWS access key is missing.'
+        write('AWS access key is missing.')
         return
     if not options.secret:
-        print 'AWS secret is missing.'
+        write('AWS secret is missing.')
         return
     if not options.username:
-        print 'Username is missing.'
+        write('Username is missing.')
         return
-    if not options.branch:
-        print 'GIT branch name is missing.'
+    if not options.destroy and not options.branch:
+        write('GIT branch name is missing.')
         return
 
     conn = boto.connect_cloudformation()
     try:
         stacks = conn.list_stacks()
     except:
-        print 'AWS access key and/or secret is/are not valid.'
+        write('AWS access key and/or secret is/are not valid.')
         return
 
     cf_stacks = {}
@@ -68,14 +72,14 @@ def main():
 
     if options.destroy:
         for name in cf_stacks:
-            print 'Removing stack: %s' % name
+            write('Removing stack: %s' % name)
             conn.delete_stack(name)
     elif options.info:
         if not len(cf_stacks):
-            print 'You have no running machines'
+            write('You have no running machines')
             return 
         for name in cf_stacks:
-            print '%20s %s' % (name, cf_stacks[name].stack_status)
+            write('%20s %s' % (name, cf_stacks[name].stack_status))
     else:
         # Re-generate templates
         cmd = os.path.join(CF_DIR, 'generateDev.rb')
@@ -87,13 +91,11 @@ def main():
             template = file(filepath, 'r').read()
             stack_name = 'dev-%s-%s' % (name, options.username)
             if stack_name in cf_stacks:
-                print 'Updating stack: %s' % stack_name
+                write('Updating stack: %s' % stack_name)
                 conn.update_stack(stack_name, template)
             else:
-                print 'Creating stack: %s' % stack_name
+                write('Creating stack: %s' % stack_name)
                 conn.create_stack(stack_name, template)
-            # Give AWS some time
-            time.sleep(3)
  
 if __name__ == '__main__':
     main()
