@@ -321,7 +321,9 @@ func (state *VMState) startTimeout() {
 			log.Err("Could not shutdown VM.", err, out)
 		}
 
-		vm.Unprepare()
+		if err := vm.Unprepare(); err != nil {
+			log.Warn(err.Error())
+		}
 		db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
 		ipPoolRelease <- utils.IPToInt(vm.IP)
 		vm.IP = nil

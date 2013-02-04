@@ -1,10 +1,10 @@
 package virt
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/tools/log"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
@@ -104,18 +104,15 @@ func (vm *VM) Prepare(users []User) {
 
 		// create disk and try to map again
 		if out, err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").CombinedOutput(); err != nil {
-			log.Err("rbd create failed.", err, out)
-			panic(err)
+			panic(commandError("rbd create failed.", err, out))
 		}
 		if out, err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
-			log.Err("rbd map failed.", err, out)
-			panic(err)
+			panic(commandError("rbd map failed.", err, out))
 		}
 		vm.waitForRBD()
 
 		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
-			log.Err("mkfs.ext4 failed.", err, out)
-			panic(err)
+			panic(commandError("mkfs.ext4 failed.", err, out))
 		}
 	} else {
 		vm.waitForRBD()
@@ -124,8 +121,7 @@ func (vm *VM) Prepare(users []User) {
 	// mount block device to upperdir
 	prepareDir(vm.UpperdirFile(""), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).CombinedOutput(); err != nil {
-		log.Err("mount rbd failed.", err, out)
-		panic(err)
+		panic(commandError("mount rbd failed.", err, out))
 	}
 
 	// prepare directories in upperdir
@@ -166,43 +162,42 @@ func (vm *VM) Prepare(users []User) {
 	// mount overlayfs
 	prepareDir(vm.File("rootfs"), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-		log.Err("mount overlayfs failed.", err, out)
-		panic(err)
+		panic(commandError("mount overlayfs failed.", err, out))
 	}
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
-		log.Err("mount devpts failed.", err, out)
-		panic(err)
+		panic(commandError("mount devpts failed.", err, out))
 	}
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
 	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
 }
 
-func (vm *VM) Unprepare() {
+func (vm *VM) Unprepare() error {
+	var firstError error
 	out, err := vm.ShutdownCommand().CombinedOutput()
 	if vm.GetState() != "STOPPED" {
-		log.Err("Could not shutdown VM.", err, out)
-		return
+		panic(commandError("Could not shutdown VM.", err, out))
 	}
-	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil {
-		log.Warn("umount devpts failed.", err, out)
+	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount devpts failed.", err, out)
 	}
-	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil {
-		log.Warn("umount overlayfs failed.", err, out)
+	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount overlayfs failed.", err, out)
 	}
-	if out, err := exec.Command("/bin/umount", vm.UpperdirFile("")).CombinedOutput(); err != nil {
-		log.Warn("umount rbd failed.", err, out)
+	if out, err := exec.Command("/bin/umount", vm.UpperdirFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil {
-		log.Warn("rbd unmap failed.", err, out)
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("rbd unmap failed.", err, out)
 	}
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
+	return firstError
 }
 
 func (vm *VM) waitForRBD() {
@@ -216,6 +211,10 @@ func (vm *VM) waitForRBD() {
 		}
 		time.Sleep(time.Second / 2)
 	}
+}
+
+func commandError(message string, err error, out []byte) error {
+	return errors.New(message + "\n" + err.Error() + "\n" + string(out))
 }
 
 // may panic
