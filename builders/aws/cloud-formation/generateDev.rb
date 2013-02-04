@@ -5,10 +5,16 @@ require 'rubygems'
 require 'erb'
 require 'json'
 
-username = "bahadir"
-git_branch = "vagrant"
-git_rev = "HEAD"
+unless ARGV.length == 2
+  puts "Usage:"
+  puts "  ruby generateDev.rb <subdomain> <git_branch>\n"
+  exit
+end
 
+username = ARGV[0]
+git_branch = ARGV[1]
+
+git_rev = "HEAD"
 env = "_default"
 
 roles = %w( authworker  broker rabbitmq_server  cacheworker  emailworker  guestcleanup  socialworker  web_server )
