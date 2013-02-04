@@ -6,6 +6,15 @@ class GroupsAppController extends AppController
     event.preventDefault()
     @emit 'PrivateGroupIsOpened', data
 
+  [
+    ERROR_UNKNOWN
+    ERROR_NO_POLICY
+    ERROR_APPROVAL_REQUIRED
+    ERROR_PERSONAL_INVITATION_REQUIRED
+    ERROR_MULTIUSE_INVITATION_REQUIRED
+    ERROR_WEBHOOK_CUSTOM_FORM
+  ] = [403010, 403001, 403002, 403003, 403004, 403005]
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -85,9 +94,48 @@ class GroupsAppController extends AppController
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
 
+  getErrorModalOptions =(err)->
+    defaultOptions =
+      buttons       :
+        Cancel      :
+          cssClass  : "modal-clean-red"
+          callback  : (event)-> @getDelegate().destroy()
+    customOptions = switch err.accessCode
+      when ERROR_NO_POLICY
+        {
+          title     : 'Sorry, this group does not have a membership policy!'
+          content   : """
+                      <div class='modalformline'>
+                        The administrators have not yet defined a membership
+                        policy for this private group.  No one may join this
+                        group until a membership policy has been defined.
+                      </div>
+                      """
+        }
+      when ERROR_UNKNOWN
+        {
+          title     : 'Sorry, an unknown error has occurred!'
+          content   : """
+                      <div class='modalformline'>
+                        Please try again later.
+                      </div>
+                      """
+        }
+    _.extend defaultOptions, customOptions
+
+  showErrorModal:(err)->
+    modal = new KDModalView getErrorModalOptions err
+    console.log {modal}
+
+
   openPrivateGroup:(group)->
-    group.openGroup (err, policy, explanation)->
-      console.log arguments
+    group.canOpenGroup (err, policy)=>
+      if err 
+        @showErrorModal err
+      else
+        console.log 'access is granted!'
+
+
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -255,19 +303,24 @@ class GroupsAppController extends AppController
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
+      modalOptions.tabs.forms['Membership policy'] =
+        title   : "Membership policy"
 
 
     modal = new KDModalViewWithForms modalOptions, group
+    
+    {forms} = modal.modalTabs
 
-    modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
-      modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('.kdfileuploadarea').css backgroundImage : "url(#{stuff.file.data})"
-      modal.modalTabs.forms["General Settings"].inputs["Drop Image here"].$('span').addClass 'hidden'
-
-    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
+    avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
+    avatarUploadView.on 'FileReadComplete', (stuff)->
+      avatarUploadView.$('.kdfileuploadarea').css
+        backgroundImage : "url(#{stuff.file.data})"
+      avatarUploadView.$('span').addClass 'hidden'
 
     unless isNewGroup
-      modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
-    
+      forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+      forms["Membership policy"].addSubView new GroupsMembershipPolicyView {}, group
+
     group.fetchPermissions (err, permissionSet)->
       unless err 
         modal.modalTabs.forms["Permissions"].addSubView new PermissionsModal {
@@ -277,6 +330,7 @@ class GroupsAppController extends AppController
       else
         modal.modalTabs.forms['Permissions'].addSubView new KDView
           partial : 'No access'
+
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -339,7 +393,12 @@ class GroupsAppController extends AppController
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            @showGroupSubmissionView groupItem.getData()
+            groupData = groupItem.getData()
+            groupData.canEditGroup (err, hasPermission)=>
+              unless hasPermission
+                new KDNotificationView title: 'Access denied'
+              else
+                @showGroupSubmissionView groupData
           @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
             groupItem.getData().fetchRoles console.log.bind console
 

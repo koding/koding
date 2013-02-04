@@ -78,6 +78,82 @@ class GroupsMainView extends KDView
   #                   style         : "modal-cancel"
   #                   callback      : ()-> modal.destroy()
 
+class GroupsWebhookView extends JView
+
+  viewAppended:->
+    @webhookEndpointLabel = new KDLabelView title: "Webhook endpoint"
+
+    @webhookEndpoint = new KDInputView
+      label       : @webhookEndpointLabel
+      name        : "title"
+      placeholder : "https://example.com/verify"
+
+    @saveButton = new KDButtonView
+      title     : "Save"
+      style     : "cupid-green"
+      callback  : => @getDelegate().emit 'WebhookIsSaved'
+
+
+    super
+
+  pistachio:->
+    """
+    {{> @webhookEndpointLabel}}
+    {{> @webhookEndpoint}}
+    {{> @saveButton}}
+    """
+
+
+class GroupsMembershipPolicyView extends JView
+
+  viewAppended:->
+    @enableInvitations = new KDOnOffSwitch
+      callback      : (state) => @emit "ace.changeSetting", "useSoftTabs", state
+  
+    @enableWebhooks = new KDOnOffSwitch
+      callback      : (state) =>
+        @emit "ace.changeSetting", "useSoftTabs", state
+        @webhook[if state then 'show' else 'hide']()
+
+    @webhook = new GroupsWebhookView
+      cssClass: 'hidden'
+      delegate: this
+
+    super
+
+
+  pistachio:->
+    """
+    <section class="formline">
+      <h2>Invitations</h2>
+      <div class="formline">
+        <p>By enabling invitations, you will be able to send invitations to
+        potential group members by their email address, you'll be able to grant
+        invitations to your members which they can give to their friends, and
+        you'll be able to create keyword-based multi-user invitations which
+        can be shared with many people at once.</p>
+        <p>If you choose not to enable invitations, then people may request
+        membership, and as the group administrator, you can manually approve
+        their requests.<p>
+      </div>
+      <div class="formline">
+        Enable invitations                    {{> @enableInvitations}}
+      </div>
+    </section>
+    <section class="formline">
+      <h2>Webhooks</h2>
+      <div class="formline">
+        <p>If you enable webhooks, then we will post some data to your webhooks
+        when someone requests access to the group.  The business logic at your
+        endpoint will be responsible for validating and approving the request</p>
+        <p>Webhooks and invitations may be used together.</p>
+      </div>
+      <div class="formline">
+        Enable webhooks                       {{> @enableWebhooks}}
+      </div>
+      {{> @webhook}}
+    </section>
+    """
 
 class GroupsMemberPermissionsView extends JView
 
