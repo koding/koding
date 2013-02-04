@@ -5,7 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"koding/tools/db"
 	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"net"
 	"strings"
 	"time"
@@ -53,8 +55,8 @@ func handleConnection(source net.Conn) {
 		}
 	}
 
-	vm, err := virt.FindVMByName(name)
-	if err != nil {
+	var vm virt.VM
+	if err := db.VMs.Find(bson.M{"name": name}).One(&vm); err != nil {
 		source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: http://www.koding.com/notfound.html\r\n\r\n"))
 		return
 	}

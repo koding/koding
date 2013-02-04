@@ -11,7 +11,10 @@ type Counter struct {
 }
 
 var database *mgo.Database
+
 var counters *mgo.Collection
+var Users *mgo.Collection
+var VMs *mgo.Collection
 
 func init() {
 	session, err := mgo.Dial(config.Current.Mongo)
@@ -22,10 +25,7 @@ func init() {
 	database = session.DB("")
 	counters = database.C("jCounters")
 	Users = database.C("jUsers")
-}
-
-func Collection(name string) *mgo.Collection {
-	return database.C(name)
+	VMs = database.C("jVMs")
 }
 
 // may panic

@@ -58,10 +58,11 @@ func handleConnection(conn net.Conn) {
 			if name == "vmhost" && password == "abc" {
 				bound = true
 			} else if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
-				vm, err = virt.FindVMById(bson.ObjectIdHex(name[3:]))
+				var vm virt.VM
+				err := db.VMs.FindId(bson.ObjectIdHex(name[3:])).One(&vm)
 				bound = (err == nil && password == vm.LdapPassword)
 			} else {
-				user, err := db.FindUserByName(name)
+				user, err := findUserByName(name)
 				bound = (err == nil && user.HasPassword(password))
 			}
 
@@ -100,7 +101,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 				return true
 			}
 
-			user, err := db.FindUserByName(memberUid)
+			user, err := findUserByName(memberUid)
 			if err != nil {
 				return true
 			}
@@ -116,7 +117,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 
 		} else if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
 			gid, _ := strconv.Atoi(gidStr)
-			user, err := db.FindUserByUid(gid)
+			user, err := findUserByUid(gid)
 			if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
 				return true
 			}
@@ -132,13 +133,13 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		}
 
 	default: // including "posixAccount"
-		var user *db.User
+		var user *virt.User
 		var err error
 		if name := findAttributeInFilter(filter, "uid"); name != "" {
-			user, err = db.FindUserByName(name)
+			user, err = findUserByName(name)
 		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
 			uid, _ := strconv.Atoi(uidStr)
-			user, err = db.FindUserByUid(uid)
+			user, err = findUserByUid(uid)
 		} else {
 			return false
 		}
@@ -160,6 +161,23 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 	}
 
 	return true
+}
+
+func findUser(query interface{}) (*virt.User, error) {
+	var user virt.User
+	err := db.Users.Find(query).One(&user)
+	if err == nil && user.Uid == 0 {
+		panic("User lookup returned uid 0.")
+	}
+	return &user, err
+}
+
+func findUserByUid(id int) (*virt.User, error) {
+	return findUser(bson.M{"uid": id})
+}
+
+func findUserByName(name string) (*virt.User, error) {
+	return findUser(bson.M{"username": name})
 }
 
 func findAttributeInFilter(filter *ber.Packet, name string) string {

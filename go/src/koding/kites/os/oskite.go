@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/tools/config"
 	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -38,10 +39,10 @@ var statesMutex sync.Mutex
 
 func main() {
 	utils.Startup("kite.os", true)
-	virt.LoadTemplates()
+	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
 
 	takenIPs := make([]int, 0)
-	iter := virt.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
+	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
 	var vm virt.VM
 	for iter.Next(&vm) {
 		if vm.GetState() == "RUNNING" {
@@ -50,7 +51,7 @@ func main() {
 			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
 		} else {
 			vm.Unprepare()
-			virt.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
+			db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
 		}
 	}
 	if iter.Err() != nil {
@@ -201,24 +202,37 @@ func main() {
 	k.Run()
 }
 
-func findSession(session *kite.Session) (*db.User, *virt.VM) {
+func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	statesMutex.Lock()
 	defer statesMutex.Unlock()
 
-	user, err := db.FindUserByName(session.Username)
-	if err != nil {
+	var user virt.User
+	if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
 		panic(err)
 	}
+	if user.Uid == 0 {
+		panic("User with uid 0.")
+	}
 
-	vm := virt.GetDefaultVM(user)
+	vm := getDefaultVM(&user)
 	state, found := states[vm.Id]
 	if !found {
 		ip := utils.IntToIP(<-ipPoolFetch)
-		if err := virt.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+		if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
 			panic(err)
 		}
 		vm.IP = ip
-		vm.Prepare()
+
+		users := make([]virt.User, len(vm.Users))
+		for i, entry := range vm.Users {
+			if err := db.Users.FindId(entry.Id).One(&users[i]); err != nil {
+				panic(err)
+			}
+			if users[i].Uid == 0 {
+				panic("User with uid 0.")
+			}
+		}
+		vm.Prepare(users)
 
 		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
 			log.Err("Could not start VM.", err, out)
@@ -248,7 +262,35 @@ func findSession(session *kite.Session) (*db.User, *virt.VM) {
 		})
 	}
 
-	return user, vm
+	return &user, vm
+}
+
+func getDefaultVM(user *virt.User) *virt.VM {
+	if user.DefaultVM == "" {
+		// create new vm
+		vm := virt.VM{
+			Id:           bson.NewObjectId(),
+			Name:         user.Name,
+			Users:        []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
+			LdapPassword: utils.RandomString(),
+		}
+		if err := db.VMs.Insert(vm); err != nil {
+			panic(err)
+		}
+
+		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
+			panic(err)
+		}
+		user.DefaultVM = vm.Id
+
+		return &vm
+	}
+
+	var vm virt.VM
+	if err := db.VMs.FindId(user.DefaultVM).One(&vm); err != nil {
+		panic(err)
+	}
+	return &vm
 }
 
 func newState(vm *virt.VM) *VMState {
@@ -271,8 +313,8 @@ func (state *VMState) startTimeout() {
 			return
 		}
 
-		vm, err := virt.FindVMById(state.vmId)
-		if err != nil {
+		var vm virt.VM
+		if err := db.VMs.FindId(state.vmId).One(&vm); err != nil {
 			log.Err("Could not find VM for shutdown.", err)
 		}
 		if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
@@ -280,7 +322,7 @@ func (state *VMState) startTimeout() {
 		}
 
 		vm.Unprepare()
-		virt.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
+		db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
 		ipPoolRelease <- utils.IPToInt(vm.IP)
 		vm.IP = nil
 

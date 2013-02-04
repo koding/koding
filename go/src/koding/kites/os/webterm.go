@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"koding/tools/pty"
@@ -29,7 +28,7 @@ type WebtermRemote struct {
 	SessionEnded dnode.Callback
 }
 
-func newWebtermServer(vm *virt.VM, user *db.User, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
+func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
 	server := &WebtermServer{
 		remote: remote,
 		pty:    pty.New(vm.PtsDir()),

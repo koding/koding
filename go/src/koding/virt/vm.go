@@ -4,11 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/tools/config"
-	"koding/tools/db"
 	"koding/tools/log"
-	"koding/tools/utils"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
@@ -34,58 +30,16 @@ type UserEntry struct {
 
 const RootIdOffset = 50000000
 
+var templateDir string
 var templates *template.Template
-var VMs *mgo.Collection = db.Collection("jVMs")
 
-func LoadTemplates() {
+func LoadTemplates(dir string) {
+	templateDir = dir
 	var err error
-	templates, err = template.ParseGlob(config.Current.ProjectRoot + "/go/templates/lxc/*")
+	templates, err = template.ParseGlob(templateDir + "/lxc/*")
 	if err != nil {
 		panic(err)
 	}
-}
-
-func FindVM(query interface{}) (*VM, error) {
-	var vm VM
-	err := VMs.Find(query).One(&vm)
-	return &vm, err
-}
-
-func FindVMById(id bson.ObjectId) (*VM, error) {
-	return FindVM(bson.M{"_id": id})
-}
-
-func FindVMByName(name string) (*VM, error) {
-	return FindVM(bson.M{"name": name})
-}
-
-// may panic
-func GetDefaultVM(user *db.User) *VM {
-	if user.DefaultVM == "" {
-		// create new vm
-		vm := VM{
-			Id:           bson.NewObjectId(),
-			Name:         user.Name,
-			Users:        []*UserEntry{&UserEntry{Id: user.ObjectId, Sudo: true}},
-			LdapPassword: utils.RandomString(),
-		}
-		if err := VMs.Insert(vm); err != nil {
-			panic(err)
-		}
-
-		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
-			panic(err)
-		}
-		user.DefaultVM = vm.Id
-
-		return &vm
-	}
-
-	vm, err := FindVMById(user.DefaultVM)
-	if err != nil {
-		panic(err)
-	}
-	return vm
 }
 
 func (vm *VM) String() string {
@@ -120,7 +74,7 @@ func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts2")
 }
 
-func (vm *VM) GetUserEntry(user *db.User) *UserEntry {
+func (vm *VM) GetUserEntry(user *User) *UserEntry {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
 			return entry
@@ -133,7 +87,7 @@ func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-func (vm *VM) Prepare() {
+func (vm *VM) Prepare(users []User) {
 	vm.Unprepare()
 
 	// write LXC files
@@ -181,11 +135,7 @@ func (vm *VM) Prepare() {
 	prepareDir(vm.UpperdirFile("/home"), RootIdOffset)
 
 	// create user homes
-	for i, entry := range vm.Users {
-		user, err := db.FindUserByObjectId(entry.Id)
-		if err != nil {
-			panic(err)
-		}
+	for i, user := range users {
 		if prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Uid) && i == 0 {
 			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Uid)
 			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
@@ -196,7 +146,7 @@ func (vm *VM) Prepare() {
 				panic(err)
 			}
 			for _, file := range files {
-				copyFile(config.Current.ProjectRoot+"/go/templates/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
+				copyFile(templateDir+"/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
 			}
 			prepareDir(vm.UpperdirFile("/var"), RootIdOffset)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {

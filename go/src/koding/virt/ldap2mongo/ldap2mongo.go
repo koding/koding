@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/tools/db"
 	"koding/tools/utils"
+	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"os/user"
 	"strconv"
@@ -13,7 +14,7 @@ func main() {
 	utils.Startup("ldap2mongodb", false)
 
 	iter := db.Users.Find(nil).Iter()
-	var mongoUser db.User
+	var mongoUser virt.User
 	for iter.Next(&mongoUser) {
 		sysUser, err := user.Lookup(mongoUser.Name)
 		if err != nil {
