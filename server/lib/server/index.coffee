@@ -37,7 +37,7 @@ else
     kite_applications:
       pattern: 'kite-application'
     kite_databases:
-      pattern: 'kite-application'
+      pattern: 'kite-database'
     webserver:
       pattern: 'web'
     worker_social:
