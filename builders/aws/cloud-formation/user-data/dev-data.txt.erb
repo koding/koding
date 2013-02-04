@@ -1,13 +1,12 @@
 #cloud-config
 
-resize_rootfs: True
+
+resize_rootfs: true
 
 apt_update: true
 apt_upgrade: true
 timezone: US/Pacific
 
-ssh_authorized_keys:
-  {{SSH_KEYS}}
 
 apt_sources:
  - source: "deb http://apt.opscode.com/ $RELEASE-0.10 main"
@@ -46,10 +45,10 @@ apt_sources:
 chef:
     install_type: "packages"
     server_url: "https://api.opscode.com/organizations/koding"
-    
+
     # Defaults to the instance-id if not present
     # node_name: "your-node-name"
-    environment: "prod"
+    environment: "<%= env %>"
 
     validation_name: "koding-validator"
 
@@ -84,14 +83,29 @@ chef:
     
     # A run list for a first boot json
     run_list:
-        {{CHEF_RUN_LIST}}
+      - "role[<%= role %>]"
 
     initial_attributes:
-        {{CHEF_ATTRIBUTES}}
-
+      launch:
+        config: "aws_dev"
+      kd_deploy:
+        git_branch: "<%= git_branch %>"
+        revision_tag: "<%= git_rev %>"
+        release_action: "deploy"
+        deploy_dir: "/opt/koding"
+      nginx:
+        worker_processes: "1"
+        backend_ports: [3020]
+        server_name: "<%= username %>.dev.aws.koding.com"
+        maintenance_page: "maintenance.html"
+        rc_server_name: "localhost"
+        static_files: "/opt/koding/current/client"
+      rabbitmq:
+        admin_password: "dslkdscmckfjf55"
+        user_password: "djfjfhgh4455__5"
 
 runcmd:
-  - [/etc/init.d/chef-client, restart ]
+  - ["/bin/dash", "-xc", "echo <%= username %> > /etc/koding-dev-username"]
+  - ["/etc/init.d/chef-client", "restart"]
 
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
-

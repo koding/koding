@@ -5,7 +5,10 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2'
+username = fs.readFileSync '/etc/koding-dev-username', 'utf-8'
+domainName = "#{username.trim()}.dev.aws.koding.com"
+
+mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -17,8 +20,11 @@ projectRoot = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
-    address     : "http://gokmen.dev.service.aws.koding.com"
+    address     : "https://#{domainName}"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -58,13 +64,18 @@ module.exports = deepFreeze
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -82,19 +93,19 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://gokmen.dev.service.aws.koding.com/'
+    staticFilesBaseUrl: "https://#{domainName}/"
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://gokmen.dev.service.aws.koding.com/'
+      mainUri   : "https://#{domainName}/"
       broker    :
-        sockJS  : 'http://broker.gokmen.dev.service.aws.koding.com:8008/subscribe'
-      apiUri    : 'http://dev-api.koding.com'
+        sockJS  : "http://broker.#{domainName}:8008/subscribe"
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'mq.gokmen.dev.service.aws.koding.com'
+    host        : "mq.#{domainName}"
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -104,14 +115,14 @@ module.exports = deepFreeze
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'gokmen.dev.service.aws.koding.com'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
-    run         : no
-    defaultRecepient : "gokmen+emailWorkerGokmen@koding.com"
+    run         : yes
+    defaultRecepient : 'bahadir+emailWorker@koding.com'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -120,7 +131,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'mq.gokmen.dev.service.aws.koding.com'
+      host          : "mq.#{domainName}"
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'

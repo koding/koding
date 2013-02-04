@@ -21,11 +21,8 @@ socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
   aws           :
-    key         : ''
-    secret      : ''
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
   uri           :
     address     : "https://www.#{domainName}"
   projectRoot   : projectRoot

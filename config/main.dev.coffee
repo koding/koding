@@ -21,9 +21,6 @@ module.exports = deepFreeze
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
   uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
