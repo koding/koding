@@ -386,6 +386,16 @@ task 'destroy', (options) ->
   proc.stderr.on 'data', (data) ->
     console.log data.toString()
 
+task 'deploy-info', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
+
 task 'buildAll',"build chris's modules", ->
 
   buildables = ["pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]

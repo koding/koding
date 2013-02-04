@@ -12,7 +12,7 @@ def call(cmd):
     proc.wait()
 
 def write(text):
-    sys.stdout.write(text)
+    sys.stdout.write(text + '\n')
     sys.stdout.flush()
 
 try:
@@ -51,7 +51,7 @@ def main():
     if not options.username:
         write('Username is missing.')
         return
-    if not options.destroy and not options.branch:
+    if (not options.destroy and not options.info) and not options.branch:
         write('GIT branch name is missing.')
         return
 
@@ -66,7 +66,7 @@ def main():
     for i in stacks:
         if not i.stack_name.endswith('-%s' % options.username):
             continue
-        if i.stack_status.endswith(('DELETE_IN_PROGRESS', 'DELETE_COMPLETE')):
+        if i.stack_status.endswith('DELETE_COMPLETE'):
             continue
         cf_stacks[i.stack_name] = i
 
@@ -79,7 +79,7 @@ def main():
             write('You have no running machines')
             return 
         for name in cf_stacks:
-            write('%20s %s' % (name, cf_stacks[name].stack_status))
+            write('%40s %s' % (name, cf_stacks[name].stack_status))
     else:
         # Re-generate templates
         cmd = os.path.join(CF_DIR, 'generateDev.rb')
