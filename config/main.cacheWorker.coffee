@@ -107,6 +107,7 @@ module.exports = deepFreeze
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
+    componentUser: "<component>"
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -125,4 +126,12 @@ module.exports = deepFreeze
       host          : 'web0.dev.system.aws.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
+  loggr:
+    push   : no
+    url    : ""
+    apiKey : ""
+  compileGo     : no
   pidFile       : '/tmp/koding.server.pid'

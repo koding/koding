@@ -73,7 +73,7 @@ module.exports = class JActivityCache extends jraphical.Module
   @before = (timestamp, callback)->
 
     selector =
-      to     : { $lt : new Date(parseInt(timestamp,10)) }
+      to     : { $lt : new Date parseInt(timestamp,10) }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
 
@@ -118,7 +118,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
             cacheQueue.push ->
               latest.cap remainderOverview, ->
-                console.log "capped latest!"
+                console.log "capped latest with #{remainderOverview.length} new items!"
                 cacheQueue.next()
 
             # terminate only if there are no new items to be cached
@@ -351,7 +351,7 @@ module.exports = class JActivityCache extends jraphical.Module
       pushAllModifier = {overview}
 
       if freshNewMemberBuckets?.length
-        if @newMemberBucketIndex
+        if @newMemberBucketIndex?
           index              = @newMemberBucketIndex
           newMemberBucketKey = "overview.#{index}"
           count              = @overview[@newMemberBucketIndex].count
@@ -432,7 +432,7 @@ module.exports = class JActivityCache extends jraphical.Module
               overviewIndexToDelete = i
               break
 
-          updateTo   = if overviewIndexToDelete is cache.overview.length-1 then yes else no
+          updateTo   = if overviewIndexToDelete is Object.keys(cache.activities).length-1 then yes else no
           updateFrom = if overviewIndexToDelete is 0 then yes else no
 
           unsetModifier      = {}
@@ -443,10 +443,12 @@ module.exports = class JActivityCache extends jraphical.Module
 
           if Object.keys(cache.activities).length > 1
             if updateTo
+              log "updateTo", overviewIndexToDelete
               newLastIndex   = overviewIndexToDelete - 1
               setModifier.to = cache.overview[newLastIndex].createdAt[cache.overview[newLastIndex].createdAt.length-1]
 
             if updateFrom
+              log "updateFrom", overviewIndexToDelete
               newFirstIndex    = overviewIndexToDelete + 1
               setModifier.from = cache.overview[newFirstIndex].createdAt[0]
 
@@ -455,6 +457,11 @@ module.exports = class JActivityCache extends jraphical.Module
             $set   : isFull : no
           , ->
             log "activity removed from cache!", Object.keys(cache.activities).length
+            cache.update
+              $pullAll : { overview : [null] }
+            , ->
+              log "nulls in cache.overview removed"
+
             if Object.keys(cache.activities).length is 0
               cache.remove ->
                 log "cache instance removed!"
