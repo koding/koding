@@ -321,8 +321,11 @@ class GroupsAppController extends AppController
       if isPrivateGroup
         group.fetchMembershipPolicy (err, policy)->
           membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+
           membershipPolicyView.on 'MembershipPolicyChanged', (data)->
-            group.modifyMembershipPolicy data, -> console.log 'done'
+            group.modifyMembershipPolicy data, ->
+              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
           forms["Membership policy"].addSubView membershipPolicyView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group

@@ -108,6 +108,7 @@ class GroupsEditableWebhookView extends JView
     @saveButton = new KDButtonView
       title     : "Save"
       style     : "cupid-green"
+      loader    : yes
       callback  : =>
         @emit 'WebhookChanged', webhookEndpoint: @webhookEndpoint.getValue()
 
@@ -155,6 +156,9 @@ class GroupsMembershipPolicyView extends JView
     @webhookEditor = new GroupsEditableWebhookView
       cssClass: 'hidden'
     , policy
+
+    @on 'MembershipPolicyChangeSaved', =>
+      @webhookEditor.saveButton.loader.hide()
 
     @webhook.on 'WebhookEditRequested', =>
       @webhook.hide()
