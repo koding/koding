@@ -13,7 +13,8 @@ class GroupsAppController extends AppController
     ERROR_PERSONAL_INVITATION_REQUIRED
     ERROR_MULTIUSE_INVITATION_REQUIRED
     ERROR_WEBHOOK_CUSTOM_FORM
-  ] = [403010, 403001, 403002, 403003, 403004, 403005]
+    ERROR_POLICY
+  ] = [403010, 403001, 403002, 403003, 403004, 403005, 403009]
 
   constructor:(options, data)->
     options = $.extend
@@ -121,20 +122,37 @@ class GroupsAppController extends AppController
                       </div>
                       """
         }
+      when ERROR_POLICY
+        {
+          title     : 'This is a private group'
+          content   : 
+            """
+            <div class="modalformline">#{err.message}</div>
+            """
+        }
+
+    if err.accessCode is ERROR_POLICY
+      defaultOptions.buttons['Request access'] = 
+        cssClass  : 'cupid-green'
+        callback  : -> @getDelegate().emit 'AccessIsRequested'
+
     _.extend defaultOptions, customOptions
 
-  showErrorModal:(err)->
+  showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
+    modal.on 'AccessIsRequested', @requestAccess.bind this, group
     console.log {modal}
 
+  requestAccess:(group)->
+    group.requestInvitation (err)->
+      console.log 'invitation is requested', arguments
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
       if err 
-        @showErrorModal err
+        @showErrorModal group, err
       else
         console.log 'access is granted!'
-
 
 
   putAddAGroupButton:->
@@ -172,6 +190,7 @@ class GroupsAppController extends AppController
     unless group?
       group = {}
       isNewGroup = yes
+    isPrivateGroup = 'private' is group.privacy
 
     modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
@@ -303,8 +322,9 @@ class GroupsAppController extends AppController
         cssClass : 'permissions-modal'
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
-      modalOptions.tabs.forms['Membership policy'] =
-        title   : "Membership policy"
+      if isPrivateGroup
+        modalOptions.tabs.forms['Membership policy'] =
+          title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -317,8 +337,17 @@ class GroupsAppController extends AppController
       avatarUploadView.$('span').addClass 'hidden'
 
     unless isNewGroup
+      if isPrivateGroup
+        group.fetchMembershipPolicy (err, policy)->
+          membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+
+          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
+            group.modifyMembershipPolicy data, ->
+              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
+          forms["Membership policy"].addSubView membershipPolicyView
+    
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
-      forms["Membership policy"].addSubView new GroupsMembershipPolicyView {}, group
 
       forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
         size          :
