@@ -156,7 +156,7 @@ class GroupsMembershipPolicyView extends JView
     super
     policy = @getData()
 
-    {invitationsEnabled, webhookEndpoint} = policy
+    {invitationsEnabled, webhookEndpoint, accessRequestsEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
     
     @enableInvitations = new KDOnOffSwitch
@@ -164,6 +164,11 @@ class GroupsMembershipPolicyView extends JView
       callback      : (state) =>
         @emit 'MembershipPolicyChanged', invitationsEnabled: state
   
+    @enableAccessRequests = new KDOnOffSwitch
+      defaultValue  : accessRequestsEnabled
+      callback      : (state) =>
+        @emit 'MembershipPolicyChanged', accessRequestsEnabled: state  
+
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
       callback      : (state) =>
@@ -230,6 +235,16 @@ class GroupsMembershipPolicyView extends JView
   pistachio:->
     """
     <section class="formline">
+      <h2>Users may request access</h2>
+      <div class="formline">
+        <p>If you disable this feature, users will not be able to request
+        access to this group</p>
+      </div>
+      <div class="formline">
+        Users may request access              {{> @enableAccessRequests}}
+      </div>
+    </section>
+    <section class="formline">
       <h2>Invitations</h2>
       <div class="formline">
         <p>By enabling invitations, you will be able to send invitations to
@@ -237,9 +252,8 @@ class GroupsMembershipPolicyView extends JView
         invitations to your members which they can give to their friends, and
         you'll be able to create keyword-based multi-user invitations which
         can be shared with many people at once.</p>
-        <p>If you choose not to enable invitations, then people may request
-        membership, and as the group administrator, you can manually approve
-        their requests.<p>
+        <p>If you choose not to enable invitations, a more basic request
+        approval functionilty will be exposed.<p>
       </div>
       <div class="formline">
         Enable invitations                    {{> @enableInvitations}}

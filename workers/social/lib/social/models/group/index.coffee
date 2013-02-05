@@ -2,7 +2,7 @@
 
 module.exports = class JGroup extends Module
 
-  [ERROR_UNKNOWN, ERROR_NO_POLICY] = [403010, 403001]
+  [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
   {Relationship} = require 'jraphical'
 
@@ -47,8 +47,8 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup',
-        'fetchMembershipPolicy','modifyMembershipPolicy'
+        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
       ]
     schema          :
       title         :
@@ -318,8 +318,18 @@ module.exports = class JGroup extends Module
                       err?.message ?
                       'No membership policy!'
         clientError = err ? new KodingError explanation
-        clientError.accessCode = policy?.code ? if err then ERROR_UNKNOWN else ERROR_NO_POLICY
+        clientError.accessCode = policy?.code ?
+          if err then ERROR_UNKNOWN
+          else if explanation? then ERROR_POLICY
+          else ERROR_NO_POLICY
         callback clientError, no
+
+  requestInvitation: secure (client, callback)->
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)->
+      if err then callback err
+      else
+        console.log {user}
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
