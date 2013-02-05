@@ -95,7 +95,7 @@ class PermissionsModal extends KDFormViewWithFields
           style       : "modal-clean-gray"
           cssClass    : 'add-role'
           callback    : =>
-            @addSubView saveDialog = new KDDialogView
+            @addSubView addRoleDialog = new KDDialogView
               cssClass      : "add-role-dialog"
               duration      : 200
               topOffset     : -21
@@ -105,12 +105,12 @@ class PermissionsModal extends KDFormViewWithFields
                 Save        :
                   style     : "modal-clean-gray"
                   callback  : ()=>
-                    saveDialog.hide()
+                    addRoleDialog.hide()
                 Cancel :
                   style     : "modal-cancel"
                   callback  : ()->
-                    saveDialog.hide()
-            saveDialog.addSubView wrapper = new KDView
+                    addRoleDialog.hide()
+            addRoleDialog.addSubView wrapper = new KDView
               cssClass : "kddialog-wrapper"
 
             wrapper.addSubView title = new KDCustomHTMLView
@@ -136,7 +136,7 @@ class PermissionsModal extends KDFormViewWithFields
             form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
               selectOptions : selectOptions
               defaultValue : null
-            saveDialog.show()
+            addRoleDialog.show()
 
         Save          :
           style       : "modal-clean-gray"
