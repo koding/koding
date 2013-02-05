@@ -32,14 +32,13 @@ func LimiterLoop() {
 			diff := memoryUsage - previousMemoryUsage
 			previousMemoryUsage = memoryUsage
 			required := diff * (vmCount - i)
-			if required <= availableMemory {
-				memoryLimit += diff
-				availableMemory -= required
-			} else {
+			if required > availableMemory {
 				memoryLimit += availableMemory / (vmCount - i)
 				availableMemory = 0
 				break
 			}
+			memoryLimit += diff
+			availableMemory -= required
 		}
 		memoryLimit += availableMemory
 		if memoryLimit > MaxMemoryLimit {

@@ -54,23 +54,13 @@ func handleConnection(conn net.Conn) {
 		case ApplicationBindRequest:
 			name := request.Children[1].Value.(string)
 			password := request.Children[2].Data.String()
+			bound = authenticate(name, password)
 
-			if name == "vmhost" && password == "abc" {
-				bound = true
-			} else if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
-				var vm virt.VM
-				err := db.VMs.FindId(bson.ObjectIdHex(name[3:])).One(&vm)
-				bound = (err == nil && password == vm.LdapPassword)
-			} else {
-				user, err := findUserByName(name)
-				bound = (err == nil && user.HasPassword(password))
-			}
-
+			var resultCode uint64 = LDAPResultInvalidCredentials
 			if bound {
-				conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultSuccess).Bytes())
-			} else {
-				conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, LDAPResultInvalidCredentials).Bytes())
+				resultCode = LDAPResultSuccess
 			}
+			conn.Write(createSimpleResponse(messageID, ApplicationBindResponse, resultCode).Bytes())
 
 		case ApplicationUnbindRequest:
 			bound = false
@@ -91,6 +81,21 @@ func handleConnection(conn net.Conn) {
 			panic("Unsupported LDAP command")
 		}
 	}
+}
+
+func authenticate(name, password string) bool {
+	if name == "vmhost" && password == "abc" {
+		return true
+	}
+
+	if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
+		var vm virt.VM
+		err := db.VMs.FindId(bson.ObjectIdHex(name[3:])).One(&vm)
+		return err == nil && password == vm.LdapPassword
+	}
+
+	user, err := findUserByName(name)
+	return err == nil && user.HasPassword(password)
 }
 
 func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn) bool {
@@ -114,8 +119,10 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 					"gidNumber":   "27",
 				}).Bytes())
 			}
+			return true
+		}
 
-		} else if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
+		if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
 			gid, _ := strconv.Atoi(gidStr)
 			user, err := findUserByUid(gid)
 			if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
@@ -127,20 +134,12 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 				"cn":          user.Name,
 				"gidNumber":   gidStr,
 			}).Bytes())
-
-		} else {
-			return false
+			return true
 		}
 
 	default: // including "posixAccount"
-		var user *virt.User
-		var err error
-		if name := findAttributeInFilter(filter, "uid"); name != "" {
-			user, err = findUserByName(name)
-		} else if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
-			uid, _ := strconv.Atoi(uidStr)
-			user, err = findUserByUid(uid)
-		} else {
+		user, err := findUserInFilter(filter)
+		if err == nil && user == nil {
 			return false
 		}
 		if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
@@ -157,10 +156,22 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"homeDirectory": "/home/" + user.Name,
 			"loginShell":    "/bin/bash",
 		}).Bytes())
+		return true
 
 	}
 
-	return true
+	return false
+}
+
+func findUserInFilter(filter *ber.Packet) (*virt.User, error) {
+	if name := findAttributeInFilter(filter, "uid"); name != "" {
+		return findUserByName(name)
+	}
+	if uidStr := findAttributeInFilter(filter, "uidNumber"); uidStr != "" {
+		uid, _ := strconv.Atoi(uidStr)
+		return findUserByUid(uid)
+	}
+	return nil, nil
 }
 
 func findUser(query interface{}) (*virt.User, error) {

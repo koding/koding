@@ -35,11 +35,10 @@ func (vm *VM) MergeDpkgDatabase() {
 	dpkgStatusFile := vm.UpperdirFile("/var/lib/dpkg/status")
 	upperPackages, err := ReadDpkgStatus(dpkgStatusFile)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return // no dpkg files in upper, no need to merge
-		} else {
+		if !os.IsNotExist(err) {
 			panic(err)
 		}
+		return // no dpkg files in upper, no need to merge
 	}
 
 	lowerPackages, err := ReadDpkgStatus(LowerdirFile("/var/lib/dpkg/status"))

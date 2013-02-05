@@ -141,18 +141,21 @@ func (k *Kite) Run() {
 
 							if err != nil {
 								resultCallback(err.Error(), result)
-							} else if result != nil {
-								resultCallback(nil, result)
+								return
 							}
+
+							resultCallback(nil, result)
 						}
+
 						if handler.Concurrent {
 							go func() {
 								defer log.RecoverAndLog()
 								execHandler()
 							}()
-						} else {
-							execHandler()
+							return
 						}
+
+						execHandler()
 					}
 
 					go func() {

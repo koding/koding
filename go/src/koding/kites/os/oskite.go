@@ -46,13 +46,16 @@ func main() {
 	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
 	var vm virt.VM
 	for iter.Next(&vm) {
-		if vm.GetState() == "RUNNING" {
+		switch vm.GetState() {
+		case "RUNNING":
 			state := newState(&vm)
 			state.startTimeout()
 			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
-		} else {
+		case "STOPPED":
 			vm.Unprepare()
 			db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
+		default:
+			panic("Unhandled VM state.")
 		}
 	}
 	if iter.Err() != nil {

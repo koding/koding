@@ -102,14 +102,13 @@ func main() {
 			}
 			for {
 				err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-				amqpError, isAmqpError := err.(*amqp.Error)
 				if err == nil {
 					break
-				} else if isAmqpError && amqpError.Code == 504 {
-					resetControlChannel()
-				} else {
+				}
+				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
 					panic(err)
 				}
+				resetControlChannel()
 			}
 		}()
 
@@ -136,22 +135,21 @@ func main() {
 				case "publish":
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
-					if strings.HasPrefix(routingKey, "client.") {
-						for {
-							lastPayload = ""
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-							amqpError, isAmqpError := err.(*amqp.Error)
-							if err == nil {
-								lastPayload = message["payload"].(string)
-								break
-							} else if isAmqpError && amqpError.Code == 504 {
-								resetControlChannel()
-							} else {
-								panic(err)
-							}
-						}
-					} else {
+					if !strings.HasPrefix(routingKey, "client.") {
 						log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
+						return
+					}
+					for {
+						lastPayload = ""
+						err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
+						if err == nil {
+							lastPayload = message["payload"].(string)
+							break
+						}
+						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+							panic(err)
+						}
+						resetControlChannel()
 					}
 
 				default:
@@ -207,10 +205,9 @@ func main() {
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 		for pos != -1 && pos < len(routingKey) {
 			index := strings.IndexRune(routingKey[pos+1:], '.')
+			pos += index + 1
 			if index == -1 {
 				pos = len(routingKey)
-			} else {
-				pos += 1 + index
 			}
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()

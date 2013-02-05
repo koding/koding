@@ -119,29 +119,33 @@ func main() {
 		//readline.AddHistory(input)
 
 		parts := strings.Split(input, " ")
-		command := commands[parts[0]]
-		index, err := strconv.Atoi(input)
-		if command != nil {
+		if command, found := commands[parts[0]]; found {
 			command(parts[1:])
-		} else if err == nil {
+			continue
+		}
+
+		if index, err := strconv.Atoi(input); err == nil {
 			if listEntries == nil {
 				fmt.Println("No list.")
-			} else if index < 0 || index >= len(listEntries) {
-				fmt.Println("Index out of bounds.")
-			} else {
-				entry := listEntries[index]
-
-				path := listKind + "s"
-				if entry.VHost != "" {
-					path += "/" + QueryEscape(entry.VHost)
-				}
-				path += "/" + QueryEscape(entry.Name)
-
-				PrintElement(path, listKind+" "+entry.Name)
+				continue
 			}
-		} else {
-			fmt.Println("Sorry, unknown command.")
+			if index < 0 || index >= len(listEntries) {
+				fmt.Println("Index out of bounds.")
+				continue
+			}
+
+			entry := listEntries[index]
+			path := listKind + "s"
+			if entry.VHost != "" {
+				path += "/" + QueryEscape(entry.VHost)
+			}
+			path += "/" + QueryEscape(entry.Name)
+
+			PrintElement(path, listKind+" "+entry.Name)
+			continue
 		}
+
+		fmt.Println("Sorry, unknown command.")
 	}
 }
 
@@ -150,11 +154,11 @@ func ChangeVHost(args []string) {
 		fmt.Println("Usage: vhost <name>")
 		return
 	}
-	if Get("vhosts/"+QueryEscape(args[0]), "", nil) {
-		vhost = args[0]
-	} else {
+	if !Get("vhosts/"+QueryEscape(args[0]), "", nil) {
 		fmt.Println("No such vhost.")
+		return
 	}
+	vhost = args[0]
 }
 
 func ReadList(kind string, withVHost bool) {

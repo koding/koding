@@ -19,10 +19,10 @@ func main() {
 		sysUser, err := user.Lookup(mongoUser.Name)
 		if err != nil {
 			fmt.Println(mongoUser.Name, err.Error())
-		} else {
-			uid, _ := strconv.Atoi(sysUser.Uid)
-			db.Users.UpdateId(mongoUser.ObjectId, bson.M{"$set": bson.M{"uid": uid}})
+			continue
 		}
+		uid, _ := strconv.Atoi(sysUser.Uid)
+		db.Users.UpdateId(mongoUser.ObjectId, bson.M{"$set": bson.M{"uid": uid}})
 	}
 	if iter.Err() != nil {
 		panic(iter.Err())

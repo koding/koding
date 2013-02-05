@@ -62,27 +62,19 @@ func init() {
 
 	go func() {
 		for ev := range watcher.Event {
-			var event string
-			var file FileEntry
 			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY | inotify.IN_MOVED_TO)) != 0 {
-				event = "added"
 				info, err := os.Lstat(ev.Name)
 				if err != nil {
 					log.Warn("Watcher error", err)
 					continue
 				}
-				file = makeFileEntry(info)
-			} else if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
-				event = "removed"
-				file = FileEntry{Name: path.Base(ev.Name)}
-			} else {
+				fireCallbacks(path.Dir(ev.Name), "added", makeFileEntry(info))
 				continue
 			}
-			watchMutex.Lock()
-			for _, watch := range watchMap[path.Dir(ev.Name)] {
-				watch.Callback(map[string]interface{}{"event": event, "file": file})
+			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
+				fireCallbacks(path.Dir(ev.Name), "removed", FileEntry{Name: path.Base(ev.Name)})
+				continue
 			}
-			watchMutex.Unlock()
 		}
 	}()
 	go func() {
@@ -90,4 +82,12 @@ func init() {
 			log.Warn("Watcher error", err)
 		}
 	}()
+}
+
+func fireCallbacks(dir, event string, file FileEntry) {
+	watchMutex.Lock()
+	for _, watch := range watchMap[dir] {
+		watch.Callback(map[string]interface{}{"event": event, "file": file})
+	}
+	watchMutex.Unlock()
 }

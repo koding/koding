@@ -34,9 +34,9 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 		for i, part := range data {
 			if bytes, ok := part.([]byte); ok {
 				dataStrings[i] = string(bytes)
-			} else {
-				dataStrings[i] = fmt.Sprint(part)
+				continue
 			}
+			dataStrings[i] = fmt.Sprint(part)
 		}
 		event.Add("data", strings.Join(dataStrings, "\n"))
 	}
@@ -102,12 +102,9 @@ func LogError(err interface{}, stackOffset int) {
 		if !ok {
 			break
 		}
-		fn := runtime.FuncForPC(pc)
-		var name string
-		if fn != nil {
+		name := "<unknown>"
+		if fn := runtime.FuncForPC(pc); fn != nil {
 			name = fn.Name()
-		} else {
-			name = "<unknown>"
 		}
 		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}

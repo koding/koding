@@ -96,27 +96,7 @@ func (vm *VM) Prepare(users []User) {
 	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
 
 	// map rbd image to block device
-	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
-		exitError, isExitError := err.(*exec.ExitError)
-		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			panic(err)
-		}
-
-		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "1200").CombinedOutput(); err != nil {
-			panic(commandError("rbd create failed.", err, out))
-		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
-			panic(commandError("rbd map failed.", err, out))
-		}
-		vm.waitForRBD()
-
-		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
-			panic(commandError("mkfs.ext4 failed.", err, out))
-		}
-	} else {
-		vm.waitForRBD()
-	}
+	vm.mapRBD()
 
 	// mount block device to upperdir
 	prepareDir(vm.UpperdirFile(""), RootIdOffset)
@@ -201,7 +181,26 @@ func (vm *VM) Unprepare() error {
 	return firstError
 }
 
-func (vm *VM) waitForRBD() {
+func (vm *VM) mapRBD() {
+	makeFileSystem := false
+	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+		exitError, isExitError := err.(*exec.ExitError)
+		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+			panic(err)
+		}
+
+		// create disk and try to map again
+		if out, err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "100").CombinedOutput(); err != nil {
+			panic(commandError("rbd create failed.", err, out))
+		}
+		if out, err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
+			panic(commandError("rbd map failed.", err, out))
+		}
+
+		makeFileSystem = true
+	}
+
+	// wait for rbd device to appear
 	for {
 		_, err := os.Stat(vm.RbdDevice())
 		if err == nil {
@@ -211,6 +210,12 @@ func (vm *VM) waitForRBD() {
 			panic(err)
 		}
 		time.Sleep(time.Second / 2)
+	}
+
+	if makeFileSystem {
+		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
+			panic(commandError("mkfs.ext4 failed.", err, out))
+		}
 	}
 }
 
@@ -222,11 +227,10 @@ func commandError(message string, err error, out []byte) error {
 func prepareDir(path string, id int) bool {
 	created := true
 	if err := os.Mkdir(path, 0755); err != nil {
-		if os.IsExist(err) {
-			created = false
-		} else {
+		if !os.IsExist(err) {
 			panic(err)
 		}
+		created = false
 	}
 
 	chown(path, id, id)
@@ -246,12 +250,11 @@ func (vm *VM) generateFile(path, template string, id int, executable bool) {
 		panic(err)
 	}
 
+	var mod os.FileMode = 0644
 	if executable {
-		err = file.Chmod(0755)
-	} else {
-		err = file.Chmod(0644)
+		mod = 0755
 	}
-	if err != nil {
+	if err = file.Chmod(mod); err != nil {
 		panic(err)
 	}
 
