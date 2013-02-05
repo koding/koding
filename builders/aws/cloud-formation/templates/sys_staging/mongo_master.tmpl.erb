@@ -25,6 +25,16 @@
              }
         },
 
+        "VolumeMongoLog0": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": { 
+                "AvailabilityZone": "us-east-1a",
+                "Size": "10",
+                "Tags": [
+                    {"Key": "Name", "Value": "<%= role %>"  }
+                ]
+             }
+        },
 
         "MongoMasterInstance": {
             "Type": "AWS::EC2::Instance",
@@ -42,7 +52,12 @@
                     {
                         "Device": "/dev/sdg",
                         "VolumeId": {"Ref": "VolumeMongoData1"}
+                    },
+                    {
+                        "Device": "/dev/sdh",
+                        "VolumeId": {"Ref": "VolumeMongoLog0"}
                     }
+
                 ],
                 "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
             }
