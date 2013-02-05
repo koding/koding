@@ -91,9 +91,6 @@ config =
     aws           :
       key         : 1
       secret      : 1
-      username    : 1
-      git_branch  : 1
-      git_rev     : 1
     uri           :
       address     : 1
     projectRoot   : 1
