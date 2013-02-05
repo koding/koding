@@ -12,6 +12,7 @@ class PermissionsModal extends KDFormViewWithFields
     roles = ['member','moderator','admin']
     roles.unshift 'guest' if group.privacy is 'public'
 
+    roles.unshift 'Mew'+i for i in [1..1+Math.abs 3*Math.random()]
 
     readableText = (text)->
       dictionary =
@@ -90,6 +91,29 @@ class PermissionsModal extends KDFormViewWithFields
       permissionOptions
 
     options.buttons or= 
+        "Add Role"    :
+          style       : "modal-clean-gray"
+          cssClass    : 'add-role'
+          callback    : =>
+            @addSubView saveDialog = new KDDialogView
+              cssClass      : "add-role-dialog"
+              duration      : 200
+              topOffset     : 0
+              overlay       : yes
+              height        : 'auto'
+              buttons       :
+                Save        :
+                  style     : "modal-clean-gray"
+                  callback  : ()=>
+                    saveDialog.hide()
+                Cancel :
+                  style     : "modal-cancel"
+                  callback  : ()->
+                    saveDialog.hide()
+            saveDialog.addSubView new KDView
+              partial : 'omg hi<br><br><br>k'
+            saveDialog.show()
+
         Save          :
           style       : "modal-clean-gray"
           loader      :
@@ -108,7 +132,6 @@ class PermissionsModal extends KDFormViewWithFields
     @setClass 'permissions-form col-'+roles.length
 
     @bindEvent 'scroll'
-
     @on 'scroll', (event={})=>
       @applyScrollShadow event
 

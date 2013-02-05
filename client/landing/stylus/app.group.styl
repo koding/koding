@@ -647,7 +647,7 @@
       width auto
       line-height 20px
       top 0
-
+      text-overflow ellipsis
 
   .permissions-form
     overflow-y scroll
@@ -655,15 +655,22 @@
     max-height 300px
     margin-top 20px
 
-    &.col-4
-      .formline .input-wrapper
-        width 85px
     &.col-3
       .formline .input-wrapper
-        width 110px
+        width 110px // 330
+    &.col-4
+      .formline .input-wrapper
+        width 85px // 340
     &.col-5 
       .formline .input-wrapper
-        width 67px
+        width 67px // 335
+    &.col-6
+      .formline .input-wrapper
+        width 55px // 330
+    &.col-7
+      .formline .input-wrapper
+        width 48px // 336
+
       
     .formline
       &.button-field
@@ -674,8 +681,12 @@
         right 0
         bottom 0
         height 50px
-        padding 15px 20px 0 0 
+        padding 15px 20px 0 15px 
         border-top 1px solid #e5e5e5
+
+        button.add-role
+          fl()
+
       &:nth-last-child(2)
         margin-bottom 49px
         border-bottom-color transparent
