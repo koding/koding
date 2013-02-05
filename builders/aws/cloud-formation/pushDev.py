@@ -55,7 +55,8 @@ def main():
         write('GIT branch name is missing.')
         return
 
-    conn = boto.connect_cloudformation()
+    conn = boto.connect_cloudformation(options.access, options.secret)
+
     try:
         stacks = conn.list_stacks()
     except:
@@ -90,12 +91,15 @@ def main():
             filepath = os.path.join(JSON_DIR, filename)
             template = file(filepath, 'r').read()
             stack_name = 'dev-%s-%s' % (name, options.username)
+            stack_name = stack_name.replace('_', '-')
             if stack_name in cf_stacks:
                 write('Updating stack: %s' % stack_name)
                 conn.update_stack(stack_name, template)
             else:
                 write('Creating stack: %s' % stack_name)
-                conn.create_stack(stack_name, template)
+                stack_tags = {'Name': stack_name,
+                              'Developer': options.username}
+                conn.create_stack(stack_name, template, tags=stack_tags)
  
 if __name__ == '__main__':
     main()
