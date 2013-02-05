@@ -172,6 +172,7 @@ class GroupsAppController extends AppController
     unless group?
       group = {}
       isNewGroup = yes
+    isPrivateGroup = 'private' is group.privacy
 
     modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
@@ -299,8 +300,9 @@ class GroupsAppController extends AppController
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
-      modalOptions.tabs.forms['Membership policy'] =
-        title   : "Membership policy"
+      if isPrivateGroup
+        modalOptions.tabs.forms['Membership policy'] =
+          title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -316,8 +318,14 @@ class GroupsAppController extends AppController
     forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
+      if isPrivateGroup
+        group.fetchMembershipPolicy (err, policy)->
+          membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
+            group.modifyMembershipPolicy data, -> console.log 'done'
+          forms["Membership policy"].addSubView membershipPolicyView
+    
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
-      forms["Membership policy"].addSubView new GroupsMembershipPolicyView {}, group
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->

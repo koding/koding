@@ -80,7 +80,24 @@ class GroupsMainView extends KDView
 
 class GroupsWebhookView extends JView
 
-  viewAppended:->
+  constructor:->
+    super
+
+    @editLink = new CustomLinkView
+      href    : '#'
+      title   : 'Edit webhook'
+      click   : (event)=>
+        event.preventDefault()
+        @emit 'WebhookEditRequested'
+
+  pistachio:->
+    "{.endpoint{#(webhookEndpoint)}}{{> @editLink}}"
+
+class GroupsEditableWebhookView extends JView
+
+  constructor:->
+    super
+
     @webhookEndpointLabel = new KDLabelView title: "Webhook endpoint"
 
     @webhookEndpoint = new KDInputView
@@ -91,10 +108,15 @@ class GroupsWebhookView extends JView
     @saveButton = new KDButtonView
       title     : "Save"
       style     : "cupid-green"
-      callback  : => @getDelegate().emit 'WebhookIsSaved'
+      callback  : =>
+        @emit 'WebhookChanged', webhookEndpoint: @webhookEndpoint.getValue()
 
+  setFocus:->
+    @webhookEndpoint.focus()
+    return this
 
-    super
+  setValue:(webhookEndpoint)->
+    @webhookEndpoint.setValue webhookEndpoint
 
   pistachio:->
     """
@@ -106,21 +128,53 @@ class GroupsWebhookView extends JView
 
 class GroupsMembershipPolicyView extends JView
 
-  viewAppended:->
+  constructor:(options, data)->
+    super
+    policy = @getData()
+
+    {invitationsEnabled, webhookEndpoint} = policy
+    webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
+    
     @enableInvitations = new KDOnOffSwitch
-      callback      : (state) => @emit "ace.changeSetting", "useSoftTabs", state
+      defaultValue  : invitationsEnabled
+      callback      : (state) =>
+        @emit 'MembershipPolicyChanged', invitationsEnabled: state
   
     @enableWebhooks = new KDOnOffSwitch
+      defaultValue  : webhookExists
       callback      : (state) =>
-        @emit "ace.changeSetting", "useSoftTabs", state
-        @webhook[if state then 'show' else 'hide']()
+        @webhook.hide()
+        @webhookEditor[if state then 'show' else 'hide']()
+        if state then @webhookEditor.setFocus()
+        else @emit 'MembershipPolicyChanged', webhookEndpoint: null
 
     @webhook = new GroupsWebhookView
+      cssClass: unless webhookExists then 'hidden'
+    , policy
+
+    @webhookEditor = new GroupsEditableWebhookView
       cssClass: 'hidden'
-      delegate: this
+    , policy
 
-    super
+    @webhook.on 'WebhookEditRequested', =>
+      @webhook.hide()
+      @webhookEditor.show()
 
+    @webhookEditor.on 'WebhookChanged', (data)=>
+      @emit 'MembershipPolicyChanged', data
+      {webhookEndpoint} = data
+      webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
+      policy.webhookEndpoint = webhookEndpoint
+      policy.emit 'update'
+      @webhookEditor.hide()
+      @webhook[if webhookExists then 'show' else 'hide']()
+      @enableWebhooks.setValue webhookExists
+
+    @enableInvitations.setValue invitationsEnabled
+
+    if webhookExists
+      @webhookEditor.setValue webhookEndpoint
+      @webhook.show()
 
   pistachio:->
     """
@@ -152,6 +206,7 @@ class GroupsMembershipPolicyView extends JView
         Enable webhooks                       {{> @enableWebhooks}}
       </div>
       {{> @webhook}}
+      {{> @webhookEditor}}
     </section>
     """
 
