@@ -206,6 +206,21 @@ task 'emailWorker',({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
+task 'emailSender',({configFile})->
+
+  processes.fork
+    name            : 'emailSender'
+    cmd             : "./workers/emailsender/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailsender']
+        onChange  : (path) ->
+          processes.kill "emailSender"
+
 task 'goBroker',({configFile})->
 
   processes.spawn
@@ -265,6 +280,7 @@ run =({configFile})->
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
+    invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
 
 

@@ -121,6 +121,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
