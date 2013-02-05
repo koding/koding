@@ -21,5 +21,6 @@ class hosting_packages {
     include hosting_packages::mounters
     include hosting_packages::terminal
     include hosting_packages::dotcloud
+    include hosting_packages::haskel
 
 }

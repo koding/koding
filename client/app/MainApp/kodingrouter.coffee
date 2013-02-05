@@ -236,7 +236,7 @@ class KodingRouter extends KDRouter
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
-        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
+        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
           location.replace '#'
           if err
             throw err
@@ -249,6 +249,31 @@ class KodingRouter extends KDRouter
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
+
+      '/:name?/Unsubscribe/:unsubscribeToken/:opt?': \
+      ({params:{unsubscribeToken, opt}})->
+        opt              = decodeURIComponent opt
+        unsubscribeToken = decodeURIComponent unsubscribeToken
+        KD.remote.api.JMailNotification.unsubscribeWithId \
+        unsubscribeToken, opt, (err, content)=>
+          if err or not content
+            title   = 'An error occured'
+            content = 'Invalid unsubscribe token provided.'
+            log err
+          else
+            title   = 'E-mail settings updated'
+
+          modal = new KDModalView
+            title        : title
+            overlay      : yes
+            cssClass     : "new-kdmodal"
+            content      : "<div class='modalformline'>#{content}</div>"
+            buttons      :
+              "Close"    :
+                style    : "modal-clean-gray"
+                callback : (event)->
+                  modal.destroy()
+          @clear()
 
       # top level names
       '/:name':do->

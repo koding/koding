@@ -1,0 +1,46 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Development Broker: <%= username %>",
+
+    "Resources": {
+        "BrokerInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType" : "c1.medium",
+                "ImageId": "ami-3d4ff254",
+                "KeyName": "koding",
+                "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
+            }
+        },
+        "BrokerHostName":{
+            "Type" : "AWS::Route53::RecordSet",
+            "Properties" : {
+                "HostedZoneName" : "dev.aws.koding.com.",
+                "Comment" : "...",
+                "Name" : "broker.<%= username %>.dev.aws.koding.com",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "BrokerInstance", "PublicDnsName" ] } ]
+            }
+        }
+    },
+    "Outputs":{
+        "InstanceId" : {
+          "Description" : "InstanceId of the newly created EC2 instance",
+          "Value" : { "Ref" : "BrokerInstance" }
+        },
+        "AZ" : {
+          "Description" : "Availability Zone of the newly created EC2 instance",
+          "Value" : { "Fn::GetAtt" : [ "BrokerInstance", "AvailabilityZone" ] }
+        },
+        "PrivateIP" : {
+          "Description" : "Private IP address of the newly created EC2 instance",
+          "Value" : { "Fn::GetAtt" : [ "BrokerInstance", "PrivateIp" ] }
+        },
+        "DomainName": {
+            "Description":"FQDN of newly created EC2 instamce",
+            "Value": { "Ref" : "BrokerHostName"}
+        }
+
+    }
+}

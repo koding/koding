@@ -18,17 +18,18 @@
     filestore xattr use omap = true
 
 
-<% @mon_nodes.each do |node| -%>
-[mon.<%= node[:CephID] %>]
-    # instance ID <%= node[:id] %>
-    mon addr = <%= node[:addr] %>:6789
+<% @mon_nodes.each do |mon_node| -%>
+[mon.<%= mon_node[:CephID] %>]
+    # instance ID <%= mon_node[:id] %>
+    # hostname <%= @hostname %>
+    mon addr = <%= mon_node[:addr] %>:6789
 
 <% end -%>
 
-<% @osd_nodes.each do |node| -%>
-[osd.<%= node[:CephID] %>]
-    # instance ID <%= node[:id] %>
-    host = <%= node[:id] %>
+<% @osd_nodes.each do |osd_node| -%>
+[osd.<%= osd_node[:CephID] %>]
+    # instance ID <%= osd_node[:id] %>
+    host = <%= @hostname %>
 
 <% end -%>
 
