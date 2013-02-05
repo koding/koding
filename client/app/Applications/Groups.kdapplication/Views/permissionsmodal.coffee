@@ -98,7 +98,7 @@ class PermissionsModal extends KDFormViewWithFields
             @addSubView saveDialog = new KDDialogView
               cssClass      : "add-role-dialog"
               duration      : 200
-              topOffset     : 0
+              topOffset     : -21
               overlay       : yes
               height        : 'auto'
               buttons       :
@@ -110,8 +110,32 @@ class PermissionsModal extends KDFormViewWithFields
                   style     : "modal-cancel"
                   callback  : ()->
                     saveDialog.hide()
-            saveDialog.addSubView new KDView
-              partial : 'omg hi<br><br><br>k'
+            saveDialog.addSubView wrapper = new KDView
+              cssClass : "kddialog-wrapper"
+
+            wrapper.addSubView title = new KDCustomHTMLView
+              tagName : 'h1'
+              partial : 'Add new Role'
+            
+            wrapper.addSubView form = new KDFormView
+
+            form.addSubView labelRoleName = new KDLabelView
+              title : "Role Name:"
+
+            form.addSubView @inputRoleName = inputRoleName = new KDInputView
+              label        : labelRoleName
+              defaultValue : ''
+              placeholder  : 'new-role'
+
+            form.addSubView labelCopyPermissions = new KDLabelView
+              title : "Copy Permissions from"
+
+            selectOptions = [{title:'None',value:null}]
+            selectOptions.push {title:readableText(role),value:role} for role in roles
+            
+            form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
+              selectOptions : selectOptions
+              defaultValue : null
             saveDialog.show()
 
         Save          :
