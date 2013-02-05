@@ -10,13 +10,16 @@ module.exports = class JInvitationRequest extends Model
 
   @set
     indexes           :
-      email           : 'unique'
+      email           : ['unique','sparse']
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
     schema            :
       email           :
         type          : String
         email         : yes
+        required      : no
+      koding          :
+        username      : String
       kodingen        :
         isMember      : Boolean
         username      : String
@@ -24,6 +27,7 @@ module.exports = class JInvitationRequest extends Model
       requestedAt     :
         type          : Date
         default       : -> new Date
+      group           : String
 
   @create =({email}, callback)->
     invite = new @ {email}

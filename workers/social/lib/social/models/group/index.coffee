@@ -97,6 +97,9 @@ module.exports = class JGroup extends Module
       membershipPolicy :
         targetType  : 'JMembershipPolicy'
         as          : 'owner'
+      readMe        :
+        targetType  : 'JReadme'
+        as          : 'owner'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -326,10 +329,16 @@ module.exports = class JGroup extends Module
 
   requestInvitation: secure (client, callback)->
     JUser = require '../user'
-    JUser.fetchUser client, (err, user)->
-      if err then callback err
-      else
-        console.log {user}
+    JInvitationRequest = require '../invitationrequest'
+    {delegate} = client.connection
+    (new JInvitationRequest {
+      koding: { username: delegate.profile.nickname }
+      group: @slug
+    }).save (err)->
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
