@@ -1,11 +1,15 @@
 class KDTabHandleView extends KDView
-  constructor:(options)->
-    options = $.extend
-      hidden  : no          # yes or no
-      title   : "Title"     # a String
-      pane    : null        # a KDTabPaneView instance
-      view    : null        # a KDView instance to put in the tab handle
-    ,options
+  constructor:(options = {})->
+    options.hidden   ?= no        # yes or no
+    options.title    ?= "Title"   # a String
+    options.pane     ?= null      # a KDTabPaneView instance
+    options.view     ?= null      # a KDView instance to put in the tab handle
+    options.sortable ?= no        # yes or no
+
+    if options.sortable
+      options.draggable  = axis: "x"
+      @dragStartPosX = null
+
     super options
 
   setDomElement:()->
