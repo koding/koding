@@ -2,7 +2,7 @@
 
 module.exports = class JGroup extends Module
 
-  [ERROR_UNKNOWN, ERROR_NO_POLICY] = [403010, 403001]
+  [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
   {Relationship} = require 'jraphical'
 
@@ -47,8 +47,8 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup',
-        'fetchMembershipPolicy'
+        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
       ]
     schema          :
       title         :
@@ -129,8 +129,6 @@ module.exports = class JGroup extends Module
       else
         group             = new @ formData
         permissionSet     = new JPermissionSet
-        membershipPolicy  = new JMembershipPolicy
-
         queue = [
           -> group.save (err)->
               if err then callback err
@@ -167,14 +165,18 @@ module.exports = class JGroup extends Module
               else
                 console.log 'group is added'
                 queue.next()
-          -> membershipPolicy.save (err)->
-            if err then callback err
-            else queue.next()
-          -> group.addMembershipPolicy membershipPolicy, (err)->
-            if err then callback err
-            else queue.next()
-          -> callback null, group
         ]
+        if 'private' is group.privacy
+          membershipPolicy  = new JMembershipPolicy 
+          queue.push(
+            -> membershipPolicy.save (err)->
+              if err then callback err
+              else queue.next()
+            -> group.addMembershipPolicy membershipPolicy, (err)->
+              if err then callback err
+              else queue.next()
+          )
+        queue.push -> callback null, group
 
         daisy queue
 
@@ -294,6 +296,16 @@ module.exports = class JGroup extends Module
     success : (client, formData, callback)->
       @update {$set:formData}, callback
 
+  modifyMembershipPolicy: permit
+    advanced : [
+      { permission: 'edit own groups', validateWith: Validators.own }
+      { permission: 'edit groups' }
+    ]
+    success : (client, formData, callback)->
+      @fetchMembershipPolicy (err, policy)->
+        if err then callback err
+        else policy.update $set: formData, callback
+
   canEditGroup: permit 'grant permissions'
     success:(client, callback)-> callback null, yes
 
@@ -306,8 +318,18 @@ module.exports = class JGroup extends Module
                       err?.message ?
                       'No membership policy!'
         clientError = err ? new KodingError explanation
-        clientError.accessCode = policy?.code ? if err then ERROR_UNKNOWN else ERROR_NO_POLICY
+        clientError.accessCode = policy?.code ?
+          if err then ERROR_UNKNOWN
+          else if explanation? then ERROR_POLICY
+          else ERROR_NO_POLICY
         callback clientError, no
+
+  requestInvitation: secure (client, callback)->
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)->
+      if err then callback err
+      else
+        console.log {user}
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback

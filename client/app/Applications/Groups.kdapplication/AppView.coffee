@@ -80,7 +80,24 @@ class GroupsMainView extends KDView
 
 class GroupsWebhookView extends JView
 
-  viewAppended:->
+  constructor:->
+    super
+
+    @editLink = new CustomLinkView
+      href    : '#'
+      title   : 'Edit webhook'
+      click   : (event)=>
+        event.preventDefault()
+        @emit 'WebhookEditRequested'
+
+  pistachio:->
+    "{.endpoint{#(webhookEndpoint)}}{{> @editLink}}"
+
+class GroupsEditableWebhookView extends JView
+
+  constructor:->
+    super
+
     @webhookEndpointLabel = new KDLabelView title: "Webhook endpoint"
 
     @webhookEndpoint = new KDInputView
@@ -91,10 +108,15 @@ class GroupsWebhookView extends JView
     @saveButton = new KDButtonView
       title     : "Save"
       style     : "cupid-green"
-      callback  : => @getDelegate().emit 'WebhookIsSaved'
+      callback  : =>
+        @emit 'WebhookChanged', webhookEndpoint: @webhookEndpoint.getValue()
 
+  setFocus:->
+    @webhookEndpoint.focus()
+    return this
 
-    super
+  setValue:(webhookEndpoint)->
+    @webhookEndpoint.setValue webhookEndpoint
 
   pistachio:->
     """
@@ -103,27 +125,125 @@ class GroupsWebhookView extends JView
     {{> @saveButton}}
     """
 
+class GroupsMembershipPolicyLanguageEditor extends JView
+
+  constructor:->
+    super
+    policy = @getData()
+
+    @editor = new KDInputView
+      type          : 'textarea'
+      defaultValue  : policy.explanation
+      keydown       : => @saveButton.enable()
+
+    @cancelButton = new KDButtonView
+      title     : "Cancel"
+      cssClass  : "clean-gray"
+      callback  : => @hide()
+
+    @saveButton = new KDButtonView
+      title     : "Save"
+      cssClass  : "cupid-green"
+      callback  : =>
+        @saveButton.disable()
+        @emit 'PolicyLanguageChanged', explanation: @editor.getValue()
+
+  pistachio:-> "{{> @editor}}{{> @saveButton}}"
 
 class GroupsMembershipPolicyView extends JView
 
-  viewAppended:->
+  constructor:(options, data)->
+    super
+    policy = @getData()
+
+    {invitationsEnabled, webhookEndpoint, accessRequestsEnabled} = policy
+    webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
+    
     @enableInvitations = new KDOnOffSwitch
-      callback      : (state) => @emit "ace.changeSetting", "useSoftTabs", state
-  
-    @enableWebhooks = new KDOnOffSwitch
+      defaultValue  : invitationsEnabled
       callback      : (state) =>
-        @emit "ace.changeSetting", "useSoftTabs", state
-        @webhook[if state then 'show' else 'hide']()
+        @emit 'MembershipPolicyChanged', invitationsEnabled: state
+  
+    @enableAccessRequests = new KDOnOffSwitch
+      defaultValue  : accessRequestsEnabled
+      callback      : (state) =>
+        @emit 'MembershipPolicyChanged', accessRequestsEnabled: state  
+
+    @enableWebhooks = new KDOnOffSwitch
+      defaultValue  : webhookExists
+      callback      : (state) =>
+        @webhook.hide()
+        @webhookEditor[if state then 'show' else 'hide']()
+        if state then @webhookEditor.setFocus()
+        else @emit 'MembershipPolicyChanged', webhookEndpoint: null
 
     @webhook = new GroupsWebhookView
-      cssClass: 'hidden'
-      delegate: this
+      cssClass: unless webhookExists then 'hidden'
+    , policy
 
-    super
+    @webhookEditor = new GroupsEditableWebhookView
+      cssClass: 'hidden'
+    , policy
+
+    @on 'MembershipPolicyChangeSaved', =>
+      console.log 'saved'
+      # @webhookEditor.saveButton.loader.hide()
+
+    @webhook.on 'WebhookEditRequested', =>
+      @webhook.hide()
+      @webhookEditor.show()
+
+    @webhookEditor.on 'WebhookChanged', (data)=>
+      @emit 'MembershipPolicyChanged', data
+      {webhookEndpoint} = data
+      webhookExists = !!webhookEndpoint
+      policy.webhookEndpoint = webhookEndpoint
+      policy.emit 'update'
+      @webhookEditor.hide()
+      @webhook[if webhookExists then 'show' else 'hide']()
+      @enableWebhooks.setValue webhookExists
+
+    @enableInvitations.setValue invitationsEnabled
+
+    if webhookExists
+      @webhookEditor.setValue webhookEndpoint
+      @webhook.show()
+
+    policyLanguageExists = policy.explanation
+
+    @showPolicyLanguageLink = new CustomLinkView
+      cssClass  : if policyLanguageExists then 'hidden'
+      title     : 'Edit policy copy'
+      href      : './edit'
+      click     :(event)=>
+        event.preventDefault()
+        @showPolicyLanguageLink.hide()
+        @policyLanguageEditor.show()
+
+    @policyLanguageEditor = new GroupsMembershipPolicyLanguageEditor
+      cssClass      : unless policyLanguageExists then 'hidden'
+    , policy
+
+    @policyLanguageEditor.on 'PolicyLanguageChanged', (data)=>
+      @emit 'MembershipPolicyChanged', data
+      {explanation} = data
+      explanationExists = !!explanation
+      policy.explanation = explanation
+      policy.emit 'update'
 
 
   pistachio:->
     """
+    <section class="formline">
+      <h2>Users may request access</h2>
+      <div class="formline">
+        <p>If you disable this feature, users will not be able to request
+        access to this group</p>
+      </div>
+      <div class="formline">
+        Users may request access              {{> @enableAccessRequests}}
+      </div>
+    </section>
     <section class="formline">
       <h2>Invitations</h2>
       <div class="formline">
@@ -132,9 +252,8 @@ class GroupsMembershipPolicyView extends JView
         invitations to your members which they can give to their friends, and
         you'll be able to create keyword-based multi-user invitations which
         can be shared with many people at once.</p>
-        <p>If you choose not to enable invitations, then people may request
-        membership, and as the group administrator, you can manually approve
-        their requests.<p>
+        <p>If you choose not to enable invitations, a more basic request
+        approval functionilty will be exposed.<p>
       </div>
       <div class="formline">
         Enable invitations                    {{> @enableInvitations}}
@@ -152,6 +271,17 @@ class GroupsMembershipPolicyView extends JView
         Enable webhooks                       {{> @enableWebhooks}}
       </div>
       {{> @webhook}}
+      {{> @webhookEditor}}
+    </section>
+    <section class="formline">
+      <h2>Policy language</h2>
+      <div class="formline">
+        <p>It's possible to compose custom policy language (copy) to help your
+        users better understand how they may become members of your group.</p>
+        <p>If you wish, you may enter custom language below (markdown is OK):</p>
+      </div>
+      {{> @showPolicyLanguageLink}}
+      {{> @policyLanguageEditor}}
     </section>
     """
 

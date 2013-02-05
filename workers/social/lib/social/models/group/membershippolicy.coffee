@@ -1,18 +1,32 @@
 {Module} = require 'jraphical'
 {Model} = require 'bongo'
 
-class MembershipVerificationType extends Model
-  @setSchema
-    strategy  :
-      type    : String
-      enum    : ['invalid verification type', [
-        'webhook', 'decoupled webhook', 'manual approval tokens'
-        'personal invitations', 'multiuser invitations'
-      ]]
+module.exports = class JMembershipPolicy extends Module
 
-module.exports = class MembershipPolicy extends Module
+
+  @share()
 
   @set
-    schema    :
-      verificationType  : [MembershipVerificationType]
-      explanation       : String
+    schema                :
+      approvalEnabled     :
+        type              : Boolean
+        default           : yes
+      invitationsEnabled  :
+        type              : Boolean
+        default           : no
+      accessRequestsEnabled:
+        type              : Boolean
+        default           : yes
+      webhookEndpoint     : String
+      explanation         : String
+
+  explain:->
+    return @explanation  if @explanation?
+    if @invitationsEnabled
+      """
+      Sorry, membership to this group requires an invitation.
+      """
+    else if @approvalEnabled
+      """
+      Sorry, membership to this group requires administrative approval.
+      """
