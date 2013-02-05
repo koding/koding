@@ -106,8 +106,11 @@ class KodingRouter extends KDRouter
         slug = stripTemplate route, konstructor
         selector[usedAsPath] = slug
         konstructor?.one selector, (err, model)=>
-          error err  if err?
-          @openContent name, section, model, route
+          error err if err?
+          unless model
+            @handleNotFound route
+          else
+            @openContent name, section, model, route
       else
         @handleNotFound route
 
