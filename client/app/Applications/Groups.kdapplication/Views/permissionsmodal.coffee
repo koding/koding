@@ -107,6 +107,26 @@ class PermissionsModal extends KDFormViewWithFields
     super options,data
     @setClass 'permissions-form col-'+roles.length
 
+    @bindEvent 'scroll'
+
+    @on 'scroll', (event={})=>
+      @applyScrollShadow event
+
+  applyScrollShadow:(event)->
+    isAtTop = @$().scrollTop() is 0 
+    isAtBottom = @$().scrollTop()+@getHeight() is @$()[0].scrollHeight
+
+    unless isAtTop
+      @$('.permissions-header').addClass 'scrolling'
+    else
+      @$('.permissions-header').remove 'scrolling'
+  
+    unless isAtBottom 
+      @$('.formline.button-field').addClass 'scrolling'
+    else
+      @$('.formline.button-field').removeClass 'scrolling'
+
+
   createTree =(values)->
     values.reduce (acc, {module, role, permission})->
       acc[module] ?= {}
@@ -145,9 +165,5 @@ class PermissionsModal extends KDFormViewWithFields
 
   viewAppended:->
     super
-    # @setTemplate @pistachio()
-    # @template.update()
-
-  pistachio:->
-    """
-    """
+    @applyScrollShadow()
+ 

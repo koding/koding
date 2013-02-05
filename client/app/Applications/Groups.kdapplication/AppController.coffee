@@ -296,16 +296,15 @@ class GroupsAppController extends AppController
                   { title : "Visible",    value : "visible" }
                   { title : "Hidden",     value : "hidden" }
                 ]
-          "Permissions" :
-            title : 'Permissions'
-            cssClass : 'permissions-modal'
 
     unless isNewGroup
+      modalOptions.tabs.forms.Permissions =
+        title : 'Permissions'
+        cssClass : 'permissions-modal'
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
       modalOptions.tabs.forms['Membership policy'] =
         title   : "Membership policy"
-
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -321,15 +320,20 @@ class GroupsAppController extends AppController
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
       forms["Membership policy"].addSubView new GroupsMembershipPolicyView {}, group
 
-    group.fetchPermissions (err, permissionSet)->
-      unless err 
-        modal.modalTabs.forms["Permissions"].addSubView new PermissionsModal {
-          privacy: group.privacy
-          permissionSet
-        }, group
-      else
-        modal.modalTabs.forms['Permissions'].addSubView new KDView
-          partial : 'No access'
+      forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
+        size          :
+          width       : 32 
+      permissionsLoader.show()
+      group.fetchPermissions (err, permissionSet)->
+        permissionsLoader.hide()
+        unless err 
+          forms["Permissions"].addSubView new PermissionsModal {
+            privacy: group.privacy
+            permissionSet
+          }, group
+        else
+          forms['Permissions'].addSubView new KDView
+            partial : 'No access'
 
 
   editPermissions:(group)->

@@ -396,6 +396,10 @@
 
 
 .group-admin-modal
+
+  .kdmodal-content .kdtabhandlecontainer .kdtabhandle
+    min-width 60px
+
   div.image-wrapper
     fl()
     borderBox()
@@ -626,13 +630,19 @@
 //                 text-align    left
 
 .permissions-modal
+
+  .kdview.kdloader
+    display           block
+    margin            10px auto
+
   .permissions-header
     abs()
     top -20px
     left 0
     right 0
     z-index 20000
-    vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
+    &.scrolling
+      shadow 0 5px 15px -5px rgba(0,0,0,0.1)
     > .input-wrapper > .kdview
       width auto
       line-height 20px
@@ -651,9 +661,14 @@
     &.col-3
       .formline .input-wrapper
         width 110px
-
+    &.col-5 
+      .formline .input-wrapper
+        width 67px
+      
     .formline
-      &.button-field 
+      &.button-field
+        &.scrolling 
+          shadow 0 -5px 10px 0px rgba(0,0,0,0.1)
         abs()
         left 0
         right 0
