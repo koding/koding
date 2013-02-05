@@ -13,10 +13,14 @@ class MainTabHandleHolder extends KDView
 
     mainView.mainTabView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
     mainView.mainTabView.on "PaneRemoved", => @_repositionPlusHandle()
+
     mainView.mainTabView.on "PaneAdded", (pane) =>
       tabHandle = pane.tabHandle
+
+      tabHandle.on "DragStarted", =>
+        if @subViews.length <= 2 then tabHandle.dragIsAllowed = no else tabHandle.dragIsAllowed = yes
       tabHandle.on "DragInAction", =>
-        @plusHandle.hide()
+        @plusHandle.hide() if tabHandle.dragIsAllowed
       tabHandle.on "DragFinished", =>
         @plusHandle.show()
 
