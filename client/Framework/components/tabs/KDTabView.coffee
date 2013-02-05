@@ -65,10 +65,24 @@ class KDTabView extends KDScrollView
 
       newTabHandle.$().css maxWidth: @getOptions().maxHandleWidth
 
+      newTabHandle.on "HandleIndexHasChanged", @bound "resortTabHandles"
+
       return paneInstance
     else
       warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
       false
+
+  resortTabHandles:->
+    #   {subViews}       = @holder
+    #   temp             = subViews[@draggedItemIndex]
+
+    #   subViews.splice(@draggedItemIndex, 1);
+    #   targetPos = if @isDraggingToLeft then Math.abs @passedHandleLength - @draggedItemIndex else @passedHandleLength + @draggedItemIndex
+    #   subViews.splice(targetPos, 0, temp);
+
+    #   names = ''
+    #   names += ', ' + $(subView.domElement).find('b').text() for subView in subViews
+    #   log names
 
   removePane:(pane)->
     pane.emit "KDTabPaneDestroy"
