@@ -16,7 +16,7 @@ do ->
     '/:name?/Topics/Search'
     '/:name?/Develop'
     '/:name?/Apps'
-    '/:name?/Apps/:slug'
+    '/:name?/Apps/:appSlug'
     '/:name?/Apps/Search'
     '/:name?/Activity/Search'
     '/:name?/Recover/:recoveryToken'

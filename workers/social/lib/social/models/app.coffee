@@ -207,15 +207,21 @@ module.exports = class JApp extends jraphical.Module
             identifier  : data.identifier
             versions    : [data.manifest.version]
 
-          app.save (err)->
+          app.createSlug (err, slug)->
             if err
               callback err
             else
-              app.addCreator delegate, (err)->
+              app.slug   = slug
+              app.slug_  = slug
+              app.save (err)->
                 if err
                   callback err
                 else
-                  callback null, app
+                  app.addCreator delegate, (err)->
+                    if err
+                      callback err
+                    else
+                      callback null, app
 
   install: secure ({connection}, callback)->
     {delegate} = connection
