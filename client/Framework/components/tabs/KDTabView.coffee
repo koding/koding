@@ -48,11 +48,11 @@ class KDTabView extends KDScrollView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
       @addHandle newTabHandle = new tabHandleClass
-        pane    : paneInstance
-        title   : paneInstance.options.name
-        hidden  : paneInstance.options.hiddenHandle
-        view    : paneInstance.options.tabHandleView
-        sortable: @getOptions().sortable
+        pane      : paneInstance
+        title     : paneInstance.options.name
+        hidden    : paneInstance.options.hiddenHandle
+        view      : paneInstance.options.tabHandleView
+        sortable  : @getOptions().sortable
 
       paneInstance.tabHandle = newTabHandle
       @listenTo
@@ -148,11 +148,9 @@ class KDTabView extends KDScrollView
   showHandleCloseIcons:()->
     @tabHandleContainer.$().removeClass "hide-close-icons"
 
-
   handleMouseDownDefaultAction:(clickedTabHandle,event)->
-    for handle,index in @handles
-      if clickedTabHandle is handle
-        @handleClicked(index,event)
+    for handle, index in @handles when clickedTabHandle is handle
+      @handleClicked index, event      
 
   # DEFAULT ACTIONS
   handleClicked:(index,event)=>
