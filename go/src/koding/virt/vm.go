@@ -289,7 +289,11 @@ func copyFile(src, dst string, id int) {
 	if err := df.Chown(id, id); err != nil {
 		panic(err)
 	}
-	if err := df.Chmod(sf.Stat().Mode()); err != nil {
+	info, err := sf.Stat()
+	if err != nil {
+		panic(err)
+	}
+	if err := df.Chmod(info.Mode()); err != nil {
 		panic(err)
 	}
 }
