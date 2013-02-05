@@ -17,6 +17,17 @@ git_branch = ARGV[1]
 git_rev = "HEAD"
 env = "_default"
 
+
+ssh_keys = %w()
+
+Dir.foreach(ENV['HOME'] + '/.ssh') do |item|
+  if item =~ /\.pub$/
+    file = File.open(ENV['HOME'] + '/.ssh/' + item, "rb")
+    contents = file.read
+    ssh_keys << contents
+  end
+end
+
 roles = %w( authworker  broker rabbitmq_server  cacheworker  emailworker  guestcleanup  socialworker  web_server )
 
 roles.each do |role|

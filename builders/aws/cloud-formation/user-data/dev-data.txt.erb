@@ -7,6 +7,10 @@ apt_update: true
 apt_upgrade: true
 timezone: US/Pacific
 
+ssh_authorized_keys:
+<% ssh_keys.each do |i| %>
+  - <%= i %>    
+<% end %> 
 
 apt_sources:
  - source: "deb http://apt.opscode.com/ $RELEASE-0.10 main"
