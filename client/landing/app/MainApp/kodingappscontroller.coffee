@@ -371,11 +371,10 @@ class KodingAppsController extends KDController
               warn err
               callback? err
             else
-              log app, "app published"
-              appManager.openApplication "Apps", yes, (instance)=>
-                @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
-                callback?()
-
+              # log app, "app published"
+              appManager.openApplication "Apps"
+              appManager.tell "Apps", "updateApps"
+              callback?()
 
   approveApp:(app, callback)->
 
