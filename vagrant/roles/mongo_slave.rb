@@ -2,7 +2,7 @@ name "mongo_slave"
 description "The role for MongoDB system slave servers"
 
 env_run_lists "prod" =>  ["role[base_server]", "recipe[mongodb]"],
-              "staging" => ["role[base_server]", "recipe[mongodb]"],
+              "staging" => ["role[base_server]","recipe[lvm]", "recipe[mongodb::disks]", "recipe[mongodb]"],
               "_default" => []
 
 
