@@ -118,9 +118,9 @@ class GroupsListItemView extends KDListItemView
       'Group settings'  :
         callback        : =>
           mainController.emit 'EditGroupButtonClicked', @
-      'Permissions'     :
-        callback        : =>
-          mainController.emit 'EditPermissionsButtonClicked', @
+      # 'Permissions'     :
+      #   callback : =>
+      #     mainController.emit 'EditPermissionsButtonClicked', @
       'My roles'        :
         callback        : =>
           mainController.emit 'MyRolesRequested', @
