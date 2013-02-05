@@ -92,5 +92,12 @@
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
     	  }
+    },
+
+    "Outputs" : {
+        "ScalingGroupName" : {
+          "Description" : "Group name of the newly created AS",
+          "Value" : { "Ref" : "SocialWorkerScalingGroup" }
+        }
     }
 }
