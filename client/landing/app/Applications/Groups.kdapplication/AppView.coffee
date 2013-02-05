@@ -108,7 +108,6 @@ class GroupsEditableWebhookView extends JView
     @saveButton = new KDButtonView
       title     : "Save"
       style     : "cupid-green"
-      loader    : yes
       callback  : =>
         @emit 'WebhookChanged', webhookEndpoint: @webhookEndpoint.getValue()
 
@@ -126,6 +125,30 @@ class GroupsEditableWebhookView extends JView
     {{> @saveButton}}
     """
 
+class GroupsMembershipPolicyLanguageEditor extends JView
+
+  constructor:->
+    super
+    policy = @getData()
+
+    @editor = new KDInputView
+      type          : 'textarea'
+      defaultValue  : policy.explanation
+      keydown       : => @saveButton.enable()
+
+    @cancelButton = new KDButtonView
+      title     : "Cancel"
+      cssClass  : "clean-gray"
+      callback  : => @hide()
+
+    @saveButton = new KDButtonView
+      title     : "Save"
+      cssClass  : "cupid-green"
+      callback  : =>
+        @saveButton.disable()
+        @emit 'PolicyLanguageChanged', explanation: @editor.getValue()
+
+  pistachio:-> "{{> @editor}}{{> @saveButton}}"
 
 class GroupsMembershipPolicyView extends JView
 
@@ -158,7 +181,8 @@ class GroupsMembershipPolicyView extends JView
     , policy
 
     @on 'MembershipPolicyChangeSaved', =>
-      @webhookEditor.saveButton.loader.hide()
+      console.log 'saved'
+      # @webhookEditor.saveButton.loader.hide()
 
     @webhook.on 'WebhookEditRequested', =>
       @webhook.hide()
@@ -167,7 +191,7 @@ class GroupsMembershipPolicyView extends JView
     @webhookEditor.on 'WebhookChanged', (data)=>
       @emit 'MembershipPolicyChanged', data
       {webhookEndpoint} = data
-      webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
+      webhookExists = !!webhookEndpoint
       policy.webhookEndpoint = webhookEndpoint
       policy.emit 'update'
       @webhookEditor.hide()
@@ -179,6 +203,29 @@ class GroupsMembershipPolicyView extends JView
     if webhookExists
       @webhookEditor.setValue webhookEndpoint
       @webhook.show()
+
+    policyLanguageExists = policy.explanation
+
+    @showPolicyLanguageLink = new CustomLinkView
+      cssClass  : if policyLanguageExists then 'hidden'
+      title     : 'Edit policy copy'
+      href      : './edit'
+      click     :(event)=>
+        event.preventDefault()
+        @showPolicyLanguageLink.hide()
+        @policyLanguageEditor.show()
+
+    @policyLanguageEditor = new GroupsMembershipPolicyLanguageEditor
+      cssClass      : unless policyLanguageExists then 'hidden'
+    , policy
+
+    @policyLanguageEditor.on 'PolicyLanguageChanged', (data)=>
+      @emit 'MembershipPolicyChanged', data
+      {explanation} = data
+      explanationExists = !!explanation
+      policy.explanation = explanation
+      policy.emit 'update'
+
 
   pistachio:->
     """
@@ -211,6 +258,16 @@ class GroupsMembershipPolicyView extends JView
       </div>
       {{> @webhook}}
       {{> @webhookEditor}}
+    </section>
+    <section class="formline">
+      <h2>Policy language</h2>
+      <div class="formline">
+        <p>It's possible to compose custom policy language (copy) to help your
+        users better understand how they may become members of your group.</p>
+        <p>If you wish, you may enter custom language below (markdown is OK):</p>
+      </div>
+      {{> @showPolicyLanguageLink}}
+      {{> @policyLanguageEditor}}
     </section>
     """
 
