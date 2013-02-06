@@ -13,7 +13,8 @@ class GroupsAppController extends AppController
     ERROR_PERSONAL_INVITATION_REQUIRED
     ERROR_MULTIUSE_INVITATION_REQUIRED
     ERROR_WEBHOOK_CUSTOM_FORM
-  ] = [403010, 403001, 403002, 403003, 403004, 403005]
+    ERROR_POLICY
+  ] = [403010, 403001, 403002, 403003, 403004, 403005, 403009]
 
   constructor:(options, data)->
     options = $.extend
@@ -121,20 +122,44 @@ class GroupsAppController extends AppController
                       </div>
                       """
         }
+      when ERROR_POLICY
+        {
+          title     : 'This is a private group'
+          content   : 
+            """
+            <div class="modalformline">#{err.message}</div>
+            """
+        }
+
+    if err.accessCode is ERROR_POLICY
+      defaultOptions.buttons['Request access'] = 
+        cssClass    : 'modal-clean-green'
+        loader      :
+          color     : "#ffffff"
+          diameter  : 12
+        callback    : -> @getDelegate().emit 'AccessIsRequested'
+
     _.extend defaultOptions, customOptions
 
-  showErrorModal:(err)->
+  showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
-    console.log {modal}
+    modal.on 'AccessIsRequested', =>
+      @requestAccess group, (err)-> modal.destroy()
+
+  requestAccess:(group, callback)->
+    group.requestInvitation (err)->
+      callback err
+      new KDNotificationView title:
+        if err then err.message
+        else "Invitation has been requested!"
 
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
       if err 
-        @showErrorModal err
+        @showErrorModal group, err
       else
         console.log 'access is granted!'
-
 
 
   putAddAGroupButton:->
@@ -307,6 +332,8 @@ class GroupsAppController extends AppController
       if isPrivateGroup
         modalOptions.tabs.forms['Membership policy'] =
           title   : "Membership policy"
+        modalOptions.tabs.forms['Invitations'] =
+          title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -328,6 +355,9 @@ class GroupsAppController extends AppController
               membershipPolicyView.emit 'MembershipPolicyChangeSaved'
 
           forms["Membership policy"].addSubView membershipPolicyView
+
+        invitationRequestView = new GroupsInvitationRequestsView {}, group
+        forms["Invitations"] = invitationRequestView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 

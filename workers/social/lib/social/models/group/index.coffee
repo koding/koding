@@ -2,7 +2,7 @@
 
 module.exports = class JGroup extends Module
 
-  [ERROR_UNKNOWN, ERROR_NO_POLICY] = [403010, 403001]
+  [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
   {Relationship} = require 'jraphical'
 
@@ -47,8 +47,8 @@ module.exports = class JGroup extends Module
       instance      : [
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup',
-        'fetchMembershipPolicy','modifyMembershipPolicy'
+        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
       ]
     schema          :
       title         :
@@ -96,6 +96,9 @@ module.exports = class JGroup extends Module
         as          : 'role'
       membershipPolicy :
         targetType  : 'JMembershipPolicy'
+        as          : 'owner'
+      readMe        :
+        targetType  : 'JReadme'
         as          : 'owner'
 
   @__resetAllGroups = secure (client, callback)->
@@ -318,8 +321,24 @@ module.exports = class JGroup extends Module
                       err?.message ?
                       'No membership policy!'
         clientError = err ? new KodingError explanation
-        clientError.accessCode = policy?.code ? if err then ERROR_UNKNOWN else ERROR_NO_POLICY
+        clientError.accessCode = policy?.code ?
+          if err then ERROR_UNKNOWN
+          else if explanation? then ERROR_POLICY
+          else ERROR_NO_POLICY
         callback clientError, no
+
+  requestInvitation: secure (client, callback)->
+    JUser = require '../user'
+    JInvitationRequest = require '../invitationrequest'
+    {delegate} = client.connection
+    (new JInvitationRequest {
+      koding: { username: delegate.profile.nickname }
+      group: @slug
+    }).save (err)->
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback

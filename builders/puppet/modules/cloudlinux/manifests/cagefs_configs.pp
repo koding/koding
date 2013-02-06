@@ -133,6 +133,10 @@ class cloudlinux::cagefs_configs {
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/golang.cfg",
            require => [Class['hosting_packages::compilers'],Exec['cagefs_init']]
     }
+    file { "/etc/cagefs/conf.d/haskel.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/haskel.cfg",
+           require => [Class['hosting_packages::haskel'],Exec['cagefs_init']]
+    }
    
    
     file { "/etc/cagefs/cagefs.mp":

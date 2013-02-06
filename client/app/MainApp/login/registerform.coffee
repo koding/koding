@@ -250,6 +250,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     {validate} = @password.input.getOptions()
     delete validate.rules.minLength
     @password.input.setValidation validate
+    @passwordConfirm.input.setValidation validate
 
     @passwordConfirm.setHeight 0
     @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
@@ -266,6 +267,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     {validate} = @password.input.getOptions()
     validate.rules.minLength = 8
     @password.input.setValidation validate
+    @passwordConfirm.input.setValidation validate
 
     @$('p.kodingen-user-notification').height 0
     @passwordConfirm.setHeight 32

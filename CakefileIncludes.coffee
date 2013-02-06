@@ -332,9 +332,9 @@ Includes =
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
-        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
+        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee"
         accountLinked                 : "./client/app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee"
-
+        accountEmailNotifications     : "./client/app/Applications/Account.kdapplication/account/accSettingsPersEmailNotifications.coffee"
         accountDatabases              : "./client/app/Applications/Account.kdapplication/account/accSettingsDevDatabases.coffee"
         accountEditors                : "./client/app/Applications/Account.kdapplication/account/accSettingsDevEditors.coffee"
         accountMounts                 : "./client/app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee"

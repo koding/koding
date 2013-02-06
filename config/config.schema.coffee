@@ -88,6 +88,9 @@ config =
         baseDir             : 1
         setfacl             : 1
   main :
+    aws           :
+      key         : 1
+      secret      : 1
     uri           :
       address     : 1
     projectRoot   : 1
@@ -186,6 +189,13 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
+    emailWorker   :
+      cronInstant : 1
+      cronDaily   : 1
+      run         : 1
+      defaultRecepient : 1
+    emailSender   :
+      run         : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

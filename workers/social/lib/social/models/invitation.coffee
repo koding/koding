@@ -7,7 +7,7 @@ module.exports = class JInvitation extends jraphical.Module
   nodePath = require 'path'
   {uniq} = require 'underscore'
 
-  Emailer = require '../emailer'
+  # Emailer = require '../emailer'
 
   @isEnabledGlobally = yes
 
@@ -17,6 +17,7 @@ module.exports = class JInvitation extends jraphical.Module
   JLimit = require './limit'
   JLimit = require './limit'
   KodingError = require '../error'
+  JMail = require './email'
 
   @share()
 
@@ -162,10 +163,10 @@ module.exports = class JInvitation extends jraphical.Module
           personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
           emailerObj =
-            From      : @getInviteEmail()
-            To        : email
-            Subject   : '[Koding] Here is your beta invite!'
-            TextBody  : personalizedMail
+            from     : @getInviteEmail()
+            email    : email
+            subject  : '[Koding] Here is your beta invite!'
+            content  : personalizedMail
 
           # console.log emailerObj
           if options.justInviteNoEmail
@@ -177,12 +178,17 @@ module.exports = class JInvitation extends jraphical.Module
                 shortenedUrl = response.data.url
                 callback err,shortenedUrl
           else
-            Emailer.send emailerObj, (err)->
-              if err
-                console.log '[ERROR SENDING MAIL]', email,err
-                callback err
-              else
-                callback null
+            email = new JMail emailerObj
+            email.save (err)->
+              unless err then callback null
+              else callback err
+
+            # Emailer.send emailerObj, (err)->
+            #   if err
+            #     console.log '[ERROR SENDING MAIL]', email,err
+            #     callback err
+            #   else
+            #     callback null
             # else console.log email
         else
           # console.log "no invitation was found for #{email}"
@@ -298,23 +304,37 @@ module.exports = class JInvitation extends jraphical.Module
     JUser = require './user'
     JUser.fetchUser client,(err,inviter)=>
 
-      Emailer.send
-        From      : @getInviteEmail()
-        To        : invite.inviteeEmail
-        Subject   : @getInviteSubject(messageOptions)
-        TextBody  : @getInviteMessage(messageOptions)
-        ReplyTo   : inviter.email
-      ,(err) ->
+      email = new JMail
+        email    : invite.inviteeEmail
+        subject  : @getInviteSubject(messageOptions)
+        content  : @getInviteMessage(messageOptions)
+        replyto  : inviter.email
+
+      email.save (err)->
+        limit.update {$inc: usage: 1}, (err)-> console.log err if err
         unless err
-          callback null
-          console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
-          limit.update {$inc: usage: 1}, (err)-> console.log err if err
           invite.update {$set: status: "sent"}, (err)-> console.log err if err
+          callback null
         else
-          limit.update  {$inc: usage: 1}, (err)-> console.log err if err
           invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
           callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
+      # Emailer.send
+      #   From      : @getInviteEmail()
+      #   To        : invite.inviteeEmail
+      #   Subject   : @getInviteSubject(messageOptions)
+      #   TextBody  : @getInviteMessage(messageOptions)
+      #   ReplyTo   : inviter.email
+      # ,(err) ->
+      #   unless err
+      #     callback null
+      #     console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
+      #     limit.update {$inc: usage: 1}, (err)-> console.log err if err
+      #     invite.update {$set: status: "sent"}, (err)-> console.log err if err
+      #   else
+      #     limit.update  {$inc: usage: 1}, (err)-> console.log err if err
+      #     invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
+      #     callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
   @create = secure (client, options, callback)->
     {delegate} = client.connection

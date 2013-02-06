@@ -37,7 +37,7 @@ else
     kite_applications:
       pattern: 'kite-application'
     kite_databases:
-      pattern: 'kite-application'
+      pattern: 'kite-database'
     webserver:
       pattern: 'web'
     worker_social:
@@ -176,9 +176,6 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
-
-    console.log {state, e: state instanceof Error}
-
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account
         state = false
