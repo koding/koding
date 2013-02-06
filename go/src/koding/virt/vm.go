@@ -59,7 +59,7 @@ func (vm *VM) Hostname() string {
 }
 
 func (vm *VM) RbdDevice() string {
-	return "/dev/rbd/rbd/" + vm.String()
+	return "/dev/rbd/vms/" + vm.String()
 }
 
 func (vm *VM) File(path string) string {
@@ -183,17 +183,17 @@ func (vm *VM) Unprepare() error {
 
 func (vm *VM) mapRBD() {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").Run(); err != nil {
+	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).Run(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 			panic(err)
 		}
 
 		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", vm.String(), "--size", "100").CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "100", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", vm.String(), "--pool", "rbd").CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd map failed.", err, out))
 		}
 
