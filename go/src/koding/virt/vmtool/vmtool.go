@@ -27,16 +27,22 @@ var actions = map[string]func(){
 		}
 	},
 	"create-test-vms": func() {
-		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)), nil)
+		startIP := net.IPv4(172, 16, 0, 2)
+		if len(os.Args) >= 4 {
+			startIP = net.ParseIP(os.Args[3])
+		}
+		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(startIP), nil)
 		count, _ := strconv.Atoi(os.Args[2])
 		for i := 0; i < count; i++ {
-			fmt.Println(i)
-			vm := virt.VM{
-				Id: bson.NewObjectId(),
-				IP: utils.IntToIP(<-ipPoolFetch),
-			}
-			vm.Prepare(nil)
-			vm.StartCommand().Run()
+			go func(i int) {
+				vm := virt.VM{
+					Id: bson.NewObjectId(),
+					IP: utils.IntToIP(<-ipPoolFetch),
+				}
+				vm.Prepare(nil)
+				vm.StartCommand().Run()
+				fmt.Println(i)
+			}(i)
 		}
 	},
 }
