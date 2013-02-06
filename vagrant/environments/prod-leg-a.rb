@@ -23,10 +23,10 @@ cookbook_versions({
 
 default_attributes({ 
                      "launch" => {
-                                 "config" => "stage",
+                                 "config" => "rc",
                      },
                      "kd_deploy" => {
-                                "git_branch" => "master_STAGE",
+                                "git_branch" => "master_RC",
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
