@@ -77,9 +77,15 @@ emailSender = ->
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "Sending #{emails.length} e-mail(s)..."
-        for email in emails
-          sendEmail email
+        currentIds = [email._id for email in emails][0]
+        JMail.update {_id: $in: currentIds}, {$set: status: 'sending'}, \
+                     {multi: yes}, (err)->
+          unless err
+            log "Sending #{emails.length} e-mail(s)..."
+            for email in emails
+              sendEmail email
+          else
+            log err
 
 emailSenderCron = new CronJob emailWorker.cronInstant, emailSender
 log "Email Sender CronJob started with #{emailWorker.cronInstant}"
