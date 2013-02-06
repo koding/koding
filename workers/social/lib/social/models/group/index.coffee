@@ -234,7 +234,14 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else if permissionSet?
-          permissionSet.update $set:{permissions}, callback
+          console.log 'updating permissions'
+          permissionSet.update 
+            $set : {permissions}
+          , =>
+            for perm in permissionSet.permissions   #
+              if perm.role is 'guest'               #
+                console.log 'guest found in update' #
+            callback arguments...
         else
           permissionSet = new JPermissionSet {permissions}
           permissionSet.save callback
@@ -247,6 +254,9 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else
+          for perm in permissionSet.permissions     #
+            if perm.role is 'guest'                 #
+              console.log 'guest found in fetch'    #
           callback null, {
             permissionsByModule
             permissions: permissionSet.permissions
