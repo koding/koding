@@ -49,6 +49,7 @@ func main() {
 		switch vm.GetState() {
 		case "RUNNING":
 			state := newState(&vm)
+			states[vm.Id] = state
 			state.startTimeout()
 			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
 		case "STOPPED":
@@ -207,9 +208,6 @@ func main() {
 }
 
 func findSession(session *kite.Session) (*virt.User, *virt.VM) {
-	statesMutex.Lock()
-	defer statesMutex.Unlock()
-
 	var user virt.User
 	if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
 		panic(err)
@@ -217,10 +215,34 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	if user.Uid == 0 {
 		panic("User with uid 0.")
 	}
-
 	vm := getDefaultVM(&user)
-	state, found := states[vm.Id]
-	if !found {
+
+	statesMutex.Lock()
+	state, isExistingState := states[vm.Id]
+	if !isExistingState {
+		state = newState(vm)
+		states[vm.Id] = state
+	}
+	if !state.sessions[session] {
+		state.sessions[session] = true
+		if state.timeout != nil {
+			state.timeout.Stop()
+			state.timeout = nil
+		}
+
+		session.OnDisconnect(func() {
+			statesMutex.Lock()
+			defer statesMutex.Unlock()
+
+			delete(state.sessions, session)
+			if len(state.sessions) == 0 {
+				state.startTimeout()
+			}
+		})
+	}
+	statesMutex.Unlock()
+
+	if !isExistingState {
 		ip := utils.IntToIP(<-ipPoolFetch)
 		if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
 			panic(err)
@@ -244,26 +266,6 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 		if err := vm.WaitForRunning(time.Second); err != nil {
 			log.Warn("Waiting for VM startup failed.", err)
 		}
-
-		state = newState(vm)
-	}
-
-	if !state.sessions[session] {
-		state.sessions[session] = true
-		if state.timeout != nil {
-			state.timeout.Stop()
-			state.timeout = nil
-		}
-
-		session.OnDisconnect(func() {
-			statesMutex.Lock()
-			defer statesMutex.Unlock()
-
-			delete(state.sessions, session)
-			if len(state.sessions) == 0 {
-				state.startTimeout()
-			}
-		})
 	}
 
 	return &user, vm
@@ -298,14 +300,12 @@ func getDefaultVM(user *virt.User) *virt.VM {
 }
 
 func newState(vm *virt.VM) *VMState {
-	state := &VMState{
+	return &VMState{
 		vmId:          vm.Id,
 		sessions:      make(map[*kite.Session]bool),
 		totalCpuUsage: utils.MaxInt,
 		CpuShares:     1000,
 	}
-	states[vm.Id] = state
-	return state
 }
 
 func (state *VMState) startTimeout() {
