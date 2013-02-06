@@ -76,7 +76,10 @@ def main():
     if options.destroy:
         for name in cf_stacks:
             write('Removing stack: %s' % name)
-            conn_cf.delete_stack(name)
+            try:
+                conn_cf.delete_stack(name)
+            except:
+                    write('Failed to delete: %s' % stack_name)
     elif options.info:
         if not len(cf_stacks):
             write('You have no running machines')
@@ -109,12 +112,18 @@ def main():
             stack_name = stack_name.replace('_', '-')
             if stack_name in cf_stacks:
                 write('Updating stack: %s' % stack_name)
-                conn_cf.update_stack(stack_name, template)
+                try:
+                    conn_cf.update_stack(stack_name, template)
+                except:
+                    write('Failed to update: %s' % stack_name)
             else:
                 write('Creating stack: %s' % stack_name)
                 stack_tags = {'Name': stack_name,
                               'Developer': options.username}
-                conn_cf.create_stack(stack_name, template, tags=stack_tags)
+                try:
+                    conn_cf.create_stack(stack_name, template, tags=stack_tags)
+                except:
+                    write('Failed to create: %s' % stack_name)
  
 if __name__ == '__main__':
     main()
