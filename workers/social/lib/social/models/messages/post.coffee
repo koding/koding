@@ -80,8 +80,8 @@ module.exports = class JPost extends jraphical.Message
         targetType    : JTag
         as            : 'tag'
       follower        :
-        as            : 'follower'
         targetType    : JAccount
+        as            : 'follower'
 
   @getAuthorType =-> JAccount
 

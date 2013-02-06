@@ -53,28 +53,27 @@ class KDMultipleChoice extends KDInputView
 
   getValue:-> @currentValue
 
+  setCurrent = (view, label)=>
+    if label in @currentValue
+      view.$("a[name$='#{label}']").removeClass('active')
+      view.currentValue.splice(view.currentValue.indexOf(label), 1)
+    else
+      view.$("a[name$='#{label}']").addClass('active')
+      view.currentValue.push label
+
   setValue:(label, wCallback = yes)->
     {multiple} = do @getOptions
 
     if multiple
-
+      # FIXME later with .first
       @oldValue = [obj for obj in @currentValue][0]
 
-      setCurrent = (label)=>
-        if label in @currentValue
-          @$("a[name$='#{label}']").removeClass('active')
-          @currentValue.splice(@currentValue.indexOf(label), 1)
-        else
-          @$("a[name$='#{label}']").addClass('active')
-          @currentValue.push label
-
       if Array.isArray label
-        [setCurrent(val) for val in label]
+        [setCurrent(@, val) for val in label]
       else
-        setCurrent label
+        setCurrent @, label
 
       do @switchStateChanged if wCallback
-
     else
       @$("a").removeClass('active')
       @$("a[name$='#{label}']").addClass('active')

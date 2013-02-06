@@ -133,19 +133,26 @@ class GroupsAppController extends AppController
 
     if err.accessCode is ERROR_POLICY
       defaultOptions.buttons['Request access'] = 
-        cssClass  : 'cupid-green'
-        callback  : -> @getDelegate().emit 'AccessIsRequested'
+        cssClass    : 'modal-clean-green'
+        loader      :
+          color     : "#ffffff"
+          diameter  : 12
+        callback    : -> @getDelegate().emit 'AccessIsRequested'
 
     _.extend defaultOptions, customOptions
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
-    modal.on 'AccessIsRequested', @requestAccess.bind this, group
-    console.log {modal}
+    modal.on 'AccessIsRequested', =>
+      @requestAccess group, (err)-> modal.destroy()
 
-  requestAccess:(group)->
+  requestAccess:(group, callback)->
     group.requestInvitation (err)->
-      console.log 'invitation is requested', arguments
+      callback err
+      new KDNotificationView title:
+        if err then err.message
+        else "Invitation has been requested!"
+
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
@@ -325,6 +332,8 @@ class GroupsAppController extends AppController
       if isPrivateGroup
         modalOptions.tabs.forms['Membership policy'] =
           title   : "Membership policy"
+        modalOptions.tabs.forms['Invitations'] =
+          title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -346,6 +355,12 @@ class GroupsAppController extends AppController
               membershipPolicyView.emit 'MembershipPolicyChangeSaved'
 
           forms["Membership policy"].addSubView membershipPolicyView
+
+        invitationRequestView = new GroupsInvitationRequestsView {}, group
+        invitationRequestView.on 'InvitationIsSent', (request)->
+          request.sendInvitation ->
+            console.log 'invitation is sent', {arguments}
+        forms["Invitations"].addSubView invitationRequestView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 

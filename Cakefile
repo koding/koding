@@ -5,6 +5,7 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-u', '--username [USER]', 'Subdomain for AWS deployment'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -61,16 +62,14 @@ compileGoBinaries = (configFile,callback)->
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
-      verbose : yes 
+      verbose : yes
       onExit :->
-        callback null  
+        callback null
   else
     callback null
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
-
-
 
 task 'runKites', ({configFile})->
 
@@ -116,15 +115,16 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port) ->
     processes.fork
-      name          : 'server' + port
-      cmd           : __dirname + "/server/index -c #{config} -p #{port}"
-      restart : yes
+      name            : 'server'
+      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
+      restart         : yes
       restartInterval : 100
 
   webPort = webserver.port
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port) ->
     runServer configFile, port
+    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -184,7 +184,6 @@ task 'authWorker',({configFile}) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
               
 
-
 task 'guestCleanup',({configFile})->
 
   processes.fork
@@ -192,6 +191,36 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval: 100
+
+task 'emailWorker',({configFile})->
+
+  processes.fork
+    name            : 'emailWorker'
+    cmd             : "./workers/emailnotifications/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailnotifications']
+        onChange  : (path) ->
+          processes.kill "emailWorker"
+
+task 'emailSender',({configFile})->
+
+  processes.fork
+    name            : 'emailSender'
+    cmd             : "./workers/emailsender/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailsender']
+        onChange  : (path) ->
+          processes.kill "emailSender"
 
 task 'goBroker',({configFile})->
 
@@ -213,6 +242,25 @@ task 'libratoWorker',({configFile})->
     restartInterval: 100
     verbose: yes
 
+task 'cacheWorker',({configFile})->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {cacheWorker} = KONFIG
+
+  processes.fork
+    name            : 'cacheWorker'
+    cmd             : "./workers/cacher/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
+
+
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -223,14 +271,17 @@ task 'checkConfig',({configFile})->
 
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
-  
+
   compileGoBinaries configFile,->
-    invoke 'goBroker'       if config.runGoBroker    
+    invoke 'goBroker'       if config.runGoBroker
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
+    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
+    invoke 'emailWorker'    if config.emailWorker?.run is yes
+    invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
 
 
@@ -240,7 +291,7 @@ task 'run', (options)->
 
 
   config.buildClient = yes if options.buildClient
-  
+
   queue = []
   if config.buildClient is yes
     queue.push -> buildClient options, -> queue.next()
@@ -326,18 +377,49 @@ task 'buildClient', (options)->
 
 
 
+
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build/.cache",->
     console.log "Cache is pruned."
 
 
+task 'deploy', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
+    git_branch = stdout
+    username ?= process.env['USER']
 
+    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
+    proc.stdout.on 'data', (data) ->
+      console.log data.toString()
+    proc.stderr.on 'data', (data) ->
+      console.log data.toString()
 
+task 'destroy', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  username ?= process.env['USER']
 
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
+task 'deploy-info', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  username ?= process.env['USER']
+
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 task 'buildAll',"build chris's modules", ->
 
