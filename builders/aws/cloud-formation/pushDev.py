@@ -55,10 +55,12 @@ def main():
         write('GIT branch name is missing.')
         return
 
-    conn = boto.connect_cloudformation(options.access, options.secret)
+    conn_cf = boto.connect_cloudformation(options.access, options.secret)
+    conn_as = boto.connect_autoscale(options.access, options.secret)
+    conn_ec = boto.connect_ec2(options.access, options.secret)
 
     try:
-        stacks = conn.list_stacks()
+        stacks = conn_cf.list_stacks()
     except:
         write('AWS access key and/or secret is/are not valid.')
         return
@@ -74,13 +76,26 @@ def main():
     if options.destroy:
         for name in cf_stacks:
             write('Removing stack: %s' % name)
-            conn.delete_stack(name)
+            conn_cf.delete_stack(name)
     elif options.info:
         if not len(cf_stacks):
             write('You have no running machines')
             return 
         for name in cf_stacks:
-            write('%40s %s' % (name, cf_stacks[name].stack_status))
+            details = conn_cf.describe_stacks(name)[0]
+            outputs = dict([(o.key, o.value) for o in details.outputs])
+            if 'DomainName' in outputs:
+                write('%-30s : %s' % (name, outputs['DomainName']))
+            elif 'ScalingGroupName' in outputs:
+                groups = conn_as.get_all_groups([outputs['ScalingGroupName']])
+                if len(groups):
+                    ids = [i.instance_id for i in groups[0].instances]
+                    for r in conn_ec.get_all_instances(ids):
+                        for i in r.instances:
+                            if i.public_dns_name:
+                                write('%-30s : %s' % (name, i.public_dns_name))
+                            else:
+                                write('%-30s : %s' % (name, i.private_ip_address))
     else:
         # Re-generate templates
         cmd = os.path.join(CF_DIR, 'generateDev.rb')
@@ -94,12 +109,12 @@ def main():
             stack_name = stack_name.replace('_', '-')
             if stack_name in cf_stacks:
                 write('Updating stack: %s' % stack_name)
-                conn.update_stack(stack_name, template)
+                conn_cf.update_stack(stack_name, template)
             else:
                 write('Creating stack: %s' % stack_name)
                 stack_tags = {'Name': stack_name,
                               'Developer': options.username}
-                conn.create_stack(stack_name, template, tags=stack_tags)
+                conn_cf.create_stack(stack_name, template, tags=stack_tags)
  
 if __name__ == '__main__':
     main()
