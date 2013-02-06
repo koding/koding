@@ -89,7 +89,7 @@ class PermissionsModal extends KDFormViewWithFields
               cascadeFormElements set, roles, module, permission
       permissionOptions
 
-    options.buttons or= 
+    options.buttons or=
         Save          :
           style       : "modal-clean-gray"
           loader      :
@@ -113,15 +113,15 @@ class PermissionsModal extends KDFormViewWithFields
       @applyScrollShadow event
 
   applyScrollShadow:(event)->
-    isAtTop = @$().scrollTop() is 0 
+    isAtTop = @$().scrollTop() is 0
     isAtBottom = @$().scrollTop()+@getHeight() is @$()[0].scrollHeight
 
     unless isAtTop
       @$('.permissions-header').addClass 'scrolling'
     else
       @$('.permissions-header').remove 'scrolling'
-  
-    unless isAtBottom 
+
+    unless isAtBottom
       @$('.formline.button-field').addClass 'scrolling'
     else
       @$('.formline.button-field').removeClass 'scrolling'
@@ -166,4 +166,3 @@ class PermissionsModal extends KDFormViewWithFields
   viewAppended:->
     super
     @applyScrollShadow()
- 
