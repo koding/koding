@@ -285,6 +285,109 @@ class GroupsMembershipPolicyView extends JView
     </section>
     """
 
+class GroupsInvitationRequestListItemView extends KDListItemView
+  constructor:(options, data)->
+    options.cssClass = 'invitation-request formline'
+
+    super
+
+    invitationRequest = @getData()
+
+    @inviteButton = new KDButtonView
+      cssClass  : 'clean-gray fr'
+      title     : 'Send invitation'
+      callback  : =>
+        @getDelegate().emit 'InvitationIsSent', invitationRequest
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
+    """
+    <div class="fl">
+      <div class="username">{{#(koding.username)}}</div>
+      <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+      <div class="is-sent">{{(#(sent) and '✓ Sent') or 'Requested'}}</div>
+    </div>
+    {{> @inviteButton}}
+    """
+
+
+class GroupsInvitationRequestsView extends JView
+
+  constructor:->
+    super
+
+    group = @getData()
+
+    @timestamp = new Date 0
+    @fetchSomeRequests()
+
+    @requestListController = new KDListViewController
+      itemClass: GroupsInvitationRequestListItemView
+
+    @requestList = @requestListController.getListView()
+    @requestList.on 'InvitationIsSent', (invitationRequest)=>
+      @emit 'InvitationIsSent', invitationRequest
+
+    @prepareBulkInvitations()
+    @inviteTools = new KDFormViewWithFields
+      cssClass          : 'invite-tools'
+      fields            :
+        Information     :
+          label         : "Current state"
+          type          : "hidden"
+          nextElement   :
+            currentState:
+              itemClass : KDView
+              partial   : 'Loading...'
+              cssClass  : 'information-line'
+        Count           :
+          label         : "# of Invites"
+          type          : "text"
+          defaultValue  : 10
+          placeholder   : "how many users do you want to Invite?"
+          validate      :
+            rules       :
+              regExp    : /\d+/i
+            messages    :
+              regExp    : "numbers only please"
+        Status          :
+          label         : "Server response"
+          type          : "hidden"
+          nextElement   :
+            statusInfo  :
+              itemClass : KDView
+              partial   : '...'
+              cssClass  : 'information-line'
+    , group
+
+  prepareBulkInvitations:->
+    group = @getData()
+    group.countPendingInvitationRequests (err, count)=>
+      if err then console.error error
+      else
+        [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
+        @inviteTools.inputs.currentState.updatePartial """
+          There #{toBe} currently #{count} #{people} waiting for an invitation
+          """
+
+  fetchSomeRequests:->
+    group = @getData()
+
+    selector  = { timestamp: $gte: @timestamp }
+    options   = { limit: 20, sort: timestamp: -1 }
+
+    group.fetchInvitationRequests selector, options, (err, requests)=>
+      if err then console.error err
+      else
+        @requestListController.instantiateListItems requests
+
+  pistachio:->
+    """
+    {{> @inviteTools}}
+    {{> @requestList}}
+    """
+
 class GroupsMemberPermissionsView extends JView
 
   constructor:(options = {}, data)->
@@ -329,17 +432,13 @@ class GroupsMemberPermissionsView extends JView
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
   viewAppended:->
-
     super
-
     @loader.show()
 
-
   pistachio:->
-
     """
-      {{> @loader}}
-      {{> @listWrapper}}
+    {{> @loader}}
+    {{> @listWrapper}}
     """
 
 class GroupsMemberPermissionsListItemView extends KDListItemView
