@@ -287,7 +287,7 @@ class GroupsMembershipPolicyView extends JView
 
 class GroupsInvitationRequestListItemView extends KDListItemView
   constructor:(options, data)->
-    options.cssClass = 'invitation-request formline'
+    options.cssClass = 'invitation-request formline clearfix'
 
     super
 
