@@ -33,6 +33,7 @@ var actions = map[string]func(){
 		}
 		ipPoolFetch, _ := utils.NewIntPool(utils.IPToInt(startIP), nil)
 		count, _ := strconv.Atoi(os.Args[2])
+		done := make(chan int)
 		for i := 0; i < count; i++ {
 			go func(i int) {
 				vm := virt.VM{
@@ -41,8 +42,11 @@ var actions = map[string]func(){
 				}
 				vm.Prepare(nil)
 				vm.StartCommand().Run()
-				fmt.Println(i)
+				done <- i
 			}(i)
+		}
+		for i := 0; i < count; i++ {
+			fmt.Println(<-done)
 		}
 	},
 }
