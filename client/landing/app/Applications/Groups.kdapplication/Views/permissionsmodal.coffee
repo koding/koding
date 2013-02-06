@@ -5,15 +5,6 @@ class PermissionsModal extends KDFormViewWithFields
 
   constructor:(options,data)->
 
-    group                   = data # @getData()
-    {privacy,permissionSet} = options #@getOptions()
-
-    # here we should handle custom roles and add them for display
-    roles = ['member','moderator','admin']
-    roles.unshift 'guest' if group.privacy is 'public'
-
-    roles.unshift 'Mew'+i for i in [1..1+Math.abs 3*Math.random()]
-
     readableText = (text)->
       dictionary =
         "JTag" : "Tags"
@@ -41,7 +32,7 @@ class PermissionsModal extends KDFormViewWithFields
           cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
           name          : _getCheckboxName module, permission, current
           defaultValue  : checkForPermission set.permissions,module,permission,current
-      if current is 'admin'
+      if current in ['admin','owner']
         cascadeData[current].defaultValue = yes
         cascadeData[current].disabled = yes
       if current and remainder.length > 0
@@ -90,67 +81,113 @@ class PermissionsModal extends KDFormViewWithFields
               cascadeFormElements set, roles, module, permission
       permissionOptions
 
+    group                   = data # @getData()
+    {privacy,permissionSet} = options #@getOptions()
+
+    roles = []
+    roles.push role.title for role in options.roles
+
+    roles.splice(roles.indexOf('owner'),1) 
+    roles.splice(roles.indexOf('admin'),1) 
+
     options.buttons or= 
-        "Add Role"    :
-          style       : "modal-clean-gray"
-          cssClass    : 'add-role'
-          callback    : =>
-            @addSubView addRoleDialog = new KDDialogView
-              cssClass      : "add-role-dialog"
-              duration      : 200
-              topOffset     : -21
-              overlay       : yes
-              height        : 'auto'
-              buttons       :
-                Save        :
-                  style     : "modal-clean-gray"
-                  callback  : ()=>
-                    addRoleDialog.hide()
-                Cancel :
-                  style     : "modal-cancel"
-                  callback  : ()->
-                    addRoleDialog.hide()
-            addRoleDialog.addSubView wrapper = new KDView
-              cssClass : "kddialog-wrapper"
+      "Add Role"          :
+        style             : "modal-clean-gray"
+        cssClass          : 'add-role'
+        loader      :
+          color     : "#444444"
+          diameter  : 12
+        callback          : =>
+          @addSubView addRoleDialog = new KDDialogView
+            cssClass      : "add-role-dialog"
+            duration      : 200
+            topOffset     : -21
+            overlay       : yes
+            height        : 'auto'
+            buttons       :
+              
+              "Add Role"        :
+                style     : "add-role-button modal-clean-gray"
+                cssClass  : 'add-role-button'
+                loader      :
+                  color     : "#444444"
+                  diameter  : 12
 
-            wrapper.addSubView title = new KDCustomHTMLView
-              tagName : 'h1'
-              partial : 'Add new Role'
-            
-            wrapper.addSubView form = new KDFormView
+                callback  : ()=>   
+                  name    = @inputRoleName.getValue()
+                  nameSlug= @utils.slugify name
+                  copy    = @inputCopyPermissions.getValue()
+                  
+                  group.addCustomRole
+                    title : nameSlug
+                    isConfigureable : yes
+                  , (err,role)=>
+                    log err if err
+                    # TODO add copied permissions here
+                    
+                    unless copy is null
+                      log 'copying permissions from ',copy,' to ',role
 
-            form.addSubView labelRoleName = new KDLabelView
-              title : "Role Name:"
+                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
+                    @on 'RoleViewRefreshed', =>
+                      @utils.wait 500, =>
+                        addRoleDialog.buttons["Add Role"].hideLoader()
+                        addRoleDialog.hide()
+              
+              Cancel :
+                style     : "add-role-cancel modal-cancel"
+                cssClass  : 'add-role-cancel'
+                callback  : ()->
+                  addRoleDialog.hide()
 
-            form.addSubView @inputRoleName = inputRoleName = new KDInputView
-              label        : labelRoleName
-              defaultValue : ''
-              placeholder  : 'new-role'
+          addRoleDialog.addSubView wrapper = new KDView
+            cssClass      : "kddialog-wrapper"
 
-            form.addSubView labelCopyPermissions = new KDLabelView
-              title : "Copy Permissions from"
+          wrapper.addSubView title = new KDCustomHTMLView
+            tagName       : 'h1'
+            cssClass      : 'add-role-header'
+            partial       : 'Add new Role'
+          
+          wrapper.addSubView form = new KDFormView
 
-            selectOptions = [{title:'None',value:null}]
-            selectOptions.push {title:readableText(role),value:role} for role in roles
-            
-            form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
-              selectOptions : selectOptions
-              defaultValue : null
-            addRoleDialog.show()
+          form.addSubView labelRoleName = new KDLabelView
+            cssClass      : 'label-role-name'
+            title         : "Role Name:"
 
-        Save          :
-          style       : "modal-clean-gray"
-          loader      :
-            color     : "#444444"
-            diameter  : 12
-          callback    : =>
-            group.updatePermissions(
-              @reducedList()
-              (err,res)=>
-                log 'updated permissions',err,res
-                @buttons["Save"].hideLoader()
-                # TODO: do something with this callback
-            )
+          form.addSubView @inputRoleName = inputRoleName = new KDInputView
+            cssClass      : 'role-name'
+            label         : labelRoleName
+            defaultValue  : ''
+            placeholder   : 'new-role'
+
+          form.addSubView labelCopyPermissions = new KDLabelView
+            cssClass      : 'label-copy-permissions'
+            title         : "Copy Permissions from"
+
+          selectOptions   = [{title:'None',value:null}]
+          selectOptions.push {title:readableText(role),value:role} for role in roles
+          
+          form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
+            cssClass      : 'copy-permissions'
+            selectOptions : selectOptions
+            defaultValue  : null
+
+          addRoleDialog.show()
+
+      Save          :
+        style       : "modal-clean-gray"
+        loader      :
+          color     : "#444444"
+          diameter  : 12
+        callback    : =>
+          group.updatePermissions(
+            @reducedList()
+            (err,res)=>
+              log 'updated permissions',err,res
+              @buttons["Save"].hideLoader()
+              # TODO: do something with this callback
+          )
+
     options.fields or= optionizePermissions permissionSet
     super options,data
     @setClass 'permissions-form col-'+roles.length
