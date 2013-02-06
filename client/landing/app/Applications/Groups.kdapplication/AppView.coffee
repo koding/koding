@@ -285,6 +285,59 @@ class GroupsMembershipPolicyView extends JView
     </section>
     """
 
+class GroupsInvitationRequestListItemView extends KDListItemView
+  constructor:(options, data)->
+    options.cssClass = 'invitation-request formline'
+
+    super
+
+    invitationRequest = @getData()
+
+    @inviteButton = new KDButtonView
+      cssClass  : 'clean-gray fr'
+      title     : 'Send invitation'
+      callback  : =>
+        @getDelegate().emit 'InvitationIsSent', invitationRequest
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
+    """
+    <div class="fl">
+      <div class="username">{{#(koding.username)}}</div>
+      <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+      <div class="is-sent">{{(#(sent) and '✓') or ''}} Sent</div>
+    </div>
+    {{> @inviteButton}}
+    """
+
+class GroupsInvitationRequestsView extends JView
+
+  constructor:->
+    super
+    @timestamp = new Date 0
+    @fetchSomeRequests()
+
+    @requestListController = new KDListViewController
+      itemClass: GroupsInvitationRequestListItemView
+
+    @requestList = @requestListController.getListView()
+    @requestList.on 'InvitationIsSent', (invitationRequest)=>
+      @emit 'InvitationIsSent', invitationRequest
+
+  fetchSomeRequests:->
+    group = @getData()
+
+    selector  = { timestamp: $gte: @timestamp }
+    options   = { limit: 20, sort: timestamp: -1 }
+
+    group.fetchInvitationRequests selector, options, (err, requests)=>
+      if err then console.error err
+      else
+        @requestListController.instantiateListItems requests
+
+  pistachio:-> "{{> @requestList}}"
+
 class GroupsMemberPermissionsView extends JView
 
   constructor:(options = {}, data)->
@@ -329,11 +382,8 @@ class GroupsMemberPermissionsView extends JView
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
   viewAppended:->
-
     super
-
     @loader.show()
-
 
   pistachio:->
 

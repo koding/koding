@@ -356,7 +356,10 @@ class GroupsAppController extends AppController
           forms["Membership policy"].addSubView membershipPolicyView
 
         invitationRequestView = new GroupsInvitationRequestsView {}, group
-        forms["Invitations"] = invitationRequestView
+        invitationRequestView.on 'InvitationIsSent', (request)->
+          request.sendInvitation ->
+            console.log 'invitation is sent', {arguments}
+        forms["Invitations"].addSubView invitationRequestView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
