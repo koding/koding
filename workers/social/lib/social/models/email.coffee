@@ -30,7 +30,7 @@ module.exports = class JMail extends Model
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'failed']]
+        enum         : ['Invalid status', ['queued', 'sending', 'attempted', 'failed']]
       subject        : String
       content        : String
       # unsubscribeId  : String

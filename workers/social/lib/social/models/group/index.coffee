@@ -28,6 +28,7 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
+      'send invitations'                  : []
       'open group'                        : ['member', 'moderator']
       'list members'                      : ['member', 'moderator']
       'create groups'                     : ['moderator']
@@ -49,6 +50,7 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
+        'fetchInvitationRequests'
       ]
     schema          :
       title         :
@@ -96,6 +98,9 @@ module.exports = class JGroup extends Module
         as          : 'role'
       membershipPolicy :
         targetType  : 'JMembershipPolicy'
+        as          : 'owner'
+      invitationRequest:
+        targetType  : 'JInvitationRequest'
         as          : 'owner'
       readMe        :
         targetType  : 'JReadme'
@@ -331,14 +336,19 @@ module.exports = class JGroup extends Module
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
     {delegate} = client.connection
-    (new JInvitationRequest {
+    invitationRequest = new JInvitationRequest {
       koding: { username: delegate.profile.nickname }
       group: @slug
-    }).save (err)->
+    }
+    invitationRequest.save (err)=>
       if err?.code is 11000
         callback new KodingError """
           You've already requested an invitation to this group.
           """
+      else
+        @addInvitationRequest invitationRequest, (err)->
+          callback err
+
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback
