@@ -49,6 +49,7 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
+        'fetchReadme'
       ]
     schema          :
       title         :
@@ -97,7 +98,7 @@ module.exports = class JGroup extends Module
       membershipPolicy :
         targetType  : 'JMembershipPolicy'
         as          : 'owner'
-      readMe        :
+      readme        :
         targetType  : 'JReadme'
         as          : 'owner'
 
@@ -170,7 +171,7 @@ module.exports = class JGroup extends Module
                 queue.next()
         ]
         if 'private' is group.privacy
-          membershipPolicy  = new JMembershipPolicy 
+          membershipPolicy  = new JMembershipPolicy
           queue.push(
             -> membershipPolicy.save (err)->
               if err then callback err
@@ -196,7 +197,6 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
-
 
   changeMemberRoles: permit 'grant permissions'
     success:(client, memberId, roles, callback)->
@@ -285,6 +285,10 @@ module.exports = class JGroup extends Module
   fetchMembers$: permit 'list members'
     success:(client, rest...)->
       @fetchMembers rest...
+
+  fetchReadme$: permit 'open group'
+    success:(client, rest...)->
+      @fetchReadme rest...
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
