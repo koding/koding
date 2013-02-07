@@ -1,8 +1,8 @@
 name "mongo_master"
 description "The role for MongoDB system master servers"
 
-env_run_lists "prod" =>  ["role[base_server]", "recipe[mongodb]"],
-              "staging" => ["role[base_server]", "recipe[lvm]", "recipe[mongodb::disks]", "recipe[mongodb]"],
+env_run_lists "staging" => ["role[base_server]", "recipe[lvm]", "recipe[mongodb::disks]", "recipe[mongodb]"],
+              "prod-leg-a" => ["role[base_server]", "recipe[lvm]", "recipe[mongodb::disks]", "recipe[mongodb]"],
               "_default" => []
 
 default_attributes({ "mongodb" => {

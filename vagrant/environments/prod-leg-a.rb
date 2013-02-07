@@ -42,5 +42,8 @@ default_attributes({
                      :rabbitmq => {
                                 :admin_password => "dslkdscmckfjf55",
                                 :user_password => "djfjfhgh4455__5"
+                     },
+                     "mongodb" => {
+                                "source" => "db-m0.prod.aws.koding.com",
                      }
 })
