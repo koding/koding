@@ -8,22 +8,21 @@ class StartTabMainView extends JView
 
     @listenWindowResize()
 
-    @appIcons      = {}
-    mainView       = @getSingleton('mainView')
-    appsController = @getSingleton("kodingAppsController")
-    appsController.on "AppsRefreshed", (apps)=>
-      @getSingleton("kodingAppsController").appStorage.fetchStorage (storage)=>
-        @decorateApps apps
+    @appIcons       = {}
+    mainView        = @getSingleton('mainView')
 
-    appsController.on "aNewAppCreated", =>
+    @appStorage = @getSingleton('mainController') \
+                    .getAppStorageSingleton 'Finder', '1.0'
+
+    @appsController = @getSingleton("kodingAppsController")
+    @appsController.on "AppsRefreshed", (apps)=>
+      @decorateApps apps
+    @appsController.on "aNewAppCreated", =>
       @aNewAppCreated()
 
-    # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
-    #   log "DragInAction", mainView.contentPanel.getWidth()
-
-    # mainView.sidebar.finderResizeHandle.on "DragFinished", =>
-    #   @utils.wait 301, =>
-    #     log "DragFinished", mainView.contentPanel.getWidth()
+    finder = @getSingleton("finderController")
+    finder.on 'recentfiles.updated', =>
+      @updateRecentFileViews()
 
     @loader = new KDLoaderView
       size    :
@@ -39,7 +38,7 @@ class StartTabMainView extends JView
       callback    : =>
         @removeAppIcons()
         @showLoader()
-        appsController.refreshApps (err, apps)=>
+        @appsController.refreshApps (err, apps)=>
           @hideLoader()
           @refreshButton.hideLoader()
 
@@ -49,12 +48,7 @@ class StartTabMainView extends JView
       iconClass   : "plus-black"
       title       : "Make a new App"
       callback    : =>
-        appsController.makeNewApp()
-
-    # appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-    #   storage.update $set : { "bucket.apps" : {} }, =>
-    #     @hideLoader()
-    #     log arguments, "kodingAppsController storage cleared"
+        @appsController.makeNewApp()
 
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
@@ -78,7 +72,6 @@ class StartTabMainView extends JView
   viewAppended:->
 
     super
-    # @addApps()
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
@@ -100,8 +93,12 @@ class StartTabMainView extends JView
 
     @removeAppIcons()
     @showLoader()
-    @getSingleton("kodingAppsController").refreshApps =>
+    @appsController.refreshApps =>
       @hideLoader()
+
+    # Refresh Applications Folder
+    finder = @getSingleton("finderController").treeController
+    finder.refreshFolder finder.nodes["/Users/#{KD.whoami().profile.nickname}/Applications"]
 
   pistachio:->
     """
@@ -130,7 +127,7 @@ class StartTabMainView extends JView
 
     @removeAppIcons()
     @showLoader()
-    @getSingleton("kodingAppsController").fetchApps (err, apps)=>
+    @appsController.fetchApps (err, apps)=>
       @decorateApps apps
 
   decorateApps:(apps)->
@@ -139,7 +136,7 @@ class StartTabMainView extends JView
     @refreshButton.hide()
     @putAppIcons apps
 
-    shortcuts = @getSingleton("kodingAppsController").appStorage.getValue 'shortcuts'
+    shortcuts = @appsController.appStorage.getValue 'shortcuts'
 
     for shortcut, manifest of shortcuts
       do (shortcut, manifest)=>
@@ -178,40 +175,29 @@ class StartTabMainView extends JView
 
     @recentFileViews = {}
 
-    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
+    @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
+      recentFilePaths or= []
+      @updateRecentFileViews()
+      @getSingleton('mainController').on "NoSuchFile", (file)=>
+        recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
+        @appStorage.setValue 'recentFiles', recentFilePaths, ->
+          log "Storage updated for recent files"
 
-      # storage.on "update", => @updateRecentFileViews()
+  updateRecentFileViews:(recentFilePaths)->
 
-      if err
-        error "couldn't fetch the app storage.", err
-      else
-        recentFilePaths = storage.getAt('bucket.recentFiles')
-        @updateRecentFileViews()
-        @getSingleton('mainController').on "NoSuchFile", (file)=>
-          recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-          # log "updating storage", recentFilePaths.length
-          storage.update {
-            $set: 'bucket.recentFiles': recentFilePaths
-          }, => log "storage updated"
+    @recentFileViews or= {}
+    recentFilePaths   ?= @appStorage.getValue('recentFiles') or []
 
+    for path, view of @recentFileViews
+      @recentFileViews[path].destroy()
+      delete @recentFileViews[path]
 
-  updateRecentFileViews:()->
-
-    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
-
-      recentFilePaths = storage.getAt('bucket.recentFiles')
-      # log "updating views", recentFilePaths.length
-
-      for path, view of @recentFileViews
-        @recentFileViews[path].destroy()
-        delete @recentFileViews[path]
-
-      if recentFilePaths?.length
-        recentFilePaths.forEach (filePath)=>
-          @recentFileViews[filePath] = new StartTabRecentFileItemView {}, filePath
-          @recentFilesWrapper.addSubView @recentFileViews[filePath]
-      else
-        @recentFilesWrapper.hide()
+    if recentFilePaths.length
+      recentFilePaths.forEach (filePath)=>
+        @recentFileViews[filePath] = new StartTabRecentFileItemView {}, filePath
+        @recentFilesWrapper.addSubView @recentFileViews[filePath]
+    else
+      @recentFilesWrapper.hide()
 
   createSplitView:(type)->
 

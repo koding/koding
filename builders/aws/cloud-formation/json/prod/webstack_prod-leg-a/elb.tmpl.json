@@ -1,0 +1,111 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy RC ELB for Koding web stack",
+    "Resources" :{
+        "WebRC":{
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval":"5",
+                    "Target":"TCP:3020",
+                    "Timeout": "3",
+                    "UnhealthyThreshold":"5"
+                },
+                "LBCookieStickinessPolicy":[ 
+                    {
+                        "CookieExpirationPeriod":"240",
+                        "PolicyName": "WebSiteLBCookie"
+                    }
+                ],
+                "Listeners": [ 
+                    {
+                        "InstancePort":"8080",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "80",
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort":"80",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "443",
+                        "Protocol": "HTTPS",
+                        "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29",
+                        "PolicyNames": [
+                            "WebSiteLBCookie"
+                        ]
+                    }
+                ],
+                "SecurityGroups":["sg-5756a538", "sg-6a56a505"],
+                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+            }
+        },
+
+        "MqRC":{
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval":"10",
+                    "Target":"TCP:8008",
+                    "Timeout": "5",
+                    "UnhealthyThreshold":"5"
+                },
+                "Listeners": [ 
+                    {
+                        "InstancePort":"8008",
+                        "InstanceProtocol": "TCP",
+                        "LoadBalancerPort": "443",
+                        "Protocol": "SSL",
+                        "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29"
+                    }
+                ],
+                "SecurityGroups":["sg-2c56a543", "sg-6a56a505"],
+                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+            }
+        },
+
+        "WebSiteHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": "koding.com.",
+                "Name" : "rc.koding.com.",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "WebRC", "DNSName" ] } ]
+            }
+        },
+        "BrokerHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": "koding.com.",
+                "Name" : "brc.koding.com.",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "MqRC", "DNSName" ] } ]
+            }
+        }
+
+    },
+
+    "Outputs":{
+        "BrokerHostName": {
+            "Description":"FQDN of RC broker",
+            "Value": { "Ref" : "BrokerHostName"}
+        },
+        "BrokerRcELB": {
+            "Description": "Broker's RC ELB DNS name",
+            "Value": { "Fn::GetAtt": [ "MqRC", "DNSName" ] }
+        },
+        "WebHostName": {
+            "Description":"FQDN of RC WebSite",
+            "Value": { "Ref" : "WebSiteHostName"}
+        },
+        "WebRcELB": {
+            "Description": "WebSite RC ELB DNS name",
+            "Value": { "Fn::GetAtt": [ "WebRC", "DNSName" ] }
+        }
+    }
+    
+}
+

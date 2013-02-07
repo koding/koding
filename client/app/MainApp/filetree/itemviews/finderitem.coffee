@@ -12,9 +12,10 @@ class NFinderItem extends JTreeItemView
     @beingEdited      = no
 
     childConstructor = switch data.type
-      when "folder"  then NFolderItemView
-      when "section" then NSectionItemView
-      when "mount"   then NMountItemView
+      when "folder"     then NFolderItemView
+      when "section"    then NSectionItemView
+      when "mount"      then NMountItemView
+      when "brokenLink" then NBrokenLinkItemView
       else NFileItemView
 
     @childView = new childConstructor {}, data

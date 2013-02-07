@@ -32,15 +32,15 @@ processMonitor = (require 'processes-monitor').start
     callback : (name,msg,details)->
       console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
-  limit_soft:
-    memory: 120
-    callback: (name, msg, details) ->
-      console.log "[SOCIAL WORKER #{name}] Using too much memory, accepting no more new jobs."
-      process.send?({pid: process.pid, exiting: yes})
-      koding.disconnect()
-      setTimeout ->
-        process.exit()
-      , 20000
+  # limit_soft:
+  #   memory: 200
+  #   callback: (name, msg, details) ->
+  #     console.log "[SOCIAL WORKER #{name}] Using too much memory, accepting no more new jobs."
+  #     process.send?({pid: process.pid, exiting: yes})
+  #     koding.disconnect()
+  #     setTimeout ->
+  #       process.exit()
+  #     , 20000
   die :
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback

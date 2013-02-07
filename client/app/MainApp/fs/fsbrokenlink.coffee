@@ -1,0 +1,1 @@
+class FSBrokenLink extends FSFolder

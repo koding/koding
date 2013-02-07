@@ -700,8 +700,8 @@ class KDView extends KDObject
     o.offset    or=
       top         : 0
       left        : 0
-    o.delayIn   or= 30
-    o.delayOut  or= 30
+    o.delayIn   or= 0
+    o.delayOut  or= 0
     o.html      or= yes
     o.animate   or= no
     o.selector  or= null
@@ -713,10 +713,7 @@ class KDView extends KDObject
     o.viewCssClass or= null
 
     @on "viewAppended", =>
-      @utils.wait =>
-        # this is unacceptable will fix it - Arvid Jan 2013
-        unless o.showOnlyWhenOverflowing and (@$()[0]?.scrollWidth<=@getWidth()+parseInt(@$().css('padding-right'),10)+parseInt(@$().css('padding-left'),10))
-          @bindTooltipEvents o
+      @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']
