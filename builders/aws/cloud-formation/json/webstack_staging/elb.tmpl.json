@@ -36,7 +36,7 @@
                         ]
                     }
                 ],
-                "SecurityGroups":["sg-b17399de"],
+                "SecurityGroups":["sg-395aa956","sg-490ffc26"],
                 "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
             }
         },
@@ -60,7 +60,7 @@
                         "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29"
                     }
                 ],
-                "SecurityGroups":["sg-b17399de"],
+                "SecurityGroups":["sg-395aa956", "sg-780ffc17"],
                 "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
             }
         },

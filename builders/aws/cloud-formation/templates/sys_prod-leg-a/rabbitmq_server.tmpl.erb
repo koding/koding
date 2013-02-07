@@ -10,15 +10,15 @@
                 "ImageId": "ami-3d4ff254",
                 "KeyName": "koding",
                 "SubnetId": "subnet-dcd019b6",
-                "SecurityGroupIds": [ "sg-665aa909" ],
+                "SecurityGroupIds": [ "sg-165ba879" ],
                 "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
             }
         },
         "RabbitMQHostName":{
             "Type": "AWS::Route53::RecordSet",
             "Properties":{
-                "HostedZoneName": "stage.aws.koding.com.",
-                "Name" : "rabbit.stage.aws.koding.com.",
+                "HostedZoneName": "prod.aws.koding.com.",
+                "Name" : "rabbit0.prod.aws.koding.com.",
                 "Type" : "A",
                 "TTL" : "900",
                 "ResourceRecords" : [ { "Fn::GetAtt" : [ "RabbitMQInstance", "PrivateIp" ] } ]

@@ -7,7 +7,7 @@
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
         		"InstanceType" : "c1.medium",
-          		"SecurityGroups" : ["sg-b17399de"],
+          		"SecurityGroups" : ["sg-6a56a505"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
@@ -41,10 +41,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "EmailWorkerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"EmailWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"EmailWorkerScalingGroup"}
                       }
                     ]
@@ -64,10 +64,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "EmailWorkerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"EmailWorkerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"EmailWorkerScalingGroup"}
                       }
                     ]
@@ -92,5 +92,12 @@
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
     	  }
+    },
+
+    "Outputs" : {
+        "ScalingGroupName" : {
+          "Description" : "Group name of the newly created AS",
+          "Value" : { "Ref" : "EmailWorkerScalingGroup" }
+        }
     }
 }

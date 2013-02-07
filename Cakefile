@@ -375,9 +375,9 @@ task 'deploy', (options) ->
 
     proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
     proc.stdout.on 'data', (data) ->
-      console.log data.toString()
+      console.log data.toString().trim()
     proc.stderr.on 'data', (data) ->
-      console.log data.toString()
+      console.log data.toString().trim()
 
 task 'destroy', (options) ->
   {configFile,username} = options
@@ -387,9 +387,9 @@ task 'destroy', (options) ->
 
   proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
   proc.stdout.on 'data', (data) ->
-    console.log data.toString()
+    console.log data.toString().trim()
   proc.stderr.on 'data', (data) ->
-    console.log data.toString()
+    console.log data.toString().trim()
 
 task 'deploy-info', (options) ->
   {configFile,username} = options
@@ -399,9 +399,9 @@ task 'deploy-info', (options) ->
 
   proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
   proc.stdout.on 'data', (data) ->
-    console.log data.toString()
+    console.log data.toString().trim()
   proc.stderr.on 'data', (data) ->
-    console.log data.toString()
+    console.log data.toString().trim()
 
 task 'buildAll',"build chris's modules", ->
 
