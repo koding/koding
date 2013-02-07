@@ -51,7 +51,7 @@ module.exports = class JGroup extends Module
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
         'fetchInvitationRequests','countPendingInvitationRequests'
-        'sendSomeInvitations'
+        'sendSomeInvitations','fetchReadme'
       ]
     schema          :
       title         :
@@ -103,7 +103,7 @@ module.exports = class JGroup extends Module
       invitationRequest:
         targetType  : 'JInvitationRequest'
         as          : 'owner'
-      readMe        :
+      readme        :
         targetType  : 'JReadme'
         as          : 'owner'
 
