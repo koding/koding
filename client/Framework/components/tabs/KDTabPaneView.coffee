@@ -1,10 +1,12 @@
 class KDTabPaneView extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      hiddenHandle : no      # yes or no
-      name         : no      # a String
-    ,options
-    super options,data
+  constructor:(options = {},data)->
+    
+    options.hiddenHandle ?= no      # yes or no
+    options.name        or= ""      # a String
+    options.cssClass      = KD.utils.curryCssClass "kdtabpaneview kdhiddentab clearfix #{options.name}"
+
+    super options, data
+    
     @name = options.name
     @setClass "clearfix"
     @setHeight @$().parent().height()
@@ -18,19 +20,16 @@ class KDTabPaneView extends KDView
   aboutToBeDestroyed: noop
 
   show:()->
-    @getDomElement().removeClass("kdhiddentab").addClass("active")
+    @unsetClass "kdhiddentab"
+    @setClass "active"
     @active = yes
     @emit "KDTabPaneActive"
 
   hide:()->
-    @getDomElement().removeClass("active").addClass("kdhiddentab")
+    @unsetClass "active"
+    @setClass "kdhiddentab"
     @active = no
     @emit "KDTabPaneInactive"
-
-  viewAppended:()->
-    {name} = @getOptions()
-    @setClass "kdtabpaneview"# #{name or ''}" Why do we need something like crazy?
-    super
 
   setTitle:(title)->
     @getDelegate().setPaneTitle @,title

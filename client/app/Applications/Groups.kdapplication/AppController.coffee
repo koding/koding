@@ -328,8 +328,6 @@ class GroupsAppController extends AppController
       if isPrivateGroup
         modalOptions.tabs.forms['Membership policy'] =
           title   : "Membership policy"
-        modalOptions.tabs.forms['Invitations'] =
-          title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
     
@@ -355,11 +353,21 @@ class GroupsAppController extends AppController
 
           forms["Membership policy"].addSubView membershipPolicyView
 
-        invitationRequestView = new GroupsInvitationRequestsView {}, group
-        invitationRequestView.on 'InvitationIsSent', (request)->
-          request.sendInvitation ->
-            console.log 'invitation is sent', {arguments}
-        forms["Invitations"].addSubView invitationRequestView
+          if policy.invitationsEnabled
+            tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
+            invitationRequestView = new GroupsInvitationRequestsView {}, group
+            invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+              count = invitationRequestView.inviteTools.inputs.Count.getValue()
+              group.sendSomeInvitations count, (err, message)->
+                if message is null
+                  message = 'Done'
+                  invitationRequestView.prepareBulkInvitations()
+                {statusInfo} = invitationRequestView.inviteTools.inputs
+                statusInfo.updatePartial Encoder.htmlDecode message
+            invitationRequestView.on 'InvitationIsSent', (request)->
+              request.sendInvitation ->
+                console.log 'invitation is sent', {arguments}
+            forms['Invitations'].addSubView invitationRequestView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 

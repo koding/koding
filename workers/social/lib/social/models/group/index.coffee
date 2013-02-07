@@ -51,6 +51,7 @@ module.exports = class JGroup extends Module
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
         'fetchInvitationRequests','countPendingInvitationRequests'
+        'sendSomeInvitations'
       ]
     schema          :
       title         :
@@ -364,10 +365,28 @@ module.exports = class JGroup extends Module
 
   countPendingInvitationRequests: permit 'send invitations'
     success: (client, callback)->
-      console.log {client, callback}
       @countInvitationRequests {}, {sent:no}, callback
 
-
+  sendSomeInvitations: permit 'send invitations'
+    success: (client, count, callback)->
+      console.log count
+      @fetchInvitationRequests {}, {
+        targetOptions :
+          selector    : { sent: no }
+          options     : { limit: count }
+      }, (err, requests)->
+        if err then callback err
+        else
+          queue = requests.map (request)->->
+            request.sendInvitation client, ->
+              callback null, """
+                An invite was sent to:
+                <strong>koding+#{request.koding.username}@koding.com</strong>
+                """
+              setTimeout queue.next.bind(queue), 50
+          queue.push -> callback null, null
+          daisy queue
+  
   requestInvitation: secure (client, callback)->
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
