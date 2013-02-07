@@ -1,0 +1,59 @@
+From d43daeaa4dcfc47232eaedd0bf552a8d42e1c300 Mon Sep 17 00:00:00 2001
+From: Richard Musiol <mail@richard-musiol.de>
+Date: Tue, 13 Nov 2012 04:29:20 +0100
+Subject: [PATCH] Use proc_inum_lock spinlock in interrupt safe way.
+
+---
+ fs/proc/generic.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+index 7b3ae3c..e841c52 100644
+--- a/fs/proc/generic.c
++++ b/fs/proc/generic.c
+@@ -354,23 +354,24 @@ int proc_alloc_inum(unsigned int *inum)
+ {
+ 	unsigned int i;
+ 	int error;
++	unsigned long flags;
+ 
+ retry:
+ 	if (!ida_pre_get(&proc_inum_ida, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+-	spin_lock(&proc_inum_lock);
++	spin_lock_irqsave(&proc_inum_lock, flags);
+ 	error = ida_get_new(&proc_inum_ida, &i);
+-	spin_unlock(&proc_inum_lock);
++	spin_unlock_irqrestore(&proc_inum_lock, flags);
+ 	if (error == -EAGAIN)
+ 		goto retry;
+ 	else if (error)
+ 		return error;
+ 
+ 	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
+-		spin_lock(&proc_inum_lock);
++		spin_lock_irqsave(&proc_inum_lock, flags);
+ 		ida_remove(&proc_inum_ida, i);
+-		spin_unlock(&proc_inum_lock);
++		spin_unlock_irqrestore(&proc_inum_lock, flags);
+ 		return -ENOSPC;
+ 	}
+ 	*inum = PROC_DYNAMIC_FIRST + i;
+@@ -379,9 +380,11 @@ retry:
+ 
+ void proc_free_inum(unsigned int inum)
+ {
+-	spin_lock(&proc_inum_lock);
++	unsigned long flags;
++	
++	spin_lock_irqsave(&proc_inum_lock, flags);
+ 	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
+-	spin_unlock(&proc_inum_lock);
++	spin_unlock_irqrestore(&proc_inum_lock, flags);
+ }
+ 
+ static void *proc_follow_link(struct dentry *dentry, struct nameidata *nd)
+-- 
+1.7.10.4
+
