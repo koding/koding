@@ -106,7 +106,7 @@ module.exports = deepFreeze
     host        : 'rabbit0.prod.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
   kites:
@@ -131,7 +131,7 @@ module.exports = deepFreeze
     mq              :
       host          : 'rabbit0.prod.aws.koding.com'
       login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
+      password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
