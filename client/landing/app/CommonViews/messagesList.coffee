@@ -15,11 +15,8 @@ class MessagesListController extends KDListViewController
     options.startWithLazyLoader   = yes
     super options, data
 
-    @getListView().registerListener
-      KDEventTypes  : "AvatarPopupShouldBeHidden"
-      listener      : @
-      callback      : =>
-        @propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    @getListView().on "AvatarPopupShouldBeHidden", =>
+      @emit 'AvatarPopupShouldBeHidden'
 
   fetchMessages:(callback)->
     appManager.tell 'Inbox', 'fetchMessages',

@@ -2,6 +2,15 @@ class PermissionsGrid extends KDView
 
   viewAppended:->
     @setPartial @partial()
+    @replayPermissions()
+
+  replayPermissions:->
+    for {module, role, permissions} in @getOptions().permissionSet.permissions
+      for permission in permissions
+        name = _getCheckboxName module, permission, role
+        selector = "[name=\"#{name}\"]"
+        @$(selector).prop 'checked', 'checked'
+
 
   ['list','reducedList','tree'].forEach (method)=>
     @::[method] =-> @getPermissions method
@@ -42,8 +51,12 @@ class PermissionsGrid extends KDView
       when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
+
+  _getCheckboxName =(module, permission, role)->
+    ['permission', module].join('-')+'|'+[role, permission].join('|')
+
   _getCheckbox =(module, permission, role)->
-    name = ['permission', module].join('-')+'|'+[role, permission].join('|')
+    name = _getCheckboxName module, permission, role
     """
     <input type=checkbox name='#{name}'#{
       if role is 'admin' then ' disabled checked' else ''
@@ -53,17 +66,18 @@ class PermissionsGrid extends KDView
   partial:->
     {permissionSet, privacy} = @getOptions()
     partial = """
-    <form><table class="permissions-grid">
+    <div class="permission-wrapper">
+    <form><table class="permissions-grid #{if privacy isnt 'public' then "no-guest" else ''}">
       <thead><tr>
-        <th></th>
-        #{if privacy is 'public' then '<th>guest</th>' else ''}
-        <th>member</th><th>moderator</th><th>admin</th>
+        <th>&nbsp;</th>
+        #{if privacy is 'public' then '<th>Guest</th>' else ''}
+        <th>Member</th><th>Moderator</th><th>Administrator</th>
       </tr></thead>
       <tbody>
     """
     for own module, permissions of permissionSet.permissionsByModule
       partial += """
-      <tr>
+      <tr class="module-row">
         <td class="module" colspan=#{
           if privacy is 'public' then '5' else '4'
         }><strong>#{module}</strong></td>
@@ -84,5 +98,6 @@ class PermissionsGrid extends KDView
     partial += """
       </tbody>
     </table></form>
+    </div>
     """
     partial

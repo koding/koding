@@ -4,7 +4,7 @@ class WebTermView extends KDView
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
     @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
-    @container.setClass @appStorage.getValue('theme') or 'black-on-white'
+    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
     @container.$().css fontSize:@appStorage.getValue('fontSize')+'px' or '14px'
   viewAppended: ->
 
@@ -106,17 +106,20 @@ class WebTermView extends KDView
 
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
+      @setKeyView()
 
     @bindEvent 'contextmenu'
 
     KD.singletons.kiteController.run
       kiteName: 'webterm',
-      method: 'createServer',
-      withArgs: @terminal.clientInterface
+      method: 'createSession',
+      withArgs:
+        remote: @terminal.clientInterface
+        name: "none"
+        sizeX: @terminal.sizeX
+        sizeY: @terminal.sizeY
     , (err, remote) =>
       @terminal.server = remote
-      #@terminal.showSessions()
-      @terminal.createSession ""
       @setKeyView()
 
   destroy: ->
@@ -145,6 +148,7 @@ class WebTermView extends KDView
   contextMenu: (event) ->
     # invisible textarea will be placed under the cursor when rightclick
     @createInvisibleTextarea event
+    @setKeyView()
     event
 
   createInvisibleTextarea:(eventData)->
@@ -176,6 +180,7 @@ class WebTermView extends KDView
 
     # remove on any of these events
     @textarea.on 'copy cut paste', (event)=>
+      @setKeyView()
       @utils.wait 1000, => @textarea.remove()
       yes
 

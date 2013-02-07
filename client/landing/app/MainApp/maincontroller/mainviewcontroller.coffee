@@ -31,9 +31,9 @@ class MainViewController extends KDViewController
 
     if appManager.isAppUnderDevelop pane.name
       @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
-    else
-      if @getSingleton('router')? and pane.name isnt @getSingleton('router').getCurrentPath()
-        @getSingleton('router').handleRoute "/#{pane.name}", suppressListeners: yes
+    # else
+    #   if @getSingleton('router')? and pane.name isnt @getSingleton('router').getCurrentPath()
+    #     @getSingleton('router').handleRoute "/#{pane.name}", suppressListeners: yes
 
     if paneType is 'application'
       mainView.setViewState 'application'
