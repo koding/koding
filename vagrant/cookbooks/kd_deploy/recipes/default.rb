@@ -8,6 +8,7 @@
 #
 
 include_recipe "kd_deploy::run_user"
+include_recipe "kd_deploy::packages"
 include_recipe "kd_deploy::deploy"
 include_recipe "kd_deploy::build_modules"
 include_recipe "kd_deploy::build_gosrc"

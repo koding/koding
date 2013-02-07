@@ -9,7 +9,6 @@
 #
 
 
-include_recipe "ceph::ssh_keys"
 
 if node[:ceph].has_key?(:mon_nodes)
 
