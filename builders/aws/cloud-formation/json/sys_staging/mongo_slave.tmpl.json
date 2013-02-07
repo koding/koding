@@ -43,7 +43,7 @@
                 "ImageId": "ami-3d4ff254",
                 "KeyName": "koding",
                 "SubnetId": "subnet-dcd019b6",
-                "SecurityGroupIds": [ "sg-b17399de" ],
+                "SecurityGroupIds": [ "sg-665aa909" ],
                 "Volumes": [
                     {
                         "Device": "/dev/sdf",

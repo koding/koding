@@ -8,7 +8,7 @@
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
         		"InstanceType" : "c1.medium",
-          		"SecurityGroups" : ["sg-b17399de"],
+          		"SecurityGroups" : ["sg-6a56a505"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
@@ -25,7 +25,7 @@
                       "MinSize": "4",
                       "MaxSize": "8",
                       "DesiredCapacity": "4",
-                      "LoadBalancerNames": ["rc-elbs-WebRC-16LAWULODEKL"]
+                      "LoadBalancerNames": ["rc-elbs-WebRC-N60CZPG3IAD9"]
                      } 
           },  
 
