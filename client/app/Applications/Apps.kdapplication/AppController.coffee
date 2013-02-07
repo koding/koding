@@ -104,6 +104,9 @@ class AppsAppController extends AppController
       else
         log "there was an error fetching topics"
 
+  updateApps:->
+    @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"
+
   createContentDisplay:(app, doShow = yes)->
     @showContentDisplay app
 

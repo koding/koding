@@ -66,7 +66,7 @@ class KiteController extends KDController
     # ----- OS KITE VERSION OF THIS FUNCTION ------ #
 
       run:(options = {}, callback)->
-        
+
         if "string" is typeof options
           command = options
           options = {}
@@ -129,8 +129,8 @@ class KiteController extends KDController
   parseKiteResponse:({err, response}, options, callback)->
 
     if err and response
-        callback? err, response
-        warn "there were some errors parsing kite response:", err
+      callback? err, response
+      warn "Command failed:", err
     else if err
       if err.code is 503
         notification = notify
