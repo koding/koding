@@ -28,7 +28,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 10
+    clusterSize : 2
     queueName   : socialQueueName+'web'
     watch       : no
   mongo         : mongo
@@ -59,16 +59,21 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : no
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 10
+    numberOfWorkers: 2
     watch       : no
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -93,7 +98,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://rc.koding.com'
       broker    :
-        sockJS  : 'https://br.koding.com/subscribe'
+        sockJS  : 'https://brc.koding.com/subscribe'
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
@@ -101,7 +106,7 @@ module.exports = deepFreeze
     host        : 'rabbit0.prod.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
   kites:
@@ -126,7 +131,7 @@ module.exports = deepFreeze
     mq              :
       host          : 'rabbit0.prod.aws.koding.com'
       login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
+      password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
