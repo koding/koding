@@ -12,11 +12,11 @@ roles = %w( authworker  broker  cacheworker  emailworker  guestcleanup  socialwo
 
 roles.each do |role|
     userdata = "./user-data/userdata.txt.erb"
-    output = "./json/webstack_#{env}/#{role}.tmpl.json" 
+    output = "./json/staging/webstack_#{env}/#{role}.tmpl.json" 
     userdata = IO.read(userdata)
     bootstrap_script = ERB.new(userdata).result(binding)
 
-    cf_template_erb = IO.read("./templates/webstack_#{env}/#{role}.tmpl.erb")
+    cf_template_erb = IO.read("./templates/staging/webstack_#{env}/#{role}.tmpl.erb")
     cf_template = ERB.new(cf_template_erb).result(binding)
 
     template_file = File.new(output,'w')

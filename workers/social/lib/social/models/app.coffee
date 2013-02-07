@@ -40,15 +40,14 @@ module.exports = class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        'update', 'follow', 'unfollow', 'delete', 'review',
+        'follow', 'unfollow', 'delete', 'review',
         'like', 'checkIfLikedBefore', 'fetchLikedByes',
         'fetchFollowersWithRelationship', 'install',
         'fetchFollowingWithRelationship', 'fetchCreator',
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        "one","on","some","create","byRelevance",
-        "someWithRelationship",'updateAllSlugs'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
       ]
 
     schema          :
@@ -208,15 +207,21 @@ module.exports = class JApp extends jraphical.Module
             identifier  : data.identifier
             versions    : [data.manifest.version]
 
-          app.save (err)->
+          app.createSlug (err, slug)->
             if err
               callback err
             else
-              app.addCreator delegate, (err)->
+              app.slug   = slug
+              app.slug_  = slug
+              app.save (err)->
                 if err
                   callback err
                 else
-                  callback null, app
+                  app.addCreator delegate, (err)->
+                    if err
+                      callback err
+                    else
+                      callback null, app
 
   install: secure ({connection}, callback)->
     {delegate} = connection
@@ -314,13 +319,34 @@ module.exports = class JApp extends jraphical.Module
           @update ($set: approved: state), (err)=>
             callback err
 
+  # Do not return not approved apps
+  @one$ = secure (client, selector, options, callback)->
+    [options, callback] = [callback, options] unless callback
+    @one selector, options, (err, app)->
+      if err then callback err
+      else unless app.approved then callback null
+      else callback null, app
+
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
+
+    # Just show approved apps to regular users
     if not delegate.checkFlag 'super-admin'
       selector.approved = yes
+
+    # If delegate is a publisher one can see its apps
+    # even they are not approved yet.
+    if delegate.checkFlag 'app-publisher'
+      delete selector.approved
+
     @some selector, options, (err, _apps)=>
-      if err then callback err else @markInstalled client, _apps, (err, apps)=>
-        @markFollowing client, apps, callback
+      if err then callback err
+      else
+        if delegate.checkFlag 'app-publisher'
+          _apps = [app for app in _apps when app.approved or delegate.getId().equals app.originId][0]
+
+        @markInstalled client, _apps, (err, apps)=>
+          @markFollowing client, apps, callback
 
   @markInstalled = secure (client, apps, callback)->
     Relationship.all
