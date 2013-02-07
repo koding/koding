@@ -613,36 +613,28 @@
     &.scrolling
       shadow 0 5px 15px -5px rgba(0,0,0,0.1)
     > .input-wrapper > .kdview
+      borderBox()
       width auto
       line-height 20px
       top 0
+      overflow-x hidden
+      display block
       text-overflow ellipsis
+      white-space nowrap
 
   .permissions-form
     overflow-y scroll
     overflow-x hidden
     max-height 300px
     margin-top 20px
+    
+    fraction(full,divisor)
+      fraction = full/divisor
 
-    &.col-3
-      .formline .input-wrapper
-        width 110px // 330
-    &.col-4
-      .formline .input-wrapper
-        width 85px // 340
-    &.col-5 
-      .formline .input-wrapper
-        width 67px // 335
-    &.col-6
-      .formline .input-wrapper
-        width 55px // 330
-    &.col-7
-      .formline .input-wrapper
-        width 48px // 336
-    &.col-8
-      .formline .input-wrapper
-        width 42px // 336
-
+    for num in 2 3 4 5 6 7 8 9 10 11 12
+      &.col-{num}
+        .formline .input-wrapper          
+          width fraction(340,num)px
       
     .formline
       &.button-field
