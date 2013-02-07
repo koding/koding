@@ -59,7 +59,7 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 2
