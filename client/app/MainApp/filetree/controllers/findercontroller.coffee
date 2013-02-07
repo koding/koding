@@ -133,7 +133,6 @@ class NFinderController extends KDViewController
     , callback
 
   fetchStorage:(callback)->
-
     unless @_storage
       appManager.fetchStorage 'Finder', '1.0', (error, storage) =>
         callback @_storage = storage
