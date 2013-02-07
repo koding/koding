@@ -66,6 +66,11 @@ class GroupView extends ActivityContentDisplay
         if data.getId() in groups
           @joinButton.setState 'Leave'
           @joinButton.redecorateState()
+
+    data.fetchMyRoles (err, roles)=>
+      if err then error err
+      else
+        @decorateUponRoles roles
           # @enterButton.show()
     # @homeLink = new KDCustomHTMLView
     #   tagName     : 'a'
@@ -78,6 +83,22 @@ class GroupView extends ActivityContentDisplay
     #     event.preventDefault()
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
+
+  decorateUponRoles:(roles)->
+
+    if "admin" in roles
+      @$('.navbar').removeClass 'hidden'
+      adminDropdown = new KDSelectBox
+        defaultValue  : "admin"
+        selectOptions : [
+            {title : "Admin",           value : "admin"}
+            {title : "Settings",        value : "settings"}
+            {title : "Permissions",     value : "permissions"}
+            {title : "Invitations",     value : "invitations"}
+            {title : "Member Policies", value : "policies"}
+          ]
+      @addSubView adminDropdown, ".navbar"
+
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
@@ -97,7 +118,7 @@ class GroupView extends ActivityContentDisplay
           {{> @joinButton}}
         </div>
       </section>
-      <div class="navbar clearfix">
+      <div class="navbar clearfix hidden">
       </div>
       <div class='desc'>
         {p{#(body)}}
