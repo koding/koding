@@ -81,9 +81,9 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
-    minify      : yes
+    minify      : no
     watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
