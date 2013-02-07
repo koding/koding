@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -52,7 +53,9 @@ var actions = map[string]func(){
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	virt.LoadTemplates("templates")
+
 	action := actions[os.Args[1]]
 	action()
 }
