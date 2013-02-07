@@ -103,7 +103,7 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'rabbit0.prod.aws.koding.com'
+    host        : 'rabbit-b.prod.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -129,7 +129,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.prod.aws.koding.com'
+      host          : 'rabbit-b.prod.aws.koding.com'
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
