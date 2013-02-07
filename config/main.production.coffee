@@ -91,7 +91,7 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://rc.koding.com'
+    staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
