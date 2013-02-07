@@ -83,7 +83,7 @@ module.exports = deepFreeze
   client        :
     pistachios  : yes
     version     : version
-    minify      : no
+    minify      : yes
     watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
