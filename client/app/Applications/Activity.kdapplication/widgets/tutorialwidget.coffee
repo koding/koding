@@ -170,13 +170,16 @@ class ActivityTutorialWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
-    @tagController.reset()
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
     @inputTutorialEmbedShowLink.setValue off
     @embedBox.resetEmbedAndHide()
+
+    # deferred resets
+    @utils.wait 2000, => @tagController.reset()
+
     super
 
   viewAppended:()->

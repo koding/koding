@@ -28,7 +28,8 @@ module.exports = class JPost extends jraphical.Message
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     slug          : String
-    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
+    group         : String 
     counts        :
       followers   :
         type      : Number
@@ -44,15 +45,15 @@ module.exports = class JPost extends jraphical.Message
     slugTemplate: 'Activity/#{slug}'
     indexes     :
       slug      : 'unique'
-    permissions: [
-      'read posts'
-      'create posts'
-      'edit posts'
-      'delete posts'
-      'edit own posts'
-      'delete own posts'
-      'reply to posts'
-    ]
+      group     : 'sparse'
+    permissions :
+      'read posts'        : ['member', 'moderator']
+      'create posts'      : ['member', 'moderator']
+      'edit posts'        : ['moderator']
+      'delete posts'      : ['moderator']
+      'edit own posts'    : ['member', 'moderator']
+      'delete own posts'  : ['member', 'moderator']
+      'reply to posts'    : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
@@ -79,8 +80,8 @@ module.exports = class JPost extends jraphical.Message
         targetType    : JTag
         as            : 'tag'
       follower        :
-        as            : 'follower'
         targetType    : JAccount
+        as            : 'follower'
 
   @getAuthorType =-> JAccount
 
@@ -98,6 +99,7 @@ module.exports = class JPost extends jraphical.Message
     kodingErr
 
   @create = secure (client, data, callback)->
+    console.log 'sfsfsf'
     constructor = @
     {connection:{delegate}} = client
     unless delegate instanceof constructor.getAuthorType() # TODO: rethink/improve
@@ -106,15 +108,19 @@ module.exports = class JPost extends jraphical.Message
       if data?.meta?.tags
         {tags} = data.meta
         delete data.meta.tags
-      status = new constructor data
+
+      status   = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
+
       if delegate.checkFlag 'exempt'
-        status.isLowQuality = yes
+        status.isLowQuality   = yes
         activity.isLowQuality = yes
-      activity.originId = delegate.getId()
+
+      activity.originId   = delegate.getId()
       activity.originType = delegate.constructor.name
-      teaser = null
+      teaser              = null
+
       daisy queue = [
         ->
           status.createSlug (err, slug)->

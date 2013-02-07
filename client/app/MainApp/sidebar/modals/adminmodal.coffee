@@ -196,6 +196,41 @@ class AdminModal extends KDModalViewWithForms
                     partial   : '...'
                     cssClass  : 'information-line'
 
+          "Broadcast Restart" :
+            buttons           :
+              "Broadcast Restart"  :
+                title         : "Broadcast"
+                style         : "modal-clean-gray"
+                callback      : (event)=>
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Restart"]
+
+                  KD.remote.api.JSystemStatus.scheduleRestart
+                    restartScheduled : Date.now()+inputs.Duration.getValue()*1000
+                    restartTitle : inputs.Title.getValue()
+                    restartContent : inputs.Description.getValue()
+                  ,(stuff)=>
+
+              "Cancel Restart" :
+                title         : "Cancel Restart"
+                style         : "modal-clean-gray"
+                callback      : (event)=>
+                  KD.remote.api.JSystemStatus.cancelRestart ->
+
+            fields            :
+              Title           :
+                label         : "Message Title"
+                type          : "text"
+                placeholder   : "Shutdown in"
+              Description           :
+                label         : "Message Details"
+                type          : "text"
+                placeholder   : "We are upgrading the platform. Please save your work."
+              Duration           :
+                label         : "Timer duration (in seconds)"
+                type          : "text"
+                defaultValue  : 5*60
+                placeholder   : "Please enter a reasonable timeout."
+
     super options, data
 
     @hideConnectedFields()

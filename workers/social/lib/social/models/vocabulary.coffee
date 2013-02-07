@@ -18,13 +18,12 @@ module.exports = class JVocabulary extends Module
       tag           :
         targetType  : 'JTag'
         as          : 'vocabulary'
-    permissions     : [
-      'create vocabularies'
-      'edit vocabularies'
-      'delete vocabularies'
-      'edit own vocabularies'
-      'delete own vocabularies'
-    ]
+    permissions     :
+      'create vocabularies'     : ['moderator']
+      'edit vocabularies'       : ['moderator']
+      'delete vocabularies'     : ['moderator']
+      'edit own vocabularies'   : ['moderator']
+      'delete own vocabularies' : ['moderator']
 
   @create =(client, formData, callback)->
     JGroup = require './group'

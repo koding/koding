@@ -15,7 +15,7 @@ module.exports = class Joinable
 
   addToPrivateGroup_ =(client, {as, inviteCode}, callback)->
     {delegate} = client.connection
-    {JInvitation} = require '../invitation'
+    {JInvitation} = require '../models/invitation'
     selector = {code: inviteCode, status: 'active', group: @title}
     JInvitation.one selector, (err, invite)=>
       if err then callback err

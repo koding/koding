@@ -7,7 +7,8 @@ class KDNotificationView extends KDView
     @notificationSetTitle   options.title     if options.title?
     @notificationSetContent options.content   if options.content?
     @notificationSetTimer   options.duration  if options.duration?
-    @notificationSetOverlay options.overlay   if options.overlay? and options.overlay
+    @notificationSetOverlay options.overlay   if options.overlay? and \
+                                                 options.overlay
 
     @notificationShowTimer() if options.showTimer? and options.showTimer
     @notificationSetCloseHandle options.closeManually
@@ -42,7 +43,8 @@ class KDNotificationView extends KDView
     unless title instanceof KDView
       @$().find(".kdnotification-title").html title
     else
-      @notificationTitle.destroy() if @notificationTitle and @notificationTitle instanceof KDView
+      @notificationTitle.destroy() if @notificationTitle and \
+                                      @notificationTitle instanceof KDView
       @addSubView title, ".kdnotification-title"
     @notificationTitle = title
 
@@ -75,6 +77,10 @@ class KDNotificationView extends KDView
           top   : topMargin
           right : 8
       when "mini"
+        styles =
+          top   : 0
+          left  : winWidth/2 - @getDomElement().width()/2
+      when "sticky"
         styles =
           top   : 0
           left  : winWidth/2 - @getDomElement().width()/2

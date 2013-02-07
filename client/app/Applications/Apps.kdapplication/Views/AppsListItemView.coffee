@@ -34,33 +34,6 @@ class AppsListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
-  #   if @getData().installedA
-  #     @alreadyInstalledText()
-  #   else
-  #     @createInstallButton()
-
-  # createInstallButton:->
-  #   app = @getData()
-
-  #   @installButton.destroy() if @installButton?
-  #   @installButton = new KDButtonView
-  #     title : "Install"
-  #     icon  : no
-  #     callback: =>
-  #       list = @getDelegate()
-  #       list.propagateEvent KDEventType : "AppWantsToExpand", app
-
-  #   @addSubView @installButton, '.button-container'
-
-  # alreadyInstalledText:->
-
-  #   @installButton.destroy() if @installButton?
-  #   @installButton = new KDButtonView
-  #     title     : "Installed"
-  #     icon      : no
-  #     disabled  : yes
-  #   @addSubView @installButton, '.button-container'
-
   pistachio:->
     """
     <figure>
@@ -82,6 +55,6 @@ class AppsListItemView extends KDListItemView
     <div class="appdetails">
       <h3>{a[href="#"]{#(title)}}</h3>
       <article>{{@utils.shortenText #(body)}}</article>
-      <a href="/Apps/#{@getData().slug}">Application Page →</a>
+      <a href="#">Application Page →</a>
     </div>
     """

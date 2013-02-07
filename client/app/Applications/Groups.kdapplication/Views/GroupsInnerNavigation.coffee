@@ -30,3 +30,4 @@ class TopicsInnerNavigation extends CommonInnerNavigation
         { title : "Latest Activity",  type : "latest",      action : "sort" }
         { title : "Most Activity",    type : "prolific",    action : "sort" }
       ]
+  

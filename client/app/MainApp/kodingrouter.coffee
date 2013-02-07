@@ -5,6 +5,10 @@ class KodingRouter extends KDRouter
     @openRoutesById = {}
     @getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
+    @ready = no
+    @getSingleton('mainController').once 'AccountChanged', =>
+      @ready = yes
+      @utils.defer => @emit 'ready'
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -25,9 +29,6 @@ class KodingRouter extends KDRouter
     sectionName = nicenames[model.bongo_.constructorName]
     if sectionName? then " - #{sectionName}" else ''
 
-  handleRoute =(groupId, route)->
-    console.log 'invoking a route by group id...'
-
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
     @utils.defer => @addRoute route, ->
@@ -47,13 +48,15 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query, rest...)->
+    return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
+    @getSingleton('groupsController').changeGroup group
     unless group?
       appManager.openApplication app
     else
-      @emit 'GroupChanged', group
-      appManager.tell app, 'setGroup', group
+      # appManager.tell app, 'setGroup', group
+      appManager.openApplication app
     appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
@@ -118,7 +121,7 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
       else
-        # appManager.tell section, 'setGroup', name  if name?
+        appManager.tell section, 'setGroup', name  if name? and not state?
         if state?
           @openContent name, section, state, route
         else
@@ -138,14 +141,14 @@ class KodingRouter extends KDRouter
     mainController = KD.getSingleton 'mainController'
 
     content = createLinks(
-      # 'Activity Apps Groups Members Topics'
-      'Activity Apps Members Topics'
+      'Activity Apps Groups Members Topics'
+      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
     section = createLinks(
-      # 'Account Activity Apps Groups Members StartTab Topics'
-      'Account Activity Apps Inbox Members StartTab Topics'
+      'Account Activity Apps Groups Inbox Members StartTab Topics'
+      # 'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -154,13 +157,13 @@ class KodingRouter extends KDRouter
     requireLogin =(fn)->
       mainController.accountReady ->
         # console.log 'faafafaf'
-        if KD.isLoggedIn() then fn()
+        if KD.isLoggedIn() then __utils.defer fn
         else clear()
 
     requireLogout =(fn)->
       mainController.accountReady ->
         # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
-        unless KD.isLoggedIn() then fn()
+        unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
     routes =
@@ -181,7 +184,7 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.doRecover name
 
       # section
-      # '/:name?/Groups'                  : section.Groups
+      '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity
       '/:name?/Members'                 : section.Members
       '/:name?/Topics'                  : section.Topics
@@ -233,7 +236,7 @@ class KodingRouter extends KDRouter
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
-        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
+        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
           location.replace '#'
           if err
             throw err
@@ -247,13 +250,38 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
+      '/:name?/Unsubscribe/:unsubscribeToken/:opt?': \
+      ({params:{unsubscribeToken, opt}})->
+        opt              = decodeURIComponent opt
+        unsubscribeToken = decodeURIComponent unsubscribeToken
+        KD.remote.api.JMailNotification.unsubscribeWithId \
+        unsubscribeToken, opt, (err, content)=>
+          if err or not content
+            title   = 'An error occured'
+            content = 'Invalid unsubscribe token provided.'
+            log err
+          else
+            title   = 'E-mail settings updated'
+
+          modal = new KDModalView
+            title        : title
+            overlay      : yes
+            cssClass     : "new-kdmodal"
+            content      : "<div class='modalformline'>#{content}</div>"
+            buttons      :
+              "Close"    :
+                style    : "modal-clean-gray"
+                callback : (event)->
+                  modal.destroy()
+          @clear()
+
       # top level names
       '/:name':do->
 
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            # when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
             when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 

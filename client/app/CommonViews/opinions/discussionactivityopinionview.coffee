@@ -15,6 +15,10 @@ class DiscussionActivityOpinionView extends KDView
 
     @opinionController = new OpinionListViewController view: @opinionList
 
+    @getData().on 'update', =>
+      if @opinionList.items.length < 2 and @getData().opinions
+        @opinionList.addItem @getData().opinions[@getData().opinions.length-1]
+
     # the snapshot opinion list gets populated with 2 items at max initially
     # it may grow in size later on, when the user populates the data object
     # through loading items in the content display. this is intentional.

@@ -16,6 +16,7 @@ mkdirp         = require 'mkdirp'
 nodePath       = require 'path'
 async          = require 'async'
 pistachioc     = require 'pistachio-compiler'
+https          = require 'https'
 
 # Coffee-Script
 coffee         = require 'coffee-script'
@@ -41,12 +42,7 @@ executeCommand = require '../sharedHosting/executecommand'
  KodingError,
  AuthorizationError} = require './utils.coffee'
 
-# Dummy-Admins
-dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvidkahl"]
-
 compileScript = (scriptPath, callback)->
-
-  # log.info "Compiling this:", scriptPath
 
   fs.exists scriptPath, (exists)->
     if not exists
@@ -68,6 +64,35 @@ compileScript = (scriptPath, callback)->
           callback err, {file: scriptPath, code: scriptContent}
         else
           callback err, {file: scriptPath, error: new KodingError 'Nothing to do with that file.'}
+
+# Check user priveleges from Unofficial Koding API
+# By-default it uses app-publisher flag to check if not provided any
+checkFlag = (username, flag, callback)->
+
+  [callback, flag] = [flag, callback] unless callback
+
+  # Just for worst case scenarios
+  return callback yes if username is 'gokmen'
+
+  data   = ''
+  state  = false
+  flag  ?= 'app-publisher'
+  apiUrl = "https://koding.com/-/api/user/#{username}/flags/#{flag}"
+
+  request = https.get apiUrl, (res)->
+    res.on 'data', (data)->
+      data += data
+    res.on 'end', ->
+      state = data.toString() is 'true'
+      console.warn "User #{username} tried to make bad things." unless state
+      callback state
+
+  request.on 'error', (e)->
+    console.error "An error occured while communicating with Koding!"
+    callback no
+  request.setTimeout 10000, ->
+    console.error "Timeout reached, does Internet too bad?"
+    callback no
 
 module.exports = new Kite 'applications'
 
@@ -117,6 +142,7 @@ module.exports = new Kite 'applications'
                 chownr {username, path: userAppPath}, callback
 
   copyAppSkeleton:(options, callback)->
+
     {username, appPath, type} = options
 
     appPath = normalizeUserPath(username, escapePath "#{appPath}/")
@@ -259,64 +285,62 @@ module.exports = new Kite 'applications'
 
     {username, profile, version, appName, userAppPath} = options
 
-    if username not in dummyAdmins
-      callback? new AuthorizationError username
-      return no
-
-    # Put a check from api if user has the privilege
-
-    appRootPath   = "/opt/Apps/#{username}/#{appName}"
-    latestPath    = nodePath.join appRootPath, "latest"
-    versionedPath = nodePath.join appRootPath, version
-    userAppPath   = escapePath userAppPath
-
-    log.info appRootPath, latestPath, versionedPath, userAppPath
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    fs.exists versionedPath, (exists)->
-      if exists then cb "[ERROR] Version is already published, change version and try again!"
+    checkFlag username, (state)->
+      unless state
+        callback? new AuthorizationError username
       else
-        mkdirp appRootPath, (err)->
-          if err then cb err
+        appRootPath   = "/opt/Apps/#{username}/#{appName}"
+        latestPath    = nodePath.join appRootPath, "latest"
+        versionedPath = nodePath.join appRootPath, version
+        userAppPath   = escapePath userAppPath
+
+        log.info appRootPath, latestPath, versionedPath, userAppPath
+
+        cb = (err)->
+          console.error err if err
+          callback? err, null
+
+        fs.exists versionedPath, (exists)->
+          if exists then cb "[ERROR] Version is already published, change version and try again!"
           else
-            fse.copyRecursive userAppPath, versionedPath, (err)->
+            mkdirp appRootPath, (err)->
               if err then cb err
               else
-                manifestPath = nodePath.join versionedPath, ".manifest"
-                exec "cat '#{manifestPath}'", (err, stdout, stderr)->
-                  if err or stderr then cb err
+                fse.copyRecursive userAppPath, versionedPath, (err)->
+                  if err then cb err
                   else
-                    exec "rm -f #{manifestPath}", ->
-                      manifest = JSON.parse stdout
-                      manifest.author = "#{profile.firstName} #{profile.lastName}"
-                      manifest.authorNick = username
-                      delete manifest.devMode if manifest.devMode
-                      unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
-                      fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
+                    manifestPath = nodePath.join versionedPath, ".manifest"
+                    exec "cat '#{manifestPath}'", (err, stdout, stderr)->
+                      if err or stderr then cb err
+                      else
+                        exec "rm -f #{manifestPath}", ->
+                          manifest = JSON.parse stdout
+                          manifest.author = "#{profile.firstName} #{profile.lastName}"
+                          manifest.authorNick = username
+                          delete manifest.devMode if manifest.devMode
+                          unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
+                          fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 
   approveApp: (options, callback)->
 
     {username, authorNick, version, appName} = options
 
-    if username not in dummyAdmins
-      callback? new AuthorizationError username
-      return no
-
-    appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
-    latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
-    versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    exec "test -d #{versionedPath}", (err, stdout, stderr)->
-      if err or stderr.length
-        cb "[ERROR] Version is not exists!", version
+    checkFlag username, 'super-admin', (state)->
+      unless state
+        callback? new AuthorizationError username
       else
-        exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
-          if err or stderr then cb err
-          else cb null
+        appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
+        latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
+        versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
+
+        cb = (err)->
+          console.error err if err
+          callback? err, null
+
+        exec "test -d #{versionedPath}", (err, stdout, stderr)->
+          if err or stderr.length
+            cb "[ERROR] Version is not exists!", version
+          else
+            exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+              if err or stderr then cb err
+              else cb null

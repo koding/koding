@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -10,29 +11,8 @@ app.commons.styl
 */
 }
 
-button.joined
-  background            pink !important
-
-table.permissions-grid
-  width                 100%
-  border-width          1px
-  border-spacing        0px
-  border-style          solid
-  border-color          gray
-  border-collapse       collapse
-  background-color      white
-  th
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
-  td
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
+// button.joined
+//   background            pink !important
 
 span.collapsedtext
   borderBox()
@@ -1397,6 +1377,23 @@ figure.code-container
       padding           2px
       margin-right      5px
       padding-left      0
+
+
+.custom-link-view
+  display               inline-block
+  line-height           20px
+  clearfix()
+  noTextDeco()
+  span.icon
+    size                20px, 20px
+    display             inline-block
+    vertical-align      top
+    sprite()
+  span.title
+    text-decoration     underline
+    color               linkColor1
+
+
 
 // /*
 //   Animation tests

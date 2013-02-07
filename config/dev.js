@@ -10,7 +10,7 @@
 
   version = "0.0.1";
 
-  mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect';
+  mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2';
 
   projectRoot = nodePath.join(__dirname, '..');
 

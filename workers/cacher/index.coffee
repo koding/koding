@@ -6,6 +6,8 @@ Broker   = require 'broker'
 
 {mongo, cacheWorker, mq} = KONFIG
 
+mongo += '?auto_reconnect'
+
 mqOptions = extend {}, mq
 # mqOptions.login = cacheWorker.login if cacheWorker?.login?
 

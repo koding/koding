@@ -2,6 +2,9 @@ jraphical = require 'jraphical'
 
 KodingError = require '../error'
 
+likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
+                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
@@ -10,6 +13,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
+  @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
   JAppStorage = require './appstorage'
@@ -163,6 +167,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : "owner"
         targetType  : "JFeed"
 
+  constructor:->
+    super
+    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client
     unless delegate.can 'administer accounts'
@@ -224,15 +232,21 @@ module.exports = class JAccount extends jraphical.Module
           results.push doc.profile.fullname
         callback err, results
 
-  setEmailPreferences: secure (client, prefs, callback)->
+  setEmailPreferences: (user, prefs, callback)->
+    current = user.getAt('emailFrequency') or {}
+    Object.keys(prefs).forEach (granularity)->
+      state = prefs[granularity]
+      state = 'off' if state not in ['on', 'off']
+      current[granularity] = state# then 'instant' else 'never'
+    user.update {$set: emailFrequency: current}, callback
+
+  setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
-    JUser.fetchUser client, (err, user)->
+    JUser.fetchUser client, (err, user)=>
       if err
         callback err
       else
-        Object.keys(prefs).forEach (granularity)->
-          prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
-        user.update {$set: emailFrequency: prefs}, callback
+        @setEmailPreferences user, prefs, callback
 
   glanceMessages: secure (client, callback)->
 
@@ -284,7 +298,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+    selector.sourceName or= $in: likeableActivities
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -313,7 +327,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'like'
       targetId   : @getId()
-      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+      sourceName : $in: likeableActivities
     , (err, count)=>
       @update ($set: 'counts.likes': count), ->
 
@@ -333,7 +347,7 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl", "testdude"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

@@ -45,9 +45,14 @@ end
 
 
 
-
 service "dirsrv" do
   supports :status => true, :restart => true
   action [ :enable, :start ]
 end
 
+
+node['dev-ldap']['indexes'].each do |index|
+    execute "enable_index_#{index}" do
+        command "/usr/lib64/dirsrv/slapd-local/db2index.pl -D '#{node['dev-ldap']['admin_account']}' -w #{node['dev-ldap']['admin_pass']} -n userRoot -t #{index}"
+    end
+end

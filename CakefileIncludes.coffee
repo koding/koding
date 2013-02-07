@@ -81,6 +81,7 @@ Includes =
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
         KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
+        KDMultipleChoice      : "./client/Framework/components/inputs/KDMultipleChoice.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -132,7 +133,6 @@ Includes =
         KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
-        DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
@@ -254,8 +254,10 @@ Includes =
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
         groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
         permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
+        permissionsModal              : "./client/app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
+        groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
@@ -330,9 +332,9 @@ Includes =
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
-        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
+        accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee"
         accountLinked                 : "./client/app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee"
-
+        accountEmailNotifications     : "./client/app/Applications/Account.kdapplication/account/accSettingsPersEmailNotifications.coffee"
         accountDatabases              : "./client/app/Applications/Account.kdapplication/account/accSettingsDevDatabases.coffee"
         accountEditors                : "./client/app/Applications/Account.kdapplication/account/accSettingsDevEditors.coffee"
         accountMounts                 : "./client/app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee"
@@ -394,6 +396,7 @@ Includes =
         # COMMON VIEWS
 
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
+        customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
         profileLinkView             : "./client/app/CommonViews/linkviews/profilelinkview.coffee"
         profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"
@@ -487,6 +490,9 @@ Includes =
         MainTabPane                 : "./client/app/MainApp/maintabs/maintabpaneview.coffee"
         MainTabHandleHolder         : "./client/app/MainApp/maintabs/maintabhandleholder.coffee"
 
+        # global notifications
+        GlobalNotification          : "./client/app/MainApp/globalnotification.coffee"
+
         ### SINANS FINDER ###
 
         NFinderController             : "./client/app/MainApp/filetree/controllers/findercontroller.coffee"
@@ -515,7 +521,17 @@ Includes =
         FSFolder                  : "./client/app/MainApp/fs/fsfolder.coffee"
         FSMount                   : "./client/app/MainApp/fs/fsmount.coffee"
 
-        avatarArea                : "./client/app/MainApp/avatararea.coffee"
+        avatarPopup                      : "./client/app/MainApp/avatararea/avatarareapopup.coffee"
+        avatarAreaIconMenu               : "./client/app/MainApp/avatararea/avatarareaiconmenu.coffee"
+        avatarAreaIconLink               : "./client/app/MainApp/avatararea/avatarareaiconlink.coffee"
+        avatarAreaStatusPopup            : "./client/app/MainApp/avatararea/avatarareasharestatuspopup.coffee"
+        avatarAreaMessagesPopup          : "./client/app/MainApp/avatararea/avatarareamessagespopup.coffee"
+        avatarAreaNotificationsPopup     : "./client/app/MainApp/avatararea/avatarareanotificationspopup.coffee"
+        avatarAreaGroupSwitcherPopup     : "./client/app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee"
+        avatarPopupList                  : "./client/app/MainApp/avatararea/avatarareapopuplist.coffee"
+        avatarPopupMessagesListItem      : "./client/app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee"
+        avatarPopupNotificationsListItem : "./client/app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee"
+
 
         # LOGIN VIEWS
         loginView                 : "./client/app/MainApp/login/loginview.coffee"
@@ -642,6 +658,7 @@ Includes =
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
+        groups              : "./client/stylus/app.group.styl"
 
         temp             : "./client/stylus/temp.styl"
 

@@ -1,0 +1,1 @@
+{ "run_list": [ "role[base_server]","role[guestcleanup]","recipe[kd_deploy]" ] }

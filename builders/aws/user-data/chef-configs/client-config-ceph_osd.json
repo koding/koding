@@ -1,0 +1,1 @@
+{ "run_list": [ "role[ceph_osd]" ] }

@@ -16,6 +16,8 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, mongo, email, social} = KONFIG
 
+mongo += '?auto_reconnect'
+
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
@@ -69,14 +71,15 @@ koding = new Bongo
   resourceName: social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
+    # console.log {'fetchClient', sessionToken, context, callback}
     [callback, context] = [context, callback] unless callback
-    context ?= 'koding'
-    callback ?= ->
+    context             ?= group: 'koding'
+    callback            ?= ->
     koding.models.JUser.authenticateClient sessionToken, context, (err, account)->
       if err
         koding.emit 'error', err
       else
-        callback {sessionToken, connection:delegate:account}
+        callback {sessionToken, context, connection:delegate:account}
 
 koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection
@@ -88,9 +91,17 @@ koding.on 'authenticateUser', (client, callback)->
 
 #     # if delegate instanceof koding.models.JAccount
 #     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
-      
+
 #     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
+
+  # create default roles for groups
+  JGroupRole = require './models/group/role'
+
+  JGroupRole.createDefaultRoles (err)->
+    if err then console.log err.message
+    else console.log "Default group roles created!"
+
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
 

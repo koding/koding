@@ -22,10 +22,11 @@
 case node['platform_family']
 when "debian"
 
-  erlpkg = node['erlang']['gui_tools'] ? "erlang-x11" : "erlang-nox"
+  #erlpkg = node['erlang']['gui_tools'] ? "erlang-x11" : "erlang-nox"
 
-  package erlpkg
-  package "erlang-dev"
+ # package erlpkg
+  include_recipe "apt::esl-erlang"
+  package "esl-erlang"
 
 when "rhel"
 

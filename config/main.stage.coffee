@@ -3,81 +3,143 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# STAGING
-mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.dev.system.aws.koding.com:17017/beta_koding'
+
+projectRoot = nodePath.join __dirname, '..'
+
+# rabbitPrefix = (
+#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+#   catch e then ""
+# ).trim()
+
+socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze
-  monit         :
-    webCake     : '/var/run/node/webCake.pid'
-    kiteCake    : '/var/run/node/kiteCake.pid'
-  projectRoot   : nodePath.join __dirname, '..'
+  aws           :
+    key         : 'AKIAJSUVKX6PD254UGAA'
+    secret      : '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'
+  uri           :
+    address     : "https://stage.koding.com"
+  projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : [3029..3030]
+    login       : 'prod-webserver'
+    port        : 3020
+    clusterSize : 2
+    queueName   : socialQueueName+'web'
+    watch       : yes
   mongo         : mongo
-  runBroker     : no
   runGoBroker   : yes
-  configureBroker: no
-  buildClient   : no
+  compileGo     : yes
+  buildClient   : yes
+  misc          :
+    claimGlobalNamesForUsers: no
+    updateAllSlugs : no
+    debugConnectionErrors: yes
   uploads       :
+    enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  basicAuth     :
-    username    : 'koding'
-    password    : '314159'
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
+    # httpRedirect:
+    #   port      : 80 # don't forget port 80 requires sudo
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
+  authWorker    :
+    login       : 'prod-auth-worker'
+    queueName   : socialQueueName+'auth'
+    authResourceName: 'auth'
+    numberOfWorkers: 1
+    watch       : yes
   social        :
-    numberOfWorkers: 10
+    login       : 'prod-social'
+    numberOfWorkers: 1
+    watch       : yes
+    queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 1
+  presence      :
+    exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : no
+    watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
-    indexMaster : "./client/index-master.html"
+    indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
-    closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://dev-api.koding.com'
+    staticFilesBaseUrl: 'https://stage.koding.com/'
     runtimeOptions:
+      resourceName: socialQueueName
+      suppressLogs: no
       version   : version
-      mainUri   : 'https://dev.koding.com'
+      mainUri   : 'https://stage.koding.com/'
       broker    :
-        apiKey  : 'a6f121a130a44c7f5325'
-        sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://dev.koding.com/Auth'
-        vhost   : '/'
+        sockJS  : 'https://stage-broker.koding.com/subscribe'
       apiUri    : 'https://dev-api.koding.com'
+      # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      env       : 'stage'
   mq            :
-    host        : 'localhost'
-    login       : 'STAGE-sg46lU8J17UkVUq'
-    password    : 'TV678S1WT221t1q'
+    host        : 'stage-mq.koding.com'
+    login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
+    password    : 'djfjfhgh4455__5'
+    heartbeat   : 10
     vhost       : '/'
-    pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
+    vhost       : 'kite'
   email         :
-    host        : 'koding.com'
-    protocol    : 'https:'
+    host        : 'stage.koding.com'
+    protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-  guests:
-     # define this to limit the number of guset accounts
-     # to be cleaned up per collection cycle.
-    batchSize   : undefined
-    cleanupCron : '*/10 * * * * *'
-    poolSize    : 1e4
-  logger        :
-    mq          :
-      host      : 'localhost'
-      login     : 'STAGE-sg46lU8J17UkVUq'
-      password  : 'TV678S1WT221t1q'
-      vhost     : 'stage-logs'
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
+    defaultRecepient : "gokmen+emailworkerstage@koding.com"
+  emailSender   :
+    run         : no
+  guests        :
+    # define this to limit the number of guset accounts
+    # to be cleaned up per collection cycle.
+    poolSize        : 1e4
+    batchSize       : undefined
+    cleanupCron     : '*/10 * * * * *'
+  logger            :
+    mq              :
+      host          : 'stage-mq.koding.com'
+      login         : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
+  loggr:
+    push: no
+    url: ""
+    apiKey: ""
+  librato:
+    push: no
+    email: ""
+    token: ""
+    interval: 30000

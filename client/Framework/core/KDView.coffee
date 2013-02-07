@@ -700,10 +700,10 @@ class KDView extends KDObject
     o.offset    or=
       top         : 0
       left        : 0
-    o.delayIn   or= 300
-    o.delayOut  or= 300
+    o.delayIn   or= 30
+    o.delayOut  or= 30
     o.html      or= yes
-    o.animate   or= yes
+    o.animate   or= no
     o.selector  or= null
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
@@ -713,7 +713,10 @@ class KDView extends KDObject
     o.viewCssClass or= null
 
     @on "viewAppended", =>
-      @bindTooltipEvents o
+      @utils.wait =>
+        # this is unacceptable will fix it - Arvid Jan 2013
+        unless o.showOnlyWhenOverflowing and (@$()[0]?.scrollWidth<=@getWidth()+parseInt(@$().css('padding-right'),10)+parseInt(@$().css('padding-left'),10))
+          @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']
@@ -789,12 +792,3 @@ class KDView extends KDObject
   setKeyView:->
 
     @getSingleton("windowController").setKeyView @
-
-
-# #
-# DEPRECATED METHODS
-# #
-  getParentDomElement:()->deprecated "KDView::getParentDomElement"
-
-
-
