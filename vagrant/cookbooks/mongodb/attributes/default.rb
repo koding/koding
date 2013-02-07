@@ -1,5 +1,5 @@
-default['mongodb']['version']   = '2.2.2'
-default['mongodb']['package_name'] = 'mongodb-10gen'
+default['mongodb']['version']   = '2.0.8'
+default['mongodb']['package_name'] = 'mongodb20-10gen'
 default['mongodb']['service_name'] = "mongodb"
 default['mongodb']['configfile'] = "/etc/mongodb.conf"
 

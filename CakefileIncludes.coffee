@@ -501,6 +501,7 @@ Includes =
         NFileItem                     : "./client/app/MainApp/filetree/itemviews/fileitem.coffee"
         NFolderItem                   : "./client/app/MainApp/filetree/itemviews/folderitem.coffee"
         NMountItem                    : "./client/app/MainApp/filetree/itemviews/mountitem.coffee"
+        NBrokenLinkItem               : "./client/app/MainApp/filetree/itemviews/brokenlinkitem.coffee"
         NSectionItem                  : "./client/app/MainApp/filetree/itemviews/sectionitem.coffee"
 
         NFinderItemDeleteView         : "./client/app/MainApp/filetree/itemsubviews/finderitemdeleteview.coffee"
@@ -518,6 +519,7 @@ Includes =
         FSFile                    : "./client/app/MainApp/fs/fsfile.coffee"
         FSFolder                  : "./client/app/MainApp/fs/fsfolder.coffee"
         FSMount                   : "./client/app/MainApp/fs/fsmount.coffee"
+        FSBrokenLink              : "./client/app/MainApp/fs/fsbrokenlink.coffee"
 
         avatarArea                : "./client/app/MainApp/avatararea.coffee"
 

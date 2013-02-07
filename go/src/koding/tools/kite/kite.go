@@ -44,10 +44,10 @@ func (k *Kite) Run() {
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
-	consumeConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	consumeConn := utils.CreateAmqpConnection("kite-" + k.Name)
 	defer consumeConn.Close()
 
-	publishConn := utils.CreateAmqpConnection(k.Name + "-kite")
+	publishConn := utils.CreateAmqpConnection("kite-" + k.Name)
 	defer publishConn.Close()
 
 	routeMap := make(map[string](chan<- []byte))

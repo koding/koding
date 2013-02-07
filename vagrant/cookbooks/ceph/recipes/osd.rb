@@ -8,7 +8,6 @@
 #
 #
 
-include_recipe "ceph::ssh_keys"
 
 
 if node[:ceph].has_key?(:osd_nodes)
