@@ -28,10 +28,10 @@ class PermissionsModal extends KDFormViewWithFields
       [current,remainder...] = roles.slice()
       cascadeData = {}
       cascadeData[current]=
-          itemClass     : KDCheckBox
-          cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
-          name          : _getCheckboxName module, permission, current
-          defaultValue  : checkForPermission set.permissions,module,permission,current
+        itemClass     : KDCheckBox
+        cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
+        name          : _getCheckboxName module, permission, current
+        defaultValue  : checkForPermission set.permissions,module,permission,current
       if current in ['admin','owner']
         cascadeData[current].defaultValue = yes
         cascadeData[current].disabled = yes
@@ -43,17 +43,17 @@ class PermissionsModal extends KDFormViewWithFields
       [current,remainder...] = roles.slice()
       cascadeData = {}
       cascadeData[current]=
-          itemClass     : KDView
-          partial       : readableText current
-          cssClass      : 'text header-item role-'+__utils.slugify(current)
-          tooltip       :
-            showOnlyWhenOverflowing : yes
-            title       : readableText current
-            placement   : 'top'
-            direction   : 'center'
-            offset      :
-              top       : 5
-              left      : 0
+        itemClass     : KDView
+        partial       : readableText current
+        cssClass      : 'text header-item role-'+__utils.slugify(current)
+        tooltip       :
+          showOnlyWhenOverflowing : yes
+          title       : readableText current
+          placement   : 'top'
+          direction   : 'center'
+          offset      :
+            top       : 5
+            left      : 0
       if current and remainder.length > 0
         cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
       return cascadeData
