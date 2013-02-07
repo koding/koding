@@ -8,7 +8,7 @@
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
         		"InstanceType" : "c1.medium",
-          		"SecurityGroups" : ["sg-b17399de"],
+          		"SecurityGroups" : ["sg-6a56a505"],
             	"KeyName" : "koding",
                 "ImageId" : "ami-3d4ff254",
                 "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
@@ -25,7 +25,7 @@
                       "MinSize": "1",
                       "MaxSize": "1",
                       "DesiredCapacity": "1",
-                      "LoadBalancerNames": ["rc-elbs-MqRC-14T0BMI06WFH1"]
+                      "LoadBalancerNames": ["rc-elbs-MqRC-YHVO2FRCJN0O"]
                      } 
           },  
 
@@ -43,10 +43,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
-                    "MetricName": "BrokerHightCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"BrokerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"BrokerScalingGroup"}
                       }
                     ]
@@ -66,10 +66,10 @@
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
-                    "MetricName": "BrokerLowCPUUtilization",
+                    "MetricName": "CPUUtilization",
                     "Dimensions" : [
                       {
-                        "Name":"BrokerScalingGroup",
+                        "Name":"AutoScalingGroupName",
                         "Value": {"Ref":"BrokerScalingGroup"}
                       }
                     ]
@@ -95,5 +95,12 @@
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
     	  }
+    },
+
+    "Outputs" : {
+        "ScalingGroupName" : {
+          "Description" : "Group name of the newly created AS",
+          "Value" : { "Ref" : "BrokerScalingGroup" }
+        }
     }
 }

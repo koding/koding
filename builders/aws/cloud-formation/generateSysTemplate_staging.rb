@@ -8,7 +8,7 @@ require 'json'
 env = "staging"
 
 
-roles = %w( rabbitmq_server )
+roles = %w( rabbitmq_server mongo_master mongo_slave )
 
 roles.each do |role|
     userdata = "./user-data/userdata.txt.erb"

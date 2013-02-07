@@ -196,7 +196,7 @@ class EmbedBox extends KDView
 
   getRichEmbedWhitelist:->
     [
-      "SoundCloud"
+      # "SoundCloud"
     ]
 
   fetchEmbed:(url="#",options={},callback=noop)->
