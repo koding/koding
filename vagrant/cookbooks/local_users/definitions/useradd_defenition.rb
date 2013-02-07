@@ -47,6 +47,11 @@ define :useradd do
           members username
           append true
         end
+        group "sudo" do
+          action :modify
+          members username
+          append true
+        end
 
 
     end

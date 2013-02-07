@@ -14,7 +14,7 @@ local_users_prod = {
                    "dyasar"  => { "id" => 601, "pass" => "$1$B4tVUcrC$rUeL1FMDHKBZ41c4w1yj4.", "sshkey" => true},
                    "ggoksel" => { "id" => 606, "pass" => "$1$8xu2mplx$S8QqBws9V7nctl4u1ouMc/", "sshkey" => true},
                    "richard" => { "id" => 605, "pass" => "$1$O.JwAzmg$0ONO0g4t8SE1gOipz0Woh.", "sshkey" => true},
-                   "cblum"   => { "id" => 666, "pass" => "$1$O.JwAzmg$0ONO0g4t8SE1gOipz0Woh.", "sshkey" => true},
+                   "cblum"   => { "id" => 666, "pass" => "$6$A9k6e/lC$Y59fsZYIV8iMLPkG9l.SuC8qwBMpQUFq4lMfAjKPQDcJ2dPw8nwrW1IsSNeDNYNMB/zOXgpPZjeK6fgvMt/Bn0", "sshkey" => true},
                  }
                 
 local_users_dev = {
