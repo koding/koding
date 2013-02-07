@@ -1,18 +1,16 @@
-class PermissionsModal extends KDView
+class PermissionsModal extends KDFormViewWithFields
 
   ['list','reducedList','tree'].forEach (method)=>
     @::[method] =-> @getPermissions method
 
   constructor:(options,data)->
-    super options,data
 
-    group                   = @getData()
-    {privacy,permissionSet} = @getOptions()
+    group                   = data # @getData()
+    {privacy,permissionSet} = options #@getOptions()
 
     # here we should handle custom roles and add them for display
     roles = ['member','moderator','admin']
-
-    roles.unshift 'guest' if group.getData().privacy is 'public'
+    roles.unshift 'guest' if group.privacy is 'public'
 
 
     readableText = (text)->
@@ -61,7 +59,7 @@ class PermissionsModal extends KDView
       return cascadeData
 
     optionizePermissions = (set)->
-      options =
+      permissionOptions =
         head              :
           itemClass       : KDView
           cssClass        : 'permissions-header col-'+roles.length
@@ -69,13 +67,13 @@ class PermissionsModal extends KDView
             cascadeHeaderElements roles
 
       for module, permissions of set.permissionsByModule
-        options['header '+module.toLowerCase()] =
+        permissionOptions['header '+module.toLowerCase()] =
           itemClass       : KDView
           partial         : readableText module
           cssClass        : 'permissions-module text'
 
         for permission in permissions
-          options[module+'-'+__utils.slugify(permission)] =
+          permissionOptions[module+'-'+__utils.slugify(permission)] =
             itemClass     : KDView
             partial       : readableText permission
             cssClass      : 'text'
@@ -89,36 +87,45 @@ class PermissionsModal extends KDView
               showOnlyWhenOverflowing : yes
             nextElementFlat :
               cascadeFormElements set, roles, module, permission
-      options
+      permissionOptions
 
-
-
-    @modal = new KDModalViewWithForms
-      title : 'Edit Permissions'
-      cssClass : 'permissions-modal'
-      buttons:
+    options.buttons or=
         Save          :
           style       : "modal-clean-gray"
           loader      :
             color     : "#444444"
             diameter  : 12
           callback    : =>
-            group.getData().updatePermissions(
+            group.updatePermissions(
               @reducedList()
-              console.log.bind(console) # TODO: do something with this callback
+              (err,res)=>
+                log 'updated permissions',err,res
+                @buttons["Save"].hideLoader()
+                # TODO: do something with this callback
             )
-            @modal.destroy()
-        Cancel        :
-          style       : "modal-clean-gray"
-          loader      :
-            color     : "#ffffff"
-            diameter  : 16
-          callback    : => @modal.destroy()
-      tabs  :
-        forms :
-          "Permissions":
-            cssClass : 'permissions-form col-'+roles.length
-            fields : optionizePermissions permissionSet
+    options.fields or= optionizePermissions permissionSet
+    super options,data
+    @setClass 'permissions-form col-'+roles.length
+
+    @bindEvent 'scroll'
+
+    @on 'scroll', (event={})=>
+      @applyScrollShadow event
+
+  applyScrollShadow:(event)->
+    isAtTop = @$().scrollTop() is 0
+    isAtBottom = @$().scrollTop()+@getHeight() is @$()[0].scrollHeight
+
+    unless isAtTop
+      @$('.permissions-header').addClass 'scrolling'
+    else
+      @$('.permissions-header').remove 'scrolling'
+
+    unless isAtBottom
+      @$('.formline.button-field').addClass 'scrolling'
+    else
+      @$('.formline.button-field').removeClass 'scrolling'
+
 
   createTree =(values)->
     values.reduce (acc, {module, role, permission})->
@@ -142,7 +149,7 @@ class PermissionsModal extends KDView
     , []
 
   getFormValues:->
-    @modal.$('form.permissions-form').serializeArray()
+    @$().serializeArray()
     .map ({name})->
       [facet, role, permission] = name.split '|'
       module = facet.split('-')[1]
@@ -158,9 +165,4 @@ class PermissionsModal extends KDView
 
   viewAppended:->
     super
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-    """
+    @applyScrollShadow()

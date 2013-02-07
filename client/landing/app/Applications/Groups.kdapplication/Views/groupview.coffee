@@ -1,11 +1,10 @@
-
 class GroupView extends ActivityContentDisplay
 
   constructor:->
-    super
-    data = @getData()
 
-    @setClass 'group-header'
+    super
+
+    data = @getData()
 
     @thumb = new KDCustomHTMLView
       tagName     : "img"
@@ -13,8 +12,7 @@ class GroupView extends ActivityContentDisplay
       error       : =>
         @thumb.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
-        src       : @getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(10)}/#{100+@utils.getRandomNumber(10)}"
-        # src       : "#{KD.apiUri + '/images/default.app.thumb.png'}"
+        src       : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}}"
 
     @joinButton = new JoinButton
       style           : if data.member then "join follow-btn following-topic" else "join follow-btn"
@@ -45,14 +43,7 @@ class GroupView extends ActivityContentDisplay
       ]
     , data
 
-
-    @joinButton.on 'Joined', =>
-      @enterLink.show()
-
-    @joinButton.on 'Left', =>
-      @enterLink.hide()
-
-    {slug, privacy} = @getData()
+    {slug, privacy} = data
 
     @enterLink = new CustomLinkView
       cssClass  : 'enter-group'
@@ -61,7 +52,14 @@ class GroupView extends ActivityContentDisplay
       title     : 'Open group'
       click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
 
+    @readme = new GroupReadmeView {}, data
+
+    @joinButton.on 'Joined', @enterLink.bound "show"
+
+    @joinButton.on 'Left', @enterLink.bound "hide"
+
     {JGroup} = KD.remote.api
+
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
       if err then error err
       else
@@ -88,21 +86,22 @@ class GroupView extends ActivityContentDisplay
   pistachio:->
     """
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class="profileleft">
-      <span>
-        <a class='profile-avatar' href='#'>{{> @thumb}}</a>
-      </span>
-    </div>
-    <section class="right-overflow">
-      <h3 class='profilename'>{{#(title)}}<cite></cite></h3>
-      <div class='profilebio'>
-        {p{#(body)}}
+    <div class='group-header'>
+      <div class='avatar'>
+        <span>{{> @thumb}}</span>
       </div>
-      <div class="installerbar clearfix">
-        <div class="appfollowlike">
+      <section class="right-overflow">
+        {h2{#(title)}}
+        <div class="buttons">
           {{> @enterLink}}
           {{> @joinButton}}
         </div>
+      </section>
+      <div class="navbar clearfix">
       </div>
-    </section>
+      <div class='desc'>
+        {p{#(body)}}
+      </div>
+    </div>
+    {{> @readme}}
     """

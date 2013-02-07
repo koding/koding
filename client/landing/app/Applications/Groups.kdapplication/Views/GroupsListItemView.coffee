@@ -10,7 +10,7 @@ class GroupsListItemView extends KDListItemView
       tagName : 'img'
       cssClass : 'avatar-image'
       attributes :
-        src : @getData().avatar or "http://lorempixel.com/#{60+@utils.getRandomNumber(10)}/#{60+@utils.getRandomNumber(10)}"
+        src : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
 
     @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent groups-settings-context groups-settings-menu'
@@ -118,9 +118,9 @@ class GroupsListItemView extends KDListItemView
       'Group settings'  :
         callback        : =>
           mainController.emit 'EditGroupButtonClicked', @
-      'Permissions'     :
-        callback        : =>
-          mainController.emit 'EditPermissionsButtonClicked', @
+      # 'Permissions'     :
+      #   callback : =>
+      #     mainController.emit 'EditPermissionsButtonClicked', @
       'My roles'        :
         callback        : =>
           mainController.emit 'MyRolesRequested', @
