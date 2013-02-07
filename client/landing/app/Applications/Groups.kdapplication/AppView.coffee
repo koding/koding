@@ -299,6 +299,15 @@ class GroupsInvitationRequestListItemView extends KDListItemView
       callback  : =>
         @getDelegate().emit 'InvitationIsSent', invitationRequest
 
+    @getData().on 'update', => @updateStatus()
+
+    @updateStatus()
+
+  updateStatus:->
+    isSent = @getData().sent
+    @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
+    @inviteButton.disable()  if isSent
+
   viewAppended: JView::viewAppended
 
   pistachio:->
@@ -329,18 +338,17 @@ class GroupsInvitationRequestsView extends JView
     @requestList.on 'InvitationIsSent', (invitationRequest)=>
       @emit 'InvitationIsSent', invitationRequest
 
+    @currentState = new KDView cssClass: 'formline'
+
     @prepareBulkInvitations()
     @inviteTools = new KDFormViewWithFields
       cssClass          : 'invite-tools'
+      buttons           :
+        'Send invites'  :
+          title         : 'Send invites'
+          callback      : =>
+            @emit 'BatchInvitationsAreSent', +@inviteTools.getFormData().Count
       fields            :
-        Information     :
-          label         : "Current state"
-          type          : "hidden"
-          nextElement   :
-            currentState:
-              itemClass : KDView
-              partial   : 'Loading...'
-              cssClass  : 'information-line'
         Count           :
           label         : "# of Invites"
           type          : "text"
@@ -367,7 +375,7 @@ class GroupsInvitationRequestsView extends JView
       if err then console.error error
       else
         [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
-        @inviteTools.inputs.currentState.updatePartial """
+        @currentState.updatePartial """
           There #{toBe} currently #{count} #{people} waiting for an invitation
           """
 
@@ -379,13 +387,22 @@ class GroupsInvitationRequestsView extends JView
 
     group.fetchInvitationRequests selector, options, (err, requests)=>
       if err then console.error err
-      else
-        @requestListController.instantiateListItems requests
+      else @requestListController.instantiateListItems requests.reverse()
 
   pistachio:->
     """
-    {{> @inviteTools}}
-    {{> @requestList}}
+    <section class="formline">
+      <h2>Status quo</h2>
+      {{> @currentState}}
+    </section>
+    <section class="formline">
+      <h2>Invite members by batch</h2>
+      {{> @inviteTools}}
+    </section>
+    <section class="formline">
+      <h2>Invite members individually</h2>
+      {{> @requestList}}
+    </section>
     """
 
 class GroupsMemberPermissionsView extends JView
