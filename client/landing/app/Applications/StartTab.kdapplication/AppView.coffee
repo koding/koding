@@ -202,7 +202,7 @@ class StartTabMainView extends JView
       recentFilePaths = storage.getAt('bucket.recentFiles')
       # log "updating views", recentFilePaths.length
 
-      for path, view of @recentFileViews
+      for own path, view of @recentFileViews
         @recentFileViews[path].destroy()
         delete @recentFileViews[path]
 
