@@ -6,11 +6,7 @@
 #
 # All rights reserved - Do Not Redistribute
 #
-
-service "ceph" do
-        action :stop
-        stop_command "/etc/init.d/ceph -a stop"
-end
+include_recipe "apt::ceph"
 
 include_recipe "ceph::ssh_keys"
 
