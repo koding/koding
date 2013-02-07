@@ -277,7 +277,7 @@ class GroupsInvitationRequestsView extends JView
       cssClass          : 'invite-tools'
       buttons           :
         'Send invites'  :
-          title         : 'Send invites'
+          title         : 'Send invitation batch'
           callback      : =>
             @emit 'BatchInvitationsAreSent', +@inviteTools.getFormData().Count
       fields            :
