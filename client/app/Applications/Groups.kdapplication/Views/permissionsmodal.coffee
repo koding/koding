@@ -188,13 +188,11 @@ class PermissionsModal extends KDFormViewWithFields
           color     : "#444444"
           diameter  : 12
         callback    : =>
-          group.updatePermissions(
-            @reducedList()
-            (err,res)=>
-              log 'updated permissions',err,res
-              @buttons["Save"].hideLoader()
-              # TODO: do something with this callback
-          )
+
+          group.updatePermissions @reducedList(), (err,res)=>
+            log 'updated permissions',err,res
+            @buttons["Save"].hideLoader()
+            # TODO: do something with this callback
 
     options.fields or= optionizePermissions permissionSet
     super options,data
