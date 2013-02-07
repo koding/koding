@@ -5,7 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.stage.aws.koding.com:17017/beta_koding'
+# PROD
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -14,22 +15,22 @@ projectRoot = nodePath.join __dirname, '..'
 #   catch e then ""
 # ).trim()
 
-socialQueueName = "koding-social-autoscale"
+socialQueueName = "koding-social-rc"
 
 module.exports = deepFreeze
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://stage.koding.com"
+    address     : "https://rc.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 10
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   mongo         : mongo
   runGoBroker   : yes
   compileGo     : yes
@@ -58,68 +59,63 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-auth-worker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : yes
+    watch       : no
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 1
-    watch       : yes
+    numberOfWorkers: 10
+    watch       : no
     queueName   : socialQueueName
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : yes
-    queueName   : socialQueueName+'cache'
-    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
-    numberOfWorkers: 1
+    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
+    pistachios  : yes
     version     : version
-    minify      : no
-    watch       : yes
+    minify      : yes
+    watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://stage.koding.com/'
+    staticFilesBaseUrl: 'https://rc.koding.com'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
-      mainUri   : 'https://stage.koding.com/'
+      mainUri   : 'https://rc.koding.com'
       broker    :
-        sockJS  : 'https://stage-broker.koding.com/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS  : 'https://br.koding.com/subscribe'
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'stage-mq.koding.com'
+    host        : 'rabbit0.prod.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'djfjfhgh4455__5'
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
   kites:
     disconnectTimeout: 3e3
-    vhost       : 'kite'
+    vhost       : '/'
   email         :
-    host        : 'stage.koding.com'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
-    run         : no
-    defaultRecepient : "gokmen+emailworkerstage@koding.com"
+    run         : yes
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -128,16 +124,16 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'stage-mq.koding.com'
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
+      host          : 'rabbit0.prod.aws.koding.com'
+      login         : 'PROD-k5it50s4676pO9O'
+      password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
-    url: ""
-    apiKey: ""
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
     push: no
-    email: ""
-    token: ""
+    email: "devrim@koding.com"
+    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 30000
