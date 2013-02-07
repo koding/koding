@@ -23,10 +23,10 @@ cookbook_versions({
 
 default_attributes({ 
                      "launch" => {
-                                 "config" => "stage",
+                                 "config" => "rc",
                      },
                      "kd_deploy" => {
-                                "git_branch" => "master_STAGE",
+                                "git_branch" => "master_RC",
                                 "revision_tag" => "HEAD",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
@@ -42,5 +42,8 @@ default_attributes({
                      :rabbitmq => {
                                 :admin_password => "dslkdscmckfjf55",
                                 :user_password => "djfjfhgh4455__5"
+                     },
+                     "mongodb" => {
+                                "source" => "db-m0.prod.aws.koding.com",
                      }
 })

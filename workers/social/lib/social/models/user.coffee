@@ -96,7 +96,6 @@ module.exports = class JUser extends jraphical.Module
       lastLoginDate :
         type        : Date
         default     : -> new Date
-      tenderAppLink : String
       emailFrequency: Object
 
     relationships       :
@@ -196,14 +195,6 @@ module.exports = class JUser extends jraphical.Module
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
-
-  fetchTenderAppLink : (callback)->
-    {username,email} = @
-    nodeRequest.get uri: "http://devrim.kodingen.com/_/tender.php?name=#{username}&email=#{email}", (err,res,body)->
-      if err
-        callback err
-      else
-        callback null, body
 
   @setDefaultHash =->
     @all {}, (err, users)->

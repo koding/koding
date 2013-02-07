@@ -1,0 +1,17 @@
+[global]
+
+    # For version 0.55 and beyond, you must explicitly enable 
+    # or disable authentication with "auth" entries in [global].
+    #debug ms = 1
+    
+    auth cluster required = none
+    auth service required = none
+    auth client required = none
+
+<% @mon_nodes.each do |mon_node| -%>
+[mon.<%= mon_node[:CephID] %>]
+    # instance ID <%= mon_node[:id] %>
+    # hostname <%= @hostname %>
+    mon addr = <%= mon_node[:addr] %>:6789
+
+<% end -%>
