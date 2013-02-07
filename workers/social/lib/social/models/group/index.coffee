@@ -46,7 +46,7 @@ module.exports = class JGroup extends Module
         '__resetAllGroups', 'fetchMyMemberships'
       ]
       instance      : [
-        'join','leave','modify','fetchPermissions', 'createRole'
+        'join','leave','modify','fetchPermissions', 'createRole', 'addCustomRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
@@ -234,7 +234,14 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else if permissionSet?
-          permissionSet.update $set:{permissions}, callback
+          console.log 'updating permissions'        #
+          permissionSet.update 
+            $set : {permissions}
+          , =>
+            for perm in permissionSet.permissions   #
+              if perm.role is 'guest'               #
+                console.log 'guest found in update' # this fires
+            callback arguments...
         else
           permissionSet = new JPermissionSet {permissions}
           permissionSet.save callback
@@ -247,6 +254,9 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else
+          for perm in permissionSet.permissions     #
+            if perm.role is 'guest'                 #
+              console.log 'guest found in fetch'    # this does not
           callback null, {
             permissionsByModule
             permissions: permissionSet.permissions
@@ -286,7 +296,19 @@ module.exports = class JGroup extends Module
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
       JGroupRole = require './role'
-      JGroupRole.create {title : formData.title}, callback
+      JGroupRole.create 
+        title           : formData.title
+        isConfigureable : formData.isConfigureable or no
+      , callback
+
+  addCustomRole: permit 'grant permissions'
+    success:(client,formData,callback)->
+      @createRole client,formData, (err,role)=>
+        console.log err,role
+        unless err
+          @addRole role, callback
+        else 
+          callback err, null
 
   createMembershipPolicy:(queue, callback)->
     [callback, queue] = [queue, callback]  unless callback

@@ -302,10 +302,22 @@
         color #ff9200
         font-size 13px
         a
+          borderBox()
           width auto
           color #ff9200
           font-weight 400
           noTextDeco()
+          overflow-y hidden
+          overflow-x hidden
+          white-space nowrap
+          text-overflow ellipsis
+          div.data
+            borderBox()
+            overflow-y hidden
+            overflow-x hidden
+            white-space nowrap
+            text-overflow ellipsis
+            display block
 
       article
         borderBox()
@@ -319,6 +331,13 @@
         height 3.6em
         color #5f5f5f
         font-size 12px
+        div.data 
+          borderBox()
+          overflow-y hidden
+          overflow-x hidden
+          white-space nowrap
+          text-overflow ellipsis
+          display block  
 
     .topicmeta
       abs()
@@ -689,6 +708,32 @@
 
 .permissions-modal
 
+  .add-role-dialog
+    z-index 100000
+    
+    .add-role-header
+      padding-top 15px
+      padding-bottom 15px
+      font-size 14px
+      font-weight 500
+
+    .add-role-button
+      margin-bottom 10px
+    .add-role-cancel
+      margin-top 8px
+
+    label.label-role-name
+      display inline-block
+    input.role-name
+      display inline-block
+      width 289px
+
+    label.label-copy-permissions
+      margin-top 10px
+      display inline-block
+    div.kdselectbox.copy-permissions
+      margin-top 0px
+      
   .kdview.kdloader
     display           block
     margin            10px auto
@@ -702,27 +747,29 @@
     &.scrolling
       shadow 0 5px 15px -5px rgba(0,0,0,0.1)
     > .input-wrapper > .kdview
+      borderBox()
       width auto
       line-height 20px
       top 0
-
+      overflow-x hidden
+      display block
+      text-overflow ellipsis
+      white-space nowrap
 
   .permissions-form
     overflow-y scroll
     overflow-x hidden
     max-height 300px
     margin-top 20px
+    
+    fraction(full,divisor)
+      fraction = full/divisor
 
-    &.col-4
-      .formline .input-wrapper
-        width 85px
-    &.col-3
-      .formline .input-wrapper
-        width 110px
-    &.col-5
-      .formline .input-wrapper
-        width 67px
-
+    for num in 2 3 4 5 6 7 8 9 10 11 12
+      &.col-{num}
+        .formline .input-wrapper          
+          width fraction(340,num)px
+      
     .formline
       &.button-field
         &.scrolling
@@ -732,8 +779,12 @@
         right 0
         bottom 0
         height 50px
-        padding 15px 20px 0 0
+        padding 15px 20px 0 15px 
         border-top 1px solid #e5e5e5
+
+        button.add-role
+          fl()
+
       &:nth-last-child(2)
         margin-bottom 49px
         border-bottom-color transparent
