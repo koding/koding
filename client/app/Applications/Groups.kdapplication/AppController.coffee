@@ -125,14 +125,14 @@ class GroupsAppController extends AppController
       when ERROR_POLICY
         {
           title     : 'This is a private group'
-          content   : 
+          content   :
             """
             <div class="modalformline">#{err.message}</div>
             """
         }
 
     if err.accessCode is ERROR_POLICY
-      defaultOptions.buttons['Request access'] = 
+      defaultOptions.buttons['Request access'] =
         cssClass    : 'modal-clean-green'
         loader      :
           color     : "#ffffff"
@@ -156,7 +156,7 @@ class GroupsAppController extends AppController
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
-      if err 
+      if err
         @showErrorModal group, err
       else
         console.log 'access is granted!'
@@ -209,6 +209,7 @@ class GroupsAppController extends AppController
         navigable : yes
         goToNextFormOnSubmit: no
         forms     :
+
           "General Settings":
             title: if isNewGroup then 'Create a group' else 'Edit group'
             callback:(formData)=>
@@ -277,23 +278,23 @@ class GroupsAppController extends AppController
                   setTimeout =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
+                    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
                   , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
               SlugText                :
                 itemClass : KDView
                 cssClass : 'slug-url'
-                partial : '<span class="base">http://www.koding.com/Groups/</span>'
+                partial : '<span class="base">http://www.koding.com/</span>'
                 nextElementFlat :
                   Slug :
                     label             : "Slug"
                     itemClass         : KDInputView
                     name              : "slug"
-                    cssClass          : 'hidden'
+                    # cssClass          : 'hidden'
                     defaultValue      : group.slug ? ""
                     placeholder       : 'This value will be automatically generated'
-                    disabled          : yes
+                    # disabled          : yes
               Description         :
                 label             : "Description"
                 type              : "textarea"
@@ -323,6 +324,9 @@ class GroupsAppController extends AppController
                 ]
 
     unless isNewGroup
+      modalOptions.tabs.forms.Permissions =
+        title : 'Permissions'
+        cssClass : 'permissions-modal'
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
       if isPrivateGroup
@@ -330,17 +334,14 @@ class GroupsAppController extends AppController
           title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
-    
+
     {forms} = modal.modalTabs
 
     avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
-
     avatarUploadView.on 'FileReadComplete', (stuff)->
       avatarUploadView.$('.kdfileuploadarea').css
         backgroundImage : "url(#{stuff.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
-
-    forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
       if isPrivateGroup
@@ -370,6 +371,22 @@ class GroupsAppController extends AppController
             forms['Invitations'].addSubView invitationRequestView
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+
+      forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
+        size          :
+          width       : 32
+      permissionsLoader.show()
+      group.fetchPermissions (err, permissionSet)->
+        permissionsLoader.hide()
+        unless err
+          forms["Permissions"].addSubView new PermissionsModal {
+            privacy: group.privacy
+            permissionSet
+          }, group
+        else
+          forms['Permissions'].addSubView new KDView
+            partial : 'No access'
+
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -482,10 +499,10 @@ class GroupsAppController extends AppController
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     groupView = new GroupView
-      cssClass : "profilearea clearfix"
+      cssClass : "group-content-display"
       delegate : @getView()
     , content
-    
+
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
     # console.log {contentDisplay}

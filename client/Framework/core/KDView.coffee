@@ -714,6 +714,7 @@ class KDView extends KDObject
 
     @on "viewAppended", =>
       @utils.wait =>
+        # this is unacceptable will fix it - Arvid Jan 2013
         unless o.showOnlyWhenOverflowing and (@$()[0]?.scrollWidth<=@getWidth()+parseInt(@$().css('padding-right'),10)+parseInt(@$().css('padding-left'),10))
           @bindTooltipEvents o
 

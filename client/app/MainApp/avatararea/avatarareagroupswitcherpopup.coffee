@@ -8,9 +8,11 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       itemClass  : PopupGroupListItem
 
     @listController = new KDListViewController
-      view         : @_popupList
+      view                : @_popupList
+      startWithLazyLoader : yes
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
+
 
     @avatarPopupContent.addSubView switchToTitle = new KDView
       height   : "auto"
@@ -36,15 +38,18 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   accountChanged:->
     @listController.removeAllItems()
 
-  show:->
-
-    super
-
+  populateGroups:->
+    @listController.removeAllItems()
+    @listController.showLazyLoader()
     KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
       if err then warn err
       else if res?.length
+        @listController.hideLazyLoader()
         @listController.addItem res[0]
 
+  show:->
+    super
+    @populateGroups()
 
 class PopupGroupListItem extends KDListItemView
 
