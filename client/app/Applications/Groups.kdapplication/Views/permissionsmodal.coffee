@@ -46,6 +46,14 @@ class PermissionsModal extends KDFormViewWithFields
           itemClass     : KDView
           partial       : readableText current
           cssClass      : 'text header-item role-'+__utils.slugify(current)
+          tooltip       :
+            showOnlyWhenOverflowing : yes
+            title       : readableText current
+            placement   : 'top'
+            direction   : 'center'
+            offset      :
+              top       : 5
+              left      : 0
       if current and remainder.length > 0
         cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
       return cascadeData
