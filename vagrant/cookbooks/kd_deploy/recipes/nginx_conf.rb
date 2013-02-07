@@ -4,8 +4,8 @@
 # Author:: Aleksey Mykhailov <a@koding.com>
 
 
-template "#{node['nginx']['dir']}/sites-available/koding.local" do
-  source "koding.local.erb"
+template "#{node['nginx']['dir']}/sites-available/koding.conf" do
+  source "koding.conf.erb"
   owner "root"
   group "root"
   mode 00644
