@@ -70,6 +70,7 @@ end
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/tty*"
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/udev*"
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/upstart-*"
+	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/ureadahead-*"
 	execute "lxc-attach -n vmroot -- /bin/mv #{VM_upstart}/ssh.conf #{VM_upstart}/ssh.conf.disabled"
 
 	execute "lxc-stop -n vmroot"
