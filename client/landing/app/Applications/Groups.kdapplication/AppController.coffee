@@ -125,14 +125,14 @@ class GroupsAppController extends AppController
       when ERROR_POLICY
         {
           title     : 'This is a private group'
-          content   : 
+          content   :
             """
             <div class="modalformline">#{err.message}</div>
             """
         }
 
     if err.accessCode is ERROR_POLICY
-      defaultOptions.buttons['Request access'] = 
+      defaultOptions.buttons['Request access'] =
         cssClass    : 'modal-clean-green'
         loader      :
           color     : "#ffffff"
@@ -156,7 +156,7 @@ class GroupsAppController extends AppController
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
-      if err 
+      if err
         @showErrorModal group, err
       else
         console.log 'access is granted!'
@@ -336,7 +336,7 @@ class GroupsAppController extends AppController
           title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
-    
+
     {forms} = modal.modalTabs
 
     avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
@@ -358,16 +358,16 @@ class GroupsAppController extends AppController
 
         invitationRequestView = new GroupsInvitationRequestsView {}, group
         forms["Invitations"] = invitationRequestView
-    
+
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
       forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
         size          :
-          width       : 32 
+          width       : 32
       permissionsLoader.show()
       group.fetchPermissions (err, permissionSet)->
         permissionsLoader.hide()
-        unless err 
+        unless err
           forms["Permissions"].addSubView new PermissionsModal {
             privacy: group.privacy
             permissionSet
@@ -488,10 +488,10 @@ class GroupsAppController extends AppController
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     groupView = new GroupView
-      cssClass : "profilearea clearfix"
+      cssClass : "group-content-display"
       delegate : @getView()
     , content
-    
+
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
     # console.log {contentDisplay}
