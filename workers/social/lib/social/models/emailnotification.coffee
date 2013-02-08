@@ -32,7 +32,8 @@ module.exports = class JMailNotification extends Model
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'postponed']]
+        enum         : ['Invalid status', ['queued', 'attempted',
+                                           'sending', 'postponed']]
 
   @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
                         'JOpinion', 'JCodeShare', 'JComment', 'JTutorial',

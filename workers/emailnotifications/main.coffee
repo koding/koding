@@ -191,9 +191,15 @@ instantEmails = ->
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "Sending #{emails.length} e-mail(s)..."
-        for email in emails
-          prepareEmail email, no, sendInstantEmail
+        currentIds = [email._id for email in emails][0]
+        JMailNotification.update {_id: $in: currentIds}, \
+          {$set: status: 'sending'}, {multi: yes}, (err)->
+          unless err
+            log "Sending #{emails.length} e-mail(s)..."
+            for email in emails
+              prepareEmail email, no, sendInstantEmail
+          else
+            log "An error occured: #{err}"
 
 prepareDailyEmail = (emails, index, data, callback)->
 
