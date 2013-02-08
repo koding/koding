@@ -49,7 +49,7 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
-        'fetchReadme'
+        'fetchReadme', 'setReadme'
       ]
     schema          :
       title         :
@@ -289,6 +289,37 @@ module.exports = class JGroup extends Module
   fetchReadme$: permit 'open group'
     success:(client, rest...)->
       @fetchReadme rest...
+
+  setReadme$: permit 'edit groups'
+    success:(client, text, callback)->
+      @fetchReadme (err, readme)=>
+        unless readme
+          JReadme = require '../readme'
+          readme = new JReadme
+            content : text
+          
+          daisy queue = [
+            ->
+              readme.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
+              @addReadme readme, (err)->
+                console.log err
+                if err then callback err                
+                else queue.next()
+            ->
+              callback readme
+          ]
+
+        else 
+          readme.update 
+            $set : 
+              content : text
+          , (err)=>
+            if err then callback err
+            else callback readme
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
