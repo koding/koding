@@ -8,18 +8,29 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
 var actions = map[string]func(){
+	"start": func() {
+		for _, vm := range selectVMs(os.Args[2]) {
+			out, err := vm.StartCommand().CombinedOutput()
+			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+		}
+	},
 	"shutdown": func() {
-		withAll("lxc-shutdown")
+		for _, vm := range selectVMs(os.Args[2]) {
+			out, err := vm.ShutdownCommand().CombinedOutput()
+			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+		}
 	},
 	"stop": func() {
-		withAll("lxc-stop")
+		for _, vm := range selectVMs(os.Args[2]) {
+			out, err := vm.StopCommand().CombinedOutput()
+			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+		}
 	},
 	"unprepare": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
@@ -42,7 +53,6 @@ var actions = map[string]func(){
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
 				vm.Prepare(nil)
-				vm.StartCommand().Run()
 				done <- i
 			}(i)
 		}
@@ -77,14 +87,4 @@ func selectVMs(selector string) []*virt.VM {
 	fmt.Println("Invalid selector: " + selector)
 	os.Exit(1)
 	return nil
-}
-
-func withAll(action string) {
-	for _, vm := range selectVMs(os.Args[2]) {
-		cmd := exec.Command(action, "-n", vm.String())
-		out, err := cmd.CombinedOutput()
-		fmt.Println(strings.Join(cmd.Args, " ") + ":")
-		fmt.Println(err)
-		fmt.Println(string(out))
-	}
 }
