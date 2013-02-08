@@ -105,30 +105,35 @@ class GroupView extends ActivityContentDisplay
         title       : "Admin"
         icon        :
           cssClass  : 'admin'
-        click       : (event)->
-          contextMenu = new JContextMenu
-            cssClass    : "group-admin-menu"
-            event       : event
-            delegate    : @adminMenuLink
-            offset      :
-              top       : 10
-              left      : -30
-            arrow       :
-              placement : "top"
-              margin    : -20
-          ,
-            'Settings'             :
-              callback             : (source, event)=> contextMenu.destroy()
-              separator            : yes
-            'Permissions'          :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Member Policies'      :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Invitations'          :
-              callback             : (source, event)=> contextMenu.destroy()
+        click       : @bound "createAdminDropdown"
 
       @addSubView @adminMenuLink, ".navbar"
 
+  createAdminDropdown:(event)->
+
+    @adminContextMenu = new JContextMenu
+      cssClass    : "group-admin-menu"
+      event       : event
+      delegate    : @adminMenuLink
+      offset      :
+        top       : 10
+        left      : -30
+      arrow       :
+        placement : "top"
+        margin    : -20
+    ,
+      'Settings'             :
+        callback             : @bound "showTab"
+        separator            : yes
+      'Permissions'          :
+        callback             : @bound "showTab"
+      'Member Policies'      :
+        callback             : @bound "showTab"
+      'Invitations'          :
+        callback             : @bound "showTab"
+
+  showTab:(source, event)->
+    @adminContextMenu.destroy()
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 

@@ -25,9 +25,15 @@ class MainTabHandleHolder extends KDView
       delegate : @
       click    : =>
         unless @plusHandle.$().hasClass('first')
+          offset = @plusHandle.$().offset()
           contextMenu = new JContextMenu
-            event    : event
-            delegate : @plusHandle
+            event       : event
+            delegate    : @plusHandle
+            x           : offset.left - 133
+            y           : offset.top + 22
+            arrow       :
+              placement : "top"
+              margin    : -20
           ,
             'New Tab'              :
               callback             : (source, event)=>
