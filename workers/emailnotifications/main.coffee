@@ -144,7 +144,7 @@ prepareEmail = (notification, daily = no, cb)->
           callback err
         else
           if not daily and state isnt 'on'
-            log 'User disabled e-mails, ignored for now.'
+            # log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else
