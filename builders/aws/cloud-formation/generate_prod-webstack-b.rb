@@ -5,7 +5,7 @@ require 'rubygems'
 require 'erb'
 require 'json'
 
-env = "prod-webstack-a"
+env = "prod-webstack-b"
 
 
 roles = %w( authworker  broker  cacheworker  emailworker  guestcleanup  socialworker  web_server )

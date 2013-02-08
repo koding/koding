@@ -18,7 +18,7 @@
             "Type": "AWS::Route53::RecordSet",
             "Properties":{
                 "HostedZoneName": "prod.aws.koding.com.",
-                "Name" : "rabbit0.prod.aws.koding.com.",
+                "Name" : "rabbit-a.prod.aws.koding.com.",
                 "Type" : "A",
                 "TTL" : "900",
                 "ResourceRecords" : [ { "Fn::GetAtt" : [ "RabbitMQInstance", "PrivateIp" ] } ]

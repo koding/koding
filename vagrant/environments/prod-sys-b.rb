@@ -1,5 +1,5 @@
-name "prod-sys"
-description "The Sys environment"
+name "prod-sys-b"
+description "The Sys A environment"
 
 cookbook_versions({
     "local_users"   => "0.1.3",
@@ -25,8 +25,5 @@ default_attributes({
                     :rabbitmq => {
                                 :admin_password => "dslkdscmckfjf55",
                                 :user_password => "djfjfhgh4455__5"
-                     },
-                     "mongodb" => {
-                                "source" => "db-m0.prod.aws.koding.com",
                      }
 })

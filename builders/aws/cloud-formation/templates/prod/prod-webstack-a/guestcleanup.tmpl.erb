@@ -1,10 +1,10 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Deploy WebServer",
+    "Description": "Deploy GuestCleanup",
     "Resources" :{
 
 
-      	 "WebServerLaunchConfiguration" : {
+      	 "GuestCleanupLaunchConfiguration" : {
       		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
       		"Properties" : {
         		"InstanceType" : "c1.medium",
@@ -16,21 +16,20 @@
           },
 
 
-          "WebServerScalingGroup" : {
+          "GuestCleanupScalingGroup" : {
               "Type" :"AWS::AutoScaling::AutoScalingGroup",
               "Properties" : {
                 	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
                   	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
-                      "LaunchConfigurationName" : {"Ref": "WebServerLaunchConfiguration" },
-                      "MinSize": "5",
-                      "MaxSize": "10",
-                      "DesiredCapacity": "5",
-                      "LoadBalancerNames": ["rc-elbs-WebRC-N60CZPG3IAD9"]
+                      "LaunchConfigurationName" : {"Ref": "GuestCleanupLaunchConfiguration" },
+                      "MinSize": "1",
+                      "MaxSize": "1",
+                      "DesiredCapacity": "1"
                      } 
           },  
 
 
-          "WebServerCPUAlarmHigh" : {
+          "GuestCleanupCPUAlarmHigh" : {
               "Type" : "AWS::CloudWatch::Alarm",
               "Properties": {
                     "EvaluationPeriods" : "1",
@@ -39,7 +38,7 @@
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
                     "Period":"60",
                     "AlarmActions": [
-                        {"Ref": "WebServerAutoScalingUPPolicy"}
+                        {"Ref": "GuestCleanupAutoScalingUPPolicy"}
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "GreaterThanThreshold",
@@ -47,13 +46,13 @@
                     "Dimensions" : [
                       {
                         "Name":"AutoScalingGroupName",
-                        "Value": {"Ref":"WebServerScalingGroup"}
+                        "Value": {"Ref":"GuestCleanupScalingGroup"}
                       }
                     ]
               }
                
           },
-          "WebServerCPUAlarmLow" : {
+          "GuestCleanupCPUAlarmLow" : {
               "Type" : "AWS::CloudWatch::Alarm",
               "Properties": {
                     "EvaluationPeriods" : "1",
@@ -62,7 +61,7 @@
                     "AlarmDescription": "Alarm if CPU too low",
                     "Period":"60",
                     "AlarmActions": [
-                        {"Ref": "WebServerAutoScalingDownPolicy"}
+                        {"Ref": "GuestCleanupAutoScalingDownPolicy"}
                     ],
                     "Namespace":"AWS/EC2",
                     "ComparisonOperator": "LessThanThreshold",
@@ -70,7 +69,7 @@
                     "Dimensions" : [
                       {
                         "Name":"AutoScalingGroupName",
-                        "Value": {"Ref":"WebServerScalingGroup"}
+                        "Value": {"Ref":"GuestCleanupScalingGroup"}
                       }
                     ]
               }
@@ -79,18 +78,18 @@
 
 
 
-          "WebServerAutoScalingUPPolicy" : {
+          "GuestCleanupAutoScalingUPPolicy" : {
 			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
       		 "Properties" : {
-        			"AutoScalingGroupName" : {"Ref" : "WebServerScalingGroup"},   
+        			"AutoScalingGroupName" : {"Ref" : "GuestCleanupScalingGroup"},   
         			"ScalingAdjustment" : "1",  
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
     	  },
-          "WebServerAutoScalingDownPolicy" : {
+          "GuestCleanupAutoScalingDownPolicy" : {
 			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
       		 "Properties" : {
-        			"AutoScalingGroupName" : {"Ref" : "WebServerScalingGroup"},   
+        			"AutoScalingGroupName" : {"Ref" : "GuestCleanupScalingGroup"},   
         			"ScalingAdjustment" : "-1",  
         			"AdjustmentType" : "ChangeInCapacity" 
       		 }
@@ -100,7 +99,7 @@
     "Outputs" : {
         "ScalingGroupName" : {
           "Description" : "Group name of the newly created AS",
-          "Value" : { "Ref" : "WebServerScalingGroup" }
+          "Value" : { "Ref" : "GuestCleanupScalingGroup" }
         }
     }
 }
