@@ -50,7 +50,7 @@ then
   end
 
   dpkg_package "liblxc0_0.8.0~rc1-4ubuntu38userns3_amd64.deb" do
-    source "/tmp/lxc/liblxc0_0.8.0~rc1-4ubuzntu38userns3_amd64.deb"
+    source "/tmp/lxc/liblxc0_0.8.0~rc1-4ubuntu38userns3_amd64.deb"
     action :install
   end
 

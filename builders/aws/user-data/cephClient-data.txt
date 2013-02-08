@@ -1,7 +1,6 @@
 #!/bin/bash
 /bin/hostname ceph1.beta.system.aws.koding.com
 set -e -x
-ROLE="guestcleanup"
 LOGFILE="/var/log/user-data-out.log"
 mkdir -p /etc/chef
 cat > /root/.s3cfg << "EOF"

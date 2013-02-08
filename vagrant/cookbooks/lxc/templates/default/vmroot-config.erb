@@ -5,6 +5,7 @@ lxc.network.flags = up
 lxc.network.ipv4 = <%= node[:lxc][:network][:vmroot_ip] %>
 lxc.network.ipv4.gateway = <%= node[:lxc][:network][:bridge_ip] %>
 lxc.rootfs = /var/lib/lxc/vmroot/rootfs
+lxc.utsname = vmroot
 
 lxc.devttydir = lxc
 lxc.tty = 4

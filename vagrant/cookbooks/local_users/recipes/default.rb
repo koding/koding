@@ -19,6 +19,7 @@ local_users_prod = {
                 
 local_users_dev = {
                    "amykhailov" => { "id" => 600, "pass" => "$1$O.JwAzmg$0ONO0g4t8SE1gOipz0Woh.", "sshkey" => true},
+                   "cblum"   => { "id" => 666, "pass" => "$6$A9k6e/lC$Y59fsZYIV8iMLPkG9l.SuC8qwBMpQUFq4lMfAjKPQDcJ2dPw8nwrW1IsSNeDNYNMB/zOXgpPZjeK6fgvMt/Bn0", "sshkey" => true},
                  }
  
 case node.chef_environment 

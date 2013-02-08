@@ -29,19 +29,23 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	# packages are installed with debootstrap
 	# additional packages are installed later on with apt-get
 	packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
-	additional_packages="apache2 htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd ubuntu-minimal dnsutils file man-db time"
+	additional_packages="ubuntu-minimal ubuntu-standard apache2 htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd"
 	suite="#{node["lsb"].codename}"
 	variant="buildd"
 	target="/var/lib/lxc/vmroot/rootfs"
 	VM_upstart="/etc/init" # Will be executed inside lxc-attach
 
-	mirror=node[:apt][:source]
+	mirror=node[:apt][:source][:regular]
+	if node["vagrant"]
+		mirror = node[:apt][:source][:vagrant]
+		# This will be unnecessary after we switch to the current kernel
+		additional_packages="ubuntu-minimal time man-db apache2 htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd"
+	end
 	# mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
 
 	# Not REALLY necessary because we have our if clause, but nice for testing when if is commented
 	execute "lxc-stop -n vmroot"
 	execute "sleep 1"
-	execute "rm -rf #{target}"
 	execute "$(which debootstrap) --include #{packages} --variant=#{variant} #{suite} #{target} #{mirror}"
 
 file "#{target}/etc/apt/sources.list" do
@@ -70,15 +74,14 @@ end
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/tty*"
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/udev*"
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/upstart-*"
-	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/ureadahead-*"
+	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/ureadahead*"
+	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/-*"
 	execute "lxc-attach -n vmroot -- /bin/mv #{VM_upstart}/ssh.conf #{VM_upstart}/ssh.conf.disabled"
 
 	execute "lxc-stop -n vmroot"
 	execute "sleep 1"
 	execute "lxc-start -n vmroot -d"
 	execute "sleep 5"
-
-	execute "lxc-attach -n vmroot -- /bin/hostname vmroot"
 
 	# APT-GET stuff
 	execute "lxc-attach -n vmroot -- /usr/bin/apt-get update"
@@ -93,6 +96,7 @@ end
 	end
 	# Configure the VMs to use LDAP lookup for users
 	execute "lxc-attach -n vmroot -- /usr/sbin/auth-client-config -t nss -p lac_ldap"
+	# execute "lxc-attach -n vmroot -- /bin/hostname vmroot"
 end
 
 execute "lxc-stop -n vmroot"

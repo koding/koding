@@ -7,15 +7,19 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe 'ceph::ohai_plugin'
 include_recipe "apt::ceph"
 
+execute "modprobe rbd"
+
 package "ceph" do
-    action :install
-    version node["ceph"]["version"]
+  action :install
 end
 
-execute "modprobe rbd"
+directory "/etc/ceph/" do
+    mode 0755
+    owner "root"
+    group "root"
+end
 
 directory "/var/run/ceph/" do
     mode 0755
@@ -60,15 +64,13 @@ cookbook_file "/root/.ssh/config" do
   mode 0644
 end
 
-# execute "echo '127.0.0.1    localhost.localdomain' >> /etc/hosts"
-
 execute "sudo mkcephfs -a -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.keyring" do
 	creates "/etc/ceph/ceph.keyring"
 end
 
-execute "service ceph restart"
-
 service "ceph" do
-	action :start
-	start_command "/etc/init.d/ceph -a start"
+	action :restart
+  start_command "/etc/init.d/ceph -a start"
+  stop_command "/etc/init.d/ceph -a stop"
+  restart_command "/etc/init.d/ceph -a restart"
 end
