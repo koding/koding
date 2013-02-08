@@ -147,7 +147,7 @@ class GroupsAppController extends AppController
       @requestAccess group, (err)-> modal.destroy()
 
   requestAccess:(group, callback)->
-    group.requestInvitation (err)->
+    group.requestAccess (err)->
       callback err
       new KDNotificationView title:
         if err then err.message
