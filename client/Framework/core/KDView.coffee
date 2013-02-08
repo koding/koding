@@ -700,10 +700,10 @@ class KDView extends KDObject
     o.offset    or=
       top         : 0
       left        : 0
-    o.delayIn   or= 300
-    o.delayOut  or= 300
+    o.delayIn   or= 0
+    o.delayOut  or= 0
     o.html      or= yes
-    o.animate   or= yes
+    o.animate   or= no
     o.selector  or= null
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
