@@ -29,7 +29,7 @@ class nginx_proxy::cert {
     }
     file { "/etc/nginx/ssl/server_new.crt":
         ensure  => file,
-        source  => "puppet:///modules/nginx_proxy/etc/ssl/server.crt",
+        source  => "puppet:///modules/nginx_proxy/etc/ssl/server_new.crt",
         owner   => 'root',
         group   => 'root',
         require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf'],File['/etc/nginx/ssl']],
@@ -38,7 +38,7 @@ class nginx_proxy::cert {
 
     file { "/etc/nginx/ssl/server_new.key":
         ensure  => file,
-        source  => "puppet:///modules/nginx_proxy/etc/ssl/server.key",
+        source  => "puppet:///modules/nginx_proxy/etc/ssl/server_new.key",
         owner   => 'root',
         group   => 'root',
         require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf'],File['/etc/nginx/ssl']],
