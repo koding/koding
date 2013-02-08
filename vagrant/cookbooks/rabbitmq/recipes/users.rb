@@ -35,6 +35,7 @@ root_logs_users = %w( PROD-k5it50s4676pO9O
                       prod-sharedhosting-kite
                       prod-social
                       prod-webserver
+                      prod-kite-webterm
                       prod-webterm-kite
                       prod-auth-worker
                     )

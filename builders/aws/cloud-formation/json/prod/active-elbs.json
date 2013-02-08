@@ -7,9 +7,9 @@
             "Properties": {
                 "HealthCheck": {
                     "HealthyThreshold": "3",
-                    "Interval":"5",
+                    "Interval":"15",
                     "Target":"TCP:3020",
-                    "Timeout": "3",
+                    "Timeout": "10",
                     "UnhealthyThreshold":"5"
                 },
                 "LBCookieStickinessPolicy":[ 
@@ -46,9 +46,9 @@
             "Properties": {
                 "HealthCheck": {
                     "HealthyThreshold": "3",
-                    "Interval":"10",
+                    "Interval":"15",
                     "Target":"TCP:8008",
-                    "Timeout": "5",
+                    "Timeout": "10",
                     "UnhealthyThreshold":"5"
                 },
                 "Listeners": [ 
