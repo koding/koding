@@ -88,10 +88,11 @@ class GroupView extends ActivityContentDisplay
     @createTabs()
 
   createTabs:->
+    data = @getData()
 
     @tabView = new KDTabView
       hideHandleContainer : yes
-    , @getData()
+    , data
 
     @tabView.addPane readmeTab = new KDTabPaneView
     readmeTab.addSubView new GroupReadmeView {}, data
