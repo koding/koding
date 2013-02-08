@@ -9,6 +9,10 @@ class GroupReadmeView extends JView
     group = @getData()
 
     @loader = new KDLoaderView
+      cssClass : 'loader'
+    @loaderText = new KDView
+      partial : 'Loading readme...'
+      cssClass :' loader-text'
 
     @readmeView = new KDView
       cssClass : 'data'
@@ -24,17 +28,16 @@ class GroupReadmeView extends JView
 
 
     @readmeEditButton = new KDButtonView
-      title : 'Edit'
+      title : 'Edit the Readme'
       cssClass : 'clean-gray'
       callback :=>
-        log @readmeEditButton.getTitle()
         @readmeInput.setValue Encoder.htmlDecode @readme
-        @readmeInput.show()
         @readmeView.hide()
-        @readmeSaveButton.show()
+        @showReadmeEditButtons()
+        @readmeEditButton.hide()
 
     @readmeSaveButton = new KDButtonView
-      title : "Save"
+      title : "Save Changes"
       cssClass : 'clean-gray'
       loader      :
         color     : "#444444"
@@ -46,28 +49,46 @@ class GroupReadmeView extends JView
         group.setReadme @readmeInput.getValue(), (readme)=>
           @readme = readme?.content or 'There was an error.'
           @readmeSaveButton.hideLoader()
-          @readmeInput.hide()
           @readmeView.show()
-          @readmeSaveButton.hide()
-    
-    @readmeSaveButton.hide()
-    @readmeEditButton.hide()
-    @readmeInput.hide()
-    @readmeView.hide()
+          @hideReadmeEditButtons()
+          @readmeEditButton.show()
 
-    group.fetchReadme (err, readme)=>
-
-      unless err
+    @readmeCancelLink = new CustomLinkView
+      title : 'Cancel'
+      click :=>
+        @readmeView.show()
+        @hideReadmeEditButtons()
         @readmeEditButton.show()
 
+    @readmeView.hide()
+    @readmeInput.hide()
+    @readmeEditButton.hide()
+    @hideReadmeEditButtons()
+
+    group.fetchReadme (err, readme)=>
+      unless err
+        group.canEditGroup (err, allowed)=>
+          @readmeEditButton.show() if allowed
+
       partial = \
-        if err then err.message or "<p>Access denied!</p>"
-        else        readme?.content      or "<p>No wiki found...</p>"
+        if err then err.message or "Access denied! Please join the group."
+        else        readme?.content      or "This group does not have any associated readme data yet."
       @readme = readme?.content or partial
       @readmeView.updatePartial @utils.applyMarkdown partial 
+      @readmeView.show()
       @highlightCode()
       @loader.hide()
-      @readmeView.show()
+      @loaderText.hide()
+
+  hideReadmeEditButtons:->
+    @readmeInput.hide()
+    @readmeSaveButton.hide()
+    @readmeCancelLink.hide() 
+
+  showReadmeEditButtons:->
+    @readmeInput.show()
+    @readmeSaveButton.show()
+    @readmeCancelLink.show()
 
   viewAppended:->
     super
@@ -82,8 +103,10 @@ class GroupReadmeView extends JView
   pistachio:->
     """
     {{> @loader}}
+    {{> @loaderText}}
     <div class="button-bar">
       {{> @readmeEditButton}}
+      {{> @readmeCancelLink}}
       {{> @readmeSaveButton}}
     </div>
     {{> @readmeInput}}
