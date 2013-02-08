@@ -46,13 +46,14 @@ class GroupView extends ActivityContentDisplay
     {slug, privacy} = data
 
     @enterLink = new CustomLinkView
-      cssClass  : 'enter-group'
-      href      : "/#{slug}/Activity"
-      target    : slug
-      title     : 'Open group'
-      click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
-
-    @readme = new GroupReadmeView {}, data
+      cssClass    : 'enter-group'
+      href        : "/#{slug}/Activity"
+      target      : slug
+      title       : 'Open group'
+      click       : if privacy is 'private' then @bound 'privateGroupOpenHandler'
+      icon        :
+        placement : "right"
+        cssClass  : "enter-group"
 
     @joinButton.on 'Joined', @enterLink.bound "show"
 
@@ -84,20 +85,49 @@ class GroupView extends ActivityContentDisplay
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
 
+    @createTabs()
+
+  createTabs:->
+    data = @getData()
+
+    @tabView = new KDTabView
+      hideHandleContainer : yes
+    , data
+
+    @tabView.addPane readmeTab = new KDTabPaneView
+    readmeTab.addSubView new GroupReadmeView {}, data
+
   decorateUponRoles:(roles)->
 
     if "admin" in roles
-      @$('.navbar').removeClass 'hidden'
-      adminDropdown = new KDSelectBox
-        defaultValue  : "admin"
-        selectOptions : [
-            {title : "Admin",           value : "admin"}
-            {title : "Settings",        value : "settings"}
-            {title : "Permissions",     value : "permissions"}
-            {title : "Invitations",     value : "invitations"}
-            {title : "Member Policies", value : "policies"}
-          ]
-      @addSubView adminDropdown, ".navbar"
+      @adminMenuLink = new CustomLinkView
+        cssClass    : 'fr'
+        title       : "Admin"
+        icon        :
+          cssClass  : 'admin'
+        click       : (event)->
+          contextMenu = new JContextMenu
+            cssClass    : "group-admin-menu"
+            event       : event
+            delegate    : @adminMenuLink
+            offset      :
+              top       : 10
+              left      : -30
+            arrow       :
+              placement : "top"
+              margin    : -20
+          ,
+            'Settings'             :
+              callback             : (source, event)=> contextMenu.destroy()
+              separator            : yes
+            'Permissions'          :
+              callback             : (source, event)=> contextMenu.destroy()
+            'Member Policies'      :
+              callback             : (source, event)=> contextMenu.destroy()
+            'Invitations'          :
+              callback             : (source, event)=> contextMenu.destroy()
+
+      @addSubView @adminMenuLink, ".navbar"
 
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
@@ -114,15 +144,15 @@ class GroupView extends ActivityContentDisplay
       <section class="right-overflow">
         {h2{#(title)}}
         <div class="buttons">
-          {{> @enterLink}}
           {{> @joinButton}}
         </div>
       </section>
-      <div class="navbar clearfix hidden">
+      <div class="navbar clearfix">
+        {{> @enterLink}}
       </div>
-      <div class='desc'>
+      <div class='desc#{if @getData().body is '' then ' hidden' else ''}'>
         {p{#(body)}}
       </div>
     </div>
-    {{> @readme}}
+    {{> @tabView}}
     """
