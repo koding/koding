@@ -30,7 +30,7 @@ class KDTabViewWithForms extends KDTabView
     formData.callback = (formData)=>
       @showNextPane() if @getOptions().goToNextFormOnSubmit
       oldCallback? formData
-      if index is forms.length - 1
+      if index is @getOptions().forms.length - 1
         @fireFinalCallback()
 
     @createForm formData,tab

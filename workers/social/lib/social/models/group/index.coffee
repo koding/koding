@@ -175,7 +175,7 @@ module.exports = class JGroup extends Module
                 queue.next()
         ]
         if 'private' is group.privacy
-          queue.push => @createMembershipPolicy -> queue.next()
+          queue.push -> group.createMembershipPolicy -> queue.next()
         queue.push -> callback null, group
 
         daisy queue
@@ -254,9 +254,7 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else
-          for perm in permissionSet.permissions     #
-            if perm.role is 'guest'                 #
-              console.log 'guest found in fetch'    # this does not
+          # console.log require('util').inspect permissionSet, yes, 1000, yes
           callback null, {
             permissionsByModule
             permissions: permissionSet.permissions
