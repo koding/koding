@@ -14,6 +14,11 @@ class SidebarController extends KDViewController
 
     avatar.setData account
     finderHeader.setData account
+    # temp fix
+    # this should be done on framework level
+    # check comments on KDObject::setData
+    avatar.render()
+    finderHeader.render()
 
     navController.reset()
     accNavController.reset()
