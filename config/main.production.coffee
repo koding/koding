@@ -142,7 +142,7 @@ module.exports = deepFreeze
     url: "http://post.loggr.net/1/logs/koding/events"
     apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
-    push: yes
+    push: no
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 30000

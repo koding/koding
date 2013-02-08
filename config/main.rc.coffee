@@ -138,7 +138,7 @@ module.exports = deepFreeze
       password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
-    push: no
+    push: yes
     url: "http://post.loggr.net/1/logs/koding/events"
     apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
