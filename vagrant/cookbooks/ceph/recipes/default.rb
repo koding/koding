@@ -15,6 +15,7 @@ package "ceph" do
     version node["ceph"]["version"]
 end
 
+execute "modprobe rbd"
 
 directory "/var/run/ceph/" do
     mode 0755

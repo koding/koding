@@ -18,3 +18,5 @@ cookbook_file "/etc/ceph/keyring" do
     source "keyring"
     mode 00640
 end
+
+execute "modprobe rbd"
