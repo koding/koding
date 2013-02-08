@@ -55,14 +55,6 @@ class GroupView extends ActivityContentDisplay
         placement : "right"
         cssClass  : "enter-group"
 
-    @tabView = new KDTabView
-      hideHandleContainer : yes
-    , data
-
-    @tabView.addPane readmeTab = new KDTabPaneView
-
-    readmeTab.addSubView new GroupReadmeView {}, data
-
     @joinButton.on 'Joined', @enterLink.bound "show"
 
     @joinButton.on 'Left', @enterLink.bound "hide"
@@ -93,7 +85,16 @@ class GroupView extends ActivityContentDisplay
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
 
+    @createTabs()
 
+  createTabs:->
+
+    @tabView = new KDTabView
+      hideHandleContainer : yes
+    , @getData()
+
+    @tabView.addPane readmeTab = new KDTabPaneView
+    readmeTab.addSubView new GroupReadmeView {}, data
 
   decorateUponRoles:(roles)->
 
