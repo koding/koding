@@ -7,8 +7,18 @@ require 'json'
 
 env = "prod-webstack-b"
 
+active = false
 
-roles = %w( authworker  broker  cacheworker  emailworker  guestcleanup  socialworker  web_server )
+if active
+    web_elb = "active-el-WebActiv-1RK6DY7CVVPZZ"
+    broker_elb = "active-el-MqActive-YBOUL5Q88Z7Z"
+else
+    web_elb = "rc-elbs-WebRC-N60CZPG3IAD9"
+    broker_elb = "rc-elbs-MqRC-YHVO2FRCJN0O"
+end
+
+
+roles = %w( authworker  broker  cacheworker  emailworker  guestcleanup  socialworker  web-server )
 
 roles.each do |role|
     userdata = "./user-data/userdata.txt.erb"
