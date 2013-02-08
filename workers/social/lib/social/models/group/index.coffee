@@ -49,7 +49,8 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
-        'fetchReadme', 'setReadme', 'addCustomRole'
+        'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests',
+        'countPendingInvitationRequests'
       ]
     schema          :
       title         :
@@ -97,6 +98,9 @@ module.exports = class JGroup extends Module
         as          : 'role'
       membershipPolicy :
         targetType  : 'JMembershipPolicy'
+        as          : 'owner'
+      invitationRequest:
+        targetType  : 'JInvitationRequest'
         as          : 'owner'
       readme        :
         targetType  : 'JReadme'
@@ -330,6 +334,44 @@ module.exports = class JGroup extends Module
         else 
           callback err, null
 
+  createMembershipPolicy:(queue, callback)->
+    [callback, queue] = [queue, callback]  unless callback
+    queue ?= []
+    JMembershipPolicy = require './membershippolicy'
+    membershipPolicy  = new JMembershipPolicy 
+    queue.push(
+      -> membershipPolicy.save (err)->
+        if err then callback err
+        else queue.next()
+      => @addMembershipPolicy membershipPolicy, (err)->
+        if err then callback err
+        else queue.next()
+    )
+    queue.push callback  if callback
+    daisy queue
+
+  destroyMemebershipPolicy:(callback)->
+    @fetchMembershipPolicy (err, policy)->
+      if err then callback err
+      else unless policy?
+        callback new KodingError '404 Membership policy not found'
+      else policy.remove callback
+
+  convertPublicToPrivate =(group, callback)->
+    group.createMembershipPolicy callback
+
+  convertPrivateToPublic =(group, callback)->
+    group.destroyMemebershipPolicy callback
+
+  setPrivacy:(privacy)->
+    if @privacy is 'public' and privacy is 'private'
+      convertPublicToPrivate this
+    else if @privacy is 'private' and privacy is 'public'
+      convertPrivateToPublic this
+    @privacy = privacy
+
+  getPrivacy:-> @privacy
+
   modify: permit
     advanced : [
       { permission: 'edit own groups', validateWith: Validators.own }
@@ -363,7 +405,31 @@ module.exports = class JGroup extends Module
           else if explanation? then ERROR_POLICY
           else ERROR_NO_POLICY
         callback clientError, no
+ 
+  countPendingInvitationRequests: permit 'send invitations'
+    success: (client, callback)->
+      @countInvitationRequests {}, {sent:no}, callback
 
+  sendSomeInvitations: permit 'send invitations'
+    success: (client, count, callback)->
+      console.log count
+      @fetchInvitationRequests {}, {
+        targetOptions :
+          selector    : { sent: no }
+          options     : { limit: count }
+      }, (err, requests)->
+        if err then callback err
+        else
+          queue = requests.map (request)->->
+            request.sendInvitation client, ->
+              callback null, """
+                An invite was sent to:
+                <strong>koding+#{request.koding.username}@koding.com</strong>
+                """
+              setTimeout queue.next.bind(queue), 50
+          queue.push -> callback null, null
+          daisy queue
+  
   requestInvitation: secure (client, callback)->
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
@@ -377,7 +443,8 @@ module.exports = class JGroup extends Module
         callback new KodingError """
           You've already requested an invitation to this group.
           """
-      else @addInvitationRequest invitationRequest, (err)-> callback err
+      else
+        @addInvitationRequest invitationRequest, (err)-> callback err
 
 
   # attachEnvironment:(name, callback)->
