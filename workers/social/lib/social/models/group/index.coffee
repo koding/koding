@@ -49,7 +49,7 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
-        'fetchReadme', 'setReadme'
+        'fetchReadme', 'setReadme', 'addCustomRole'
       ]
     schema          :
       title         :
@@ -324,7 +324,19 @@ module.exports = class JGroup extends Module
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
       JGroupRole = require './role'
-      JGroupRole.create {title : formData.title}, callback
+      JGroupRole.create 
+        title           : formData.title
+        isConfigureable : formData.isConfigureable or no
+      , callback
+
+  addCustomRole: permit 'grant permissions'
+    success:(client,formData,callback)->
+      @createRole client,formData, (err,role)=>
+        console.log err,role
+        unless err
+          @addRole role, callback
+        else 
+          callback err, null
 
   modify: permit
     advanced : [
