@@ -8,6 +8,10 @@ version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'u
 # PROD
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
 
+# RabbitMQ Host
+rabbit_host = fs.readFileSync '/etc/rabbit_host', 'utf-8'
+rabbit_host = rabbit_host.trim()
+
 projectRoot = nodePath.join __dirname, '..'
 
 # rabbitPrefix = (
@@ -103,7 +107,7 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'rabbit-a.prod.aws.koding.com'
+    host        : rabbit_host
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -129,7 +133,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit-a.prod.aws.koding.com'
+      host          : rabbit_host
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
