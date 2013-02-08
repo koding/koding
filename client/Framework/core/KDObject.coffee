@@ -170,7 +170,13 @@ class KDObject extends KDEventEmitter
   setData:(data)->
     return warn "setData called with null or undefined!" unless data?
     @data = data
-    data.emit? "update"
+    # fix
+    # this unfortunately doesn't work
+    # because we change the data here.
+    # in a view constructor we do data.on "update"
+    # but here that data is reset/changed and listener becomes obsolete
+    # bc new data isn't being listened
+    data.emit? 'update'
 
   getData:-> @data
 
