@@ -4,7 +4,6 @@ nodePath = require 'path'
 deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-rabbitmq_host = fs.readFileSync nodePath.join('/etc/rabbit_host'), 'utf-8'
 
 # PROD
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
