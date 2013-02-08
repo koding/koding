@@ -49,7 +49,7 @@ module.exports = class JGroup extends Module
         'join','leave','modify','fetchPermissions', 'createRole', 'addCustomRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
-        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchInvitationRequests','countPendingInvitationRequests'
         'sendSomeInvitations','fetchReadme'
       ]
@@ -234,13 +234,9 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else if permissionSet?
-          console.log 'updating permissions'        #
           permissionSet.update 
             $set : {permissions}
           , =>
-            for perm in permissionSet.permissions   #
-              if perm.role is 'guest'               #
-                console.log 'guest found in update' # this fires
             callback arguments...
         else
           permissionSet = new JPermissionSet {permissions}
@@ -254,7 +250,6 @@ module.exports = class JGroup extends Module
         if err
           callback err
         else
-          # console.log require('util').inspect permissionSet, yes, 1000, yes
           callback null, {
             permissionsByModule
             permissions: permissionSet.permissions
@@ -366,11 +361,8 @@ module.exports = class JGroup extends Module
         else policy.update $set: formData, callback
 
   canEditGroup: permit 'grant permissions'
-    success:(client, callback)-> callback null, yes
 
   canOpenGroup: permit 'open group'
-    success:(client, callback)-> callback null, yes
-
     failure:(client, callback)->
       @fetchMembershipPolicy (err, policy)->
         explanation = policy?.explain() ?
@@ -407,6 +399,33 @@ module.exports = class JGroup extends Module
           queue.push -> callback null, null
           daisy queue
   
+  requestAccess: secure (client, callback)->
+    @fetchMembershipPolicy (err, policy)=>
+      if err then callback err
+      else if policy?.invitationsEnabled
+        @requestInvitation client, callback
+      else
+        @requestApproval client, callback
+
+  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser)->
+    JMail = require './email'
+    mail = new JMail
+      email   : adminUser.email
+      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
+      content : """
+        This will be the content for the approval request email.
+        """
+
+  requestApproval: secure (client, callback)->
+    {delegate} = client.connection
+    @fetchAdmin (err, admin)=>
+      if err then callback err
+      else delegate.fetchUser (err, delegateUser)=>
+        if err then callback err
+        else admin.fetchUser (err, adminUser)=>
+          if err then callback err
+          else @sendApprovalRequestEmail delegate, delegateUser, admin, adminUser
+
   requestInvitation: secure (client, callback)->
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
@@ -420,8 +439,7 @@ module.exports = class JGroup extends Module
         callback new KodingError """
           You've already requested an invitation to this group.
           """
-      else
-        @addInvitationRequest invitationRequest, (err)-> callback err
+      else @addInvitationRequest invitationRequest, (err)-> callback err
 
 
   # attachEnvironment:(name, callback)->
