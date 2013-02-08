@@ -26,6 +26,7 @@ class MainTabView extends KDTabView
       @removePane pane
       return no
 
+    @getSingleton("contentDisplayController").emit "ContentDisplaysShouldBeHidden"
     @showPane pane
 
   showHandleContainer:()->
