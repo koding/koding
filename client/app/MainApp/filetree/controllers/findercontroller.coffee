@@ -95,7 +95,7 @@ class NFinderController extends KDViewController
         unless @initialPath
           {initialPath} = @treeController.getOptions()
           @initialPath  = @expandInitialPath initialPath
-          recentFolders = @initialPath
+        recentFolders   = @initialPath
 
       timer = Date.now()
 
@@ -125,6 +125,7 @@ class NFinderController extends KDViewController
 
   multipleLs:(pathArray, callback)->
 
+    return unless Array.isArray pathArray
     KD.getSingleton('kiteController').run
       withArgs  :
         command : "ls \"#{pathArray.join("\" \"")}\" -Llpva --group-directories-first --time-style=full-iso"
