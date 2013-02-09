@@ -1,5 +1,3 @@
-@KDApps = {}
-
 class KodingAppsController extends KDController
 
   escapeFilePath = FSHelper.escapeFilePath
