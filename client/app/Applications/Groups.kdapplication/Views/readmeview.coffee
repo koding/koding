@@ -8,54 +8,57 @@ class GroupReadmeView extends JView
 
     group = @getData()
 
-    @loader = new KDLoaderView
-      cssClass : 'loader'
-    @loaderText = new KDView
-      partial : 'Loading readme...'
-      cssClass :' loader-text'
+    @loader           = new KDLoaderView
+      cssClass        : 'loader'
+    @loaderText       = new KDView
+      partial         : 'Loading Readme…'
+      cssClass        : ' loader-text'
 
-    @readmeView = new KDView
-      cssClass : 'data'
-      partial : '<p>Loading Readme</p>'
+    @readmeView       = new KDView
+      cssClass        : 'data'
+      partial         : '<p>Loading Readme</p>'
     
-    @readmeInput = new KDInputViewWithPreview
-      name        : "body"
-      cssClass    : "edit warn-on-unsaved-data"
-      type        : "textarea"
-      autogrow    : yes
-      placeholder : "This is your readme file."
+    @readmeInput      = new KDInputViewWithPreview
+      name            : "body"
+      cssClass        : "edit warn-on-unsaved-data"
+      type            : "textarea"
+      autogrow        : yes
+      placeholder     : "This is your readme file."
       showHelperModal : no
 
-
     @readmeEditButton = new KDButtonView
-      title : 'Edit the Readme'
-      cssClass : 'clean-gray'
-      callback :=>
+      title           : 'Edit the Readme'
+      cssClass        : 'clean-gray'
+      callback        : =>
         @readmeInput.setValue Encoder.htmlDecode @readme
         @readmeView.hide()
         @showReadmeEditButtons()
         @readmeEditButton.hide()
 
     @readmeSaveButton = new KDButtonView
-      title : "Save Changes"
-      cssClass : 'clean-gray'
-      loader      :
-        color     : "#444444"
-        diameter  : 12
-      callback: =>
+      title           : "Save Changes"
+      cssClass        : 'clean-gray'
+      loader          :
+        color         : "#444444"
+        diameter      : 12
+      callback        : =>
+        previousValue = @readmeInput.getValue()
         @readmeView.updatePartial @utils.applyMarkdown @readmeInput.getValue()
         @highlightCode()
         
-        group.setReadme @readmeInput.getValue(), (readme)=>
-          @readme = readme?.content or 'There was an error.'
+        group.setReadme @readmeInput.getValue(), (err, readme)=>
+          @readme = readme?.content or previousValue
+          if err
+            @readmeView.updatePartial previousValue
           @readmeSaveButton.hideLoader()
           @readmeView.show()
           @hideReadmeEditButtons()
-          @readmeEditButton.show()
+          @readmeEditButton.show() unless err
 
     @readmeCancelLink = new CustomLinkView
-      title : 'Cancel'
-      click :=>
+      title           : 'Cancel'
+      cssClass        : 'edit-cancel'
+      click           : =>
         @readmeView.show()
         @hideReadmeEditButtons()
         @readmeEditButton.show()
@@ -67,12 +70,13 @@ class GroupReadmeView extends JView
 
     group.fetchReadme (err, readme)=>
       unless err
+        partial = readme?.content or "This group does not have any associated readme data yet."
         group.canEditGroup (err, allowed)=>
-          @readmeEditButton.show() if allowed
-
-      partial = \
-        if err then err.message or "Access denied! Please join the group."
-        else        readme?.content      or "This group does not have any associated readme data yet."
+          if allowed
+            @readmeEditButton.show() 
+      else 
+        partial = err.message or "Access denied! Please join the group."
+      
       @readme = readme?.content or partial
       @readmeView.updatePartial @utils.applyMarkdown partial 
       @readmeView.show()

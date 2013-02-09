@@ -310,7 +310,7 @@ module.exports = class JGroup extends Module
                 if err then callback err                
                 else queue.next()
             ->
-              callback readme
+              callback null, readme
           ]
 
         else 
@@ -319,7 +319,9 @@ module.exports = class JGroup extends Module
               content : text
           , (err)=>
             if err then callback err
-            else callback readme
+            else callback null, readme
+    failure:(client,text, callback)->
+      callback new KodingError "You are not allowed to change this."
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
