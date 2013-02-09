@@ -1,0 +1,103 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy EmailWorker",
+    "Resources" :{
+
+      	 "EmailWorkerLaunchConfiguration" : {
+      		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
+      		"Properties" : {
+        		"InstanceType" : "c1.medium",
+          		"SecurityGroups" : ["sg-6a56a505"],
+            	"KeyName" : "koding",
+                "ImageId" : "ami-3d4ff254",
+                "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
+             } 
+          },
+
+
+          "EmailWorkerScalingGroup" : {
+              "Type" :"AWS::AutoScaling::AutoScalingGroup",
+              "Properties" : {
+                	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
+                  	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
+                      "LaunchConfigurationName" : {"Ref": "EmailWorkerLaunchConfiguration" },
+                      "MinSize": "1",
+                      "MaxSize": "1",
+                      "DesiredCapacity": "1"
+              } 
+          },  
+
+
+          "EmailWorkerCPUAlarmHigh" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": "60",
+                    "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "EmailWorkerAutoScalingUPPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "GreaterThanThreshold",
+                    "MetricName": "CPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AutoScalingGroupName",
+                        "Value": {"Ref":"EmailWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+          "EmailWorkerCPUAlarmLow" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": "30",
+                    "AlarmDescription": "Alarm if CPU too low",
+                    "Period":"60",
+                    "AlarmActions": [
+                        {"Ref": "EmailWorkerAutoScalingDownPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "LessThanThreshold",
+                    "MetricName": "CPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AutoScalingGroupName",
+                        "Value": {"Ref":"EmailWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+
+
+          "EmailWorkerAutoScalingUPPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "EmailWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  },
+          "EmailWorkerAutoScalingDownPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "EmailWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "-1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  }
+    },
+
+    "Outputs" : {
+        "ScalingGroupName" : {
+          "Description" : "Group name of the newly created AS",
+          "Value" : { "Ref" : "EmailWorkerScalingGroup" }
+        }
+    }
+}

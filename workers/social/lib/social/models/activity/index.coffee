@@ -193,8 +193,8 @@ module.exports = class CActivity extends jraphical.Capsule
                   cursor.nextObject (err, doc1)->
                     if err
                       queue.fin(err)
-                    else unless doc1?
-                      console.log _id, JSON.stringify selector2
+                    # else unless doc1?
+                    #   console.log _id, JSON.stringify selector2
                     else
                       {targetName, targetId} = doc1
                       Base.constructors[targetName].someData {
