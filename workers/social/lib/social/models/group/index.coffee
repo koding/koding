@@ -48,9 +48,10 @@ module.exports = class JGroup extends Module
         'join','leave','modify','fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
-        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
-        'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests',
-        'countPendingInvitationRequests'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
+        'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
+        'countPendingInvitationRequests', 'countInvitationRequests'
+        'fetchInvitationRequestCounts'
       ]
     schema          :
       title         :
@@ -410,9 +411,36 @@ module.exports = class JGroup extends Module
     success: (client, callback)->
       @countInvitationRequests {}, {sent:no}, callback
 
+  countInvitationRequests$: permit 'send invitations'
+    success: (client, rest...)-> @countInvitationRequests rest...
+
+  fetchInvitationRequestCounts: permit 'send invitations'
+    success: ->
+      switch arguments.length
+        when 2
+          [client, callback] = arguments
+          types = ['invitation', 'basic approval']
+        when 3
+          [client, types, callback] = arguments
+      counts = {}
+      queue = types.map (invitationType)=>=>
+        @countInvitationRequests {}, {invitationType}, (err, count)->
+          if err then queue.fin err
+          else
+            counts[invitationType] = count
+            queue.fin()
+      dash queue, callback.bind null, null, counts
+
+  inviteMember: permit 'send invitations'
+    success: (client, email, callback)->
+      JInvitationRequest = require '../invitationrequest'
+      invitationRequest = new JInvitationRequest {email}
+      invitationRequest.save (err)->
+        if err then callback err
+        else invitationRequest.sendInvitation client, callback
+
   sendSomeInvitations: permit 'send invitations'
     success: (client, count, callback)->
-      console.log count
       @fetchInvitationRequests {}, {
         targetOptions :
           selector    : { sent: no }
@@ -430,11 +458,44 @@ module.exports = class JGroup extends Module
           queue.push -> callback null, null
           daisy queue
   
-  requestInvitation: secure (client, callback)->
+  requestAccess: secure (client, callback)->
+    @fetchMembershipPolicy (err, policy)=>
+      if err then callback err
+      else if policy?.invitationsEnabled
+        @requestInvitation client, 'invitation', callback
+      else
+        @requestApproval client, callback
+ 
+  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
+    JMail = require './email'
+    (new JMail
+      email   : adminUser.email
+      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
+      content : """
+        This will be the content for the approval request email.
+        """
+    ).save callback
+ 
+  requestApproval: secure (client, callback)->
+    {delegate} = client.connection
+    @requestInvitation client, 'basic approval', (err)=>
+      if err then callback err
+      else @fetchAdmin (err, admin)=>
+        if err then callback err
+        else delegate.fetchUser (err, delegateUser)=>
+          if err then callback err
+          else admin.fetchUser (err, adminUser)=>
+            if err then callback err
+            else @sendApprovalRequestEmail(
+              delegate, delegateUser, admin, adminUser, callback
+            )
+
+  requestInvitation: secure (client, invitationType, callback)->
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
     {delegate} = client.connection
     invitationRequest = new JInvitationRequest {
+      invitationType
       koding  : { username: delegate.profile.nickname }
       group   : @slug
     }
