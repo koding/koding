@@ -137,7 +137,9 @@ class Sidebar extends JView
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
-    @statusLEDs = new StatusLEDView
+    # @statusLEDs = new StatusLEDView
+    @statusLEDs = new KDView
+      cssClass : 'status-leds'
 
   resetAdminNavController:->
     @utils.wait 1000, =>
