@@ -144,8 +144,8 @@ module.exports = class CActivity extends jraphical.Capsule
                   cursor.nextObject (err, doc1)->
                     if err
                       queue.fin(err)
-                    else unless doc1?
-                      console.log _id, JSON.stringify selector2
+                    # else unless doc1?
+                    #   console.log _id, JSON.stringify selector2
                     else
                       {targetName, targetId} = doc1
                       Base.constructors[targetName].someData {
@@ -194,14 +194,12 @@ module.exports = class CActivity extends jraphical.Capsule
       limit : limit or 20
       sort  : createdAt : -1
 
-
-    console.log JSON.stringify selector
+    # console.log JSON.stringify selector
 
     @some selector, options, (err, activities)->
       if err then callback err
       else
         callback null, activities
-
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
