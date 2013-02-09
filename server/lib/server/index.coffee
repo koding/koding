@@ -37,12 +37,12 @@ else
     kite_applications:
       pattern: 'kite-application'
     kite_databases:
-      pattern: 'kite-application'
+      pattern: 'kite-database'
     webserver:
       pattern: 'web'
     worker_social:
       pattern: 'social'
-    
+
   incService = (serviceKey, inc) ->
     for key, value of services
       if serviceKey.indexOf(value.pattern) > -1
@@ -91,8 +91,6 @@ else
     stack = err?.stack
     console.log stack  if stack?
 
-  koding = require './bongo'
-
   authenticationFailed = (res, err)->
     res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
@@ -103,19 +101,13 @@ else
     JActivityCache.latest (err, cache)->
       if err then console.warn err
       console.log "latest: #{Date.now() - startTime} msecs!"
-      res.send if cache then cache.data else []
+      return res.send if cache then cache.data else {}
 
   app.get "/-/cache/before/:timestamp", (req, res)->
     {JActivityCache} = koding.models
     JActivityCache.before req.params.timestamp, (err, cache)->
       if err then console.warn err
-      res.send if cache then cache.data else []
-
-  app.get "/-/cache/id/:id", (req, res)->
-    {JActivityCache} = koding.models
-    JActivityCache.byId req.params.id, (err, cache)->
-      if err then console.warn err
-      res.send if cache then cache.data else []
+      res.send if cache then cache.data else {}
 
   app.get "/Logout", (req, res)->
     res.clearCookie 'clientId'
@@ -184,7 +176,6 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
-
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account
         state = false

@@ -160,33 +160,40 @@ class KDInputView extends KDView
         @setValue val
         _prevVal = val
 
+
+
   setValidation:(ruleSet)->
 
-    @valid = no
+    @valid                 = no
+    @currentRuleset        = ruleSet
+    @validationCallbacks or= {}
     @createRuleChain ruleSet
+
+    for oldEventName, oldCallbacks of @validationCallbacks
+      for oldCallback in oldCallbacks
+        @off oldEventName, oldCallback
+
     @ruleChain.forEach (rule)=>
-      eventName = if ruleSet.events
-        if ruleSet.events[rule]
-          ruleSet.events[rule]
-        else if ruleSet.event
-          ruleSet.event
-      else if ruleSet.event
-        ruleSet.event
+      eventName = \
+        if ruleSet.events
+          if ruleSet.events[rule] then ruleSet.events[rule]
+          else if ruleSet.event   then ruleSet.event
+        else if ruleSet.event     then ruleSet.event
 
       if eventName
-        @listenTo
-          KDEventTypes       : eventName
-          listenedToInstance : @
-          callback           : (input, event)=>
-            if rule in @ruleChain
-              @validate rule, event
+        @validationCallbacks[eventName] or= []
+        @validationCallbacks[eventName].push cb = (event)=>
+          @validate rule, event  if rule in @ruleChain
+
+        @on eventName, cb
+
 
   validate:(rule, event = {})->
 
-    @ruleChain or= []
-    @validationResults or= {}
-    rulesToBeValidated = if rule then [rule] else @ruleChain
-    ruleSet = @getOptions().validate
+    @ruleChain          or= []
+    @validationResults  or= {}
+    rulesToBeValidated    = if rule then [rule] else @ruleChain
+    ruleSet               = @currentRuleset or @getOptions().validate
 
     if @ruleChain.length > 0
       rulesToBeValidated.forEach (rule)=>

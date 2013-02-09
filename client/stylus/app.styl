@@ -282,7 +282,7 @@ body.loggedIn
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
-    vendor transition,  background-size 0.15s ease-in-out
+    // vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
       left              0
@@ -323,7 +323,7 @@ body.loggedIn
         opacity           1
     div.group-title
       opacity             0.15
-      vendor transition,  opacity 0.15s ease-in-out
+      // vendor transition,  opacity 0.15s ease-in-out
       width               100%
       bg                  color, rgba(128,128,128,0.5)
       color               white
@@ -347,7 +347,7 @@ body.loggedIn
     white-space           nowrap
     text-overflow         ellipsis
     vendor box-shadow,    0 5px 15px -5px rgba(0,0,0,0.85)
-    vendor transition,    top 0.5s ease-in-out
+    // vendor transition,    top 0.5s ease-in-out
     cursor                pointer
     text-shadow           0px 0px 3px rgba(0,0,0,0.33)
 
@@ -610,12 +610,12 @@ span.main-nav-icon
   visibility            hidden
   opacity               0
   transition            opacity ease-out .2s, visibility ease-out .2s
-  // transform             scale(0.01) skew(89deg) translate(100px,-100px)
-  // transform-origin      left top
+  transform             scale(0.01) skew(89deg) translate(100px,-100px)
+  transform-origin      left top
   &.active
     visibility          visible
     opacity             1
-    // transform           scale(1) skew(0deg)
+    transform           scale(1) skew(0deg)
     transition-delay    0s
 
   .kdview.kdlistview
@@ -661,21 +661,33 @@ span.main-nav-icon
 
   &.notifications
     left                -1px
-    .tab
-      span
-        bg(position,-120px -540px)
+    .tab span
+      bg                position, -120px -540px
 
   &.messages
     left                52px
-    .tab
-      span
-        bg(position,-140px -540px)
+    .tab span
+      bg                position,-140px -540px
 
   &.friends-followers
     left                162px
-    .tab
-      span
-        bg(position,-140px -540px)
+    .tab span
+      bg                position, -140px -540px
+
+  &.group-switcher
+    left                105px
+    .tab span
+      bg                position, -200px -540px
+    .avatararea-popup-list
+      li
+        span.avatar
+          border            1px solid #e3e3e3
+          margin-right      10px
+          size              20px, 20px
+        .custom-link-view .icon.new-page
+          bg                position, -180px -520px
+          opacity           .2
+
 
   .sublink
     border-top            1px solid #e0e0df
@@ -683,8 +695,27 @@ span.main-nav-icon
     padding               7px 12px
     font-weight           600
     width                 auto
-    rounded(0,0,3px,3px)
-    bg(color,#f8f8f8)
+    rounded               0 0 3px 3px
+    // bg                    color,#f8f8f8
+    gradient              #f8f8f8, #fff
+    shadow                0 -1px 5px rgba(0,0,0,.1)
+    &.top
+      border-top-width    0
+      border-bottom       1px solid #e0e0df
+      bg                  color, #fff
+      rounded             3px 3px 0 0
+      shadow              0 1px 5px rgba(0,0,0,.1)
+      gradient            #fff, #f8f8f8
+    span.icon
+      top                 4px
+      right               4px
+      size                20px, 20px
+      opacity             .5
+      sprite()
+      abs()
+      &.help
+        bg                position, -140px -460px
+
   .sublink a
     color                 #0991be
     text-decoration       none
@@ -706,7 +737,7 @@ span.main-nav-icon
     color               #8e8e8e
     cursor              default
     borderBox()
-    span.icon
+    span.icon.notification-type
       abs()
       top               33px
       left              35px
@@ -738,23 +769,23 @@ span.main-nav-icon
       size(40px,40px)
       fl()
     &.unread
-      background        rgba(250, 239, 223, .5)
-      border-left       3px solid #ff9200
-      padding           8px 10px 8px 7px
+      background          rgba(250, 239, 223, .5)
+      border-left         3px solid #ff9200
+      padding             8px 10px 8px 7px
     p
-      max-height        46px
-      overflow          hidden
-      color             #8e8e8e
+      max-height          46px
+      overflow            hidden
+      color               #8e8e8e
       span.profile
-        color           linkColor1
+        color             linkColor1
     a
-      color             linkColor1
-      text-decoration   none
-      font-weight       600
+      color               linkColor1
+      text-decoration     none
+      font-weight         600
       &:hover
-        text-decoration underline
+        text-decoration   underline
       span
-        color           linkColor1
+        color             linkColor1
     footer
       div
         color             #8e8e8e
@@ -787,40 +818,39 @@ span.main-nav-icon
       &.collapsed
         margin-left   -54px
 
+    .kdlistview-navigation
+      opacity         1
+      vendor          transition, opacity .3s linear
+      &.out
+        opacity       0
+
     .actions
       height          27px
       border-top      1px solid #403d37
       overflow        visible
       // margin          0 0 23px 0
       margin          0 0 0px 0
+      >a
+        border-right      1px solid #403d37
+        text-align        center
+        display           block
+        text-decoration   none
+        size              33.3%, 27px
+        bg                color, rgba(0,0,0,0.2)
+        borderBox()
+        rel()
+        fl()
+        &:hover
+          bg              color,rgba(0,0,0,0.4)
+        &:last-child span.icon
+          border-right    none!important
 
-    a.status-update,
-    a.notifications,
-    a.messages,
-    a.profile
-      rel()
-      border-right      1px solid #403d37
-      text-align        center
-      display           block
-      text-decoration   none
-      bg                color,rgba(0,0,0,0.2)
-      size              33.3%,27px
-      borderBox()
-      fl()
-      &:hover
-        bg(color,rgba(0,0,0,0.4))
-      span.icon
-        margin-top      4px
-        sprite()
-        bg(repeat,repeat)
-        size(20px,20px)
-        blockMid()
-    .status-update
-      span.icon
-        bg(position,-100px -520px)
-      &:hover
         span.icon
-          bg(position,-100px -540px)
+          margin-top      4px
+          bg              repeat, repeat
+          size            20px,20px
+          sprite()
+          blockMid()
     .count
       abs()
       top               -16px
@@ -856,25 +886,35 @@ span.main-nav-icon
           bg            position,-185px -549px
           size          7px,3px
 
+    .status-update
+      span.icon
+        bg              position, -100px -520px
+      &:hover span.icon
+        bg              position, -100px -540px
+
+    .group-switcher
+      span.icon
+        bg              position, -200px -520px
+      &:hover span.icon
+        bg              position, -200px -540px
+
     .notifications
       span.icon
-        bg(position,-120px -520px)
-      &:hover
-        span.icon
-          bg(position,-120px -540px)
+        bg              position, -120px -520px
+      &:hover span.icon
+        bg              position, -120px -540px
+
     .messages
       span.icon
-        bg(position,-140px -520px)
-      &:hover
-        span.icon
-          bg(position,-140px -540px)
+        bg              position, -140px -520px
+      &:hover span.icon
+        bg              position, -140px -540px
+
     .profile
       span.icon
-        bg(position,-160px -520px)
-        border-right      none      !important
-      &:hover
-        span.icon
-          bg(position,-160px -540px)
+        bg              position, -160px -520px
+      &:hover span.icon
+        bg              position, -160px -540px
 
     hr
       margin                0 11px

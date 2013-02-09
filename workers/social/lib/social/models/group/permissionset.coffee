@@ -70,7 +70,7 @@ module.exports = class JPermissionSet extends Module
           else unless permissionSet then callback null, no
           else
             queue = advanced.map ({permission, validateWith})->->
-              validateWith ?= require('./validators').any
+              validateWith ?= (require './validators').any
               validateWith.call target, client, group, permission, permissionSet,
                 (err, hasPermission)->
                   if err then queue.next err
@@ -97,12 +97,15 @@ module.exports = class JPermissionSet extends Module
       success =
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
-      failure = (promise.failure?.bind this) ? (args...)-> callback args...
+      failure = promise.failure?.bind this
       {delegate} = client.connection
       JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
+          args = [client, rest..., callback]
           if err then failure err
           else if hasPermission
-            success client, rest..., callback
+            success.apply null, args
+          else if failure?
+            failure.apply null, args
           else
-            failure new KodingError 'Access denied'
+            callback new KodingError 'Access denied'

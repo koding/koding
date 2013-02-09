@@ -7,7 +7,7 @@ class KDObject extends KDEventEmitter
   constructor:(options = {}, data)->
     @id or= options.id or __utils.getUniqueId()
     @setOptions options
-    @setData data
+    @setData data  if data
     @setDelegate options.delegate if options.delegate
     @registerKDObjectInstance()
     @subscriptionsByEvent = {}
@@ -167,7 +167,10 @@ class KDObject extends KDEventEmitter
 
   registerKDObjectInstance: -> KD.registerInstance @
 
-  setData:(data)-> @data = data if data?
+  setData:(data)->
+    return warn "setData called with null or undefined!" unless data?
+    @data = data
+    data.emit? "update"
 
   getData:-> @data
 

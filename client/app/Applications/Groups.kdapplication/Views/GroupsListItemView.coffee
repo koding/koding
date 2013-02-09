@@ -4,6 +4,8 @@ class GroupsListItemView extends KDListItemView
     options.type = "groups"
     super options,data
 
+    {title, slug, body} = @getData()
+
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
@@ -29,7 +31,7 @@ class GroupsListItemView extends KDListItemView
         href      : '#'
       pistachio   : '{{#(title)}}'
       tooltip     :
-        title     : @getData().title
+        title     : title
         direction : 'right'
         placement : 'top'
         offset    :
@@ -42,7 +44,7 @@ class GroupsListItemView extends KDListItemView
       tagName  : 'span'
       pistachio : '{{#(body)}}'
       tooltip     :
-        title     : @getData().body
+        title     : body
         direction : 'right'
         placement : 'top'
         offset    :
@@ -87,17 +89,25 @@ class GroupsListItemView extends KDListItemView
 
     # TODO: hide enter button for non-admins
 
-    @enterButton = new KDButtonView
-      cssClass        : 'follow-btn following-btn enter-group hidden'
-      title           : "Enter"
-      dataPath        : "member"
-      # icon : yes
-      # iconClass : 'enter-group'
-      callback        : (event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().slug}/Activity"
+    # @enterButton = new KDButtonView
+    #   cssClass        : 'follow-btn following-btn enter-group hidden'
+    #   title           : "Enter"
+    #   dataPath        : "member"
+    #   # icon : yes
+    #   # iconClass : 'enter-group'
+    #   callback        : (event)=>
+    #     group = @getData().slug
+    #     KD.getSingleton('router').handleRoute "#{unless group is 'koding' then '/'+group else ''}/Activity"
 
-    , data
+    # , data
 
+    @enterLink = new CustomLinkView
+      href    : "/#{slug}/Activity"
+      target  : slug
+      title   : 'Open group'
+      click   : @bound 'privateGroupOpenHandler'
+
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   settingsMenu:(data)->
 
@@ -105,14 +115,14 @@ class GroupsListItemView extends KDListItemView
     mainController = @getSingleton('mainController')
 
     menu =
-      'Group settings'     :
-        callback : =>
+      'Group settings'  :
+        callback        : =>
           mainController.emit 'EditGroupButtonClicked', @
       'Permissions'     :
-        callback : =>
+        callback        : =>
           mainController.emit 'EditPermissionsButtonClicked', @
       'My roles'        :
-        callback : =>
+        callback        : =>
           mainController.emit 'MyRolesRequested', @
 
     # if KD.checkFlag 'super-admin'
@@ -189,7 +199,7 @@ class GroupsListItemView extends KDListItemView
           </p>
         </div>
       </div>
-      <div class="button-container">{{>@enterButton}}{{> @joinButton}}</div>
+      <div class="button-container"><div class="enter-button">{{>@enterLink}}</div>{{> @joinButton}}</div>
     </div>
     """
 

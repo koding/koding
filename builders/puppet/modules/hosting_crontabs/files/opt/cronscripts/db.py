@@ -43,7 +43,7 @@ class DbQuota(object):
     def findRevokedDbs(self):
          sql = "SELECT User,Db FROM mysql.db WHERE Insert_priv='N'"
          self.c.execute(sql)
-         revoked = [ {'db_user':db[0],'db_name':db[1],'db_size':self.calculateDbSize(db[0])}
+         revoked = [ {'db_user':db[0],'db_name':db[1],'db_size':self.calculateDbSize(db[1])}
                         for db in self.c.fetchall() ]
          if len(revoked) == 0:
             return False
@@ -51,7 +51,7 @@ class DbQuota(object):
             return revoked
 
     def grantWriteAccess(self):
-        sql = "GRANT INSERT,UPDATE,CREATE ON %s.* TO '%s'@'%%'"
+        sql = "GRANT INSERT,UPDATE,CREATE ON `%s`.* TO '%s'@'%%'"
         dbs = self.findRevokedDbs()
         if dbs:
             for db in dbs:
@@ -106,7 +106,7 @@ class DbQuota(object):
 
     def revokeWriteAccess(self):
         find_user = "SELECT User FROM mysql.db WHERE Db='%s'"
-        revoke_access = "REVOKE INSERT,UPDATE,CREATE ON %s.* FROM '%s'@'%%'";
+        revoke_access = "REVOKE INSERT,UPDATE,CREATE ON `%s`.* FROM '%s'@'%%'";
         dbs = self.findNotRevokedDbs()
         if dbs:
             for db in dbs:

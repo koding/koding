@@ -2,9 +2,11 @@
 
 module.exports = class JGroup extends Module
 
+  [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
+
   {Relationship} = require 'jraphical'
 
-  {Inflector, ObjectRef, secure, daisy, dash} = require 'bongo'
+  {Inflector, ObjectId, ObjectRef, secure, daisy, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
   {permit} = JPermissionSet
@@ -26,6 +28,9 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
+      'send invitations'                  : []
+      'open group'                        : ['member', 'moderator']
+      'list members'                      : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member', 'moderator']
@@ -40,8 +45,13 @@ module.exports = class JGroup extends Module
         'one','create','each','byRelevance','someWithRelationship'
         '__resetAllGroups', 'fetchMyMemberships'
       ]
-      instance      : ['join','leave','modify','fetchPermissions', 'createRole'
-                       'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles']
+      instance      : [
+        'join','leave','modify','fetchPermissions', 'createRole'
+        'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
+        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
+        'fetchInvitationRequests','countPendingInvitationRequests'
+      ]
     schema          :
       title         :
         type        : String
@@ -67,10 +77,10 @@ module.exports = class JGroup extends Module
         as          : 'member'
       moderator     :
         targetType  : 'JAccount'
-        as          : 'group'
+        as          : 'moderator'
       admin         :
         targetType  : 'JAccount'
-        as          : 'group'
+        as          : 'admin'
       application   :
         targetType  : 'JApp'
         as          : 'owner'
@@ -86,6 +96,15 @@ module.exports = class JGroup extends Module
       role          :
         targetType  : 'JGroupRole'
         as          : 'role'
+      membershipPolicy:
+        targetType  : 'JMembershipPolicy'
+        as          : 'owner'
+      invitationRequest:
+        targetType  : 'JInvitationRequest'
+        as          : 'owner'
+      readMe        :
+        targetType  : 'JReadme'
+        as          : 'owner'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -115,9 +134,8 @@ module.exports = class JGroup extends Module
     JName.claim formData.slug, 'JGroup', 'slug', (err)=>
       if err then callback err
       else
-        group         = new @ formData
-        permissionSet = null
-
+        group             = new @ formData
+        permissionSet     = new JPermissionSet
         queue = [
           -> group.save (err)->
               if err then callback err
@@ -133,7 +151,6 @@ module.exports = class JGroup extends Module
               if err then callback err
               else
                 console.log 'admin is added'
-                permissionSet = new JPermissionSet
                 queue.next()
           -> permissionSet.save (err)->
               if err then callback err
@@ -155,8 +172,10 @@ module.exports = class JGroup extends Module
               else
                 console.log 'group is added'
                 queue.next()
-          -> callback null, group
         ]
+        if 'private' is group.privacy
+          queue.push => @createMembershipPolicy -> queue.next()
+        queue.push -> callback null, group
 
         daisy queue
 
@@ -174,18 +193,38 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
+
+  changeMemberRoles: permit 'grant permissions'
+    success:(client, memberId, roles, callback)->
+      group = this
+      groupId = @getId()
+      roles.push 'member'  unless 'member' in roles
+      oldRole =
+        targetId    : memberId
+        sourceId    : groupId
+      Relationship.remove oldRole, (err)->
+        if err then callback err
+        else
+          queue = roles.map (role)->->
+            (new Relationship
+              targetName  : 'JAccount'
+              targetId    : memberId
+              sourceName  : 'JGroup'
+              sourceId    : groupId
+              as          : role
+            ).save (err)->
+              callback err  if err
+              queue.fin()
+          dash queue, callback
+
   addDefaultRoles:(callback)->
-
-    group = @
+    group = this
     JGroupRole = require './role'
-
     JGroupRole.all {isDefault: yes}, (err, roles)->
       if err then callback err
       else
-        queue = roles.map (role)->
-          ->
-            group.addRole role, queue.fin.bind queue
-
+        queue = roles.map (role)->->
+          group.addRole role, queue.fin.bind queue
         dash queue, callback
 
   updatePermissions: permit 'grant permissions'
@@ -213,23 +252,78 @@ module.exports = class JGroup extends Module
           }
 
   fetchMyRoles: secure (client, callback)->
-    console.log 'do we get here?'
     {delegate} = client.connection
     Relationship.someData {
       sourceId: delegate.getId()
       targetId: @getId()
     }, {as:1}, (err, cursor)->
-      console.log arguments
       if err then callback err
       else
         cursor.toArray (err, arr)->
           if err then callback err
           else callback null, (doc.as for doc in arr)
 
+  fetchUserRoles: permit 'grant permissions'
+    success:(client, callback)->
+      @fetchRoles (err, roles)=>
+        roleTitles = (role.title for role in roles)
+        Relationship.someData {
+          sourceName  : 'JAccount'
+          targetId    : @getId()
+          as          : { $in: roleTitles }
+        }, {as:1, sourceId:1}, (err, cursor)->
+          if err then callback err
+          else
+            cursor.toArray (err, arr)->
+              if err then callback err
+              else callback null, arr
+
+  fetchMembers$: permit 'list members'
+    success:(client, rest...)->
+      @fetchMembers rest...
+
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
       JGroupRole = require './role'
       JGroupRole.create {title : formData.title}, callback
+
+  createMembershipPolicy:(queue, callback)->
+    [callback, queue] = [queue, callback]  unless callback
+    queue ?= []
+    JMembershipPolicy = require './membershippolicy'
+    membershipPolicy  = new JMembershipPolicy 
+    queue.push(
+      -> membershipPolicy.save (err)->
+        if err then callback err
+        else queue.next()
+      => @addMembershipPolicy membershipPolicy, (err)->
+        if err then callback err
+        else queue.next()
+    )
+    queue.push callback  if callback
+    daisy queue
+
+  destroyMemebershipPolicy:(callback)->
+    @fetchMembershipPolicy (err, policy)->
+      if err then callback err
+      else unless policy?
+        callback new KodingError '404 Membership policy not found'
+      else policy.remove callback
+
+  convertPublicToPrivate =(group, callback)->
+    group.createMembershipPolicy callback
+
+  convertPrivateToPublic =(group, callback)->
+    group.destroyMemebershipPolicy callback
+
+  setPrivacy:(privacy)->
+    if @privacy is 'public' and privacy is 'private'
+      convertPublicToPrivate this
+    else if @privacy is 'private' and privacy is 'public'
+      convertPrivateToPublic this
+    @privacy = privacy
+
+  getPrivacy:-> @privacy
 
   modify: permit
     advanced : [
@@ -237,7 +331,59 @@ module.exports = class JGroup extends Module
       { permission: 'edit groups' }
     ]
     success : (client, formData, callback)->
+      @setPrivacy formData.privacy
       @update {$set:formData}, callback
+
+  modifyMembershipPolicy: permit
+    advanced : [
+      { permission: 'edit own groups', validateWith: Validators.own }
+      { permission: 'edit groups' }
+    ]
+    success : (client, formData, callback)->
+      @fetchMembershipPolicy (err, policy)->
+        if err then callback err
+        else policy.update $set: formData, callback
+
+  canEditGroup: permit 'grant permissions'
+    success:(client, callback)-> callback null, yes
+
+  canOpenGroup: permit 'open group'
+    success:(client, callback)-> callback null, yes
+
+    failure:(client, callback)->
+      @fetchMembershipPolicy (err, policy)->
+        explanation = policy?.explain() ?
+                      err?.message ?
+                      'No membership policy!'
+        clientError = err ? new KodingError explanation
+        clientError.accessCode = policy?.code ?
+          if err then ERROR_UNKNOWN
+          else if explanation? then ERROR_POLICY
+          else ERROR_NO_POLICY
+        callback clientError, no
+
+  countPendingInvitationRequests: permit 'send invitations'
+    success: (client, callback)->
+      console.log {client, callback}
+      @countInvitationRequests {}, {sent:no}, callback
+
+
+  requestInvitation: secure (client, callback)->
+    JUser = require '../user'
+    JInvitationRequest = require '../invitationrequest'
+    {delegate} = client.connection
+    invitationRequest = new JInvitationRequest {
+      koding  : { username: delegate.profile.nickname }
+      group   : @slug
+    }
+    invitationRequest.save (err)=>
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
+      else
+        @addInvitationRequest invitationRequest, (err)-> callback err
+
 
   # attachEnvironment:(name, callback)->
   #   [callback, name] = [name, callback]  unless callback

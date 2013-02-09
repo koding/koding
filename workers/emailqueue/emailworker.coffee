@@ -7,7 +7,7 @@ module.exports = class EmailWorker extends EventEmitter
     flags = ['-p', config.postmark.apiKey, '--sharedHosting']
     @child = fork './emailworker/worker', flags
 
-  handleNotification:(notification, user, callback)-> 
+  handleNotification:(notification, user, callback)->
     @child.send {notification, user}
     @child.once 'message', (message)=>
       switch message
@@ -15,5 +15,5 @@ module.exports = class EmailWorker extends EventEmitter
         when 'FINISHED'     then callback null
         else
           callback new Error 'Really bad error.  Seriously.'
-  
+
   kill:-> @child.kill()

@@ -1,5 +1,21 @@
 class GroupsAppController extends AppController
 
+  @privateGroupOpenHandler =(event)->
+    data = @getData()
+    return yes  unless data.privacy is 'private'
+    event.preventDefault()
+    @emit 'PrivateGroupIsOpened', data
+
+  [
+    ERROR_UNKNOWN
+    ERROR_NO_POLICY
+    ERROR_APPROVAL_REQUIRED
+    ERROR_PERSONAL_INVITATION_REQUIRED
+    ERROR_MULTIUSE_INVITATION_REQUIRED
+    ERROR_WEBHOOK_CUSTOM_FORM
+    ERROR_POLICY
+  ] = [403010, 403001, 403002, 403003, 403004, 403005, 403009]
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -48,7 +64,6 @@ class GroupsAppController extends AppController
                 everything.forEachItemByIndex groups, ({joinButton,enterButton})->
                   joinButton.setState 'Leave'
                   joinButton.redecorateState()
-                  enterButton.show()
         following           :
           title             : "Following"
           dataSource        : (selector, options, callback)=>
@@ -73,8 +88,79 @@ class GroupsAppController extends AppController
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
+      @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
       @putAddAGroupButton()
       @emit 'ready'
+
+  monitorGroupItemOpenLink:(item)->
+    item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
+
+  getErrorModalOptions =(err)->
+    defaultOptions =
+      buttons       :
+        Cancel      :
+          cssClass  : "modal-clean-red"
+          callback  : (event)-> @getDelegate().destroy()
+    customOptions = switch err.accessCode
+      when ERROR_NO_POLICY
+        {
+          title     : 'Sorry, this group does not have a membership policy!'
+          content   : """
+                      <div class='modalformline'>
+                        The administrators have not yet defined a membership
+                        policy for this private group.  No one may join this
+                        group until a membership policy has been defined.
+                      </div>
+                      """
+        }
+      when ERROR_UNKNOWN
+        {
+          title     : 'Sorry, an unknown error has occurred!'
+          content   : """
+                      <div class='modalformline'>
+                        Please try again later.
+                      </div>
+                      """
+        }
+      when ERROR_POLICY
+        {
+          title     : 'This is a private group'
+          content   : 
+            """
+            <div class="modalformline">#{err.message}</div>
+            """
+        }
+
+    if err.accessCode is ERROR_POLICY
+      defaultOptions.buttons['Request access'] = 
+        cssClass    : 'modal-clean-green'
+        loader      :
+          color     : "#ffffff"
+          diameter  : 12
+        callback    : -> @getDelegate().emit 'AccessIsRequested'
+
+    _.extend defaultOptions, customOptions
+
+  showErrorModal:(group, err)->
+    modal = new KDModalView getErrorModalOptions err
+    modal.on 'AccessIsRequested', =>
+      @requestAccess group, (err)-> modal.destroy()
+
+  requestAccess:(group, callback)->
+    group.requestInvitation (err)->
+      callback err
+      new KDNotificationView title:
+        if err then err.message
+        else "Invitation has been requested!"
+
+
+  openPrivateGroup:(group)->
+    group.canOpenGroup (err, policy)=>
+      if err 
+        @showErrorModal group, err
+      else
+        console.log 'access is granted!'
+
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -83,7 +169,6 @@ class GroupsAppController extends AppController
       title     : "Create a Group"
       style     : "small-gray"
       callback  : => @showGroupSubmissionView()
-
 
   _createGroupHandler =(formData)->
     KD.remote.api.JGroup.create formData, (err, group)=>
@@ -112,10 +197,10 @@ class GroupsAppController extends AppController
     unless group?
       group = {}
       isNewGroup = yes
+    isPrivateGroup = 'private' is group.privacy
 
     modalOptions =
       title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
-      # content     : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       height      : 'auto'
       cssClass    : "compose-message-modal admin-kdmodal group-admin-modal"
       width       : 500
@@ -146,85 +231,10 @@ class GroupsAppController extends AppController
                   diameter        : 16
                 callback          : -> modal.destroy()
             fields:
-              Title               :
-                label             : "Title"
-                itemClass         : KDInputView
-                name              : "title"
-                keydown           : (pubInst, event)->
-                  setTimeout =>
-                    slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                  , 1
-                defaultValue      : group.title ? ""
-              Slug                :
-                label             : "Slug"
-                itemClass         : KDInputView
-                name              : "slug"
-                defaultValue      : group.slug ? ""
-              Description         :
-                label             : "Description"
-                type              : "textarea"
-                itemClass         : KDInputView
-                name              : "body"
-                defaultValue      : group.body ? ""
-              "Privacy settings"  :
-                label             : "Privacy settings"
-                type              : "select"
-                name              : "privacy"
-                defaultValue      : group.privacy ? "public"
-                selectOptions     : [
-                  { title : "Public",    value : "public" }
-                  { title : "Private",   value : "private" }
-                ]
-              "Visibility settings"  :
-                label             : "Visibility settings"
-                type              : "select"
-                name              : "visibility"
-                defaultValue      : group.visibility ? "visible"
-                selectOptions     : [
-                  { title : "Visible",    value : "visible" }
-                  { title : "Hidden",     value : "hidden" }
-                ]
-          "Avatar":
-            title : "Select an Avatar"
-            #<img class='avatar-image' src='#{group.avatar or "http://lorempixel.com/#{200+@utils.getRandomNumber(10)}/#{200+@utils.getRandomNumber(10)}"}'/>
-            partial : "<div class='image-wrapper'></div>"
-            callback :(formData)=>
-              log 'image data, ready for S3 upload',formData
-
-              for image in formData.images
-                if image
-                  modal.$('.image-wrapper').css backgroundImage : "url(#{image.small})"
-                  modal.modalTabs.forms["General Settings"].addCustomData 'avatar', image.small
-              # access data like this. formData.images may have undefined values for some reason
-              # for image in formData.images
-              #   if image
-              #     modal.$('.image-wrapper').append("<img src='#{image.small}'/>")
-              #     modal.$('.image-wrapper').append("<img src='#{image.medium}'/>")
-              #     modal.$('.image-wrapper').append("<img src='#{image.big}'/>")
-
-              modal.modalTabs.forms['Avatar'].buttons['Use this image'].hideLoader()
-              # modal.destroy()
-
-            buttons:
-              "Use this image"    :
-                style             : "modal-clean-gray"
-                type              : "submit"
-                loader            :
-                  color           : "#444444"
-                  diameter        : 12
-              Cancel              :
-                style             : "modal-clean-gray"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 16
-                callback          :=>
-                  modal.destroy()
-            fields:
               "Drop Image here"              :
                 label             : "Avatar"
                 itemClass         : KDImageUploadSingleView
-                name              : "group-avatar"
+                name              : "avatar"
                 limit             : 1
                 preview           : 'thumbs'
                 actions         : {
@@ -257,29 +267,101 @@ class GroupsAppController extends AppController
                         width   : 60
                         height  : 60
                       }
-                      # 'blur', {
-                      #   radius : 0
-                      # }
                     ]
                 }
+              Title               :
+                label             : "Title"
+                itemClass         : KDInputView
+                name              : "title"
+                keydown           : (pubInst, event)->
+                  setTimeout =>
+                    slug = @utils.slugify @getValue()
+                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
+                  , 1
+                defaultValue      : Encoder.htmlDecode group.title ? ""
+                placeholder       : 'Please enter a title here'
+              SlugText                :
+                itemClass : KDView
+                cssClass : 'slug-url'
+                partial : '<span class="base">http://www.koding.com/Groups/</span>'
+                nextElementFlat :
+                  Slug :
+                    label             : "Slug"
+                    itemClass         : KDInputView
+                    name              : "slug"
+                    cssClass          : 'hidden'
+                    defaultValue      : group.slug ? ""
+                    placeholder       : 'This value will be automatically generated'
+                    disabled          : yes
+              Description         :
+                label             : "Description"
+                type              : "textarea"
+                itemClass         : KDInputView
+                name              : "body"
+                defaultValue      : Encoder.htmlDecode group.body ? ""
+                placeholder       : 'Please enter a description here.'
+              "Privacy settings"  :
+                itemClass         : KDSelectBox
+                label             : "Privacy settings"
+                type              : "select"
+                name              : "privacy"
+                defaultValue      : group.privacy ? "public"
+                selectOptions     : [
+                  { title : "Public",    value : "public" }
+                  { title : "Private",   value : "private" }
+                ]
+              "Visibility settings"  :
+                itemClass         : KDSelectBox
+                label             : "Visibility settings"
+                type              : "select"
+                name              : "visibility"
+                defaultValue      : group.visibility ? "visible"
+                selectOptions     : [
+                  { title : "Visible",    value : "visible" }
+                  { title : "Hidden",     value : "hidden" }
+                ]
 
     unless isNewGroup
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
-      modalOptions.tabs.forms["Manage Roles"] =
-        title   : "Manage Roles"
-        partial : "we'll Manage roles here..."
-
+      if isPrivateGroup
+        modalOptions.tabs.forms['Membership policy'] =
+          title   : "Membership policy"
+        modalOptions.tabs.forms['Invitations'] =
+          title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
+    
+    {forms} = modal.modalTabs
 
-    modal.modalTabs.forms["Avatar"].buttons["Use this image"].enable()
-    modal.modalTabs.forms["Avatar"].inputs["Drop Image here"].on 'FileReadComplete', (stuff)->
-      # modal.$('img.avatar-image').attr 'src' : stuff.file.data
-      modal.$('div.image-wrapper').css backgroundImage : "url(#{stuff.file.data})"
+    avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
+
+    avatarUploadView.on 'FileReadComplete', (stuff)->
+      avatarUploadView.$('.kdfileuploadarea').css
+        backgroundImage : "url(#{stuff.file.data})"
+      avatarUploadView.$('span').addClass 'hidden'
+
+    forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
 
     unless isNewGroup
-      modal.modalTabs.forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+      if isPrivateGroup
+        group.fetchMembershipPolicy (err, policy)->
+          membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+
+          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
+            group.modifyMembershipPolicy data, ->
+              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
+          forms["Membership policy"].addSubView membershipPolicyView
+
+        invitationRequestView = new GroupsInvitationRequestsView {}, group
+        invitationRequestView.on 'InvitationIsSent', (request)->
+          request.sendInvitation ->
+            console.log 'invitation is sent', {arguments}
+        forms["Invitations"].addSubView invitationRequestView
+    
+      forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -342,7 +424,12 @@ class GroupsAppController extends AppController
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            @showGroupSubmissionView groupItem.getData()
+            groupData = groupItem.getData()
+            groupData.canEditGroup (err, hasPermission)=>
+              unless hasPermission
+                new KDNotificationView title: 'Access denied'
+              else
+                @showGroupSubmissionView groupData
           @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
             groupItem.getData().fetchRoles console.log.bind console
 
@@ -384,10 +471,18 @@ class GroupsAppController extends AppController
 
   showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerGroups null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
+    # controller = new ContentDisplayControllerGroups null, content
+    # contentDisplay = controller.getView()
+    groupView = new GroupView
+      cssClass : "profilearea clearfix"
+      delegate : @getView()
+    , content
+    
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
+    callback groupView
+    # console.log {contentDisplay}
+    groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
+    return groupView
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

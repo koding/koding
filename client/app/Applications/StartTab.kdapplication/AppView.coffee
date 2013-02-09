@@ -180,7 +180,7 @@ class StartTabMainView extends JView
 
     appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
-      storage.on "update", => @updateRecentFileViews()
+#      storage.on "update", => @updateRecentFileViews()
 
       if err
         error "couldn't fetch the app storage.", err

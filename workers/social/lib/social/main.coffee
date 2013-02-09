@@ -16,6 +16,8 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, mongo, email, social} = KONFIG
 
+mongo += '?auto_reconnect'
+
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
@@ -98,7 +100,7 @@ koding.connect ->
 
   JGroupRole.createDefaultRoles (err)->
     if err then console.log err.message
-    else console.log "Default group roles created"
+    else console.log "Default group roles created!"
 
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log

@@ -7,7 +7,7 @@ module.exports = class JInvitation extends jraphical.Module
   nodePath = require 'path'
   {uniq} = require 'underscore'
 
-  Emailer = require '../emailer'
+  # Emailer = require '../emailer'
 
   @isEnabledGlobally = yes
 
@@ -17,6 +17,7 @@ module.exports = class JInvitation extends jraphical.Module
   JLimit = require './limit'
   JLimit = require './limit'
   KodingError = require '../error'
+  JMail = require './email'
 
   @share()
 
@@ -66,7 +67,7 @@ module.exports = class JInvitation extends jraphical.Module
     JAccount.one {'profile.nickname': inviterUsername}, (err, inviterAccount)->
       code = crypto
         .createHmac('sha1', 'kodingsecret')
-        .update(inviteeEmail)
+        .update(inviteeEmail+Date.now())
         .digest('hex')
 
       invite = new JInvitation
@@ -83,18 +84,18 @@ module.exports = class JInvitation extends jraphical.Module
         else
           callback null
 
-  @markAsSent = secure (client,options,callback)->
-    account = client.connection.delegate
-    # unless 'super-admin' in account.globalFlags
-    unless account?.profile?.nickname is 'devrim'
-      return callback new KodingError "not authorized"
-    else
-      JInvitationRequest = require "./invitationrequest"
-      options.sort ?= 1
-      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort}, (err,arr)->
-        arr.forEach (invitation)->
-          invitation.update $set:sent:true,(err)->
-          callback null,"#{invitation.email} is marked as sent."
+  # @markAsSent = secure (client,options,callback)->
+  #   account = client.connection.delegate
+  #   # unless 'super-admin' in account.globalFlags
+  #   unless account?.profile?.nickname is 'devrim'
+  #     return callback new KodingError "not authorized"
+  #   else
+  #     JInvitationRequest = require "./invitationrequest"
+  #     options.sort ?= 1
+  #     JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort}, (err,arr)->
+  #       arr.forEach (invitationRequest)->
+  #         invitationRequest.update $set:sent:true,(err)->
+  #         callback null,"#{invitationRequest.email} is marked as sent."
 
   @sendBetaInviteFromClient = secure (client, options, callback)->
 
@@ -142,53 +143,43 @@ module.exports = class JInvitation extends jraphical.Module
         if err then callback err
         else callback "There are #{waitingInvite} people who is waiting for invite."
 
-  betaTestersHTML = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
 
-  @sendBetaInvite = (options,callback) ->
+  @sendBetaInvite = do ->
+    betaTestersHTML = null
+    (options,callback) ->
 
-    Bitly = require 'bitly'
-    bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
-    protocol = 'http://'
-    email   = options.email ? "devrim+#{Date.now()}@koding.com"
+      betaTestersHTML ?= fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
 
-    JInvitation.one {inviteeEmail: email}, (err, invite)=>
-      if err
-        console.log err
-      else if invite?
-        url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
-        personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
+      Bitly = require 'bitly'
+      bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
+      protocol = 'http://'
+      email   = options.email ? "devrim+#{Date.now()}@koding.com"
 
-        emailerObj =
-          From      : @getInviteEmail()
-          To        : email
-          Subject   : '[Koding] Here is your beta invite!'
-          TextBody  : personalizedMail
+      JInvitation.one {inviteeEmail: email}, (err, invite)=>
+        if err
+          console.log err
+        else if invite?
+          url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
+          personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
-        # console.log emailerObj
-        if options.justInviteNoEmail
-          callback null,"invite link: #{url}"
-          bitly.shorten url, (err, response)->
-            if err
-              callback err
-            else
-              shortenedUrl = response.data.url
-              callback err,shortenedUrl
+          emailerObj =
+            from     : @getInviteEmail()
+            email    : email
+            subject  : '[Koding] Here is your beta invite!'
+            content  : personalizedMail
+
+          email = new JMail emailerObj
+          email.save (err)->
+            unless err then callback null
+            else callback err
+
         else
-          Emailer.send emailerObj, (err)->
-            if err
-              console.log '[ERROR SENDING MAIL]', email,err
-              callback err
+          createBetaInvite inviteeEmail:email,(err)->
+            unless err
+              options.email = email
+              JInvitation.sendBetaInvite options,callback
             else
-              callback null
-          # else console.log email
-      else
-        # console.log "no invitation was found for #{email}"
-        createBetaInvite inviteeEmail:email,(err)->
-          unless err
-            options.email = email
-            JInvitation.sendBetaInvite options,callback
-          else
-            log "[JInvitation.sendBetaInvite] something got messed up."
+              log "[JInvitation.sendBetaInvite] something got messed up."
 
   @grantInvitesFromClient = secure (client, options, callback)->
 
@@ -295,23 +286,37 @@ module.exports = class JInvitation extends jraphical.Module
     JUser = require './user'
     JUser.fetchUser client,(err,inviter)=>
 
-      Emailer.send
-        From      : @getInviteEmail()
-        To        : invite.inviteeEmail
-        Subject   : @getInviteSubject(messageOptions)
-        TextBody  : @getInviteMessage(messageOptions)
-        ReplyTo   : inviter.email
-      ,(err) ->
+      email = new JMail
+        email    : invite.inviteeEmail
+        subject  : @getInviteSubject(messageOptions)
+        content  : @getInviteMessage(messageOptions)
+        replyto  : inviter.email
+
+      email.save (err)->
+        limit.update {$inc: usage: 1}, (err)-> console.log err if err
         unless err
-          callback null
-          console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
-          limit.update {$inc: usage: 1}, (err)-> console.log err if err
           invite.update {$set: status: "sent"}, (err)-> console.log err if err
+          callback null
         else
-          limit.update  {$inc: usage: 1}, (err)-> console.log err if err
           invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
           callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
+      # Emailer.send
+      #   From      : @getInviteEmail()
+      #   To        : invite.inviteeEmail
+      #   Subject   : @getInviteSubject(messageOptions)
+      #   TextBody  : @getInviteMessage(messageOptions)
+      #   ReplyTo   : inviter.email
+      # ,(err) ->
+      #   unless err
+      #     callback null
+      #     console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
+      #     limit.update {$inc: usage: 1}, (err)-> console.log err if err
+      #     invite.update {$set: status: "sent"}, (err)-> console.log err if err
+      #   else
+      #     limit.update  {$inc: usage: 1}, (err)-> console.log err if err
+      #     invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
+      #     callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
   @create = secure (client, options, callback)->
     {delegate} = client.connection

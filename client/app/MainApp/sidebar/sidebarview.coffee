@@ -40,34 +40,33 @@ class Sidebar extends JView
       cssClass : 'avatar-header hidden'
       pistachio : '{{#(title)}}'
       click :=>
-        KD.getSingleton('router').handleRoute "/#{@avatarHeader.getData().slug}/Activity"
+        # KD.getSingleton('router').handleRoute "/#{currentGroupData.slug}/Activity"
 
     , currentGroupData
 
     # handle group related decisions
+    groupsController = @getSingleton 'groupsController'
+    groupsController.on 'GroupChanged', =>
+      currentGroupData = groupsController.getCurrentGroupData()
+      unless currentGroupData?.data?.slug is 'koding'
+        @avatar.setClass 'shared-avatar'
+        @avatar.setWidth 80
 
-    @getSingleton('mainController').on 'GroupChangeFinished', =>
-      @utils.wait =>
-        currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
-        unless currentGroupData?.data?.slug is 'koding'
-          @avatar.setClass 'shared-avatar'
-          @avatar.setWidth 80
+        # group avatar should be either a URL or a dataURL
 
-          # group avatar should be either a URL or a dataURL
-
-          @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
-          @groupAvatar.show()
-          @groupAvatar.setClass 'flash'
-          @avatarHeader.setData currentGroupData
-          @avatarHeader.show()
-        else
-          @avatar.unsetClass 'shared-avatar'
-          @avatar.setWidth 160
-          @groupAvatar.hide()
-          @groupAvatar.unsetClass 'flash'
-          @avatarHeader.setData currentGroupData
-          @avatarHeader.hide()
-        @render()
+        @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
+        @groupAvatar.show()
+        @groupAvatar.setClass 'flash'
+        @avatarHeader.setData currentGroupData
+        @avatarHeader.show()
+      else
+        @avatar.unsetClass 'shared-avatar'
+        @avatar.setWidth 160
+        @groupAvatar.hide()
+        @groupAvatar.unsetClass 'flash'
+        @avatarHeader.setData currentGroupData
+        @avatarHeader.hide()
+      @render()
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -210,27 +209,6 @@ class Sidebar extends JView
     super
 
     @setListeners()
-
-
-  render:(account)->
-
-    account or= KD.whoami()
-
-    @avatar.setData account
-    @avatar.render()
-    @finderHeader.setData account
-    @finderHeader.render()
-
-    @navController.reset()
-    @accNavController.reset()
-    @footerMenuController.reset()
-    @resetAdminNavController()
-
-    @avatarAreaIconMenu.accountChanged account
-
-    @finderController.reset()
-
-    super
 
   pistachio:->
 

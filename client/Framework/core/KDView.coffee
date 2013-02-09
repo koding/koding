@@ -791,12 +791,3 @@ class KDView extends KDObject
   setKeyView:->
 
     @getSingleton("windowController").setKeyView @
-
-
-# #
-# DEPRECATED METHODS
-# #
-  getParentDomElement:()->deprecated "KDView::getParentDomElement"
-
-
-

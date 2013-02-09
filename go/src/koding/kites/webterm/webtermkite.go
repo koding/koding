@@ -31,7 +31,7 @@ type WebtermRemote struct {
 }
 
 func main() {
-	utils.Startup("webterm kite", true)
+	utils.Startup("kite.webterm", true)
 
 	k := kite.New("webterm")
 

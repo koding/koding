@@ -1,6 +1,6 @@
 config =
   _selfConfig :
-    defaultConfig : "dev-new"
+    defaultConfig : "dev"
   kite :
     applications :
       name              : 1
@@ -88,6 +88,9 @@ config =
         baseDir             : 1
         setfacl             : 1
   main :
+    aws           :
+      key         : 1
+      secret      : 1
     uri           :
       address     : 1
     projectRoot   : 1
@@ -100,6 +103,7 @@ config =
       watch       : 1
     mongo         : 1
     runGoBroker   : 1
+    compileGo     : 1
     buildClient   : 1
     misc          :
       claimGlobalNamesForUsers: 1
@@ -113,11 +117,18 @@ config =
         awsAccessKeyId      : 1
         awsSecretAccessKey  : 1
         bucket              : 1
+    loggr:
+      push: 1
+      url: 1
+      apiKey: 1
     librato :
       push      : 1
       email     : 1
       token     : 1
       interval  : 1
+    goConfig:
+      HomePrefix   : 1
+      UseLVE       : 1
     bitly :
       username  : 1
       apiKey    : 1
@@ -167,6 +178,7 @@ config =
     mq            :
       host        : 1
       login       : 1
+      componentUser: 1
       password    : 1
       heartbeat   : 1
       vhost       : 1
@@ -177,6 +189,13 @@ config =
       host        : 1
       protocol    : 1
       defaultFromAddress: 1
+    emailWorker   :
+      cronInstant : 1
+      cronDaily   : 1
+      run         : 1
+      defaultRecepient : 1
+    emailSender   :
+      run         : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

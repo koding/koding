@@ -31,6 +31,14 @@ class ActivityListController extends KDListViewController
       cssClass : "lazy-loader"
       partial  : "There is no activity item."
 
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 0
+        @activityHeader.setClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue off
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
+        @activityHeader.liveUpdateButton.setValue on
+        
     @noActivityItem.hide()
 
   loadView:(mainView)->
@@ -63,23 +71,25 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
 
-    for activity in activities
+    for activity in activities when activity
       @addItem activity
 
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
 
-    for item in cache.overview
-      if item.ids.length > 1
+    for overviewItem in cache.overview when overviewItem
+      if overviewItem.ids.length > 1
         @addItem new NewMemberBucketData
-          type      : "CNewMemberBucketActivity"
-          anchors   : (cache.activities[id].teaser.anchor for id in item.ids)
-          count     : item.count
-          createdAt : item.createdAt
+          type                : "CNewMemberBucketActivity"
+          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
+          count               : overviewItem.count
+          createdAtTimestamps : overviewItem.createdAt
       else
-        if cache.activities[item.ids.first]
-          @addItem cache.activities[item.ids.first].teaser
+        activity = cache.activities[overviewItem.ids.first]
+        if activity?.teaser
+          activity.teaser.createdAtTimestamps = overviewItem.createdAt
+          @addItem activity.teaser
 
     @emit "teasersLoaded"
 

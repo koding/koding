@@ -5,7 +5,9 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-u', '--username [USER]', 'Subdomain for AWS deployment'
 
+{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
 # exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
@@ -40,21 +42,42 @@ http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
 Watcher            = require "koding-watcher"
-
-KODING_CAKE        = './node_modules/koding-cake/bin/cake'
+KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
+compileGoBinaries = (configFile,callback)->
+
+  ###
+  #   TBD - CHECK FOR ERRORS
+  ###
+
+  compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
+  if compileGo
+    processes.spawn
+      name: 'build'
+      cmd : './go/build.sh'
+      stdout : process.stdout
+      stderr : process.stderr
+      verbose : yes
+      onExit :->
+        callback null
+  else
+    callback null
+
+task 'compileGo',({configFile})->
+  compileGoBinaries configFile,->
 
 task 'runKites', ({configFile})->
 
-  invoke 'sharedHostingKite'
-  invoke 'databasesKite'
-  invoke 'applicationsKite'
-  invoke 'webtermKite'
+  compileGoBinaries configFile,->
+    invoke 'sharedHostingKite'
+    invoke 'databasesKite'
+    invoke 'applicationsKite'
+    invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
   configFile = "dev-new" if configFile in ["",undefined,"undefined"]
@@ -92,15 +115,16 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port) ->
     processes.fork
-      name          : 'server' + port
-      cmd           : __dirname + "/server/index -c #{config} -p #{port}"
-      restart : yes
+      name            : 'server'
+      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
+      restart         : yes
       restartInterval : 100
 
   webPort = webserver.port
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port) ->
     runServer configFile, port
+    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -114,37 +138,30 @@ task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
-  startPool = (config) ->
-    exitingProcesses = {}
-    i = 0
-    runProcess = (size) ->
-      processes.fork
-        name  : "socialWorker"
-        cmd   : __dirname + "/workers/social/index -c #{config}"
-        pool  :
-          size: size
-        onMessage: (msg) ->
-          if msg.exiting
-            exitingProcesses[msg.pid] = yes
-            runProcess(0)
-        onExit: (pid, name) ->
-          unless exitingProcesses[pid]
-            runProcess(0)
-          else
-            delete exitingProcesses[pid]
+  for i in [1..social.numberOfWorkers]
+    processes.fork
+      name  : "socialWorker-#{i}"
+      cmd   : __dirname + "/workers/social/index -c #{configFile}"
+      restart : yes
+      restartInterval : 100
+      # onMessage: (msg) ->
+      #   if msg.exiting
+      #     exitingProcesses[msg.pid] = yes
+      #     runProcess(0)
+      # onExit: (pid, name) ->
+      #   unless exitingProcesses[pid]
+      #     runProcess(0)
+      #   else
+      #     delete exitingProcesses[pid]
 
-    runProcess(social.numberOfWorkers)
-
-  startPool configFile
 
   if social.watch?
-    console.log '[SOCIAL WORKER] Make sure there is only one worker active for [WATCHER] to work properly.'
     watcher = new Watcher
       groups   :
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker"
+            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
@@ -154,7 +171,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
       restart : yes
       restartInterval : 1000
 
@@ -165,7 +182,7 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-
+              
 
 task 'guestCleanup',({configFile})->
 
@@ -174,6 +191,36 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval: 100
+
+task 'emailWorker',({configFile})->
+
+  processes.fork
+    name            : 'emailWorker'
+    cmd             : "./workers/emailnotifications/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailnotifications']
+        onChange  : (path) ->
+          processes.kill "emailWorker"
+
+task 'emailSender',({configFile})->
+
+  processes.fork
+    name            : 'emailSender'
+    cmd             : "./workers/emailsender/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailsender']
+        onChange  : (path) ->
+          processes.kill "emailSender"
 
 task 'goBroker',({configFile})->
 
@@ -220,6 +267,38 @@ task 'checkConfig',({configFile})->
   require('koding-config-manager').load("kite.applications.#{configFile}")
   require('koding-config-manager').load("kite.databases.#{configFile}")
   require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
+
+
+run =({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  compileGoBinaries configFile,->
+    invoke 'goBroker'       if config.runGoBroker
+    invoke 'authWorker'     if config.authWorker
+    invoke 'guestCleanup'   if config.guests
+    invoke 'libratoWorker'  if config.librato?.push
+    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
+    invoke 'compileGo'      if config.compileGo
+    invoke 'socialWorker'
+    invoke 'emailWorker'    if config.emailWorker?.run is yes
+    invoke 'emailSender'    if config.emailSender?.run is yes
+    invoke 'webserver'
+
+
+task 'run', (options)->
+  {configFile} = options
+  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+
+  config.buildClient = yes if options.buildClient
+
+  queue = []
+  if config.buildClient is yes
+    queue.push -> buildClient options, -> queue.next()
+  queue.push -> run options
+  daisy queue
+
+
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
@@ -294,6 +373,8 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
+  
+
 
 
 
@@ -302,36 +383,43 @@ task 'deleteCache',(options)->
     console.log "Cache is pruned."
 
 
-run =({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
+task 'deploy', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  invoke 'goBroker'       if config.runGoBroker
-  invoke 'authWorker'     if config.authWorker
-  invoke 'guestCleanup'   if config.guests
-  invoke 'libratoWorker'  if config.librato?.push
-  invoke 'cacheWorker'    if config.cacheWorker?.run is yes
-  invoke 'socialWorker'
-  invoke 'webserver'
+  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
+    git_branch = stdout
+    username ?= process.env['USER']
 
+    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
+    proc.stdout.on 'data', (data) ->
+      console.log data.toString()
+    proc.stderr.on 'data', (data) ->
+      console.log data.toString()
 
+task 'destroy', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-task 'run', (options)->
-  {configFile} = options
-  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+  username ?= process.env['USER']
 
-  config.buildClient = yes if options.buildClient
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
-  queue = []
-  if config.buildClient is yes
-    queue.push -> buildClient options, -> queue.next()
-  queue.push -> run options
-  daisy queue
+task 'deploy-info', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
+  username ?= process.env['USER']
 
-
-
-
-
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString()
 
 task 'buildAll',"build chris's modules", ->
 
