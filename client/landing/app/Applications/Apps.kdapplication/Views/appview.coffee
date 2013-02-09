@@ -100,8 +100,11 @@ class AppView extends KDView
 
       for version,i in app.versions
         menu["Install version #{version}"] =
+          version  : version
           callback : (item)=>
-            appsController.installApp app, app.versions[item.data.id], (err)=>
+            {version} = item.data
+            version   = 'latest' if app.versions.last is item.data.version
+            appsController.installApp app, version, (err)=>
               if err then warn err
 
       @installButton = new KDButtonViewWithMenu
@@ -111,9 +114,9 @@ class AppView extends KDView
           top     : 0
           diameter: 30
           color   : "#ffffff"
-        delegate      : @
-        menu          : menu
-        callback      : ->
+        delegate  : @
+        menu      : menu
+        callback  : ->
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
 
@@ -142,22 +145,6 @@ class AppView extends KDView
         @thumb.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : thumb
-
-    # # @forkButton = new KDButtonView
-    #   title     : "Fork"
-    #   style     : "clean-gray"
-    #   disabled  : !app.manifest.repo?
-    #   loader    :
-    #     top     : 0
-    #     diameter: 30
-    #   callback  : ->
-    #     appsController.forkApp app, (err)=>
-    #       @hideLoader()
-
-    # unless app.manifest.repo
-    #   @forkButton.setTooltip
-    #     title   : "No repository specified for the app!"
-    #     gravity : "w"
 
   viewAppended:->
     @setTemplate @pistachio()
