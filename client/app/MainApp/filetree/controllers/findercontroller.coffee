@@ -16,7 +16,6 @@ class NFinderController extends KDViewController
     treeOptions.putDepthInfo      = options.putDepthInfo       ?= yes
     treeOptions.contextMenu       = options.contextMenu        ?= yes
     treeOptions.fsListeners       = options.fsListeners        ?= no
-    treeOptions.initialPath       = options.initialPath        ?= "/Users/#{nickname}"
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.initDelay         = options.initDelay         or= 0
     treeOptions.useStorage        = options.useStorage         ?= no
@@ -48,37 +47,36 @@ class NFinderController extends KDViewController
     path      = path.split "/"
     temp      = ''
 
-    for chunk in path
-      pathArray.push temp+="/#{chunk}" if chunk
+    pathArray = (temp += "/#{chunk}" for chunk in path when chunk)
 
-    pathArray.splice 0, 1
-    pathArray
+    pathArray.splice 0, 1 # getting rid of /Users folder
+
+    return pathArray
+
+  resetInitialPath:->
+    {nickname}  = KD.whoami().profile
+    initialPath   = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website"
+    @initialPath  = @expandInitialPath initialPath
 
   reset:()->
 
-    {initialPath} = @treeController.getOptions()
-    @initialPath  = @expandInitialPath initialPath
-
-    @mount = if KD.isLoggedIn()
+    @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
+    @appStorage.once "storageFetched", =>
       {nickname}    = KD.whoami().profile
-      FSHelper.createFile
-        name        : nickname
+      @mount        = FSHelper.createFile
+        name        : nickname.toLowerCase()
         path        : "/Users/#{nickname}"
         type        : "mount"
-    else
-      FSHelper.createFile
-        name        : "guest"
-        path        : "/Users/guest"
-        type        : "mount"
-    @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
 
-    if @treeController.getOptions().useStorage
-      unless @viewLoaded
-        @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+      @defaultStructureLoaded = no
+      @treeController.initTree [@mount]
+
+      if @treeController.getOptions().useStorage
+        unless @viewLoaded
+          @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+            @loadDefaultStructure()
+        else
           @loadDefaultStructure()
-      else
-        @loadDefaultStructure()
 
   loadDefaultStructure:->
 
@@ -92,10 +90,8 @@ class NFinderController extends KDViewController
     @appStorage.fetchValue 'recentFolders', (recentFolders)=>
 
       unless Array.isArray recentFolders
-        unless @initialPath
-          {initialPath} = @treeController.getOptions()
-          @initialPath  = @expandInitialPath initialPath
-        recentFolders   = @initialPath
+        @resetInitialPath()  unless @initialPath
+        recentFolders = @initialPath
 
       timer = Date.now()
 
@@ -111,12 +107,17 @@ class NFinderController extends KDViewController
           @defaultStructureLoaded = no
           @loadDefaultStructure()
 
+      if recentFolders.length is 0
+        return log "recentFolders", recentFolders.length
+
       @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
           @utils.killWait kiteFailureTimer
           @treeController.addNodes files
-          @treecontroller?.emit 'fs.retry.success'
+          @treeController.emit 'fs.retry.success'
+          @treeController.hideNotification()
+
 
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller
@@ -125,7 +126,6 @@ class NFinderController extends KDViewController
 
   multipleLs:(pathArray, callback)->
 
-    return unless Array.isArray pathArray
     KD.getSingleton('kiteController').run
       withArgs  :
         command : "ls \"#{pathArray.join("\" \"")}\" -Llpva --group-directories-first --time-style=full-iso"
