@@ -642,10 +642,12 @@
     .edit 
       borderBox() 
       width 100%
-      min-height 100px
+      min-height 200px
       max-height 400px
       .preview_content
         padding 10px
+        borderBox()
+        // max-height 50%
     .button-bar
       margin-bottom 10px
       text-align right
@@ -752,8 +754,11 @@
 //                 border-left   none
 //                 text-align    left
 
+.permission-view
 .permissions-modal
-
+  
+  height auto
+  
   .add-role-dialog
     z-index 100000
     
@@ -786,7 +791,8 @@
 
   .permissions-header
     abs()
-    top -20px
+    // top -20px
+    top 0px
     left 0
     right 0
     z-index 20000
@@ -805,9 +811,9 @@
   .permissions-form
     overflow-y scroll
     overflow-x hidden
-    max-height 300px
+    // max-height 300px
     margin-top 20px
-    
+    height auto
     fraction(full,divisor)
       fraction = full/divisor
 

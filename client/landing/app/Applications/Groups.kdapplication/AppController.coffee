@@ -141,28 +141,28 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
-  showInvitationsTab:(group, modal, forms)->
-    tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
+  # showInvitationsTab:(group, modal, forms)->
+  #   tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
     
-    invitationRequestView = new GroupsInvitationRequestsView {}, group
+  #   invitationRequestView = new GroupsInvitationRequestsView {}, group
     
-    invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-      count = invitationRequestView.batchInvites.inputs.Count.getValue()
-      group.sendSomeInvitations count, (err, message)->
-        if message is null
-          message = 'Done'
-          invitationRequestView.prepareBulkInvitations()
-        {statusInfo} = invitationRequestView.batchInvites.inputs
-        statusInfo.updatePartial Encoder.htmlDecode message
+  #   invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+  #     count = invitationRequestView.batchInvites.inputs.Count.getValue()
+  #     group.sendSomeInvitations count, (err, message)->
+  #       if message is null
+  #         message = 'Done'
+  #         invitationRequestView.prepareBulkInvitations()
+  #       {statusInfo} = invitationRequestView.batchInvites.inputs
+  #       statusInfo.updatePartial Encoder.htmlDecode message
     
-    invitationRequestView.on 'InvitationIsSent', (request)->
-      request.sendInvitation ->
-        console.log 'invitation is sent', {arguments}
+  #   invitationRequestView.on 'InvitationIsSent', (request)->
+  #     request.sendInvitation ->
+  #       console.log 'invitation is sent', {arguments}
     
-    forms['Invitations'].addSubView invitationRequestView
+  #   forms['Invitations'].addSubView invitationRequestView
 
-  showApprovalTab:(group, modal, forms)->
-    console.log 'show approval tab', {modal, forms}
+  # showApprovalTab:(group, modal, forms)->
+  #   console.log 'show approval tab', {modal, forms}
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
@@ -346,91 +346,91 @@ class GroupsAppController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
 
-    unless isNewGroup
-      modalOptions.tabs.forms.Permissions =
-        title : 'Permissions'
-        cssClass : 'permissions-modal'
-      modalOptions.tabs.forms.Members =
-        title   : "User permissions"
-      if isPrivateGroup
-        modalOptions.tabs.forms['Membership policy'] =
-          title   : "Membership policy"
+    # unless isNewGroup
+    #   modalOptions.tabs.forms.Permissions =
+    #     title : 'Permissions'
+    #     cssClass : 'permissions-modal'
+    #   modalOptions.tabs.forms.Members =
+    #     title   : "User permissions"
+    #   if isPrivateGroup
+    #     modalOptions.tabs.forms['Membership policy'] =
+    #       title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
 
-    {forms} = modal.modalTabs
+    # {forms} = modal.modalTabs
 
-    avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
-    avatarUploadView.on 'FileReadComplete', (stuff)->
-      avatarUploadView.$('.kdfileuploadarea').css
-        backgroundImage : "url(#{stuff.file.data})"
-      avatarUploadView.$('span').addClass 'hidden'
+    # avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
+    # avatarUploadView.on 'FileReadComplete', (stuff)->
+    #   avatarUploadView.$('.kdfileuploadarea').css
+    #     backgroundImage : "url(#{stuff.file.data})"
+    #   avatarUploadView.$('span').addClass 'hidden'
 
-    unless isNewGroup
-      if isPrivateGroup
-        group.fetchMembershipPolicy (err, policy)=>
-          membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+    # unless isNewGroup
+    #   if isPrivateGroup
+    #     group.fetchMembershipPolicy (err, policy)=>
+    #       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
-          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
-            group.modifyMembershipPolicy data, ->
-              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+    #       membershipPolicyView.on 'MembershipPolicyChanged', (data)->
+    #         group.modifyMembershipPolicy data, ->
+    #           membershipPolicyView.emit 'MembershipPolicyChangeSaved'
 
-          forms["Membership policy"].addSubView membershipPolicyView
+    #       forms["Membership policy"].addSubView membershipPolicyView
 
-          if policy.invitationsEnabled
-            @showInvitationsTab group, modal, forms
-          else if policy.approvalEnabled
-            @showApprovalTab group, modal, forms
+    #       if policy.invitationsEnabled
+    #         @showInvitationsTab group, modal, forms
+    #       else if policy.approvalEnabled
+    #         @showApprovalTab group, modal, forms
     
-      forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+    #   forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
-      forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
-        size          :
-          width       : 32 
+    #   forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
+    #     size          :
+    #       width       : 32 
 
-      addPermissionsView = (newPermissions)=>
-        group.fetchRoles (err,roles)->
-          group.fetchPermissions (err, permissionSet)=>
-            permissionsLoader.hide()
-            unless err 
-              if newPermissions 
-                permissionSet.permissions = newPermissions
-              if @permissions then forms["Permissions"].removeSubView @permissions
-              forms["Permissions"].addSubView @permissions = new PermissionsModal {
-                privacy: group.privacy
-                permissionSet
-                roles
-              }, group
-              @permissions.emit 'RoleViewRefreshed'
-              @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
-                copiedPermissions = []
-                for permission of newPermissions
-                  if newPermissions[permission].role is copy
-                    copiedPermissions.push
-                      module : newPermissions[permission].module
-                      permissions : newPermissions[permission].permissions
-                      role : role    
-                for item in copiedPermissions
-                  newPermissions.push item            
-                addPermissionsView(newPermissions)
-                # @render()
-            else
-              forms['Permissions'].addSubView new KDView
-                partial : 'No access'
+    #   addPermissionsView = (newPermissions)=>
+    #     group.fetchRoles (err,roles)->
+    #       group.fetchPermissions (err, permissionSet)=>
+    #         permissionsLoader.hide()
+    #         unless err 
+    #           if newPermissions 
+    #             permissionSet.permissions = newPermissions
+    #           if @permissions then forms["Permissions"].removeSubView @permissions
+    #           forms["Permissions"].addSubView @permissions = new PermissionsModal {
+    #             privacy: group.privacy
+    #             permissionSet
+    #             roles
+    #           }, group
+    #           @permissions.emit 'RoleViewRefreshed'
+    #           @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
+    #             copiedPermissions = []
+    #             for permission of newPermissions
+    #               if newPermissions[permission].role is copy
+    #                 copiedPermissions.push
+    #                   module : newPermissions[permission].module
+    #                   permissions : newPermissions[permission].permissions
+    #                   role : role    
+    #             for item in copiedPermissions
+    #               newPermissions.push item            
+    #             addPermissionsView(newPermissions)
+    #             # @render()
+    #         else
+    #           forms['Permissions'].addSubView new KDView
+    #             partial : 'No access'
 
-      permissionsLoader.show()
-      addPermissionsView()
+    #   permissionsLoader.show()
+    #   addPermissionsView()
 
 
-  editPermissions:(group)->
-    group.getData().fetchPermissions (err, permissionSet)->
-      if err
-        new KDNotificationView title: err.message
-      else
-        permissionsModal = new PermissionsModal {
-          privacy: group.getData().privacy
-          permissionSet
-        }, group
+  # editPermissions:(group)->
+  #   group.getData().fetchPermissions (err, permissionSet)->
+  #     if err
+  #       new KDNotificationView title: err.message
+  #     else
+  #       permissionsModal = new PermissionsModal {
+  #         privacy: group.getData().privacy
+  #         permissionSet
+  #       }, group
 
         # permissionsGrid = new PermissionsGrid {
         #   privacy: group.getData().privacy
@@ -480,8 +480,8 @@ class GroupsAppController extends AppController
       if role is "super-admin"
         @listItemClass = GroupsListItemViewEditable
         if firstRun
-          @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
-            @editPermissions groupItem
+          # @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
+          #   @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
             groupData = groupItem.getData()
             groupData.canEditGroup (err, hasPermission)=>
