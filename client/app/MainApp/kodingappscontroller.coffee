@@ -1,4 +1,4 @@
-@KDApps = {}
+KDApps = {}
 
 class KodingAppsController extends KDController
 
