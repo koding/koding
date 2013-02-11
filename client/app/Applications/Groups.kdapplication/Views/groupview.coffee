@@ -94,8 +94,8 @@ class GroupView extends ActivityContentDisplay
       hideHandleContainer : yes
     , data
 
-    @tabView.addPane readmeTab = new KDTabPaneView
-    readmeTab.addSubView new GroupReadmeView {}, data
+    @tabView.addPane @readmeTab = new KDTabPaneView
+    @readmeTab.addSubView new GroupReadmeView {}, data
 
   decorateUponRoles:(roles)->
 
@@ -105,7 +105,8 @@ class GroupView extends ActivityContentDisplay
         title       : "Admin"
         icon        :
           cssClass  : 'admin'
-        click       : (event)->
+        click       : (event)=>
+          event.preventDefault()
           contextMenu = new JContextMenu
             cssClass    : "group-admin-menu"
             event       : event
@@ -118,16 +119,97 @@ class GroupView extends ActivityContentDisplay
               margin    : -20
           ,
             'Settings'             :
-              callback             : (source, event)=> contextMenu.destroy()
+              callback             : (source, event)=> 
+                unless @settingsTab 
+                  @tabView.addPane @settingsTab = new KDTabPaneView
+                  @settingsTab.addSubView new GroupGeneralSettingsView {}, @getData()               
+                @tabView.showPane @settingsTab
+
+                contextMenu.destroy()
               separator            : yes
             'Permissions'          :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Member Policies'      :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Invitations'          :
-              callback             : (source, event)=> contextMenu.destroy()
+              callback             : (source, event)=>   
+                unless @permissionTab 
+                  @tabView.addPane @permissionTab = new KDTabPaneView
+                  @permissionTab.addSubView new GroupPermissionView {}, @getData()               
+                @tabView.showPane @permissionTab
+                contextMenu.destroy()
+            'Readme'      :
+              callback             : (source, event)=> 
+                @tabView.showPane @readmeTab
+                contextMenu.destroy()
+            'Member Roles'      :
+              callback             : (source, event)=> 
+                unless @memberTab 
+                  @tabView.addPane @memberTab = new KDTabPaneView
+                  @memberTab.addSubView new GroupsMemberPermissionsView {}, @getData()               
+                @tabView.showPane @memberTab
+
+                contextMenu.destroy()
+            
+
+            'Membership Policies'          :
+              callback             : (source, event)=> 
+                unless @membershipPolicyTab
+
+                  @membershipPolicyTabView = new KDTabView
+                    hideHandleContainer : no
+                  , @getData()
+
+                  @tabView.addPane @membershipPolicyTab = new KDTabPaneView
+                  
+                  if @getData().privacy is 'private'
+                    @getData().fetchMembershipPolicy (err, policy)=>
+                      membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+
+                      membershipPolicyView.on 'MembershipPolicyChanged', (data)->
+                        @getData().modifyMembershipPolicy data, ->
+                          membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+                      
+                      @membershipPolicyTabView.addPane @policyTab = new KDTabPaneView
+                        name : 'Membership Policies'
+                      
+                      @policyTab.addSubView membershipPolicyView
+                      
+                      @membershipPolicyTabView.showPane @policyTab
+                      @membershipPolicyTab.addSubView @membershipPolicyTabView
+                      if policy.invitationsEnabled
+                        @showInvitationsTab @getData(), @membershipPolicyTabView
+                      else if policy.approvalEnabled
+                        @showApprovalTab @getData(), @membershipPolicyTabView
+
+                @tabView.showPane @membershipPolicyTab
+                contextMenu.destroy()
 
       @addSubView @adminMenuLink, ".navbar"
+
+  
+  showInvitationsTab:(group, tabView)->
+    @invitationTab = new KDTabPaneView 
+      name: 'Invitations'
+      shouldShow:no
+    tabView.addPane @invitationTab, no
+
+    invitationRequestView = new GroupsInvitationRequestsView {}, group
+    
+    invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+      count = invitationRequestView.batchInvites.inputs.Count.getValue()
+      group.sendSomeInvitations count, (err, message)->
+        if message is null
+          message = 'Done'
+          invitationRequestView.prepareBulkInvitations()
+        {statusInfo} = invitationRequestView.batchInvites.inputs
+        statusInfo.updatePartial Encoder.htmlDecode message
+    
+    invitationRequestView.on 'InvitationIsSent', (request)->
+      request.sendInvitation ->
+        console.log 'invitation is sent', {arguments}
+    
+    @invitationTab.addSubView invitationRequestView
+
+
+  showApprovalTab:(group, tabView)->
+    console.log 'show approval tab', {tabView}
 
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
