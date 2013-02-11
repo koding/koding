@@ -36,6 +36,13 @@ module.exports = class JInvitationRequest extends Model
       sent            :
         type          : Boolean
         default       : no
+      invitationType  :
+        type          : String
+        enum          : ['invalid invitation type',[
+          'invitation'
+          'basic approval'
+        ]]
+        default       : 'invitation'
 
   @create =({email}, callback)->
     invite = new @ {email}

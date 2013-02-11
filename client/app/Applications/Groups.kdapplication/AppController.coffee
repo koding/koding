@@ -141,13 +141,36 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
+  showInvitationsTab:(group, modal, forms)->
+    tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
+    
+    invitationRequestView = new GroupsInvitationRequestsView {}, group
+    
+    invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+      count = invitationRequestView.batchInvites.inputs.Count.getValue()
+      group.sendSomeInvitations count, (err, message)->
+        if message is null
+          message = 'Done'
+          invitationRequestView.prepareBulkInvitations()
+        {statusInfo} = invitationRequestView.batchInvites.inputs
+        statusInfo.updatePartial Encoder.htmlDecode message
+    
+    invitationRequestView.on 'InvitationIsSent', (request)->
+      request.sendInvitation ->
+        console.log 'invitation is sent', {arguments}
+    
+    forms['Invitations'].addSubView invitationRequestView
+
+  showApprovalTab:(group, modal, forms)->
+    console.log 'show approval tab', {modal, forms}
+
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       @requestAccess group, (err)-> modal.destroy()
 
   requestAccess:(group, callback)->
-    group.requestInvitation (err)->
+    group.requestAccess (err)->
       callback err
       new KDNotificationView title:
         if err then err.message
@@ -345,7 +368,7 @@ class GroupsAppController extends AppController
 
     unless isNewGroup
       if isPrivateGroup
-        group.fetchMembershipPolicy (err, policy)->
+        group.fetchMembershipPolicy (err, policy)=>
           membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
           membershipPolicyView.on 'MembershipPolicyChanged', (data)->
@@ -355,20 +378,9 @@ class GroupsAppController extends AppController
           forms["Membership policy"].addSubView membershipPolicyView
 
           if policy.invitationsEnabled
-            tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
-            invitationRequestView = new GroupsInvitationRequestsView {}, group
-            invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-              count = invitationRequestView.inviteTools.inputs.Count.getValue()
-              group.sendSomeInvitations count, (err, message)->
-                if message is null
-                  message = 'Done'
-                  invitationRequestView.prepareBulkInvitations()
-                {statusInfo} = invitationRequestView.inviteTools.inputs
-                statusInfo.updatePartial Encoder.htmlDecode message
-            invitationRequestView.on 'InvitationIsSent', (request)->
-              request.sendInvitation ->
-                console.log 'invitation is sent', {arguments}
-            forms['Invitations'].addSubView invitationRequestView
+            @showInvitationsTab group, modal, forms
+          else if policy.approvalEnabled
+            @showApprovalTab group, modal, forms
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 

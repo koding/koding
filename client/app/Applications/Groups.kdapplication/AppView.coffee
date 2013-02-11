@@ -272,14 +272,37 @@ class GroupsInvitationRequestsView extends JView
 
     @currentState = new KDView cssClass: 'formline'
 
+
+    @inviteMember = new KDFormViewWithFields
+      fields            :
+        recipient       :
+          label         : "Send to"
+          type          : "text"
+          name          : "recipient"
+          placeholder   : "Enter an email address..."
+          validate      :
+            rules       :
+              required  : yes
+              email     : yes
+            messages    :
+              required  : "An email address is required!"
+              email     : "That does not not seem to be a valid email address!"
+      buttons           :
+        'Send invite'   :
+          loader        :
+            color       : "#444444"
+            diameter    : 12
+          callback      : -> console.log 'send', arguments
+
+
     @prepareBulkInvitations()
-    @inviteTools = new KDFormViewWithFields
+    @batchInvites = new KDFormViewWithFields
       cssClass          : 'invite-tools'
       buttons           :
         'Send invites'  :
           title         : 'Send invitation batch'
           callback      : =>
-            @emit 'BatchInvitationsAreSent', +@inviteTools.getFormData().Count
+            @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
       fields            :
         Count           :
           label         : "# of Invites"
@@ -328,12 +351,19 @@ class GroupsInvitationRequestsView extends JView
       {{> @currentState}}
     </section>
     <section class="formline">
-      <h2>Invite members by batch</h2>
-      {{> @inviteTools}}
+      <h2>Invite member</h2>
+      {{> @inviteMember}}
     </section>
     <section class="formline">
-      <h2>Invite members individually</h2>
-      {{> @requestList}}
+      <h2>Invitation requests</h2>
+      <div class="formline">
+        <h3>Invite members by batch</h2>
+        {{> @batchInvites}}
+      </div>
+      <div class="formline">
+        <h3>Invite members individually</h2>
+        {{> @requestList}}
+      </div>
     </section>
     """
 
