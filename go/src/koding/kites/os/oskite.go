@@ -263,7 +263,7 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
 			log.Err("Could not start VM.", err, out)
 		}
-		if err := vm.WaitForRunning(time.Second); err != nil {
+		if err := vm.WaitForState("RUNNING", time.Second); err != nil {
 			log.Warn("Waiting for VM startup failed.", err)
 		}
 	}

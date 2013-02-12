@@ -1,7 +1,6 @@
 package virt
 
 import (
-	"errors"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -40,14 +39,6 @@ func (vm *VM) GetState() string {
 	return strings.TrimSpace(string(out)[6:])
 }
 
-func (vm *VM) WaitForRunning(timeout time.Duration) error {
-	until := time.Now().Add(timeout)
-	for time.Now().Before(until) {
-		state := vm.GetState()
-		if state == "RUNNING" {
-			return nil
-		}
-		time.Sleep(time.Second / 10)
-	}
-	return errors.New("timeout")
+func (vm *VM) WaitForState(state string, timeout time.Duration) error {
+	return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).Run()
 }
