@@ -217,6 +217,156 @@ class GroupsMembershipPolicyView extends JView
     </section>
     """
 
+class GroupsInvitationRequestListItemView extends KDListItemView
+  constructor:(options, data)->
+    options.cssClass = 'invitation-request formline clearfix'
+
+    super
+
+    invitationRequest = @getData()
+
+    @inviteButton = new KDButtonView
+      cssClass  : 'clean-gray fr'
+      title     : 'Send invitation'
+      callback  : =>
+        @getDelegate().emit 'InvitationIsSent', invitationRequest
+
+    @getData().on 'update', => @updateStatus()
+
+    @updateStatus()
+
+  updateStatus:->
+    isSent = @getData().sent
+    @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
+    @inviteButton.disable()  if isSent
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
+    """
+    <div class="fl">
+      <div class="username">{{#(koding.username)}}</div>
+      <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+      <div class="is-sent">{{(#(sent) and '✓ Sent') or 'Requested'}}</div>
+    </div>
+    {{> @inviteButton}}
+    """
+
+
+class GroupsInvitationRequestsView extends JView
+
+  constructor:->
+    super
+
+    group = @getData()
+
+    @timestamp = new Date 0
+    @fetchSomeRequests()
+
+    @requestListController = new KDListViewController
+      itemClass: GroupsInvitationRequestListItemView
+
+    @requestList = @requestListController.getListView()
+    @requestList.on 'InvitationIsSent', (invitationRequest)=>
+      @emit 'InvitationIsSent', invitationRequest
+
+    @currentState = new KDView cssClass: 'formline'
+
+
+    @inviteMember = new KDFormViewWithFields
+      fields            :
+        recipient       :
+          label         : "Send to"
+          type          : "text"
+          name          : "recipient"
+          placeholder   : "Enter an email address..."
+          validate      :
+            rules       :
+              required  : yes
+              email     : yes
+            messages    :
+              required  : "An email address is required!"
+              email     : "That does not not seem to be a valid email address!"
+      buttons           :
+        'Send invite'   :
+          loader        :
+            color       : "#444444"
+            diameter    : 12
+          callback      : -> console.log 'send', arguments
+
+
+    @prepareBulkInvitations()
+    @batchInvites = new KDFormViewWithFields
+      cssClass          : 'invite-tools'
+      buttons           :
+        'Send invites'  :
+          title         : 'Send invitation batch'
+          callback      : =>
+            @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
+      fields            :
+        Count           :
+          label         : "# of Invites"
+          type          : "text"
+          defaultValue  : 10
+          placeholder   : "how many users do you want to Invite?"
+          validate      :
+            rules       :
+              regExp    : /\d+/i
+            messages    :
+              regExp    : "numbers only please"
+        Status          :
+          label         : "Server response"
+          type          : "hidden"
+          nextElement   :
+            statusInfo  :
+              itemClass : KDView
+              partial   : '...'
+              cssClass  : 'information-line'
+    , group
+
+  prepareBulkInvitations:->
+    group = @getData()
+    group.countPendingInvitationRequests (err, count)=>
+      if err then console.error error
+      else
+        [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
+        @currentState.updatePartial """
+          There #{toBe} currently #{count} #{people} waiting for an invitation
+          """
+
+  fetchSomeRequests:->
+    group = @getData()
+
+    selector  = { timestamp: $gte: @timestamp }
+    options   = { limit: 20, sort: timestamp: -1 }
+
+    group.fetchInvitationRequests selector, options, (err, requests)=>
+      if err then console.error err
+      else @requestListController.instantiateListItems requests.reverse()
+
+  pistachio:->
+    """
+    <section class="formline">
+      <h2>Status quo</h2>
+      {{> @currentState}}
+    </section>
+    <section class="formline">
+      <h2>Invite member</h2>
+      {{> @inviteMember}}
+    </section>
+    <section class="formline">
+      <h2>Invitation requests</h2>
+      <div class="formline">
+        <h3>Invite members by batch</h2>
+        {{> @batchInvites}}
+      </div>
+      <div class="formline">
+        <h3>Invite members individually</h2>
+        {{> @requestList}}
+      </div>
+    </section>
+    """
+
 class GroupsMemberPermissionsView extends JView
 
   constructor:(options = {}, data)->
@@ -261,17 +411,13 @@ class GroupsMemberPermissionsView extends JView
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
   viewAppended:->
-
     super
-
     @loader.show()
 
-
   pistachio:->
-
     """
-      {{> @loader}}
-      {{> @listWrapper}}
+    {{> @loader}}
+    {{> @listWrapper}}
     """
 
 class GroupsMemberPermissionsListItemView extends KDListItemView

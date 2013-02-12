@@ -587,6 +587,9 @@ module.exports = class JAccount extends jraphical.Module
       else
         callback err, storage
 
+  fetchUser:(callback)->
+    JUser.one {username: @profile.nickname}, callback
+
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->

@@ -694,7 +694,7 @@ class KDView extends KDObject
       left       : "e"
       right      : "w"
 
-    o.title     or= "Default title..."
+    o.title     or= ""
     o.placement or= "top"
     o.direction or= "center"
     o.offset    or=
@@ -711,9 +711,18 @@ class KDView extends KDObject
     o.view      or= null
     o.delegate  or= @
     o.viewCssClass or= null
+    o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
     @on "viewAppended", =>
-      @bindTooltipEvents o
+      # For this to work, the DOM element must have layout box information 
+      # associated such as overflow, border-sizing, text-overflow 
+      #
+      #                                                          Arvid Feb 2013
+    
+      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth 
+
+      if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
+        @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']

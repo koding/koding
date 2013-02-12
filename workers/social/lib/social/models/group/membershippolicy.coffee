@@ -14,9 +14,6 @@ module.exports = class JMembershipPolicy extends Module
       invitationsEnabled  :
         type              : Boolean
         default           : no
-      accessRequestsEnabled:
-        type              : Boolean
-        default           : yes
       webhookEndpoint     : String
       explanation         : String
 
