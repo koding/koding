@@ -87,6 +87,16 @@ class GroupView extends ActivityContentDisplay
 
     @createTabs()
 
+  assureTab:(tabName, konstructor, options={})->
+    pane = @tabView.panes[tabName]
+    unless pane?
+      view = new konstructor options, @getData()
+      pane = new KDTabPaneView name: tabName
+      @tabView.addPane pane
+      pane.addSubView view
+    @tabView.showPane pane
+    return pane
+
   createTabs:->
     data = @getData()
 
@@ -105,7 +115,7 @@ class GroupView extends ActivityContentDisplay
         title       : "Admin"
         icon        :
           cssClass  : 'admin'
-        click       : (event)->
+        click       : (event)=>
           contextMenu = new JContextMenu
             cssClass    : "group-admin-menu"
             event       : event
@@ -117,15 +127,23 @@ class GroupView extends ActivityContentDisplay
               placement : "top"
               margin    : -20
           ,
-            'Settings'             :
-              callback             : (source, event)=> contextMenu.destroy()
-              separator            : yes
-            'Permissions'          :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Member Policies'      :
-              callback             : (source, event)=> contextMenu.destroy()
-            'Invitations'          :
-              callback             : (source, event)=> contextMenu.destroy()
+            'Settings'              :
+              callback              : (source, event)=>
+                @emit 'SettingsSelected'
+                contextMenu.destroy()
+              separator             : yes
+            'Permissions'           :
+              callback              : (source, event)=>
+                @emit 'PermissionsSelected'
+                contextMenu.destroy()
+            'Members'               :
+              callback              : (source, event)=>
+                @emit 'MembersSelected'
+                contextMenu.destroy()
+            'Membership policy'     :
+              callback              : (source, event)=>
+                @emit 'MembershipPolicySelected'
+                contextMenu.destroy()
 
       @addSubView @adminMenuLink, ".navbar"
 
