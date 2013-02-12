@@ -87,13 +87,20 @@ class GroupView extends ActivityContentDisplay
 
     @createTabs()
 
-  assureTab:(tabName, konstructor, options={})->
+  assureTab:(tabName, konstructor, options, initializer)->
+    if 'function' is typeof options
+      initializer = options
+      options = {}
+    
     pane = @tabView.panes[tabName]
+    
     unless pane?
-      view = new konstructor options, @getData()
+      view = new konstructor options ? {}, @getData()
       pane = new KDTabPaneView name: tabName
+      initializer?.call? pane, pane
       @tabView.addPane pane
       pane.addSubView view
+    
     @tabView.showPane pane
     return pane
 
