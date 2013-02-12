@@ -24,9 +24,7 @@ class KDObject extends KDEventEmitter
 
   bound: Bongo.bound
 
-  lazyBound:(method, rest...)->
-    return @bound method  unless rest.length
-    return @[method].bind this, rest...
+  lazyBound: (method, rest...)-> @[method].bind this, rest...
 
   ready:(listener)->
     if @readyState > 0 then listener()
