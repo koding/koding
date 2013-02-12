@@ -331,13 +331,13 @@
         height 3.6em
         color #5f5f5f
         font-size 12px
-        div.data 
+        div.data
           borderBox()
           overflow-y hidden
           overflow-x hidden
           white-space nowrap
           text-overflow ellipsis
-          display block  
+          display block
 
     .topicmeta
       abs()
@@ -627,6 +627,12 @@
     fix()
     &.shadow
       shadow            0 0 15px rgba(0,0,0,.1)
+
+  .group-content
+    borderBox()
+    height auto
+    padding 10px 20px
+
   .readme
     padding             20px
     borderBox()
@@ -639,8 +645,8 @@
       border none
       // padding 10px 10px 10px 10px
       padding 0
-    .edit 
-      borderBox() 
+    .edit
+      borderBox()
       width 100%
       min-height 100px
       max-height 400px
@@ -649,7 +655,7 @@
     .button-bar
       margin-bottom 10px
       text-align right
-    .loader 
+    .loader
       fl()
       margin-top 2px
     .loader-text
@@ -753,10 +759,10 @@
 //                 text-align    left
 
 .permissions-modal
-
+.permissions-view
   .add-role-dialog
     z-index 100000
-    
+
     .add-role-header
       padding-top 15px
       padding-bottom 15px
@@ -779,19 +785,19 @@
       display inline-block
     div.kdselectbox.copy-permissions
       margin-top 0px
-      
+
   .kdview.kdloader
     display           block
     margin            10px auto
 
   .permissions-header
     abs()
-    top -20px
+    top 0px
     left 0
     right 0
     z-index 20000
-    &.scrolling
-      shadow 0 5px 15px -5px rgba(0,0,0,0.1)
+    // &.scrolling
+    //   shadow 0 5px 15px -5px rgba(0,0,0,0.1)
     > .input-wrapper > .kdview
       borderBox()
       width auto
@@ -805,17 +811,17 @@
   .permissions-form
     overflow-y scroll
     overflow-x hidden
-    max-height 300px
+    // max-height 300px
     margin-top 20px
-    
+
     fraction(full,divisor)
       fraction = full/divisor
 
     for num in 2 3 4 5 6 7 8 9 10 11 12
       &.col-{num}
-        .formline .input-wrapper          
+        .formline .input-wrapper
           width fraction(340,num)px
-      
+
     .formline
       &.button-field
         &.scrolling
@@ -825,7 +831,7 @@
         right 0
         bottom 0
         height 50px
-        padding 15px 20px 0 15px 
+        padding 15px 20px 0 15px
         border-top 1px solid #e5e5e5
 
         button.add-role

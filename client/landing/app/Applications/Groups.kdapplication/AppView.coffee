@@ -95,11 +95,11 @@ class GroupsMembershipPolicyView extends JView
       defaultValue  : invitationsEnabled
       callback      : (state) =>
         @emit 'MembershipPolicyChanged', invitationsEnabled: state
-  
+
     @enableAccessRequests = new KDOnOffSwitch
       defaultValue  : approvalEnabled
       callback      : (state) =>
-        @emit 'MembershipPolicyChanged', approvalEnabled: state  
+        @emit 'MembershipPolicyChanged', approvalEnabled: state
 
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
@@ -589,3 +589,19 @@ class GroupsMemberRolesEditView extends JView
     super
 
     @loader.show()
+
+class GroupMembershipPolicyTabView extends KDView
+  constructor:(options,data)->
+    super options,data
+    @tabView = new KDTabView
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    {{> @tabView}}
+    """
+

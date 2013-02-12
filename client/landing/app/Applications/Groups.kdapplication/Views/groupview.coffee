@@ -72,18 +72,6 @@ class GroupView extends ActivityContentDisplay
       if err then error err
       else
         @decorateUponRoles roles
-          # @enterButton.show()
-    # @homeLink = new KDCustomHTMLView
-    #   tagName     : 'a'
-    #   attributes  :
-    #     href      : data.slug
-    #   pistachio   : "Enter {{#(title)}}"
-    #   click       : (event)->
-    #     # debugger
-    #     event.stopPropagation()
-    #     event.preventDefault()
-    #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
-    # , data
 
     @createTabs()
 
@@ -91,16 +79,16 @@ class GroupView extends ActivityContentDisplay
     if 'function' is typeof options
       initializer = options
       options = {}
-    
+
     pane = @tabView.panes[tabName]
-    
+
     unless pane?
       view = new konstructor options ? {}, @getData()
       pane = new KDTabPaneView name: tabName
-      initializer?.call? pane, pane
+      initializer?.call? pane, pane, view
       @tabView.addPane pane
       pane.addSubView view
-    
+
     @tabView.showPane pane
     return pane
 
@@ -108,11 +96,10 @@ class GroupView extends ActivityContentDisplay
     data = @getData()
 
     @tabView = new KDTabView
+      cssClass : 'group-content'
       hideHandleContainer : yes
     , data
-
-    @tabView.addPane readmeTab = new KDTabPaneView
-    readmeTab.addSubView new GroupReadmeView {}, data
+    @utils.defer => @emit 'ReadmeSelected'
 
   decorateUponRoles:(roles)->
 
@@ -123,6 +110,8 @@ class GroupView extends ActivityContentDisplay
         icon        :
           cssClass  : 'admin'
         click       : (event)=>
+          event.preventDefault()
+
           contextMenu = new JContextMenu
             cssClass    : "group-admin-menu"
             event       : event
