@@ -9,7 +9,14 @@ node['launch']['programs'].each do |kd_name|
             :description => "koding process #{prog_name}",
             :dir => "#{node['kd_deploy']['deploy_dir']}/current",
             :proc_owner => "koding",
-            :command => "/usr/bin/cake -c #{node['launch']['config']}"
+            :command => "/usr/bin/cake -c #{node['launch']['config']} #{kd_name}"
         })
     end
+    service "#{prog_name}" do
+        supports :status => true, :restart => true, :reload => false
+        action [ :enable, :start ]
+        provider Chef::Provider::Service::Upstart
+    end
 end
+
+
