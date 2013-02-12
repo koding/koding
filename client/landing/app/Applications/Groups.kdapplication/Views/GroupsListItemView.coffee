@@ -29,27 +29,31 @@ class GroupsListItemView extends KDListItemView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : '{{#(title)}}'
+      pistachio   : '{div{#(title)}}'
       tooltip     :
         title     : title
         direction : 'right'
         placement : 'top'
+        selector : 'div.data'
         offset    :
           top     : 6
           left    : -2
+        showOnlyWhenOverflowing : yes
       click       : (event) => @titleReceivedClick event
     , data
 
     @bodyView = new KDCustomHTMLView
-      tagName  : 'span'
-      pistachio : '{{#(body)}}'
+      tagName  : 'div'
+      pistachio : '{div{#(body)}}'
       tooltip     :
         title     : body
         direction : 'right'
         placement : 'top'
+        selector : 'div.data'
         offset    :
           top     : 6
           left    : -2
+        showOnlyWhenOverflowing : yes
     ,data
 
     @joinButton = new JoinButton
