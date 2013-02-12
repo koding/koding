@@ -23,9 +23,6 @@ class TopicsMainView extends KDView
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Topics"
     header.setSearchInput()
-    # @addSubView new CommonFeedMessage
-    #   title           : "<p>Topic tags organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed.</p>"
-    #   messageLocation : 'Topics'
 
   createTopicsHint:->
     listController.scrollView.addSubView notice = new KDCustomHTMLView
