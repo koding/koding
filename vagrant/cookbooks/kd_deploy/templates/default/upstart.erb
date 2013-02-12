@@ -1,0 +1,13 @@
+description  "<%= description %>"
+
+start on runlevel [2]
+stop on runlevel [!2345]
+
+env HOME=<%= dir %>
+chdir <%= dir %>
+respawn
+respawn limit 10 5
+setuid <%= proc_owner %>
+setgid <%= proc_owner %>
+
+exec <%= command %>

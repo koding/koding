@@ -1,10 +1,15 @@
-include_recipe "supervisord"
 node['launch']['programs'].each do |kd_name|
-   Chef::Log.info("DEBUG #{kd_name}")
-   program  kd_name  do
-     prog_name "#{kd_name}"
-     command "/usr/bin/cake -c #{node['launch']['config']}"
-     user "koding"
-     directroy "#{node['kd_deploy']['deploy_dir']}/current"
-   end
+    prog_name = kd_name.gsub(/\s+/,"_")
+    template "/etc/init/#{prog_name}.conf" do
+        source "upstart.erb"
+        mode 0440
+        owner "root"
+        group "root"
+        variables({
+            :description => "koding process #{prog_name}",
+            :dir => "#{node['kd_deploy']['deploy_dir']}/current",
+            :proc_owner => "koding",
+            :command => "/usr/bin/cake -c #{node['launch']['config']}"
+        })
+    end
 end
