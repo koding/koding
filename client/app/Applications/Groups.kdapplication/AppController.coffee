@@ -141,11 +141,13 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
-  showInvitationsTab:(group, modal, forms)->
-    tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
-    
+  showInvitationsTab:(group, tabView)->
+    # tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
+    pane = new KDTabPaneView name: 'Invitations'
+    tab = tabView.tabView.addPane pane, no
+
     invitationRequestView = new GroupsInvitationRequestsView {}, group
-    
+
     invitationRequestView.on 'BatchInvitationsAreSent', (count)->
       count = invitationRequestView.batchInvites.inputs.Count.getValue()
       group.sendSomeInvitations count, (err, message)->
@@ -154,15 +156,23 @@ class GroupsAppController extends AppController
           invitationRequestView.prepareBulkInvitations()
         {statusInfo} = invitationRequestView.batchInvites.inputs
         statusInfo.updatePartial Encoder.htmlDecode message
-    
+
     invitationRequestView.on 'InvitationIsSent', (request)->
       request.sendInvitation ->
         console.log 'invitation is sent', {arguments}
-    
-    forms['Invitations'].addSubView invitationRequestView
 
-  showApprovalTab:(group, modal, forms)->
-    console.log 'show approval tab', {modal, forms}
+    tab.addSubView invitationRequestView
+
+  hideInvitationsTab:(tabView)->
+    tabs = tabView.tabView
+    invitePane = tabs.getPaneByName 'Invitations'
+    tabs.removePane invitePane if invitePane
+
+  showApprovalTab:(group, tabView)->
+    console.log 'show approval tab', {tabView}
+
+  hideApprovalTab:(tabView)->
+    console.log 'hide approval tab', {tabView}
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
@@ -380,19 +390,19 @@ class GroupsAppController extends AppController
             @showInvitationsTab group, modal, forms
           else if policy.approvalEnabled
             @showApprovalTab group, modal, forms
-    
+
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
       forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
         size          :
-          width       : 32 
+          width       : 32
 
       addPermissionsView = (newPermissions)=>
         group.fetchRoles (err,roles)->
           group.fetchPermissions (err, permissionSet)=>
             permissionsLoader.hide()
-            unless err 
-              if newPermissions 
+            unless err
+              if newPermissions
                 permissionSet.permissions = newPermissions
               if @permissions then forms["Permissions"].removeSubView @permissions
               forms["Permissions"].addSubView @permissions = new PermissionsModal {
@@ -408,9 +418,9 @@ class GroupsAppController extends AppController
                     copiedPermissions.push
                       module : newPermissions[permission].module
                       permissions : newPermissions[permission].permissions
-                      role : role    
+                      role : role
                 for item in copiedPermissions
-                  newPermissions.push item            
+                  newPermissions.push item
                 addPermissionsView(newPermissions)
                 # @render()
             else
@@ -425,7 +435,7 @@ class GroupsAppController extends AppController
       new KDNotificationView title: err.message
     else
 
-      modalOptions = 
+      modalOptions =
         title   : "Error#{if err.code then " #{code}" else ""}"
         content : "<div class='modalformline'><p>#{err.message}</p></div>"
         buttons : {}
@@ -598,6 +608,36 @@ class GroupsAppController extends AppController
   selectTab:(groupView, tabName, konstructor)->
     groupView.assureTab tabName, konstructor
 
+  handleMembershipPolicyTabs:(policy, group, view)->
+    if policy.invitationsEnabled
+      @showInvitationsTab group, view
+    else
+      @hideInvitationsTab view
+
+    if policy.approvalEnabled
+      @showApprovalTab group, view
+    else
+      @hideApprovalTab view
+
+  prepareMembershipPolicyTab:(group, view)->
+    group.fetchMembershipPolicy (err, policy)=>
+      view.tabView.addPane policyPane = new KDTabPaneView
+        name : 'Membership Policy'
+      , policy
+
+      membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+
+      membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
+        @updateMembershipPolicy group, policy, formData, membershipPolicyView
+
+      membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
+        group.fetchMembershipPolicy (err, policy)=>
+          @handleMembershipPolicyTabs policy, group, view
+
+      @handleMembershipPolicyTabs policy, group, view
+
+      policyPane.addSubView membershipPolicyView
+
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
@@ -607,18 +647,22 @@ class GroupsAppController extends AppController
       delegate : @getView()
     , group
 
+    groupView.on 'ReadmeSelected',
+      groupView.lazyBound 'assureTab', 'Readme', GroupReadmeView
+
     groupView.on 'SettingsSelected',
-      groupView.lazyBound 'assureTab', 'Settings', class GroupSettingsView # TODO: implement me
+      groupView.lazyBound 'assureTab', 'Settings', GroupGeneralSettingsView
 
-    groupView.on 'PermissionsSelected', 
-      groupView.lazyBound 'assureTab', 'Permissions', class GroupPermissionsView # TODO: implement me
+    groupView.on 'PermissionsSelected',
+      groupView.lazyBound 'assureTab', 'Permissions', GroupPermissionsView
 
-    groupView.on 'MembersSelected', 
+    groupView.on 'MembersSelected',
       groupView.lazyBound 'assureTab', 'Members', GroupsMemberPermissionsView
-    
+
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', GroupsMembershipPolicyView, (view)->
-        console.log view #TODO: add event listeners and such.
+      groupView.lazyBound 'assureTab', 'Membership policy', GroupMembershipPolicyTabView
+      , (pane, view)=>
+        @prepareMembershipPolicyTab group, view
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView

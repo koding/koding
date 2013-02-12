@@ -257,6 +257,8 @@ Includes =
         permissionsModal              : "./client/app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
         groupReadmeView               : "./client/app/Applications/Groups.kdapplication/Views/readmeview.coffee"
+        groupSettingsView             : "./client/app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee"
+        groupPermissionView           : "./client/app/Applications/Groups.kdapplication/Views/permissionview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
         groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"
 
