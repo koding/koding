@@ -41,17 +41,18 @@ processMonitor = (require 'processes-monitor').start
   #     setTimeout ->
   #       process.exit()
   #     , 20000
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-    middleware : (name,callback) -> koding.disconnect callback
-    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
-    # middleware : (name,callback) ->
-    #   koding.disconnect ->
-    #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
-    #     setTimeout ->
-    #       callback null
-    #     ,10*1000
-    middlewareTimeout : 15000
+  #Commenting out so we can test memory leaks
+  #die :
+    #after: "non-overlapping, random, 3 digits prime-number of minutes"
+    #middleware : (name,callback) -> koding.disconnect callback
+    ## TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+    ## middleware : (name,callback) ->
+    ##   koding.disconnect ->
+    ##     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+    ##     setTimeout ->
+    ##       callback null
+    ##     ,10*1000
+    #middlewareTimeout : 15000
   toobusy:
     interval: 10000
     callback: ->
