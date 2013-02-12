@@ -76,15 +76,14 @@ class KDModalView extends KDView
 
     @buttons or= {}
     @setClass "with-buttons"
+    defaultFocusTitle = null
     for own buttonTitle, buttonOptions of buttonDataSet
+      defaultFocusTitle ?= buttonTitle
       button = @createButton buttonTitle, buttonOptions
       @buttons[buttonTitle] = button
-      if buttonOptions.focus
-        focused = yes
-        button.$().trigger "focus"
+      focused = yes  if buttonOptions.focus
 
-    unless focused
-      @$("button").eq(0).trigger "focus"
+    @buttons[defaultFocusTitle].setFocus()  unless focused
 
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")

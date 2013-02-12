@@ -371,9 +371,8 @@ class GroupsAppController extends AppController
         group.fetchMembershipPolicy (err, policy)=>
           membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
-          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
-            group.modifyMembershipPolicy data, ->
-              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+          membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
+            @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
           forms["Membership policy"].addSubView membershipPolicyView
 
@@ -421,6 +420,73 @@ class GroupsAppController extends AppController
       permissionsLoader.show()
       addPermissionsView()
 
+  handleError =(err, buttons)->
+    unless buttons
+      new KDNotificationView title: err.message
+    else
+
+      modalOptions = 
+        title   : "Error#{if err.code then " #{code}" else ""}"
+        content : "<div class='modalformline'><p>#{err.message}</p></div>"
+        buttons : {}
+
+      Object.keys(buttons).forEach (buttonTitle)->
+        buttonOptions = buttons[buttonTitle]
+        oldCallback = buttonOptions.callback
+        buttonOptions.callback = -> oldCallback modal
+
+        modalOptions.buttons[buttonTitle] = buttonOptions
+
+      modal = new KDModalView modalOptions
+
+  resolvePendingInvitationRequests:(group, method, callback, modal)->
+    group.resolvePendingInvitationRequests method, (err)->
+      modal.destroy()
+      handleError err  if err?
+      callback err
+
+  cancelChange:(modal)-> modal.destroy()
+
+  updateMembershipPolicy:(group, policy, data, membershipPolicyView, callback)->
+    complete = ->
+      group.modifyMembershipPolicy data, ->
+        membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+    if policy.invitationsEnabled and data.invitationsEnabled is off
+      targetSelector =
+        invitationType  : 'invitation'
+        status          : 'pending'
+      group.countInvitationRequests {}, targetSelector, (err, count)=>
+        if err then handleError err
+        else if count isnt 0
+          # handlers for buttons:
+          sendAll =
+            @resolvePendingInvitationRequests.bind this, group, 'send', complete
+          declineAll =
+            @resolvePendingInvitationRequests.bind this, group, 'decline', complete
+
+          handleError {
+            #code: ???
+            message: """
+              This group has pending invitations.  Before you can disable
+              invitations, you'll need to either resolve the pending
+              invitations by either resolving them or declining them.
+              """
+          },{
+            'Send all'    :
+              cssClass    : 'modal-clean-green'
+              callback    : sendAll
+            'Decline all' :
+              cssClass    : 'modal-clean-red'
+              callback    : declineAll
+            'cancel'      :
+              cssClass    : 'modal-cancel'
+              focus       : yes
+              callback    : (modal)->
+                modal.destroy()
+                membershipPolicyView.enableInvitations.setValue on
+          }
+        else complete()
+    else complete()
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->

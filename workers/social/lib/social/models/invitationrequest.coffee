@@ -15,6 +15,7 @@ module.exports = class JInvitationRequest extends Model
   @set
     indexes           :
       email           : ['unique','sparse']
+      status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
       instance        : ['sendInvitation']
@@ -33,9 +34,10 @@ module.exports = class JInvitationRequest extends Model
         type          : Date
         default       : -> new Date
       group           : String
-      sent            :
-        type          : Boolean
-        default       : no
+      status          :
+        type          : String
+        enum          : ['Invalid status', ['pending', 'sent', 'declined']]
+        default       : 'pending'
       invitationType  :
         type          : String
         enum          : ['invalid invitation type',[
@@ -84,6 +86,8 @@ module.exports = class JInvitationRequest extends Model
         daisy queue
       csv.on 'error', (err)-> errors.push err
 
+  declineInvitation: permit 'send invitations'
+
   sendInvitation: permit 'send invitations'
     success: (client, callback)->
       JUser         = require './user'
@@ -97,6 +101,6 @@ module.exports = class JInvitationRequest extends Model
               callback new KodingError "Unknown username: #{@koding.username}"
             else
               JInvitation.sendBetaInvite obj, (err)=>
+                console.log 'sfsfsfs'
                 if err then callback err
-                else @update $set: sent: yes, (err)->
-                  callback err
+                else @update $set: status: 'sent', (err)-> callback err

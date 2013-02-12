@@ -45,13 +45,13 @@ module.exports = class JGroup extends Module
         '__resetAllGroups', 'fetchMyMemberships'
       ]
       instance      : [
-        'join','leave','modify','fetchPermissions', 'createRole'
+        'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts'
+        'fetchInvitationRequestCounts', 'resolvePendingInvitationRequests'
       ]
     schema          :
       title         :
@@ -411,7 +411,7 @@ module.exports = class JGroup extends Module
  
   countPendingInvitationRequests: permit 'send invitations'
     success: (client, callback)->
-      @countInvitationRequests {}, {sent:no}, callback
+      @countInvitationRequests {}, {status: 'pending'}, callback
 
   countInvitationRequests$: permit 'send invitations'
     success: (client, rest...)-> @countInvitationRequests rest...
@@ -433,6 +433,23 @@ module.exports = class JGroup extends Module
             queue.fin()
       dash queue, callback.bind null, null, counts
 
+  resolvePendingInvitationRequests: permit 'send invitations'
+    success: (client, method, callback)->
+      unless method in ['send', 'decline']
+        return callback new KodingError "Unknown method: #{method}"
+
+      JInvitationRequest = require '../invitationrequest'
+
+      invitationRequestSelector =
+        group             : @slug
+        status            : 'pending'
+        invitationType    : 'invitation'
+
+      JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+        if err then callback err
+        else if request? then request[method+'Invitation'] client, ->
+        else callback null
+
   inviteMember: permit 'send invitations'
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
@@ -445,8 +462,8 @@ module.exports = class JGroup extends Module
     success: (client, count, callback)->
       @fetchInvitationRequests {}, {
         targetOptions :
-          selector    : { sent: no }
-          options     : { limit: count }
+          selector    : { status  : 'pending' }
+          options     : { limit   : count }
       }, (err, requests)->
         if err then callback err
         else

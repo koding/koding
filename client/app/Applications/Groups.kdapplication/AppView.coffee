@@ -88,7 +88,7 @@ class GroupsMembershipPolicyView extends JView
     super
     policy = @getData()
 
-    {invitationsEnabled, webhookEndpoint, accessRequestsEnabled} = policy
+    {invitationsEnabled, webhookEndpoint, approvalEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
 
     @enableInvitations = new KDOnOffSwitch
@@ -97,9 +97,9 @@ class GroupsMembershipPolicyView extends JView
         @emit 'MembershipPolicyChanged', invitationsEnabled: state
   
     @enableAccessRequests = new KDOnOffSwitch
-      defaultValue  : accessRequestsEnabled
+      defaultValue  : approvalEnabled
       callback      : (state) =>
-        @emit 'MembershipPolicyChanged', accessRequestsEnabled: state  
+        @emit 'MembershipPolicyChanged', approvalEnabled: state  
 
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
@@ -247,7 +247,7 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     <div class="fl">
       <div class="username">{{#(koding.username)}}</div>
       <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-      <div class="is-sent">{{(#(sent) and '✓ Sent') or 'Requested'}}</div>
+      <div class="is-sent">{{(#(status) is 'sent' and '✓ Sent') or 'Requested'}}</div>
     </div>
     {{> @inviteButton}}
     """
