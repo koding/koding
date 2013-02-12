@@ -628,9 +628,10 @@
     &.shadow
       shadow            0 0 15px rgba(0,0,0,.1)
   .readme
-    padding             20px
+    padding-top             15px
     borderBox()
-
+    .body 
+      width 100%
     .data
       borderBox()
       // rounded(4px)
@@ -649,8 +650,13 @@
         borderBox()
         // max-height 50%
     .button-bar
+      opacity 0.5
       margin-bottom 10px
       text-align right
+      vendor transition, 0.2 linear ease-in-out
+      fr()
+      &:hover 
+        opacity 1
     .loader 
       fl()
       margin-top 2px
@@ -754,11 +760,16 @@
 //                 border-left   none
 //                 text-align    left
 
+.settings-tab
+  borderBox()
+  padding 0px 20px
+  height auto
+
 .permission-view
 .permissions-modal
   
   height auto
-  
+
   .add-role-dialog
     z-index 100000
     
@@ -833,6 +844,8 @@
         height 50px
         padding 15px 20px 0 15px 
         border-top 1px solid #e5e5e5
+        border-left 1px solid #e5e5e5
+        border-right 1px solid #e5e5e5
 
         button.add-role
           fl()
@@ -840,6 +853,9 @@
       &:nth-last-child(2)
         margin-bottom 49px
         border-bottom-color transparent
+      &:last-child 
+        rounded(0)
+
       borderBox()
       padding 0px
       border-bottom 1px solid #f5f5f5
