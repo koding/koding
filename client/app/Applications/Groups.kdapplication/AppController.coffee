@@ -595,17 +595,8 @@ class GroupsAppController extends AppController
     @getView().$(".activityhead").html title
 
 
-  selectSettingsTab:(groupView)->
-    tab = groupView.assureTab 'Settings', GroupGeneralSettingsView
-
-  selectPermissionsTab:(groupView)->
-    tab = groupView.assureTab 'Permissions', GroupPermissionsView
-
-  selectMembersTab:(groupView)->
-    tab = groupView.assureTab 'Members', GroupsMemberPermissionsView
-
-  selectMembershipPolicyTab:(groupView)->
-    tab = groupView.assureTab 'Membership policy', GroupsMembershipPolicyView
+  selectTab:(groupView, tabName, konstructor)->
+    groupView.assureTab tabName, konstructor
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -616,10 +607,18 @@ class GroupsAppController extends AppController
       delegate : @getView()
     , group
 
-    groupView.on 'SettingsSelected', @selectSettingsTab.bind this, groupView
-    groupView.on 'PermissionsSelected', @selectPermissionsTab.bind this, groupView
-    groupView.on 'MembersSelected', @selectMembersTab.bind this, groupView
-    groupView.on 'MembershipPolicySelected', @selectMembershipPolicyTab.bind this, groupView
+    groupView.on 'SettingsSelected',
+      groupView.lazyBound 'assureTab', 'Settings', class GroupSettingsView # TODO: implement me
+
+    groupView.on 'PermissionsSelected', 
+      groupView.lazyBound 'assureTab', 'Permissions', class GroupPermissionsView # TODO: implement me
+
+    groupView.on 'MembersSelected', 
+      groupView.lazyBound 'assureTab', 'Members', GroupsMemberPermissionsView
+    
+    groupView.on 'MembershipPolicySelected',
+      groupView.lazyBound 'assureTab', 'Membership policy', GroupsMembershipPolicyView, (view)->
+        console.log view #TODO: add event listeners and such.
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
