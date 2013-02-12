@@ -92,6 +92,7 @@ class GroupView extends ActivityContentDisplay
 
     @tabView = new KDTabView
       hideHandleContainer : yes
+      cssClass : 'settings-tab'
     , data
 
     @tabView.addPane @readmeTab = new KDTabPaneView
@@ -168,6 +169,7 @@ class GroupView extends ActivityContentDisplay
                       
                       @membershipPolicyTabView.addPane @policyTab = new KDTabPaneView
                         name : 'Membership Policies'
+                        title : 'random'
                       
                       @policyTab.addSubView membershipPolicyView
                       
