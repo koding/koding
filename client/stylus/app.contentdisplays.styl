@@ -133,23 +133,25 @@ app.contentdisplays.styl
       h5
         display             block
         a.user-home-link
+        cite
           font-size         15px
           font-weight       300
-          line-height       20px
+          line-height       25px
           noTextDeco()
 
-        span.icon
-          hidden()
-          // size              19px, 20px
-          // bg                position, -220px -439px
-          // sprite()
+        cite
+          display           block
+          font-size         11px
+          // margin-left       10px
+          // font-style        normal
+
 
 
   .profilestats
     padding               14px 0px 11px 0px
     border-bottom         1px solid #E2E2E2
     border-top            1px solid #E2E2E2
-    margin-top            12px
+    margin-top            0
     borderBox()
     a
       color               #222
@@ -2033,6 +2035,9 @@ div.kdview.activity-item.tutorial.content-display-main-section
 .has-markdown
   > div.data-wrapper > span.data
   > span.data
+  > div.data
+    // > *:last-child
+    //   margin-bottom 0px
     > pre
       padding 5px
       rounded 4px

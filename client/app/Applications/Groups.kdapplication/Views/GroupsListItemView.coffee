@@ -10,7 +10,7 @@ class GroupsListItemView extends KDListItemView
       tagName : 'img'
       cssClass : 'avatar-image'
       attributes :
-        src : @getData().avatar or "http://lorempixel.com/#{60+@utils.getRandomNumber(10)}/#{60+@utils.getRandomNumber(10)}"
+        src : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
 
     @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent groups-settings-context groups-settings-menu'
@@ -29,27 +29,31 @@ class GroupsListItemView extends KDListItemView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : '{{#(title)}}'
+      pistachio   : '{div{#(title)}}'
       tooltip     :
         title     : title
         direction : 'right'
         placement : 'top'
+        selector : 'div.data'
         offset    :
           top     : 6
           left    : -2
+        showOnlyWhenOverflowing : yes
       click       : (event) => @titleReceivedClick event
     , data
 
     @bodyView = new KDCustomHTMLView
-      tagName  : 'span'
-      pistachio : '{{#(body)}}'
+      tagName  : 'div'
+      pistachio : '{div{#(body)}}'
       tooltip     :
         title     : body
         direction : 'right'
         placement : 'top'
+        selector : 'div.data'
         offset    :
           top     : 6
           left    : -2
+        showOnlyWhenOverflowing : yes
     ,data
 
     @joinButton = new JoinButton
@@ -118,9 +122,9 @@ class GroupsListItemView extends KDListItemView
       'Group settings'  :
         callback        : =>
           mainController.emit 'EditGroupButtonClicked', @
-      'Permissions'     :
-        callback        : =>
-          mainController.emit 'EditPermissionsButtonClicked', @
+      # 'Permissions'     :
+      #   callback : =>
+      #     mainController.emit 'EditPermissionsButtonClicked', @
       'My roles'        :
         callback        : =>
           mainController.emit 'MyRolesRequested', @

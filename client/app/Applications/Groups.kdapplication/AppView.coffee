@@ -1,16 +1,3 @@
-class GroupsComingSoon extends KDView
-  viewAppended:()->
-    @setClass "coming-soon-page"
-    @setPartial @partial
-
-  partial:()->
-    partial = $ """
-      <div class='comingsoon'>
-        <img src='../images/topicsbig.png' alt='Groups are coming soon!'><h1>Koding Groups</h1>
-        <h2>Coming soon</h2>
-      </div>
-    """
-
 class GroupsMainView extends KDView
 
   constructor:(options,data)->
@@ -22,61 +9,6 @@ class GroupsMainView extends KDView
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Groups"
     header.setSearchInput()
-    # @addSubView new CommonFeedMessage
-    #   title           : "<p>Topic tags organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed.</p>"
-    #   messageLocation : 'Topics'
-
-  createTopicsHint:->
-    listController.scrollView.addSubView notice = new KDCustomHTMLView
-      cssClass  : "groups-hint"
-      tagName   : "p"
-      partial   : "<span class='icon'></span>"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : notice
-      callback : (pubInst,event)->
-        if $(event.target).is "a.closeme"
-          notice.$().animate marginTop : "-16px", opacity : 0.001,150,()->notice.destroy()
-
-  # addAddTopicButton:->
-  #   new KDButtonView
-  #     title     : "Add Topic"
-  #     style     : "small-gray"
-  #     callback  : ->
-  #       modal = new KDModalViewWithForms
-  #         title                   : "Add a Topic"
-  #         content                 : ""
-  #         overlay                 : yes
-  #         width                   : 500
-  #         height                  : "auto"
-  #         cssClass                : "new-kdmodal"
-  #         tabs                    :
-  #           callback          : (formData,event)->
-  #             mainView.emit "AddATopicFormSubmitted",formData
-  #           forms                 :
-  #             "Add a topic"       :
-  #               fields            :
-  #                 Name            :
-  #                   type          : "text"
-  #                   name          : "title"
-  #                   placeholder   : "give a name to your topic..."
-  #                   validate      :
-  #                     rules       :
-  #                       required  : yes
-  #                     messages    :
-  #                       required  : "Topic name is required!"
-  #                 Description     :
-  #                   type          : "textarea"
-  #                   name          : "body"
-  #                   placeholder   : "and give topic a description..."
-  #               buttons           :
-  #                 Add             :
-  #                   style         : "modal-clean-gray"
-  #                   type          : 'submit'
-  #                 Cancel          :
-  #                   style         : "modal-cancel"
-  #                   callback      : ()-> modal.destroy()
 
 class GroupsWebhookView extends JView
 
@@ -156,18 +88,18 @@ class GroupsMembershipPolicyView extends JView
     super
     policy = @getData()
 
-    {invitationsEnabled, webhookEndpoint, accessRequestsEnabled} = policy
+    {invitationsEnabled, webhookEndpoint, approvalEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
-    
+
     @enableInvitations = new KDOnOffSwitch
       defaultValue  : invitationsEnabled
       callback      : (state) =>
         @emit 'MembershipPolicyChanged', invitationsEnabled: state
   
     @enableAccessRequests = new KDOnOffSwitch
-      defaultValue  : accessRequestsEnabled
+      defaultValue  : approvalEnabled
       callback      : (state) =>
-        @emit 'MembershipPolicyChanged', accessRequestsEnabled: state  
+        @emit 'MembershipPolicyChanged', approvalEnabled: state  
 
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
@@ -299,6 +231,15 @@ class GroupsInvitationRequestListItemView extends KDListItemView
       callback  : =>
         @getDelegate().emit 'InvitationIsSent', invitationRequest
 
+    @getData().on 'update', => @updateStatus()
+
+    @updateStatus()
+
+  updateStatus:->
+    isSent = @getData().sent
+    @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
+    @inviteButton.disable()  if isSent
+
   viewAppended: JView::viewAppended
 
   pistachio:->
@@ -306,7 +247,7 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     <div class="fl">
       <div class="username">{{#(koding.username)}}</div>
       <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-      <div class="is-sent">{{(#(sent) and '✓ Sent') or 'Requested'}}</div>
+      <div class="is-sent">{{(#(status) is 'sent' and '✓ Sent') or 'Requested'}}</div>
     </div>
     {{> @inviteButton}}
     """
@@ -329,18 +270,40 @@ class GroupsInvitationRequestsView extends JView
     @requestList.on 'InvitationIsSent', (invitationRequest)=>
       @emit 'InvitationIsSent', invitationRequest
 
-    @prepareBulkInvitations()
-    @inviteTools = new KDFormViewWithFields
-      cssClass          : 'invite-tools'
+    @currentState = new KDView cssClass: 'formline'
+
+
+    @inviteMember = new KDFormViewWithFields
       fields            :
-        Information     :
-          label         : "Current state"
-          type          : "hidden"
-          nextElement   :
-            currentState:
-              itemClass : KDView
-              partial   : 'Loading...'
-              cssClass  : 'information-line'
+        recipient       :
+          label         : "Send to"
+          type          : "text"
+          name          : "recipient"
+          placeholder   : "Enter an email address..."
+          validate      :
+            rules       :
+              required  : yes
+              email     : yes
+            messages    :
+              required  : "An email address is required!"
+              email     : "That does not not seem to be a valid email address!"
+      buttons           :
+        'Send invite'   :
+          loader        :
+            color       : "#444444"
+            diameter    : 12
+          callback      : -> console.log 'send', arguments
+
+
+    @prepareBulkInvitations()
+    @batchInvites = new KDFormViewWithFields
+      cssClass          : 'invite-tools'
+      buttons           :
+        'Send invites'  :
+          title         : 'Send invitation batch'
+          callback      : =>
+            @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
+      fields            :
         Count           :
           label         : "# of Invites"
           type          : "text"
@@ -367,7 +330,7 @@ class GroupsInvitationRequestsView extends JView
       if err then console.error error
       else
         [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
-        @inviteTools.inputs.currentState.updatePartial """
+        @currentState.updatePartial """
           There #{toBe} currently #{count} #{people} waiting for an invitation
           """
 
@@ -379,13 +342,29 @@ class GroupsInvitationRequestsView extends JView
 
     group.fetchInvitationRequests selector, options, (err, requests)=>
       if err then console.error err
-      else
-        @requestListController.instantiateListItems requests
+      else @requestListController.instantiateListItems requests.reverse()
 
   pistachio:->
     """
-    {{> @inviteTools}}
-    {{> @requestList}}
+    <section class="formline">
+      <h2>Status quo</h2>
+      {{> @currentState}}
+    </section>
+    <section class="formline">
+      <h2>Invite member</h2>
+      {{> @inviteMember}}
+    </section>
+    <section class="formline">
+      <h2>Invitation requests</h2>
+      <div class="formline">
+        <h3>Invite members by batch</h2>
+        {{> @batchInvites}}
+      </div>
+      <div class="formline">
+        <h3>Invite members individually</h2>
+        {{> @requestList}}
+      </div>
+    </section>
     """
 
 class GroupsMemberPermissionsView extends JView
@@ -395,9 +374,9 @@ class GroupsMemberPermissionsView extends JView
     options.cssClass = "groups-member-permissions-view"
 
     super
-    
+
     groupData       = @getData()
-    
+
     @listController = new KDListViewController
       itemClass     : GroupsMemberPermissionsListItemView
     @listWrapper    = @listController.getView()

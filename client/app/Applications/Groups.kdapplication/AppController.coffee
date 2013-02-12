@@ -125,14 +125,14 @@ class GroupsAppController extends AppController
       when ERROR_POLICY
         {
           title     : 'This is a private group'
-          content   : 
+          content   :
             """
             <div class="modalformline">#{err.message}</div>
             """
         }
 
     if err.accessCode is ERROR_POLICY
-      defaultOptions.buttons['Request access'] = 
+      defaultOptions.buttons['Request access'] =
         cssClass    : 'modal-clean-green'
         loader      :
           color     : "#ffffff"
@@ -141,13 +141,36 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
+  showInvitationsTab:(group, modal, forms)->
+    tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
+    
+    invitationRequestView = new GroupsInvitationRequestsView {}, group
+    
+    invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+      count = invitationRequestView.batchInvites.inputs.Count.getValue()
+      group.sendSomeInvitations count, (err, message)->
+        if message is null
+          message = 'Done'
+          invitationRequestView.prepareBulkInvitations()
+        {statusInfo} = invitationRequestView.batchInvites.inputs
+        statusInfo.updatePartial Encoder.htmlDecode message
+    
+    invitationRequestView.on 'InvitationIsSent', (request)->
+      request.sendInvitation ->
+        console.log 'invitation is sent', {arguments}
+    
+    forms['Invitations'].addSubView invitationRequestView
+
+  showApprovalTab:(group, modal, forms)->
+    console.log 'show approval tab', {modal, forms}
+
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       @requestAccess group, (err)-> modal.destroy()
 
   requestAccess:(group, callback)->
-    group.requestInvitation (err)->
+    group.requestAccess (err)->
       callback err
       new KDNotificationView title:
         if err then err.message
@@ -156,7 +179,7 @@ class GroupsAppController extends AppController
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
-      if err 
+      if err
         @showErrorModal group, err
       else
         console.log 'access is granted!'
@@ -209,6 +232,7 @@ class GroupsAppController extends AppController
         navigable : yes
         goToNextFormOnSubmit: no
         forms     :
+
           "General Settings":
             title: if isNewGroup then 'Create a group' else 'Edit group'
             callback:(formData)=>
@@ -277,23 +301,23 @@ class GroupsAppController extends AppController
                   setTimeout =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                    modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
+                    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
                   , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
               SlugText                :
                 itemClass : KDView
                 cssClass : 'slug-url'
-                partial : '<span class="base">http://www.koding.com/Groups/</span>'
+                partial : '<span class="base">http://www.koding.com/</span>'
                 nextElementFlat :
                   Slug :
                     label             : "Slug"
                     itemClass         : KDInputView
                     name              : "slug"
-                    cssClass          : 'hidden'
+                    # cssClass          : 'hidden'
                     defaultValue      : group.slug ? ""
                     placeholder       : 'This value will be automatically generated'
-                    disabled          : yes
+                    # disabled          : yes
               Description         :
                 label             : "Description"
                 type              : "textarea"
@@ -323,45 +347,146 @@ class GroupsAppController extends AppController
                 ]
 
     unless isNewGroup
+      modalOptions.tabs.forms.Permissions =
+        title : 'Permissions'
+        cssClass : 'permissions-modal'
       modalOptions.tabs.forms.Members =
         title   : "User permissions"
       if isPrivateGroup
         modalOptions.tabs.forms['Membership policy'] =
           title   : "Membership policy"
-        modalOptions.tabs.forms['Invitations'] =
-          title   : "Invitations"
 
     modal = new KDModalViewWithForms modalOptions, group
-    
+
     {forms} = modal.modalTabs
 
     avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
-
     avatarUploadView.on 'FileReadComplete', (stuff)->
       avatarUploadView.$('.kdfileuploadarea').css
         backgroundImage : "url(#{stuff.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
 
-    forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
-
     unless isNewGroup
       if isPrivateGroup
-        group.fetchMembershipPolicy (err, policy)->
+        group.fetchMembershipPolicy (err, policy)=>
           membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
-          membershipPolicyView.on 'MembershipPolicyChanged', (data)->
-            group.modifyMembershipPolicy data, ->
-              membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+          membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
+            @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
           forms["Membership policy"].addSubView membershipPolicyView
 
-        invitationRequestView = new GroupsInvitationRequestsView {}, group
-        invitationRequestView.on 'InvitationIsSent', (request)->
-          request.sendInvitation ->
-            console.log 'invitation is sent', {arguments}
-        forms["Invitations"].addSubView invitationRequestView
+          if policy.invitationsEnabled
+            @showInvitationsTab group, modal, forms
+          else if policy.approvalEnabled
+            @showApprovalTab group, modal, forms
     
       forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+
+      forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
+        size          :
+          width       : 32 
+
+      addPermissionsView = (newPermissions)=>
+        group.fetchRoles (err,roles)->
+          group.fetchPermissions (err, permissionSet)=>
+            permissionsLoader.hide()
+            unless err 
+              if newPermissions 
+                permissionSet.permissions = newPermissions
+              if @permissions then forms["Permissions"].removeSubView @permissions
+              forms["Permissions"].addSubView @permissions = new PermissionsModal {
+                privacy: group.privacy
+                permissionSet
+                roles
+              }, group
+              @permissions.emit 'RoleViewRefreshed'
+              @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
+                copiedPermissions = []
+                for permission of newPermissions
+                  if newPermissions[permission].role is copy
+                    copiedPermissions.push
+                      module : newPermissions[permission].module
+                      permissions : newPermissions[permission].permissions
+                      role : role    
+                for item in copiedPermissions
+                  newPermissions.push item            
+                addPermissionsView(newPermissions)
+                # @render()
+            else
+              forms['Permissions'].addSubView new KDView
+                partial : 'No access'
+
+      permissionsLoader.show()
+      addPermissionsView()
+
+  handleError =(err, buttons)->
+    unless buttons
+      new KDNotificationView title: err.message
+    else
+
+      modalOptions = 
+        title   : "Error#{if err.code then " #{code}" else ""}"
+        content : "<div class='modalformline'><p>#{err.message}</p></div>"
+        buttons : {}
+
+      Object.keys(buttons).forEach (buttonTitle)->
+        buttonOptions = buttons[buttonTitle]
+        oldCallback = buttonOptions.callback
+        buttonOptions.callback = -> oldCallback modal
+
+        modalOptions.buttons[buttonTitle] = buttonOptions
+
+      modal = new KDModalView modalOptions
+
+  resolvePendingInvitationRequests:(group, method, callback, modal)->
+    group.resolvePendingInvitationRequests method, (err)->
+      modal.destroy()
+      handleError err  if err?
+      callback err
+
+  cancelChange:(modal)-> modal.destroy()
+
+  updateMembershipPolicy:(group, policy, data, membershipPolicyView, callback)->
+    complete = ->
+      group.modifyMembershipPolicy data, ->
+        membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+    if policy.invitationsEnabled and data.invitationsEnabled is off
+      targetSelector =
+        invitationType  : 'invitation'
+        status          : 'pending'
+      group.countInvitationRequests {}, targetSelector, (err, count)=>
+        if err then handleError err
+        else if count isnt 0
+          # handlers for buttons:
+          sendAll =
+            @resolvePendingInvitationRequests.bind this, group, 'send', complete
+          declineAll =
+            @resolvePendingInvitationRequests.bind this, group, 'decline', complete
+
+          handleError {
+            #code: ???
+            message: """
+              This group has pending invitations.  Before you can disable
+              invitations, you'll need to either resolve the pending
+              invitations by either resolving them or declining them.
+              """
+          },{
+            'Send all'    :
+              cssClass    : 'modal-clean-green'
+              callback    : sendAll
+            'Decline all' :
+              cssClass    : 'modal-clean-red'
+              callback    : declineAll
+            'cancel'      :
+              cssClass    : 'modal-cancel'
+              focus       : yes
+              callback    : (modal)->
+                modal.destroy()
+                membershipPolicyView.enableInvitations.setValue on
+          }
+        else complete()
+    else complete()
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -469,15 +594,33 @@ class GroupsAppController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content, callback=->)->
+
+  selectSettingsTab:(groupView)->
+    tab = groupView.assureTab 'Settings', GroupGeneralSettingsView
+
+  selectPermissionsTab:(groupView)->
+    tab = groupView.assureTab 'Permissions', GroupPermissionsView
+
+  selectMembersTab:(groupView)->
+    tab = groupView.assureTab 'Members', GroupsMemberPermissionsView
+
+  selectMembershipPolicyTab:(groupView)->
+    tab = groupView.assureTab 'Membership policy', GroupsMembershipPolicyView
+
+  showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     groupView = new GroupView
-      cssClass : "profilearea clearfix"
+      cssClass : "group-content-display"
       delegate : @getView()
-    , content
-    
+    , group
+
+    groupView.on 'SettingsSelected', @selectSettingsTab.bind this, groupView
+    groupView.on 'PermissionsSelected', @selectPermissionsTab.bind this, groupView
+    groupView.on 'MembersSelected', @selectMembersTab.bind this, groupView
+    groupView.on 'MembershipPolicySelected', @selectMembershipPolicyTab.bind this, groupView
+
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
     # console.log {contentDisplay}

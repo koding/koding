@@ -25,9 +25,13 @@ class KDButtonView extends KDView
     @setIconOnly options.iconOnly   if options.iconOnly
     @disable()                      if options.disabled
 
-    if options.loader
-      @on "viewAppended", @setLoader.bind @
+    if options.focus
+      @once "viewAppended", @bound "setFocus"
 
+    if options.loader
+      @once "viewAppended", @bound "setLoader"
+
+  setFocus:-> @$().trigger 'focus'
 
   setDomElement:(cssClass)->
     @domElement = $ """

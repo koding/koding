@@ -54,7 +54,7 @@ class Sidebar extends JView
 
         # group avatar should be either a URL or a dataURL
 
-        @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/'+100+@utils.getRandomNumber(10)+'/'+100+@utils.getRandomNumber(10)})"
+        @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/100/100/?' + @utils.getRandomNumber()})"
         @groupAvatar.show()
         @groupAvatar.setClass 'flash'
         @avatarHeader.setData currentGroupData
@@ -119,7 +119,7 @@ class Sidebar extends JView
 
     @finderController = new NFinderController
       fsListeners       : yes
-      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
+      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website"
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no

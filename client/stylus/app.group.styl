@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -301,10 +302,22 @@
         color #ff9200
         font-size 13px
         a
+          borderBox()
           width auto
           color #ff9200
           font-weight 400
           noTextDeco()
+          overflow-y hidden
+          overflow-x hidden
+          white-space nowrap
+          text-overflow ellipsis
+          div.data
+            borderBox()
+            overflow-y hidden
+            overflow-x hidden
+            white-space nowrap
+            text-overflow ellipsis
+            display block
 
       article
         borderBox()
@@ -318,6 +331,13 @@
         height 3.6em
         color #5f5f5f
         font-size 12px
+        div.data 
+          borderBox()
+          overflow-y hidden
+          overflow-x hidden
+          white-space nowrap
+          text-overflow ellipsis
+          display block  
 
     .topicmeta
       abs()
@@ -396,6 +416,10 @@
 
 
 .group-admin-modal
+
+  .kdmodal-content .kdtabhandlecontainer .kdtabhandle
+    min-width 60px
+
   div.image-wrapper
     fl()
     borderBox()
@@ -460,9 +484,15 @@
   .kdlabel.title
   .kdlabel.slug
     display none
+  input.kdinput.text[name="slug"]
+    width auto
   .SlugText
-    .input-wrapper:last-child
-      display none
+    text-align right
+    // .input-wrapper:last-child
+    //   display none
+    .input-wrapper
+      width auto
+      display inline-block
     .input-wrapper:first-child
       height 25px
       line-height 25px
@@ -533,126 +563,277 @@
   .username
     font-weight         bold
     color               #ff9200
-
+  &.invitation-sent
+    background-color    #eee
 
 .group-header
-  button
-    &.enter
-      fl()
-      margin-right 5px!important
-    &.join
-      display block
+  margin-top            20px
+  padding               20px 20px 0
+  borderBox()
+  .avatar
+    margin-right        20px
+    fl()
+    span
+      display           block
+      border            1px solid #eee
+      padding           1px
+      size              60px, 60px
+  section
+    height              auto
+    rel()
+    h2
+      font-size         36px
+      font-weight       normal
+      line-height       64px
+      height            64px
+      border-bottom     none
+      padding           0
+      overflow          ellipsis
+      margin-right      180px
+    .buttons
+      top               0
+      right             0
+      size              auto, 100%
+      padding           18px 5px
+      borderBox()
+      abs()
+      .custom-link-view.enter-group
+        margin-right    5px
+  .navbar
+    bg                  color, #f5f5f5
+    height              60px
+    margin              20px 0 0
+    borderBox()
+    .custom-link-view
+      margin            20px 20px 0
+      span.title
+        color           #aaa
+        // noTextDeco()
+      &.enter-group
+        margin-left     20px
+      .icon
+        &.enter-group
+          bg            position, -180px -518px
+          opacity       .2
+        &.admin
+          bg            position, -180px -439px
+          opacity       .5
 
-.permission-modal
-  .kdmodal-content
-    .permission-wrapper
-      table.permissions-grid
-        borderBox()
-        &.no-guest
-          tr
-            td:not(.module):first-child
-              width           200px
-            th:first-child
-              width           200px
-        width                 100%
-        // border-width          1px
-        border-spacing        0px
-        // border-style          solid
-        // border-color          gray
-        border-collapse       collapse
-        background-color      white
-        border                none
-        thead
-          borderBox()
-          border              none
-          vendor box-shadow,  0 5px 15px -5px rgba(0,0,0,0.1)
-          bg                  color, #eee
-          > tr
-            rel()
-            borderBox()
-            display           block
-            width             100%
-            th
-              borderBox()
-              &:first-child
-                width         100px
-              width           100px
-              border-width    1px
-              padding         4px
-              border-style    inset
-              border-color    rgba(200,200,200,0.25)
-              background-color white
-        tbody
-          borderBox()
-          display             block
-          width               100%
-          max-height          200px
-          overflow-y          scroll
-          overflow-x          hidden
-          border              none
-          > tr
-            borderBox()
-            width             100%
-            &.module-row
-            &:not(.module-row)
-              &:nth-child(2n)
-                bg            color, #ddd
-              &:nth-child(2n+1)
-                bg            color, #f5f5f5
-            td.module
-              borderBox()
-              border          none
-              width           100%
-              background      linear-gradient(top, #555 0%,#666 93.7%)
-              padding         4px
-              shadow          inset 0 2px 5px rgba(0,0,0,.1)
-              color           #eee
-            td:not(.module)
-              // white-space nowrap
-              borderBox()
-              padding         4px
-              border-width    1px
-              border-style    inset
-              border-color    rgba(200,200,200,0.25)
-              background-color transparent
-              // border none
-              width           100px
-              text-align      center
-              vertical-align  middle
-              color           #444
-              &:first-child
-                width         100px
-                border-left   none
-                text-align    left
+.group-content-display
+  .sub-header
+    gradient            #fff, #f8f8f8
+    width               100%
+    z-index             100
+    fix()
+    &.shadow
+      shadow            0 0 15px rgba(0,0,0,.1)
+  .readme
+    padding             20px
+    borderBox()
+
+    .data
+      borderBox()
+      // rounded(4px)
+      // border 1px solid
+      // border-color #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+      border none
+      // padding 10px 10px 10px 10px
+      padding 0
+    .edit 
+      borderBox() 
+      width 100%
+      min-height 100px
+      max-height 400px
+      .preview_content
+        padding 10px
+    .button-bar
+      margin-bottom 10px
+      text-align right
+    .loader 
+      fl()
+      margin-top 2px
+    .loader-text
+      display inline
+      padding-left 5px
+    .edit-cancel
+      font-size 12px
+      margin-top 4px
+      margin-right 5px
+      span
+        noTextDeco()
+        color #aaa
+  .desc
+    border-bottom       1px solid #f2f2f2
+    padding             20px 0
+
+
+
+
+
+// .permission-modal
+//   .kdmodal-content
+//     .permission-wrapper
+//       table.permissions-grid
+//         borderBox()
+//         &.no-guest
+//           tr
+//             td:not(.module):first-child
+//               width           200px
+//             th:first-child
+//               width           200px
+//         width                 100%
+//         // border-width          1px
+//         border-spacing        0px
+//         // border-style          solid
+//         // border-color          gray
+//         border-collapse       collapse
+//         background-color      white
+//         border                none
+//         thead
+//           borderBox()
+//           border              none
+//           vendor box-shadow,  0 5px 15px -5px rgba(0,0,0,0.1)
+//           bg                  color, #eee
+//           > tr
+//             rel()
+//             borderBox()
+//             display           block
+//             width             100%
+//             th
+//               borderBox()
+//               &:first-child
+//                 width         100px
+//               width           100px
+//               border-width    1px
+//               padding         4px
+//               border-style    inset
+//               border-color    rgba(200,200,200,0.25)
+//               background-color white
+//         tbody
+//           borderBox()
+//           display             block
+//           width               100%
+//           max-height          200px
+//           overflow-y          scroll
+//           overflow-x          hidden
+//           border              none
+//           > tr
+//             borderBox()
+//             width             100%
+//             &.module-row
+//             &:not(.module-row)
+//               &:nth-child(2n)
+//                 bg            color, #ddd
+//               &:nth-child(2n+1)
+//                 bg            color, #f5f5f5
+//             td.module
+//               borderBox()
+//               border          none
+//               width           100%
+//               background      linear-gradient(top, #555 0%,#666 93.7%)
+//               padding         4px
+//               shadow          inset 0 2px 5px rgba(0,0,0,.1)
+//               color           #eee
+//             td:not(.module)
+//               // white-space nowrap
+//               borderBox()
+//               padding         4px
+//               border-width    1px
+//               border-style    inset
+//               border-color    rgba(200,200,200,0.25)
+//               background-color transparent
+//               // border none
+//               width           100px
+//               text-align      center
+//               vertical-align  middle
+//               color           #444
+//               &:first-child
+//                 width         100px
+//                 border-left   none
+//                 text-align    left
 
 .permissions-modal
+
+  .add-role-dialog
+    z-index 100000
+    
+    .add-role-header
+      padding-top 15px
+      padding-bottom 15px
+      font-size 14px
+      font-weight 500
+
+    .add-role-button
+      margin-bottom 10px
+    .add-role-cancel
+      margin-top 8px
+
+    label.label-role-name
+      display inline-block
+    input.role-name
+      display inline-block
+      width 289px
+
+    label.label-copy-permissions
+      margin-top 10px
+      display inline-block
+    div.kdselectbox.copy-permissions
+      margin-top 0px
+      
+  .kdview.kdloader
+    display           block
+    margin            10px auto
+
   .permissions-header
     abs()
     top -20px
     left 0
     right 0
     z-index 20000
-    vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
+    &.scrolling
+      shadow 0 5px 15px -5px rgba(0,0,0,0.1)
     > .input-wrapper > .kdview
+      borderBox()
       width auto
       line-height 20px
       top 0
-
+      overflow-x hidden
+      display block
+      text-overflow ellipsis
+      white-space nowrap
 
   .permissions-form
     overflow-y scroll
     overflow-x hidden
     max-height 300px
     margin-top 20px
+    
+    fraction(full,divisor)
+      fraction = full/divisor
 
-    &.col-4
-      .formline .input-wrapper
-        width 60px
-    &.col-3
-      .formline .input-wrapper
-        width 80px
-
+    for num in 2 3 4 5 6 7 8 9 10 11 12
+      &.col-{num}
+        .formline .input-wrapper          
+          width fraction(340,num)px
+      
     .formline
+      &.button-field
+        &.scrolling
+          shadow 0 -5px 10px 0px rgba(0,0,0,0.1)
+        abs()
+        left 0
+        right 0
+        bottom 0
+        height 50px
+        padding 15px 20px 0 15px 
+        border-top 1px solid #e5e5e5
+
+        button.add-role
+          fl()
+
+      &:nth-last-child(2)
+        margin-bottom 49px
+        border-bottom-color transparent
       borderBox()
       padding 0px
       border-bottom 1px solid #f5f5f5

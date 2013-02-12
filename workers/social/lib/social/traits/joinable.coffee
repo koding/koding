@@ -2,6 +2,8 @@ module.exports = class Joinable
 
   {secure} = require 'bongo'
 
+  KodingError = require '../error'
+
   @fetchMyMemberships = secure (client, ids, callback)->
     {delegate} = client.connection
     delegate.filterRelatedIds ids, 'member', callback
@@ -15,7 +17,7 @@ module.exports = class Joinable
 
   addToPrivateGroup_ =(client, {as, inviteCode}, callback)->
     {delegate} = client.connection
-    {JInvitation} = require '../models/invitation'
+    JInvitation = require '../models/invitation'
     selector = {code: inviteCode, status: 'active', group: @title}
     JInvitation.one selector, (err, invite)=>
       if err then callback err

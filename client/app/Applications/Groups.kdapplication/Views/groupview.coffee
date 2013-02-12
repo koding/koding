@@ -1,11 +1,10 @@
-
 class GroupView extends ActivityContentDisplay
 
   constructor:->
-    super
-    data = @getData()
 
-    @setClass 'group-header'
+    super
+
+    data = @getData()
 
     @thumb = new KDCustomHTMLView
       tagName     : "img"
@@ -13,8 +12,7 @@ class GroupView extends ActivityContentDisplay
       error       : =>
         @thumb.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
-        src       : @getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(10)}/#{100+@utils.getRandomNumber(10)}"
-        # src       : "#{KD.apiUri + '/images/default.app.thumb.png'}"
+        src       : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}}"
 
     @joinButton = new JoinButton
       style           : if data.member then "join follow-btn following-topic" else "join follow-btn"
@@ -45,29 +43,35 @@ class GroupView extends ActivityContentDisplay
       ]
     , data
 
-
-    @joinButton.on 'Joined', =>
-      @enterLink.show()
-
-    @joinButton.on 'Left', =>
-      @enterLink.hide()
-
-    {slug, privacy} = @getData()
+    {slug, privacy} = data
 
     @enterLink = new CustomLinkView
-      cssClass  : 'enter-group'
-      href      : "/#{slug}/Activity"
-      target    : slug
-      title     : 'Open group'
-      click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
+      cssClass    : 'enter-group'
+      href        : "/#{slug}/Activity"
+      target      : slug
+      title       : 'Open group'
+      click       : if privacy is 'private' then @bound 'privateGroupOpenHandler'
+      icon        :
+        placement : "right"
+        cssClass  : "enter-group"
+
+    @joinButton.on 'Joined', @enterLink.bound "show"
+
+    @joinButton.on 'Left', @enterLink.bound "hide"
 
     {JGroup} = KD.remote.api
+
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
       if err then error err
       else
         if data.getId() in groups
           @joinButton.setState 'Leave'
           @joinButton.redecorateState()
+
+    data.fetchMyRoles (err, roles)=>
+      if err then error err
+      else
+        @decorateUponRoles roles
           # @enterButton.show()
     # @homeLink = new KDCustomHTMLView
     #   tagName     : 'a'
@@ -81,6 +85,69 @@ class GroupView extends ActivityContentDisplay
     #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
     # , data
 
+    @createTabs()
+
+  assureTab:(tabName, konstructor, options={})->
+    pane = @tabView.panes[tabName]
+    unless pane?
+      view = new konstructor options, @getData()
+      pane = new KDTabPaneView name: tabName
+      @tabView.addPane pane
+      pane.addSubView view
+    @tabView.showPane pane
+    return pane
+
+  createTabs:->
+    data = @getData()
+
+    @tabView = new KDTabView
+      hideHandleContainer : yes
+    , data
+
+    @tabView.addPane readmeTab = new KDTabPaneView
+    readmeTab.addSubView new GroupReadmeView {}, data
+
+  decorateUponRoles:(roles)->
+
+    if "admin" in roles
+      @adminMenuLink = new CustomLinkView
+        cssClass    : 'fr'
+        title       : "Admin"
+        icon        :
+          cssClass  : 'admin'
+        click       : (event)=>
+          contextMenu = new JContextMenu
+            cssClass    : "group-admin-menu"
+            event       : event
+            delegate    : @adminMenuLink
+            offset      :
+              top       : 10
+              left      : -30
+            arrow       :
+              placement : "top"
+              margin    : -20
+          ,
+            'Settings'              :
+              callback              : (source, event)=>
+                @emit 'SettingsSelected'
+                contextMenu.destroy()
+              separator             : yes
+            'Permissions'           :
+              callback              : (source, event)=>
+                @emit 'PermissionsSelected'
+                contextMenu.destroy()
+            'Members'               :
+              callback              : (source, event)=>
+                @emit 'MembersSelected'
+                contextMenu.destroy()
+            'Membership policy'     :
+              callback              : (source, event)=>
+                @emit 'MembershipPolicySelected'
+                contextMenu.destroy()
+
+      @addSubView @adminMenuLink, ".navbar"
+
+
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   viewAppended: JView::viewAppended
@@ -88,21 +155,22 @@ class GroupView extends ActivityContentDisplay
   pistachio:->
     """
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class="profileleft">
-      <span>
-        <a class='profile-avatar' href='#'>{{> @thumb}}</a>
-      </span>
-    </div>
-    <section class="right-overflow">
-      <h3 class='profilename'>{{#(title)}}<cite></cite></h3>
-      <div class='profilebio'>
-        {p{#(body)}}
+    <div class='group-header'>
+      <div class='avatar'>
+        <span>{{> @thumb}}</span>
       </div>
-      <div class="installerbar clearfix">
-        <div class="appfollowlike">
-          {{> @enterLink}}
+      <section class="right-overflow">
+        {h2{#(title)}}
+        <div class="buttons">
           {{> @joinButton}}
         </div>
+      </section>
+      <div class="navbar clearfix">
+        {{> @enterLink}}
       </div>
-    </section>
+      <div class='desc#{if @getData().body is '' then ' hidden' else ''}'>
+        {p{#(body)}}
+      </div>
+    </div>
+    {{> @tabView}}
     """

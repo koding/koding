@@ -1,19 +1,9 @@
-class PermissionsModal extends KDView
+class PermissionsModal extends KDFormViewWithFields
 
   ['list','reducedList','tree'].forEach (method)=>
     @::[method] =-> @getPermissions method
 
   constructor:(options,data)->
-    super options,data
-
-    group                   = @getData()
-    {privacy,permissionSet} = @getOptions()
-
-    # here we should handle custom roles and add them for display
-    roles = ['member','moderator','admin']
-
-    roles.unshift 'guest' if group.getData().privacy is 'public'
-
 
     readableText = (text)->
       dictionary =
@@ -38,11 +28,11 @@ class PermissionsModal extends KDView
       [current,remainder...] = roles.slice()
       cascadeData = {}
       cascadeData[current]=
-          itemClass     : KDCheckBox
-          cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
-          name          : _getCheckboxName module, permission, current
-          defaultValue  : checkForPermission set.permissions,module,permission,current
-      if current is 'admin'
+        itemClass     : KDCheckBox
+        cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
+        name          : _getCheckboxName module, permission, current
+        defaultValue  : checkForPermission set.permissions,module,permission,current
+      if current in ['admin','owner']
         cascadeData[current].defaultValue = yes
         cascadeData[current].disabled = yes
       if current and remainder.length > 0
@@ -53,15 +43,23 @@ class PermissionsModal extends KDView
       [current,remainder...] = roles.slice()
       cascadeData = {}
       cascadeData[current]=
-          itemClass     : KDView
-          partial       : readableText current
-          cssClass      : 'text header-item role-'+__utils.slugify(current)
+        itemClass     : KDView
+        partial       : readableText current
+        cssClass      : 'text header-item role-'+__utils.slugify(current)
+        tooltip       :
+          showOnlyWhenOverflowing : yes
+          title       : readableText current
+          placement   : 'top'
+          direction   : 'center'
+          offset      :
+            top       : 5
+            left      : 0
       if current and remainder.length > 0
         cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
       return cascadeData
 
     optionizePermissions = (set)->
-      options =
+      permissionOptions =
         head              :
           itemClass       : KDView
           cssClass        : 'permissions-header col-'+roles.length
@@ -69,13 +67,13 @@ class PermissionsModal extends KDView
             cascadeHeaderElements roles
 
       for module, permissions of set.permissionsByModule
-        options['header '+module.toLowerCase()] =
+        permissionOptions['header '+module.toLowerCase()] =
           itemClass       : KDView
           partial         : readableText module
           cssClass        : 'permissions-module text'
 
         for permission in permissions
-          options[module+'-'+__utils.slugify(permission)] =
+          permissionOptions[module+'-'+__utils.slugify(permission)] =
             itemClass     : KDView
             partial       : readableText permission
             cssClass      : 'text'
@@ -89,36 +87,135 @@ class PermissionsModal extends KDView
               showOnlyWhenOverflowing : yes
             nextElementFlat :
               cascadeFormElements set, roles, module, permission
-      options
+      permissionOptions
 
+    group                   = data # @getData()
+    {privacy,permissionSet} = options #@getOptions()
 
+    roles = []
+    roles.push role.title for role in options.roles
 
-    @modal = new KDModalViewWithForms
-      title : 'Edit Permissions'
-      cssClass : 'permissions-modal'
-      buttons:
-        Save          :
-          style       : "modal-clean-gray"
-          loader      :
-            color     : "#444444"
-            diameter  : 12
-          callback    : =>
-            group.getData().updatePermissions(
-              @reducedList()
-              console.log.bind(console) # TODO: do something with this callback
-            )
-            @modal.destroy()
-        Cancel        :
-          style       : "modal-clean-gray"
-          loader      :
-            color     : "#ffffff"
-            diameter  : 16
-          callback    : => @modal.destroy()
-      tabs  :
-        forms :
-          "Permissions":
-            cssClass : 'permissions-form col-'+roles.length
-            fields : optionizePermissions permissionSet
+    roles.splice(roles.indexOf('owner'),1) 
+    roles.splice(roles.indexOf('admin'),1) 
+
+    options.buttons or= 
+      "Add Role"          :
+        style             : "modal-clean-gray"
+        cssClass          : 'add-role'
+        loader      :
+          color     : "#444444"
+          diameter  : 12
+        callback          : =>
+          @addSubView addRoleDialog = new KDDialogView
+            cssClass      : "add-role-dialog"
+            duration      : 200
+            topOffset     : -21
+            overlay       : yes
+            height        : 'auto'
+            buttons       :
+              
+              "Add Role"        :
+                style     : "add-role-button modal-clean-gray"
+                cssClass  : 'add-role-button'
+                loader      :
+                  color     : "#444444"
+                  diameter  : 12
+
+                callback  : ()=>   
+                  name    = @inputRoleName.getValue()
+                  nameSlug= @utils.slugify name
+                  copy    = @inputCopyPermissions.getValue()
+                  
+                  group.addCustomRole
+                    title : nameSlug
+                    isConfigureable : yes
+                  , (err,role)=>
+                    log err if err
+                    # TODO add copied permissions here
+                    
+                    unless copy is null
+                      log 'copying permissions from ',copy,' to ',role
+
+                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
+                    @on 'RoleViewRefreshed', =>
+                      @utils.wait 500, =>
+                        addRoleDialog.buttons["Add Role"].hideLoader()
+                        addRoleDialog.hide()
+              
+              Cancel :
+                style     : "add-role-cancel modal-cancel"
+                cssClass  : 'add-role-cancel'
+                callback  : ()->
+                  addRoleDialog.hide()
+
+          addRoleDialog.addSubView wrapper = new KDView
+            cssClass      : "kddialog-wrapper"
+
+          wrapper.addSubView title = new KDCustomHTMLView
+            tagName       : 'h1'
+            cssClass      : 'add-role-header'
+            partial       : 'Add new Role'
+          
+          wrapper.addSubView form = new KDFormView
+
+          form.addSubView labelRoleName = new KDLabelView
+            cssClass      : 'label-role-name'
+            title         : "Role Name:"
+
+          form.addSubView @inputRoleName = inputRoleName = new KDInputView
+            cssClass      : 'role-name'
+            label         : labelRoleName
+            defaultValue  : ''
+            placeholder   : 'new-role'
+
+          form.addSubView labelCopyPermissions = new KDLabelView
+            cssClass      : 'label-copy-permissions'
+            title         : "Copy Permissions from"
+
+          selectOptions   = [{title:'None',value:null}]
+          selectOptions.push {title:readableText(role),value:role} for role in roles
+          
+          form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
+            cssClass      : 'copy-permissions'
+            selectOptions : selectOptions
+            defaultValue  : null
+
+          addRoleDialog.show()
+
+      Save          :
+        style       : "modal-clean-gray"
+        loader      :
+          color     : "#444444"
+          diameter  : 12
+        callback    : =>
+
+          group.updatePermissions @reducedList(), (err,res)=>
+            log 'updated permissions',err,res
+            @buttons["Save"].hideLoader()
+            # TODO: do something with this callback
+
+    options.fields or= optionizePermissions permissionSet
+    super options,data
+    @setClass 'permissions-form col-'+roles.length
+
+    @bindEvent 'scroll'
+    @on 'scroll', (event={})=>
+      @applyScrollShadow event
+
+  applyScrollShadow:(event)->
+    isAtTop = @$().scrollTop() is 0
+    isAtBottom = @$().scrollTop()+@getHeight() is @$()[0].scrollHeight
+
+    unless isAtTop
+      @$('.permissions-header').addClass 'scrolling'
+    else
+      @$('.permissions-header').remove 'scrolling'
+
+    unless isAtBottom
+      @$('.formline.button-field').addClass 'scrolling'
+    else
+      @$('.formline.button-field').removeClass 'scrolling'
+
 
   createTree =(values)->
     values.reduce (acc, {module, role, permission})->
@@ -142,7 +239,7 @@ class PermissionsModal extends KDView
     , []
 
   getFormValues:->
-    @modal.$('form.permissions-form').serializeArray()
+    @$().serializeArray()
     .map ({name})->
       [facet, role, permission] = name.split '|'
       module = facet.split('-')[1]
@@ -158,9 +255,4 @@ class PermissionsModal extends KDView
 
   viewAppended:->
     super
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-    """
+    @applyScrollShadow()

@@ -87,12 +87,17 @@ class AvatarAreaIconMenu extends JView
       @messagesIcon.updateCount count
 
   accountChanged:(account)->
+
+    {notificationsPopup, messagesPopup, groupSwitcherPopup} = @
+
+    messagesPopup.listController.removeAllItems()
+    notificationsPopup.listController.removeAllItems()
+    groupSwitcherPopup.listController.removeAllItems()
+
     if KD.isLoggedIn()
       @unsetClass "invisible"
-      notificationsPopup = @notificationsPopup
-      messagesPopup      = @messagesPopup
-      messagesPopup.listController.removeAllItems()
-      notificationsPopup.listController.removeAllItems()
+
+      log "accountChanged AvatarAreaIconMenu"
 
       # do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
@@ -102,7 +107,8 @@ class AvatarAreaIconMenu extends JView
       messagesPopup.loaderTimeout = @utils.wait 5000, =>
         messagesPopup.listController.fetchMessages()
 
+      groupSwitcherPopup.loaderTimeout = @utils.wait 5000, =>
+        groupSwitcherPopup.populateGroups()
+
     else
       @setClass "invisible"
-
-    @messagesPopup.accountChanged()

@@ -28,7 +28,6 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
-      'send invitations'                  : []
       'open group'                        : ['member', 'moderator']
       'list members'                      : ['member', 'moderator']
       'create groups'                     : ['moderator']
@@ -46,11 +45,13 @@ module.exports = class JGroup extends Module
         '__resetAllGroups', 'fetchMyMemberships'
       ]
       instance      : [
-        'join','leave','modify','fetchPermissions', 'createRole'
+        'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
-        'fetchMembershipPolicy','modifyMembershipPolicy','requestInvitation'
-        'fetchInvitationRequests','countPendingInvitationRequests'
+        'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
+        'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
+        'countPendingInvitationRequests', 'countInvitationRequests'
+        'fetchInvitationRequestCounts', 'resolvePendingInvitationRequests'
       ]
     schema          :
       title         :
@@ -96,13 +97,13 @@ module.exports = class JGroup extends Module
       role          :
         targetType  : 'JGroupRole'
         as          : 'role'
-      membershipPolicy:
+      membershipPolicy :
         targetType  : 'JMembershipPolicy'
         as          : 'owner'
       invitationRequest:
         targetType  : 'JInvitationRequest'
         as          : 'owner'
-      readMe        :
+      readme        :
         targetType  : 'JReadme'
         as          : 'owner'
 
@@ -129,6 +130,7 @@ module.exports = class JGroup extends Module
 
   @create = secure (client, formData, callback)->
     JPermissionSet = require './permissionset'
+    JMembershipPolicy = require './membershippolicy'
     JName = require '../name'
     {delegate} = client.connection
     JName.claim formData.slug, 'JGroup', 'slug', (err)=>
@@ -174,7 +176,7 @@ module.exports = class JGroup extends Module
                 queue.next()
         ]
         if 'private' is group.privacy
-          queue.push => @createMembershipPolicy -> queue.next()
+          queue.push -> group.createMembershipPolicy -> queue.next()
         queue.push -> callback null, group
 
         daisy queue
@@ -192,7 +194,6 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
-
 
   changeMemberRoles: permit 'grant permissions'
     success:(client, memberId, roles, callback)->
@@ -282,10 +283,59 @@ module.exports = class JGroup extends Module
     success:(client, rest...)->
       @fetchMembers rest...
 
+  fetchReadme$: permit 'open group'
+    success:(client, rest...)->
+      @fetchReadme rest...
+
+  setReadme$: permit 'edit groups'
+    success:(client, text, callback)->
+      @fetchReadme (err, readme)=>
+        unless readme
+          JReadme = require '../readme'
+          readme = new JReadme
+            content : text
+          
+          daisy queue = [
+            ->
+              readme.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
+              @addReadme readme, (err)->
+                console.log err
+                if err then callback err                
+                else queue.next()
+            ->
+              callback null, readme
+          ]
+
+        else 
+          readme.update 
+            $set : 
+              content : text
+          , (err)=>
+            if err then callback err
+            else callback null, readme
+    failure:(client,text, callback)->
+      callback new KodingError "You are not allowed to change this."
+
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
       JGroupRole = require './role'
-      JGroupRole.create {title : formData.title}, callback
+      JGroupRole.create 
+        title           : formData.title
+        isConfigureable : formData.isConfigureable or no
+      , callback
+
+  addCustomRole: permit 'grant permissions'
+    success:(client,formData,callback)->
+      @createRole client,formData, (err,role)=>
+        console.log err,role
+        unless err
+          @addRole role, callback
+        else 
+          callback err, null
 
   createMembershipPolicy:(queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
@@ -345,11 +395,8 @@ module.exports = class JGroup extends Module
         else policy.update $set: formData, callback
 
   canEditGroup: permit 'grant permissions'
-    success:(client, callback)-> callback null, yes
 
   canOpenGroup: permit 'open group'
-    success:(client, callback)-> callback null, yes
-
     failure:(client, callback)->
       @fetchMembershipPolicy (err, policy)->
         explanation = policy?.explain() ?
@@ -361,18 +408,113 @@ module.exports = class JGroup extends Module
           else if explanation? then ERROR_POLICY
           else ERROR_NO_POLICY
         callback clientError, no
-
+ 
   countPendingInvitationRequests: permit 'send invitations'
     success: (client, callback)->
-      console.log {client, callback}
-      @countInvitationRequests {}, {sent:no}, callback
+      @countInvitationRequests {}, {status: 'pending'}, callback
 
+  countInvitationRequests$: permit 'send invitations'
+    success: (client, rest...)-> @countInvitationRequests rest...
 
-  requestInvitation: secure (client, callback)->
+  fetchInvitationRequestCounts: permit 'send invitations'
+    success: ->
+      switch arguments.length
+        when 2
+          [client, callback] = arguments
+          types = ['invitation', 'basic approval']
+        when 3
+          [client, types, callback] = arguments
+      counts = {}
+      queue = types.map (invitationType)=>=>
+        @countInvitationRequests {}, {invitationType}, (err, count)->
+          if err then queue.fin err
+          else
+            counts[invitationType] = count
+            queue.fin()
+      dash queue, callback.bind null, null, counts
+
+  resolvePendingInvitationRequests: permit 'send invitations'
+    success: (client, method, callback)->
+      unless method in ['send', 'decline']
+        return callback new KodingError "Unknown method: #{method}"
+
+      JInvitationRequest = require '../invitationrequest'
+
+      invitationRequestSelector =
+        group             : @slug
+        status            : 'pending'
+        invitationType    : 'invitation'
+
+      JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+        if err then callback err
+        else if request? then request[method+'Invitation'] client, ->
+        else callback null
+
+  inviteMember: permit 'send invitations'
+    success: (client, email, callback)->
+      JInvitationRequest = require '../invitationrequest'
+      invitationRequest = new JInvitationRequest {email}
+      invitationRequest.save (err)->
+        if err then callback err
+        else invitationRequest.sendInvitation client, callback
+
+  sendSomeInvitations: permit 'send invitations'
+    success: (client, count, callback)->
+      @fetchInvitationRequests {}, {
+        targetOptions :
+          selector    : { status  : 'pending' }
+          options     : { limit   : count }
+      }, (err, requests)->
+        if err then callback err
+        else
+          queue = requests.map (request)->->
+            request.sendInvitation client, ->
+              callback null, """
+                An invite was sent to:
+                <strong>koding+#{request.koding.username}@koding.com</strong>
+                """
+              setTimeout queue.next.bind(queue), 50
+          queue.push -> callback null, null
+          daisy queue
+  
+  requestAccess: secure (client, callback)->
+    @fetchMembershipPolicy (err, policy)=>
+      if err then callback err
+      else if policy?.invitationsEnabled
+        @requestInvitation client, 'invitation', callback
+      else
+        @requestApproval client, callback
+ 
+  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
+    JMail = require './email'
+    (new JMail
+      email   : adminUser.email
+      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
+      content : """
+        This will be the content for the approval request email.
+        """
+    ).save callback
+ 
+  requestApproval: secure (client, callback)->
+    {delegate} = client.connection
+    @requestInvitation client, 'basic approval', (err)=>
+      if err then callback err
+      else @fetchAdmin (err, admin)=>
+        if err then callback err
+        else delegate.fetchUser (err, delegateUser)=>
+          if err then callback err
+          else admin.fetchUser (err, adminUser)=>
+            if err then callback err
+            else @sendApprovalRequestEmail(
+              delegate, delegateUser, admin, adminUser, callback
+            )
+
+  requestInvitation: secure (client, invitationType, callback)->
     JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
     {delegate} = client.connection
     invitationRequest = new JInvitationRequest {
+      invitationType
       koding  : { username: delegate.profile.nickname }
       group   : @slug
     }

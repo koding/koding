@@ -47,7 +47,7 @@ class KDTabViewController extends KDScrollView
       @addPane pane = new @tabConstructor title : title,null
       pane.setTitle title
 
-  addPane:(paneInstance)->
+  addPane:(paneInstance, shouldShow=yes)->
     if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
@@ -62,7 +62,7 @@ class KDTabViewController extends KDScrollView
         listenedToInstance : newTabHandle
         callback : @handleMouseDownDefaultAction
       @appendPane paneInstance
-      @showPane paneInstance
+      @showPane paneInstance  if shouldShow
       @emit "PaneAdded", paneInstance
       return paneInstance
     else

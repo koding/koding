@@ -256,6 +256,7 @@ Includes =
         permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
         permissionsModal              : "./client/app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
+        groupReadmeView               : "./client/app/Applications/Groups.kdapplication/Views/readmeview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
         groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"
 
@@ -503,6 +504,7 @@ Includes =
         NFileItem                     : "./client/app/MainApp/filetree/itemviews/fileitem.coffee"
         NFolderItem                   : "./client/app/MainApp/filetree/itemviews/folderitem.coffee"
         NMountItem                    : "./client/app/MainApp/filetree/itemviews/mountitem.coffee"
+        NBrokenLinkItem               : "./client/app/MainApp/filetree/itemviews/brokenlinkitem.coffee"
         NSectionItem                  : "./client/app/MainApp/filetree/itemviews/sectionitem.coffee"
 
         NFinderItemDeleteView         : "./client/app/MainApp/filetree/itemsubviews/finderitemdeleteview.coffee"
@@ -520,6 +522,7 @@ Includes =
         FSFile                    : "./client/app/MainApp/fs/fsfile.coffee"
         FSFolder                  : "./client/app/MainApp/fs/fsfolder.coffee"
         FSMount                   : "./client/app/MainApp/fs/fsmount.coffee"
+        FSBrokenLink              : "./client/app/MainApp/fs/fsbrokenlink.coffee"
 
         avatarPopup                      : "./client/app/MainApp/avatararea/avatarareapopup.coffee"
         avatarAreaIconMenu               : "./client/app/MainApp/avatararea/avatarareaiconmenu.coffee"

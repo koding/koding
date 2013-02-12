@@ -31,9 +31,6 @@ class AvatarPopupMessages extends AvatarPopup
         appManager.tell 'Inbox', "goToMessages"
         @hide()
 
-  accountChanged:->
-    @listController.removeAllItems()
-
   show:->
     super
     @listController.fetchMessages()
