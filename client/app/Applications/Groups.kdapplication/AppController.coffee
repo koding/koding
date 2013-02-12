@@ -594,14 +594,32 @@ class GroupsAppController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content, callback=->)->
+
+  selectSettingsTab:(groupView)->
+    tab = groupView.assureTab 'Settings', GroupGeneralSettingsView
+
+  selectPermissionsTab:(groupView)->
+    tab = groupView.assureTab 'Permissions', GroupPermissionsView
+
+  selectMembersTab:(groupView)->
+    tab = groupView.assureTab 'Members', GroupsMemberPermissionsView
+
+  selectMembershipPolicyTab:(groupView)->
+    tab = groupView.assureTab 'Membership policy', GroupsMembershipPolicyView
+
+  showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
-    , content
+    , group
+
+    groupView.on 'SettingsSelected', @selectSettingsTab.bind this, groupView
+    groupView.on 'PermissionsSelected', @selectPermissionsTab.bind this, groupView
+    groupView.on 'MembersSelected', @selectMembersTab.bind this, groupView
+    groupView.on 'MembershipPolicySelected', @selectMembershipPolicyTab.bind this, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
