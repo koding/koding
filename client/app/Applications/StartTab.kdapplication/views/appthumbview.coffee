@@ -98,7 +98,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 diameter : 16
               callback   : => @appDeleteCall manifest
 
-    @setClass "dev-mode" if @getData().devMode
+    @devModeView = if @getData().devMode
+      new KDCustomHTMLView
+        partial  : "Dev Mode"
+        cssClass : "dev-mode"
+    else
+      new KDView
 
   appDeleteCall:(manifest)->
     finder = @getSingleton("finderController").treeController
@@ -143,6 +148,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   pistachio:->
     """
+      {{> @devModeView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}
