@@ -27,7 +27,7 @@ class ActivityAppController extends AppController
 
   isExempt = (callback)->
 
-    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+    KD.getSingleton("appManager").fetchStorage 'Activity', '1.0', (err, storage) =>
       if err
         log 'error fetching app storage', err
         callback no

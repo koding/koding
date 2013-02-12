@@ -1,2 +1,2 @@
 do ->
-  appManager.openApplication "Ace"
+  KD.getSingleton("appManager").openApplication "Ace"

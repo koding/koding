@@ -34,7 +34,7 @@ class TopicsListItemView extends KDListItemView
       state: tag
     )
     #tag = @getData()
-    #appManager.tell "Topics", "createContentDisplay", tag
+    #KD.getSingleton("appManager").tell "Topics", "createContentDisplay", tag
 
   viewAppended:->
     @setClass "topic-item"

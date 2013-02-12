@@ -1,6 +1,9 @@
-class OwnProfileView extends KDView
+class OwnProfileView extends JView
+
   constructor:->
+
     super
+
     memberData = @getData()
 
     memberData.skillTags or= []
@@ -24,7 +27,7 @@ class OwnProfileView extends KDView
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -34,7 +37,7 @@ class OwnProfileView extends KDView
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
     @likes = new KDView
@@ -44,18 +47,15 @@ class OwnProfileView extends KDView
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
     , memberData
 
     @aboutYou     = new PersonalFormAboutView {memberData}
     @skillTagView = new PersonalFormSkillTagView {memberData}
 
-    @setListeners()
-
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
+    @skillTagView.on "AutoCompleteNeedsTagData", (event)=>
+      {callback,inputValue,blacklist} = event
+      @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
   putNick:(nick)-> "@#{nick}"
 
@@ -102,14 +102,6 @@ class OwnProfileView extends KDView
       </div>
     </section>
     """
-
-  setListeners:->
-    @listenTo
-      KDEventTypes        : "AutoCompleteNeedsTagData"
-      listenedToInstance  : @skillTagView
-      callback      : (pubInst,event)=>
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
     KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->

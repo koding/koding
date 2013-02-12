@@ -14,7 +14,7 @@ class CodeShareTabView extends KDTabView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
         file.syntax   = data.CodeShareItemType.syntax
-        appManager.openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
 
     super
 
@@ -170,9 +170,6 @@ class CodeShareTabHandleContainerView extends KDView
     #     $(event.target).closest(".kdtabhandle").click()
     # , noop
 
-  click:(event)->
-    @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
-
   _windowDidResize:->
     mainView = @getDelegate()
     @setWidth mainView.codeShareView.getWidth() - 100
@@ -261,14 +258,11 @@ class CodeShareTabHandleContainerView extends KDView
                     contextMenu.destroy()
 
             'Contribute A Language' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
 
 
   removePlusHandle:()->
     @plusHandle.destroy()
-
-  _plusHandleClicked: () ->
-    @plusHandle.delegate.emit 'AddEditorClick', @plusHandle
 
   _repositionPlusHandle:(event)->
 

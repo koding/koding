@@ -25,17 +25,17 @@ class HomeAppController extends AppController
     @bringFeeds()
 
   bringFeeds:->
-    appManager.tell "Topics", "fetchSomeTopics", null, (err,topics)=>
+    KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics", null, (err,topics)=>
       unless err
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
 
-    # appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
+    # KD.getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", (activity)=>
     #   if activity
     #     @mainView.widgetHolder.activityLoader.hide()
     #     @activityController.instantiateListItems activity
 
-    appManager.tell "Members", "fetchFeedForHomePage", (err,topics)=>
+    KD.getSingleton("appManager").tell "Members", "fetchFeedForHomePage", (err,topics)=>
       unless err
         @mainView.widgetHolder.membersLoader.hide()
         @membersController.instantiateListItems topics

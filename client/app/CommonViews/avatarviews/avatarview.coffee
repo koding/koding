@@ -136,7 +136,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if @getData().counts.followers is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
     , @getData()
 
     @following = new KDView
@@ -146,7 +146,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if @getData().counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
     , @getData()
 
     @likes = new KDView
@@ -156,7 +156,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)=>
         return if @getData().counts.following is 0
-        appManager.tell "Members", "createLikedContentDisplay", @getData()
+        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", @getData()
     , @getData()
 
     @sendMessageLink = new MemberMailLink {}, @getData()

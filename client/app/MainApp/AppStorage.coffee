@@ -9,7 +9,7 @@ class AppStorage
   fetchStorage: (callback = noop)->
 
     unless @_storage
-      appManager.fetchStorage @_applicationID, @_applicationVersion, (error, storage)=>
+      KD.getSingleton("appManager").fetchStorage @_applicationID, @_applicationVersion, (error, storage)=>
         if not error
           callback @_storage = storage
         else

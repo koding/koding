@@ -476,7 +476,7 @@ __utils =
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
-        appManager.tell 'Activity', 'ownActivityArrived', reply
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 

@@ -64,7 +64,7 @@ class KodingAppsController extends KDController
 
     @kiteController = @getSingleton('kiteController')
 
-    appManager.addAppInstance "KodingAppsController", @
+    KD.getSingleton("appManager").addAppInstance "KodingAppsController", @
 
   # #
   # FETCHERS
@@ -303,7 +303,7 @@ class KodingAppsController extends KDController
 
           appView.on 'ViewClosed', =>
             @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : appView
-            appManager.removeOpenTab appView
+            KD.getSingleton("appManager").removeOpenTab appView
             appView.destroy()
 
           try
@@ -366,14 +366,14 @@ class KodingAppsController extends KDController
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
             manifest   : manifest
 
-          appManager.tell "Apps", "createApp", jAppData, (err, app)=>
+          KD.getSingleton("appManager").tell "Apps", "createApp", jAppData, (err, app)=>
             if err
               warn err
               callback? err
             else
               # log app, "app published"
-              appManager.openApplication "Apps"
-              appManager.tell "Apps", "updateApps"
+              KD.getSingleton("appManager").openApplication "Apps"
+              KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
 
   approveApp:(app, callback)->
@@ -502,7 +502,7 @@ class KodingAppsController extends KDController
                       log err if err
                       # log callback
                       # This doesnt work :#
-                      appManager.openApplication "StartTab"
+                      KD.getSingleton("appManager").openApplication "StartTab"
                       @refreshApps()
                       # callback?()
 

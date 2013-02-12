@@ -76,7 +76,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -86,7 +86,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
     @likes = new KDView
@@ -96,7 +96,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
@@ -207,23 +207,18 @@ class ProfileView extends JView
         else
           mainView.sort data.type
 
-    @sendMessageLink.registerListener
-      KDEventTypes  : "AutoCompleteNeedsMemberData"
-      listener      : @
-      callback      : (pubInst,event)=>
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteForToField inputValue,blacklist,callback
+    @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event)=>
+      {callback,inputValue,blacklist} = event
+      @fetchAutoCompleteForToField inputValue,blacklist,callback
 
-    @sendMessageLink.registerListener
-      KDEventTypes  : 'MessageShouldBeSent'
-      listener      : @
-      callback      : (pubInst,{formOutput,callback})->
-        @prepareMessage formOutput,callback
+    @sendMessageLink.on 'MessageShouldBeSent', ({formOutput,callback})=>
+      @prepareMessage formOutput, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
+  # FIXME: this should be taken to inbox app controller using KD.getSingleton("appManager").tell
   prepareMessage:(formOutput, callback)=>
     {body, subject, recipients} = formOutput
     to = recipients.join ' '

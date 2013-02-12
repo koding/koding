@@ -10,9 +10,6 @@ class MainTabHandleHolder extends KDView
 
     @listenWindowResize()
 
-  click:(event)->
-    @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
-
   _windowDidResize:->
     mainView = @getDelegate()
     @setWidth mainView.mainTabView.getWidth() - 100
@@ -24,7 +21,9 @@ class MainTabHandleHolder extends KDView
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
       click    : =>
-        unless @plusHandle.$().hasClass('first')
+        if @plusHandle.$().hasClass('first')
+          KD.getSingleton("appManager").openApplication "StartTab"
+        else
           offset = @plusHandle.$().offset()
           contextMenu = new JContextMenu
             event       : event
@@ -37,36 +36,28 @@ class MainTabHandleHolder extends KDView
           ,
             'New Tab'              :
               callback             : (source, event)=>
-                appManager.tell "StartTab", 'openFreshTab'
+                KD.getSingleton("appManager").tell "StartTab", 'openFreshTab'
                 contextMenu.destroy()
               separator            : yes
             'Ace Editor'           :
               callback             : (source, event)=>
-                appManager.newFileWithApplication "Ace"
+                KD.getSingleton("appManager").newFileWithApplication "Ace"
                 contextMenu.destroy()
             'CodeMirror'           :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'yMacs'                :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'Pixlr'                :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
               separator            : yes
             'Search the App Store' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'Contribute An Editor' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
 
 
   removePlusHandle:()->
     @plusHandle.destroy()
-
-  _plusHandleClicked: () ->
-    if @plusHandle?.__shouldAdd
-      @plusHandle.delegate.propagateEvent KDEventType : 'AddEditorClick', @plusHandle
-      # appManager.newFileWithApplication "Ace"
-    else
-      appManager.openApplication "StartTab"
-      # @getSingleton('router').handleRoute "/Develop"
 
   _repositionPlusHandle:(event)->
 
@@ -82,11 +73,9 @@ class MainTabHandleHolder extends KDView
     if appTabCount is 0
       @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"
-      @plusHandle.__shouldAdd = no
     else
       visibleTabs[0].tabHandle.setClass "first"
       @removePlusHandle()
       @addPlusHandle()
       @plusHandle.unsetClass "first"
       @plusHandle.setClass "last"
-      @plusHandle.__shouldAdd = yes

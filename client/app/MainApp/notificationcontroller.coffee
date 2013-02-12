@@ -83,16 +83,16 @@ class NotificationController extends KDObject
       options.click = ->
         view = @
         if subject.constructorName is "JPrivateMessage"
-          appManager.openApplication "Inbox"
+          KD.getSingleton("appManager").openApplication "Inbox"
         else if subject.constructorName in ["JComment", "JOpinion"]
           KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
             KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-            # appManager.tell "Activity", "createContentDisplay", post
+            # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", post
             view.destroy()
         else
           # ask chris if KD.remote.cacheable is good for this
           KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
-            # appManager.tell "Activity", "createContentDisplay", post
+            # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", post
             KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
             view.destroy()
       options.type  = actionType or ''
