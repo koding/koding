@@ -176,11 +176,7 @@ class NavigationInviteLink extends KDCustomHTMLView
                   callback      : ()->
                     modal.destroy()
 
-    @listenTo
-      KDEventTypes       : "KDModalViewDestroyed"
-      listenedToInstance : modal
-      callback           : =>
-        @modal = null
+    modal.on "KDModalViewDestroyed", => @modal = null
 
     inviteForm = modal.modalTabs.forms["Invite Friends"]
     inviteForm.on "FormValidationFailed", => inviteForm.buttons["Send"].hideLoader()

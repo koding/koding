@@ -12,10 +12,6 @@ class InboxReplyMessageView extends KDView
 
     @messageInput.setValue ''
 
-    # (@getSingleton "site").account.addQuestion callback: ()=>
-    #   @propagateEvent (KDEventType:"ActionComplete")
-    # , formData
-
   viewAppended:()->
     privateMessage  = @getData().getData()
 

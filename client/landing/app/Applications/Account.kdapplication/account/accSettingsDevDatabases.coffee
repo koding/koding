@@ -17,12 +17,9 @@ class AccountDatabaseListController extends KDListViewController
 
     list = @getListView()
 
-    list.registerListener
-      KDEventTypes  : "DatabaseListItemReceivedClick"
-      listener      : @
-      callback      : (pubInst,item)=>
-        data = item.getData()
-        @getListView().showAddExternalOrUpdateModal item
+    list.on "DatabaseListItemReceivedClick", (item)=>
+      data = item.getData()
+      @getListView().showAddExternalOrUpdateModal item
 
   loadView:->
 
@@ -196,17 +193,6 @@ class AccountDatabaseList extends KDListView
       itemClass  : AccountDatabaseListItem
     ,options
     super options,data
-
-  # attachListeners:()->
-  #
-  #   @items.forEach (item)=>
-  #     item.getData().on "update",()->
-  #       log "update event called:",item
-  #       item.updatePartial item.partial item.getData()
-
-  # viewAppended:->
-  #   super
-  #   @propagateEvent KDEventType : "ListViewIsReady"
 
   showAddModal : ->
 
@@ -453,7 +439,7 @@ class AccountDatabaseListItem extends KDListItemView
 
     if $(event.target).is ".action-link"
       list = @getDelegate()
-      list.propagateEvent (KDEventType : "DatabaseListItemReceivedClick"), @
+      list.emit "DatabaseListItemReceivedClick", @
 
   partial:(data)->
 

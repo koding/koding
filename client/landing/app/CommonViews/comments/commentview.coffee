@@ -50,11 +50,8 @@ class CommentView extends KDView
       listenedToInstance : @commentList
       callback : @decorateActiveCommentState
 
-    @listenTo
-      KDEventTypes : "CommentLinkReceivedClick"
-      listenedToInstance : @commentList
-      callback : (pubInst, event) =>
-        @commentForm.commentInput.setFocus()
+    @commentList.on "CommentLinkReceivedClick", (event) =>
+      @commentForm.commentInput.setFocus()
 
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
