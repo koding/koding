@@ -64,9 +64,6 @@ Includes =
         KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
 
         # menus
-        KDContextMenu         : "./client/Framework/components/menus/KDContextMenu.coffee"
-
-        # menus
         JContextMenu          : "./client/Framework/components/contextmenu/contextmenu.coffee"
         JContextMenuTreeViewController : "./client/Framework/components/contextmenu/contextmenutreeviewcontroller.coffee"
         JContextMenuTreeView  : "./client/Framework/components/contextmenu/contextmenutreeview.coffee"
@@ -428,7 +425,6 @@ Includes =
         ContentPageSplitBelowHeader : "./client/app/CommonViews/ContentPageSplitBelowHeader.coffee"
         CommonListHeader            : "./client/app/CommonViews/CommonListHeader.coffee"
         CommonInnerNavigation       : "./client/app/CommonViews/CommonInnerNavigation.coffee"
-        CommonFeedMessage           : "./client/app/CommonViews/CommonFeedMessage.coffee"
         Headers                     : "./client/app/CommonViews/headers.coffee"
         # Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
