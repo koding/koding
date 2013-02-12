@@ -3,14 +3,14 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
+# mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
 
 # RabbitMQ Host
-rabbit_host = fs.readFileSync '/etc/rabbit_host', 'utf-8'
-rabbit_host = rabbit_host.trim()
+rabbit_host = 'rabbit-b.prod.aws.koding.com'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -85,7 +85,7 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : yes
     watch       : no
@@ -138,7 +138,7 @@ module.exports = deepFreeze
       password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
-    push: no
+    push: yes
     url: "http://post.loggr.net/1/logs/koding/events"
     apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
