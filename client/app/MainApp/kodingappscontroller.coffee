@@ -90,6 +90,7 @@ class KodingAppsController extends KDController
   fetchAppsFromFs:(callback)->
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
+    KD.utils.wait 6000, callback
 
     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
       if err
