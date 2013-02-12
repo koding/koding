@@ -3,11 +3,8 @@ class KDImageUploadView extends KDFileUploadView
   associateForm:(form)->
     options = @getOptions()
     form.addCustomData options.fieldName, []
-    @registerListener
-      KDEventTypes  : 'ImageWasResampled'
-      listener      : @
-      callback      : (pubInst, {name, img, index})=>
-        form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
+    @on 'ImageWasResampled', ({name, img, index})=>
+      form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
 
     @listController.on 'UnregisteringItem', ({view, index})=>
       form.removeCustomData "#{options.fieldName}.#{index}"
@@ -33,22 +30,20 @@ class KDImageUploadView extends KDFileUploadView
           do (name, action, index)=>
             img = new KDImage(file.data)
             img.processAll action, =>
-              @propagateEvent KDEventType: 'ImageWasResampled', {name, img, index}
+              @emit 'ImageWasResampled', {name, img, index}
 
 class KDImageUploadSingleView extends KDFileUploadSingleView
 
   associateForm:(form)->
     options = @getOptions()
     form.addCustomData options.fieldName, []
-    @registerListener
-      KDEventTypes  : 'ImageWasResampled'
-      listener      : @
-      callback      : (pubInst, {name, img, index})=>
-        if @previousPath and @previousPath.indexOf('.'+index) < 0
-          form.removeCustomData @previousPath
 
-        form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
-        @previousPath = "#{options.fieldName}.#{index}"
+    @on 'ImageWasResampled', ({name, img, index})=>
+      if @previousPath and @previousPath.indexOf('.'+index) < 0
+        form.removeCustomData @previousPath
+
+      form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
+      @previousPath = "#{options.fieldName}.#{index}"
 
     @listController.on 'UnregisteringItem', ({view, index})=>
       form.removeCustomData "#{options.fieldName}.#{index}"
@@ -74,4 +69,4 @@ class KDImageUploadSingleView extends KDFileUploadSingleView
           do (name, action, index)=>
             img = new KDImage(file.data)
             img.processAll action, =>
-              @propagateEvent KDEventType: 'ImageWasResampled', {name, img, index}
+              @emit 'ImageWasResampled', {name, img, index}

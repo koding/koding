@@ -49,18 +49,15 @@ class ReviewListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeReviews -1, meta.createdAt
 
-    listView.registerListener
-      KDEventTypes  : "ReviewSubmitted"
-      listener      : @
-      callback      : (pubInst, review)->
-        model = listView.getData()
-        listView.emit "BackgroundActivityStarted"
-        model.review review, (err, review)=>
-          # listView.emit "AllCommentsLinkWasClicked"
-          if not @getSingleton('activityController').flags?.liveUpdates
-            listView.addItem review
-            listView.emit "OwnCommentHasArrived"
-          listView.emit "BackgroundActivityFinished"
+    listView.on "ReviewSubmitted", (review)->
+      model = listView.getData()
+      listView.emit "BackgroundActivityStarted"
+      model.review review, (err, review)=>
+        # listView.emit "AllCommentsLinkWasClicked"
+        if not @getSingleton('activityController').flags?.liveUpdates
+          listView.addItem review
+          listView.emit "OwnCommentHasArrived"
+        listView.emit "BackgroundActivityFinished"
 
   fetchAllReviews:(skipCount=3, callback = noop)=>
 

@@ -39,7 +39,7 @@ class NFinderContextMenuController extends KDController
 
   handleContextMenuClick:(fileView, contextMenuItem)->
 
-    @propagateEvent KDEventType : 'ContextMenuItemClicked', {fileView, contextMenuItem}
+    @on 'ContextMenuItemClicked', {fileView, contextMenuItem}
 
   getFileMenu:(fileView)->
 

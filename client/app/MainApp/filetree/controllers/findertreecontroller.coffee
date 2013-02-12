@@ -7,11 +7,8 @@ class NFinderTreeController extends JTreeViewController
     if @getOptions().contextMenu
       @contextMenuController = new NFinderContextMenuController
 
-      @listenTo
-        KDEventTypes       : "ContextMenuItemClicked"
-        listenedToInstance : @contextMenuController
-        callback           : (pubInst, {fileView, contextMenuItem})=>
-          @contextMenuItemSelected fileView, contextMenuItem
+      @contextMenuController.on "ContextMenuItemClicked", ({fileView, contextMenuItem})=>
+        @contextMenuItemSelected fileView, contextMenuItem
     else
       @getView().setClass "no-context-menu"
 
@@ -128,7 +125,7 @@ class NFinderTreeController extends JTreeViewController
 
     return unless nodeView
     file = nodeView.getData()
-    appManager.openFileWithApplication file, "Ace"
+    KD.getSingleton("appManager").openFileWithApplication file, "Ace"
 
   previewFile:(nodeView, event)->
 
@@ -136,9 +133,9 @@ class NFinderTreeController extends JTreeViewController
     publicPath = file.path.replace /.*\/(.*\.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
+      KD.getSingleton("appManager").notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
-      appManager.openFileWithApplication publicPath, "Viewer"
+      KD.getSingleton("appManager").openFileWithApplication publicPath, "Viewer"
 
   refreshFolder:(nodeView, callback)->
 
@@ -510,9 +507,9 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:       (nodeView, contextMenuItem)-> appManager.notify()
-  cmDownload:     (nodeView, contextMenuItem)-> appManager.notify()
-  cmGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
+  cmUpload:       (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmDownload:     (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmGitHubClone:  (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
   cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
@@ -523,7 +520,7 @@ class NFinderTreeController extends JTreeViewController
   cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
 
-  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE

@@ -349,7 +349,7 @@ class PersonalFormSkillTagView extends AbstractPersonalFormView
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        @propagateEvent KDEventType : "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
+        @emit "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
 
     @tagController.on 'ItemListChanged', =>
       {skillTags}  = @getData()

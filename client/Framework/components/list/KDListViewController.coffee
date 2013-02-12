@@ -205,7 +205,7 @@ class KDListViewController extends KDViewController
       @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
       @selectItemsByRange @mouseDownTempItem,item
     else
-      @propagateEvent KDEventType : "MouseEnterHappenedOnItem", item
+      @emit "MouseEnterHappenedOnItem", item
 
   ###
   HANDLING KEY EVENTS
@@ -216,7 +216,7 @@ class KDListViewController extends KDViewController
     switch event.which
       when 40, 38
         @selectItemBelowOrAbove event
-        @propagateEvent KDEventType : "KeyDownOnListHandled", @selectedItems
+        @emit "KeyDownOnListHandled", @selectedItems
 
   ###
   ITEM SELECTION
@@ -316,11 +316,11 @@ class KDListViewController extends KDViewController
 
   itemSelectionPerformed:->
 
-    @propagateEvent KDEventType : "ItemSelectionPerformed", (event : @lastEvent, items : @selectedItems)
+    @emit "ItemSelectionPerformed", @, (event : @lastEvent, items : @selectedItems)
 
   itemDeselectionPerformed:(deselectedItems)->
 
-    @propagateEvent KDEventType : "ItemDeselectionPerformed", (event : @lastEvent, items : deselectedItems)
+    @emit "ItemDeselectionPerformed", @, (event : @lastEvent, items : deselectedItems)
 
   ###
   LAZY LOADER

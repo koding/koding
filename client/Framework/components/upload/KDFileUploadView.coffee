@@ -31,10 +31,7 @@ class KDFileUploadView extends KDView
       @addDropArea()
       @addList()
       @files = {}
-      @listenTo
-        KDEventTypes        : "FileReadComplete"
-        listenedToInstance  : @
-        callback            : @fileReadComplete
+      @on "FileReadComplete", @bound "fileReadComplete"
       @totalSizeToUpload = 0
       @setClass "kdfileupload"
     else
@@ -65,7 +62,6 @@ class KDFileUploadView extends KDView
   fileDropped:(file)->
     reader = new FileReader()
     reader.onload = (event)=>
-      @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
       @emit "FileReadComplete", {progressEvent : event, file : file}
 
     reader.readAsDataURL file

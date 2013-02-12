@@ -337,20 +337,14 @@ class JTreeViewController extends KDViewController
     @listControllers[listId].getView().on 'ItemWasAdded', (view, index)=>
       @setItemListeners view, index
 
-    @listenTo
-      KDEventTypes       : ["ItemSelectionPerformed","ItemDeselectionPerformed"]
-      listenedToInstance : @listControllers[listId]
-      callback           : (listController, {event, items}, {subscription})=>
-        switch subscription.KDEventType
-          when "ItemSelectionPerformed"
-            @organizeSelectedNodes listController, items, event
-          when "ItemDeselectionPerformed"
-            @deselectNodes listController, items, event
+    @listControllers[listId].on "ItemSelectionPerformed", (listController, {event, items})=>
+      @organizeSelectedNodes listController, items, event
 
-    @listenTo
-      KDEventTypes        : 'KeyDownOnTreeView'
-      listenedToInstance  : @listControllers[listId].getListView()
-      callback            : (treeview, event)=> @keyEventHappened event
+    @listControllers[listId].on "ItemDeselectionPerformed", (listController, {event, items})=>
+      @deselectNodes listController, items, event
+
+
+    @listControllers[listId].getListView().on 'KeyDownOnTreeView', (event)=> @keyEventHappened event
 
   setItemListeners:(view, index)->
 

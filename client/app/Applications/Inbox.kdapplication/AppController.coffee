@@ -37,11 +37,8 @@ class InboxAppController extends AppController
         else
           mainView.sort data.type
 
-    mainView.registerListener
-      KDEventTypes      : 'NotificationIsSelected'
-      listener          : @
-      callback          :(pubInst, {notification, event, location})=>
-        # nothing yet, coming soon
+    mainView.on 'NotificationIsSelected', ({notification, event, location})=>
+      # nothing yet, coming soon
 
     {newMessageBar} = mainView
 
@@ -78,23 +75,14 @@ class InboxAppController extends AppController
       newMessageBar.enableMessageActionButtons()
       @selectMessage data, item, paneView
 
-    newMessageBar.registerListener
-      KDEventTypes  : "AutoCompleteNeedsMemberData"
-      listener      : @
-      callback      : (pubInst,event)=>
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteForToField inputValue,blacklist,callback
+    newMessageBar.on "AutoCompleteNeedsMemberData", (event)=>
+      {callback,inputValue,blacklist} = event
+      @fetchAutoCompleteForToField inputValue,blacklist,callback
 
-    newMessageBar.registerListener
-      KDEventTypes  : 'MessageShouldBeSent'
-      listener      : @
-      callback      : (pubInst,{formOutput,callback})->
-        @prepareMessage formOutput, callback, newMessageBar
+    newMessageBar.on 'MessageShouldBeSent', ({formOutput,callback})=>
+      @prepareMessage formOutput, callback, newMessageBar
 
-    newMessageBar.registerListener
-      KDEventTypes: 'MessageShouldBeDisowned'
-      listener    : @
-      callback    : do=>
+    newMessageBar.on 'MessageShouldBeDisowned', do =>
         if not @selection
           newMessageBar.disableMessageActionButtons()
           modal.destroy()
@@ -108,7 +96,7 @@ class InboxAppController extends AppController
                 fin()
           , callback
           disownItem item for own id, item of items
-        (pubInst, modal) =>
+        (modal) =>
           disownAll @selection, =>
             for own id, {item, paneView} of @selection
               item.destroy()
@@ -117,20 +105,17 @@ class InboxAppController extends AppController
             modal.destroy()
             newMessageBar.disableMessageActionButtons()
 
-    newMessageBar.registerListener
-      KDEventTypes: 'MessageShouldBeMarkedAsUnread'
-      listener    : @
-      callback    : =>
-        for own id, {item, data} of @selection
-          data.unmark 'read', (err)=>
-            log err if err
-            item.setClass 'unread' unless err
-            item.paneView?.hide()
-            newMessageBar.disableMessageActionButtons()
+    newMessageBar.on 'MessageShouldBeMarkedAsUnread', =>
+      for own id, {item, data} of @selection
+        data.unmark 'read', (err)=>
+          log err if err
+          item.setClass 'unread' unless err
+          item.paneView?.hide()
+          newMessageBar.disableMessageActionButtons()
 
   goToNotifications:(notification)->
     @getView().showTab "notifications"
-    @mainView.propagateEvent KDEventType : 'NotificationIsSelected', {item: notification, event} if notification?
+    @mainView.emit 'NotificationIsSelected', {item: notification, event} if notification?
 
   goToMessages:(message)->
     @getView().showTab "messages"

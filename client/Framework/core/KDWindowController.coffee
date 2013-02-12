@@ -52,20 +52,20 @@ class KDWindowController extends KDController
 
     document.body.addEventListener "dragenter", (event)=>
       unless @dragInAction
-        @propagateEvent (KDEventType: 'DragEnterOnWindow'), event
+        @emit 'DragEnterOnWindow', event
         @setDragInAction yes
     , yes
 
     document.body.addEventListener "dragleave", (event)=>
       unless 0 < event.clientX < @winWidth and
              0 < event.clientY < @winHeight
-        @propagateEvent (KDEventType: 'DragExitOnWindow'), event
+        @emit 'DragExitOnWindow', event
         @setDragInAction no
     , yes
 
     document.body.addEventListener "drop", (event)=>
-      @propagateEvent (KDEventType: 'DragExitOnWindow'), event
-      @propagateEvent (KDEventType: 'DropOnWindow'), event
+      @emit 'DragExitOnWindow', event
+      @emit 'DropOnWindow', event
       @setDragInAction no
     , yes
 

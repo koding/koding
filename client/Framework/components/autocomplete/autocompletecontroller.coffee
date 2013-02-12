@@ -102,12 +102,9 @@ class KDAutoCompleteController extends KDViewController
     },{
       items : data
     }
-    dropdownListView.registerListener
-      KDEventTypes  : 'ItemsDeselected'
-      listener      : @
-      callback      : =>
-        view = @getView()
-        view.$input().trigger('focus')
+    dropdownListView.on 'ItemsDeselected', =>
+      view = @getView()
+      view.$input().trigger('focus')
 
     dropdownListView.on 'ItemWasAdded', (view, index)=>
       view.registerListener

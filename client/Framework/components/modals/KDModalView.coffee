@@ -146,8 +146,7 @@ class KDModalView extends KDView
       # title       : title
       # style       : buttonOptions.style     if buttonOptions.style?
       # callback    : buttonOptions.callback  if buttonOptions.callback?
-    button.registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:->
-      @propagateEvent KDEventType:'KDModalShouldClose'
+    button.on 'KDModalShouldClose', => @emit 'KDModalShouldClose'
     button
 
   setContent:(content)->
@@ -162,13 +161,13 @@ class KDModalView extends KDView
 
   destroy:()->
     $(window).off "keydown.modal"
-    uber = KDView::destroy.bind(@)
+    uber = KDView::destroy.bind @
 
     if @options.fx
       @unsetClass "active"
-      setTimeout uber,300
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+      setTimeout uber, 300
     else
       @getDomElement().hide()
       uber()
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+
+    @emit 'KDModalViewDestroyed', @

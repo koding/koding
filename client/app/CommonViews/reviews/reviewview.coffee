@@ -44,11 +44,8 @@ class ReviewView extends KDView
       listenedToInstance : @reviewList
       callback : @decorateActiveCommentState
 
-    @listenTo
-      KDEventTypes : "CommentLinkReceivedClick"
-      listenedToInstance : @reviewList
-      callback : (pubInst, event) =>
-        @commentForm.commentInput.setFocus()
+    @commentList.on "CommentLinkReceivedClick", (event) =>
+      @commentForm.commentInput.setFocus()
 
     @reviewList.on "CommentCountClicked", =>
       @reviewList.emit "AllCommentsLinkWasClicked"
