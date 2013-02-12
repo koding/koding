@@ -173,7 +173,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
-    appManager.openApplication 'Apps', => @hideLoader()
+    KD.getSingleton("appManager").openApplication 'Apps', => @hideLoader()
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -208,6 +208,6 @@ class AppShortcutButton extends StartTabAppThumbView
 
     if type is 'koding-app'
       @showLoader()
-      appManager.openApplication path, => @hideLoader()
+      KD.getSingleton("appManager").openApplication path, => @hideLoader()
 
     return no

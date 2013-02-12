@@ -25,7 +25,7 @@ class ContentDisplayControllerTopic extends KDViewController
 
     topicView = @addTopicView topic
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
       noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."

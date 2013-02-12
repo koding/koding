@@ -101,7 +101,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addActivityView:(account)->
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
@@ -121,21 +121,21 @@ class ContentDisplayControllerMember extends KDViewController
               'CFolloweeBucketActivity', 'CNewMemberBucket'
               'CDiscussionActivity',"CTutorialActivity"
             ]
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         statuses            :
           title             : "Status Updates"
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type = 'CStatusActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         codesnips           :
           title             : "Code Snippets"
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type     = 'CCodeSnipActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         # Discussions Disabled
         # discussions         :
@@ -143,7 +143,7 @@ class ContentDisplayControllerMember extends KDViewController
         #   dataSource        : (selector, options, callback)=>
         #     selector.originId = account.getId()
         #     selector.type     = 'CDiscussionActivity'
-        #     appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+        #     KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
         #       callback null, data
 
       sort                  :

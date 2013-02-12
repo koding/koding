@@ -29,7 +29,7 @@ class MainViewController extends KDViewController
     navItemName         = paneName
 
 
-    if appManager.isAppUnderDevelop pane.name
+    if KD.getSingleton("appManager").isAppUnderDevelop pane.name
       @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
     # else
     #   if @getSingleton('router')? and pane.name isnt @getSingleton('router').getCurrentPath()

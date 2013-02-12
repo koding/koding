@@ -36,7 +36,7 @@ class GroupsAppController extends AppController
       data : @getView()
 
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
       help                  :
@@ -143,9 +143,9 @@ class GroupsAppController extends AppController
 
   # showInvitationsTab:(group, modal, forms)->
   #   tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
-    
+
   #   invitationRequestView = new GroupsInvitationRequestsView {}, group
-    
+
   #   invitationRequestView.on 'BatchInvitationsAreSent', (count)->
   #     count = invitationRequestView.batchInvites.inputs.Count.getValue()
   #     group.sendSomeInvitations count, (err, message)->
@@ -154,11 +154,11 @@ class GroupsAppController extends AppController
   #         invitationRequestView.prepareBulkInvitations()
   #       {statusInfo} = invitationRequestView.batchInvites.inputs
   #       statusInfo.updatePartial Encoder.htmlDecode message
-    
+
   #   invitationRequestView.on 'InvitationIsSent', (request)->
   #     request.sendInvitation ->
   #       console.log 'invitation is sent', {arguments}
-    
+
   #   forms['Invitations'].addSubView invitationRequestView
 
   # showApprovalTab:(group, modal, forms)->
@@ -381,19 +381,19 @@ class GroupsAppController extends AppController
     #         @showInvitationsTab group, modal, forms
     #       else if policy.approvalEnabled
     #         @showApprovalTab group, modal, forms
-    
+
     #   forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
     #   forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
     #     size          :
-    #       width       : 32 
+    #       width       : 32
 
     #   addPermissionsView = (newPermissions)=>
     #     group.fetchRoles (err,roles)->
     #       group.fetchPermissions (err, permissionSet)=>
     #         permissionsLoader.hide()
-    #         unless err 
-    #           if newPermissions 
+    #         unless err
+    #           if newPermissions
     #             permissionSet.permissions = newPermissions
     #           if @permissions then forms["Permissions"].removeSubView @permissions
     #           forms["Permissions"].addSubView @permissions = new PermissionsModal {
@@ -409,9 +409,9 @@ class GroupsAppController extends AppController
     #                 copiedPermissions.push
     #                   module : newPermissions[permission].module
     #                   permissions : newPermissions[permission].permissions
-    #                   role : role    
+    #                   role : role
     #             for item in copiedPermissions
-    #               newPermissions.push item            
+    #               newPermissions.push item
     #             addPermissionsView(newPermissions)
     #             # @render()
     #         else

@@ -4,20 +4,21 @@ class MainController extends KDController
     connected   : no
     wasLoggedIn : no
 
-
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
-
+    # window.appManager is there for backwards compatibilty
+    # will be deprecated soon.
     window.appManager = new ApplicationManager
+    KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    
+
 
     KD.registerSingleton 'router', new KodingRouter location.pathname
     KD.registerSingleton "groupsController", new GroupsController
@@ -96,13 +97,13 @@ class MainController extends KDController
 
     if connectedState.wasLoggedIn
       @loginScreen.slideDown =>
-        appManager.quitAll =>
+        KD.getSingleton("appManager").quitAll =>
           @mainViewController.sidebarController.accountChanged account
-          # appManager.openApplication "Home"
+          # KD.getSingleton("appManager").openApplication "Home"
           @mainViewController.getView().decorateLoginState no
     else
       @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Home"
+      # KD.getSingleton("appManager").openApplication "Home"
       @mainViewController.getView().decorateLoginState no
       @loginScreen.slideDown()
 
@@ -112,7 +113,7 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      #appManager.openApplication @getOptions().startPage, yes
+      #KD.getSingleton("appManager").openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
   doJoin:->
@@ -149,13 +150,13 @@ class MainController extends KDController
   #   if path is "Login"
   #     @loginScreen.slideDown()
   #   else
-  #     appManager.openApplication path, yes
+  #     KD.getSingleton("appManager").openApplication path, yes
 
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.isWebTerm
-        appManager.openApplication 'WebTerm'
+        KD.getSingleton("appManager").openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()

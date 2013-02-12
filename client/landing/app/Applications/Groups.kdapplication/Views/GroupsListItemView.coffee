@@ -145,7 +145,7 @@ class GroupsListItemView extends KDListItemView
     KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
     event.stopPropagation()
     event.preventDefault()
-    #appManager.tell "Groups", "createContentDisplay", group
+    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"

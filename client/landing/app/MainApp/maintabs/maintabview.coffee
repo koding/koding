@@ -82,7 +82,7 @@ class MainTabView extends KDTabView
 
   removePane:(pane)->
     pane.getData().emit 'ViewClosed'
-    # delete appManager.terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
+    # delete KD.getSingleton("appManager").terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
 
   removePaneByView:(view)->
     return unless (pane = @getPaneByView view)

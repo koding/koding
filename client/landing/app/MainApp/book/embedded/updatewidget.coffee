@@ -28,7 +28,7 @@ class BookUpdateWidget extends KDView
         duration   : 3000
       return
 
-    appManager.openApplication "Activity"
+    KD.getSingleton("appManager").openApplication "Activity"
     @getDelegate().$().css left : -1349
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
@@ -36,7 +36,7 @@ class BookUpdateWidget extends KDView
         @getDelegate().$().css left : -700
       unless err
         @constructor.updateSent = yes
-        appManager.tell 'Activity', 'ownActivityArrived', reply
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
           type     : 'growl'
           cssClass : 'mini'

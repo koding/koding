@@ -168,7 +168,7 @@ class StartTabMainView extends JView
         tagName   : 'a'
         cssClass  : 'start-tab-split-option'
         partial   : splitOption.partial
-        click     : -> appManager.notify()
+        click     : -> KD.getSingleton("appManager").notify()
       @addSubView option, '.start-tab-split-options'
 
   addRecentFiles:->

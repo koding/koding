@@ -42,7 +42,7 @@ class AceAppController extends KDController
 
     if doc
       @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
-      appManager.removeOpenTab doc
+      KD.getSingleton("appManager").removeOpenTab doc
       @clearFileRecords doc
       doc.destroy()
 

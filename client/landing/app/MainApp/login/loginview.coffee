@@ -28,7 +28,7 @@ class LoginView extends KDScrollView
       # @animateToForm "home"
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").openApplication "Home"
 
 
     @backToHomeLink = new KDCustomHTMLView
@@ -38,7 +38,7 @@ class LoginView extends KDScrollView
       # partial     : "<span></span> Koding Homepage <span></span>"
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").openApplication "Home"
 
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
@@ -47,7 +47,7 @@ class LoginView extends KDScrollView
       click       : homeHandler
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").openApplication "Home"
 
     @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"

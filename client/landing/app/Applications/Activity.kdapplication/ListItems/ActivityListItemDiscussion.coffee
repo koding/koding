@@ -69,7 +69,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     #         @scrollAreaOverlay.hide()
     #     "View the full Discussion":
     #       callback:=>
-    #         appManager.tell "Activity", "createContentDisplay", @getData()
+    #         KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
@@ -171,7 +171,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     if $(event.target).is("[data-paths~=title]")
       # if not $(event.target).is("a.action-link, a.count, .like-view")
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-        #appManager.tell "Activity", "createContentDisplay", @getData()
+        #KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str

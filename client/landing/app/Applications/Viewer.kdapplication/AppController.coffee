@@ -41,11 +41,11 @@ class ViewerAppController extends KDViewController
     frontDocument
 
   addOpenDocument:(doc)->
-    appManager.addOpenTab doc, 'Viewer.kdApplication'
+    KD.getSingleton("appManager").addOpenTab doc, 'Viewer.kdApplication'
     @openDocuments.push doc
 
   removeOpenDocument:(doc)->
-    appManager.removeOpenTab doc, @
+    KD.getSingleton("appManager").removeOpenTab doc, @
     @openDocuments.splice (@openDocuments.indexOf doc), 1
 
   createNewDocument:()->

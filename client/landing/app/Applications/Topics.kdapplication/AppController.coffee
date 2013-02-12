@@ -18,7 +18,7 @@ class TopicsAppController extends AppController
 
   createFeed:(view)->
     {JTag} = KD.remote.api
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
       noItemFoundText       : "There is no topics."

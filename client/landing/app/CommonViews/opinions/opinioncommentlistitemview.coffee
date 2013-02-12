@@ -62,7 +62,7 @@ class OpinionCommentListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
     modal = new KDModalView

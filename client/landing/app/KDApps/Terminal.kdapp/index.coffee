@@ -1,2 +1,2 @@
 do ->
-  appManager.openApplication "Shell"
+  KD.getSingleton("appManager").openApplication "Shell"
