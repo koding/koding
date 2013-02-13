@@ -12,10 +12,9 @@ cookbook_versions({
     "nodejs"        => "0.1.0",
     "ohai"          => "1.1.6",
     "rabbitmq"      => "1.7.0",
-    "supervisord"   => "0.1.0",
     "users"         => "1.3.0",
     "yum"           => "2.0.6",
-    "kd_deploy"     => "0.1.2",
+    "kd_deploy"     => "0.1.3",
     "ntp"           => "1.3.2"
 })
 
@@ -26,7 +25,7 @@ default_attributes({
                      },
                      "kd_deploy" => {
                                 "git_branch" => "master_RC",
-                                "revision_tag" => "koding-rc-1",
+                                "revision_tag" => "koding-rc-5",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
                                 "rabbit_host" => "rabbit-b.prod.aws.koding.com"

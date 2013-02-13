@@ -48,7 +48,7 @@ chef:
     
     # Defaults to the instance-id if not present
     # node_name: "your-node-name"
-    environment: "prod"
+    environment: "prod-sys"
 
     validation_name: "koding-validator"
 

@@ -6,7 +6,6 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
                                     "recipe[kd_deploy::nginx_conf]",
                                     "recipe[nodejs]",
                                     "recipe[golang]",
-                                    "recipe[supervisord]",
                                     "recipe[papertrail]",
                                     "recipe[kd_deploy]"
                                    ],
@@ -30,7 +29,7 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
 
 default_attributes({ 
                      "launch" => {
-                                "programs" => ["buildClient webserver"]
+                                "programs" => ["webserver"]
                      },
                      "log" => {
                                 "files" => ["/var/log/buildClient_webserver.log"]       
