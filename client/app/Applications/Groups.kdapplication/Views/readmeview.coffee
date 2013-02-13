@@ -17,7 +17,7 @@ class GroupReadmeView extends JView
     @readmeView       = new KDView
       cssClass        : 'data'
       partial         : '<p>Loading Readme</p>'
-    
+
     @readmeInput      = new KDInputViewWithPreview
       name            : "body"
       cssClass        : "edit warn-on-unsaved-data"
@@ -45,7 +45,7 @@ class GroupReadmeView extends JView
         previousValue = @readmeInput.getValue()
         @readmeView.updatePartial @utils.applyMarkdown @readmeInput.getValue()
         @highlightCode()
-        
+
         group.setReadme @readmeInput.getValue(), (err, readme)=>
           @readme = readme?.content or previousValue
           if err
@@ -58,7 +58,8 @@ class GroupReadmeView extends JView
     @readmeCancelLink = new CustomLinkView
       title           : 'Cancel'
       cssClass        : 'edit-cancel'
-      click           : =>
+      click           : (event)=>
+        event.preventDefault()
         @readmeView.show()
         @hideReadmeEditButtons()
         @readmeEditButton.show()
@@ -73,12 +74,12 @@ class GroupReadmeView extends JView
         partial = readme?.content or "This group does not have any associated readme data yet."
         group.canEditGroup (err, allowed)=>
           if allowed
-            @readmeEditButton.show() 
-      else 
+            @readmeEditButton.show()
+      else
         partial = err.message or "Access denied! Please join the group."
-      
+
       @readme = readme?.content or partial
-      @readmeView.updatePartial @utils.applyMarkdown partial 
+      @readmeView.updatePartial @utils.applyMarkdown partial
       @readmeView.show()
       @highlightCode()
       @loader.hide()
@@ -87,7 +88,7 @@ class GroupReadmeView extends JView
   hideReadmeEditButtons:->
     @readmeInput.hide()
     @readmeSaveButton.hide()
-    @readmeCancelLink.hide() 
+    @readmeCancelLink.hide()
 
   showReadmeEditButtons:->
     @readmeInput.show()

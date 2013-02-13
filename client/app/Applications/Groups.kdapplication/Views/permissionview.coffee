@@ -10,18 +10,26 @@ class GroupPermissionsView extends JView
 
     @getDelegate().bindEvent 'scroll'
     @getDelegate().on 'scroll', =>
-      _.debounce @setButtonPosition @calculateButtonPosition(), 25, yes
+      # _.debounce @setButtonPosition @calculateButtonPosition(), 25, yes
+      @setButtonPosition @calculateButtonPosition()
 
     @listenWindowResize()
 
-    @permissionsLoader = new KDLoaderView
-      size          :
-        width       : 32
+    @loader           = new KDLoaderView
+      cssClass        : 'loader'
+    @loaderText       = new KDView
+      partial         : 'Loading Permissions…'
+      cssClass        : ' loader-text'
+
+    # @permissionsLoader = new KDLoaderView
+    #   size          :
+    #     width       : 32
 
     addPermissionsView = (newPermissions)=>
       group.fetchRoles (err,roles)=>
         group.fetchPermissions (err, permissionSet)=>
-          @permissionsLoader.hide()
+          @loader.hide()
+          @loaderText.hide()
           unless err
             if newPermissions
               permissionSet.permissions = newPermissions
@@ -50,7 +58,8 @@ class GroupPermissionsView extends JView
             @addSubView new KDView
               partial : 'No access'
 
-    @permissionsLoader.show()
+    @loader.show()
+    @loaderText.show()
     addPermissionsView()
 
   setButtonPosition:(offset)->
@@ -100,12 +109,14 @@ class GroupPermissionsView extends JView
 
   viewAppended:->
     super
-    @permissionsLoader.show()
+    @loader.show()
+    @loaderText.show()
 
   _windowDidResize: (event) ->
     @setButtonPosition @calculateButtonPosition()
 
   pistachio:->
     """
-    {{> @permissionsLoader}}
+    {{> @loader}}
+    {{> @loaderText}}
     """
