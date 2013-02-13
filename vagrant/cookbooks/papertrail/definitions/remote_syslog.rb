@@ -6,9 +6,10 @@ define :remote_syslog, :enable => true do
           not_if do ::File.exists?("/var/run/remote_syslog.pid") end
         end
     end
-  elsif params[:disable]
+  else
     execute "stop_remote_syslog" do
-      command "killall remote_syslog"
+      command "/bin/kill `cat /var/run/remote_syslog.pid`"
+      only_if do ::File.exists?("/var/run/remote_syslog.pid") end
     end
   end
 end

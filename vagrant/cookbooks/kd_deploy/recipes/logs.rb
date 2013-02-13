@@ -1,4 +1,4 @@
 remote_syslog do
-    action :enable
+    enable false
     log_file node["log"]["files"]
 end
