@@ -25,7 +25,7 @@ module.exports = deepFreeze
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://koding.com"
+    address     : "https://new.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -58,9 +58,6 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
@@ -94,12 +91,12 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://koding.com'
+    staticFilesBaseUrl: 'https://new.koding.com'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'https://koding.com'
+      mainUri   : 'https://new.koding.com'
       broker    :
         sockJS  : 'https://mq.koding.com/subscribe'
       apiUri    : 'https://api.koding.com'
