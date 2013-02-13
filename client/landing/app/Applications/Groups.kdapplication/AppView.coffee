@@ -173,7 +173,7 @@ class GroupsMembershipPolicyView extends JView
         access to this group</p>
       </div>
       <div class="formline">
-        Users may request access              {{> @enableAccessRequests}}
+        <span>Users may request access</span> {{> @enableAccessRequests}}
       </div>
     </section>
     <section class="formline">
@@ -188,7 +188,7 @@ class GroupsMembershipPolicyView extends JView
         approval functionilty will be exposed.<p>
       </div>
       <div class="formline">
-        Enable invitations                    {{> @enableInvitations}}
+        <span>Enable invitations</span> {{> @enableInvitations}}
       </div>
     </section>
     <section class="formline">
@@ -200,7 +200,7 @@ class GroupsMembershipPolicyView extends JView
         <p>Webhooks and invitations may be used together.</p>
       </div>
       <div class="formline">
-        Enable webhooks                       {{> @enableWebhooks}}
+        <span>Enable webhooks</span>            {{> @enableWebhooks}}
       </div>
       {{> @webhook}}
       {{> @webhookEditor}}
@@ -408,8 +408,8 @@ class GroupsMemberPermissionsView extends JView
               if err then warn err
               else
                 @listController.instantiateListItems members
-                # @loader.hide()
-                # @loaderText.hide()
+                @loader.hide()
+                @loaderText.hide()
 
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
@@ -600,6 +600,7 @@ class GroupMembershipPolicyTabView extends KDView
   constructor:(options,data)->
     super options,data
     @tabView = new KDTabView
+      hideHandleCloseIcons : yes
 
     @loader           = new KDLoaderView
       cssClass        : 'loader'
