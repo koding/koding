@@ -422,7 +422,7 @@ __utils =
 
   # ~ GG
   # Returns a new callback which calls the failcallback if
-  # first callback not finish its job in given timeout
+  # first callback not finish its job in given timeout (default is 5000ms)
   #
   # Usage:
   #
@@ -435,11 +435,11 @@ __utils =
   #
   #   asyncFunc getTimedOutCallBack (data)->
   #     doSomethingWith data
-  #   , 500
   #   , ->
   #     console.log "asyncFunc is not responded in 500ms."
+  #   , 500
   #
-  getTimedOutCallback:(callback, timeout, failcallback)->
+  getTimedOutCallback:(callback, failcallback, timeout=5000)->
     cancelled = no
     kallback  = (rest...)->
       clearTimeout fallbackTimer
