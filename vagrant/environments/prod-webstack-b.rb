@@ -25,7 +25,7 @@ default_attributes({
                      },
                      "kd_deploy" => {
                                 "git_branch" => "master_RC",
-                                "revision_tag" => "koding-rc-4",
+                                "revision_tag" => "koding-rc-5",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
                                 "rabbit_host" => "rabbit-b.prod.aws.koding.com"
