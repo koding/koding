@@ -380,9 +380,12 @@ class GroupsMemberPermissionsView extends JView
     @listController = new KDListViewController
       itemClass     : GroupsMemberPermissionsListItemView
     @listWrapper    = @listController.getView()
-    @loader         = new KDLoaderView
-      size          :
-        width       : 32
+
+    @loader           = new KDLoaderView
+      cssClass        : 'loader'
+    @loaderText       = new KDView
+      partial         : 'Loading Member Permissions…'
+      cssClass        : ' loader-text'
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
@@ -405,7 +408,8 @@ class GroupsMemberPermissionsView extends JView
               if err then warn err
               else
                 @listController.instantiateListItems members
-                @loader.hide()
+                # @loader.hide()
+                # @loaderText.hide()
 
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
@@ -413,10 +417,12 @@ class GroupsMemberPermissionsView extends JView
   viewAppended:->
     super
     @loader.show()
+    @loaderText.show()
 
   pistachio:->
     """
     {{> @loader}}
+    {{> @loaderText}}
     {{> @listWrapper}}
     """
 
@@ -595,13 +601,24 @@ class GroupMembershipPolicyTabView extends KDView
     super options,data
     @tabView = new KDTabView
 
+    @loader           = new KDLoaderView
+      cssClass        : 'loader'
+    @loaderText       = new KDView
+      partial         : 'Loading Membership Policy…'
+      cssClass        : ' loader-text'
+
   viewAppended:->
     super
     @setTemplate @pistachio()
     @template.update()
+    @loader.show()
+    @loaderText.show()
+
 
   pistachio:->
     """
+    {{> @loader}}
+    {{> @loaderText}}
     {{> @tabView}}
     """
 

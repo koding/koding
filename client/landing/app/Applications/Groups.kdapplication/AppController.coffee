@@ -620,10 +620,15 @@ class GroupsAppController extends AppController
       @hideApprovalTab view
 
   prepareMembershipPolicyTab:(group, view)->
+    view.tabView.hide()
     group.fetchMembershipPolicy (err, policy)=>
       view.tabView.addPane policyPane = new KDTabPaneView
         name : 'Membership Policy'
       , policy
+
+      view.loader.hide()
+      view.loaderText.hide()
+      view.tabView.show()
 
       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
