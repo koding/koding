@@ -698,7 +698,8 @@ class NFinderTreeController extends JTreeViewController
   HELPERS
   ###
 
-  notification = null
+  notification  = null
+  autoTriedOnce = no
 
   hideNotification: ->
     notification.destroy() if notification
@@ -714,6 +715,13 @@ class NFinderTreeController extends JTreeViewController
 
     style or= 'error' if details
     duration = if reconnect then 0 else if details then 5000 else 2500
+
+    if not autoTriedOnce and reconnect
+      KD.utils.wait 200, =>
+        @emit 'fs.retry.scheduled'
+        @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
+      autoTriedOnce = yes
+      return
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
