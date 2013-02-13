@@ -628,10 +628,6 @@
     &.shadow
       shadow            0 0 15px rgba(0,0,0,.1)
 
-  .group-content
-    borderBox()
-    height auto
-    padding 10px 20px
 
   .readme
     padding             20px
@@ -672,216 +668,139 @@
     border-bottom       1px solid #f2f2f2
     padding             20px 0
 
+  .group-content
+    borderBox()
+    height auto
+    padding 0px 20px
 
+    .permissions-view
+      .add-role-dialog
+        z-index 100000
 
+        .add-role-header
+          padding-top 15px
+          padding-bottom 15px
+          font-size 14px
+          font-weight 500
 
+        .add-role-button
+          margin-bottom 10px
+        .add-role-cancel
+          margin-top 8px
 
-// .permission-modal
-//   .kdmodal-content
-//     .permission-wrapper
-//       table.permissions-grid
-//         borderBox()
-//         &.no-guest
-//           tr
-//             td:not(.module):first-child
-//               width           200px
-//             th:first-child
-//               width           200px
-//         width                 100%
-//         // border-width          1px
-//         border-spacing        0px
-//         // border-style          solid
-//         // border-color          gray
-//         border-collapse       collapse
-//         background-color      white
-//         border                none
-//         thead
-//           borderBox()
-//           border              none
-//           vendor box-shadow,  0 5px 15px -5px rgba(0,0,0,0.1)
-//           bg                  color, #eee
-//           > tr
-//             rel()
-//             borderBox()
-//             display           block
-//             width             100%
-//             th
-//               borderBox()
-//               &:first-child
-//                 width         100px
-//               width           100px
-//               border-width    1px
-//               padding         4px
-//               border-style    inset
-//               border-color    rgba(200,200,200,0.25)
-//               background-color white
-//         tbody
-//           borderBox()
-//           display             block
-//           width               100%
-//           max-height          200px
-//           overflow-y          scroll
-//           overflow-x          hidden
-//           border              none
-//           > tr
-//             borderBox()
-//             width             100%
-//             &.module-row
-//             &:not(.module-row)
-//               &:nth-child(2n)
-//                 bg            color, #ddd
-//               &:nth-child(2n+1)
-//                 bg            color, #f5f5f5
-//             td.module
-//               borderBox()
-//               border          none
-//               width           100%
-//               background      linear-gradient(top, #555 0%,#666 93.7%)
-//               padding         4px
-//               shadow          inset 0 2px 5px rgba(0,0,0,.1)
-//               color           #eee
-//             td:not(.module)
-//               // white-space nowrap
-//               borderBox()
-//               padding         4px
-//               border-width    1px
-//               border-style    inset
-//               border-color    rgba(200,200,200,0.25)
-//               background-color transparent
-//               // border none
-//               width           100px
-//               text-align      center
-//               vertical-align  middle
-//               color           #444
-//               &:first-child
-//                 width         100px
-//                 border-left   none
-//                 text-align    left
+        label.label-role-name
+          display inline-block
+        input.role-name
+          display inline-block
+          width 289px
 
-.permissions-modal
-.permissions-view
-  .add-role-dialog
-    z-index 100000
+        label.label-copy-permissions
+          margin-top 10px
+          display inline-block
+        div.kdselectbox.copy-permissions
+          margin-top 0px
 
-    .add-role-header
-      padding-top 15px
-      padding-bottom 15px
-      font-size 14px
-      font-weight 500
+      .kdview.kdloader
+        display           block
+        margin            10px auto
 
-    .add-role-button
-      margin-bottom 10px
-    .add-role-cancel
-      margin-top 8px
-
-    label.label-role-name
-      display inline-block
-    input.role-name
-      display inline-block
-      width 289px
-
-    label.label-copy-permissions
-      margin-top 10px
-      display inline-block
-    div.kdselectbox.copy-permissions
-      margin-top 0px
-
-  .kdview.kdloader
-    display           block
-    margin            10px auto
-
-  .permissions-header
-    abs()
-    top 0px
-    left 0
-    right 0
-    z-index 20000
-    // &.scrolling
-    //   shadow 0 5px 15px -5px rgba(0,0,0,0.1)
-    > .input-wrapper > .kdview
-      borderBox()
-      width auto
-      line-height 20px
-      top 0
-      overflow-x hidden
-      display block
-      text-overflow ellipsis
-      white-space nowrap
-
-  .permissions-form
-    overflow-y scroll
-    overflow-x hidden
-    // max-height 300px
-    margin-top 20px
-
-    fraction(full,divisor)
-      fraction = full/divisor
-
-    for num in 2 3 4 5 6 7 8 9 10 11 12
-      &.col-{num}
-        .formline .input-wrapper
-          width fraction(340,num)px
-
-    .formline
-      &.button-field
-        &.scrolling
-          shadow 0 -5px 10px 0px rgba(0,0,0,0.1)
+      .permissions-header
         abs()
+        top 0px
         left 0
         right 0
-        bottom 0
-        height 50px
-        padding 15px 20px 0 15px
-        border-top 1px solid #e5e5e5
-
-        button.add-role
-          fl()
-
-      &:nth-last-child(2)
-        margin-bottom 49px
-        border-bottom-color transparent
-      borderBox()
-      padding 0px
-      border-bottom 1px solid #f5f5f5
-
-      .input-wrapper:first-child
-        border-left none
-        width 160px
-        > .kdview
+        z-index 20000
+        bg color, white
+        &.scrolling
+           shadow 0 5px 15px -5px rgba(0,0,0,0.1)
+        > .input-wrapper > .kdview
           borderBox()
-          min-height 15px
-          line-height 15px
-          padding 3px
-          padding-left 7px
-          display inline-block
-          width 160px
-          overflow hidden
+          width auto
+          line-height 20px
+          top 0
+          overflow-x hidden
+          display block
           text-overflow ellipsis
           white-space nowrap
-          text-align left
 
-      input.kdinput.permission-checkbox
-        display inline
-        margin-right 2px
-        width auto
-        margin-top 5px
-        vertical-align middle
-      .input-wrapper
-        border-left 1px solid #f5f5f5
-        borderBox()
-        display inline-block
-        width 100%
-        height 20px
-        vertical-align top
-        text-align center
-        > .input-wrapper
-          vertical-align middle
+      .permissions-form
+        overflow-y scroll
+        overflow-x hidden
+        // max-height 300px
+        margin-top 20px
 
-    .permissions-module
-      background      linear-gradient(top, #555 0%,#666 93.7%)
-      color white
-      .input-wrapper
-        text-align left
+        fraction(full,divisor)
+          fraction = full/divisor
+
+        for num in 2 3 4 5 6 7 8 9 10 11 12
+          &.col-{num}
+            .formline .input-wrapper
+              width fraction(340,num)px
+
+        .formline
+          &.button-field
+            borderBox()
+            &.scrolling
+              shadow 0 -5px 10px -3px rgba(0,0,0,0.1)
+            abs()
+            left 0
+            right 0
+            // bottom 0
+            height 50px
+            padding 15px 20px 0 15px
+            border-top 1px solid #e5e5e5
+
+            button.add-role
+              fl()
+
+          &:nth-last-child(2)
+            margin-bottom 49px
+            border-bottom-color transparent
+
+          borderBox()
+          padding 0px
+          border-bottom 1px solid #f5f5f5
+          border-left 1px solid #f5f5f5
+          border-right 1px solid #f5f5f5
+
+          .input-wrapper:first-child
+            border-left none
+            width 160px
+            > .kdview
+              borderBox()
+              min-height 15px
+              line-height 15px
+              padding 3px
+              padding-left 7px
+              display inline-block
+              width 160px
+              overflow hidden
+              text-overflow ellipsis
+              white-space nowrap
+              text-align left
+
+          input.kdinput.permission-checkbox
+            display inline
+            margin-right 2px
+            width auto
+            margin-top 5px
+            vertical-align middle
+          .input-wrapper
+            border-left 1px solid #f5f5f5
+            borderBox()
+            display inline-block
+            width 100%
+            height 20px
+            vertical-align top
+            text-align center
+            > .input-wrapper
+              vertical-align middle
+
+        .permissions-module
+          background      linear-gradient(top, #555 0%,#666 93.7%)
+          color white
+          .input-wrapper
+            text-align left
 
 .kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
   border-color          rgba(0,0,0,.2)

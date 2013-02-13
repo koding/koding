@@ -80,9 +80,9 @@ class GroupView extends ActivityContentDisplay
       initializer = options
       options = {}
 
-    pane = @tabView.panes[tabName]
+    pane = @tabView.getPaneByName tabName
 
-    unless pane?
+    unless pane
       view = new konstructor options ? {}, @getData()
       pane = new KDTabPaneView name: tabName
       initializer?.call? pane, pane, view
