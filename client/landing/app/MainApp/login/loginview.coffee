@@ -279,6 +279,7 @@ class LoginView extends KDScrollView
         KD.getSingleton('router').clear()
         setTimeout =>
           @animateToForm "login"
+          @registerForm.notificationsDisabled = yes
           @registerForm.reset()
           @registerForm.button.hideLoader()
           # setTimeout =>

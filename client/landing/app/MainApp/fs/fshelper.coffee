@@ -7,23 +7,31 @@ class FSHelper
 
   parseFile = (parentPath, outputLine) ->
 
-    [permissions, size, user, group, mode, date, time, timezone, rest...] = outputLine.replace(/\t+/gi, ' ').replace(/\s+/ig, ' ').split ' '
+    if outputLine[0..1] in ['l?', '??']
+      type = 'brokenLink'
+      createdAt = null
+      name = outputLine.split(' ').last
+      path = parentPath + '/' + name
 
-    if type is 'symLink'
-      [path, linkPath] = (rest.join ' ').split /\ ->\ \//
     else
-      path = rest.join ' '
+      [permissions, size, user, group, mode, date, time, timezone, rest...] = \
+        outputLine.replace(/\t+/gi, ' ').replace(/\s+/ig, ' ').split ' '
+      createdAt = getDateInstance date, time, timezone
+      type      = FSHelper.fileTypes[permissions[0]]
 
-    createdAt = getDateInstance date, time, timezone
-    type      = FSHelper.fileTypes[permissions[0]]
-    mode      = __utils.symbolsPermissionToOctal(permissions)
-    path      = parentPath + '/' + path
-    path      = if type is 'folder' then path.substr(0, path.length - 1) else path
-    name      = getFileName path
+      if type is 'symLink'
+        [path, linkPath] = (rest.join ' ').split /\ ->\ \//
+      else
+        path = rest.join ' '
 
-    if type is 'folder'
-      if /^\/Users\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
-        type = 'mount'
+      mode = __utils.symbolsPermissionToOctal(permissions)
+      path = parentPath + '/' + path
+      path = if type is 'folder' then path.substr(0, path.length - 1) else path
+      name = getFileName path
+
+      if type is 'folder'
+        if /^\/Users\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
+          type = 'mount'
 
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
 
@@ -54,9 +62,8 @@ class FSHelper
         [itemCount] = lines.splice(0,3)
         parentPath = parentPaths[0]
       for line in lines when line
-        unless line[0] in ['l', '?'] # broken symlinks has l type and it can be ? in someway
-          unless systemFilesRegExp.test line
-            data.push FSHelper.createFile parseFile parentPath, line
+        unless systemFilesRegExp.test line
+          data.push FSHelper.createFile parseFile parentPath, line
     data
 
   @registry = {}
@@ -106,9 +113,10 @@ class FSHelper
       @updateInstance data
     else
       constructor = switch data.type
-        when "folder" then FSFolder
-        when "mount"  then FSMount
-        when "symLink" then FSFolder
+        when "folder"     then FSFolder
+        when "mount"      then FSMount
+        when "symLink"    then FSFolder
+        when "brokenLink" then FSBrokenLink
         else FSFile
 
       instance = new constructor data

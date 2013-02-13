@@ -79,7 +79,6 @@ class Sidebar extends JView
 
     @finderController = new NFinderController
       fsListeners       : yes
-      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
@@ -97,7 +96,9 @@ class Sidebar extends JView
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
-    @statusLEDs = new StatusLEDView
+    # @statusLEDs = new StatusLEDView
+    @statusLEDs = new KDView
+      cssClass : 'status-leds'
 
   resetAdminNavController:->
     @utils.wait 1000, =>
