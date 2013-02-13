@@ -14,7 +14,8 @@ mqOptions.productName = 'koding-webserver'
 module.exports = new Bongo {
   mongo
   models: [
-    "workers/social/lib/social/models/activity/cache.coffee"
+    "workers/social/lib/social/models/activity/cache.coffee",
+    "workers/social/lib/social/models/account.coffee"
   ].map (path)-> nodePath.join projectRoot, path
   mq: new Broker mqOptions
   resourceName: webserver.queueName

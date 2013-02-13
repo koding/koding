@@ -1,17 +1,32 @@
 name "emailworker"
 description "The  role for emailWorker servers"
 
-run_list ["recipe[nodejs]","recipe[golang]", "recipe[supervisord]" ]
+env_run_lists "prod-webstack-a" => ["role[base_server]",
+                                    "recipe[nodejs]",
+                                    "recipe[golang]",
+                                    "recipe[papertrail]",
+                                    "recipe[kd_deploy]"
+                                   ],
+              "prod-webstack-b" => ["role[base_server]",
+                                    "recipe[nodejs]",
+                                    "recipe[golang]",
+                                    "recipe[papertrail]",
+                                    "recipe[kd_deploy]",
+                                   ],
+               "_default" => ["role[base_server]",
+                                    "recipe[nodejs]",
+                                    "recipe[golang]",
+                                    "recipe[papertrail]",
+                                    "recipe[kd_deploy]",
+                                   ]
+
 
 default_attributes({ 
-                     "kd_deploy" => {
-                                "git_branch" => "master_autoscale",
-                                "revision_tag" => "HEAD",
-                                "release_action" => :deploy,
-                                "deploy_dir" => '/opt/koding',
-                     },
                      "launch" => {
-                                "config" => "autoscale",
                                 "programs" => ["emailWorker"]
+                     },
+                     "log" => {
+                                "files" => ["/var/log/emailWorker.log"]       
                      }
+
 })

@@ -1,0 +1,46 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Development RabbitMQ: <%= username %>",
+
+    "Resources": {
+        "RabbitMQInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType" : "c1.medium",
+                "ImageId": "ami-3d4ff254",
+                "KeyName": "koding",
+                "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
+            }
+        },
+        "RabbitMQHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties" : {
+                "HostedZoneName" : "dev.aws.koding.com.",
+                "Comment" : "...",
+                "Name" : "mq.<%= username %>.dev.aws.koding.com",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "RabbitMQInstance", "PublicDnsName" ] } ]
+            }
+        }
+    },
+    "Outputs":{
+        "InstanceId" : {
+          "Description" : "InstanceId of the newly created EC2 instance",
+          "Value" : { "Ref" : "RabbitMQInstance" }
+        },
+        "AZ" : {
+          "Description" : "Availability Zone of the newly created EC2 instance",
+          "Value" : { "Fn::GetAtt" : [ "RabbitMQInstance", "AvailabilityZone" ] }
+        },
+        "PrivateIP" : {
+          "Description" : "Private IP address of the newly created EC2 instance",
+          "Value" : { "Fn::GetAtt" : [ "RabbitMQInstance", "PrivateIp" ] }
+        },
+        "DomainName": {
+            "Description":"FQDN of newly created EC2 instamce",
+            "Value": { "Ref" : "RabbitMQHostName"}
+        }
+
+    }
+}

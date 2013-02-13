@@ -9,7 +9,8 @@ Broker    = require 'broker'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
-{mq, mongo, email, uri} = require('koding-config-manager').load("main.#{argv.c}")
+{mq, mongo, email, emailWorker, uri} = \
+  require('koding-config-manager').load("main.#{argv.c}")
 
 mongo += '?auto_reconnect'
 
@@ -45,7 +46,7 @@ sendDailyEmail = (details, content)->
   # console.log template.dailyMail details, content
 
   Emailer.send
-    To        : details.email
+    To        : emailWorker.defaultRecepient or details.email
     Subject   : template.dailyHeader details
     HtmlBody  : template.dailyMail details, content
   , (err, status)->
@@ -56,7 +57,7 @@ sendInstantEmail = (details)->
   {notification} = details
 
   Emailer.send
-    To        : details.email
+    To        : emailWorker.defaultRecepient or details.email
     Subject   : template.commonHeader details
     HtmlBody  : flags[details.key].template details
   , (err, status)->
@@ -143,7 +144,7 @@ prepareEmail = (notification, daily = no, cb)->
           callback err
         else
           if not daily and state isnt 'on'
-            log 'User disabled e-mails, ignored for now.'
+            # log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else
@@ -185,14 +186,20 @@ prepareEmail = (notification, daily = no, cb)->
 
 instantEmails = ->
   {JMailNotification} = worker.models
-  JMailNotification.some {status: "queued"}, {limit:100}, (err, emails)->
+  JMailNotification.some {status: "queued"}, {limit:300}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "There are #{emails.length} mail in queue."
-        for email in emails
-          prepareEmail email, no, sendInstantEmail
+        currentIds = [email._id for email in emails][0]
+        JMailNotification.update {_id: $in: currentIds}, \
+          {$set: status: 'sending'}, {multi: yes}, (err)->
+          unless err
+            log "Sending #{emails.length} e-mail(s)..."
+            for email in emails
+              prepareEmail email, no, sendInstantEmail
+          else
+            log "An error occured: #{err}"
 
 prepareDailyEmail = (emails, index, data, callback)->
 
@@ -231,8 +238,8 @@ dailyEmails = ->
           else
             notifications = []
             JMailNotification.each {receiver   : account.getId(),  \
-                                       dateIssued : $gte: yesterday}, \
-                                      {sort       : dateIssued: 1},
+                                    dateIssued : $gte: yesterday}, \
+                                   {sort       : dateIssued: 1},
             (err, email)->
               if err then console.error err
               else
@@ -246,13 +253,12 @@ dailyEmails = ->
                         content += template.singleEvent email
                       sendDailyEmail emailContent[0], content
 
-if email.useNotificationWorker
-  instantEmailsCron = new CronJob email.notificationCronInstant, instantEmails
-  log "Instant Emails CronJob started with #{email.notificationCronInstant}"
-  instantEmailsCron.start()
+instantEmailsCron = new CronJob emailWorker.cronInstant, instantEmails
+log "Instant Emails CronJob started with #{emailWorker.cronInstant}"
+instantEmailsCron.start()
 
-  dailyEmailsCron = new CronJob email.notificationCronDaily, dailyEmails
-  log "Daily Emails CronJob started with #{email.notificationCronDaily}"
-  dailyEmailsCron.start()
-else
-  log "Worker is not running, please enable email.useNotificationWorker in config."
+dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
+log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
+dailyEmailsCron.start()
+
+log "All e-mail notifications will be send to #{emailWorker.defaultRecepient}" if emailWorker.defaultRecepient

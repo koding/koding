@@ -21,9 +21,6 @@ module.exports = deepFreeze
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
   uri           :
     address     : "http://koding.local"
   projectRoot   : projectRoot
@@ -72,6 +69,11 @@ module.exports = deepFreeze
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -114,9 +116,11 @@ module.exports = deepFreeze
     host        : 'koding.local'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-    notificationCronInstant  : '*/10 * * * * *'
-    notificationCronDaily    : '0 10 0 * * *'
-    useNotificationWorker    : no
+  emailWorker   :
+    cronInstant : '*/10 * * * * *'
+    cronDaily   : '0 10 0 * * *'
+    run         : no
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

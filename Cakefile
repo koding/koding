@@ -5,6 +5,7 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-u', '--username [USER]', 'Subdomain for AWS deployment'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -263,7 +264,7 @@ run =({configFile})->
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
-    invoke 'emailWorker'
+    invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'webserver'
 
 
@@ -365,51 +366,42 @@ task 'deleteCache',(options)->
 
 
 task 'deploy', (options) ->
-  {configFile} = options
+  {configFile,username} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  unless aws.key.length > 0 and
-         aws.secret.length > 0 and
-         aws.username.length > 0 and
-         aws.git_branch.length > 0 and 
-         aws.git_rev.length > 0
-    console.log 'AWS must be configured'
-    process.exit(0)
+  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
+    git_branch = stdout
+    username ?= process.env['USER']
 
-  console.log 'GIT    : ' + aws.git_branch + '/' + aws.git_rev
-  console.log 'AWS    : ' + aws.key + ':' + aws.secret
-  console.log 'Domain : ' + aws.username
-  console.log ''
-
-  # <username> <git_branch> <git_revision> <config_name> <aws_key> <aws_secret>
-  cmd = 'builders/aws/init/aws_init.py'
-  args = [aws.username, aws.git_branch, aws.git_rev, configFile, aws.key, aws.secret]
-
-  run = spawn cmd, args
-  run.stdout.on 'data', (data) ->
-    console.log data.toString()
-  run.stderr.on 'data', (data) ->
-    console.log data.toString()
-
+    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
+    proc.stdout.on 'data', (data) ->
+      console.log data.toString().trim()
+    proc.stderr.on 'data', (data) ->
+      console.log data.toString().trim()
 
 task 'destroy', (options) ->
-  {configFile} = options
+  {configFile,username} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  unless aws.key or aws.secret or aws.username or aws.git_branch or aws.git_rev
-    console.log 'AWS must be configured'
-    process.exit(0)
+  username ?= process.env['USER']
 
-  # -x <aws_key> <aws_secret>
-  cmd = '/Users/bahadir/ODIN/koding/builders/aws/init/aws_init.py'
-  args = ['-x', aws.key, aws.secret]
-  
-  run = spawn cmd, args
-  run.stdout.on 'data', (data) ->
-    console.log data.toString()
-  run.stderr.on 'data', (data) ->
-    console.log data.toString()
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString().trim()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString().trim()
 
+task 'deploy-info', (options) ->
+  {configFile,username} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+
+  username ?= process.env['USER']
+
+  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
+  proc.stdout.on 'data', (data) ->
+    console.log data.toString().trim()
+  proc.stderr.on 'data', (data) ->
+    console.log data.toString().trim()
 
 task 'buildAll',"build chris's modules", ->
 

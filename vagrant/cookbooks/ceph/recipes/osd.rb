@@ -8,7 +8,6 @@
 #
 #
 
-include_recipe "ceph::ssh_keys"
 
 
 if node[:ceph].has_key?(:osd_nodes)
@@ -16,11 +15,21 @@ if node[:ceph].has_key?(:osd_nodes)
     include_recipe "ceph::server_cfg"
 
     node[:ceph][:osd_nodes].each do |ceph_node|
-        if ceph_node[:id] == node[:ceph][:server_id]
+        if ceph_node[:id] == node[:ec2][:instance_id]
             directory "/var/lib/ceph/osd/ceph-#{ceph_node[:CephID]}" do
                 mode 0755
                 owner 'root'
                 group 'root'
+            end
+
+            lvm_volume_group 'vg0' do
+                physical_volumes [ "/dev/xvdf", "/dev/xvdg" ]
+                logical_volume 'fs_osd' do
+                    size '50G'
+                    filesystem 'ext4'
+                    mount_point :location => "/var/lib/ceph/mon/ceph-#{ceph_node[:CephID]}", :options => 'noatime,nodiratime'
+                    stripes 2
+                end
             end
 
             cookbook_file "/etc/ceph/keyring" do

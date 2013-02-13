@@ -42,14 +42,11 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    symlinks.clear
 end
 
-execute "killall_u_koding" do
-    command "/usr/bin/killall -u koding -9"
-    action :nothing
-    returns [0, 1]
-    subscribes :run, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
-end
-
-execute "/usr/bin/supervisorctl start all" do
-    action :nothing
-    subscribes :run, resources(:execute => "killall_u_koding" ), :immediately
+node['launch']['programs'].each do |kd_name|
+    prog_name = kd_name.gsub(/\s+/,"_")
+    service "#{prog_name}" do
+        action :nothing
+        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :delayed
+        provider Chef::Provider::Service::Upstart
+    end
 end

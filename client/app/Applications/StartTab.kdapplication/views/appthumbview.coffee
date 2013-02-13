@@ -45,20 +45,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
       size          :
         width       : 40
 
-    @compile = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "icon compile"
-      tooltip  :
-        title  : "Click to compile"
-        offset :
-          top  : 4
-          left : -5
-      click    : =>
-        @showLoader()
-        @getSingleton("kodingAppsController").compileApp manifest.name, (err)=>
-          @hideLoader()
-        no
-
     @info = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "icon info"
@@ -98,7 +84,42 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 diameter : 16
               callback   : => @appDeleteCall manifest
 
-    @setClass "dev-mode" if @getData().devMode
+    if @getData().devMode
+      @compile = new KDCustomHTMLView
+        tagName  : "span"
+        cssClass : "icon compile"
+        tooltip  :
+          title  : "Click to compile"
+          offset :
+            top  : 4
+            left : -5
+        click    : =>
+          @showLoader()
+          @getSingleton("kodingAppsController").compileApp \
+            manifest.name, (err)=>
+              @hideLoader()
+          no
+
+      @devModeView = new KDCustomHTMLView
+        partial  : "Dev Mode"
+        cssClass : "dev-mode"
+        tooltip  :
+          title  : "Dev-Mode enabled, click for help."
+        click    : =>
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Dev Mode"
+            content  : __utils.expandUrls """<div class='modalformline'><p>
+                          If you set <code>devMode</code> to <code>true</code>
+                          in the <code>.manifest</code> file, you can compile
+                          this app on the Koding Application servers. When you
+                          compile your app, shared resources like stylesheets
+                          or images in your app will be served from
+                          #{resourceRoot} </p></div>"""
+    else
+      @compile     = new KDView
+      @devModeView = new KDView
 
   appDeleteCall:(manifest)->
     finder = @getSingleton("finderController").treeController
@@ -126,7 +147,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   click:(event)->
 
-    return if $(event.target).closest('.icon-container').length > 0
+    return if $(event.target).closest('.icon-container').length > 0 or \
+              $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
     @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
@@ -143,6 +165,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   pistachio:->
     """
+      {{> @devModeView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}

@@ -37,7 +37,7 @@ else
     kite_applications:
       pattern: 'kite-application'
     kite_databases:
-      pattern: 'kite-application'
+      pattern: 'kite-database'
     webserver:
       pattern: 'web'
     worker_social:
@@ -102,7 +102,7 @@ else
     startTime = Date.now()
     JActivityCache.latest (err, cache)->
       if err then console.warn err
-      console.log "latest: #{Date.now() - startTime} msecs!"
+      # console.log "latest: #{Date.now() - startTime} msecs!"
       return res.send if cache then cache.data else {}
 
   app.get "/-/cache/before/:timestamp", (req, res)->
@@ -178,7 +178,6 @@ else
   app.get "/-/api/user/:username/flags/:flag", (req, res)->
     {username, flag} = req.params
     {JAccount}       = koding.models
-
     JAccount.one "profile.nickname" : username, (err, account)->
       if err or not account
         state = false

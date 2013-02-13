@@ -1,0 +1,29 @@
+{
+  "attributes": {
+  },
+  "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "version": "0.1.0",
+  "suggestions": {
+  },
+  "groupings": {
+  },
+  "replacing": {
+  },
+  "recommendations": {
+  },
+  "description": "Installs/Configures aws-sdk",
+  "platforms": {
+  },
+  "maintainer_email": "aleksey@koding.com",
+  "providing": {
+  },
+  "license": "All rights reserved",
+  "recipes": {
+  },
+  "dependencies": {
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "conflicting": {
+  },
+  "name": "aws-sdk"
+}
