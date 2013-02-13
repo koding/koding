@@ -13,7 +13,6 @@ cookbook_versions({
     "nodejs"        => "0.1.0",
     "ohai"          => "1.1.6",
     "rabbitmq"      => "1.7.0",
-    "supervisord"   => "0.1.0",
     "users"         => "1.3.0",
     "yum"           => "2.0.6",
     "kd_deploy"     => "0.1.1",

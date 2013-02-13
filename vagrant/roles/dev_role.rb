@@ -1,7 +1,7 @@
 name "dev_server"
 description "The  role for dev servers"
 
-run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]", "recipe[supervisord]",
+run_list ["recipe[nginx]","recipe[nginx::koding_local]", "recipe[nodejs]","recipe[golang]",
             "recipe[rabbitmq]",
             "recipe[rabbitmq::mgmt_console]",
             "recipe[rabbitmq::third_party_plugins]",

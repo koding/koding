@@ -6,7 +6,6 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
                                     "recipe[kd_deploy::nginx_conf]",
                                     "recipe[nodejs]",
                                     "recipe[golang]",
-                                    "recipe[supervisord]",
                                     "recipe[papertrail]",
                                     "recipe[kd_deploy]"
                                    ],
