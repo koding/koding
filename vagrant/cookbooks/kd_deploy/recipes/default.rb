@@ -7,6 +7,20 @@
 # All rights reserved - Do Not Redistribute
 #
 
+apt_package "supervisor" do
+    action :purge
+end
+execute "kill_kd" do
+    command "killall -u koding"
+    action :nothing
+    subscribes :run, resources(:apt_package => "supervisor" ), :immediately
+end
+
+directory "/etc/supervisor/" do
+    recursive true
+    action :delete
+end
+
 include_recipe "kd_deploy::run_user"
 include_recipe "kd_deploy::packages"
 include_recipe "kd_deploy::rabbit_host"
@@ -14,3 +28,4 @@ include_recipe "kd_deploy::deploy"
 include_recipe "kd_deploy::build_modules"
 include_recipe "kd_deploy::build_gosrc"
 include_recipe "kd_deploy::start_services"
+include_recipe "kd_deploy::logs"
