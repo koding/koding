@@ -10,7 +10,7 @@ include_recipe "apt::ceph"
 
 include_recipe "ceph::ohai_plugin"
 
-include_recipe "ceph::ssh_keys"
+# include_recipe "ceph::ssh_keys"
 
 include_recipe "ceph::server_cfg"
 

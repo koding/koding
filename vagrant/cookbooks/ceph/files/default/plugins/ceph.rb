@@ -20,7 +20,7 @@ ceph_types = %w( mon osd )
 AWS.memoize do
     ceph_types.each do |type|
         ec2.instances.filter('instance-state-name', 'running').filter('tag-key', 'CephType').filter('tag-value', type).each do |instance|
-            nodes.push({:id => instance.id, :addr => instance.private_ip_address, :CephID => instance.tags[:CephID] })
+            nodes.push({:id => instance.id, :addr => instance.private_ip_address, :CephID => instance.tags[:CephID], :hostname => instance.tags[:Name] })
         end
         ceph["#{type}_nodes"] = nodes
         nodes.clear

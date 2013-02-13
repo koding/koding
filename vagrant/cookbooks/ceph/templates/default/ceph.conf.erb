@@ -21,7 +21,7 @@
 <% @mon_nodes.each do |mon_node| -%>
 [mon.<%= mon_node[:CephID] %>]
     # instance ID <%= mon_node[:id] %>
-    # hostname <%= @hostname %>
+    host = <%= mon_node[:hostname] %>
     mon addr = <%= mon_node[:addr] %>:6789
 
 <% end -%>
@@ -29,7 +29,7 @@
 <% @osd_nodes.each do |osd_node| -%>
 [osd.<%= osd_node[:CephID] %>]
     # instance ID <%= osd_node[:id] %>
-    host = <%= @hostname %>
+    host = <%= osd_node[:hostname] %>
 
 <% end -%>
 
