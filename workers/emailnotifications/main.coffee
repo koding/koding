@@ -143,7 +143,7 @@ prepareEmail = (notification, daily = no, cb)->
           console.error "Could not load user record"
           callback err
         else
-          if not daily and state isnt 'on'
+          if not daily and state isnt true
             # log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
@@ -229,7 +229,7 @@ dailyEmails = ->
   today.setMinutes 0
   yesterday = today
 
-  JUser.each {"emailFrequency.daily": "on"}, {}, (err, user)->
+  JUser.each {"emailFrequency.daily": true}, {}, (err, user)->
     if err then console.error err
     else
       if user
