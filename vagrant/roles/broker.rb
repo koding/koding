@@ -24,7 +24,8 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
 
 default_attributes({
                      "launch" => {
-                                "programs" => ["goBroker"]
+                                "programs" => ["goBroker"],
+                                "build_gosrc" => true
                      },
                      "log" => {
                                 "files" => ["/var/log/goBroker.log"]       
