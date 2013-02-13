@@ -14,7 +14,7 @@ cookbook_versions({
     "rabbitmq"      => "1.7.0",
     "users"         => "1.3.0",
     "yum"           => "2.0.6",
-    "kd_deploy"     => "0.1.2",
+    "kd_deploy"     => "0.1.3",
     "ntp"           => "1.3.2"
 })
 
