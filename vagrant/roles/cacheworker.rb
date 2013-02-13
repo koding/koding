@@ -26,7 +26,7 @@ default_attributes({
                                 "programs" => ["cacheWorker"]
                      },
                      "log" => {
-                                "files" => ["/var/log/cacheWorker.log"]       
+                                "files" => ["/var/log/upstart/cacheWorker.log"]       
                      }
                      
 })

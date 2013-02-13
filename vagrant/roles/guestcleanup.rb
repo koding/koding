@@ -27,7 +27,7 @@ default_attributes({
                                 "programs" => ["guestCleanup"]
                      },
                      "log" => {
-                                "files" => ["/var/log/guestCleanup.log"]       
+                                "files" => ["/var/log/upstart/guestCleanup.log"]       
                      }
 
 })
