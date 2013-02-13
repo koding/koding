@@ -609,12 +609,12 @@ class GroupsAppController extends AppController
     groupView.assureTab tabName, konstructor
 
   handleMembershipPolicyTabs:(policy, group, view)->
-    if policy.invitationsEnabled
+    if policy.invitationsEnabled and not view.tabView.getPaneByName 'Invitations'
       @showInvitationsTab group, view
     else
       @hideInvitationsTab view
 
-    if policy.approvalEnabled
+    if policy.approvalEnabled and not view.tabView.getPaneByName 'Approvals'
       @showApprovalTab group, view
     else
       @hideApprovalTab view
