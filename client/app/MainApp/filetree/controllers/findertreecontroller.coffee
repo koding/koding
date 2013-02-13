@@ -171,13 +171,13 @@ class NFinderTreeController extends JTreeViewController
       callback? nodeView
       @emit "folder.expanded", nodeView.getData()
       @emit 'fs.retry.success'
+      @hideNotification()
 
     folder = nodeView.getData()
 
     folder.failTimer = @utils.wait 5000, =>
       @notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
-      @once 'fs.retry.scheduled', =>
-        @expandFolder nodeView, callback
+      @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
       folder.emit "fs.nothing.finished", []
       cb.cancel()
 
@@ -700,6 +700,9 @@ class NFinderTreeController extends JTreeViewController
 
   notification = null
 
+  hideNotification: ->
+    notification.destroy() if notification
+
   notify:(msg, style, details, reconnect=no)->
 
     return unless @getView().parent?
@@ -727,8 +730,9 @@ class NFinderTreeController extends JTreeViewController
           notification.notificationSetTitle 'Attempting to fetch files'
           notification.notificationSetPositions()
           notification.setClass 'loading'
-          @once 'fs.retry.success', =>
-            notification.destroy()
+
+          @utils.wait 6000, notification.bound "destroy"
+          @once 'fs.retry.success', notification.bound "destroy"
           return
 
         if notification.getOptions().details

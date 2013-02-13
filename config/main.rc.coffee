@@ -3,10 +3,14 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
+
+# RabbitMQ Host
+rabbit_host = fs.readFileSync '/etc/rabbit_host', 'utf-8'
+rabbit_host = rabbit_host.trim()
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -28,7 +32,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 10
+    clusterSize : 2
     queueName   : socialQueueName+'web'
     watch       : no
   mongo         : mongo
@@ -59,16 +63,21 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : no
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 10
+    numberOfWorkers: 2
     watch       : no
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -76,7 +85,7 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : yes
     watch       : no
@@ -93,15 +102,15 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://rc.koding.com'
       broker    :
-        sockJS  : 'https://br.koding.com/subscribe'
+        sockJS  : 'https://brc.koding.com/subscribe'
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'rabbit0.prod.aws.koding.com'
+    host        : rabbit_host
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
   kites:
@@ -124,12 +133,12 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.prod.aws.koding.com'
+      host          : rabbit_host
       login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
+      password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
-    push: no
+    push: yes
     url: "http://post.loggr.net/1/logs/koding/events"
     apiKey: "eb65f620b72044118015d33b4177f805"
   librato:

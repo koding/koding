@@ -1,10 +1,12 @@
 
-class AppStorage
+class AppStorage extends KDEventEmitter
 
   constructor: (appId, version)->
     @_applicationID = appId
     @_applicationVersion = version
     @_storage = null
+
+    super
 
   fetchStorage: (callback = noop)->
 
@@ -12,10 +14,12 @@ class AppStorage
       appManager.fetchStorage @_applicationID, @_applicationVersion, (error, storage)=>
         if not error
           callback @_storage = storage
+          @emit "storageFetched"
         else
           callback null
     else
       callback @_storage
+      KD.utils.defer => @emit "storageFetched"
 
   fetchValue: (key, callback, group = 'bucket')->
 
