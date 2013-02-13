@@ -651,17 +651,19 @@
       // padding 10px 10px 10px 10px
       padding 10px 0 0 0
     .edit
+      margin-top 10px
       borderBox()
       width 100%
-      min-height 100px
+      min-height 200px
       max-height 400px
       .preview_content
         padding 10px
     .button-bar
-      margin-bottom 10px
+      margin-top 10px
+      margin-bottom 5px
       text-align right
       width auto
-      opacity 0.666
+      opacity 0.95
       vendor transition, opacity 0.2s linear
       &:hover
         opacity 1
@@ -680,6 +682,54 @@
     borderBox()
     height auto
     padding 0px 20px
+
+    .kdtabhandlecontainer
+      padding-top           0
+      background            linear-gradient(top, #555 0%,#666 93.7%)
+      height                22px
+      padding               0 10px
+      shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      borderBox()
+      .kdtabhandle
+        // border              1px solid transparent
+        border-width        0
+        height              21px
+        line-height         21px
+        color               #ddd
+        font-size           11px
+        padding             0 10px
+        min-width           100px
+        width               auto!important
+        borderBox()
+        rounded(0)
+        b
+          margin-right      0
+        &.active
+          // border-color      #ccc
+          height            21px
+          background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+          color             #fff
+          text-shadow       0 -1px 0 rgba(0,0,0,.05)
+          shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+          b
+            font-weight       600
+
+    .Membership.Policy
+      h2
+        margin-top 10px
+        padding-left 0
+
+        font-size 13px
+      p
+        margin-top 5px
+        margin-bottom 10px
+        padding-left 20px
+
+      .formline > span
+        margin-left 20px
+      div.on-off
+        margin-left 20px
+        margin-top 5px
 
     .permissions-view
       .add-role-dialog
