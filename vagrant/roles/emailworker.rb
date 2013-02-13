@@ -4,7 +4,6 @@ description "The  role for emailWorker servers"
 env_run_lists "prod-webstack-a" => ["role[base_server]",
                                     "recipe[nodejs]",
                                     "recipe[golang]",
-                                    "recipe[supervisord]",
                                     "recipe[papertrail]",
                                     "recipe[kd_deploy]"
                                    ],
