@@ -16,7 +16,8 @@ cookbook_versions({
     "users"         => "1.3.0",
     "yum"           => "2.0.6",
     "kd_deploy"     => "0.1.1",
-    "ntp"           => "1.3.2"
+    "ntp"           => "1.3.2",
+    "ceph"          => "0.1.0"
 })
 
 
