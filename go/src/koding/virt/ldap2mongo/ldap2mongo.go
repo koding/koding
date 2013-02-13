@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/tools/db"
-	"koding/tools/utils"
+	"koding/tools/lifecycle"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"os/user"
@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	utils.Startup("ldap2mongodb", false)
+	lifecycle.Startup("ldap2mongodb", false)
 
 	iter := db.Users.Find(nil).Iter()
 	var mongoUser virt.User
@@ -22,7 +22,7 @@ func main() {
 			continue
 		}
 		uid, _ := strconv.Atoi(sysUser.Uid)
-		db.Users.UpdateId(mongoUser.ObjectId, bson.M{"$set": bson.M{"uid": uid}})
+		db.Users.UpdateId(mongoUser.ObjectId, bson.M{"$set": bson.M{"uid": uid + virt.UserIdOffset}})
 	}
 	if iter.Err() != nil {
 		panic(iter.Err())

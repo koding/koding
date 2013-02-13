@@ -28,6 +28,7 @@ type UserEntry struct {
 	Sudo bool          `bson:"sudo"`
 }
 
+const UserIdOffset = 1000000
 const RootIdOffset = 50000000
 
 var templateDir string

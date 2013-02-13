@@ -212,8 +212,8 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
 		panic(err)
 	}
-	if user.Uid == 0 {
-		panic("User with uid 0.")
+	if user.Uid < virt.UserIdOffset {
+		panic("User with too low uid.")
 	}
 	vm := getDefaultVM(&user)
 

@@ -177,8 +177,8 @@ func findUserInFilter(filter *ber.Packet) (*virt.User, error) {
 func findUser(query interface{}) (*virt.User, error) {
 	var user virt.User
 	err := db.Users.Find(query).One(&user)
-	if err == nil && user.Uid == 0 {
-		panic("User lookup returned uid 0.")
+	if err == nil && user.Uid < virt.UserIdOffset {
+		panic("User with too low uid.")
 	}
 	return &user, err
 }
