@@ -654,7 +654,7 @@ class GroupsAppController extends AppController
       groupView.lazyBound 'assureTab', 'Settings', GroupGeneralSettingsView
 
     groupView.on 'PermissionsSelected',
-      groupView.lazyBound 'assureTab', 'Permissions', GroupPermissionsView
+      groupView.lazyBound 'assureTab', 'Permissions', GroupPermissionsView, {delegate : groupView}
 
     groupView.on 'MembersSelected',
       groupView.lazyBound 'assureTab', 'Members', GroupsMemberPermissionsView
