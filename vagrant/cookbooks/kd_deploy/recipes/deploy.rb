@@ -46,7 +46,7 @@ node['launch']['programs'].each do |kd_name|
     prog_name = kd_name.gsub(/\s+/,"_")
     service "#{prog_name}" do
         action :nothing
-        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
+        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :delayed
         provider Chef::Provider::Service::Upstart
     end
 end
