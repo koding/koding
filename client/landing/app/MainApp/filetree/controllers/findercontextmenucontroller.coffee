@@ -12,9 +12,10 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
-        when "file"    then @getFileMenu fileView
-        when "folder"  then @getFolderMenu fileView
-        when "mount"   then @getMountMenu fileView
+        when "file"       then @getFileMenu fileView
+        when "folder"     then @getFolderMenu fileView
+        when "mount"      then @getMountMenu fileView
+        when "brokenLink" then @getBrokenLinkMenu fileView
         # when "section" then @getSectionMenu fileData
 
   getContextMenu:(fileViews, event)->
@@ -189,6 +190,14 @@ class NFinderContextMenuController extends KDController
 
     return items
 
+  getBrokenLinkMenu:(fileView)->
+
+    fileData   = fileView.getData()
+    items      =
+      Delete   :
+        action : 'delete'
+
+    items
 
   getMountMenu:(fileView)->
 

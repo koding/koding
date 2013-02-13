@@ -1,4 +1,4 @@
-@KDApps = {}
+KDApps = {}
 
 class KodingAppsController extends KDController
 
@@ -33,7 +33,6 @@ class KodingAppsController extends KDController
     json = JSON.stringify raw, null, 2
 
   @manifests = {}
-
 
   # #
   # HELPERS
@@ -92,38 +91,45 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-      if err
-        @putAppsToAppStorage {}
-        warn err
-        callback err
-      else
-        files = FSHelper.parseLsOutput [path], response
-        apps  = []
-        stack = []
+    @kiteController.run "ls #{escapeFilePath path} -lpva", \
+      KD.utils.getTimedOutCallback (err, response)=>
+        if err
+          @putAppsToAppStorage {}
+          warn err
+          callback err
+        else
+          files = FSHelper.parseLsOutput [path], response
+          apps  = []
+          stack = []
 
-        files.forEach (file)->
-          if /\.kdapp$/.test file.name
-            apps.push file
+          files.forEach (file)->
+            if /\.kdapp$/.test file.name
+              apps.push file
 
-        apps.forEach (app)=>
-          stack.push (cb)=>
-            manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-            manifestFile.fetchContents (err, response)->
-              cb null, response # shadowing the error is intentional here to not to break the results of the stack
+          apps.forEach (app)=>
+            stack.push (cb)=>
+              manifestFile = if app.type is "folder" then \
+                FSHelper.createFileFromPath "#{app.path}/.manifest" else app
+              manifestFile.fetchContents (err, response)->
+                # shadowing the error is intentional here
+                # to not to break the results of the stack
+                cb null, response
 
-        manifests = @constructor.manifests
-        async.parallel stack, (err, results)=>
-          warn err if err
-          results.forEach (rawManifest)->
-            if rawManifest
-              try
-                manifest = JSON.parse rawManifest
-                manifests["#{manifest.name}"] = manifest
-              catch e
-                console.warn "Manifest file is broken", e
-          @putAppsToAppStorage manifests
-          callback? null, manifests
+          manifests = @constructor.manifests
+          async.parallel stack, (err, results)=>
+            warn err if err
+            results.forEach (rawManifest)->
+              if rawManifest
+                try
+                  manifest = JSON.parse rawManifest
+                  manifests["#{manifest.name}"] = manifest
+                catch e
+                  console.warn "Manifest file is broken", e
+            @putAppsToAppStorage manifests
+            callback? null, manifests
+      , ->
+        log "Timeout reached for kite request"
+        callback()
 
   fetchAppsFromDb:(callback)->
 
@@ -162,7 +168,8 @@ class KodingAppsController extends KDController
     @constructor.manifests = {}
     KDApps = {}
     @fetchAppsFromFs (err, apps)=>
-      @emit "AppsRefreshed", apps
+      @appStorage.fetchStorage =>
+        @emit "AppsRefreshed", apps
       if not err
         callback? err, apps
       else
@@ -371,11 +378,10 @@ class KodingAppsController extends KDController
               warn err
               callback? err
             else
-              log app, "app published"
-              appManager.openApplication "Apps", yes, (instance)=>
-                @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
-                callback?()
-
+              # log app, "app published"
+              appManager.openApplication "Apps"
+              appManager.tell "Apps", "updateApps"
+              callback?()
 
   approveApp:(app, callback)->
 

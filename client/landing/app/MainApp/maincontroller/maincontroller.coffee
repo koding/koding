@@ -82,6 +82,7 @@ class MainController extends KDController
     else @once 'AccountChanged', fn
 
   accountChanged:(account)->
+
     @userAccount = account
     @accountReadyState = 1
 
@@ -110,11 +111,8 @@ class MainController extends KDController
     else
       $('body').removeClass 'super'
 
-    if @isUserLoggedIn()
-      # appManager.quitAll =>
-      @createLoggedInState account
-    else
-      @createLoggedOutState account
+    if @isUserLoggedIn() then @createLoggedInState account
+    else @createLoggedOutState account
 
   createLoggedOutState:(account)->
 

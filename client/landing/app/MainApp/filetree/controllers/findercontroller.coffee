@@ -16,7 +16,6 @@ class NFinderController extends KDViewController
     treeOptions.putDepthInfo      = options.putDepthInfo       ?= yes
     treeOptions.contextMenu       = options.contextMenu        ?= yes
     treeOptions.fsListeners       = options.fsListeners        ?= no
-    treeOptions.initialPath       = options.initialPath        ?= "/Users/#{nickname}"
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.initDelay         = options.initDelay         or= 0
     treeOptions.useStorage        = options.useStorage         ?= no
@@ -25,6 +24,7 @@ class NFinderController extends KDViewController
     super options, data
 
     @kiteController = @getSingleton('kiteController')
+    @appStorage     = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
 
     @treeController = new NFinderTreeController treeOptions, []
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
@@ -38,44 +38,45 @@ class NFinderController extends KDViewController
     @viewLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
-
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
       @getSingleton("mainView").sidebar._windowDidResize()
 
-#    if @treeController.getOptions().useStorage
-#      appManager.on "AppManagerOpensAnApplication", (appInst)=>
-#        if appInst instanceof StartTabAppController and not @defaultStructureLoaded
-#          @loadDefaultStructure()
+  expandInitialPath:(path)->
+    pathArray = []
+    path      = path.split "/"
+    temp      = ''
 
-    # if @treeController.getOptions().useStorage
-    #   @loadDefaultStructure()
+    pathArray = (temp += "/#{chunk}" for chunk in path when chunk)
+
+    pathArray.splice 0, 1 # getting rid of /Users folder
+
+    return pathArray
+
+  resetInitialPath:->
+    {nickname}  = KD.whoami().profile
+    initialPath   = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website"
+    @initialPath  = @expandInitialPath initialPath
 
   reset:()->
 
-    delete @_storage
-    {initialPath} = @treeController.getOptions() # not used, fix this
-
-    @mount = if KD.isLoggedIn()
+    @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
+    @appStorage.once "storageFetched", =>
       {nickname}    = KD.whoami().profile
-      FSHelper.createFile
-        name        : nickname
+      @mount        = FSHelper.createFile
+        name        : nickname.toLowerCase()
         path        : "/Users/#{nickname}"
         type        : "mount"
-    else
-      FSHelper.createFile
-        name        : "guest"
-        path        : "/Users/guest"
-        type        : "mount"
-    @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
 
-    if @treeController.getOptions().useStorage
-      unless @viewLoaded
-        @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+      @defaultStructureLoaded = no
+      @treeController.initTree [@mount]
+
+      if @treeController.getOptions().useStorage
+        unless @viewLoaded
+          @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+            @loadDefaultStructure()
+        else
           @loadDefaultStructure()
-      else
-        @loadDefaultStructure()
 
   loadDefaultStructure:->
 
@@ -86,24 +87,18 @@ class NFinderController extends KDViewController
     return unless KD.isLoggedIn()
     {nickname}     = KD.whoami().profile
     kiteController = KD.getSingleton('kiteController')
-    @fetchStorage (storage)=>
-      recentFolders = if storage.bucket?.recentFolders? and storage.bucket.recentFolders.length > 0
-        storage.bucket.recentFolders
-      else
-        [
-          "/Users/#{nickname}"
-          "/Users/#{nickname}/Sites"
-          "/Users/#{nickname}/Sites/#{nickname}.koding.com"
-          "/Users/#{nickname}/Sites/#{nickname}.koding.com/website"
-        ]
+    @appStorage.fetchValue 'recentFolders', (recentFolders)=>
+
+      unless Array.isArray recentFolders
+        @resetInitialPath()  unless @initialPath
+        recentFolders = @initialPath
 
       timer = Date.now()
-      # @utils.wait =>
-      # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       @mount.emit "fs.fetchContents.started"
 
       @utils.killWait kiteFailureTimer if kiteFailureTimer
+
       kiteFailureTimer = @utils.wait 5000, =>
         @treeController.notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
         @mount.emit "fs.fetchContents.finished"
@@ -112,78 +107,66 @@ class NFinderController extends KDViewController
           @defaultStructureLoaded = no
           @loadDefaultStructure()
 
+      if recentFolders.length is 0
+        return log "recentFolders", recentFolders.length
+
       @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
           @utils.killWait kiteFailureTimer
           @treeController.addNodes files
-          @treecontroller?.emit 'fs.retry.success'
+          @treeController.emit 'fs.retry.success'
+          @treeController.hideNotification()
+
 
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller
         kiteController.emit "UserEnvironmentIsCreated"
         @mount.emit "fs.fetchContents.finished"
 
-
   multipleLs:(pathArray, callback)->
 
     KD.getSingleton('kiteController').run
       withArgs  :
-        command : "ls \"#{pathArray.join("\" \"")}\" -lpva --group-directories-first --time-style=full-iso"
+        command : "ls \"#{pathArray.join("\" \"")}\" -Llpva --group-directories-first --time-style=full-iso"
     , callback
-
-  fetchStorage:(callback)->
-
-    unless @_storage
-      appManager.fetchStorage 'Finder', '1.0', (error, storage) =>
-        callback @_storage = storage
-    else
-      callback @_storage
 
   setRecentFile:(filePath, callback)->
 
-    @fetchStorage (storage)=>
-      # recentFiles = storage.getAt('bucket.recentFiles') or []
-      recentFiles = if storage.bucket?.recentFiles? then storage.bucket.recentFiles else []
-      unless filePath in recentFiles
-        recentFiles.pop() if recentFiles.length is @treeController.getOptions().maxRecentFiles
-        recentFiles.unshift filePath
+    recentFiles = @appStorage.getValue('recentFiles')
+    recentFiles = [] unless Array.isArray recentFiles
 
-      storage.update {
-        $set: 'bucket.recentFiles': recentFiles.slice(0,10)
-      }, callback
+    unless filePath in recentFiles
+      recentFiles.pop() if recentFiles.length is @treeController.getOptions().maxRecentFiles
+      recentFiles.unshift filePath
+
+    @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
+      @emit 'recentfiles.updated', recentFiles
 
   setRecentFolder:(folderPath, callback)->
 
-    @fetchStorage (storage)=>
+    recentFolders = @appStorage.getValue('recentFolders')
+    recentFolders = [] unless Array.isArray recentFolders
 
-      recentFolders = if storage.bucket?.recentFolders? then storage.bucket.recentFolders else []
+    unless folderPath in recentFolders
+      recentFolders.push folderPath
 
-      unless folderPath in recentFolders
-        recentFolders.push folderPath
+    recentFolders.sort (path)-> if path is folderPath then -1 else 0
 
-      recentFolders.sort (path)-> if path is folderPath then -1 else 0
-
-      storage.update {
-        $set: 'bucket.recentFolders': recentFolders
-      }, => #log "recentFolder set"
+    @appStorage.setValue 'recentFolders', recentFolders, callback
 
   unsetRecentFolder:(folderPath, callback)->
 
-    @fetchStorage (storage)=>
+    recentFolders = @appStorage.getValue('recentFolders')
+    recentFolders = [] unless Array.isArray recentFolders
 
-      recentFolders = if storage.bucket?.recentFolders? then storage.bucket.recentFolders else []
+    splicer = ->
+      recentFolders.forEach (recentFolderPath)->
+        if recentFolderPath.search(folderPath) > -1
+          recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
+          splicer()
+          return
+    splicer()
 
-      splicer = ->
-        recentFolders.forEach (recentFolderPath)->
-          if recentFolderPath.search(folderPath) > -1
-            recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
-            splicer()
-            return
-
-      splicer()
-      recentFolders.sort (path)-> if path is folderPath then -1 else 0
-
-      storage.update {
-        $set: 'bucket.recentFolders': recentFolders
-      }, => #log "recentFolder unset"
+    recentFolders.sort (path)-> if path is folderPath then -1 else 0
+    @appStorage.setValue 'recentFolders', recentFolders, callback
