@@ -420,6 +420,38 @@ __utils =
     kallback.cancel = -> cancelled = yes
     kallback
 
+  # ~ GG
+  # Returns a new callback which calls the failcallback if
+  # first callback not finish its job in given timeout
+  #
+  # Usage:
+  #
+  # Let assume that you have this:
+  #
+  #   asyncFunc (data)->
+  #     doSomethingWith data
+  #
+  # To set a timeout for it eg. 500ms:
+  #
+  #   asyncFunc getTimedOutCallBack (data)->
+  #     doSomethingWith data
+  #   , 500
+  #   , ->
+  #     console.log "asyncFunc is not responded in 500ms."
+  #
+  getTimedOutCallback:(callback, timeout, failcallback)->
+    cancelled = no
+    kallback  = (rest...)->
+      clearTimeout fallbackTimer
+      callback rest...  unless cancelled
+
+    fallback = (rest...)->
+      failcallback rest...  unless cancelled
+      cancelled = yes
+
+    fallbackTimer = setTimeout fallback, timeout
+    kallback
+
   ###
   password-generator
   Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>

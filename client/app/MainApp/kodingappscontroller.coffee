@@ -90,9 +90,9 @@ class KodingAppsController extends KDController
   fetchAppsFromFs:(callback)->
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
-    KD.utils.wait 6000, callback
 
-    @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
+    @kiteController.run "ls #{escapeFilePath path} -lpva", \
+    KD.utils.getTimedOutCallback (err, response)=>
       if err
         @putAppsToAppStorage {}
         warn err
@@ -124,6 +124,9 @@ class KodingAppsController extends KDController
                 console.warn "Manifest file is broken", e
           @putAppsToAppStorage manifests
           callback? null, manifests
+    , 5000, ->
+      log "Timeout reached for kite request"
+      callback()
 
   fetchAppsFromDb:(callback)->
 
