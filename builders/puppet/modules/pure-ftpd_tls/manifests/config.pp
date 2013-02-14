@@ -19,10 +19,8 @@ class pure-ftpd_tls::config {
         owner   => 'root',
         group   => 'root',
         mode => 0400,
-        source  => "puppet:///modules/pure-ftpd_tls/etc/pki/pure-ftpd/pure-ftpd.pem",
+        source  => "puppet:///modules/pure-ftpd_tls/etc/pki/pure-ftpd/pure-ftpd_new.pem",
         require => Class["pure-ftpd_tls::install"],
         notify  => Class["pure-ftpd_tls::service"],
     }
-    
-
 }

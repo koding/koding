@@ -3,10 +3,13 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
+
+# RabbitMQ Host
+rabbit_host = 'rabbit-a.prod.aws.koding.com'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -71,7 +74,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
   feeder        :
@@ -81,7 +84,7 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : yes
     watch       : no
@@ -103,7 +106,7 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://app.koding.com'
   mq            :
-    host        : 'rabbit0.prod.aws.koding.com'
+    host        : rabbit_host
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
@@ -129,7 +132,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'rabbit0.prod.aws.koding.com'
+      host          : rabbit_host
       login         : 'PROD-k5it50s4676pO9O'
       password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'

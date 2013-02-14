@@ -24,7 +24,7 @@ class KDEventEmitter
     # listener callbacks.
     else if callback and registry[eventName]
       cbIndex = registry[eventName].indexOf callback
-      registry[eventName].splice 1, cbIndex if cbIndex >= 0
+      registry[eventName].splice cbIndex, 1 if cbIndex >= 0
     else
       registry[eventName] = []
 
@@ -80,7 +80,7 @@ class KDEventEmitter
   once:(eventName, callback) ->
     _callback = =>
       args = [].slice.call arguments
-      @unsubscribe eventName, _callback
+      @off eventName, _callback
       callback.apply @, args
 
     @on eventName, _callback

@@ -263,10 +263,14 @@ class LoginView extends KDScrollView
   doRegister:(formData)->
     {kodingenUser} = formData
     formData.agree = 'on'
+    @registerForm.notificationsDisabled = yes
+    @registerForm.notification?.destroy()
+
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
       @registerForm.button.hideLoader()
       if error
         {message} = error
+        @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
         $.cookie 'clientId', replacementToken

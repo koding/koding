@@ -36,20 +36,18 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    ssh_wrapper       "/tmp/private_code/wrap-ssh4git.sh"
    notifies          :run, "execute[build_modules]", :immediately
    notifies          :run, "execute[build_gosrc]", :immediately
+   notifies          :run, "execute[build_client]", :immediately
    symlink_before_migrate.clear
    create_dirs_before_symlink.clear
    purge_before_symlink.clear
    symlinks.clear
 end
 
-execute "killall_u_koding" do
-    command "/usr/bin/killall -u koding -9"
-    action :nothing
-    returns [0, 1]
-    subscribes :run, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
-end
-
-execute "/usr/bin/supervisorctl start all" do
-    action :nothing
-    subscribes :run, resources(:execute => "killall_u_koding" ), :immediately
+node['launch']['programs'].each do |kd_name|
+    prog_name = kd_name.gsub(/\s+/,"_")
+    service "#{prog_name}" do
+        action :nothing
+        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :delayed
+        provider Chef::Provider::Service::Upstart
+    end
 end

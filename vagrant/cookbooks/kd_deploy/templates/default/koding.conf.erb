@@ -25,6 +25,14 @@ server {
 }
 
 server {
+   # redirect https://www.* to https://elb
+
+   listen 80;
+   server_name www.<%= node['nginx']['server_name'] %>;
+   return 301 https://<%= node['nginx']['server_name'] %>$request_uri;
+}
+
+server {
     # requesrs from AWS ELB (browser -> https://elb -> http://)
 
     listen       80;
@@ -34,7 +42,9 @@ server {
     real_ip_header    X-Forwarded-For;
     real_ip_recursive on;
 
-    access_log off;
+    #access_log off;
+
+    access_log  <%= node['nginx']['log_dir'] %>/<%= node['nginx']['server_name'] %>.access.log;
     error_log  <%= node['nginx']['log_dir'] %>/<%= node['nginx']['server_name'] %>.error.log;
     autoindex off;
     server_tokens off;

@@ -27,11 +27,13 @@ processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + process.pid
   interval : 30000
+  librato: KONFIG.librato
   limit_hard  :
     memory   : 300
     callback : (name,msg,details)->
       console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
+  # WE'RE NOT SURE IF THIS SOFT LIMIT WAS A GOOD IDEA OR NOT
   # limit_soft:
   #   memory: 200
   #   callback: (name, msg, details) ->
@@ -41,28 +43,27 @@ processMonitor = (require 'processes-monitor').start
   #     setTimeout ->
   #       process.exit()
   #     , 20000
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-    middleware : (name,callback) -> koding.disconnect callback
-    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
-    # middleware : (name,callback) ->
-    #   koding.disconnect ->
-    #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
-    #     setTimeout ->
-    #       callback null
-    #     ,10*1000
-    middlewareTimeout : 15000
-  toobusy:
-    interval: 10000
-    callback: ->
-      console.log "[SOCIAL WORKER #{name}] I'm too busy, accepting no more new jobs."
-      process.send?({pid: process.pid, exiting: yes})
-      koding.disconnect()
-      setTimeout ->
-        process.exit()
-       , 20000
-
-  librato: KONFIG.librato
+  # DISABLED TO TEST MEMORY LEAKS
+  # die :
+  #   after: "non-overlapping, random, 3 digits prime-number of minutes"
+  #   middleware : (name,callback) -> koding.disconnect callback
+  #   # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+  #   # middleware : (name,callback) ->
+  #   #   koding.disconnect ->
+  #   #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+  #   #     setTimeout ->
+  #   #       callback null
+  #   #     ,10*1000
+  #   middlewareTimeout : 15000
+  # toobusy:
+  #   interval: 10000
+  #   callback: ->
+  #     console.log "[SOCIAL WORKER #{name}] I'm too busy, accepting no more new jobs."
+  #     process.send?({pid: process.pid, exiting: yes})
+  #     koding.disconnect()
+  #     setTimeout ->
+  #       process.exit()
+  #      , 20000
 
 koding = new Bongo
   root        : __dirname

@@ -12,6 +12,6 @@ template "#{node['nginx']['dir']}/sites-available/koding.conf" do
   notifies :reload, 'service[nginx]'
 end
 
-nginx_site 'koding.local' do
+nginx_site 'koding.conf' do
   enable true
 end

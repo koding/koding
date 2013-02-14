@@ -16,6 +16,7 @@
                     {fail_if_no_peer_cert,false}]},
 <% end %>
     {default_user, <<"<%= node['rabbitmq']['default_user'] %>">>},
-    {default_pass, <<"<%= node['rabbitmq']['default_pass'] %>">>}
+    {default_pass, <<"<%= node['rabbitmq']['default_pass'] %>">>},
+    {heartbeat, 10}
   ]}
 ].

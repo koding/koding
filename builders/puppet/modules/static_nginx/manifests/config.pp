@@ -52,5 +52,21 @@ class static_nginx::config {
         notify  => Class["static_nginx::service"],
         require => File["/etc/nginx/ssl"],
     }
-    
+####
+    file { "/etc/nginx/ssl/server_new.crt":
+        ensure => file,
+        mode   => '0600',
+        source => "puppet:///modules/static_nginx/etc/ssl/server_new.crt",
+        notify  => Class["static_nginx::service"],
+        require => File["/etc/nginx/ssl"],
+    }
+
+    file { "/etc/nginx/ssl/server_new.key":
+        ensure => file,
+        mode   => '0600',
+        source => "puppet:///modules/static_nginx/etc/ssl/server_new.key",
+        notify  => Class["static_nginx::service"],
+        require => File["/etc/nginx/ssl"],
+    }
+   
 }
