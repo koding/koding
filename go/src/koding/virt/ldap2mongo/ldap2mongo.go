@@ -13,7 +13,7 @@ import (
 func main() {
 	lifecycle.Startup("ldap2mongodb", false)
 
-	iter := db.Users.Find(nil).Iter()
+	iter := db.Users.Find(bson.M{"uid": nil}).Iter()
 	var mongoUser virt.User
 	for iter.Next(&mongoUser) {
 		sysUser, err := user.Lookup(mongoUser.Name)
