@@ -156,8 +156,8 @@ class GroupsMembershipPolicyView extends JView
     policyLanguageExists = policy.explanation
 
     @showPolicyLanguageLink = new CustomLinkView
-      cssClass  : if policyLanguageExists then 'hidden'
-      title     : 'Edit policy copy'
+      cssClass  : "edit-link #{if policyLanguageExists then 'hidden' else ''}"
+      title     : 'Edit'
       href      : './edit'
       click     :(event)=>
         event.preventDefault()
@@ -181,9 +181,9 @@ class GroupsMembershipPolicyView extends JView
 
   pistachio:->
     """
+      {{> @enableAccessRequests}}
     <section class="formline">
       <h2>Users may request access</h2>
-      {{> @enableAccessRequests}}
       <div class="formline">
         <p>If you disable this feature, users will not be able to request
         access to this group</p>
@@ -192,9 +192,9 @@ class GroupsMembershipPolicyView extends JView
         <span>Users may request access</span>
       </div>-->
     </section>
+      {{> @enableInvitations}}
     <section class="formline">
       <h2>Invitations</h2>
-      {{> @enableInvitations}}
       <div class="formline">
         <p>By enabling invitations, you will be able to send invitations to
         potential group members by their email address, you'll be able to grant
@@ -208,9 +208,9 @@ class GroupsMembershipPolicyView extends JView
         <span>Enable invitations</span>
       </div>-->
     </section>
+      {{> @enableWebhooks}}
     <section class="formline">
       <h2>Webhooks</h2>
-      {{> @enableWebhooks}}
       <div class="formline">
         <p>If you enable webhooks, then we will post some data to your webhooks
         when someone requests access to the group.  The business logic at your
@@ -223,6 +223,7 @@ class GroupsMembershipPolicyView extends JView
       {{> @webhook}}
       {{> @webhookEditor}}
     </section>
+      {{> @showPolicyLanguageLink}}
     <section class="formline">
       <h2>Policy language</h2>
       <div class="formline">
@@ -230,7 +231,6 @@ class GroupsMembershipPolicyView extends JView
         users better understand how they may become members of your group.</p>
         <p>If you wish, you may enter custom language below (markdown is OK):</p>
       </div>
-      {{> @showPolicyLanguageLink}}
       {{> @policyLanguageEditor}}
     </section>
     """

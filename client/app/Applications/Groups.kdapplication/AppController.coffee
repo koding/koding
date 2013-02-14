@@ -612,14 +612,17 @@ class GroupsAppController extends AppController
     if policy.invitationsEnabled
       unless view.tabView.getPaneByName 'Invitations'
         @showInvitationsTab group, view
-    else
-      @hideInvitationsTab view
-
-    if policy.approvalEnabled
       unless view.tabView.getPaneByName 'Approvals'
-        @showApprovalTab group, view
+        @hideApprovalTab view
     else
-      @hideApprovalTab view
+      if policy.approvalEnabled
+        unless view.tabView.getPaneByName 'Approvals'
+          @showApprovalTab group, view
+        unless view.tabView.getPaneByName 'Invitations'
+          @hideInvitationsTab view
+      else
+        @hideInvitationsTab view
+        @hideApprovalTab view
 
   prepareMembershipPolicyTab:(group, view)->
     view.tabView.hide()
