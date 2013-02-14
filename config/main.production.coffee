@@ -74,7 +74,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
   feeder        :
@@ -86,7 +86,7 @@ module.exports = deepFreeze
   client        :
     pistachios  : no
     version     : version
-    minify      : no
+    minify      : yes
     watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
