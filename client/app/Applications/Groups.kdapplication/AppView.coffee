@@ -14,7 +14,7 @@ class GroupsWebhookView extends JView
 
   constructor:->
     super
-
+    @setClass 'webhook'
     @editLink = new CustomLinkView
       href    : '#'
       title   : 'Edit webhook'
@@ -29,6 +29,8 @@ class GroupsEditableWebhookView extends JView
 
   constructor:->
     super
+
+    @setClass 'editable-webhook'
 
     @webhookEndpointLabel = new KDLabelView title: "Webhook endpoint"
 
@@ -61,9 +63,14 @@ class GroupsMembershipPolicyLanguageEditor extends JView
 
   constructor:->
     super
+    @setClass 'policylanguage-editor'
     policy = @getData()
 
+    @editorLabel = new KDLabelView
+      title : 'Custom Policy Language'
+
     @editor = new KDInputView
+      label         : @editorLabel
       type          : 'textarea'
       defaultValue  : policy.explanation
       keydown       : => @saveButton.enable()
@@ -71,7 +78,9 @@ class GroupsMembershipPolicyLanguageEditor extends JView
     @cancelButton = new KDButtonView
       title     : "Cancel"
       cssClass  : "clean-gray"
-      callback  : => @hide()
+      callback  : =>
+        @hide()
+        @emit 'EditorClosed'
 
     @saveButton = new KDButtonView
       title     : "Save"
@@ -80,7 +89,10 @@ class GroupsMembershipPolicyLanguageEditor extends JView
         @saveButton.disable()
         @emit 'PolicyLanguageChanged', explanation: @editor.getValue()
 
-  pistachio:-> "{{> @editor}}{{> @saveButton}}"
+  pistachio:->
+    """
+     {{> @editorLabel}}{{> @editor}}{{> @saveButton}}{{> @cancelButton}}
+    """
 
 class GroupsMembershipPolicyView extends JView
 
@@ -156,6 +168,9 @@ class GroupsMembershipPolicyView extends JView
       cssClass      : unless policyLanguageExists then 'hidden'
     , policy
 
+    @policyLanguageEditor.on 'EditorClosed',=>
+      @showPolicyLanguageLink.show()
+
     @policyLanguageEditor.on 'PolicyLanguageChanged', (data)=>
       @emit 'MembershipPolicyChanged', data
       {explanation} = data
@@ -168,16 +183,18 @@ class GroupsMembershipPolicyView extends JView
     """
     <section class="formline">
       <h2>Users may request access</h2>
+      {{> @enableAccessRequests}}
       <div class="formline">
         <p>If you disable this feature, users will not be able to request
         access to this group</p>
       </div>
-      <div class="formline">
-        <span>Users may request access</span> {{> @enableAccessRequests}}
-      </div>
+      <!--<div class="formline">
+        <span>Users may request access</span>
+      </div>-->
     </section>
     <section class="formline">
       <h2>Invitations</h2>
+      {{> @enableInvitations}}
       <div class="formline">
         <p>By enabling invitations, you will be able to send invitations to
         potential group members by their email address, you'll be able to grant
@@ -187,21 +204,22 @@ class GroupsMembershipPolicyView extends JView
         <p>If you choose not to enable invitations, a more basic request
         approval functionilty will be exposed.<p>
       </div>
-      <div class="formline">
-        <span>Enable invitations</span> {{> @enableInvitations}}
-      </div>
+      <!--<div class="formline">
+        <span>Enable invitations</span>
+      </div>-->
     </section>
     <section class="formline">
       <h2>Webhooks</h2>
+      {{> @enableWebhooks}}
       <div class="formline">
         <p>If you enable webhooks, then we will post some data to your webhooks
         when someone requests access to the group.  The business logic at your
         endpoint will be responsible for validating and approving the request</p>
         <p>Webhooks and invitations may be used together.</p>
       </div>
-      <div class="formline">
-        <span>Enable webhooks</span>            {{> @enableWebhooks}}
-      </div>
+      <!--<div class="formline">
+        <span>Enable webhooks</span>
+      </div>-->
       {{> @webhook}}
       {{> @webhookEditor}}
     </section>
