@@ -241,6 +241,17 @@ class GroupsInvitationRequestListItemView extends KDListItemView
 
     super
 
+    KD.remote.api.JAccount.one
+      'profile.nickname' : @getData().koding.username
+    ,(err,account)=>
+      @avatar.setData account
+      @avatar.render()
+
+    @avatar = new AvatarStaticView
+      size :
+        width : 40
+        height : 40
+
     invitationRequest = @getData()
 
     @inviteButton = new KDButtonView
@@ -263,9 +274,12 @@ class GroupsInvitationRequestListItemView extends KDListItemView
   pistachio:->
     """
     <div class="fl">
-      <div class="username">{{#(koding.username)}}</div>
-      <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-      <div class="is-sent">{{(#(status) is 'sent' and '✓ Sent') or 'Requested'}}</div>
+      <span class="avatar">{{> @avatar}}</span>
+      <div class="request">
+        <div class="username">{{#(koding.username)}}</div>
+        <div class="requested-at">Requested at {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+        <div class="is-sent">Status is <span class='status'>{{(#(status) is 'sent' and '✓ Sent') or 'Requested'}}</span></div>
+      </div>
     </div>
     {{> @inviteButton}}
     """
@@ -282,7 +296,9 @@ class GroupsInvitationRequestsView extends JView
     @fetchSomeRequests()
 
     @requestListController = new KDListViewController
-      itemClass: GroupsInvitationRequestListItemView
+      viewOptions       :
+        cssClass        : 'request-list'
+      itemClass         : GroupsInvitationRequestListItemView
 
     @requestList = @requestListController.getListView()
     @requestList.on 'InvitationIsSent', (invitationRequest)=>
@@ -364,24 +380,21 @@ class GroupsInvitationRequestsView extends JView
 
   pistachio:->
     """
+    <section class="formline batch">
+      <h2>Invite members by batch</h2>
+      {{> @batchInvites}}
+    </section>
     <section class="formline">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
     <section class="formline">
-      <h2>Invite member</h2>
+      <h2>Invite member by email</h2>
       {{> @inviteMember}}
     </section>
-    <section class="formline">
-      <h2>Invitation requests</h2>
-      <div class="formline">
-        <h3>Invite members by batch</h2>
-        {{> @batchInvites}}
-      </div>
-      <div class="formline">
-        <h3>Invite members individually</h2>
-        {{> @requestList}}
-      </div>
+    <section class="formline requests">
+      <h2>Invite members individually</h2>
+      {{> @requestList}}
     </section>
     """
 

@@ -757,6 +757,8 @@
         //   margin-left 10px
 
         div.formline
+          borderBox()
+          margin 0
           padding 10px 0
           bg color, transparent
           border none
@@ -778,13 +780,63 @@
         padding-left 17px
 
     .Invitations
-        .button-field
+      padding-top 20px
+      .button-field
+        margin 0
+        padding 0
+      section.formline
+        overflow hidden
+        min-width 200px
+        width 50%
+        borderBox()
+        margin 0
+        padding 20px
+        button
           margin 0
-          padding 0
-        section.formline
-          button
-            margin 0
-            fr()
+          fr()
+        &.requests
+          // fr()
+          width 100%
+          clear both
+        &.batch
+          fr()
+          clear both
+
+      .request-list
+
+        margin-top 10px
+        margin-left 10px
+        .formline.invitation-request
+          padding 0px 10px
+          display inline-block
+          width 50%
+          borderBox()
+          .request
+            margin-left 55px
+          .username
+            width auto
+          .requested-at
+            span
+              display inline-block
+          .is-sent
+            span
+              font-weight 600
+
+
+          span.avatar
+            border              1px solid #E3E3E3
+            padding             1px
+            margin-right        10px
+            size(40px,40px)
+            bg(color,#fff)
+            fl()
+            a
+              display               block
+              background-position   center
+              background-image      url('../images/defaultavatar/default.avatar.40.png')
+              bg(size,cover)
+              bg(repeat,no-repeat)
+              size(30px,30px)
 
     .permissions-view
       .add-role-dialog
