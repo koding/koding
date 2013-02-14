@@ -714,22 +714,55 @@
           b
             font-weight       600
 
+    .Invitations
     .Membership.Policy
-      h2
+
+      section.formline
         margin-top 10px
-        padding-left 0
+        padding 10px
 
-        font-size 13px
-      p
-        margin-top 5px
-        margin-bottom 10px
-        padding-left 20px
+        h2
+          padding-left 0
+          padding-bottom 0px
+          height 17px
+          font-weight 600
+          font-size 13px
+        p
+          margin-top 0px
+          margin-bottom 15px
+          padding-left 0px
 
-      .formline > span
-        margin-left 20px
+        > a
+          margin-left 10px
+
+        button
+          min-width 80px
+          height 24px
+          line-height 8px
+          margin 5px 5px 5px 0
+
+        .policylanguage-editor
+          margin-left 10px
+          textarea
+            min-width 400px
+            min-height 100px
+
+        .editable-webhook
+          margin-left 10px
+
+        div.formline
+          padding 10px
+          > span
+            margin-left 20px
+            display inline-block
+            hidden()
+
       div.on-off
+        fr()
         margin-left 20px
         margin-top 5px
+        display inline-block
+        widht auto
 
     .permissions-view
       .add-role-dialog
