@@ -27,7 +27,7 @@ default_attributes({
                                 "programs" => ["authWorker"]
                      },
                      "log" => {
-                                "files" => ["/var/log/authWorker.log"]       
+                                "files" => ["/var/log/upstart/authWorker.log"]
                      }
 
 })

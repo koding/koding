@@ -33,6 +33,6 @@ default_attributes({
                                 "build_client" => true
                      },
                      "log" => {
-                                "files" => ["/var/log/buildClient_webserver.log"]       
+                                "files" => ["/var/log/upstart/webserver.log"]       
                      }
 })
