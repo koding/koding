@@ -6,7 +6,7 @@ aws_secret_access_key = 'kpKvRUGGa8drtLIzLPtZnoVi82WnRia85kCMT2W7'
 #centos_id     = 'ami-c49030ad' # koding ami (centos)
 centos_id     = 'ami-2f219746' # koding ami (centos)
 
-ceph_id       = 'ami-a142c8c8'
+ceph_id       = 'ami-8030a1e9'
 
 #cloudlinux_id = 'ami-888f2fe1' # CloudLinux
 cloudlinux_id = 'ami-dd02b4b4'
