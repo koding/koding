@@ -472,22 +472,22 @@ class GroupsAppController extends AppController
           sendAll =
             @resolvePendingInvitationRequests.bind this, group, 'send', complete
           declineAll =
-            @resolvePendingInvitationRequests.bind this, group, 'decline', complete
+            @resolvePendingInvitationRequests.bind this, group, 'delete', complete
 
           handleError {
             #code: ???
             message: """
               This group has pending invitations.  Before you can disable
               invitations, you'll need to either resolve the pending
-              invitations by either resolving them or declining them.
+              invitations by either sending them or deleting them.
               """
           },{
             'Send all'    :
               cssClass    : 'modal-clean-green'
               callback    : sendAll
-            'Decline all' :
+            'Delete all' :
               cssClass    : 'modal-clean-red'
-              callback    : declineAll
+              callback    : deleteAll
             'cancel'      :
               cssClass    : 'modal-cancel'
               focus       : yes
@@ -609,13 +609,15 @@ class GroupsAppController extends AppController
     groupView.assureTab tabName, konstructor
 
   handleMembershipPolicyTabs:(policy, group, view)->
-    if policy.invitationsEnabled and not view.tabView.getPaneByName 'Invitations'
-      @showInvitationsTab group, view
+    if policy.invitationsEnabled
+      unless view.tabView.getPaneByName 'Invitations'
+        @showInvitationsTab group, view
     else
       @hideInvitationsTab view
 
-    if policy.approvalEnabled and not view.tabView.getPaneByName 'Approvals'
-      @showApprovalTab group, view
+    if policy.approvalEnabled
+      unless view.tabView.getPaneByName 'Approvals'
+        @showApprovalTab group, view
     else
       @hideApprovalTab view
 
