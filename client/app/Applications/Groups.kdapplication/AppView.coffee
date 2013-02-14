@@ -633,7 +633,6 @@ class GroupMembershipPolicyTabView extends KDView
     @loader.show()
     @loaderText.show()
 
-
   pistachio:->
     """
     {{> @loader}}

@@ -87,6 +87,8 @@ module.exports = class JInvitationRequest extends Model
       csv.on 'error', (err)-> errors.push err
 
   declineInvitation: permit 'send invitations'
+    success: (client, callback)->
+      console.log 'need to decline the invitation'
 
   sendInvitation: permit 'send invitations'
     success: (client, callback)->
@@ -101,6 +103,5 @@ module.exports = class JInvitationRequest extends Model
               callback new KodingError "Unknown username: #{@koding.username}"
             else
               JInvitation.sendBetaInvite obj, (err)=>
-                console.log 'sfsfsfs'
                 if err then callback err
                 else @update $set: status: 'sent', (err)-> callback err
