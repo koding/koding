@@ -28,12 +28,13 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
 
 
 default_attributes({ 
-                     "log" => {
-                                "files" => ["/var/log/buildClient_webserver.log"]       
-                     },
                      "launch" => {
+                                "programs" => ["webserver"],
+                                "build_client" => true,
                                  "config" => "production",
-                                 "programs" => ["buildClient webserver"]
+                     },
+                     "log" => {
+                                "files" => ["/var/log/upstart/webserver.log"]
                      },
                      "kd_deploy" => {
                                 "git_branch" => "virtualization",
