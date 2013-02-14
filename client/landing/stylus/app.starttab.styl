@@ -81,6 +81,17 @@ app.starttab.styl
   overflow                visible
   borderBox()
 
+  .dev-mode
+    position              absolute
+    top                   8px
+    background-color      rgba(114, 114, 114, 0.25)
+    left                  9px
+    border-radius         4px
+    color                 white
+    font-size             10px
+    border                1px solid rgba(186, 196, 186, 0.98)
+    padding               0 3px 1px 3px
+
   figure
     display               inline-block
     rel()
@@ -106,8 +117,6 @@ app.starttab.styl
         opacity           1
       cite
         height            13px
-    &.dev-mode
-      bg                  color, rgba(255, 255, 0, 0.2)
     &.disabled
       padding-bottom      20px
       &:after
