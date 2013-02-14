@@ -75,7 +75,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
   feeder        :

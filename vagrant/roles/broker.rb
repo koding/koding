@@ -28,7 +28,7 @@ default_attributes({
                                 "build_gosrc" => true
                      },
                      "log" => {
-                                "files" => ["/var/log/goBroker.log"]       
+                                "files" => ["/var/log/upstart/goBroker.log"]       
                      }
 
 })
