@@ -151,7 +151,8 @@ Includes =
         StartTabAppController      : "./client/app/Applications/StartTab.kdapplication/AppController.coffee"
 
         # new ace
-        AceAppController           : "./client/app/Applications/Ace.kdapplication/AppController.coffee"
+        AceAppView            : "./client/app/Applications/Ace.kdapplication/aceappview.coffee"
+        AceAppController      : "./client/app/Applications/Ace.kdapplication/AppController.coffee"
         AceView               : "./client/app/Applications/Ace.kdapplication/AppView.coffee"
         Ace                   : "./client/app/Applications/Ace.kdapplication/ace.coffee"
         AceSettingsView       : "./client/app/Applications/Ace.kdapplication/acesettingsview.coffee"
@@ -168,6 +169,7 @@ Includes =
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
         # webterm
+        WebTermAppView        : "./client/app/Applications/WebTerm.kdapplication/webtermappview.coffee"
         WebTermController     : "./client/app/Applications/WebTerm.kdapplication/AppController.coffee"
         WebTermView           : "./client/app/Applications/WebTerm.kdapplication/AppView.coffee"
         WebtermSettingsView   : "./client/app/Applications/WebTerm.kdapplication/webtermsettingsview.coffee"
@@ -395,6 +397,9 @@ Includes =
 
         # COMMON VIEWS
 
+        ApplicationTabHandleHolder : "./client/app/CommonViews/applicationview/applicationtabhandleholder.coffee"
+        ApplicationTabView         : "./client/app/CommonViews/applicationview/applicationtabview.coffee"
+        
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
         customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
