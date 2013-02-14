@@ -35,7 +35,7 @@
                     "Statistic": "Average",
                     "Threshold": "60",
                     "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
-                    "Period":"60",
+                    "Period":"600",
                     "AlarmActions": [
                         {"Ref": "CacheWorkerAutoScalingUPPolicy"}
                     ],
@@ -58,7 +58,7 @@
                     "Statistic": "Average",
                     "Threshold": "30",
                     "AlarmDescription": "Alarm if CPU too low",
-                    "Period":"60",
+                    "Period":"600",
                     "AlarmActions": [
                         {"Ref": "CacheWorkerAutoScalingDownPolicy"}
                     ],

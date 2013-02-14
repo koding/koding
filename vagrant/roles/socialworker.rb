@@ -27,7 +27,7 @@ default_attributes({
                                 "programs" => ["socialWorker"]
                      },
                      "log" => {
-                                "files" => ["/var/log/socialWorker.log"]       
+                                "files" => ["/var/log/upstart/socialWorker.log"]       
                      }
 
 })
