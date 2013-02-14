@@ -36,6 +36,7 @@ deploy_revision node['kd_deploy']['deploy_dir'] do
    ssh_wrapper       "/tmp/private_code/wrap-ssh4git.sh"
    notifies          :run, "execute[build_modules]", :immediately
    notifies          :run, "execute[build_gosrc]", :immediately
+   notifies          :run, "execute[build_client]", :immediately
    symlink_before_migrate.clear
    create_dirs_before_symlink.clear
    purge_before_symlink.clear

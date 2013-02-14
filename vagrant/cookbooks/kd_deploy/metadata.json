@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "papertrail": ">= 0.0.0"
+  },
+  "license": "All rights reserved",
+  "maintainer_email": "aleksey@koding.com",
+  "groupings": {
+  },
+  "providing": {
+  },
+  "conflicting": {
+  },
+  "recipes": {
+  },
+  "recommendations": {
+  },
+  "platforms": {
+  },
+  "suggestions": {
+  },
+  "long_description": "Description\n===========\ndeploy main koding code\nstart apps\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "attributes": {
+  },
+  "replacing": {
+  },
+  "description": "Installs/Configures kd_deploy",
+  "version": "0.1.3",
+  "maintainer": "Aleksey Mykhailov",
+  "name": "kd_deploy"
+}

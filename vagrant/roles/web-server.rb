@@ -29,7 +29,8 @@ env_run_lists "prod-webstack-a" => ["role[base_server]",
 
 default_attributes({ 
                      "launch" => {
-                                "programs" => ["webserver"]
+                                "programs" => ["webserver"],
+                                "build_client" => true
                      },
                      "log" => {
                                 "files" => ["/var/log/buildClient_webserver.log"]       
