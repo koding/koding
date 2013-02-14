@@ -45,7 +45,6 @@ class AvatarView extends LinkView
     return no
 
   render:->
-
     account = @getData()
     return unless account
     {profile} = account
