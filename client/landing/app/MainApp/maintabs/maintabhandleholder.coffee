@@ -1,4 +1,10 @@
 class MainTabHandleHolder extends KDView
+  
+  constructor: (options = {}, data) ->
+
+    options.bind = "mouseenter mouseleave"
+
+    super options, data
 
   viewAppended:->
 
@@ -8,11 +14,21 @@ class MainTabHandleHolder extends KDView
     mainView.mainTabView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
     mainView.mainTabView.on "PaneRemoved", => @_repositionPlusHandle()
 
+    mainView.mainTabView.on "PaneAdded", (pane) =>
+      tabHandle = pane.tabHandle
+
+      tabHandle.on "DragStarted", =>
+        tabHandle.dragIsAllowed = if @subViews.length <= 2 then no else yes
+      tabHandle.on "DragInAction", =>
+        @plusHandle.hide() if tabHandle.dragIsAllowed
+      tabHandle.on "DragFinished", =>
+        @plusHandle.show()
+
     @listenWindowResize()
 
   _windowDidResize:->
     mainView = @getDelegate()
-    @setWidth mainView.mainTabView.getWidth() - 100
+    @setWidth mainView.mainTabView.getWidth()
 
   addPlusHandle:()->
 
@@ -20,7 +36,7 @@ class MainTabHandleHolder extends KDView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
-      click    : =>
+      click    : (event)=>
         if @plusHandle.$().hasClass('first')
           KD.getSingleton("appManager").openApplication "StartTab"
         else
