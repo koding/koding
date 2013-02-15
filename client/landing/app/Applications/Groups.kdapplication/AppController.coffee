@@ -612,13 +612,13 @@ class GroupsAppController extends AppController
     if policy.invitationsEnabled
       unless view.tabView.getPaneByName 'Invitations'
         @showInvitationsTab group, view
-      unless view.tabView.getPaneByName 'Approvals'
+      if view.tabView.getPaneByName 'Approvals'
         @hideApprovalTab view
     else
       if policy.approvalEnabled
         unless view.tabView.getPaneByName 'Approvals'
           @showApprovalTab group, view
-        unless view.tabView.getPaneByName 'Invitations'
+        if view.tabView.getPaneByName 'Invitations'
           @hideInvitationsTab view
       else
         @hideInvitationsTab view
