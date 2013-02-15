@@ -422,11 +422,11 @@ class GroupsInvitationRequestsView extends JView
     </div>
     <div class="formline">
     <section class="formline sent">
-      <h2>Invite members individually</h2>
+      <h2>Sent Invitations</h2>
       {{> @sentRequestList}}
     </section>
     <section class="formline pending">
-      <h2>Invite members individually</h2>
+      <h2>Pending Invitations</h2>
       {{> @requestList}}
     </section>
     </div>
@@ -664,8 +664,8 @@ class GroupsMemberRolesEditView extends JView
 class GroupMembershipPolicyTabView extends KDView
   constructor:(options,data)->
     super options,data
-    @tabView = new KDTabView
-      hideHandleCloseIcons : yes
+
+    @setClass 'Membership Policy'
 
     @loader           = new KDLoaderView
       cssClass        : 'loader'
@@ -680,10 +680,10 @@ class GroupMembershipPolicyTabView extends KDView
     @loader.show()
     @loaderText.show()
 
+    # {{> @tabView}}
   pistachio:->
     """
     {{> @loader}}
     {{> @loaderText}}
-    {{> @tabView}}
     """
 
