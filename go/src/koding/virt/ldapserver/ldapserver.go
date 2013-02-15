@@ -12,10 +12,24 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
+
+var vmCache = make(map[bson.ObjectId]*virt.VM)
+var userByUidCache = make(map[int]*virt.User)
+var userByNameCache = make(map[string]*virt.User)
 
 func main() {
 	lifecycle.Startup("ldapserver", true)
+
+	go func() {
+		for {
+			vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
+			userByUidCache = make(map[int]*virt.User, len(userByUidCache))
+			userByNameCache = make(map[string]*virt.User, len(userByNameCache))
+			time.Sleep(10 * time.Second)
+		}
+	}()
 
 	ln, err := net.Listen("tcp", ":389")
 	if err != nil {
@@ -89,9 +103,15 @@ func authenticate(name, password string) (bool, *virt.VM) {
 	}
 
 	if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
-		var vm virt.VM
-		err := db.VMs.FindId(bson.ObjectIdHex(name[3:])).One(&vm)
-		return err == nil && password == vm.LdapPassword, &vm
+		id := bson.ObjectIdHex(name[3:])
+		vm, found := vmCache[id]
+		if !found {
+			if err := db.VMs.FindId(id).One(&vm); err != nil {
+				return false, nil
+			}
+			vmCache[id] = vm
+		}
+		return password == vm.LdapPassword, vm
 	}
 
 	user, err := findUserByName(name)
@@ -176,19 +196,31 @@ func findUserInFilter(filter *ber.Packet) (*virt.User, error) {
 
 func findUser(query interface{}) (*virt.User, error) {
 	var user virt.User
-	err := db.Users.Find(query).One(&user)
-	if err == nil && user.Uid < virt.UserIdOffset {
+	if err := db.Users.Find(query).One(&user); err != nil {
+		return nil, err
+	}
+	if user.Uid < virt.UserIdOffset {
 		panic("User with too low uid.")
 	}
-	return &user, err
+	return &user, nil
 }
 
 func findUserByUid(id int) (*virt.User, error) {
-	return findUser(bson.M{"uid": id})
+	if user := userByUidCache[id]; user != nil {
+		return user, nil
+	}
+	user, err := findUser(bson.M{"uid": id})
+	userByUidCache[id] = user
+	return user, err
 }
 
 func findUserByName(name string) (*virt.User, error) {
-	return findUser(bson.M{"username": name})
+	if user := userByNameCache[name]; user != nil {
+		return user, nil
+	}
+	user, err := findUser(bson.M{"username": name})
+	userByNameCache[name] = user
+	return user, err
 }
 
 func findAttributeInFilter(filter *ber.Packet, name string) string {
