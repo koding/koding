@@ -69,17 +69,17 @@ func main() {
 
 	k.Handle("vm.start", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		_, vm := findSession(session)
-		return vm.StartCommand().CombinedOutput()
+		return vm.Start()
 	})
 
 	k.Handle("vm.shutdown", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		_, vm := findSession(session)
-		return vm.ShutdownCommand().CombinedOutput()
+		return vm.Shutdown()
 	})
 
 	k.Handle("vm.stop", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		_, vm := findSession(session)
-		return vm.StopCommand().CombinedOutput()
+		return vm.Stop()
 	})
 
 	k.Handle("vm.state", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -260,11 +260,11 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 		}
 		vm.Prepare(users)
 
-		if out, err := vm.StartCommand().CombinedOutput(); err != nil {
+		if out, err := vm.Start(); err != nil {
 			log.Err("Could not start VM.", err, out)
 		}
-		if err := vm.WaitForState("RUNNING", time.Second); err != nil {
-			log.Warn("Waiting for VM startup failed.", err)
+		if out, err := vm.WaitForState("RUNNING", time.Second); err != nil {
+			log.Warn("Waiting for VM startup failed.", err, out)
 		}
 	}
 
@@ -321,7 +321,7 @@ func (state *VMState) startTimeout() {
 		if err := db.VMs.FindId(state.vmId).One(&vm); err != nil {
 			log.Err("Could not find VM for shutdown.", err)
 		}
-		if out, err := vm.ShutdownCommand().CombinedOutput(); err != nil {
+		if out, err := vm.Shutdown(); err != nil {
 			log.Err("Could not shutdown VM.", err, out)
 		}
 

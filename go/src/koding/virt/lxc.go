@@ -7,16 +7,20 @@ import (
 	"time"
 )
 
-func (vm *VM) StartCommand() *exec.Cmd {
-	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon")
+func (vm *VM) Start() ([]byte, error) {
+	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput()
 }
 
-func (vm *VM) StopCommand() *exec.Cmd {
-	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String())
+func (vm *VM) Stop() ([]byte, error) {
+	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String()).CombinedOutput()
 }
 
-func (vm *VM) ShutdownCommand() *exec.Cmd {
-	return exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String(), "--timeout", "2")
+func (vm *VM) Shutdown() ([]byte, error) {
+	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
+		return out, err
+	}
+	vm.WaitForState("STOPPED", 2*time.Second) // may time out, then vm is force stopped
+	return vm.Stop()
 }
 
 func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
@@ -39,6 +43,6 @@ func (vm *VM) GetState() string {
 	return strings.TrimSpace(string(out)[6:])
 }
 
-func (vm *VM) WaitForState(state string, timeout time.Duration) error {
-	return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).Run()
+func (vm *VM) WaitForState(state string, timeout time.Duration) ([]byte, error) {
+	return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
 }

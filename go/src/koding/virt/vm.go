@@ -157,9 +157,9 @@ func (vm *VM) Prepare(users []User) {
 
 func (vm *VM) Unprepare() error {
 	var firstError error
-	out, err := vm.ShutdownCommand().CombinedOutput()
+	out, err := vm.Stop()
 	if vm.GetState() != "STOPPED" {
-		panic(commandError("Could not shutdown VM.", err, out))
+		panic(commandError("Could not stop VM.", err, out))
 	}
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
