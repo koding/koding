@@ -16,19 +16,19 @@ import (
 var actions = map[string]func(){
 	"start": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.StartCommand().CombinedOutput()
+			out, err := vm.Start()
 			fmt.Printf("%v: %v\n%s", vm, err, string(out))
 		}
 	},
 	"shutdown": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.ShutdownCommand().CombinedOutput()
+			out, err := vm.Shutdown()
 			fmt.Printf("%v: %v\n%s", vm, err, string(out))
 		}
 	},
 	"stop": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.StopCommand().CombinedOutput()
+			out, err := vm.Stop()
 			fmt.Printf("%v: %v\n%s", vm, err, string(out))
 		}
 	},
