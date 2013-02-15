@@ -80,7 +80,7 @@ task 'runKites', ({configFile})->
     invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
-  configFile = "dev-new" if configFile in ["",undefined,"undefined"]
+  configFile = "dev" if configFile in ["",undefined,"undefined"]
   processes.spawn
     name    : 'webterm'
     cmd     : __dirname+"/kites/webterm -c #{configFile}"
