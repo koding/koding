@@ -1,20 +1,18 @@
 class TopicsAppController extends AppController
 
-  constructor:(options, data)->
-    options = $.extend
-      # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
-      # view : new TopicsComingSoon
-      view : new TopicsMainView(cssClass : "content-page topics")
-    ,options
-    super options,data
+  KD.registerAppClass @, name : "Topics"
+
+  constructor:(options = {}, data)->
+
+    options.view = new TopicsMainView
+      cssClass : "content-page topics"
+
+    super options, data
+
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Topics'
-      data : @getView()
+  bringToFront:()-> super @, @getView(), name : 'Topics'
 
   createFeed:(view)->
     {JTag} = KD.remote.api

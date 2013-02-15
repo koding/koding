@@ -1,5 +1,7 @@
 class WebTermController extends AppController
 
+  KD.registerAppClass @, name : "WebTerm"
+
   constructor: (options = {}, data) ->
 
     options.view     = new WebTermView

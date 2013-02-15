@@ -1,5 +1,7 @@
 class ActivityAppController extends AppController
 
+  KD.registerAppClass @, name : "Activity"
+
   activityTypes = [
       'CStatusActivity'
       'CCodeSnipActivity'

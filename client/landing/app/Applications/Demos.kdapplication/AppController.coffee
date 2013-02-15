@@ -1,4 +1,7 @@
 class DemosAppController extends AppController
+
+  KD.registerAppClass @, name : "Demos"
+
   constructor:(options = {}, data)->
     options.view = new DemosMainView
       cssClass : "content-page demos"

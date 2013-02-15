@@ -1,5 +1,7 @@
 class FeederAppController extends KDController
 
+  KD.registerAppClass @, name : "Feeder"
+
   constructor:(options={}, data)->
     options.view = new KDView
     super options, data

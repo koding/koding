@@ -1,18 +1,19 @@
 class InboxAppController extends AppController
 
+  KD.registerAppClass @, name : "Inbox"
+
   {race} = Bongo
 
-  constructor:(options, data)->
-    view = new InboxView cssClass : "inbox-application"
-    options = $.extend {view},options
-    super options,data
+  constructor:(options = {}, data)->
+
+    options.view = new InboxView
+      cssClass : "inbox-application"
+
+    super options, data
+
     @selection = {}
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Inbox'
-      data : @mainView
+  bringToFront:()-> super @, @getView(), name : 'Inbox'
 
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback

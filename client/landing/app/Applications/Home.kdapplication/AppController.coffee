@@ -1,4 +1,7 @@
 class HomeAppController extends AppController
+
+  KD.registerAppClass @, name : "Home"
+
   constructor:(options = {}, data)->
     options.view = new KDView
     # options.view = new HomeMainView

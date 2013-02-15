@@ -1,4 +1,7 @@
 class ViewerAppController extends KDViewController
+
+  KD.registerAppClass @, name : "Viewer"
+
   initApp:(options,callback)=>
     @openDocuments = []
     # log 'init application called'
@@ -13,15 +16,12 @@ class ViewerAppController extends KDViewController
         frontDocument = @getFrontDocument()
       else
         frontDocument = @createNewDocument()
-    @propagateEvent
-      KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
-    ,
-      options:
-        hiddenHandle    : no
-        type            : 'application'
-        name            : path
-        applicationType : 'Viewer.kdApplication'
-      data : frontDocument
+
+    @emit 'ApplicationWantsToBeShown', @, frontDocument,
+      hiddenHandle    : no
+      type            : 'application'
+      name            : path
+      applicationType : 'Viewer.kdApplication'
 
     callback()
 
