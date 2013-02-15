@@ -15,7 +15,8 @@ cookbook_versions({
     "users"         => "1.3.0",
     "yum"           => "2.0.6",
     "kd_deploy"     => "0.1.3",
-    "ntp"           => "1.3.2"
+    "ntp"           => "1.3.2",
+    "papertrail"    => "0.1.1"
 })
 
 
@@ -25,7 +26,7 @@ default_attributes({
                      },
                      "kd_deploy" => {
                                 "git_branch" => "master_PROD",
-                                "revision_tag" => "koding-prod-2",
+                                "revision_tag" => "koding-prod-3",
                                 "release_action" => :deploy,
                                 "deploy_dir" => '/opt/koding',
                                 "rabbit_host" => "rabbit-a.prod.aws.koding.com"

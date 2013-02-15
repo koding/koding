@@ -26,7 +26,7 @@ default_attributes({
                                 "programs" => ["emailWorker"]
                      },
                      "log" => {
-                                "files" => ["/var/log/emailWorker.log"]       
+                                "files" => ["/var/log/upstart/emailWorker.log"]       
                      }
 
 })
