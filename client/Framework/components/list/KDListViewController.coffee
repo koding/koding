@@ -2,19 +2,28 @@ class KDListViewController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.wrapper             ?= yes
-    options.scrollView          ?= yes
-    options.keyNav              ?= no
-    options.multipleSelection   ?= no
-    options.selection           ?= yes
-    options.startWithLazyLoader ?= no
-    options.itemChildClass     or= null
-    options.itemChildOptions   or= {}
+    options.wrapper               ?= yes
+    options.scrollView            ?= yes
+    options.keyNav                ?= no
+    options.multipleSelection     ?= no
+    options.selection             ?= yes
+    options.startWithLazyLoader   ?= no
+    options.itemChildClass        or= null
+    options.itemChildOptions      or= {}
+    options.showDefaultItem       or= no
+    options.defaultItem           or= {}
+    options.defaultItem.itemClass or= KDView
+    options.defaultItem.options   or= {}
+    options.defaultItem.data      or= {}
 
-    @itemsOrdered                = [] unless @itemsOrdered
-    @itemsIndexed                = {}
-    @selectedItems               = []
-    @lazyLoader                  = null
+    defaultOptions = options.defaultItem.options
+    defaultOptions.partial        or=  'This list is empty'
+
+    @itemsOrdered                 = [] unless @itemsOrdered
+    @itemsIndexed                 = {}
+    @selectedItems                = []
+    @lazyLoader                   = null
+
 
     if options.view
       @setListView listView = options.view
@@ -44,6 +53,18 @@ class KDListViewController extends KDViewController
     if options.keyNav
       listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
+  addDefaultItem:->
+    {itemClass,options,data} = @getOptions().defaultItem
+    @getListView().addSubView @defaultItem new itemClass options, data
+
+  removeDefaultItem:->
+    @getListView().removeSubView @defaultItem if @defaultItem
+
+  putDefaultItem:(list=[])->
+    if @getOptions().showDefaultItem
+      if list.length is 0 then @addDefaultItem()
+      else @removeDefaultItem()
+
   loadView:(mainView)->
 
     options = @getOptions()
@@ -62,6 +83,8 @@ class KDListViewController extends KDViewController
   instantiateListItems:(items)->
     newItems = for itemData in items
       @getListView().addItem itemData
+
+    @putDefaultItem newItems
 
     @emit "AllItemsAddedToList"
 
@@ -112,10 +135,12 @@ class KDListViewController extends KDViewController
   addItem:(itemData, index, animation)->
 
     @getListView().addItem itemData, index, animation
+    @putDefaultItem @getListView().items
 
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
+    @putDefaultItem @getListView().items
     dataId = itemData.getId?()
 
   registerItem:(view, index)->
