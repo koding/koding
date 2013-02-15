@@ -54,7 +54,7 @@ func handleConnection(conn net.Conn) {
 		case ApplicationBindRequest:
 			name := request.Children[1].Value.(string)
 			password := request.Children[2].Data.String()
-			bound = authenticate(name, password)
+			bound, vm = authenticate(name, password)
 
 			var resultCode uint64 = LDAPResultInvalidCredentials
 			if bound {
@@ -83,19 +83,19 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func authenticate(name, password string) bool {
+func authenticate(name, password string) (bool, *virt.VM) {
 	if name == "vmhost" && password == "abc" {
-		return true
+		return true, nil
 	}
 
 	if strings.HasPrefix(name, "vm-") && bson.IsObjectIdHex(name[3:]) {
 		var vm virt.VM
 		err := db.VMs.FindId(bson.ObjectIdHex(name[3:])).One(&vm)
-		return err == nil && password == vm.LdapPassword
+		return err == nil && password == vm.LdapPassword, &vm
 	}
 
 	user, err := findUserByName(name)
-	return err == nil && user.HasPassword(password)
+	return err == nil && user.HasPassword(password), nil
 }
 
 func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn) bool {
