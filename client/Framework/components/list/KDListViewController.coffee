@@ -55,7 +55,7 @@ class KDListViewController extends KDViewController
 
   addDefaultItem:->
     {itemClass,options,data} = @getOptions().defaultItem
-    @getListView().addSubView @defaultItem new itemClass options, data
+    @getListView().addSubView @defaultItem = new itemClass options, data
 
   removeDefaultItem:->
     @getListView().removeSubView @defaultItem if @defaultItem
