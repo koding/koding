@@ -277,7 +277,7 @@ class GroupsInvitationRequestListItemView extends KDListItemView
       <span class="avatar">{{> @avatar}}</span>
       <div class="request">
         <div class="username">{{#(koding.username)}}</div>
-        <div class="requested-at">Requested at {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+        <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
         <div class="is-sent">Status is <span class='status'>{{(#(status) is 'sent' and '✓ Sent') or 'Requested'}}</span></div>
       </div>
     </div>
@@ -400,7 +400,7 @@ class GroupsInvitationRequestsView extends JView
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
-    <div>
+    <div class="formline">
     <section class="formline batch">
       <h2>Invite members by batch</h2>
       {{> @batchInvites}}
@@ -410,7 +410,7 @@ class GroupsInvitationRequestsView extends JView
       {{> @inviteMember}}
     </section>
     </div>
-    <div>
+    <div class="formline">
     <section class="formline sent">
       <h2>Invite members individually</h2>
       {{> @sentRequestList}}
