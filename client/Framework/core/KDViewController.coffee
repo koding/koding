@@ -12,7 +12,8 @@ class KDViewController extends KDController
 
   setView:(aViewInstance)->
     @mainView = aViewInstance
-    cb = @loadView.bind(@, aViewInstance)
+    @emit "ControllerHasSetItsView"
+    cb = @loadView.bind @, aViewInstance
     if aViewInstance.isViewReady() then do cb
     else
       aViewInstance.on 'viewAppended', cb

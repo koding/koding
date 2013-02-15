@@ -36,12 +36,12 @@ class MainTabHandleHolder extends KDView
           ,
             'New Tab'              :
               callback             : (source, event)=>
-                KD.getSingleton("appManager").tell "StartTab", 'openFreshTab'
+                KD.getSingleton("appManager").openApplication "StartTab"
                 contextMenu.destroy()
               separator            : yes
             'Ace Editor'           :
               callback             : (source, event)=>
-                KD.getSingleton("appManager").newFileWithApplication "Ace"
+                KD.getSingleton("appManager").openApplication "Ace"
                 contextMenu.destroy()
             'CodeMirror'           :
               callback             : (source, event)=> KD.getSingleton("appManager").notify()

@@ -69,6 +69,7 @@ KD.error = error = noop
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
   utils           : __utils
+  appClasses      : {}
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -163,6 +164,32 @@ KD.error = error = noop
     else
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
+
+  registerAppClass:(fn, options = {})->
+
+    {name} = options
+
+    unless name
+      return error "AppClass is missing a name!"
+
+    if KD.appClasses[name]
+      return warn "AppClass #{name} is already registered or the name is already taken!"
+
+    options.multiple ?= no
+
+    Object.defineProperty KD.appClasses, options.name,
+      configurable  : yes
+      enumerable    : yes
+      writable      : no
+      value         : {
+        fn
+        options
+      }
+
+  unregisterAppClass:(name)-> delete KD.appClasses[name]
+
+  getAppClass:(name)-> KD.appClasses[name]?.fn or null
+  getAppOptions:(name)-> KD.appClasses[name]?.options or null
 
   getAllKDInstances:()-> KD.instances
 

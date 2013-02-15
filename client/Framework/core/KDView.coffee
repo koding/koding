@@ -377,7 +377,7 @@ class KDView extends KDObject
 
     # call super to remove instance subscriptions
     # and delete instance from KD.instances registry
-    super()
+    super
 
   destroySubViews:()->
     # (subView.destroy() for subView in @getSubViews())
@@ -714,12 +714,12 @@ class KDView extends KDObject
     o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
     @on "viewAppended", =>
-      # For this to work, the DOM element must have layout box information 
-      # associated such as overflow, border-sizing, text-overflow 
+      # For this to work, the DOM element must have layout box information
+      # associated such as overflow, border-sizing, text-overflow
       #
       #                                                          Arvid Feb 2013
-    
-      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth 
+
+      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
 
       if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
         @bindTooltipEvents o
