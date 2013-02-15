@@ -18,7 +18,7 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
-      instance        : ['sendInvitation']
+      instance        : ['sendInvitation','deleteInvitation']
     schema            :
       email           :
         type          : String
@@ -86,9 +86,8 @@ module.exports = class JInvitationRequest extends Model
         daisy queue
       csv.on 'error', (err)-> errors.push err
 
-  declineInvitation: permit 'send invitations'
-    success: (client, callback)->
-      console.log 'need to decline the invitation'
+  deleteInvitation: permit 'send invitations'
+    success:(client, rest...)-> @remove rest...
 
   sendInvitation: permit 'send invitations'
     success: (client, callback)->
