@@ -784,6 +784,10 @@
       .button-field
         margin 0
         padding 0
+        height:auto
+      div.formline
+        overflow hidden
+        width 100%
       section.formline
         overflow hidden
         min-width 200px
@@ -794,9 +798,8 @@
         button
           margin 0
           fr()
-        &.requests
-          // fr()
-          width 100%
+        &.sent
+          fr()
           clear both
         &.batch
           fr()
@@ -809,7 +812,7 @@
         .formline.invitation-request
           padding 0px 10px
           display inline-block
-          width 50%
+          // width 50%
           borderBox()
           .request
             margin-left 55px
