@@ -31,7 +31,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 6
     queueName   : socialQueueName+'web'
     watch       : no
   mongo         : mongo
@@ -65,11 +65,11 @@ module.exports = deepFreeze
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 2
+    numberOfWorkers: 6
     watch       : no
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 2
+    numberOfWorkers: 6
     watch       : no
     queueName   : socialQueueName
   cacheWorker   :
