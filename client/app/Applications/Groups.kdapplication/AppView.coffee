@@ -299,6 +299,11 @@ class GroupsInvitationRequestsView extends JView
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
+      showDefaultItem   : yes
+      defaultItem       :
+        options         :
+          cssClass      : 'default-item'
+          partial       : 'No invitations sent'
 
     @sentRequestList = @sentRequestListController.getListView()
 
@@ -306,6 +311,11 @@ class GroupsInvitationRequestsView extends JView
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
+      showDefaultItem   : yes
+      defaultItem       :
+        options         :
+          cssClass      : 'default-item'
+          partial       : 'No invitations pending'
 
     @requestList = @requestListController.getListView()
     @requestList.on 'InvitationIsSent', (invitationRequest)=>
