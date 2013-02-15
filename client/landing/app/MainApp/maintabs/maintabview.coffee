@@ -8,15 +8,16 @@ class MainTabView extends KDTabView
     @paneViewIndex  = {}
     super options,data
 
-    @listenTo
-      KDEventTypes : 'ApplicationWantsToBeShown'
-      callback     :(app, {options, data})->
-        @showPaneByView options, data
+    appManager = @getSingleton("appManager")
 
-    @listenTo
-      KDEventTypes : 'ApplicationWantsToClose'
-      callback     :(app, {options, data})->
-        @removePaneByView data
+    appManager.on 'AppViewAddedToAppManager', (appController, appView, options)=>
+
+      @showPaneByView options, appView
+
+    appManager.on 'AppViewRemovedFromAppManager', (appController, appView, options)=>
+      log "gelmii mi? removePaneByView"
+      @removePaneByView options, appView
+
 
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
@@ -53,7 +54,7 @@ class MainTabView extends KDTabView
 
     return pane
 
-  _removePane: (pane) ->
+  removePane: (pane) ->
     pane.handleEvent type : "KDTabPaneDestroy"
     index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
@@ -79,16 +80,15 @@ class MainTabView extends KDTabView
     if appPanes.length is 0
       @emit "AllApplicationPanesClosed"
 
-
-  removePane:(pane)->
-    pane.getData().emit 'ViewClosed'
-    # delete KD.getSingleton("appManager").terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
+  # removePane:(pane)->
+  #   pane.getData().emit 'ViewClosed'
 
   removePaneByView:(view)->
+    log view, @getPaneByView view
     return unless (pane = @getPaneByView view)
     @_removePane pane
 
-  showPaneByView:(options,view)->
+  showPaneByView:(options, view)->
     viewId = view
     pane = @getPaneByView view
     if pane?
@@ -105,24 +105,25 @@ class MainTabView extends KDTabView
   unindexPaneByView:(pane,view)->
     delete @paneViewIndex[view.id]
 
-  createTabPane:(options,mainView)->
+  createTabPane:(options = {}, mainView)->
+
     @removePaneByView mainView if mainView?
 
-    options = $.extend
-      cssClass     : "content-area-pane #{__utils.slugify(options?.name?.toLowerCase()) or ""} content-area-new-tab-pane"
-      hiddenHandle : yes
-      type         : "content"
-      class        : KDView
-    ,options
+    options.cssClass     or= "content-area-pane #{__utils.slugify(options?.name?.toLowerCase()) or ""} content-area-new-tab-pane"
+    options.hiddenHandle  ?= yes
+    options.type         or= "content"
+    options.class        or= KDView
+
     paneInstance = new MainTabPane options,mainView
-    # log 'options', options
+
     paneInstance.on "viewAppended", =>
-      # if options.controller  #dont need that anymore as tabHandle could be controlled by application
-      #   options.controller.applicationPaneReady? mainView, paneInstance
       @applicationPaneReady paneInstance, mainView
 
     @addPane paneInstance
     @indexPaneByView paneInstance,mainView
+
+    paneInstance.on "KDObjectWillBeDestroyed", => log "go to hell"
+    mainView.on "KDObjectWillBeDestroyed", => log "go to hell x 2"
 
     return paneInstance
 

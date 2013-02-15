@@ -9,11 +9,18 @@ class AppStorage
   fetchStorage: (callback = noop)->
 
     unless @_storage
-      KD.getSingleton("appManager").fetchStorage @_applicationID, @_applicationVersion, (error, storage)=>
-        if not error
+
+      appId   = @_applicationID
+      version = @_applicationVersion
+
+      KD.whoami().fetchStorage {appId, version}, (error, storage) =>
+        unless storage
+          storage = {appId,version,bucket:{}} # creating a fake storage
+        unless error
           callback @_storage = storage
         else
           callback null
+
     else
       callback @_storage
 
