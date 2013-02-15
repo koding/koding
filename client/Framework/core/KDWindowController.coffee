@@ -227,11 +227,13 @@ class KDWindowController extends KDController
     view = @dragView
 
     {pageX, pageY}   = event
-    {startX, startY} = view.dragState
+    {initial}        = view.dragState.position
+    initialX         = initial.x
+    initialY         = initial.y
 
     delta =
-      x : pageX - startX
-      y : pageY - startY
+      x : pageX - initialX
+      y : pageY - initialY
 
     view.drag event, delta
 
