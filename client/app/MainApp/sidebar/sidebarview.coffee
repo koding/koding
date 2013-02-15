@@ -175,6 +175,7 @@ class Sidebar extends JView
         $fp.css "width", fpLastWidth
         cp.$().css left : 52 + fpLastWidth, width : @wc.winWidth - 52 - fpLastWidth
         fpLastWidth = null
+      @finderResizeHandle.$().css left: ''
 
     @finderResizeHandle.on "DragStarted", (e, dragState)=>
       cp._left  = parseInt cp.$().css("left"), 10
@@ -196,9 +197,10 @@ class Sidebar extends JView
 
     @finderResizeHandle.on "DragInAction", (x, y)=>
       @finderResizeHandle._dragged = yes
-      newFpWidth = @_fpWidth - x
+      newFpWidth = @_fpWidth + x
       return if newFpWidth < 13
-      cp.$().css left : cp._left - x, width : cp._width + x
+      cp.$().css left : cp._left + x, width : cp._width - x
+      @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
 
     # exception - Sinan, Jan 2013

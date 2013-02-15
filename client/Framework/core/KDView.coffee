@@ -336,10 +336,10 @@ class KDView extends KDObject
   getWidth:()->
     w = @getDomElement().width()
 
-  setWidth:(w)->
-    @getElement().style.width = "#{w}px"
+  setWidth:(w, unit = "px")->
+    @getElement().style.width = "#{w}#{unit}"
     # @getDomElement().width w
-    @emit "ViewResized", newWidth : w
+    @emit "ViewResized", {newWidth : w, unit}
 
   getHeight:()->
     # @getDomElement()[0].clientHeight
@@ -579,10 +579,10 @@ class KDView extends KDObject
 
       @dragIsAllowed = yes
 
-      top    = parseInt @$()[0].style.top, 10
-      right  = parseInt @$()[0].style.right, 10
-      bottom = parseInt @$()[0].style.bottom, 10
-      left   = parseInt @$()[0].style.left, 10
+      top    = parseInt (@$()[0].style.top or 0), 10
+      right  = parseInt (@$()[0].style.right or 0), 10
+      bottom = parseInt (@$()[0].style.bottom or 0), 10
+      left   = parseInt (@$()[0].style.left or 0), 10
 
       @dragState.startX     = event.pageX
       @dragState.startY     = event.pageY
