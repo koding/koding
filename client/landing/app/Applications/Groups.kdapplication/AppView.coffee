@@ -406,7 +406,7 @@ class GroupsInvitationRequestsView extends JView
 
   pistachio:->
     """
-    <section class="formline">
+    <section class="formline status-quo">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
