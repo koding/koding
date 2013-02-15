@@ -61,7 +61,7 @@
                     }
                 ],
                 "SecurityGroups":["sg-d69163b9"],
-                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+                "Subnets":["subnet-a69e55cb"]
             }
         }
 
