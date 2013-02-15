@@ -1,10 +1,10 @@
 class StartTabMainView extends JView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
 
     options.cssClass or= 'start-tab'
 
-    super
+    super options, data
 
     @listenWindowResize()
 
@@ -24,9 +24,7 @@ class StartTabMainView extends JView
     finder.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
-    @loader = new KDLoaderView
-      size    :
-        width : 16
+    @loader = new KDLoaderView size : width : 16
 
     @refreshButton = new KDButtonView
       cssClass    : "editor-button refresh-apps-button"

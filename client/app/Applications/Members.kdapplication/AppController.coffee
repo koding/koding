@@ -1,15 +1,15 @@
 class MembersAppController extends AppController
-  constructor:(options, data)->
-    options = $.extend
-      view : mainView = (new MembersMainView cssClass : "content-page members")
-    ,options
-    super options,data
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Members'
-      data : @getView()
+  KD.registerAppClass @, name : "Members"
+
+  constructor:(options = {}, data)->
+
+    options.view = new MembersMainView
+      cssClass : "content-page members"
+
+    super options, data
+
+  bringToFront:()-> super @, @getView(), name : 'Members'
 
   setGroup:-> console.trace()
 

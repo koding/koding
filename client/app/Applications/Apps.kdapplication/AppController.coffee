@@ -1,22 +1,23 @@
 class AppsAppController extends AppController
-  constructor:(options, data)->
-    options = $.extend
-      view : new AppsMainView
-        cssClass : "content-page appstore"
-    ,options
-    super options,data
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name  : 'Apps'
-      data    : @getView()
+  KD.registerAppClass @, name : "Apps"
+
+  constructor:(options = {}, data)->
+
+    options.view = new AppsMainView
+      cssClass : "content-page appstore"
+
+    super options, data
+
+  bringToFront:()-> super @, @getView(), name : 'Apps'
 
   loadView:(mainView)->
+
     mainView.createCommons()
     @createFeed()
 
   createFeed:(view)->
+
     options =
       itemClass          : AppsListItemView
       limitPerPage          : 10
