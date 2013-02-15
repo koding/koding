@@ -1,0 +1,68 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy Active ELB for Koding New webserver stack",
+    "Resources" :{
+        "WebActiveNew":{
+            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+            "Properties": {
+                "HealthCheck": {
+                    "HealthyThreshold": "3",
+                    "Interval":"15",
+                    "Target":"TCP:8080",
+                    "Timeout": "10",
+                    "UnhealthyThreshold":"5"
+                },
+                "LBCookieStickinessPolicy":[ 
+                    {
+                        "CookieExpirationPeriod":"240",
+                        "PolicyName": "WebSiteLBCookie"
+                    }
+                ],
+                "Listeners": [ 
+                    {
+                        "InstancePort":"8080",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "80",
+                        "Protocol": "HTTP"
+                    },
+                    {
+                        "InstancePort":"80",
+                        "InstanceProtocol": "HTTP",
+                        "LoadBalancerPort": "443",
+                        "Protocol": "HTTPS",
+                        "SSLCertificateId": "arn:aws:iam::616271189586:server-certificate/kodingcom_ssl_2013_Jan_29",
+                        "PolicyNames": [
+                            "WebSiteLBCookie"
+                        ]
+                    }
+                ],
+                "SecurityGroups":["sg-e110e28e"],
+                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+            }
+        },
+
+        "NewWebSiteHostName":{
+            "Type": "AWS::Route53::RecordSet",
+            "Properties":{
+                "HostedZoneName": "koding.com.",
+                "Name" : "new.koding.com.",
+                "Type" : "CNAME",
+                "TTL" : "900",
+                "ResourceRecords" : [ { "Fn::GetAtt" : [ "WebActiveNew", "DNSName" ] } ]
+            }
+       }
+    },
+
+    "Outputs":{
+        "WebHostName": {
+            "Description":"FQDN of New WebSite",
+            "Value": { "Ref" : "NewWebSiteHostName"}
+        },
+       "WebNewELB": {
+            "Description": "New WebSite Active ELB DNS name",
+            "Value": { "Fn::GetAtt": [ "WebActiveNew", "DNSName" ] }
+        }
+    }
+   
+}
+

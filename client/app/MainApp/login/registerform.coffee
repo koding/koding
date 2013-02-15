@@ -2,7 +2,6 @@
   todo:
 ###
 
-
 class RegisterInlineForm extends LoginViewInlineForm
 
   constructor:->

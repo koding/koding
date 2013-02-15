@@ -1,0 +1,103 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Deploy CacheWorker",
+    "Resources" :{
+
+      	 "CacheWorkerLaunchConfiguration" : {
+      		"Type" : "AWS::AutoScaling::LaunchConfiguration",  
+      		"Properties" : {
+        		"InstanceType" : "c1.medium",
+          		"SecurityGroups" : ["sg-6a56a505"],
+            	"KeyName" : "koding",
+                "ImageId" : "ami-3d4ff254",
+                "UserData":{"Fn::Base64": <%= bootstrap_script.to_json %>}
+             } 
+          },
+
+
+          "CacheWorkerScalingGroup" : {
+              "Type" :"AWS::AutoScaling::AutoScalingGroup",
+              "Properties" : {
+                	 "VPCZoneIdentifier" : ["subnet-c5fe04a8","subnet-71fe041c","subnet-dcd019b6","subnet-1ef90373"],
+                  	  "AvailabilityZones" : ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"],
+                      "LaunchConfigurationName" : {"Ref": "CacheWorkerLaunchConfiguration" },
+                      "MinSize": "1",
+                      "MaxSize": "1",
+                      "DesiredCapacity": "1"
+              } 
+          },  
+
+
+          "CacheWorkerCPUAlarmHigh" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": "60",
+                    "AlarmDescription": "Alarm if CPU too high or metric disappears indicating instance is down",
+                    "Period":"600",
+                    "AlarmActions": [
+                        {"Ref": "CacheWorkerAutoScalingUPPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "GreaterThanThreshold",
+                    "MetricName": "CPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AutoScalingGroupName",
+                        "Value": {"Ref":"CacheWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+          "CacheWorkerCPUAlarmLow" : {
+              "Type" : "AWS::CloudWatch::Alarm",
+              "Properties": {
+                    "EvaluationPeriods" : "1",
+                    "Statistic": "Average",
+                    "Threshold": "30",
+                    "AlarmDescription": "Alarm if CPU too low",
+                    "Period":"600",
+                    "AlarmActions": [
+                        {"Ref": "CacheWorkerAutoScalingDownPolicy"}
+                    ],
+                    "Namespace":"AWS/EC2",
+                    "ComparisonOperator": "LessThanThreshold",
+                    "MetricName": "CPUUtilization",
+                    "Dimensions" : [
+                      {
+                        "Name":"AutoScalingGroupName",
+                        "Value": {"Ref":"CacheWorkerScalingGroup"}
+                      }
+                    ]
+              }
+               
+          },
+
+
+          "CacheWorkerAutoScalingUPPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "CacheWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  },
+          "CacheWorkerAutoScalingDownPolicy" : {
+			 "Type" : "AWS::AutoScaling::ScalingPolicy",  
+      		 "Properties" : {
+        			"AutoScalingGroupName" : {"Ref" : "CacheWorkerScalingGroup"},   
+        			"ScalingAdjustment" : "-1",  
+        			"AdjustmentType" : "ChangeInCapacity" 
+      		 }
+    	  }
+    },
+
+    "Outputs" : {
+        "ScalingGroupName" : {
+          "Description" : "Group name of the newly created AS",
+          "Value" : { "Ref" : "CacheWorkerScalingGroup" }
+        }
+    }
+}
