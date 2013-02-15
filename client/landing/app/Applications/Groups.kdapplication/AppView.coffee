@@ -295,6 +295,13 @@ class GroupsInvitationRequestsView extends JView
     @timestamp = new Date 0
     @fetchSomeRequests()
 
+    @sentRequestListController = new KDListViewController
+      viewOptions       :
+        cssClass        : 'request-list'
+      itemClass         : GroupsInvitationRequestListItemView
+
+    @sentRequestList = @sentRequestListController.getListView()
+
     @requestListController = new KDListViewController
       viewOptions       :
         cssClass        : 'request-list'
@@ -376,26 +383,43 @@ class GroupsInvitationRequestsView extends JView
 
     group.fetchInvitationRequests selector, options, (err, requests)=>
       if err then console.error err
-      else @requestListController.instantiateListItems requests.reverse()
+      else
+        sent = []
+        pending = []
+        for request in requests
+          if request.status is 'sent'
+            sent.push request
+          else
+            pending.push request
+        @requestListController.instantiateListItems pending.reverse()
+        @sentRequestListController.instantiateListItems sent.reverse()
 
   pistachio:->
     """
-    <section class="formline batch">
-      <h2>Invite members by batch</h2>
-      {{> @batchInvites}}
-    </section>
     <section class="formline">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
-    <section class="formline">
+    <div>
+    <section class="formline batch">
+      <h2>Invite members by batch</h2>
+      {{> @batchInvites}}
+    </section>
+    <section class="formline email">
       <h2>Invite member by email</h2>
       {{> @inviteMember}}
     </section>
-    <section class="formline requests">
+    </div>
+    <div>
+    <section class="formline sent">
+      <h2>Invite members individually</h2>
+      {{> @sentRequestList}}
+    </section>
+    <section class="formline pending">
       <h2>Invite members individually</h2>
       {{> @requestList}}
     </section>
+    </div>
     """
 
 class GroupsMemberPermissionsView extends JView
