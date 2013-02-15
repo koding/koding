@@ -624,16 +624,11 @@ class GroupsAppController extends AppController
         @hideInvitationsTab view
         @hideApprovalTab view
 
-  prepareMembershipPolicyTab:(group, view)->
-    view.tabView.hide()
+  prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
-      view.tabView.addPane policyPane = new KDTabPaneView
-        name : 'Membership Policy'
-      , policy
 
       view.loader.hide()
       view.loaderText.hide()
-      view.tabView.show()
 
       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
@@ -642,11 +637,11 @@ class GroupsAppController extends AppController
 
       membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
         group.fetchMembershipPolicy (err, policy)=>
-          @handleMembershipPolicyTabs policy, group, view
+          @handleMembershipPolicyTabs policy, group, groupView
 
-      @handleMembershipPolicyTabs policy, group, view
+      @handleMembershipPolicyTabs policy, group, groupView
 
-      policyPane.addSubView membershipPolicyView
+      view.addSubView membershipPolicyView
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -658,20 +653,20 @@ class GroupsAppController extends AppController
     , group
 
     groupView.on 'ReadmeSelected',
-      groupView.lazyBound 'assureTab', 'Readme', GroupReadmeView
+      groupView.lazyBound 'assureTab', 'Readme', yes, GroupReadmeView
 
     groupView.on 'SettingsSelected',
-      groupView.lazyBound 'assureTab', 'Settings', GroupGeneralSettingsView
+      groupView.lazyBound 'assureTab', 'Settings', no, GroupGeneralSettingsView
 
     groupView.on 'PermissionsSelected',
-      groupView.lazyBound 'assureTab', 'Permissions', GroupPermissionsView, {delegate : groupView}
+      groupView.lazyBound 'assureTab', 'Permissions', no, GroupPermissionsView, {delegate : groupView}
 
     groupView.on 'MembersSelected',
-      groupView.lazyBound 'assureTab', 'Members', GroupsMemberPermissionsView
+      groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView
 
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', GroupMembershipPolicyTabView,
-        (pane, view)=> @prepareMembershipPolicyTab group, view
+      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupMembershipPolicyTabView,
+        (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView

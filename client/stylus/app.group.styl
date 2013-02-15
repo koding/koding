@@ -685,39 +685,78 @@
 
     .kdtabhandlecontainer
       padding-top           0
-      background            linear-gradient(top, #555 0%,#666 93.7%)
-      height                22px
-      padding               0 10px
-      shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      // background            linear-gradient(top, #555 0%,#666 93.7%)
+      height                27px
+      padding               0px 10px 0px 10px
+      // shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      bg color,             #f5f5f5
       borderBox()
+      border none
       .kdtabhandle
         // border              1px solid transparent
         border-width        0
-        height              21px
-        line-height         21px
-        color               #ddd
-        font-size           11px
+        height              27px
+        line-height         27px
+        color               #aaa
+        font-size           13px
         padding             0 10px
-        min-width           100px
+        min-width           120px
         width               auto!important
         borderBox()
         rounded(0)
+        // text-align center
         b
           margin-right      0
+          font-weight normal
         &.active
           // border-color      #ccc
+          border none
+          bg color, transparent
           height            21px
-          background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
-          color             #fff
-          text-shadow       0 -1px 0 rgba(0,0,0,.05)
-          shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+          // background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+          color             #444
+          // text-shadow       0 -1px 0 rgba(0,0,0,.05)
+          // shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
           b
+            // text-decoration underline
             font-weight       600
+
+    // .kdtabhandlecontainer
+    //   padding-top           0
+    //   background            linear-gradient(top, #555 0%,#666 93.7%)
+    //   height                22px
+    //   padding               0 10px
+    //   shadow                inset 0 2px 5px rgba(0,0,0,.1)
+    //   borderBox()
+    //   .kdtabhandle
+    //     // border              1px solid transparent
+    //     border-width        0
+    //     height              21px
+    //     line-height         21px
+    //     color               #ddd
+    //     font-size           11px
+    //     padding             0 10px
+    //     min-width           100px
+    //     width               auto!important
+    //     borderBox()
+    //     rounded(0)
+    //     b
+    //       margin-right      0
+    //     &.active
+    //       // border-color      #ccc
+    //       height            21px
+    //       background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+    //       color             #fff
+    //       text-shadow       0 -1px 0 rgba(0,0,0,.05)
+    //       shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+    //       b
+    //         font-weight       600
 
 
     .Invitations
     .Membership.Policy
       padding-top: 20px
+
       section.formline
         margin-left 100px
         margin-top 10px
@@ -738,9 +777,6 @@
         > a
           margin-left 10px
 
-        .button-field
-
-
         button
           min-width 80px
           height 24px
@@ -748,13 +784,10 @@
           margin 5px 5px 5px 0
 
         .policylanguage-editor
-          // margin-left 10px
+
           textarea
             min-width 400px
             min-height 100px
-
-        // .editable-webhook
-        //   margin-left 10px
 
         div.formline
           borderBox()
@@ -767,6 +800,7 @@
             margin-left 20px
             display inline-block
             hidden()
+
       a.edit-link
       div.on-off
         fl()
@@ -781,13 +815,16 @@
 
     .Invitations
       padding-top 20px
+
       div.formline.button-field
         margin 0
         padding 0
         height auto
+
       div.formline
         overflow hidden
         width 100%
+
       section.formline
         overflow hidden
         min-width 200px
@@ -795,39 +832,48 @@
         borderBox()
         margin 0
         padding 20px
+
         button
           margin 0
           fr()
+
         &.sent
           fr()
           clear both
+
         &.batch
           fr()
           clear both
+
         &.status-quo
           width 100%
 
       .request-list
         margin-top 20px
-        // margin-left 10px
+
         .default-item
           padding-left 10px
+
         .formline.invitation-request
           padding 0px 10px 10px 0
           display inline-block
-          // width 50%
           borderBox()
+
           .request
             margin-left 55px
+
           .username
             width auto
+
           .requested-at
+
             span
               display inline-block
+
           .is-sent
+
             span
               font-weight 600
-
 
           span.avatar
             border              1px solid #E3E3E3
@@ -836,6 +882,7 @@
             size(40px,40px)
             bg(color,#fff)
             fl()
+
             a
               display               block
               background-position   center
