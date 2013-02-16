@@ -471,23 +471,23 @@ class GroupsAppController extends AppController
           # handlers for buttons:
           sendAll =
             @resolvePendingInvitationRequests.bind this, group, 'send', complete
-          declineAll =
-            @resolvePendingInvitationRequests.bind this, group, 'decline', complete
+          deleteAll =
+            @resolvePendingInvitationRequests.bind this, group, 'delete', complete
 
           handleError {
             #code: ???
             message: """
               This group has pending invitations.  Before you can disable
               invitations, you'll need to either resolve the pending
-              invitations by either resolving them or declining them.
+              invitations by either sending them or deleting them.
               """
           },{
             'Send all'    :
               cssClass    : 'modal-clean-green'
               callback    : sendAll
-            'Decline all' :
+            'Delete all' :
               cssClass    : 'modal-clean-red'
-              callback    : declineAll
+              callback    : deleteAll
             'cancel'      :
               cssClass    : 'modal-cancel'
               focus       : yes

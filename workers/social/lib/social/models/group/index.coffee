@@ -435,7 +435,7 @@ module.exports = class JGroup extends Module
 
   resolvePendingInvitationRequests: permit 'send invitations'
     success: (client, method, callback)->
-      unless method in ['send', 'decline']
+      unless method in ['send', 'delete']
         return callback new KodingError "Unknown method: #{method}"
 
       JInvitationRequest = require '../invitationrequest'
