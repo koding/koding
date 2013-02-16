@@ -235,7 +235,7 @@ class GroupsAppController extends AppController
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
-        @_searchValue = value
+        @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no
 
@@ -249,7 +249,7 @@ class GroupsAppController extends AppController
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
             @showGroupSubmissionView groupItem.getData()
-            
+
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
