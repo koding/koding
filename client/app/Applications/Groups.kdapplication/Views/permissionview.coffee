@@ -63,8 +63,8 @@ class GroupPermissionsView extends JView
     addPermissionsView()
 
   setButtonPosition:(offset)->
-    @permissions.$('.formline.button-field').css
-        top : "#{offset.buttons}px"
+    # @permissions.$('.formline.button-field').css
+    #     top : "#{offset.buttons}px"
     @permissions.$('.formline.permissions-header.head').css
         top : "#{offset.header}px"
 
@@ -74,6 +74,7 @@ class GroupPermissionsView extends JView
       delegate = @getDelegate()
 
       headerHeight    = delegate.$('.group-header').outerHeight(yes)
+      tabHeight       = delegate.$('.kdtabhandlecontainer').outerHeight(yes)
       buttonHeight    = @permissions.$('.formline.button-field').outerHeight(yes)
       scrollTop       = delegate.getDomElement()[0].scrollTop
       subHeaderHeight = delegate.$('.sub-header').outerHeight(yes)
@@ -87,8 +88,8 @@ class GroupPermissionsView extends JView
         @unsetScrollingBottom()
 
       header = 0 # default abs() is non-sticky with top 0
-      if scrollTop > (headerHeight-subHeaderHeight)
-        header += scrollTop-headerHeight+subHeaderHeight
+      if scrollTop > (headerHeight-subHeaderHeight+tabHeight)
+        header += scrollTop-headerHeight+subHeaderHeight-tabHeight
         @setScrollingTop()
       else @unsetScrollingTop()
 

@@ -503,23 +503,24 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     data               = @getData()
     list               = @getDelegate()
     {roles, userRoles} = list.getOptions()
+    @avatar            = new AvatarStaticView {}, data
     @profileLink       = new ProfileTextView {}, data
     @usersRole         = userRoles[data.getId()]
 
     @userRole          = new KDCustomHTMLView
-      partial          : @usersRole
+      partial          : "Roles: "+@usersRole
       cssClass         : 'ib role'
 
     @editLink          = new CustomLinkView
       title            : 'Edit'
-      cssClass         : 'fr'
+      cssClass         : 'fr edit-link'
       icon             :
         cssClass       : 'edit'
       click            : @bound 'showEditMemberRolesView'
 
     @saveLink          = new CustomLinkView
       title            : 'Save'
-      cssClass         : 'fr hidden'
+      cssClass         : 'fr hidden save-link'
       icon             :
         cssClass       : 'save'
       click            : =>
@@ -529,7 +530,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     @cancelLink        = new CustomLinkView
       title            : 'Cancel'
-      cssClass         : 'fr hidden'
+      cssClass         : 'fr hidden cancel-link'
       icon             :
         cssClass       : 'delete'
       click            : @bound 'hideEditMemberRolesView'
@@ -581,11 +582,12 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
   pistachio:->
     """
     <section>
-      {{> @profileLink}}
-      {{> @userRole}}
+      <span class="avatar">{{> @avatar}}</span>
       {{> @editLink}}
       {{> @saveLink}}
       {{> @cancelLink}}
+      {{> @profileLink}}
+      {{> @userRole}}
     </section>
     {{> @editContainer}}
     """
