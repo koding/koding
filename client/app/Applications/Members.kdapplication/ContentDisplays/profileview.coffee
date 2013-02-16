@@ -195,17 +195,6 @@ class ProfileView extends JView
     skillTagHTML
 
   setListeners:->
-    @sendMessageLink.registerListener
-      KDEventTypes : "ToFieldHasNewInput"
-      listener     : @
-      callback     : (pubInst, data)->
-        return if data.disabledForBeta
-        {type,action} = data
-        mainView.showTab type
-        if action is "change-tab"
-          mainView.showTab data.type
-        else
-          mainView.sort data.type
 
     @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event)=>
       {callback,inputValue,blacklist} = event

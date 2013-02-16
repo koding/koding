@@ -46,90 +46,6 @@ class KDObject extends KDEventEmitter
     options.newLink
     "#{options.chain}.#{options.newLink}"
 
-  listenToOnce:(KDEventTypes,callback,obj)->
-    options = @_listenToAdapter KDEventTypes, callback, obj
-    if (obj = options.obj)?
-      options.listener = @
-      obj.registerListenOncer options
-    else
-      return error "you should pass at least a callback for KDObject.listenToOnce() method to work." unless callback?
-      onceCallback = (source, data, {subscription})->
-        options.callback arguments
-        KD.getAllSubscriptions().splice (KD.getAllSubscriptions().indexOf subscription), 1
-      options.callback = onceCallback
-      @_listenTo options
-
-  listenTo:(KDEventTypes,callback,obj)->
-    options = @_listenToAdapter KDEventTypes, callback, obj
-    @_listenTo options
-
-  _listenToAdapter:(KDEventTypes, callback, obj)->
-
-    # temporary migration code
-    #listenTo:({KDEventTypes,listenedToInstance,callback,callbacks})->
-    if KDEventTypes.KDEventTypes? # for backwards compatibility
-      options = KDEventTypes
-
-      if options.KDEventTypes
-        options.KDEventTypes = [options.KDEventTypes] unless $.isArray options.KDEventTypes
-
-      KDEventTypes = for event in options.KDEventTypes
-        unless event.className? or event.eventType? #default property is eventType
-          event =
-            eventType : event
-        # FIXME: if no className, "eventType" should become "eventType." to distinguish between e.g. "Scroll" and "KDScrollViewAppended"
-        (if event.className is "KDData" then "Data" else (event.className or "")) + (event.eventType?.capitalize() or (".#{event.property}" if event.property?) or "")
-      obj = options.listenedToInstance
-      callback = options.callback
-      callbacks = options.callbacks
-
-    # /temporary migration code
-    {KDEventTypes, callback, callbacks, obj}
-
-  _listenTo:({KDEventTypes, callback, callbacks, obj})->
-    return error "you should pass at least a callback for KDObject.listenTo() method to work. (#{KDEventTypes})" unless callback? or callbacks?
-
-    unless obj?
-      if KDEventTypes
-        KDEventTypes = [KDEventTypes] unless $.isArray KDEventTypes
-        for KDEventType in KDEventTypes
-          KD.subscribe
-            subscribingInstance : @
-            KDEventType           : KDEventType.capitalize()
-            callback            : callback
-      else
-        KD.subscribe
-          subscribingInstance : @
-          KDEventType           : null
-          callback            : callback
-    else
-      KDEventTypes = obj.registerListener {KDEventTypes, callback, callbacks, listener:@} #return value is always an array, so save checking in further methods
-
-  registerListener:({KDEventTypes, callback, listener})->
-    # @listeners = [] unless @listeners
-    KDEventTypes = KDEventTypes
-    if KDEventTypes
-      KDEventTypes = [KDEventTypes] unless $.isArray KDEventTypes
-      for KDEventType in KDEventTypes
-        KDEventType = KDEventType.capitalize()
-        (@subscriptionsByEvent[KDEventType] or= []).push {KDEventType, listener, callback}
-        count = ((@subscriptionCountByListenerId[listener.id] or= {})[KDEventType] or= 0)
-        count++
-    else
-      (@subscriptionsByEvent.KDAnyEvent or= []).push {KDEventType : 'KDAnyEvent', listener, callback}
-      count = ((@subscriptionCountByListenerId[listener.id] or= {}).KDAnyEvent or= 0)
-      count++
-    listener?.setListeningTo @
-
-  registerListenOncer:({KDEventTypes, callback, listener})->
-    self = @
-    onceCallback = (source, data, {subscription})->
-      callback.apply listener, arguments
-      (subscriptionList = self.subscriptionsByEvent[subscription.KDEventType]).splice (subscriptionList.indexOf subscription), 1
-      self.subscriptionCountByListenerId[listener.id][subscription.KDEventType]--
-      # @listeners.splice (@listeners.indexOf subscription), 1
-    @registerListener {KDEventTypes, callback : onceCallback, listener}
-
   setListeningTo:(obj)->
     @listeningTo.push obj
 
@@ -139,18 +55,6 @@ class KDObject extends KDEventEmitter
 
   getInstance:(instanceId)->
     KD.getAllKDInstances()[instanceId] ? null
-
-
-  propagateEvent: ({KDEventType, globalEvent},data)->
-    globalEvent or= no
-    KDEventType = KDEventType.capitalize()
-    if KDEventType of @subscriptionsByEvent
-      for subscription in @subscriptionsByEvent[KDEventType]
-        subscription.callback.call subscription.listener, @, data, {subscription}
-    if 'KDAnyEvent' of @subscriptionsByEvent
-      for subscription in @subscriptionsByEvent.KDAnyEvent
-        subscription.callback.call subscription.listener, @, data, {subscription}
-    KD.propagateEvent KDEventType, @, data if globalEvent
 
   removeListener:( {listener} )->
     for eventType, count of @subscriptionCountByListenerId[listener]

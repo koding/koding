@@ -15,11 +15,8 @@ class MainViewController extends KDViewController
     KDView.appendToDOMBody mainView
 
   loadView:(mainView)->
-    mainView.mainTabView.registerListener
-      KDEventTypes  : "MainTabPaneShown"
-      listener      : @
-      callback      : (pubInst,data)=>
-        @mainTabPaneChanged mainView, data.pane
+    mainView.mainTabView.on "MainTabPaneShown", (data)=>
+      @mainTabPaneChanged mainView, data.pane
 
   mainTabPaneChanged:(mainView, pane)->
     {sidebarController} = @

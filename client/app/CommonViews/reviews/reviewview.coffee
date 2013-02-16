@@ -39,12 +39,9 @@ class ReviewView extends KDView
 
   attachListeners:->
 
-    @listenTo
-      KDEventTypes : "DecorateActiveCommentView"
-      listenedToInstance : @reviewList
-      callback : @decorateActiveCommentState
+    @reviewList.on "DecorateActiveCommentView", @bound "decorateActiveCommentState"
 
-    @commentList.on "CommentLinkReceivedClick", (event) =>
+    @reviewList.on "CommentLinkReceivedClick", (event) =>
       @commentForm.commentInput.setFocus()
 
     @reviewList.on "CommentCountClicked", =>

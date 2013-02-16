@@ -28,19 +28,6 @@ class CodeShareTabPaneView extends KDTabPaneView
     @codeViewLoader.hide()
 
 
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneActive" ]
-      listenedToInstance  : @
-      callback            : @becameActive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneInactive" ]
-      listenedToInstance  : @
-      callback            : @becameInactive
-    @listenTo
-      KDEventTypes        : [ eventType : "KDTabPaneDestroy" ]
-      listenedToInstance  : @
-      callback            : @aboutToBeDestroyed
-
   createCodeViewer:(data)=>
     @codeView = new CodeShareView
       delegate: @getDelegate()

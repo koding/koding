@@ -1,7 +1,13 @@
 class AccountAppController extends AppController
+
+  KD.registerAppClass @, name : "Account"
+
   constructor:(options={},data)->
-    options.view = new KDView {cssClass : "content-page" }
+
+    options.view = new KDView cssClass : "content-page"
+
     super options, data
+
     @itemsOrdered = []
 
   bringToFront:()->
@@ -58,28 +64,17 @@ class AccountAppController extends AppController
       resizable : yes
     mainView.addSubView split
 
-    split.panels[1].registerListener
-      KDEventTypes : "scroll"
-      listener     : @
-      callback     : @contentScrolled
+    [panel0, panel1] = split.panels
 
-    split.panels[0].addSubView @leftToggler = new KDView
+    panel1.on "scroll", (event)=> @contentScrolled panel1, event
+
+    panel0.addSubView @leftToggler = new KDView
       cssClass : "account-sidebar-toggler left"
-
-    @listenTo
-      KDEventTypes        : "click"
-      listenedToInstance  : @leftToggler
-      callback            : -> @toggleSidebar show:no
+      click    : => @toggleSidebar show:no
 
     split.addSubView @rightToggler = new KDView
-      cssClass : "account-sidebar-toggler right"
-
-    @listenTo
-      KDEventTypes        : "click"
-      listenedToInstance  : @rightToggler
-      callback            : -> @toggleSidebar show:yes
-
-    @rightToggler.hide()
+      cssClass : "account-sidebar-toggler right hidden"
+      click    : => @toggleSidebar show:yes
 
     @_windowDidResize()
     @getSingleton("windowController").registerWindowResizeListener @
@@ -128,10 +123,10 @@ class AccountAppController extends AppController
       title : "Develop"
       items : [
         { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
-        { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
-        { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
-        { title : "Editor settings",      listHeader: "Editor Settings",            listType: "editors",        id : 10,      parentId : null }
-        { title : "SSH Keys",             listHeader: "SSH Keys",                   listType: "keys",           id : 40,      parentId : null }
+        # { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
+        # { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
+        # { title : "Editor settings",      listHeader: "Editor Settings",            listType: "editors",        id : 10,      parentId : null }
+        # { title : "SSH Keys",             listHeader: "SSH Keys",                   listType: "keys",           id : 40,      parentId : null }
       ]
     billing :
       title : "Billing"

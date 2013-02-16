@@ -2,6 +2,8 @@
 
 class KodingAppsController extends KDController
 
+  KD.registerAppClass @, name : "KodingAppsController"
+
   escapeFilePath = FSHelper.escapeFilePath
 
   defaultManifest = (type, name)->
@@ -63,8 +65,6 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
-
-    KD.getSingleton("appManager").addAppInstance "KodingAppsController", @
 
   # #
   # FETCHERS
@@ -245,7 +245,7 @@ class KodingAppsController extends KDController
     {stylesheets} = manifest.source if manifest.source
 
     proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     if stylesheets
       $("head .app-#{__utils.slugify name}").remove()
@@ -291,18 +291,13 @@ class KodingAppsController extends KDController
           #   type         : "application"
           # , (appView = new KDView)
 
-          @propagateEvent
-            KDEventType     : 'ApplicationWantsToBeShown'
-            globalEvent     : yes
-          ,
-            options         :
-              name          : manifest.name
-              hiddenHandle  : no
-              type          : 'application'
-            data            : appView = new KDView
+          @emit 'ApplicationWantsToBeShown', @, (appView = new KDView),
+            hiddenHandle  : no
+            type          : 'application'
+            name          : manifest.name
 
           appView.on 'ViewClosed', =>
-            @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : appView
+            @emit "ApplicationWantsToClose", @, appView
             KD.getSingleton("appManager").removeOpenTab appView
             appView.destroy()
 

@@ -40,10 +40,7 @@ class CommentListItemView extends KDListItemView
        loggedInId is activity.originId or       # if activity/app owner
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
       @deleteLink.unsetClass "hidden"
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @deleteLink
-        callback           : => @confirmDeleteComment data
+      @deleteLink.on "click", => @confirmDeleteComment data
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 

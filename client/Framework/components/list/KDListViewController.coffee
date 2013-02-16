@@ -131,20 +131,11 @@ class KDListViewController extends KDViewController
       @itemsIndexed[view.getItemDataId()] = view
 
     if options.selection
-      @listenTo
-        KDEventTypes        : 'click'
-        listenedToInstance  : view
-        callback            : (view, event)=> @selectItem view, event
+      view.on 'click', (event)=> @selectItem view, event
 
     if options.keyNav or options.multipleSelection
-      @listenTo
-        KDEventTypes       : ["mousedown","mouseenter"]
-        listenedToInstance : view
-        callback           : (view, event)=>
-          switch event.type
-            when "mousedown"  then @mouseDownHappenedOnItem view, event
-            when "mouseenter" then @mouseEnterHappenedOnItem view, event
-
+      view.on "mousedown", (event)=> @mouseDownHappenedOnItem view, event
+      view.on "mouseenter", (event)=> @mouseEnterHappenedOnItem view, event
 
   unregisterItem:(itemInfo)->
 

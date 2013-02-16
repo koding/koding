@@ -94,7 +94,7 @@ class AccountDatabaseListController extends KDListViewController
     responseAdded = []
     for dbtype in dbTypes
       @talkToKite
-        method : @commands[dbtype].fetch
+        method : @commands[dbtype].fetch
       , (err, response)=>
         if err then warn err
         else
@@ -108,8 +108,8 @@ class AccountDatabaseListController extends KDListViewController
   deleteDatabase:(listItem)->
     data     = listItem.getData()
     @talkToKite
-      method   : @commands[data.dbType].remove
-      withArgs :
+      method   : @commands[data.dbType].remove
+      withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
     , (err, response)=>
@@ -128,8 +128,8 @@ class AccountDatabaseListController extends KDListViewController
     log "Requested DB Type", data
 
     @talkToKite
-      method        : @commands[data.dbType].update
-      withArgs      :
+      method        : @commands[data.dbType].update
+      withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
     , (err, response)=>
@@ -151,8 +151,8 @@ class AccountDatabaseListController extends KDListViewController
     dbPass = __utils.generatePassword 40, no
 
     @talkToKite
-      method      : @commands[dbtype].create
-      withArgs  : {dbName, dbUser, dbPass}
+      method      : @commands[dbtype].create
+      withArgs  : {dbName, dbUser, dbPass}
     , (err, response)=>
       {modal} = @getListView()
       modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
@@ -167,9 +167,9 @@ class AccountDatabaseListController extends KDListViewController
 
     # log "Run on kite:", options.method
     @getSingleton("kiteController").run
-      kiteName  : "databases"
-      method    : options.method
-      withArgs  : options.withArgs
+      kiteName  : "databases"
+      method    : options.method
+      withArgs  : options.withArgs
     , (err, response)=>
       if err then warn err
       callback? err, response

@@ -50,16 +50,13 @@ Includes =
         KDListItemView        : "./client/Framework/components/list/KDListItemView.coffee"
 
         #tree
-        KDTreeViewController  : "./client/Framework/components/tree/KDTreeViewController.coffee"
-        KDTreeView            : "./client/Framework/components/tree/KDTreeView.coffee"
-        KDTreeItemView        : "./client/Framework/components/tree/KDTreeItemView.coffee"
         JTreeViewController   : "./client/Framework/components/tree/treeviewcontroller.coffee"
         JTreeView             : "./client/Framework/components/tree/treeview.coffee"
         JTreeItemView         : "./client/Framework/components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabHandleView       : "./client/Framework/components/tabs/KDTabHandleView.coffee" 
-        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee" 
+        KDTabHandleView       : "./client/Framework/components/tabs/KDTabHandleView.coffee"
+        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee"
         KDTabPaneView         : "./client/Framework/components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
 
@@ -301,7 +298,7 @@ Includes =
         inboxNewMessageBar            : "./client/app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee"
         inboxMessageDetail            : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee"
         inboxReplyForm                : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyForm.coffee"
-        inboxReplyMessageView         : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee"
+        # inboxReplyMessageView         : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee"
         inboxReplyView                : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyView.coffee"
 
         # FEED CONTROLLERS
@@ -317,7 +314,6 @@ Includes =
         # HOME VIEWS
         homeAppView                   : "./client/app/Applications/Home.kdapplication/AppView.coffee"
 
-        aboutContentDisplayController : "./client/app/Applications/Home.kdapplication/ContentDisplays/AboutContentDisplayController.coffee"
         aboutView                     : "./client/app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee"
 
         footerView                    : "./client/app/Applications/Home.kdapplication/Views/FooterBarContents.coffee"
@@ -358,7 +354,7 @@ Includes =
         #
         # pageHome              : "./client/app/MainApp/oldPages/pageHome.coffee"
         # pageRegister          : "./client/app/MainApp/oldPages/pageRegister.coffee"
-        pageEnvironment       : "./client/app/MainApp/oldPages/pageEnvironment.coffee"
+        # pageEnvironment       : "./client/app/MainApp/oldPages/pageEnvironment.coffee"
 
 
         # ENVIRONMENT SETTINGS

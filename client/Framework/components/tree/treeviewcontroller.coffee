@@ -358,10 +358,7 @@ class JTreeViewController extends KDViewController
     if @getOptions().dragdrop
       mouseEvents = mouseEvents.concat ["dragstart", "dragenter", "dragleave", "dragend", "dragover", "drop"]
 
-    @listenTo
-      KDEventTypes       : mouseEvents
-      listenedToInstance : view
-      callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
+    view.on mouseEvents, (event)=> @mouseEventHappened view, event
 
 
   ###

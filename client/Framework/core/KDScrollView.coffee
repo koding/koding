@@ -128,10 +128,7 @@ class KDScrollThumb extends KDView
 
     @on "viewAppended", @_calculateSize.bind @
 
-    @listenTo
-      KDEventTypes : "scroll"
-      listenedToInstance : @_view
-      callback : @_calculatePosition
+    @_view.on "scroll", @bound "_calculatePosition"
 
   isDraggable:()->yes
 

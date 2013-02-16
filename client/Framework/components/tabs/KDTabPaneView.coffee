@@ -1,12 +1,12 @@
 class KDTabPaneView extends KDView
   constructor:(options = {},data)->
-    
+
     options.hiddenHandle ?= no      # yes or no
     options.name        or= ""      # a String
-    options.cssClass      = KD.utils.curryCssClass "kdtabpaneview kdhiddentab clearfix #{options.name}"
+    options.cssClass      = KD.utils.curryCssClass "kdtabpaneview kdhiddentab clearfix #{options.name}", options.cssClass
 
     super options, data
-    
+
     @name = options.name
     @setClass "clearfix"
     @setHeight @$().parent().height()

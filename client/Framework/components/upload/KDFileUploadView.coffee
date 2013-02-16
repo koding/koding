@@ -204,11 +204,7 @@ class KDFileUploadListView extends KDListView
 
   addItem:(file)->
     itemInstance = new KDKDFileUploadListItemView {delegate : @},file
-    @getDelegate().listenTo
-      KDEventTypes:
-        eventType:        "removeFile"
-      listenedToInstance: itemInstance
-      callback:           @getDelegate().removeFile
+    itemInstance.on "removeFile", => @getDelegate().removeFile itemInstance, event
     @addItemView itemInstance
 
 class KDKDFileUploadListItemView extends KDListItemView
@@ -218,7 +214,8 @@ class KDKDFileUploadListItemView extends KDListItemView
     @active = no
 
   click:(e)->
-    @handleEvent {type : "removeFile", orgEvent : e} if $(e.target).is "span.iconic.x"
+    if $(e.target).is "span.iconic.x"
+      @emit "removeFile", orgEvent : e
 
   viewAppended:()->
     @$().append @partial @data
@@ -235,11 +232,7 @@ class KDFileUploadThumbListView extends KDListView
 
   addItem:(file)->
     itemInstance = new KDFileUploadThumbItemView {delegate : @},file
-    @getDelegate().listenTo
-      KDEventTypes:
-        eventType:        "removeFile"
-      listenedToInstance: itemInstance
-      callback:           @getDelegate().removeFile
+    itemInstance.on "removeFile", => @getDelegate().removeFile itemInstance, event
     @addItemView itemInstance
 
 class KDFileUploadThumbItemView extends KDListItemView
@@ -249,7 +242,8 @@ class KDFileUploadThumbItemView extends KDListItemView
     @active = no
 
   click:(e)->
-    @handleEvent {type : "removeFile", orgEvent : e} if $(e.target).is "span.close-icon"
+    if $(e.target).is "span.iconic.x"
+      @emit "removeFile", orgEvent : e
 
   viewAppended:()->
     @$().append @partial @data

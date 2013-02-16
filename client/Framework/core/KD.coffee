@@ -196,11 +196,6 @@ KD.error = error = noop
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
 
-  propagateEvent: (KDEventType, publishingInstance, value)->
-    for subscription in @subscriptions
-      if (!KDEventType? or !subscription.KDEventType? or !!KDEventType.match(subscription.KDEventType.capitalize()))
-        subscription.callback.call subscription.subscribingInstance, publishingInstance, value, {subscription}
-
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
    uniqid = context.data 'data-id'

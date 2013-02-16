@@ -86,20 +86,6 @@ class KDView extends KDObject
     @setInstanceVariables options
     @defaultInit options,data
 
-    if location.hostname is "localhost"
-      @listenTo
-        KDEventTypes        : "click"
-        listenedToInstance  : @
-        callback            : (publishingInstance, event)=>
-          if event.metaKey and event.altKey and event.ctrlKey
-            log @getData()
-            event.stopPropagation?()
-            event.preventDefault?()
-            return false
-          else if event.altKey and (event.metaKey or event.ctrlKey)
-            log @
-            return false
-
     @on 'childAppended', @childAppended.bind @
 
     @on 'viewAppended', =>
@@ -123,6 +109,17 @@ class KDView extends KDObject
             child.parentIsInDom = yes
             child.emit 'viewAppended', child
 
+    # development only
+    if location.hostname is "localhost"
+      @on "click", (event)=>
+        if event.metaKey and event.altKey and event.ctrlKey
+          log @getData()
+          event.stopPropagation?()
+          event.preventDefault?()
+          return false
+        else if event.altKey and (event.metaKey or event.ctrlKey)
+          log @
+          return false
 
   setTemplate:(tmpl, params)->
     params ?= @getOptions()?.pistachioParams
@@ -453,10 +450,8 @@ class KDView extends KDObject
           @emit 'LazyLoadThresholdReached', {ratio}
         lastRatio = ratio
 
-  # counter = 0
   bindEvents:($elm)->
     $elm or= @getDomElement()
-    # defaultEvents = "mousedown mouseup click dblclick dragstart dragenter dragleave dragover drop resize"
     defaultEvents = "mousedown mouseup click dblclick paste"
     instanceEvents = @getOptions().bind
 
@@ -474,29 +469,22 @@ class KDView extends KDObject
       event.stopPropagation() unless willPropagateToDOM
       yes
 
-    # if @contextMenu?
-    #   $elm.bind "contextmenu",(event)=>
-    #     @handleEvent event
-
     eventsToBeBound
 
   bindEvent:($elm, eventName)->
-    [eventName, $elm] = [$elm, @$()] unless eventName
+    [eventName, $elm] = [$elm, @$()] unless eventName
 
-    $elm.bind eventName, (event)=>
-      willPropagateToDOM = @handleEvent event
-      event.stopPropagation() unless willPropagateToDOM
-      yes
+    $elm.bind eventName, (event)=>
+      willPropagateToDOM = @handleEvent event
+      event.stopPropagation() unless willPropagateToDOM
+      yes
 
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
 
-    unless result is no
-      @emit event.type, event
-      # deprecate below 09/2012 sinan
-      @propagateEvent (KDEventType:event.type.capitalize()),event
-      @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
+    @emit event.type, event  unless result is no
+
     willPropagateToDOM = result
 
   scroll:(event)->     yes
@@ -785,6 +773,8 @@ class KDView extends KDObject
       delete @tooltip
     else
       log 'There was nothing to remove.'
+
+  _windowDidResize:->
 
   listenWindowResize:->
 

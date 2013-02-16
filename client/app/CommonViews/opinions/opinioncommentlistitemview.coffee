@@ -1,10 +1,10 @@
 class OpinionCommentListItemView extends KDListItemView
-  constructor:(options,data)->
-    options = $.extend
-      type      : "comment"
-      cssClass  : "kdlistitemview kdlistitemview-comment"
-    ,options
-    super options,data
+  constructor:(options = {},data)->
+
+    options.type     or= "comment"
+    options.cssClass or= "kdlistitemview kdlistitemview-comment"
+
+    super options, data
 
     data = @getData()
 
@@ -22,9 +22,7 @@ class OpinionCommentListItemView extends KDListItemView
       origin
     }
 
-    @author = new ProfileLinkView {
-      origin
-    }
+    @author = new ProfileLinkView { origin }
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
@@ -42,10 +40,7 @@ class OpinionCommentListItemView extends KDListItemView
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
         @deleteLink.unsetClass "hidden"
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteComment data
+        @deleteLink.on "click", => @confirmDeleteComment data
 
   render:->
     if @getData().getAt 'deletedAt'
