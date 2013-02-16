@@ -28,9 +28,9 @@ prepareDb = (callback)->
 
   parseOutput "<br>creating a database....<br>"
   kc.run
-    kiteName  : "databases"
-    toDo      : "createMysqlDatabase"
-    withArgs  : {dbName, dbUser, dbPass}
+    kiteName  : "databases"
+    toDo      : "createMysqlDatabase"
+    withArgs  : {dbName, dbUser, dbPass}
   , (err, response)=>
     if err
       parseOutput err.message, yes
