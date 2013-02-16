@@ -45,10 +45,7 @@ class CommentView extends KDView
 
   attachListeners:->
 
-    @listenTo
-      KDEventTypes : "DecorateActiveCommentView"
-      listenedToInstance : @commentList
-      callback : @decorateActiveCommentState
+    @commentList.on "DecorateActiveCommentView", @bound "decorateActiveCommentState"
 
     @commentList.on "CommentLinkReceivedClick", (event) =>
       @commentForm.commentInput.setFocus()
@@ -56,10 +53,7 @@ class CommentView extends KDView
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
 
-    @listenTo
-      KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @commentList
-      callback : @resetDecoration
+    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
 
   resetDecoration:->
     post = @getData()

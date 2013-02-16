@@ -1,14 +1,14 @@
 class ViewerAppController extends KDViewController
 
-  KD.registerAppClass @, name : "Viewer"
+  KD.registerAppClass @,
+    name     : "Viewer"
+    multiple : yes
 
-  initApp:(options,callback)=>
+  constructor:->
+
+    super
+
     @openDocuments = []
-    # log 'init application called'
-    # @applyStyleSheet ()=>
-    @propagateEvent
-      KDEventType : 'ApplicationInitialized', globalEvent : yes
-    callback()
 
   bringToFront:(frontDocument, path, callback)=>
     unless frontDocument
@@ -58,7 +58,7 @@ class ViewerAppController extends KDViewController
   closeDocument:(doc)->
     doc.parent.removeSubView doc
     @removeOpenDocument doc
-    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : doc
+    @emit "ApplicationWantsToClose", @, doc
     doc.destroy()
 
   loadDocumentView:(docView)->

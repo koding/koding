@@ -6,7 +6,6 @@ class MainView extends KDView
     @createMainPanels()
     @createMainTabView()
     @createSideBar()
-    @windowController = @getSingleton("windowController")
     @listenWindowResize()
 
   addBook:->
@@ -31,7 +30,7 @@ class MainView extends KDView
   removeLoader:->
 
     $loadingScreen = $(".main-loading").eq(0)
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
       marginTop : -winHeight
       opacity   : 0
@@ -190,5 +189,5 @@ class MainView extends KDView
 
   _windowDidResize:->
 
-    {winHeight} = @windowController
+    {winHeight} = @getSingleton "windowController"
     @panelWrapper.setHeight winHeight - 51

@@ -140,29 +140,34 @@ class MembersLocationView extends KDCustomHTMLView
     @setPartial locations?[0] or ''
 
 class MembersLikedContentDisplayView extends KDView
-  constructor:(options={}, data)->
-    options = $.extend
-      view : mainView = new KDView
-      cssClass : 'member-followers content-page-members'
-    ,options
+
+  constructor:(options = {}, data)->
+
+    options.view     or= mainView = new KDView
+    options.cssClass or= 'member-followers content-page-members'
 
     super options, data
 
   createCommons:(account)->
-    headerTitle = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
-    @addSubView header = new HeaderViewSection type : "big", title : headerTitle
+    contentDisplayController = @getSingleton "contentDisplayController"
+    headerTitle              = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+
+    @addSubView header = new HeaderViewSection
+      type  : "big"
+      title : headerTitle
+
+    @addSubView subHeader = new KDCustomHTMLView
+      tagName  : "h2"
+      cssClass : 'sub-header'
+
+    subHeader.addSubView backLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+
     @listenWindowResize()
 
-    @addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
 
-    contentDisplayController = @getSingleton "contentDisplayController"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : backLink
-      callback : ()=>
-        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 class MembersContentDisplayView extends KDView
   constructor:(options={}, data)->
@@ -175,19 +180,20 @@ class MembersContentDisplayView extends KDView
 
   createCommons:(account, filter)->
     headerTitle = if filter is "following" then "Members who #{account.profile.firstName} #{account.profile.lastName} follows" else "Members who follow #{account.profile.firstName} #{account.profile.lastName}"
-    @addSubView header = new HeaderViewSection type : "big", title : headerTitle
+    @addSubView header = new HeaderViewSection
+      type  : "big"
+      title : headerTitle
+
+    @addSubView subHeader = new KDCustomHTMLView
+      tagName  : "h2"
+      cssClass : 'sub-header'
+
+    subHeader.addSubView backLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+
     @listenWindowResize()
-
-    @addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
-
-    contentDisplayController = @getSingleton "contentDisplayController"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : backLink
-      callback : ()=>
-        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 
 class MemberFollowToggleButton extends KDToggleButton

@@ -1,5 +1,9 @@
 class AceAppController extends KDController
 
+  KD.registerAppClass @,
+    name     : "Ace"
+    multiple : yes
+
   constructor:->
 
     super
@@ -22,11 +26,7 @@ class AceAppController extends KDController
 
     @setViewListeners view
 
-    data = view
-    @propagateEvent
-      KDEventType  : 'ApplicationWantsToBeShown'
-      globalEvent  : yes
-    , {options, data}
+    @emit 'ApplicationWantsToBeShown', @, view, options
 
   isFileOpen:(file)-> @aceViews[file.path]?
 
@@ -41,7 +41,7 @@ class AceAppController extends KDController
   removeOpenDocument:(doc)->
 
     if doc
-      @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
+      @emit "ApplicationWantsToClose", @, doc
       KD.getSingleton("appManager").removeOpenTab doc
       @clearFileRecords doc
       doc.destroy()

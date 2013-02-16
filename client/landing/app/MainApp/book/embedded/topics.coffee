@@ -22,12 +22,10 @@ class BookTopics extends KDView
       loader.hide()
       if err then warn err
       else
-        for topic in topics
-          @addSubView topicLink = new TagLinkView null, topic
-          topicLink.registerListener
-            KDEventTypes : "click"
-            listener     : @
-            callback     : =>
+        topics.forEach (topic)=>
+          @addSubView topicLink = new TagLinkView
+            click : =>
               @getDelegate().$().css left : -1349
               @utils.wait 4000, =>
                 @getDelegate().$().css left : -700
+          , topic

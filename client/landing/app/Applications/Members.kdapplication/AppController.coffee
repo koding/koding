@@ -250,16 +250,7 @@ class MembersListViewController extends KDListViewController
         when newFollower, oldFollower
           if newFollower then item.unfollowTheButton() else item.followTheButton()
 
-    item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
-    item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount
-    item.registerListener KDEventTypes : "MemberWantsToBeShown",  listener : @, callback : @getDelegate().showMemberContentDisplay
-    @
-
-  followAccount:(pubInst, {account,callback})->
-    account.follow callback
-
-  unfollowAccount:(pubInst, {account,callback})->
-    account.unfollow callback
+    return @
 
   reloadView:()->
     {query, skip, limit, currentFilter} = @getOptions()

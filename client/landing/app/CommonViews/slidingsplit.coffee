@@ -43,8 +43,8 @@ class SlidingSplit extends KDSplitView
 
   focusByIndex:(index)->
 
-    @setFocusedPanel @panels[i]    
-  
+    @setFocusedPanel @panels[i]
+
   scrollToFocusedPanel:->
     panel      = @focusedPanel
     container  = @scrollContainer
@@ -99,7 +99,7 @@ class SlidingSplit extends KDSplitView
         # Focus Indexed Neighbor
         else
           @focusByIndex i if 0 <= (i = e.which - 49) < 10
-          
+
     no
 
 
@@ -107,10 +107,7 @@ class SlidingSplit extends KDSplitView
 
     panel = super
 
-    @listenTo
-      KDEventTypes       : 'click'
-      listenedToInstance : panel
-      callback           : @setFocusedPanel
+    panel.on 'click', (event)=> @setFocusedPanel panel
 
     return panel
 

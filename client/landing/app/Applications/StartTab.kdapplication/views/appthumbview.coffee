@@ -21,7 +21,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       authorNick = KD.whoami().profile.nickname
 
     proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 

@@ -163,7 +163,7 @@ class LoginView extends KDScrollView
     @slideShow = new HomeSlideShowHolder
 
   viewAppended:->
-    @windowController = @getSingleton("windowController")
+
     @listenWindowResize()
     @setClass "login-screen home"
     @setTemplate @pistachio()
@@ -352,7 +352,7 @@ class LoginView extends KDScrollView
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
   slideUp:(callback)->
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight
     @utils.wait 601,()=>
       @emit "LoginViewHidden"
@@ -373,7 +373,7 @@ class LoginView extends KDScrollView
 
   _windowDidResize:(event)->
 
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight if @hidden
 
   animateToForm: (name)->

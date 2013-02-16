@@ -138,12 +138,6 @@ class CodeShareTabHandleView extends KDView
     # if disabled, this should intercept the click event. however, overriding
     # the kdview listener is not working
 
-    # @syntaxSelect.listenTo
-    #     KDEventTypes        : 'click'
-    #     listenedToInstance  : @
-    #     callback            : (publishingInstance, event)=>
-    #       log "Do something unless this is not an edit tab"
-
   pistachio:->
     """
     {{> @syntaxSelect}}

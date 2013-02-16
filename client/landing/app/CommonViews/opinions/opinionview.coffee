@@ -58,10 +58,7 @@ class OpinionView extends KDView
     @opinionList.on "OpinionCountClicked", =>
       @opinionList.emit "AllOpinionsLinkWasClicked"
 
-    @listenTo
-      KDEventTypes : "OpinionViewShouldReset"
-      listenedToInstance : @opinionList
-      callback : @resetDecoration
+    @opinionList.on "OpinionViewShouldReset", @bound "resetDecoration"
 
   resetDecoration:->
     post = @getData()

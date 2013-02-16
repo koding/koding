@@ -26,18 +26,6 @@ class InboxAppController extends AppController
     mainView.createCommons()
     mainView.createTabs()
 
-    mainView.registerListener
-      KDEventTypes : "ToFieldHasNewInput"
-      listener     : @
-      callback     : (pubInst, data)->
-        return if data.disabledForBeta
-        {type,action} = data
-        mainView.showTab type
-        if action is "change-tab"
-          mainView.showTab data.type
-        else
-          mainView.sort data.type
-
     mainView.on 'NotificationIsSelected', ({notification, event, location})=>
       # nothing yet, coming soon
 
