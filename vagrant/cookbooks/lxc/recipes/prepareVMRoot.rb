@@ -17,6 +17,18 @@ template "/var/lib/lxc/vmroot/config" do
   mode 0644
 end
 
+group "vmroot" do
+    gid 50000000
+end
+
+user "vmroot" do
+    comment "VM root user"
+    uid 50000000
+    gid 50000000
+    home "/var/lib/lxc/vmroot/rootfs"
+    shell "/bin/bash"
+end
+
 # execute "sudo bash /opt/koding/builders/buildVMRoot.sh" do
 # 	creates "/var/lib/lxc/vmroot/rootfs"
 # end
@@ -29,7 +41,7 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	# packages are installed with debootstrap
 	# additional packages are installed later on with apt-get
 	packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
-	additional_packages="ubuntu-minimal ubuntu-standard apache2 htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd"
+	additional_packages="ubuntu-minimal ubuntu-standard apache2 php5 libapache2-mod-php5 htop iotop iftop screen nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client"
 	suite="#{node["lsb"].codename}"
 	variant="buildd"
 	target="/var/lib/lxc/vmroot/rootfs"
@@ -38,8 +50,6 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	mirror=node[:apt][:source][:regular]
 	if node["vagrant"]
 		mirror = node[:apt][:source][:vagrant]
-		# This will be unnecessary after we switch to the current kernel
-		additional_packages="ubuntu-minimal time man-db apache2 htop iotop iftop nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client nscd"
 	end
 	# mirror="http://us-east-1.archive.ubuntu.com/ubuntu/"
 
@@ -94,9 +104,33 @@ end
 	lxc-attach -n vmroot -- /usr/bin/apt-get install #{additional_packages} -y -qq
 		EOH
 	end
+
+	template "/var/lib/lxc/vmroot/rootfs/etc/apache2/apache2.conf" do
+	    source "apache2.conf.erb"
+	    mode 0644
+	    owner "vmroot"
+	    group "vmroot"
+	    variables({
+	            :startServers => '1',
+				:MinSpareThreads => '5',
+				:MaxSpareThreads => '30',
+				:ThreadLimit => '64',
+				:ThreadsPerChild => '5',
+				:MaxClients => '45',
+				:MaxRequestsPerChild => '0',
+	            })
+	end
+
+    cookbook_file "/var/lib/lxc/vmroot/rootfs/etc/apache2/sites-available/default" do
+        source "default"
+        mode 0644
+        owner "vmroot"
+        group "vmroot"
+    end
+
 	# Configure the VMs to use LDAP lookup for users
 	execute "lxc-attach -n vmroot -- /usr/sbin/auth-client-config -t nss -p lac_ldap"
-	# execute "lxc-attach -n vmroot -- /bin/hostname vmroot"
+	execute "lxc-attach -n vmroot -- /bin/hostname vmroot"
 end
 
 execute "lxc-stop -n vmroot"
