@@ -190,8 +190,8 @@ func main() {
 		}
 	}()
 
-	stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "topic", "broker", "#")
-	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, true, false, false, nil); err != nil {
+	stream := utils.DeclareBindConsumeAmqpQueueNoDelete(consumeChannel, "topic", "broker", "#")
+	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
 	}
 	if err := consumeChannel.ExchangeBind("broker", "", "updateInstances", false, nil); err != nil {
