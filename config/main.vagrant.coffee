@@ -141,7 +141,7 @@ module.exports = deepFreeze
     push: no
     email: ""
     token: ""
-    interval: 30000
+    interval: 60000
 
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->

@@ -55,7 +55,7 @@ module.exports = deepFreeze
     push      : no
     email     : ""
     token     : ""
-    interval  : 30 * 1000
+    interval  : 60000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
