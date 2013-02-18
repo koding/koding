@@ -89,7 +89,7 @@ class KDTabHandleView extends KDView
 
   handleDragInAction: (x, y) ->
     return unless @dragIsAllowed
-    return if -(@draggedItemIndex * @getWidth()) > x @$().css 'left': 0
+    return @$().css 'left': 0 if -(@draggedItemIndex * @getWidth()) > x
     
     @cloneElement x
     @$().css opacity: 0.01
