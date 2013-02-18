@@ -221,7 +221,7 @@ task 'goBroker',({configFile})->
     restarts =  if restarts then restarts else 0
     setTimeout ->
       http.get url, (res) ->
-        watchBroker(url, originalInterval)
+        watchBroker(url, restartInterval)
       .on 'error', (e) ->
         processes.killAllChildren process.id, ->
           restarts++
