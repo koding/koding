@@ -25,7 +25,6 @@ class KDTabView extends KDScrollView
     @setClass "kdtabview"
 
     @handlesHidden = no
-    @resizeTimer   = null
 
     @hideHandleCloseIcons() if options.hideHandleCloseIcons
     @hideHandleContainer()  if options.hideHandleContainer
@@ -34,8 +33,9 @@ class KDTabView extends KDScrollView
 
     @tabHandleContainer.on "mouseenter", => @blockTabHandleResize = yes
 
-    @tabHandleContainer.on "mouseleave", => @blockTabHandleResize = no
-
+    @tabHandleContainer.on "mouseleave", => 
+      @blockTabHandleResize = no
+      @resizeTabHandles()
 
   # ADD/REMOVE PANES
   createPanes:(paneTitlesArray = @getOptions().tabNames)->
