@@ -249,12 +249,6 @@ module.exports = class CActivity extends jraphical.Capsule
         else
           callback null, activities
 
-    # console.log JSON.stringify selector
-
-    @some selector, options, (err, activities)->
-      if err then callback err
-      else
-        callback null, activities
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
