@@ -384,6 +384,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
+      showDefaultItem   : yes
+      defaultItem       :
+        options         :
+          cssClass      : 'default-item'
+          partial       : 'No invitations sent'
 
     @sentRequestList = @sentRequestListController.getListView()
 
@@ -391,6 +396,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
+      showDefaultItem   : yes
+      defaultItem       :
+        options         :
+          cssClass      : 'default-item'
+          partial       : 'No invitations pending'
 
     @requestList = @requestListController.getListView()
     @requestList.on 'InvitationIsSent', (invitationRequest)=>
@@ -452,7 +462,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   pistachio:->
     """
-    <section class="formline">
+    <section class="formline status-quo">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
@@ -468,11 +478,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     </div>
     <div class="formline">
     <section class="formline sent">
-      <h2>Invite members individually</h2>
+      <h2>Sent Invitations</h2>
       {{> @sentRequestList}}
     </section>
     <section class="formline pending">
-      <h2>Invite members individually</h2>
+      <h2>Pending Invitations</h2>
       {{> @requestList}}
     </section>
     </div>
@@ -549,23 +559,24 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     data               = @getData()
     list               = @getDelegate()
     {roles, userRoles} = list.getOptions()
+    @avatar            = new AvatarStaticView {}, data
     @profileLink       = new ProfileTextView {}, data
     @usersRole         = userRoles[data.getId()]
 
     @userRole          = new KDCustomHTMLView
-      partial          : @usersRole
+      partial          : "Roles: "+@usersRole
       cssClass         : 'ib role'
 
     @editLink          = new CustomLinkView
       title            : 'Edit'
-      cssClass         : 'fr'
+      cssClass         : 'fr edit-link'
       icon             :
         cssClass       : 'edit'
       click            : @bound 'showEditMemberRolesView'
 
     @saveLink          = new CustomLinkView
       title            : 'Save'
-      cssClass         : 'fr hidden'
+      cssClass         : 'fr hidden save-link'
       icon             :
         cssClass       : 'save'
       click            : =>
@@ -575,7 +586,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     @cancelLink        = new CustomLinkView
       title            : 'Cancel'
-      cssClass         : 'fr hidden'
+      cssClass         : 'fr hidden cancel-link'
       icon             :
         cssClass       : 'delete'
       click            : @bound 'hideEditMemberRolesView'
@@ -627,11 +638,12 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
   pistachio:->
     """
     <section>
-      {{> @profileLink}}
-      {{> @userRole}}
+      <span class="avatar">{{> @avatar}}</span>
       {{> @editLink}}
       {{> @saveLink}}
       {{> @cancelLink}}
+      {{> @profileLink}}
+      {{> @userRole}}
     </section>
     {{> @editContainer}}
     """
@@ -712,8 +724,8 @@ class GroupsMemberRolesEditView extends JView
 class GroupMembershipPolicyTabView extends KDView
   constructor:(options,data)->
     super options,data
-    @tabView = new KDTabView
-      hideHandleCloseIcons : yes
+
+    @setClass 'Membership Policy'
 
     @loader           = new KDLoaderView
       cssClass        : 'loader'
@@ -728,10 +740,10 @@ class GroupMembershipPolicyTabView extends KDView
     @loader.show()
     @loaderText.show()
 
+    # {{> @tabView}}
   pistachio:->
     """
     {{> @loader}}
     {{> @loaderText}}
-    {{> @tabView}}
     """
 

@@ -416,89 +416,132 @@
 
 
 .group-admin-modal
-
-  .kdmodal-content .kdtabhandlecontainer .kdtabhandle
-    min-width 60px
-
-  div.image-wrapper
-    fl()
-    borderBox()
-    width 250px
-    height 250px
-    display block
-    border-bottom 1px solid #e5e5e5
-    text-align center
-    padding 5px
-    bg size, cover
-    bg size, contain
-    bg position, center center
-    bg repeat, no-repeat
-
-    img.avatar-image
+  div.General.Settings  > .kdformview
+    margin-top 5px
+    > .formline
+      width 100%
       borderBox()
-      padding 5px
-      width auto
-      height auto
-      max-width 240px
-      max-height 240px
-      shadow 0px 0px 5px black
+      overflow:auto
+      border none
+      padding 5px 0px 10px 18px
+      // &.button-field
+      //   bg color, transparent
+      //   rounded 0
+      //   border none
+      //   padding 0
+      //   margin-left 0px
+      //   margin-top 15px
+
+  > .kdformview
+    margin-top 20px
+    > .formline
+      width 100%
+      borderBox()
+      overflow:auto
+      border none
+      &.button-field
+        bg color, transparent
+        rounded 0
+        border none
+        padding 0
+        margin-left 108px
+        margin-top 15px
+
 
   div.avatar
-    borderBox()
-    // margin-top -94px
-    // bg color, white
-    // border-left 1px solid #e5e5e5
-    border-bottom none
-    padding 11px 11px 0 21px
-    width 115px
-    fl()
-    z-index 10000
+    .kdlabel
+      margin-top:30px
+    .kdfileuploadarea
+      width 80px
+      height 80px
 
-    // width 50%
-    // margin-left 50%
-    clear both
-    label.avatar
-      display none
-    .input-wrapper
-      height 100%
-      fl()
-      bg color, white
-    div.kdfileupload
-      height 71px
-      width 71px
-      // height 100%
-      min-width 0px
-      .kdfileuploadarea
-        bg size, contain
-        bg position, center center
-        bg repeat, no-repeat no-repeat
-        width 100%
-        height 100%
-        span
-          line-height 70px
-          font-size 12px
-          color #a5a5a5
-          padding 0px 5px
-    .listview-wrapper
-      display none
-  .kdlabel.title
-  .kdlabel.slug
-    display none
-  input.kdinput.text[name="slug"]
-    width auto
-  .SlugText
-    text-align right
-    // .input-wrapper:last-child
-    //   display none
-    .input-wrapper
-      width auto
-      display inline-block
-    .input-wrapper:first-child
-      height 25px
-      line-height 25px
-      .slug-url
-        .base
-          color lighten(#5f5f5f,50%)
+  div.body
+    textarea
+      min-height 150px
+
+
+  // .kdmodal-content .kdtabhandlecontainer .kdtabhandle
+  //   min-width 60px
+
+  // div.image-wrapper
+  //   fl()
+  //   borderBox()
+  //   width 250px
+  //   height 250px
+  //   display block
+  //   border-bottom 1px solid #e5e5e5
+  //   text-align center
+  //   padding 5px
+  //   bg size, cover
+  //   bg size, contain
+  //   bg position, center center
+  //   bg repeat, no-repeat
+
+  //   img.avatar-image
+  //     borderBox()
+  //     padding 5px
+  //     width auto
+  //     height auto
+  //     max-width 240px
+  //     max-height 240px
+  //     shadow 0px 0px 5px black
+
+  // div.avatar
+  //   borderBox()
+  //   // margin-top -94px
+  //   // bg color, white
+  //   // border-left 1px solid #e5e5e5
+  //   border-bottom none
+  //   padding 11px 11px 0 21px
+  //   width 115px
+  //   fl()
+  //   z-index 10000
+
+  //   // width 50%
+  //   // margin-left 50%
+  //   clear both
+  //   label.avatar
+  //     display none
+  //   .input-wrapper
+  //     height 100%
+  //     fl()
+  //     bg color, white
+  //   div.kdfileupload
+  //     height 71px
+  //     width 71px
+  //     // height 100%
+  //     min-width 0px
+  //     .kdfileuploadarea
+  //       bg size, contain
+  //       bg position, center center
+  //       bg repeat, no-repeat no-repeat
+  //       width 100%
+  //       height 100%
+  //       span
+  //         line-height 70px
+  //         font-size 12px
+  //         color #a5a5a5
+  //         padding 0px 5px
+  //   .listview-wrapper
+  //     display none
+  // .kdlabel.title
+  // .kdlabel.slug
+  //   display none
+  // input.kdinput.text[name="slug"]
+  //   width auto
+  // .SlugText
+  //   text-align right
+  //   // .input-wrapper:last-child
+  //   //   display none
+  //   .input-wrapper
+  //     width auto
+  //     display inline-block
+  //   .input-wrapper:first-child
+  //     height 25px
+  //     line-height 25px
+  //     .slug-url
+  //       .base
+  //         color lighten(#5f5f5f,50%)
 .groups-member-permissions-view
 
   .kdview.kdloader
@@ -685,39 +728,102 @@
 
     .kdtabhandlecontainer
       padding-top           0
-      background            linear-gradient(top, #555 0%,#666 93.7%)
-      height                22px
-      padding               0 10px
-      shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      // background            linear-gradient(top, #555 0%,#666 93.7%)
+      height                27px
+      padding               0px 10px 0px 10px
+      // shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      bg color,             #f5f5f5
       borderBox()
+      border none
       .kdtabhandle
         // border              1px solid transparent
         border-width        0
-        height              21px
-        line-height         21px
-        color               #ddd
-        font-size           11px
+        height              27px
+        line-height         27px
+        color               #aaa
+        font-size           13px
         padding             0 10px
-        min-width           100px
+        min-width           120px
         width               auto!important
         borderBox()
         rounded(0)
+        // text-align center
         b
           margin-right      0
+          font-weight normal
         &.active
           // border-color      #ccc
+          border none
+          bg color, transparent
           height            21px
-          background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
-          color             #fff
-          text-shadow       0 -1px 0 rgba(0,0,0,.05)
-          shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+          // background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+          color             #444
+          // text-shadow       0 -1px 0 rgba(0,0,0,.05)
+          // shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
           b
+            // text-decoration underline
             font-weight       600
 
+    // .kdtabhandlecontainer
+    //   padding-top           0
+    //   background            linear-gradient(top, #555 0%,#666 93.7%)
+    //   height                22px
+    //   padding               0 10px
+    //   shadow                inset 0 2px 5px rgba(0,0,0,.1)
+    //   borderBox()
+    //   .kdtabhandle
+    //     // border              1px solid transparent
+    //     border-width        0
+    //     height              21px
+    //     line-height         21px
+    //     color               #ddd
+    //     font-size           11px
+    //     padding             0 10px
+    //     min-width           100px
+    //     width               auto!important
+    //     borderBox()
+    //     rounded(0)
+    //     b
+    //       margin-right      0
+    //     &.active
+    //       // border-color      #ccc
+    //       height            21px
+    //       background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+    //       color             #fff
+    //       text-shadow       0 -1px 0 rgba(0,0,0,.05)
+    //       shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+    //       b
+    //         font-weight       600
+
+
+    .Members
+      .listview-wrapper
+        borderBox()
+        padding 20px
+        .kdlistitemview-member-item
+          width 50%
+          display inline-block
+          borderBox()
+          section
+            .profile
+              borderBox()
+              margin-left 60px
+              padding 2px
+              display block
+            .role
+              borderBox()
+              margin-left 60px
+              padding 2px
+              display block
+            .edit-link
+            .save-link
+            .cancel-link
+              fr()
 
     .Invitations
     .Membership.Policy
       padding-top: 20px
+
       section.formline
         margin-left 100px
         margin-top 10px
@@ -729,7 +835,7 @@
           height 17px
           // font-weight 600
           font-size 14px
-          border none
+          // border none
         p
           margin-top 0px
           margin-bottom 15px
@@ -738,9 +844,6 @@
         > a
           margin-left 10px
 
-        .button-field
-
-
         button
           min-width 80px
           height 24px
@@ -748,13 +851,10 @@
           margin 5px 5px 5px 0
 
         .policylanguage-editor
-          // margin-left 10px
+
           textarea
             min-width 400px
             min-height 100px
-
-        // .editable-webhook
-        //   margin-left 10px
 
         div.formline
           borderBox()
@@ -767,6 +867,7 @@
             margin-left 20px
             display inline-block
             hidden()
+
       a.edit-link
       div.on-off
         fl()
@@ -781,13 +882,16 @@
 
     .Invitations
       padding-top 20px
+
       div.formline.button-field
         margin 0
         padding 0
         height auto
+
       div.formline
         overflow hidden
         width 100%
+
       section.formline
         overflow hidden
         min-width 200px
@@ -795,35 +899,48 @@
         borderBox()
         margin 0
         padding 20px
+
         button
           margin 0
           fr()
+
         &.sent
           fr()
           clear both
+
         &.batch
           fr()
           clear both
 
+        &.status-quo
+          width 100%
+
       .request-list
         margin-top 20px
-        // margin-left 10px
+
+        .default-item
+          padding-left 10px
+
         .formline.invitation-request
-          padding 0px 10px
+          padding 0px 10px 10px 0
           display inline-block
-          // width 50%
           borderBox()
+
           .request
             margin-left 55px
+
           .username
             width auto
+
           .requested-at
+
             span
               display inline-block
+
           .is-sent
+
             span
               font-weight 600
-
 
           span.avatar
             border              1px solid #E3E3E3
@@ -832,6 +949,7 @@
             size(40px,40px)
             bg(color,#fff)
             fl()
+
             a
               display               block
               background-position   center
