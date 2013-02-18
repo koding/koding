@@ -7,7 +7,7 @@ class FSHelper
 
   parseFile = (parentPath, outputLine) ->
 
-    if outputLine[0..1] is 'l?'
+    if outputLine[0..1] in ['l?', '??']
       type = 'brokenLink'
       createdAt = null
       name = outputLine.split(' ').last

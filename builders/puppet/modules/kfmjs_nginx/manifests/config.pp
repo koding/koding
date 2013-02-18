@@ -87,5 +87,21 @@ class kfmjs_nginx::config {
         notify  => Class["kfmjs_nginx::service"],
         require => File["/etc/nginx/ssl"],
     }
-        
+
+     file { "/etc/nginx/ssl/server_new.crt":
+        ensure => file,
+        mode   => '0600',
+        source => "puppet:///modules/kfmjs_nginx/etc/ssl/server_new.crt",
+        notify  => Class["kfmjs_nginx::service"],
+        require => File["/etc/nginx/ssl"],
+    }
+
+    file { "/etc/nginx/ssl/server_new.key":
+        ensure => file,
+        mode   => '0600',
+        source => "puppet:///modules/kfmjs_nginx/etc/ssl/server_new.key",
+        notify  => Class["kfmjs_nginx::service"],
+        require => File["/etc/nginx/ssl"],
+    }
+          
 }

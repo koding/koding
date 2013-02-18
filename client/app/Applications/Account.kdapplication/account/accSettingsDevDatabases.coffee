@@ -99,9 +99,9 @@ class AccountDatabaseListController extends KDListViewController
         if err then warn err
         else
           if response.length > 0
-            unless response[0].dbName in responseAdded
-              @instantiateListItems response
-              responseAdded.push response[0].dbName
+            # unless response[0].dbName in responseAdded
+            @instantiateListItems response
+            responseAdded.push response[0].dbName
           callback?()
           hideLoaderWhenFinished()
 

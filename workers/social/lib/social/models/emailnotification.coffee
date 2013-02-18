@@ -71,7 +71,7 @@ module.exports = class JMailNotification extends Model
         unless emailFrequency?
           callback null
         else
-          if emailFrequency.global is 'on'
+          if emailFrequency.global is true
             for key, type of flags
               if contentType in type.contentTypes and event in type.eventType
                 if emailFrequency[key]
@@ -138,11 +138,11 @@ module.exports = class JMailNotification extends Model
             prefs = {}
             definition = ''
             if opt is 'all'
-              prefs.global = 'off'
+              prefs.global = false
             else if opt is 'daily'
-              prefs.daily = 'off'
+              prefs.daily = false
             else
-              prefs[notification.eventFlag] = 'off'
+              prefs[notification.eventFlag] = false
               {definition} = flags[notification.eventFlag]
             username = account.profile.nickname
             JUser = require './user'

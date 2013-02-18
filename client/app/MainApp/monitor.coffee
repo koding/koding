@@ -87,7 +87,7 @@ class MonitorController extends KDController
             if item.indexOf(key.replace('*','')) isnt -1
               @socialWorkers++
               socialWorker = @monitorData[item]
-          socialWorker?.count = @socialWorkers
+          socialWorker?.count = @socialWorkers or 0
           return socialWorker
 
   getOnlineServices:->

@@ -119,7 +119,6 @@ class Sidebar extends JView
 
     @finderController = new NFinderController
       fsListeners       : yes
-      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website"
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
