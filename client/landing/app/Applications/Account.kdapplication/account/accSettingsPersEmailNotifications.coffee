@@ -32,8 +32,9 @@ class AccountEmailNotifications extends KDView
       field.formView.addSubView field.switch = new KDMultipleChoice
         cssClass      : 'dark'
         labels        : labels
-        defaultValue  : field.current
+        defaultValue  : if field.current is on then 'on' else 'off'
         callback      : (state)->
+          state = if state is 'on' then on else off
           prefs = {}
 
           prefs[@getData()] = state
@@ -60,7 +61,7 @@ class AccountEmailNotifications extends KDView
 
     toggleFieldStates = (state)->
       for flag, field of fields when flag isnt 'global'
-        if state is 'off'
+        if state is false
           field.formView.hide()
         else
           field.formView.show()
