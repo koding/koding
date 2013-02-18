@@ -273,7 +273,7 @@ class GroupsAppController extends AppController
                   diameter        : 16
                 callback          : -> modal.destroy()
             fields:
-              "Drop Image here"              :
+              "Avatar"              :
                 label             : "Avatar"
                 itemClass         : KDImageUploadSingleView
                 name              : "avatar"
@@ -323,19 +323,19 @@ class GroupsAppController extends AppController
                   , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
-              SlugText                :
-                itemClass : KDView
-                cssClass : 'slug-url'
-                partial : '<span class="base">http://www.koding.com/</span>'
-                nextElementFlat :
-                  Slug :
-                    label             : "Slug"
-                    itemClass         : KDInputView
-                    name              : "slug"
-                    # cssClass          : 'hidden'
-                    defaultValue      : group.slug ? ""
-                    placeholder       : 'This value will be automatically generated'
-                    # disabled          : yes
+              # SlugText                :
+              #   itemClass : KDView
+              #   cssClass : 'slug-url'
+              #   partial : '<span class="base">http://www.koding.com/</span>'
+              #   nextElementFlat :
+              Slug :
+                label             : "Slug"
+                itemClass         : KDInputView
+                name              : "slug"
+                # cssClass          : 'hidden'
+                defaultValue      : group.slug ? ""
+                placeholder       : 'This value will be automatically generated'
+                # disabled          : yes
               Description         :
                 label             : "Description"
                 type              : "textarea"
@@ -364,79 +364,79 @@ class GroupsAppController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
 
-    unless isNewGroup
-      modalOptions.tabs.forms.Permissions =
-        title : 'Permissions'
-        cssClass : 'permissions-modal'
-      modalOptions.tabs.forms.Members =
-        title   : "User permissions"
-      if isPrivateGroup
-        modalOptions.tabs.forms['Membership policy'] =
-          title   : "Membership policy"
+    # unless isNewGroup
+    #   modalOptions.tabs.forms.Permissions =
+    #     title : 'Permissions'
+    #     cssClass : 'permissions-modal'
+    #   modalOptions.tabs.forms.Members =
+    #     title   : "User permissions"
+    #   if isPrivateGroup
+    #     modalOptions.tabs.forms['Membership policy'] =
+    #       title   : "Membership policy"
 
     modal = new KDModalViewWithForms modalOptions, group
 
     {forms} = modal.modalTabs
 
-    avatarUploadView = forms["General Settings"].inputs["Drop Image here"]
+    avatarUploadView = forms["General Settings"].inputs["Avatar"]
     avatarUploadView.on 'FileReadComplete', (stuff)->
       avatarUploadView.$('.kdfileuploadarea').css
         backgroundImage : "url(#{stuff.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
 
-    unless isNewGroup
-      if isPrivateGroup
-        group.fetchMembershipPolicy (err, policy)=>
-          membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+    # unless isNewGroup
+    #   if isPrivateGroup
+    #     group.fetchMembershipPolicy (err, policy)=>
+    #       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
-          membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
-            @updateMembershipPolicy group, policy, formData, membershipPolicyView
+    #       membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
+    #         @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
-          forms["Membership policy"].addSubView membershipPolicyView
+    #       forms["Membership policy"].addSubView membershipPolicyView
 
-          if policy.invitationsEnabled
-            @showInvitationsTab group, modal, forms
-          else if policy.approvalEnabled
-            @showApprovalTab group, modal, forms
+    #       if policy.invitationsEnabled
+    #         @showInvitationsTab group, modal, forms
+    #       else if policy.approvalEnabled
+    #         @showApprovalTab group, modal, forms
 
-      forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
+    #   forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
 
-      forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
-        size          :
-          width       : 32
+    #   forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
+    #     size          :
+    #       width       : 32
 
-      addPermissionsView = (newPermissions)=>
-        group.fetchRoles (err,roles)->
-          group.fetchPermissions (err, permissionSet)=>
-            permissionsLoader.hide()
-            unless err
-              if newPermissions
-                permissionSet.permissions = newPermissions
-              if @permissions then forms["Permissions"].removeSubView @permissions
-              forms["Permissions"].addSubView @permissions = new PermissionsModal {
-                privacy: group.privacy
-                permissionSet
-                roles
-              }, group
-              @permissions.emit 'RoleViewRefreshed'
-              @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
-                copiedPermissions = []
-                for permission of newPermissions
-                  if newPermissions[permission].role is copy
-                    copiedPermissions.push
-                      module : newPermissions[permission].module
-                      permissions : newPermissions[permission].permissions
-                      role : role
-                for item in copiedPermissions
-                  newPermissions.push item
-                addPermissionsView(newPermissions)
-                # @render()
-            else
-              forms['Permissions'].addSubView new KDView
-                partial : 'No access'
+    #   addPermissionsView = (newPermissions)=>
+    #     group.fetchRoles (err,roles)->
+    #       group.fetchPermissions (err, permissionSet)=>
+    #         permissionsLoader.hide()
+    #         unless err
+    #           if newPermissions
+    #             permissionSet.permissions = newPermissions
+    #           if @permissions then forms["Permissions"].removeSubView @permissions
+    #           forms["Permissions"].addSubView @permissions = new PermissionsModal {
+    #             privacy: group.privacy
+    #             permissionSet
+    #             roles
+    #           }, group
+    #           @permissions.emit 'RoleViewRefreshed'
+    #           @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
+    #             copiedPermissions = []
+    #             for permission of newPermissions
+    #               if newPermissions[permission].role is copy
+    #                 copiedPermissions.push
+    #                   module : newPermissions[permission].module
+    #                   permissions : newPermissions[permission].permissions
+    #                   role : role
+    #             for item in copiedPermissions
+    #               newPermissions.push item
+    #             addPermissionsView(newPermissions)
+    #             # @render()
+    #         else
+    #           forms['Permissions'].addSubView new KDView
+    #             partial : 'No access'
 
-      permissionsLoader.show()
-      addPermissionsView()
+    #   permissionsLoader.show()
+    #   addPermissionsView()
 
   handleError =(err, buttons)->
     unless buttons
@@ -567,7 +567,14 @@ class GroupsAppController extends AppController
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            @showGroupSubmissionView groupItem.getData()
+            groupData = groupItem.getData()
+            groupData.canEditGroup (err, hasPermission)=>
+              unless hasPermission
+                new KDNotificationView title: 'Access denied'
+              else
+                @showGroupSubmissionView groupData
+          @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
+            groupItem.getData().fetchRoles console.log.bind console
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
@@ -625,16 +632,11 @@ class GroupsAppController extends AppController
         @hideInvitationsTab view
         @hideApprovalTab view
 
-  prepareMembershipPolicyTab:(group, view)->
-    view.tabView.hide()
+  prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
-      view.tabView.addPane policyPane = new KDTabPaneView
-        name : 'Membership Policy'
-      , policy
 
       view.loader.hide()
       view.loaderText.hide()
-      view.tabView.show()
 
       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
 
@@ -643,11 +645,11 @@ class GroupsAppController extends AppController
 
       membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
         group.fetchMembershipPolicy (err, policy)=>
-          @handleMembershipPolicyTabs policy, group, view
+          @handleMembershipPolicyTabs policy, group, groupView
 
-      @handleMembershipPolicyTabs policy, group, view
+      @handleMembershipPolicyTabs policy, group, groupView
 
-      policyPane.addSubView membershipPolicyView
+      view.addSubView membershipPolicyView
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -659,20 +661,20 @@ class GroupsAppController extends AppController
     , group
 
     groupView.on 'ReadmeSelected',
-      groupView.lazyBound 'assureTab', 'Readme', GroupReadmeView
+      groupView.lazyBound 'assureTab', 'Readme', yes, GroupReadmeView
 
     groupView.on 'SettingsSelected',
-      groupView.lazyBound 'assureTab', 'Settings', GroupGeneralSettingsView
+      groupView.lazyBound 'assureTab', 'Settings', no, GroupGeneralSettingsView
 
     groupView.on 'PermissionsSelected',
-      groupView.lazyBound 'assureTab', 'Permissions', GroupPermissionsView, {delegate : groupView}
+      groupView.lazyBound 'assureTab', 'Permissions', no, GroupPermissionsView, {delegate : groupView}
 
     groupView.on 'MembersSelected',
-      groupView.lazyBound 'assureTab', 'Members', GroupsMemberPermissionsView
+      groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView
 
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', GroupMembershipPolicyTabView,
-        (pane, view)=> @prepareMembershipPolicyTab group, view
+      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupMembershipPolicyTabView,
+        (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView

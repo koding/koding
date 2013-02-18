@@ -75,7 +75,7 @@ class GroupView extends ActivityContentDisplay
 
     @createTabs()
 
-  assureTab:(tabName, konstructor, options, initializer)->
+  assureTab:(tabName, showAppend=yes, konstructor, options, initializer)->
     if 'function' is typeof options
       initializer = options
       options = {}
@@ -86,10 +86,10 @@ class GroupView extends ActivityContentDisplay
       view = new konstructor options ? {}, @getData()
       pane = new KDTabPaneView name: tabName
       initializer?.call? pane, pane, view
-      @tabView.addPane pane
+      @tabView.addPane pane, showAppend
       pane.addSubView view
 
-    @tabView.showPane pane
+    @tabView.showPane pane if showAppend
     return pane
 
   createTabs:->
@@ -98,50 +98,57 @@ class GroupView extends ActivityContentDisplay
     @tabView = new KDTabView
       cssClass : 'group-content'
       hideHandleContainer : yes
+      hideHandleCloseIcons : yes
     , data
     @utils.defer => @emit 'ReadmeSelected'
 
   decorateUponRoles:(roles)->
 
     if "admin" in roles
-      @adminMenuLink = new CustomLinkView
-        cssClass    : 'fr'
-        title       : "Admin"
-        icon        :
-          cssClass  : 'admin'
-        click       : (event)=>
-          event.preventDefault()
+      @tabView.showHandleContainer()
+      @emit 'SettingsSelected'
+      @emit 'PermissionsSelected'
+      @emit 'MembersSelected'
+      @emit 'MembershipPolicySelected'
 
-          contextMenu = new JContextMenu
-            cssClass    : "group-admin-menu"
-            event       : event
-            delegate    : @adminMenuLink
-            offset      :
-              top       : 10
-              left      : -30
-            arrow       :
-              placement : "top"
-              margin    : -20
-          ,
-            'Settings'              :
-              callback              : (source, event)=>
-                @emit 'SettingsSelected'
-                contextMenu.destroy()
-              separator             : yes
-            'Permissions'           :
-              callback              : (source, event)=>
-                @emit 'PermissionsSelected'
-                contextMenu.destroy()
-            'Members'               :
-              callback              : (source, event)=>
-                @emit 'MembersSelected'
-                contextMenu.destroy()
-            'Membership policy'     :
-              callback              : (source, event)=>
-                @emit 'MembershipPolicySelected'
-                contextMenu.destroy()
+      # @adminMenuLink = new CustomLinkView
+      #   cssClass    : 'fr'
+      #   title       : "Admin"
+      #   icon        :
+      #     cssClass  : 'admin'
+      #   click       : (event)=>
+      #     event.preventDefault()
 
-      @addSubView @adminMenuLink, ".navbar"
+      #     contextMenu = new JContextMenu
+      #       cssClass    : "group-admin-menu"
+      #       event       : event
+      #       delegate    : @adminMenuLink
+      #       offset      :
+      #         top       : 10
+      #         left      : -30
+      #       arrow       :
+      #         placement : "top"
+      #         margin    : -20
+      #     ,
+      #       'Settings'              :
+      #         callback              : (source, event)=>
+      #           @emit 'SettingsSelected'
+      #           contextMenu.destroy()
+      #         separator             : yes
+      #       'Permissions'           :
+      #         callback              : (source, event)=>
+      #           @emit 'PermissionsSelected'
+      #           contextMenu.destroy()
+      #       'Members'               :
+      #         callback              : (source, event)=>
+      #           @emit 'MembersSelected'
+      #           contextMenu.destroy()
+      #       'Membership policy'     :
+      #         callback              : (source, event)=>
+      #           @emit 'MembershipPolicySelected'
+      #           contextMenu.destroy()
+
+      # @addSubView @adminMenuLink, ".navbar"
 
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler

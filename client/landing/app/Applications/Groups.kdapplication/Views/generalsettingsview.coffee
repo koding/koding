@@ -22,9 +22,9 @@ class GroupGeneralSettingsView extends JView
         else
           new KDNotificationView
             title: 'Group was updated!'
-            duration: 1000   
+            duration: 1000
 
-    formOptions =   
+    formOptions =
       title: if isNewGroup then 'Create a group' else 'Edit group'
       callback:(formData)=>
         if isNewGroup
@@ -45,7 +45,7 @@ class GroupGeneralSettingsView extends JView
             diameter        : 16
           callback          : -> modal.destroy()
       fields:
-        "Drop Image here"              :
+        "Avatar"              :
           label             : "Avatar"
           itemClass         : KDImageUploadSingleView
           name              : "avatar"
@@ -84,29 +84,23 @@ class GroupGeneralSettingsView extends JView
               ]
           }
         Title               :
-          label             : "Title"
+          label             : "Group Name"
           itemClass         : KDInputView
           name              : "title"
           keydown           : (pubInst, event)=>
+            value = @settingsForm.inputs.Title.getValue()
             setTimeout =>
               slug = @utils.slugify @settingsForm.inputs.Title.getValue()
               @settingsForm.inputs.Slug.setValue slug
             , 1
           defaultValue      : Encoder.htmlDecode group.title ? ""
           placeholder       : 'Please enter a title here'
-        SlugText                :
-          itemClass : KDView
-          cssClass : 'slug-url'
-          partial : '<span class="base">http://www.koding.com/</span>'
-          nextElementFlat :
-            Slug :
-              label             : "Slug"
-              itemClass         : KDInputView
-              name              : "slug"
-              # cssClass          : 'hidden'
-              defaultValue      : group.slug ? ""
-              placeholder       : 'This value will be automatically generated'
-              # disabled          : yes
+        Slug :
+          itemClass         : KDInputView
+          label             : 'Path'
+          name              : "slug"
+          defaultValue      : group.slug ? ""
+          placeholder       : 'This value will be automatically generated'
         Description         :
           label             : "Description"
           type              : "textarea"
@@ -114,9 +108,10 @@ class GroupGeneralSettingsView extends JView
           name              : "body"
           defaultValue      : Encoder.htmlDecode group.body ? ""
           placeholder       : 'Please enter a description here.'
+          autogrow          : yes
         "Privacy settings"  :
           itemClass         : KDSelectBox
-          label             : "Privacy settings"
+          label             : "Privacy"
           type              : "select"
           name              : "privacy"
           defaultValue      : group.privacy ? "public"
@@ -126,7 +121,7 @@ class GroupGeneralSettingsView extends JView
           ]
         "Visibility settings"  :
           itemClass         : KDSelectBox
-          label             : "Visibility settings"
+          label             : "Visibility"
           type              : "select"
           name              : "visibility"
           defaultValue      : group.visibility ? "visible"
@@ -137,13 +132,12 @@ class GroupGeneralSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, @getData()
 
-
-    avatarUploadView = @settingsForm.inputs["Drop Image here"]
+    avatarUploadView = @settingsForm.inputs["Avatar"]
     avatarUploadView.on 'FileReadComplete', (stuff)->
       avatarUploadView.$('.kdfileuploadarea').css
         backgroundImage : "url(#{stuff.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
-   
+
   viewAppended:->
     super
 
