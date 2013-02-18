@@ -75,6 +75,8 @@ class KDTabView extends KDScrollView
   resortTabHandles: (index, dir) ->
     return if (index is 0 and dir is 'left') or (index is @handles.length - 1 and dir is 'right') or (index >= @handles.length) or (index < 0)
 
+    @handles[0].unsetClass 'first'
+
     if dir is 'right'
       methodName  = 'insertAfter'
       targetIndex = index + 1
@@ -89,6 +91,8 @@ class KDTabView extends KDScrollView
 
     @handles.splice newIndex, 0, splicedHandle[0]
     @panes.splice   newIndex, 0, splicedPane[0]
+
+    @handles[0].setClass 'first'
 
   removePane:(pane)->
     pane.emit "KDTabPaneDestroy"

@@ -90,11 +90,11 @@ class MainTabHandleHolder extends KDView
         appTabCount++
 
     if appTabCount is 0
-      @plusHandle.setClass "last"
+      @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"
       @plusHandle.__shouldAdd = no
     else
-      #visibleTabs[0].tabHandle.setClass "first"
+      visibleTabs[0].tabHandle.setClass "first"
       @removePlusHandle()
       @addPlusHandle()
       @plusHandle.unsetClass "first"
