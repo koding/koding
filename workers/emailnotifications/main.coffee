@@ -143,8 +143,8 @@ prepareEmail = (notification, daily = no, cb)->
           console.error "Could not load user record"
           callback err
         else
-          if not daily and state isnt 'on'
-            log 'User disabled e-mails, ignored for now.'
+          if not daily and state isnt true
+            # log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else
@@ -191,9 +191,15 @@ instantEmails = ->
       log "Could not load email queue!"
     else
       if emails.length > 0
-        log "Sending #{emails.length} e-mail(s)..."
-        for email in emails
-          prepareEmail email, no, sendInstantEmail
+        currentIds = [email._id for email in emails][0]
+        JMailNotification.update {_id: $in: currentIds}, \
+          {$set: status: 'sending'}, {multi: yes}, (err)->
+          unless err
+            log "Sending #{emails.length} e-mail(s)..."
+            for email in emails
+              prepareEmail email, no, sendInstantEmail
+          else
+            log "An error occured: #{err}"
 
 prepareDailyEmail = (emails, index, data, callback)->
 
@@ -223,7 +229,7 @@ dailyEmails = ->
   today.setMinutes 0
   yesterday = today
 
-  JUser.each {"emailFrequency.daily": "on"}, {}, (err, user)->
+  JUser.each {"emailFrequency.daily": true}, {}, (err, user)->
     if err then console.error err
     else
       if user

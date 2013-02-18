@@ -13,7 +13,6 @@ class ActivityUpdateWidgetController extends KDViewController
     # __utils.wait 20000, -> submissionStopped = no
 
   loadView:(mainView)->
-
     activityController = @getSingleton('activityController')
 
     paneMap = [
@@ -30,18 +29,18 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetName      : 'codeWidget'
         widgetType      : ActivityCodeSnippetWidget
       ,
-        name            : 'codeSharePane'
-        paneName        : 'codeshare'
-        constructorName : 'JCodeShare'
-        widgetName      : 'codeShareWidget'
-        widgetType      : ActivityCodeShareWidget
-      ,
-        name            : 'linkPane'
-        paneName        : 'link'
-        constructorName : 'JLink'
-        widgetName      : 'linkWidget'
-        widgetType      : ActivityLinkWidget
-      ,
+      #   name            : 'codeSharePane'
+      #   paneName        : 'codeshare'
+      #   constructorName : 'JCodeShare'
+      #   widgetName      : 'codeShareWidget'
+      #   widgetType      : ActivityCodeShareWidget
+      # ,
+      #   name            : 'linkPane'
+      #   paneName        : 'link'
+      #   constructorName : 'JLink'
+      #   widgetName      : 'linkWidget'
+      #   widgetType      : ActivityLinkWidget
+      # ,
         name            : 'tutorialPane'
         paneName        : 'tutorial'
         constructorName : 'JTutorial'
@@ -55,8 +54,9 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetType      : ActivityDiscussionWidget
       ]
 
-    for pane in paneMap
-      self = @
+
+    widgetController = @
+    paneMap.forEach (pane)=> 
       @[pane.name] = mainView.addWidgetPane
         paneName : pane.paneName
         mainContent : @[pane.widgetName] = new pane.widgetType
@@ -66,9 +66,9 @@ class ActivityUpdateWidgetController extends KDViewController
             if submissionStopped
               return notifySubmissionStopped()
             else
-              self.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
+              widgetController.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
               if @getOptions().pane.constructorName in ['JStatusUpdate']
-                self[@getOptions().pane.widgetName].switchToSmallView()
+                widgetController[@getOptions().pane.widgetName].switchToSmallView()
               mainView.resetWidgets()
 
     mainView.showPane "update"

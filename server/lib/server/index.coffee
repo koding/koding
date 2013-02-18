@@ -100,7 +100,7 @@ else
     startTime = Date.now()
     JActivityCache.latest (err, cache)->
       if err then console.warn err
-      console.log "latest: #{Date.now() - startTime} msecs!"
+      # console.log "latest: #{Date.now() - startTime} msecs!"
       return res.send if cache then cache.data else {}
 
   app.get "/-/cache/before/:timestamp", (req, res)->

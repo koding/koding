@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
+# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
 mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -55,7 +55,7 @@ module.exports = deepFreeze
     push      : no
     email     : ""
     token     : ""
-    interval  : 30 * 1000
+    interval  : 60000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
