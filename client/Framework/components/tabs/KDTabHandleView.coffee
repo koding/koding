@@ -45,9 +45,6 @@ class KDTabHandleView extends KDView
   setTitle:(title)->
     # @getDomElement().find("span.close-tab").css "color", @getDelegate().getDomElement().css "background-color"
 
-  # viewAppended:()->
-  #   log @getDelegate()
-
   isHidden: ->
     @getOptions().hidden
 
@@ -55,7 +52,6 @@ class KDTabHandleView extends KDView
     @$().outerWidth(no) or 0
 
   cloneElement: (x) ->
-
     return if @$cloned
 
     {pane}   = @getOptions()
@@ -64,73 +60,47 @@ class KDTabHandleView extends KDView
     @$cloned = @$().clone() 
     holder.$().append @$cloned
     @$cloned.css marginLeft: -(tabView.handles.length - @index) * @getWidth()
-
-  getTargetTabHandle: (index, x) ->
-    {pane}    = @getOptions()
-    tabView   = pane.getDelegate()
-    {handles} = tabView
-    targetTabHandle = null 
-    
-    if @isDraggingToLeft 
-      targetTabHandle = handles[index - 1] unless index is 0
-    else 
-      targetTabHandle = handles[index + 1] unless index is handles.length
-
-    return targetTabHandle
-
+  
   updateClonedElementPosition: (x) ->
-    @$cloned.css left: if not @targetTabHandle then 0 else x
+    @$cloned.css left: x
 
   reorderTabHandles: (x) ->
-    
-    targetTabHandle  = @targetTabHandle = @getTargetTabHandle @index, x
-    
-    if targetTabHandle 
-      width = @getWidth()
-      diff  = @passedHandleLength * width
-      
-      # log x, diff, width, @passedHandleLength, @index, diff + width / 2, @dragState.directionX
- 
-      # return
-
-      if x > diff + width / 2 # dragging to right
-        log "to right"
-        @passedHandleLength++
-        @index++
-        @$().insertAfter @targetTabHandle.$()
-      else if x < diff + width / 2 # dragging to left
-        log "to left"
-        @passedHandleLength--
+    dragDir = @dragState.direction
+    width   = @getWidth()
+    if dragDir.current.x is 'left'
+      targetIndex = @index - 1
+      targetDiff  = -(width * @draggedItemIndex - width * targetIndex - width / 2)
+      if x < targetDiff
+        @emit "HandleIndexHasChanged", @index, 'left'
         @index--
-        @$().insertAfter @targetTabHandle.$()
-
+    else 
+      targetIndex = @index + 1
+      targetDiff  = width * targetIndex - width * @draggedItemIndex - width / 2
+      if x > targetDiff
+        @emit "HandleIndexHasChanged", @index, 'right'
+        @index++
+    
   handleDragStart: (event, dragState) ->
-    @dragStartPosX      = $(event.delegateTarget).offset().left
-    {pane}              = @getOptions()
-    tabView             = pane.getDelegate()
-    {handles}           = tabView
-    @index              = handles.indexOf @
-    @draggedItemIndex   = @index
-    @passedHandleLength = 0
+    {pane}            = @getOptions()
+    tabView           = pane.getDelegate()
+    {handles}         = tabView
+    @index            = handles.indexOf @
+    @draggedItemIndex = @index
 
   handleDragInAction: (x, y) ->
-    
     return unless @dragIsAllowed
+    return if -(@draggedItemIndex * @getWidth()) > x @$().css 'left': 0
     
     @cloneElement x
-    @isDraggingToLeft = x < 0 
     @$().css opacity: 0.01
     @updateClonedElementPosition x
     @reorderTabHandles x
 
   handleDragFinished: (event) ->
-    
     return unless @$cloned
-    
+
     @$cloned.remove() 
     @$().css { left: '', opacity: 1, marginLeft: '' }
-    @$().insertBefore @targetTabHandle.domElement if @targetTabHandle
     @$().css left: 0 if not @targetTabHandle and @draggedItemIndex is 0
     @targetTabHandle = null
     @$cloned   = null
-    @emit "HandleIndexHasChanged"
