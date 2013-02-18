@@ -486,7 +486,7 @@ module.exports = class JGroup extends Module
         @requestApproval client, callback
  
   sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
-    JMail = require './email'
+    JMail = require '../email'
     (new JMail
       email   : adminUser.email
       subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
@@ -510,7 +510,6 @@ module.exports = class JGroup extends Module
             )
 
   requestInvitation: secure (client, invitationType, callback)->
-    JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
     {delegate} = client.connection
     invitationRequest = new JInvitationRequest {

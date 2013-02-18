@@ -36,7 +36,12 @@ module.exports = class JInvitationRequest extends Model
       group           : String
       status          :
         type          : String
-        enum          : ['Invalid status', ['pending', 'sent', 'declined']]
+        enum          : ['Invalid status', [
+          'pending'
+          'sent'
+          'declined'
+          'approved'
+        ]]
         default       : 'pending'
       invitationType  :
         type          : String

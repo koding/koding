@@ -588,6 +588,7 @@ module.exports = class JAccount extends jraphical.Module
         callback err, storage
 
   fetchUser:(callback)->
+    JUser = require './user'
     JUser.one {username: @profile.nickname}, callback
 
   markAllContentAsLowQuality:->

@@ -91,7 +91,7 @@ class GroupsMembershipPolicyLanguageEditor extends JView
 
   pistachio:->
     """
-     {{> @editorLabel}}{{> @editor}}{{> @saveButton}}{{> @cancelButton}}
+    {{> @editorLabel}}{{> @editor}}{{> @saveButton}}{{> @cancelButton}}
     """
 
 class GroupsMembershipPolicyView extends JView
@@ -181,16 +181,13 @@ class GroupsMembershipPolicyView extends JView
 
   pistachio:->
     """
-      {{> @enableAccessRequests}}
+    {{> @enableAccessRequests}}
     <section class="formline">
       <h2>Users may request access</h2>
       <div class="formline">
         <p>If you disable this feature, users will not be able to request
         access to this group</p>
       </div>
-      <!--<div class="formline">
-        <span>Users may request access</span>
-      </div>-->
     </section>
       {{> @enableInvitations}}
     <section class="formline">
@@ -204,9 +201,6 @@ class GroupsMembershipPolicyView extends JView
         <p>If you choose not to enable invitations, a more basic request
         approval functionilty will be exposed.<p>
       </div>
-      <!--<div class="formline">
-        <span>Enable invitations</span>
-      </div>-->
     </section>
       {{> @enableWebhooks}}
     <section class="formline">
@@ -217,9 +211,6 @@ class GroupsMembershipPolicyView extends JView
         endpoint will be responsible for validating and approving the request</p>
         <p>Webhooks and invitations may be used together.</p>
       </div>
-      <!--<div class="formline">
-        <span>Enable webhooks</span>
-      </div>-->
       {{> @webhook}}
       {{> @webhookEditor}}
     </section>
@@ -241,18 +232,16 @@ class GroupsInvitationRequestListItemView extends KDListItemView
 
     super
 
-    KD.remote.api.JAccount.one
-      'profile.nickname' : @getData().koding.username
-    ,(err,account)=>
-      @avatar.setData account
-      @avatar.render()
+    invitationRequest = @getData()
 
     @avatar = new AvatarStaticView
       size :
         width : 40
         height : 40
 
-    invitationRequest = @getData()
+    KD.remote.cacheable @getData().koding.username, (err,account)=>
+      @avatar.setData account
+      @avatar.render()
 
     @inviteButton = new KDButtonView
       cssClass  : 'clean-gray fr'
@@ -284,16 +273,112 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     {{> @inviteButton}}
     """
 
+class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemView
 
-class GroupsInvitationRequestsView extends JView
+  pistachio:->
+    """
+    <div class="fl">
+      <span class="avatar">{{> @avatar}}</span>
+      <div class="request">
+        <div class="username">{{#(koding.username)}}</div>
+        <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+        <div class="is-sent">Status is <span class='status'>{{(#(status) is 'sent' and '✓ Approved') or 'Pending'}}</span></div>
+      </div>
+    </div>
+    {{> @approveButton}} {{> @declineButton}}
+    """
+
+
+class GroupsRequestView extends JView
+
+  prepareBulkInvitations:->
+    group = @getData()
+    group.countPendingInvitationRequests (err, count)=>
+      if err then console.error error
+      else
+        [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
+        @currentState.updatePartial """
+          There #{toBe} currently #{count} #{people} waiting for an invitation
+          """
+
+  fetchSomeRequests:(invitationType='invitation', callback)->
+
+    group = @getData()
+
+    selector  = { timestamp: $gte: @timestamp }
+    options   =
+      targetOptions : { selector: { invitationType } }
+      sort          : { timestamp: -1 }
+      limit         : 20
+
+    console.log {selector, options}
+
+    group.fetchInvitationRequests selector, options, callback
+
+class GroupsApprovalRequestsView extends GroupsRequestView
 
   constructor:->
     super
 
+    groups = @getData()
+
+    @currentState = new KDView partial : 'chris sez'
+
+    @batchInvites = new KDView partial : 'chris sez again'
+
+    @requestListController = new KDListViewController
+      viewOptions     :
+        cssClass      : 'requests-list'
+      itemClass       : GroupApprovalRequestListItemView
+
+    @pendingRequestsView = @requestListController.getListView()
+
+    @fetchSomeRequests 'basic approval', (err, requests)=>
+      console.log {err, requests}
+      if err then console.error err
+      else
+        @requestListController.instantiateListItems requests.reverse()
+
+  pistachio:->
+    """
+    <section class="formline">
+      <h2>Status quo</h2>
+      {{> @currentState}}
+    </section>
+    <div class="formline">
+    <section class="formline batch">
+      <h2>Invite members by batch</h2>
+      {{> @batchInvites}}
+    </section>
+    </div>
+    <div class="formline">
+    <section class="formline pending">
+      <h2>Pending approval</h2>
+      {{> @pendingRequestsView}}
+    </section>
+    </div>
+    """
+
+class GroupsInvitationRequestsView extends GroupsRequestView
+
+  constructor:->
+    super 
+
     group = @getData()
 
     @timestamp = new Date 0
-    @fetchSomeRequests()
+    @fetchSomeRequests 'invitation', (err, requests)=>
+      if err then console.error err
+      else
+        sent = []
+        pending = []
+        for request in requests
+          if request.status is 'sent'
+            sent.push request
+          else
+            pending.push request
+        @requestListController.instantiateListItems pending.reverse()
+        @sentRequestListController.instantiateListItems sent.reverse()
 
     @sentRequestListController = new KDListViewController
       viewOptions       :
@@ -364,35 +449,6 @@ class GroupsInvitationRequestsView extends JView
               partial   : '...'
               cssClass  : 'information-line'
     , group
-
-  prepareBulkInvitations:->
-    group = @getData()
-    group.countPendingInvitationRequests (err, count)=>
-      if err then console.error error
-      else
-        [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
-        @currentState.updatePartial """
-          There #{toBe} currently #{count} #{people} waiting for an invitation
-          """
-
-  fetchSomeRequests:->
-    group = @getData()
-
-    selector  = { timestamp: $gte: @timestamp }
-    options   = { limit: 20, sort: timestamp: -1 }
-
-    group.fetchInvitationRequests selector, options, (err, requests)=>
-      if err then console.error err
-      else
-        sent = []
-        pending = []
-        for request in requests
-          if request.status is 'sent'
-            sent.push request
-          else
-            pending.push request
-        @requestListController.instantiateListItems pending.reverse()
-        @sentRequestListController.instantiateListItems sent.reverse()
 
   pistachio:->
     """
@@ -614,10 +670,12 @@ class GroupsMemberRolesEditView extends JView
     isMe = KD.whoami().getId() is @member.getId()
 
     @radioGroup = new KDInputRadioGroup
-      name         : 'user-role'
-      defaultValue : @roles.usersRole
-      radios       : @roles.allRoles.map (role)-> {value : role, title: role.capitalize()}
-      disabled     : isMe
+      name          : 'user-role'
+      defaultValue  : @roles.usersRole
+      radios        : @roles.allRoles.map (role)->
+        value       : role
+        title       : role.capitalize()
+      disabled      : isMe
 
     @addSubView @radioGroup, '.radios'
 
@@ -640,9 +698,9 @@ class GroupsMemberRolesEditView extends JView
 
   pistachio:->
     """
-      {{> @loader}}
-      <div class='radios'/>
-      <div class='buttons hidden'/>
+    {{> @loader}}
+    <div class='radios'/>
+    <div class='buttons hidden'/>
     """
 
   viewAppended:->

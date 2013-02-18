@@ -163,16 +163,24 @@ class GroupsAppController extends AppController
 
     tab.addSubView invitationRequestView
 
-  hideInvitationsTab:(tabView)->
+  removePaneByName:(tabView, paneName)->
     tabs = tabView.tabView
-    invitePane = tabs.getPaneByName 'Invitations'
+    invitePane = tabs.getPaneByName paneName
     tabs.removePane invitePane if invitePane
 
+  hideInvitationsTab:(tabView)-> 
+    @removePaneByName tabView, 'Invitations'
+
   showApprovalTab:(group, tabView)->
-    console.log 'show approval tab', {tabView}
+    pane = new KDTabPaneView name: 'Approval requests'
+    tab = tabView.tabView.addPane pane, no
+
+    approvalRequestView = new GroupsApprovalRequestsView {}, group
+
+    tab.addSubView approvalRequestView
 
   hideApprovalTab:(tabView)->
-    console.log 'hide approval tab', {tabView}
+    @removePaneByName tabView, 'Approval requests'
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
@@ -605,11 +613,11 @@ class GroupsAppController extends AppController
     if policy.invitationsEnabled
       unless view.tabView.getPaneByName 'Invitations'
         @showInvitationsTab group, view
-      if view.tabView.getPaneByName 'Approvals'
+      if view.tabView.getPaneByName 'Approval requests'
         @hideApprovalTab view
     else
       if policy.approvalEnabled
-        unless view.tabView.getPaneByName 'Approvals'
+        unless view.tabView.getPaneByName 'Approval requests'
           @showApprovalTab group, view
         if view.tabView.getPaneByName 'Invitations'
           @hideInvitationsTab view
