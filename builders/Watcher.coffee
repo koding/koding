@@ -128,7 +128,7 @@ class Watcher extends EventEmitter
         for subSection, pkg of @watchlist.order[section]
           for key,path of pkg
             build.totalCount++
-    bar = new ProgressBar 'Initializing includeFiles [:bar] :percent :elapseds',{total: build.totalCount,width:50,incomplete:" "} if @watcher.isInitializing
+    bar = new ProgressBar 'Init\'ing includes [:bar] :percent :elapseds',{total: build.totalCount,width:50,incomplete:" "} if @watcher.isInitializing
     for section of @watchlist.order
       if section isnt "__watch"
         for subSection, pkg of @watchlist.order[section]
