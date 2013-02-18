@@ -82,10 +82,13 @@ class KDTabView extends KDScrollView
       methodName  = 'insertBefore'
       targetIndex = index - 1  
     @handles[index].$()[methodName] @handles[targetIndex].$()
-  
-    spliced  = @handles.splice index, 1
-    newIndex = if dir is 'left' then index - 1 else index + 1
-    @handles.splice newIndex, 0, spliced[0]
+
+    newIndex       = if dir is 'left' then index - 1 else index + 1
+    splicedHandle  = @handles.splice index, 1
+    splicedPane    = @panes.splice index, 1
+
+    @handles.splice newIndex, 0, splicedHandle[0]
+    @panes.splice   newIndex, 0, splicedPane[0]
 
   removePane:(pane)->
     pane.emit "KDTabPaneDestroy"
