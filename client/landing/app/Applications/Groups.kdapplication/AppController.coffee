@@ -546,7 +546,7 @@ class GroupsAppController extends AppController
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
-        @_searchValue = value
+        @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no
 
@@ -559,14 +559,7 @@ class GroupsAppController extends AppController
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
           @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            groupData = groupItem.getData()
-            groupData.canEditGroup (err, hasPermission)=>
-              unless hasPermission
-                new KDNotificationView title: 'Access denied'
-              else
-                @showGroupSubmissionView groupData
-          @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
-            groupItem.getData().fetchRoles console.log.bind console
+            @showGroupSubmissionView groupItem.getData()
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
