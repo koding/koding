@@ -144,4 +144,4 @@ module.exports = deepFreeze
     push: no
     email: ""
     token: ""
-    interval: 30000
+    interval: 60000
