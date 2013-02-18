@@ -4,7 +4,6 @@ class AceAppView extends JView
     super options, data
 
     @aceViews       = {}
-    @hasDefaultFile = no
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
