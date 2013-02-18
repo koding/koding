@@ -546,7 +546,7 @@ class GroupsAppController extends AppController
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
-        @_searchValue = value
+        @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
         @loadView mainView, no
 
