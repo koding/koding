@@ -33,6 +33,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : no
+  watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   misc          :
@@ -55,7 +56,7 @@ module.exports = deepFreeze
     push      : no
     email     : ""
     token     : ""
-    interval  : 30 * 1000
+    interval  : 60000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
