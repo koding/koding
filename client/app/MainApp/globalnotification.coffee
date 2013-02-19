@@ -1,4 +1,4 @@
-class GlobalNotification extends KDView #KDNotificationView
+class GlobalNotification extends KDView
   constructor:(options={},data)->
     options.title       =   'Shutdown in' if options.title is ''
     options.messageType ?=  options.type
@@ -6,7 +6,7 @@ class GlobalNotification extends KDView #KDNotificationView
     options.duration    =   new Date(options.targetDate) - new Date Date.now()
     options.flashThresholdPercentage ?= 25
     options.flashThresholdSeconds ?= 60
-    options.showTimer   =   yes
+    options.showTimer   ?=   yes
     options.content     =   'We are upgrading the platform. Please save your work.' if options.content is ''
     options.bind        =   'mouseenter mouseleave'
 
@@ -30,37 +30,38 @@ class GlobalNotification extends KDView #KDNotificationView
       @recalculatePosition()
       @hide()
 
-    @timer = new KDView
+    @timer     = new KDView
       cssClass : 'notification-timer'
       duration : @getOptions().duration
 
-    @title = new KDView
+    @title     = new KDView
       cssClass : 'notification-title'
-      partial : @getOptions().title
+      partial  : @getOptions().title
 
     @titleText = @getOptions().title
 
     @contentText = new KDView
       cssClass : 'content'
-      partial : @getOptions().content
+      partial  : @getOptions().content
 
-    @content = new KDView
+    @content   = new KDView
       cssClass : 'notification-content hidden'
 
     @content.addSubView @contentText
 
-    @current = new KDView
+    @current   = new KDView
       cssClass : 'current'
 
     @startTime = new Date Date.now()
-    @endTime = new Date @getOptions().targetDate
-    @done = no
+    @endTime   = new Date @getOptions().targetDate
+    @done      = no
 
     globalSticky = @getSingleton('windowController').stickyNotification
+
     if globalSticky
       globalSticky.done = no
       globalSticky.setType @getOptions().messageType
-      globalSticky.show() unless globalSticky.endTime is new Date(@getOptions().targetDate)
+      globalSticky.show() unless globalSticky.endTime is Date(@getOptions().targetDate)
       globalSticky.setTitle @getOptions().title
       globalSticky.setContent @getOptions().content
       globalSticky.startTime = Date.now()
@@ -71,13 +72,12 @@ class GlobalNotification extends KDView #KDNotificationView
       KDView.appendToDOMBody @
       @getSingleton('windowController').stickyNotification = @
 
-
   destroy:->
     super
 
   show:->
     super
-    @$().css top : 0
+    @getDomElement()[0].style.top = 0
 
   hide:->
     super
@@ -146,7 +146,11 @@ class GlobalNotification extends KDView #KDNotificationView
      """
 
   click:->
-    @hide() # unless @done
+    # @hide() # unless @done
+    if @content?.$().hasClass 'hidden'
+      @notificationShowContent()
+    else
+      @notificationHideContent()
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -161,7 +165,6 @@ class GlobalNotification extends KDView #KDNotificationView
       else
         @timer.updatePartial @getOptions().title
         @$('.slider-wrapper').addClass 'done'
-
 
   notificationShowContent:->
     @content?.show()
@@ -190,16 +193,17 @@ class GlobalNotification extends KDView #KDNotificationView
       else
         "Shutting down anytime now."
 
-    @utils.defer =>
-      @timer.updatePartial timeText duration, @titleText
+    @timer.updatePartial timeText duration, @titleText
 
     @notificationInterval = setInterval ()=>
-      @current.$().css width : @getCurrentTimePercentage()+'%'
-      if (@getCurrentTimePercentage() < @getOptions().flashThresholdPercentage) \
-      or (@getCurrentTimeRemaining()/1000 < @getOptions().flashThresholdSeconds)
+      currentTimePercentage = @getCurrentTimePercentage()
+      options = @getOptions()
+      @current.getDomElement()[0].style.width = currentTimePercentage+'%'
+      if (currentTimePercentage < options.flashThresholdPercentage) \
+      or (@getCurrentTimeRemaining()/1000 < options.flashThresholdSeconds)
         @current.setClass 'flash'
       else @current.unsetClass 'flash'
-      currentTime = parseInt(@endTime - new Date(Date.now()),10)
+      currentTime = parseInt(@endTime - Date.now(),10)
       @timer.updatePartial timeText currentTime, @titleText
 
       @recalculatePosition()
