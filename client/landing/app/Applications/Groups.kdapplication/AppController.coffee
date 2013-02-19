@@ -694,7 +694,7 @@ class GroupsAppController extends AppController
       groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView
 
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupMembershipPolicyTabView,
+      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyTabView,
         (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView

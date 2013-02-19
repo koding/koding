@@ -292,6 +292,30 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
       callback  : =>
         @getDelegate().emit 'InvitationIsSent', invitationRequest
 
+  hideButtons:->
+    @approveButton.hide()
+    @declineButton.hide()
+
+  showButtons:->
+    @approveButton.show()
+    @declineButton.show()
+
+  render:->
+    super
+
+    invitationRequest = @getData()
+
+    if invitationRequest.status in ['approved','declined']
+      @hideButtons()
+    else
+      @showButtons()
+
+
+  getStatusText:(status)->
+    switch status
+      when 'approved' then '✓ Approved'
+      when 'pending'  then '… Pending'
+      when 'declined' then '✗ Declined'
 
   pistachio:->
     """
@@ -300,7 +324,7 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
       <div class="request">
         <div class="username">{{#(koding.username)}}</div>
         <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-        <div class="is-sent">Status is <span class='status'>{{(#(status) is 'sent' and '✓ Approved') or 'Pending'}}</span></div>
+        <div class="is-sent">Status is <span class='status'>{{@getStatusText #(status)}}</span></div>
       </div>
     </div>
     <div class="fr">{{> @approveButton}} {{> @declineButton}}</div>
@@ -740,7 +764,7 @@ class GroupsMemberRolesEditView extends JView
 
     @loader.show()
 
-class GroupMembershipPolicyTabView extends KDView
+class GroupsMembershipPolicyTabView extends KDView
   constructor:(options,data)->
     super options,data
 
