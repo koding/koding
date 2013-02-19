@@ -1,7 +1,9 @@
 class ApplicationTabView extends KDTabView
   constructor: (options = {}, data) ->
 
-    options.resizeTabHandles = yes
+    options.resizeTabHandles     = yes
+    options.lastTabHandleMargin  = 40
+    options.sortable             = yes
 
     super options, data
 
