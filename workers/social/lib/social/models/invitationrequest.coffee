@@ -54,7 +54,6 @@ module.exports = class JInvitationRequest extends Model
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
-      console.log "->",arguments
       if err
         callback err
       else
@@ -90,6 +89,23 @@ module.exports = class JInvitationRequest extends Model
         callback "Finished parsing #{count} records, of which #{queue.length} were valid."
         daisy queue
       csv.on 'error', (err)-> errors.push err
+
+  declineInvitation: permit 'send invitations'
+    success: (client, callback)->
+      @update $set:{ status: 'declined' }, callback
+
+  approveInvitation: permit 'send invitations'
+    success: (client, callback)->
+      {delegate} = client.connection
+      JGroup = require './group'
+      JGroup.one {slug: @group}, (err, group)=>
+        if err then callback err
+        else unless group?
+          callback new KodingError "No group! #{@group}"
+        else
+          group.addMember delegate, (err)=>
+            if err then callback err
+            else @update $set:{ status: 'approved' }, callback
 
   deleteInvitation: permit 'send invitations'
     success:(client, rest...)-> @remove rest...

@@ -51,7 +51,7 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingInvitationRequests'
+        'fetchInvitationRequestCounts', 'resolvePendingRequests'
       ]
     schema          :
       title         :
@@ -433,22 +433,41 @@ module.exports = class JGroup extends Module
             queue.fin()
       dash queue, callback.bind null, null, counts
 
-  resolvePendingInvitationRequests: permit 'send invitations'
-    success: (client, method, callback)->
-      unless method in ['send', 'delete']
-        return callback new KodingError "Unknown method: #{method}"
-
-      JInvitationRequest = require '../invitationrequest'
-
-      invitationRequestSelector =
-        group             : @slug
-        status            : 'pending'
-        invitationType    : 'invitation'
-
-      JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+  resolvePendingRequests: permit 'send invitations'
+    success: (client, isApproved, callback)->
+      @fetchMembershipPolicy (err, policy)=>
         if err then callback err
-        else if request? then request[method+'Invitation'] client, ->
-        else callback null
+        else unless policy then callback new KodingError 'No membership policy!'
+        else
+
+          invitationType =
+            if policy.invitationsEnabled then 'invitation' else 'basic approval'
+        
+          method =
+            if 'invitation' is invitationType
+              if isApproved then 'send' else 'delete'
+            else
+              if isApproved then 'approve' else 'decline'
+
+          JInvitationRequest = require '../invitationrequest'
+
+          invitationRequestSelector =
+            group             : @slug
+            status            : 'pending'
+            invitationType    : invitationType
+
+          JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+            if err then callback err
+            else if request? then request[method+'Invitation'] client, (err)->
+              console.error err  if err
+            else callback null
+
+  # resolvePendingRequests: permit 'send invitations'
+  #   success: (client, isApproved, callback)->
+  #     resolveMethod =
+  #       if @invitationsEnabled then 'resolvePendingInvitationRequests'
+  #       else 'resolvePendingApprovalRequests'
+  #     @[resolveMethod] isApproved, callback
 
   inviteMember: permit 'send invitations'
     success: (client, email, callback)->
@@ -457,6 +476,9 @@ module.exports = class JGroup extends Module
       invitationRequest.save (err)->
         if err then callback err
         else invitationRequest.sendInvitation client, callback
+
+  fetchInvitationRequests$: permit 'send invitations'
+    success: (client, rest...)-> @fetchInvitationRequests rest...
 
   sendSomeInvitations: permit 'send invitations'
     success: (client, count, callback)->
