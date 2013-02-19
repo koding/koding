@@ -266,6 +266,13 @@ class NFinderTreeController extends JTreeViewController
     oldPath = nodeData.path
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
+      if @nodes["#{nodeData.parentPath}/#{newValue}"]
+        caretPos = nodeView.renameView.input.getCaretPosition()
+        @notify "Same #{nodeData.type} Detected", "error"
+        return KD.utils.defer => 
+          @showRenameDialog nodeView
+          nodeView.renameView.input.setCaretPosition caretPos
+
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
         else
