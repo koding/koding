@@ -194,14 +194,12 @@ class GroupsAppController extends AppController
         if err then err.message
         else "Invitation has been requested!"
 
-
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
       if err
         @showErrorModal group, err
       else
         console.log 'access is granted!'
-
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -447,6 +445,7 @@ class GroupsAppController extends AppController
         title   : "Error#{if err.code then " #{code}" else ""}"
         content : "<div class='modalformline'><p>#{err.message}</p></div>"
         buttons : {}
+        cancel  : err.cancel
 
       Object.keys(buttons).forEach (buttonTitle)->
         buttonOptions = buttons[buttonTitle]
@@ -457,52 +456,74 @@ class GroupsAppController extends AppController
 
       modal = new KDModalView modalOptions
 
-  resolvePendingInvitationRequests:(group, method, callback, modal)->
-    group.resolvePendingInvitationRequests method, (err)->
+  resolvePendingRequests:(group, takeDestructiveAction, callback, modal)->
+    group.resolvePendingRequests takeDestructiveAction, (err)->
       modal.destroy()
       handleError err  if err?
       callback err
 
-  cancelChange:(modal)-> modal.destroy()
+  getMembershipPolicyChangeData:(invitationsEnabled)->
+    if invitationsEnabled
+      {
+        remainingInvitationType: 'invitation'
+        errorMessage:
+          """
+          This group has pending invitations.  Before you can disable
+          invitations, you'll need to either resolve the pending invitations
+          by either sending them or deleting them.
+          """
+        policyChangeButtons: ['Send all', 'Delete all', 'cancel']
+      }
+    else
+      {
+        remainingInvitationType: 'basic approval'
+        errorMessage:
+          """
+          This group has pending approvals.  Before you can enable invitations,
+          you'll need to resolve the pending approvals by either approving
+          them or declining them.
+          """
+        policyChangeButtons: ['Approve all', 'Decline all', 'cancel']
+      }
 
-  updateMembershipPolicy:(group, policy, data, membershipPolicyView, callback)->
+  cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
+    membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
+
+  updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
     complete = ->
-      group.modifyMembershipPolicy data, ->
+      group.modifyMembershipPolicy formData, ->
         membershipPolicyView.emit 'MembershipPolicyChangeSaved'
-    if policy.invitationsEnabled and data.invitationsEnabled is off
+    if policy.invitationsEnabled isnt formData.invitationsEnabled
+
+      {remainingInvitationType, errorMessage, policyChangeButtons} =
+        @getMembershipPolicyChangeData policy.invitationsEnabled
+
       targetSelector =
-        invitationType  : 'invitation'
-        status          : 'pending'
+        invitationType: remainingInvitationType
+        status: 'pending'
+
       group.countInvitationRequests {}, targetSelector, (err, count)=>
         if err then handleError err
         else if count isnt 0
           # handlers for buttons:
-          sendAll =
-            @resolvePendingInvitationRequests.bind this, group, 'send', complete
-          deleteAll =
-            @resolvePendingInvitationRequests.bind this, group, 'delete', complete
-
+          actions = [
+            @resolvePendingRequests.bind this, group, yes, complete
+            @resolvePendingRequests.bind this, group, no, complete
+            (modal)-> modal.cancel()
+          ]
+          cssClasses = ['modal-clean-green','modal-clean-red','modal-cancel']
+          policyChangeButtons = policyChangeButtons.reduce (acc, title, i)->
+            acc[title] = {
+              title
+              cssClass: cssClasses[i]
+              callback: actions[i]
+            }
+            return acc
+          , {}
           handleError {
-            #code: ???
-            message: """
-              This group has pending invitations.  Before you can disable
-              invitations, you'll need to either resolve the pending
-              invitations by either sending them or deleting them.
-              """
-          },{
-            'Send all'    :
-              cssClass    : 'modal-clean-green'
-              callback    : sendAll
-            'Delete all' :
-              cssClass    : 'modal-clean-red'
-              callback    : deleteAll
-            'cancel'      :
-              cssClass    : 'modal-cancel'
-              focus       : yes
-              callback    : (modal)->
-                modal.destroy()
-                membershipPolicyView.enableInvitations.setValue on
-          }
+            message : errorMessage
+            cancel  : @cancelMembershipPolicyChange.bind this, policy, membershipPolicyView
+          }, policyChangeButtons
         else complete()
     else complete()
 

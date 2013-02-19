@@ -275,6 +275,24 @@ class GroupsInvitationRequestListItemView extends KDListItemView
 
 class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemView
 
+  constructor:->
+    super
+
+    invitationRequest = @getData()
+
+    @approveButton = new KDButtonView
+      cssClass  : 'cupid-green'
+      title     : 'Approve'
+      callback  : =>
+        @getDelegate().emit 'InvitationIsSent', invitationRequest
+    
+    @declineButton = new KDButtonView
+      cssClass  : 'clean-red'
+      title     : 'Decline'
+      callback  : =>
+        @getDelegate().emit 'InvitationIsSent', invitationRequest
+
+
   pistachio:->
     """
     <div class="fl">
@@ -285,7 +303,7 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
         <div class="is-sent">Status is <span class='status'>{{(#(status) is 'sent' and '✓ Approved') or 'Pending'}}</span></div>
       </div>
     </div>
-    {{> @approveButton}} {{> @declineButton}}
+    <div class="fr">{{> @approveButton}} {{> @declineButton}}</div>
     """
 
 
@@ -311,8 +329,6 @@ class GroupsRequestView extends JView
       sort          : { timestamp: -1 }
       limit         : 20
 
-    console.log {selector, options}
-
     group.fetchInvitationRequests selector, options, callback
 
 class GroupsApprovalRequestsView extends GroupsRequestView
@@ -322,9 +338,13 @@ class GroupsApprovalRequestsView extends GroupsRequestView
 
     groups = @getData()
 
-    @currentState = new KDView partial : 'chris sez'
+    @timestamp = new Date 0
 
-    @batchInvites = new KDView partial : 'chris sez again'
+    @currentState = new KDView
+      partial : 'chris sez'
+
+    @batchInvites = new KDView
+      partial : 'chris sez again'
 
     @requestListController = new KDListViewController
       viewOptions     :
@@ -334,7 +354,6 @@ class GroupsApprovalRequestsView extends GroupsRequestView
     @pendingRequestsView = @requestListController.getListView()
 
     @fetchSomeRequests 'basic approval', (err, requests)=>
-      console.log {err, requests}
       if err then console.error err
       else
         @requestListController.instantiateListItems requests.reverse()
@@ -502,11 +521,11 @@ class GroupsMemberPermissionsView extends JView
       itemClass     : GroupsMemberPermissionsListItemView
     @listWrapper    = @listController.getView()
 
-    @loader           = new KDLoaderView
-      cssClass        : 'loader'
-    @loaderText       = new KDView
-      partial         : 'Loading Member Permissions…'
-      cssClass        : ' loader-text'
+    @loader         = new KDLoaderView
+      cssClass      : 'loader'
+    @loaderText     = new KDView
+      partial       : 'Loading Member Permissions…'
+      cssClass      : ' loader-text'
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
