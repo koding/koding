@@ -210,13 +210,13 @@ class AdminModal extends KDModalViewWithForms
 
                   KD.remote.api.JSystemStatus.create
                     scheduledAt : Date.now()+inputs.Duration.getValue()*1000
-                    title   : inputs.Title.getValue()
-                    content : inputs.Description.getValue()
-                    type    : inputs.Type.getValue()
+                    title     : inputs.Title.getValue()
+                    content   : inputs.Description.getValue()
+                    type      : inputs.Type.getValue()
                   , ->
                     buttons["Broadcast"].hideLoader()
 
-              "Cancel Restart" :
+              "Cancel Restart":
                 title         : "Cancel Restart"
                 style         : "modal-clean-gray"
                 loader        :
@@ -229,53 +229,73 @@ class AdminModal extends KDModalViewWithForms
                     buttons["Cancel Restart"].hideLoader()
 
             fields            :
-              # Presets         :
-              #   label         : 'Load Preset'
-              #   type          : 'select'
-              #   selectOptions :
-              #     [
-              #       { title   : "Restart",    value : "restart"   }
-              #       { title   : "Reload",     value : "reload"    }
-              #       # { title   : "No Preset",    value : "none"   }
-              #     ]
-              #   defaultValue  : 'restart'
-              #   change        : =>
-              #     msgMap = [
-              #       'restart' :
-              #         title : 'Shutdown in'
-              #         content : 'We are upgrading the platform. Please save your work.'
-              #         duration : 300
-              #         type : 'restart'
-              #       'reload'    :
-              #         title : 'Koding was updated. Please refresh!'
-              #         content : 'Please refresh your browser to be able to use the newest features of Koding.'
-              #         duration : 10
-              #         type : 'reload'
-              #     ]
-              #     {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
-              #     preset = inputs.Presets.getValue()
-              #     log preset, msgMap[preset], msgMap
-              #     inputs['Title'].setValue msgMap[preset].title
-              #     inputs['Description'].setValue msgMap[preset].content
-              #     inputs['Duration'].setValue msgMap[preset].duration
-              #     inputs['Type'].setValue msgMap[preset].type
+              Presets         :
+                label         : 'Use Preset'
+                type          : 'select'
+                cssClass      : 'preset-select'
+                selectOptions :
+                  [
+                    { title   : "No preset selected",  value : "none"   }
+                    { title   : "Shutdown in...",    value : "restart"   }
+                    { title   : "Please refresh...",     value : "reload"    }
+                  ]
+                defaultValue  : 'none'
+                change        : =>
+                  msgMap      =
+                    'none' :
+                      title   : ''
+                      content : ''
+                      duration: 300
+                      type    : 'restart'
+                    'restart' :
+                      title   : 'Shutdown in'
+                      content : 'We are upgrading the platform. Please save your work.'
+                      duration: 300
+                      type    : 'restart'
+                    'reload'  :
+                      title   : 'Koding was updated. Please refresh!'
+                      content : 'Please refresh your browser to be able to use the newest features of Koding.'
+                      duration: 10
+                      type    : 'reload'
 
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+                  preset = inputs.Presets.getValue()
+                  inputs['Title'].setValue msgMap[preset].title
+                  inputs['Description'].setValue msgMap[preset].content
+                  inputs['Duration'].setValue msgMap[preset].duration
+                  inputs['Type'].setValue msgMap[preset].type
               Title           :
                 label         : "Message Title"
                 type          : "text"
                 placeholder   : "Shutdown in"
+                tooltip       :
+                  title       : 'When using type "Restart", end title with "in",'+\
+                  ' since there will be a timer following the title.'
+                  placement   : 'right'
+                  direction   : 'center'
+                  offset      :
+                    top       : 2
+                    left      : 0
               Description     :
                 label         : "Message Details"
                 type          : "text"
                 placeholder   : "We are upgrading the platform. Please save your work."
               Duration        :
-                label         : "Timer duration (in seconds)"
+                label         : "Timer duration"
                 type          : "text"
                 defaultValue  : 5*60
+                tooltip       :
+                  title       : 'in seconds'
+                  placement   : 'right'
+                  direction   : 'center'
+                  offset      :
+                    top       : 2
+                    left      : 0
                 placeholder   : "Please enter a reasonable timeout."
               Type            :
                 label         : 'Type'
                 type          : 'select'
+                cssClass      : 'type-select'
                 selectOptions :
                   [
                     { title   : "Restart",    value : "restart"   }
@@ -283,9 +303,25 @@ class AdminModal extends KDModalViewWithForms
                     { title   : "Reload",     value : "reload"    }
                   ]
                 defaultValue  : 'restart'
+                change        : =>
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+                  type = inputs.Type.getValue()
+                  inputs['presetExplanation'].updatePartial switch type
+                    when 'restart'
+                      'This will show a timer.'
+                    else
+                      'No timer will be shown.'
+                nextElement   :
+                  presetExplanation:
+                    cssClass  : 'type-explain'
+                    itemClass : KDView
+                    partial   : 'This will show a timer.'
 
 
     super options, data
+
+    {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+    preset = inputs.Type.change()
 
     @hideConnectedFields()
 
