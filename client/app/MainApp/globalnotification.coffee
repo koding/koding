@@ -1,9 +1,9 @@
 class GlobalNotification extends KDView #KDNotificationView
   constructor:(options={},data)->
     options.title       =   'Shutdown in' if options.title is ''
-    options.type        ?=  'sticky'
+    options.messageType ?=  options.type
     options.targetDate  ?=  new Date(Date.now()+5*60*1000)
-    options.duration    =   options.targetDate - new Date Date.now()
+    options.duration    =   new Date(options.targetDate) - new Date Date.now()
     options.flashThresholdPercentage ?= 25
     options.flashThresholdSeconds ?= 60
     options.showTimer   =   yes
@@ -14,8 +14,10 @@ class GlobalNotification extends KDView #KDNotificationView
 
     @setClass 'notification sticky hidden'
 
+    @setType @getOptions().messageType
+
     @on 'mouseenter', =>
-      unless @done
+      # unless @done
         @show()
         @utils.wait 100, =>
           @notificationShowContent()
@@ -51,21 +53,27 @@ class GlobalNotification extends KDView #KDNotificationView
       cssClass : 'current'
 
     @startTime = new Date Date.now()
-    @endTime = @getOptions().targetDate
+    @endTime = new Date @getOptions().targetDate
     @done = no
 
     globalSticky = @getSingleton('windowController').stickyNotification
     if globalSticky
       globalSticky.done = no
-      globalSticky.show()
+      globalSticky.setType @getOptions().messageType
+      globalSticky.show() unless globalSticky.endTime is new Date(@getOptions().targetDate)
       globalSticky.setTitle @getOptions().title
       globalSticky.setContent @getOptions().content
       globalSticky.startTime = Date.now()
-      globalSticky.endTime = @getOptions().targetDate
+      globalSticky.endTime = new Date(@getOptions().targetDate)
       globalSticky.adjustTimer @getOptions().duration
+
     else
       KDView.appendToDOMBody @
       @getSingleton('windowController').stickyNotification = @
+
+
+  destroy:->
+    super
 
   show:->
     super
@@ -73,22 +81,20 @@ class GlobalNotification extends KDView #KDNotificationView
 
   hide:->
     super
-    @$().css top : -@getHeight()+14
+    timerHeight = @$('.slider-wrapper').outerHeight yes
+
+    @$().css top : -@getHeight() + timerHeight
 
   recalculatePosition:()->
-
     cachedWidth = @getWidth()
-
     @$().css marginLeft : -cachedWidth/2
 
-    # @recalculateInterval = setInterval =>
-    #   currentWidth = @getWidth()
-    #   @$().css marginLeft : -currentWidth/2
-    #   if currentWidth is cachedWidth
-    #     clearInterval @recalculateInterval
-    #   cachedWidth = currentWidth
-    # , 50
-
+  setType:(type='restart')->
+    @type = type
+    if type is 'restart'
+      @showTimer = yes
+    else
+      @showTimer = no
 
   setTitle:(title)->
     @title.updatePartial title
@@ -103,13 +109,19 @@ class GlobalNotification extends KDView #KDNotificationView
     clearInterval @notificationInterval
     @$('.slider-wrapper').addClass 'done'
     @timer.updatePartial 'The restart was canceled.'
-    @done = yes
+    # @done = yes
 
   adjustTimer:(newDuration)->
-    clearInterval @notificationInterval
-    @$('.slider-wrapper').removeClass 'done'
-    @notificationStartTimer newDuration
-    @recalculatePosition()
+    if @showTimer
+      clearInterval @notificationInterval
+      @$('.slider-wrapper').removeClass 'done'
+      @$('.slider-wrapper').removeClass 'disabled'
+      @notificationStartTimer newDuration
+      @recalculatePosition()
+    else
+      @stopTimer()
+      @$('.slider-wrapper').addClass 'disabled'
+      @timer.updatePartial @titleText
 
   getCurrentTimeRemaining:->
     @endTime-Date.now()
@@ -134,7 +146,7 @@ class GlobalNotification extends KDView #KDNotificationView
      """
 
   click:->
-    @hide() unless @done
+    @hide() # unless @done
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -144,7 +156,12 @@ class GlobalNotification extends KDView #KDNotificationView
     unless controller.stickyNotification
       @utils.wait =>
         @show()
-      @notificationStartTimer @getOptions().duration
+      if @showTimer
+        @notificationStartTimer @getOptions().duration
+      else
+        @timer.updatePartial @getOptions().title
+        @$('.slider-wrapper').addClass 'done'
+
 
   notificationShowContent:->
     @content?.show()
@@ -158,11 +175,11 @@ class GlobalNotification extends KDView #KDNotificationView
   notificationStartTimer:(duration)->
     return if duration is 0
 
-    timeText = (remaining=300000)=>
+    timeText = (remaining=300000,titleText)->
       seconds = Math.floor remaining/1000
       minutes = Math.floor seconds/60
       if seconds > 0
-        text = @titleText+' '
+        text = titleText+' '
         if minutes>0
           text += "#{minutes} Minute#{if minutes is 1 then '' else 's'}"
           if seconds-60*minutes isnt 0
@@ -174,7 +191,7 @@ class GlobalNotification extends KDView #KDNotificationView
         "Shutting down anytime now."
 
     @utils.defer =>
-      @timer.updatePartial timeText duration
+      @timer.updatePartial timeText duration, @titleText
 
     @notificationInterval = setInterval ()=>
       @current.$().css width : @getCurrentTimePercentage()+'%'
@@ -183,7 +200,7 @@ class GlobalNotification extends KDView #KDNotificationView
         @current.setClass 'flash'
       else @current.unsetClass 'flash'
       currentTime = parseInt(@endTime - new Date(Date.now()),10)
-      @timer.updatePartial timeText currentTime
+      @timer.updatePartial timeText currentTime, @titleText
 
       @recalculatePosition()
       if currentTime < 0

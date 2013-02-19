@@ -196,40 +196,94 @@ class AdminModal extends KDModalViewWithForms
                     partial   : '...'
                     cssClass  : 'information-line'
 
-          "Broadcast Restart" :
+          "Broadcast Message" :
             buttons           :
-              "Broadcast Restart"  :
+              "Broadcast Message"  :
                 title         : "Broadcast"
                 style         : "modal-clean-gray"
-                callback      : (event)=>
-                  {inputs, buttons} = @modalTabs.forms["Broadcast Restart"]
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
 
-                  KD.remote.api.JSystemStatus.scheduleRestart
-                    restartScheduled : Date.now()+inputs.Duration.getValue()*1000
-                    restartTitle : inputs.Title.getValue()
-                    restartContent : inputs.Description.getValue()
-                  ,(stuff)=>
+                callback      : (event)=>
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+
+                  KD.remote.api.JSystemStatus.create
+                    scheduledAt : Date.now()+inputs.Duration.getValue()*1000
+                    title   : inputs.Title.getValue()
+                    content : inputs.Description.getValue()
+                    type    : inputs.Type.getValue()
+                  , ->
+                    buttons["Broadcast"].hideLoader()
 
               "Cancel Restart" :
                 title         : "Cancel Restart"
                 style         : "modal-clean-gray"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+
                 callback      : (event)=>
-                  KD.remote.api.JSystemStatus.cancelRestart ->
+                  {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+                  KD.remote.api.JSystemStatus.stopCurrentSystemStatus (err,res)->
+                    buttons["Cancel Restart"].hideLoader()
 
             fields            :
+              # Presets         :
+              #   label         : 'Load Preset'
+              #   type          : 'select'
+              #   selectOptions :
+              #     [
+              #       { title   : "Restart",    value : "restart"   }
+              #       { title   : "Reload",     value : "reload"    }
+              #       # { title   : "No Preset",    value : "none"   }
+              #     ]
+              #   defaultValue  : 'restart'
+              #   change        : =>
+              #     msgMap = [
+              #       'restart' :
+              #         title : 'Shutdown in'
+              #         content : 'We are upgrading the platform. Please save your work.'
+              #         duration : 300
+              #         type : 'restart'
+              #       'reload'    :
+              #         title : 'Koding was updated. Please refresh!'
+              #         content : 'Please refresh your browser to be able to use the newest features of Koding.'
+              #         duration : 10
+              #         type : 'reload'
+              #     ]
+              #     {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
+              #     preset = inputs.Presets.getValue()
+              #     log preset, msgMap[preset], msgMap
+              #     inputs['Title'].setValue msgMap[preset].title
+              #     inputs['Description'].setValue msgMap[preset].content
+              #     inputs['Duration'].setValue msgMap[preset].duration
+              #     inputs['Type'].setValue msgMap[preset].type
+
               Title           :
                 label         : "Message Title"
                 type          : "text"
                 placeholder   : "Shutdown in"
-              Description           :
+              Description     :
                 label         : "Message Details"
                 type          : "text"
                 placeholder   : "We are upgrading the platform. Please save your work."
-              Duration           :
+              Duration        :
                 label         : "Timer duration (in seconds)"
                 type          : "text"
                 defaultValue  : 5*60
                 placeholder   : "Please enter a reasonable timeout."
+              Type            :
+                label         : 'Type'
+                type          : 'select'
+                selectOptions :
+                  [
+                    { title   : "Restart",    value : "restart"   }
+                    { title   : "Info Text",  value : "info"  }
+                    { title   : "Reload",     value : "reload"    }
+                  ]
+                defaultValue  : 'restart'
+
 
     super options, data
 
