@@ -39,15 +39,15 @@ class Ace extends KDView
     @setSyntax()
     @setEditorListeners()
     @appStorage.fetchStorage (storage)=>
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         or yes
-      @setShowGutter          @appStorage.getValue('showGutter')          or yes
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         or no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     or no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') or yes
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      or no
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no
       @setSoftWrap            @appStorage.getValue('softWrap')            or 'off'
-      @setFontSize            @appStorage.getValue('fontSize')            or 12
-      @setTabSize             @appStorage.getValue('tabSize')             or 4
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4
 
   setEditorListeners:->
 
