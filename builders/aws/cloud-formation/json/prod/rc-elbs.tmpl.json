@@ -8,7 +8,7 @@
                 "HealthCheck": {
                     "HealthyThreshold": "3",
                     "Interval":"15",
-                    "Target":"TCP:3020",
+                    "Target":"TCP:8080",
                     "Timeout": "10",
                     "UnhealthyThreshold":"5"
                 },
@@ -61,7 +61,7 @@
                     }
                 ],
                 "SecurityGroups":["sg-2c56a543"],
-                "Subnets":["subnet-539f543e", "subnet-a69e55cb","subnet-979d56fa","subnet-eb9c5786"]
+                "Subnets":["subnet-979d56fa"]
             }
         },
 

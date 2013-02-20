@@ -359,6 +359,14 @@ module.exports = class JUser extends jraphical.Module
                           email
                           salt
                           password: hashPassword(password, salt)
+                          emailFrequency: {
+                            global         : on
+                            daily          : on
+                            privateMessage : on
+                            followActions  : off
+                            comment        : on
+                            likeActivities : off
+                          }
                         }
                         user.save (err)->
                           if err

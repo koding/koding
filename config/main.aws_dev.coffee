@@ -35,6 +35,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
+  watchGoBroker : yes
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -143,4 +144,4 @@ module.exports = deepFreeze
     push: no
     email: ""
     token: ""
-    interval: 30000
+    interval: 60000

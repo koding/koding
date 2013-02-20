@@ -42,7 +42,7 @@ do ->
 
     {connection} = koding.mq
 
-    connection.exchange 'broker', {type:'topic', autoDelete:yes}, (exchange)->
+    connection.exchange 'broker', {type:'topic', autoDelete:no}, (exchange)->
       connection.queue '', {exclusive: yes, autoDelete: yes}, (queue)->
         queue.bind exchange, 'constructor.CActivity.event.#'
         queue.on 'queueBindOk', ->
