@@ -80,7 +80,7 @@ task 'runKites', ({configFile})->
     invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
-  configFile = "dev-new" if configFile in ["",undefined,"undefined"]
+  configFile = "dev" if configFile in ["",undefined,"undefined"]
   processes.spawn
     name    : 'webterm'
     cmd     : __dirname+"/kites/webterm -c #{configFile}"
@@ -217,22 +217,28 @@ task 'goBroker',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-  watchBroker = (url, restartInterval, restarts) ->
-    restarts =  if restarts then restarts else 0
+  watchBroker = (url, interval, kills, failedReqs) ->
+    kills =  if kills then kills else 0
+    failedReqs = if failedReqs then failedReqs else 0
+
     setTimeout ->
       http.get url, (res) ->
-        watchBroker(url, restartInterval)
+        watchBroker(url, interval)
       .on 'error', (e) ->
-        processes.killAllChildren process.id, ->
-          restarts++
-          watchBroker(url, restartInterval, restarts)
-    , restartInterval
+        failedReqs++
+        console.log("WARN: Broker did not respond", failedReqs, "times.")
+        if failedReqs > 1 # account for random errors, manual restarts
+          kills++
+          processes.killAllChildren process.pid, ->
+            console.log("WARN: Killed broker #{kills} times since it stopped responding.")
+        watchBroker(url, interval, kills, failedReqs)
+    , interval
 
   config = require('koding-config-manager').load("main.#{configFile}")
   watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
   if watchGoBroker?
-    watchBroker(sockjs_url, 5000)
+    watchBroker(sockjs_url, 10000)
 
 task 'libratoWorker',({configFile})->
 
@@ -287,8 +293,8 @@ run =({configFile})->
 
 task 'run', (options)->
   {configFile} = options
+  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
 
   config.buildClient = yes if options.buildClient
 
@@ -297,8 +303,6 @@ task 'run', (options)->
     queue.push -> buildClient options, -> queue.next()
   queue.push -> run options
   daisy queue
-
-
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
