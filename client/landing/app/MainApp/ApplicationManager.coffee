@@ -5,20 +5,11 @@ class ApplicationManager extends KDObject
 
   constructor: ->
 
-    # @openedInstances = {}
-    # @appInstances    = []
-    # @appViews2d      = []
-    # @openTabs        = []
     @appControllers  = {}
 
     super
 
   setGroup:-> console.log 'setGroup', arguments
-
-  # expandApplicationPath = (path)->
-  #   path ?= KD.getSingleton('mainController').getOptions().startPage
-  #   if /\.kdapplication$/.test path then path
-  #   else "./client/app/Applications/#{path}.kdapplication"
 
   isAppUnderDevelop:(appName)->
 
@@ -33,33 +24,38 @@ class ApplicationManager extends KDObject
 
     openAppHandler =(app, appName, doBringToFront, callback)->
       if 'function' is typeof callback then @utils.defer -> callback app
-      if doBringToFront
-        @registerAppListeners app
-        app.bringToFront()
+      if doBringToFront then app.bringToFront()
+
 
     (appName, doBringToFront, callback)->
       # console.trace()
       [callback, doBringToFront] = [doBringToFront, callback]  unless callback
       doBringToFront ?= yes
 
-      appName or= KD.getSingleton('mainController').getOptions().startPage
-      app       = @getAppInstance appName
+      appName  or= KD.getSingleton('mainController').getOptions().startPage
+      appOptions = KD.getAppOptions appName
 
-      if app? then openAppHandler.call @, app, appName, doBringToFront, callback
-      else # this is the first time the app is opened.
+      unless appOptions.multiple
+        app = @getAppInstance appName
+
+      if app?
+        openAppHandler.call @, app, appName, doBringToFront, callback
+      else
+        # this is the first time the app is opened.
+        console.trace()
         @createAppInstance appName, (app)=>
+          @registerAppListeners app
           openAppHandler.call @, app, appName, doBringToFront, callback
 
   registerAppListeners:(appController)->
 
     appController.once "ApplicationWantsToBeShown", @bound "applicationWantsToBeShown"
-    appController.once "ControllerHasSetItsView",  => #@bound "applicationIsBeingClosed"
-
-      log appController.getView(), "go to hell x 3"
+    appView = appController.getView?()
+    appView?.once "KDObjectWillBeDestroyed", =>
+      @applicationIsBeingClosed appController, appView
 
   applicationWantsToBeShown:(appController, appView, options)->
 
-    # log "ApplicationWantsToBeShown", appController, appView, options
     if KD.isLoggedIn()
       @emit 'AppViewAddedToAppManager', appController, appView, options
     else
@@ -67,13 +63,11 @@ class ApplicationManager extends KDObject
 
   applicationIsBeingClosed:(appController, appView, options)->
 
-    log "applicationIsBeingClosed", appController, apxpView, options
+    log "applicationIsBeingClosed", appController, appView, options
 
-    # controllerIndex = @appInstances.indexOf appController
-    # appViews        = @appViews2d[controllerIndex]
-    # viewIndex       = appViews.indexOf appView
-    # log @appViews2d[controllerIndex].splice viewIndex, 1
-    @emit 'AppViewRemovedFromAppManager', appController, appView, options
+    @removeAppInstance appController
+
+    # @emit 'AppViewRemovedFromAppManager', appController, appView, options
 
   openFile:(file)->
     @openFileWithApplication file, 'Ace'
@@ -93,40 +87,30 @@ class ApplicationManager extends KDObject
     AppClass    = KD.getAppClass appName
     if AppClass
       appInstance = new AppClass
-      @addAppInstance appName, appInstance
+      appInfo     = appInstance.getOption "appInfo"
+      @addAppInstance appInfo, appInstance
 
     callback appInstance or null
 
-    # if app?
-    #   @addAppInstance path, app
-    #   callback app
-    # else
-    #   appSrc = "js/KDApplications/#{path}/AppController.js?#{KD.version}"
-    #   requirejs [appSrc], (app)->
-    #     if app
-    #       KD.getSingleton("appManager").addAppInstance path, app
-    #       callback app
-    #     else
-    #       callback new Error "Application does not exist!"
-    #       new KDNotificationView title : "Application does not exist!"
+  addAppInstance:(appInfo, instance)->
+    {name} = appInfo
+    @appControllers[name] ?= []
+    @appControllers[name].push instance
 
-  addAppInstance:(path, instance)->
-    @appControllers[path] ?= []
-    @appControllers[path].push instance
-    # @appInstances.push instance
-    # @appViews2d.push []
-    # @openedInstances[path] = instance
+  getAppInstance:(name) ->
+    @appControllers[name]?.first or null
 
-  getAppInstance: (path) ->
-    @appControllers[path]?.first or null
-    # @openedInstances[expandApplicationPath path]
+  removeAppInstance:(appController)->
+    appInfo = appController.getOption "appInfo"
+    {name}  = appInfo
+    index   = @appControllers[name].indexOf appController
 
-  removeAppInstance:(path)->
-    app = @getAppInstance path
-    # index = @appInstances.indexOf app
-    # @appInstances.splice index, 1
-    # @appViews2d.splice index, 1
-    # delete @openedInstances[path]
+    # debugger
+    if index >= 0
+      @appControllers[name].splice index, 1
+      if @appControllers[name].length is 0
+        delete @appControllers[name]
+      appController.destroy()
 
   getAppViews:(path)->
     # index = @appInstances.indexOf @getAppInstance path

@@ -6,14 +6,14 @@ class InboxAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new InboxView
-      cssClass : "inbox-application"
+    options.view    = new InboxView
+      cssClass      : "inbox-application"
+    options.appInfo =
+      name          : "Inbox"
 
     super options, data
 
     @selection = {}
-
-  bringToFront:()-> super @, @getView(), name : 'Inbox'
 
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback

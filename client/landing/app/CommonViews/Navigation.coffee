@@ -8,11 +8,10 @@ class NavigationController extends KDListViewController
 
   selectItemByName:(name)->
     item = no
-    for navItem in @itemsOrdered
-      if navItem.name is name
-        @selectItem item = navItem
-        break
-    item
+    for navItem in @itemsOrdered when navItem.name is name
+      @selectItem item = navItem
+      break
+    return item
 
   instantiateListItems:(items)->
 
@@ -32,19 +31,34 @@ class NavigationList extends KDListView
       options.childClass = NavigationInviteLink
       return options
 
+    if data.type is "separator"
+      options.childClass = NavigationSeparator
+      options.selectable = no
+      return options
+
+    if data.type is "admin"
+      options.itemClass  = AdminNavigationLink
+      options.selectable = no
+      return options
+
+
 class NavigationLink extends KDListItemView
 
-  constructor:(options,data)->
+  constructor:(options = {},data)->
+
+    data.type      or= ""
+    options.cssClass = KD.utils.curryCssClass "navigation-item clearfix", data.type
+
     super options,data
 
     @name = data.title
-    @setClass 'navigation-item clearfix'
 
   click:(event)->
-    {appPath, title, path} = @getData()
+    {appPath, title, path, type} = @getData()
 
     # This check is for Invite Friends link which has no app at all
-    return if @child?
+    # or if the item is a separator
+    return if @child? or type is "separator"
 
     mc = @getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
@@ -56,6 +70,14 @@ class NavigationLink extends KDListItemView
 
   partial:(data)->
     "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+
+class NavigationSeparator extends KDCustomHTMLView
+
+  constructor:(options = {}, data)->
+
+    options.tagName  = "hr"
+
+    super options, data
 
 class AdminNavigationLink extends NavigationLink
 

@@ -20,8 +20,10 @@ class GroupsAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new GroupsMainView
-      cssClass : "content-page groups"
+    options.view    = new GroupsMainView
+      cssClass      : "content-page groups"
+    options.appInfo =
+      name          : "Groups"
 
     super options, data
 
@@ -30,8 +32,6 @@ class GroupsAppController extends AppController
 
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
-
-  bringToFront:()-> super @, @getView(), name : 'Groups'
 
   createFeed:(view)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {

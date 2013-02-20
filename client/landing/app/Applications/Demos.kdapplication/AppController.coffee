@@ -3,13 +3,12 @@ class DemosAppController extends AppController
   KD.registerAppClass @, name : "Demos"
 
   constructor:(options = {}, data)->
-    options.view = new DemosMainView
-      cssClass : "content-page demos"
+    options.view    = new DemosMainView
+      cssClass      : "content-page demos"
+    options.appInfo =
+      name          : "Demos"
 
     super options, data
-
-  bringToFront:()->
-    super name : 'Demos'#, type : 'background'
 
   loadView:(mainView)->
 

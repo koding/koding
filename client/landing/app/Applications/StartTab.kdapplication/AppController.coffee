@@ -6,13 +6,10 @@ class StartTabAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new StartTabMainView
-
-    super options, data
-
-  bringToFront:->
-
-    @emit 'ApplicationWantsToBeShown', @, @getView(),
+    options.view    = new StartTabMainView
+    options.appInfo =
       hiddenHandle  : no
       type          : 'application'
-      name          : 'New Tab'
+      name          : 'Your Apps'
+
+    super options, data

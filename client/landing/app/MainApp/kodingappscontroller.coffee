@@ -303,10 +303,10 @@ class KodingAppsController extends KDController
             type          : 'application'
             name          : manifest.name
 
-          appView.on 'ViewClosed', =>
-            @emit "ApplicationWantsToClose", @, appView
-            KD.getSingleton("appManager").removeOpenTab appView
-            appView.destroy()
+          # appView.on 'ViewClosed', =>
+          #   @emit "ApplicationWantsToClose", @, appView
+          #   KD.getSingleton("appManager").removeOpenTab appView
+          #   appView.destroy()
 
           try
             # security please!

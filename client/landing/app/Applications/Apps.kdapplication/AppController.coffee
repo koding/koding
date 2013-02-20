@@ -4,12 +4,12 @@ class AppsAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new AppsMainView
-      cssClass : "content-page appstore"
+    options.view    = new AppsMainView
+      cssClass      : "content-page appstore"
+    options.appInfo =
+      name          : 'Apps'
 
     super options, data
-
-  bringToFront:()-> super @, @getView(), name : 'Apps'
 
   loadView:(mainView)->
 

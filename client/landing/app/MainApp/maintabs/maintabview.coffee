@@ -88,11 +88,8 @@ class MainTabView extends KDTabView
     if appPanes.length is 0
       @emit "AllApplicationPanesClosed"
 
-  # removePane:(pane)->
-  #   pane.getData().emit 'ViewClosed'
-
   removePaneByView:(view)->
-    log view, @getPaneByView view
+    # log view, @getPaneByView view
     return unless (pane = @getPaneByView view)
     @_removePane pane
 
@@ -119,7 +116,6 @@ class MainTabView extends KDTabView
 
     cssClass              = @utils.slugify(options?.name?.toLowerCase()) or ""
     options.cssClass      = @utils.curryCssClass "content-area-pane", cssClass
-    log "1.", options.cssClass
     options.type        or= "content"
     options.class       or= KDView
     options.hiddenHandle ?= yes
@@ -132,8 +128,8 @@ class MainTabView extends KDTabView
     @addPane paneInstance
     @indexPaneByView paneInstance,mainView
 
-    paneInstance.on "KDObjectWillBeDestroyed", => log "go to hell"
-    mainView.on "KDObjectWillBeDestroyed", => log "go to hell x 2"
+    # paneInstance.on "KDObjectWillBeDestroyed", => log "go to hell"
+    # mainView.on "KDObjectWillBeDestroyed", => log "go to hell x 2"
 
     return paneInstance
 

@@ -1,6 +1,6 @@
 class AppController extends KDViewController
 
-  bringToFront:(options = {}, view = @getView())->
+  bringToFront:(view = @getView(), options = @getOption "appInfo")->
 
     @emit 'ApplicationWantsToBeShown', @, view, options
 

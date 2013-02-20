@@ -4,14 +4,14 @@ class AccountAppController extends AppController
 
   constructor:(options={},data)->
 
-    options.view = new KDView cssClass : "content-page"
+    options.view    = new KDView cssClass : "content-page"
+    options.appInfo =
+      name          : "Account"
+      type          : "background"
 
     super options, data
 
     @itemsOrdered = []
-
-  bringToFront:()->
-    super name : 'Account', type : 'background'
 
   loadView:(mainView)->
     items = @items

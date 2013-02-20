@@ -21,12 +21,14 @@ class MainViewController extends KDViewController
   mainTabPaneChanged:(mainView, pane)->
     {sidebarController} = @
     sidebar             = sidebarController.getView()
+    {navController}     = sidebar
     paneType            = pane.options.type
     paneName            = pane.options.name
     navItemName         = paneName
 
 
     if KD.getSingleton("appManager").isAppUnderDevelop pane.name
+      # log ">>>>>>>>>>>> DEVELOP", pane.name
       @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
     # else
     #   if @getSingleton('router')? and pane.name isnt @getSingleton('router').getCurrentPath()
@@ -46,8 +48,4 @@ class MainViewController extends KDViewController
     else
       mainView.setViewState 'default'
 
-    if sidebar.navController.selectItemByName navItemName
-      # sidebar.accNavController.selectItem()
-    else
-      # sidebar.navController.selectItem()
-      sidebar.accNavController.selectItemByName navItemName
+    navController.selectItemByName navItemName

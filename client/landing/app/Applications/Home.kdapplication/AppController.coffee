@@ -3,13 +3,14 @@ class HomeAppController extends AppController
   KD.registerAppClass @, name : "Home"
 
   constructor:(options = {}, data)->
-    options.view = new KDView
-    # options.view = new HomeMainView
-      cssClass : "content-page home"
-    super options,data
+    # options.view    = new HomeMainView
+    options.view    = new KDView
+      cssClass      : "content-page home"
+    options.appInfo =
+      name          : "Home"
+      type          : 'background'
 
-  bringToFront:()->
-    super name : 'Home', type : 'background'
+    super options,data
 
   loadView:(mainView)->
     @mainView = mainView
