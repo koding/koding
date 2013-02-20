@@ -13,10 +13,10 @@ Function::swiss = (parent, names...)->
   @
 
 # Cross-Browser DOM dependencies
-window.URL                   = window.URL                   ? window.webkitURL                   ? null
-window.BlobBuilder           = window.BlobBuilder           ? window.WebKitBlobBuilder           ? window.MozBlobBuilder           ? null
-window.requestFileSystem     = window.requestFileSystem     ? window.webkitRequestFileSystem     ? null
-window.requestAnimationFrame = window.requestAnimationFrame ? window.webkitRequestAnimationFrame ? window.mozRequestAnimationFrame ? null
+window.URL                   ?= window.webkitURL                   ? null
+window.BlobBuilder           ?= window.WebKitBlobBuilder           ? window.MozBlobBuilder           ? null
+window.requestFileSystem     ?= window.webkitRequestFileSystem     ? null
+window.requestAnimationFrame ?= window.webkitRequestAnimationFrame ? window.mozRequestAnimationFrame ? null
 
 # FIXME: add to utils.coffee
 String.prototype.capitalize   = ()-> this.charAt(0).toUpperCase() + this.slice(1)

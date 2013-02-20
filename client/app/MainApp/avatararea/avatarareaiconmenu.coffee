@@ -97,7 +97,7 @@ class AvatarAreaIconMenu extends JView
     if KD.isLoggedIn()
       @unsetClass "invisible"
 
-      log "accountChanged AvatarAreaIconMenu"
+      # log "accountChanged AvatarAreaIconMenu"
 
       # do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>

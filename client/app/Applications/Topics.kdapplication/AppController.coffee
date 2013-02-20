@@ -4,15 +4,16 @@ class TopicsAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new TopicsMainView
-      cssClass : "content-page topics"
+    options.view    = new TopicsMainView
+      cssClass      : "content-page topics"
+    options.appInfo =
+      name          : "Topics"
+
 
     super options, data
 
     @listItemClass = TopicsListItemView
     @controllers = {}
-
-  bringToFront:()-> super @, @getView(), name : 'Topics'
 
   createFeed:(view)->
     {JTag} = KD.remote.api

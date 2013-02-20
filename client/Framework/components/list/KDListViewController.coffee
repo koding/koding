@@ -220,7 +220,11 @@ class KDListViewController extends KDViewController
     return unless item?
 
     @lastEvent = event
-    @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
+
+    if not(@getOption("multipleSelection"))\
+       and item.getOption("selectable")\
+       and not(event.metaKey or event.ctrlKey or event.shiftKey)
+      @deselectAllItems()
 
     if event.shiftKey and @selectedItems.length > 0
       @selectItemsByRange @selectedItems[0], item
@@ -285,7 +289,7 @@ class KDListViewController extends KDViewController
 
   selectSingleItem:(item)->
 
-    unless item in @selectedItems
+    if item.getOption("selectable") and !(item in @selectedItems)
       item.highlight()
       @selectedItems.push item
       if item is @itemsOrdered[@itemsOrdered.length-1]

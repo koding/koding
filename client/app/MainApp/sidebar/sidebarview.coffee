@@ -78,27 +78,6 @@ class Sidebar extends JView
 
     @nav = @navController.getView()
 
-    @accNavController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        cssClass     : "account"
-        itemClass    : NavigationLink
-      wrapper        : no
-      scrollView     : no
-    , accNavItems
-
-    @accNav = @accNavController.getView()
-
-    @adminNavController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        cssClass     : "account admin"
-        itemClass    : AdminNavigationLink
-      wrapper        : no
-      scrollView     : no
-
-    @adminNav = @adminNavController.getView()
-
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
@@ -139,14 +118,6 @@ class Sidebar extends JView
     # @statusLEDs = new StatusLEDView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
-
-  resetAdminNavController:->
-    @utils.wait 1000, =>
-      @adminNavController.removeAllItems()
-      if KD.isLoggedIn()
-        KD.whoami().fetchRole? (err, role)=>
-          if role is "super-admin"
-            @adminNavController.instantiateListItems adminNavItems.items
 
   setListeners:->
 
@@ -227,10 +198,6 @@ class Sidebar extends JView
       {{> @avatarAreaIconMenu}}
       {{> @statusLEDs}}
       {{> @nav}}
-      <hr />
-      {{> @accNav}}
-      {{> @adminNav}}
-      <hr />
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
@@ -303,10 +270,6 @@ class Sidebar extends JView
       @_finderExpanded = no
       callback?()
 
-  showEnvironmentPanel:->
-
-    @showFinderPanel()
-
   showFinderPanel:->
 
     unless @_finderExpanded
@@ -341,33 +304,33 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity",   path: "/Activity" }
-          { title : "Topics",     path: "/Topics" }
-          { title : "Members",    path: "/Members" }
-          { title : "Develop",    path: "/Develop", loggedIn: yes }
-          { title : "Apps",       path: "/Apps" }
+          { title : "Activity",       path : "/Activity" }
+          { title : "Topics",         path : "/Topics" }
+          { title : "Members",        path : "/Members" }
+          { title : "Develop",        path : "/Develop", loggedIn: yes }
+          { title : "Apps",           path : "/Apps" }
+          { type  : "separator" }
+          { title : "Invite Friends", type : "account", loggedIn: yes }
+          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
         ]
       else
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity",   path: "/Activity" }
-          { title : "Topics",     path: "/Topics" }
-          { title : "Members",    path: "/Members" }
-          { title : "Groups",     path: "/Groups" }
-          { title : "Develop",    path: "/Develop",  loggedIn: yes }
-          { title : "Apps",       path: "/Apps" }
+          { title : "Activity",       path : "/Activity" }
+          { title : "Topics",         path : "/Topics" }
+          { title : "Members",        path : "/Members" }
+          { title : "Groups",         path : "/Groups" }
+          { title : "Develop",        path : "/Develop",  loggedIn: yes }
+          { title : "Apps",           path : "/Apps" }
+          { type  : "separator" }
+          { title : "Invite Friends", type : "account", loggedIn: yes }
+          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
         ]
-
-  accNavItems =
-    id    : "acc-navigation"
-    title : "acc-navigation"
-    items : [
-      { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes, path   : '/Account' }
-      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
-      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
-    ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
@@ -377,14 +340,6 @@ class Sidebar extends JView
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
-    ]
-
-  adminNavItems =
-    id    : "admin-navigation"
-    title : "admin-navigation"
-    items : [
-      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =

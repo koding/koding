@@ -22,8 +22,6 @@ class MainView extends KDView
     switch state
       when 'application'
         @sidebar.showFinderPanel()
-      when 'environment'
-        @sidebar.showEnvironmentPanel()
       else
         @sidebar.hideFinderPanel()
 
@@ -146,20 +144,20 @@ class MainView extends KDView
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
-    KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
-      new GlobalNotification
-        targetDate  : systemStatus.restartScheduled
-        title       : systemStatus.restartTitle
-        content     : systemStatus.restartContent
+    # KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
+    #   new GlobalNotification
+    #     targetDate  : systemStatus.restartScheduled
+    #     title       : systemStatus.restartTitle
+    #     content     : systemStatus.restartContent
 
-    KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      if systemStatus.canceled
-        @getSingleton('windowController')?.stickyNotification?.emit 'restartCanceled'
-      else
-        new GlobalNotification
-          targetDate : systemStatus.restartScheduled
-          title      : systemStatus.restartTitle
-          content    : systemStatus.restartContent
+    # KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
+    #   if systemStatus.canceled
+    #     @getSingleton('windowController')?.stickyNotification?.emit 'restartCanceled'
+    #   else
+    #     new GlobalNotification
+    #       targetDate : systemStatus.restartScheduled
+    #       title      : systemStatus.restartTitle
+    #       content    : systemStatus.restartContent
 
   createSideBar:->
 

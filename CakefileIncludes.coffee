@@ -258,7 +258,6 @@ Includes =
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
-        appsController                : "./client/app/Applications/Apps.kdapplication/AppController.coffee"
 
         appsInnerNavigation           : "./client/app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee"
         appslistItemView              : "./client/app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee"

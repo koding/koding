@@ -4,12 +4,12 @@ class MembersAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view = new MembersMainView
-      cssClass : "content-page members"
+    options.view    = new MembersMainView
+      cssClass      : 'content-page members'
+    options.appInfo =
+      name          : 'Members'
 
     super options, data
-
-  bringToFront:()-> super @, @getView(), name : 'Members'
 
   setGroup:-> console.trace()
 

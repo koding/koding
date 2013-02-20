@@ -41,7 +41,9 @@ class ActivityAppController extends AppController
 
   constructor:(options={})->
 
-    options.view = new ActivityAppView
+    options.view    = new ActivityAppView
+    options.appInfo =
+      name          : 'Activity'
 
     super options
 
@@ -50,9 +52,9 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-  bringToFront:()->
+  bringToFront:->
 
-    super name : 'Activity'
+    super
 
     if @listController then @populateActivity()
     else

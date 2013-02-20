@@ -84,30 +84,27 @@ class KDObject extends KDEventEmitter
 
   getData:-> @data
 
-  setOptions:(options)->
-    @options = options ? {}
+  setOptions:(@options = {})->
 
-  setOption:(option, value)->
-    @options[option] = value
+  setOption:(option, value)-> @options[option] = value
 
-  unsetOption:(option)->
-    delete @options[option] if @options[option]
+  unsetOption:(option)-> delete @options[option] if @options[option]
 
-  getOptions:->
-    @options
+  getOptions:-> @options
+  getOption:(key)-> @options[key] or null
 
   changeId:(id)->
     KD.deleteInstance @
     @id = id
     KD.registerInstance @
 
-  getId:()->@id
+  getId:->@id
 
-  setDelegate:(anInstance)-> @delegate = anInstance
+  setDelegate:(@delegate)->
 
   getDelegate:->@delegate
 
-  destroy:()->
+  destroy:->
 
     @emit 'KDObjectWillBeDestroyed'
     KD.removeSubscriptions @

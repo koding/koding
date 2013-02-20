@@ -211,6 +211,11 @@ body.loggedIn
     margin              0 6px 0 0
     overflow            visible
 
+    hr
+      border-top            1px solid rgba(44,41,36,.5)
+      border-bottom         1px solid rgba(255,255,255,.07)
+      size                  auto, 0
+
     &.selected
       border                1px solid transparent
       border-width          1px 0
@@ -229,15 +234,20 @@ body.loggedIn
           color             white
           text-decoration   none
 
-  &.account
-    margin                16px 0 15px 0
-    .kdlistitemview.navigation-item
+    &.account
+    &.admin
       min-width         135px
       .title
         padding-top     3px
         margin-top      -1px
         font-size       11px
-        line-height
+
+    &.separator
+      margin            10px 0 6px
+      padding           0 11px
+      cursor            default
+      borderBox()
+
 
 .kdview.kdlistview-footer-menu
   size                  100%, 30px
@@ -916,13 +926,6 @@ span.main-nav-icon
         bg              position, -160px -520px
       &:hover span.icon
         bg              position, -160px -540px
-
-    hr
-      margin                0 11px
-      border-top            1px solid rgba(44,41,36,.5)
-      border-bottom         1px solid rgba(255,255,255,.07)
-      size                  auto,auto
-
 
 .kdview.kdlistitemview
   rel()
