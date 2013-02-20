@@ -7,7 +7,7 @@ version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'u
 
 # PROD
 # mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@dbrc-m0.prod.aws.koding.com:27017/beta_koding'
 
 # RabbitMQ Host
 rabbit_host = 'rabbit-b.prod.aws.koding.com'
