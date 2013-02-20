@@ -18,7 +18,7 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
-      instance        : ['sendInvitation','deleteInvitation']
+      instance        : ['sendInvitation','deleteInvitation','approveInvitation','declineInvitation']
     schema            :
       email           :
         type          : String
@@ -36,7 +36,12 @@ module.exports = class JInvitationRequest extends Model
       group           : String
       status          :
         type          : String
-        enum          : ['Invalid status', ['pending', 'sent', 'declined']]
+        enum          : ['Invalid status', [
+          'pending'
+          'sent'
+          'declined'
+          'approved'
+        ]]
         default       : 'pending'
       invitationType  :
         type          : String
@@ -49,7 +54,6 @@ module.exports = class JInvitationRequest extends Model
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
-      console.log "->",arguments
       if err
         callback err
       else
@@ -85,6 +89,34 @@ module.exports = class JInvitationRequest extends Model
         callback "Finished parsing #{count} records, of which #{queue.length} were valid."
         daisy queue
       csv.on 'error', (err)-> errors.push err
+
+  declineInvitation: permit 'send invitations'
+    success: (client, callback)->
+      @update $set:{ status: 'declined' }, callback
+
+  fetchAccount:(callback)->
+    JAccount = require './account'
+    if @koding.username
+      JAccount.one {'profile.nickname': @koding.username}, callback
+    else
+      callback new KodingError """
+        Unimplemented: we can't fetch an account from this type of invitation
+        """
+
+  approveInvitation: permit 'send invitations'
+    success: (client, callback)->
+      JGroup = require './group'
+      JGroup.one {slug: @group}, (err, group)=>
+        if err then callback err
+        else unless group?
+          callback new KodingError "No group! #{@group}"
+        else
+          @fetchAccount (err, account)=>
+            if err then callback err
+            else
+              group.approveMember account, (err)=>
+                if err then callback err
+                else @update $set:{ status: 'approved' }, callback
 
   deleteInvitation: permit 'send invitations'
     success:(client, rest...)-> @remove rest...

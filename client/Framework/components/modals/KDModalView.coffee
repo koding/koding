@@ -26,6 +26,8 @@ class KDModalView extends KDView
     @setContent options.content                   if options.content
     @addSubView options.view,".kdmodal-content"   if options.view
 
+    @on 'ModalCancelled', options.cancel          if options.cancel
+
     @on "viewAppended", =>
       @utils.wait 500, => @unsetClass "initial"
 
@@ -48,7 +50,7 @@ class KDModalView extends KDView
 
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).one "keydown.modal",(e)=>
-      @destroy() if e.which is 27
+      @cancel() if e.which is 27
 
     @on "childAppended", @setPositions.bind @
 
@@ -86,11 +88,11 @@ class KDModalView extends KDView
     @buttons[defaultFocusTitle].setFocus()  unless focused
 
   click:(e)->
-    @destroy() if $(e.target).is(".closeModal")
+    @cancel() if $(e.target).is(".closeModal")
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
-  keyUp:(e)->
-    @destroy() if e.which is 27
+  # keyUp:(e)->
+  #   @cancel() if e.which is 27
 
   setTitle:(title)->
     @$().find(".kdmodal-title").removeClass('hidden').html("<span class='title'>#{title}</span>")
@@ -158,6 +160,10 @@ class KDModalView extends KDView
     if @getOptions().fx
       @utils.wait =>
         @setClass "active"
+
+  cancel:->
+    @emit 'ModalCancelled'
+    @destroy()
 
   destroy:()->
     $(window).off "keydown.modal"

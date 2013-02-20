@@ -51,7 +51,7 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingInvitationRequests'
+        'fetchInvitationRequestCounts', 'resolvePendingRequests'
       ]
     schema          :
       title         :
@@ -69,6 +69,8 @@ module.exports = class JGroup extends Module
         type        : String
         enum        : ['invalid visibility type', ['visible', 'hidden']]
       parent        : ObjectRef
+      counts        :
+        members     : Number
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -268,11 +270,12 @@ module.exports = class JGroup extends Module
     success:(client, callback)->
       @fetchRoles (err, roles)=>
         roleTitles = (role.title for role in roles)
-        Relationship.someData {
-          sourceName  : 'JAccount'
-          targetId    : @getId()
+        selector = {
+          targetName  : 'JAccount'
+          sourceId    : @getId()
           as          : { $in: roleTitles }
-        }, {as:1, sourceId:1}, (err, cursor)->
+        }
+        Relationship.someData selector, {as:1, targetId:1}, (err, cursor)->
           if err then callback err
           else
             cursor.toArray (err, arr)->
@@ -433,22 +436,34 @@ module.exports = class JGroup extends Module
             queue.fin()
       dash queue, callback.bind null, null, counts
 
-  resolvePendingInvitationRequests: permit 'send invitations'
-    success: (client, method, callback)->
-      unless method in ['send', 'delete']
-        return callback new KodingError "Unknown method: #{method}"
-
-      JInvitationRequest = require '../invitationrequest'
-
-      invitationRequestSelector =
-        group             : @slug
-        status            : 'pending'
-        invitationType    : 'invitation'
-
-      JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+  resolvePendingRequests: permit 'send invitations'
+    success: (client, isApproved, callback)->
+      @fetchMembershipPolicy (err, policy)=>
         if err then callback err
-        else if request? then request[method+'Invitation'] client, ->
-        else callback null
+        else unless policy then callback new KodingError 'No membership policy!'
+        else
+
+          invitationType =
+            if policy.invitationsEnabled then 'invitation' else 'basic approval'
+        
+          method =
+            if 'invitation' is invitationType
+              if isApproved then 'send' else 'delete'
+            else
+              if isApproved then 'approve' else 'decline'
+
+          JInvitationRequest = require '../invitationrequest'
+
+          invitationRequestSelector =
+            group             : @slug
+            status            : 'pending'
+            invitationType    : invitationType
+
+          JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+            if err then callback err
+            else if request? then request[method+'Invitation'] client, (err)->
+              console.error err  if err
+            else callback null
 
   inviteMember: permit 'send invitations'
     success: (client, email, callback)->
@@ -457,6 +472,9 @@ module.exports = class JGroup extends Module
       invitationRequest.save (err)->
         if err then callback err
         else invitationRequest.sendInvitation client, callback
+
+  fetchInvitationRequests$: permit 'send invitations'
+    success: (client, rest...)-> @fetchInvitationRequests rest...
 
   sendSomeInvitations: permit 'send invitations'
     success: (client, count, callback)->
@@ -486,7 +504,7 @@ module.exports = class JGroup extends Module
         @requestApproval client, callback
  
   sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
-    JMail = require './email'
+    JMail = require '../email'
     (new JMail
       email   : adminUser.email
       subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
@@ -505,12 +523,13 @@ module.exports = class JGroup extends Module
           if err then callback err
           else admin.fetchUser (err, adminUser)=>
             if err then callback err
-            else @sendApprovalRequestEmail(
-              delegate, delegateUser, admin, adminUser, callback
-            )
+            else
+              @sendApprovalRequestEmail(
+                delegate, delegateUser, admin, adminUser, callback
+              )
+              @emit 'NewMembershipApprovalRequest'
 
   requestInvitation: secure (client, invitationType, callback)->
-    JUser = require '../user'
     JInvitationRequest = require '../invitationrequest'
     {delegate} = client.connection
     invitationRequest = new JInvitationRequest {
@@ -526,17 +545,13 @@ module.exports = class JGroup extends Module
       else
         @addInvitationRequest invitationRequest, (err)-> callback err
 
-
-  # attachEnvironment:(name, callback)->
-  #   [callback, name] = [name, callback]  unless callback
-  #   name ?= @title
-  #   JEnvironment.one {name}, (err, env)->
-  #     if err then callback err
-  #     else if env?
-  #       @addEnvironment
-  #       callback null, env
-  #     else
-  #       env = new JEnvironment {name}
-  #       env.save (err)->
-  #         if err then callback err
-  #         else callback null
+  approveMember:(member, roles, callback)->
+    [callback, roles] = [roles, callback]  unless callback
+    roles ?= ['member']
+    queue = roles.map (role)=>=>
+      @addMember member, role, queue.fin.bind queue
+    dash queue, =>
+      callback()
+      @update $inc: 'counts.members': 1, ->
+      console.log 'this', this
+      @emit 'NewMember'
