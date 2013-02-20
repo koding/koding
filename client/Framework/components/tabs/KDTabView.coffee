@@ -25,7 +25,6 @@ class KDTabView extends KDScrollView
     @setClass "kdtabview"
 
     @handlesHidden = no
-    @resizeTimer   = null
 
     @hideHandleCloseIcons() if options.hideHandleCloseIcons
     @hideHandleContainer()  if options.hideHandleContainer
@@ -33,8 +32,10 @@ class KDTabView extends KDScrollView
     @blockTabHandleResize = no
 
     @tabHandleContainer.on "mouseenter", => @blockTabHandleResize = yes
-    @tabHandleContainer.on "mouseleave", => @blockTabHandleResize = no
 
+    @tabHandleContainer.on "mouseleave", => 
+      @blockTabHandleResize = no
+      @resizeTabHandles()
 
   # ADD/REMOVE PANES
   createPanes:(paneTitlesArray = @getOptions().tabNames)->
@@ -67,26 +68,36 @@ class KDTabView extends KDScrollView
       warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
       false
 
-  resortTabHandles:->
-    #   {subViews}       = @holder
-    #   temp             = subViews[@draggedItemIndex]
+  resortTabHandles: (index, dir) ->
+    return if (index is 0 and dir is 'left') or (index is @handles.length - 1 and dir is 'right') or (index >= @handles.length) or (index < 0)
 
-    #   subViews.splice(@draggedItemIndex, 1);
-    #   targetPos = if @isDraggingToLeft then Math.abs @passedHandleLength - @draggedItemIndex else @passedHandleLength + @draggedItemIndex
-    #   subViews.splice(targetPos, 0, temp);
+    @handles[0].unsetClass 'first'
 
-    #   names = ''
-    #   names += ', ' + $(subView.domElement).find('b').text() for subView in subViews
-    #   log names
+    if dir is 'right'
+      methodName  = 'insertAfter'
+      targetIndex = index + 1
+    else
+      methodName  = 'insertBefore'
+      targetIndex = index - 1  
+    @handles[index].$()[methodName] @handles[targetIndex].$()
+
+    newIndex       = if dir is 'left' then index - 1 else index + 1
+    splicedHandle  = @handles.splice index, 1
+    splicedPane    = @panes.splice index, 1
+
+    @handles.splice newIndex, 0, splicedHandle[0]
+    @panes.splice   newIndex, 0, splicedPane[0]
+
+    @handles[0].setClass 'first'
 
   removePane:(pane)->
     pane.emit "KDTabPaneDestroy"
     index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
-    @panes.splice(index,1)
+    @panes.splice index, 1
     pane.destroy()
     handle = @getHandleByIndex index
-    @handles.splice(index,1)
+    @handles.splice index, 1
     handle.destroy()
     if isActivePane
       newIndex = if @getPaneByIndex(index-1)? then index-1 else 0

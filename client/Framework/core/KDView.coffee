@@ -86,6 +86,8 @@ class KDView extends KDObject
     @setInstanceVariables options
     @defaultInit options,data
 
+	@setClass 'kddraggable' if o.draggable
+
     @on 'childAppended', @childAppended.bind @
 
     @on 'viewAppended', =>
@@ -550,15 +552,40 @@ class KDView extends KDObject
       if eventNames.test(eventName) and "function" is typeof cb
         @on eventName, cb
 
+  setEmptyDragState: ->
+    @dragState =
+      containment : null     # a parent KDView
+      handle      : null     # a parent KDView or a child selector
+      axis        : null     # a String 'x' or 'y' or 'diagonal'
+      direction   : 
+        current   :
+          x       : null     # a String 'left' or 'right'
+          y       : null     # a String 'up'   or 'down'
+        global    :
+          x       : null     # a String 'left' or 'right'
+          y       : null     # a String 'up'   or 'down'
+      position    : 
+        relative  :
+          x       : 0        # a Number
+          y       : 0        # a Number
+        initial   :
+          x       : 0        # a Number
+          y       : 0        # a Number
+        global    :          
+          x       : 0        # a Number
+          y       : 0        # a Number
+      meta        :
+        top       : 0        # a Number
+        right     : 0        # a Number
+        bottom    : 0        # a Number
+        left      : 0        # a Number
+
+
   setDraggable:(options = {})->
 
     options = {} if options is yes
 
-    @dragState =
-      containment : options.containment             # a parent KDView
-      handle      : options.handle                  # a parent KDView or a child selector
-      axis        : options.axis                    # a String 'x' or 'y' or 'diagonal'
-
+    @setEmptyDragState()
     handle = if options.handle and options.handle instanceof KDView then handle else @
 
     handle.on "mousedown", (event)=>
@@ -566,21 +593,25 @@ class KDView extends KDObject
         return if $(event.target).closest(options.handle).length is 0
 
       @dragIsAllowed = yes
+      @setEmptyDragState()
+      
+      dragState             = @dragState
 
-      top    = parseInt (@$()[0].style.top or 0), 10
-      right  = parseInt (@$()[0].style.right or 0), 10
-      bottom = parseInt (@$()[0].style.bottom or 0), 10
-      left   = parseInt (@$()[0].style.left or 0), 10
+      # TODO: should move these lines
+      dragState.containment = options.containment
+      dragState.handle      = options.handle
+      dragState.axis        = options.axis
+      
+      dragMeta              = dragState.meta
+      dragEl                = @$()[0]
+      dragMeta.top          = parseInt(dragEl.style.top,    10) or 0
+      dragMeta.right        = parseInt(dragEl.style.right,  10) or 0
+      dragMeta.bottom       = parseInt(dragEl.style.bottom, 10) or 0
+      dragMeta.left         = parseInt(dragEl.style.left,   10) or 0
 
-      @dragState.startX     = event.pageX
-      @dragState.startY     = event.pageY
-      @dragState.top        = top
-      @dragState.right      = right
-      @dragState.bottom     = bottom
-      @dragState.left       = left
-
-      @dragState.directionX = unless isNaN left then "left" else "right"
-      @dragState.directionY = unless isNaN top  then "top"  else "bottom"
+      dragPos = @dragState.position
+      dragPos.initial.x     = event.pageX
+      dragPos.initial.y     = event.pageY
 
       @getSingleton('windowController').setDragView @
       @emit "DragStarted", event, @dragState
@@ -591,16 +622,46 @@ class KDView extends KDObject
   drag:(event, delta)->
 
     {directionX, directionY, axis} = @dragState
-    {x, y} = delta
+    
+    {x, y}       = delta
+    dragPos      = @dragState.position
+    dragRelPos   = dragPos.relative
+    dragInitPos  = dragPos.initial
+    dragGlobPos  = dragPos.global
+    dragDir      = @dragState.direction
+    dragGlobDir  = dragDir.global
+    dragCurDir   = dragDir.current
 
-    y    = -y if directionY is "bottom"
-    x    = -x if directionX is "right"
-    posY = @dragState[directionY] + y
-    posX = @dragState[directionX] + x
+    if x > dragRelPos.x
+      dragCurDir.x  = 'right'
+    else if x < dragRelPos.x
+      dragCurDir.x  = 'left'
 
+    if y > dragRelPos.y
+      dragCurDir.y  = 'bottom'
+    else if y < dragRelPos.y
+      dragCurDir.y  = 'top'
+
+    dragGlobPos.x = dragInitPos.x + x
+    dragGlobPos.y = dragInitPos.y + y
+
+    dragGlobDir.x = if x > 0 then 'right'  else 'left'
+    dragGlobDir.y = if y > 0 then 'bottom' else 'top'
+
+    el = @$()
     if @dragIsAllowed
-      @$().css directionX, posX unless axis is 'y'
-      @$().css directionY, posY unless axis is 'x'
+      dragMeta   = @dragState.meta
+      targetPosX = if dragMeta.right  and not dragMeta.left then 'right'  else 'left'
+      targetPosY = if dragMeta.bottom and not dragMeta.top  then 'bottom' else 'top'
+
+      newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
+      newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
+      
+      el.css targetPosX, newX unless axis is 'y'
+      el.css targetPosY, newY unless axis is 'x'
+
+    dragRelPos.x = x
+    dragRelPos.y = y
 
     @emit "DragInAction", x, y
 

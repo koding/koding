@@ -12,7 +12,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @share()
 
-  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/followable', override: no
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/restrictedquery'
 
@@ -105,45 +105,6 @@ module.exports = class CActivity extends jraphical.Capsule
       else
         callback null, cursor
 
-  processCache = (cursorArr)->
-    console.log "processing activity cache..."
-    lastDocType = null
-
-    # group newmember buckets
-    cache = cursorArr.reduce (acc, doc)->
-      if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
-        acc.last.createdAt[1] = doc.createdAt
-        if acc.last.count++ < 3
-          acc.last.ids.push doc._id
-      else
-        acc.push
-          createdAt : [doc.createdAt]
-          ids       : [doc._id]
-          type      : doc.type
-          count     : 1
-      lastDocType = doc.type
-      return acc
-    , []
-    memberBucket   = null
-    bucketIndex    = 0
-    processedCache = []
-
-    # put new member groups all together
-    cache.forEach (item, i)->
-      if /NewMemberBucket/.test item.type
-        unless memberBucket
-          memberBucket      = item
-          processedCache[i] = memberBucket
-          bucketIndex       = i
-        else
-          processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat item.ids
-          processedCache[bucketIndex].count += item.count
-          processedCache[bucketIndex].createdAt[1] = item.createdAt.last
-      else
-        processedCache.push item
-
-    return processedCache
-
   @fetchRangeForCache = (options = {}, callback)->
     @fetchCacheCursor options, (err, cursor)->
       if err then console.warn err
@@ -151,8 +112,7 @@ module.exports = class CActivity extends jraphical.Capsule
         cursor.toArray (err, arr)->
           if err then callback err
           else
-            callback null, processCache arr
-
+            callback null, arr
 
   @captureSortCounts =(callback)->
     selector = {
