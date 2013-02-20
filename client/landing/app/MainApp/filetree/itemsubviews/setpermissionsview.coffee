@@ -51,16 +51,6 @@ class NSetPermissionsView extends JView
 
     @switches = {}
 
-    @setPermissionsButton = new KDButtonView 
-      title     : "Set"
-      callback  : =>
-        permissions = @getOctalPermissions()
-        recursive   = @recursive.getValue() or no
-        file        = @getData()
-        file.chmod {permissions, recursive}, (err,res)=>
-          unless err
-            @displayOldOctalPermissions()
-
     @fetchPermissionsButton = new KDButtonView 
       title : "Fetch file permissions"
       callback: ->
@@ -71,6 +61,21 @@ class NSetPermissionsView extends JView
         #   setPermissionsView.applyExistingPermissions()
 
     @recursive = new KDOnOffSwitch
+
+    @loadingMask = new KDView
+      cssClass: "switcher-group-mask"
+
+    @loadingMask.hide()
+
+  setPermission: (permission, callback) ->
+    @loadingMask.show() 
+    permissions = permission ? @getOctalPermissions()
+    recursive   = @recursive.getValue() or no
+    file        = @getData()
+    file.chmod {permissions, recursive}, (err,res)=>
+      unless err
+        @loadingMask.hide()
+        callback?()
     
   createSwitches: (name, permission = 6) ->
     @switches[name] = []
@@ -80,8 +85,19 @@ class NSetPermissionsView extends JView
         defaultValue  : !!parseInt(bit)
         callback      : =>
           @displayOctalPermissions()
+          @setPermission()
     @switches[name]
-    
+
+  bindSwitchNotifications: ->
+    ownerSwitches = @switches.owner
+    ownerSwitches[0].on "SwitchStateChanged", (newState) => @warnUser newState
+    ownerSwitches[1].on "SwitchStateChanged", (newState) => @warnUser newState
+
+  warnUser: (newState) ->
+    if newState is no 
+      new KDNotificationView
+        title:  "Everything is something happened!"
+
   getBinaryOfGroup: (group) ->
     binary = ''
     for switcher in @switches[group]
@@ -100,16 +116,37 @@ class NSetPermissionsView extends JView
     permissions = owner + group + everyone
     
   displayOctalPermissions: ->
-    @$('footer p.new em').html @getOctalPermissions()
+    @newModeInput.setValue @getOctalPermissions()
     
-  displayOldOctalPermissions: ->
-    @$('footer p.old em').html @getData().mode
-  
+  canSetRecursively: ->
+    return @getData().type in ['folder', 'multiple']
+
   viewAppended:->
     @setClass "set-permissions-wrapper"
     @applyExistingPermissions()
     super
-    @$('.recursive').removeClass "hidden" if @getData().type in ['folder','multiple']
+    @createModeInput()
+    if @canSetRecursively()
+      @$('.recursive').removeClass "hidden" 
+      @loadingMask.setClass "can-set-recursive"
+
+  createModeInput: ->
+    @addSubView @newModeLabel = new KDLabelView 
+      cssClass : "new-mode-label"
+      title    : "New"
+      
+    @addSubView @newModeInput = new KDInputView
+      cssClass : "new-mode-input"
+      keyup    : =>
+        value = Encoder.XSSEncode @newModeInput.getValue()
+        if value > 99 and value < 778
+          @setPermission value, =>
+            data = @getData()
+            data.mode    = value
+            data.newMode = value
+            @setData data
+            @destroySubViews()
+            @viewAppended()
 
   pistachio:->
     mode = @getData().mode
@@ -139,15 +176,13 @@ class NSetPermissionsView extends JView
           {{> @switches.everyone[1]}}
           {{> @switches.everyone[2]}}
         </div>
+        {{> @loadingMask}}
       </section>
       <footer class="clearfix">
         <div class="recursive hidden">
           <label>Apply to Enclosed Items</label>
           {{> @recursive}}
         </div>
-        <p class="old">Old: <em></em></p>
-        <p class="new">New: <em></em></p>
-        {{> @setPermissionsButton}}
       </footer>
       """
       
@@ -165,8 +200,8 @@ class NSetPermissionsView extends JView
       everyone  : mode[2]
     
     @createSwitches name, permission for name, permission of permissions
-      
+    @bindSwitchNotifications()
+
     setTimeout =>
       @displayOctalPermissions()
-      @displayOldOctalPermissions()
     , 0
