@@ -80,7 +80,7 @@ task 'runKites', ({configFile})->
     invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
-  configFile = "dev-new" if configFile in ["",undefined,"undefined"]
+  configFile = "dev" if configFile in ["",undefined,"undefined"]
   processes.spawn
     name    : 'webterm'
     cmd     : __dirname+"/kites/webterm -c #{configFile}"
@@ -293,8 +293,8 @@ run =({configFile})->
 
 task 'run', (options)->
   {configFile} = options
+  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
 
   config.buildClient = yes if options.buildClient
 
@@ -303,8 +303,6 @@ task 'run', (options)->
     queue.push -> buildClient options, -> queue.next()
   queue.push -> run options
   daisy queue
-
-
 
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options

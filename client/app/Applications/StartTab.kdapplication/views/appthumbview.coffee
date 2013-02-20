@@ -11,7 +11,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description, authorNick, additionalinfo} = manifest = @getData()
+    {icns, name, version, author, description,
+     authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
     description    or= ''
@@ -25,13 +26,15 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
-    if manifest.devMode?
+    if manifest.devMode
       resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
 
-    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{resourceRoot}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-    else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+    thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    for size in [512, 256, 160, 128, 64]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
 
     @img = new KDCustomHTMLView
       tagName     : "img"
