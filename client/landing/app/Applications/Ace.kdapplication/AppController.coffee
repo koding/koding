@@ -1,75 +1,18 @@
-class AceAppController extends KDController
+class AceAppController extends AppController
 
   KD.registerAppClass @,
     name     : "Ace"
     multiple : yes
 
-  constructor:->
+  constructor: (options = {}, data)->
+    options.view = new AceAppView
 
-    super
-    @aceViews  = {}
+    super options
 
-  bringToFront:(view)->
 
-    if view
-      file = view.getData()
-    else
-      file = FSHelper.createFileFromPath "localfile:/Untitled.txt"
-      view = new AceView {}, file
+  #openFile: (file) ->
+  #  isAceAppOpen = KD.getSingleton('mainView').mainTabView.getPaneByName 'Editor' #FIXME
+  #  
+  #  @bringToFront()
 
-    options =
-      name         : file.name || 'untitled'
-      hiddenHandle : no
-      type         : 'application'
-
-    @aceViews[file.path] = view
-
-    @setViewListeners view
-
-    @emit 'ApplicationWantsToBeShown', @, view, options
-
-  isFileOpen:(file)-> @aceViews[file.path]?
-
-  openFile:(file)->
-
-    if @isFileOpen file
-      # check if this is possible with appManager
-      @getSingleton("mainView").mainTabView.showPane @aceViews[file.path].parent
-    else
-      @bringToFront new AceView {}, file
-
-  removeOpenDocument:(doc)->
-
-    if doc
-      @emit "ApplicationWantsToClose", @, doc
-      KD.getSingleton("appManager").removeOpenTab doc
-      @clearFileRecords doc
-      doc.destroy()
-
-  setViewListeners:(view)->
-
-    view.on 'ViewClosed', => @removeOpenDocument view
-    @setFileListeners view.getData()
-
-  setFileListeners:(file)->
-
-    view = @aceViews[file.path]
-
-    file.on "fs.saveAs.finished", (newFile, oldFile)=>
-      if @aceViews[oldFile.path]
-        view = @aceViews[oldFile.path]
-        @clearFileRecords view
-        @aceViews[newFile.path] = view
-        view.setData newFile
-        view.parent.setTitle newFile.name
-        view.ace.setData newFile
-        @setFileListeners newFile
-        view.ace.notify "New file is created!", "success"
-        @getSingleton('mainController').emit "NewFileIsCreated", newFile
-
-    file.on "fs.delete.finished", => @removeOpenDocument @aceViews[file.path]
-
-  clearFileRecords:(view)->
-    file = view.getData()
-    delete @aceViews[file.path]
-
+  #  @getView().openFile file
