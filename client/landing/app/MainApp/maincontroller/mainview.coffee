@@ -143,20 +143,40 @@ class MainView extends KDView
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
-    KD.remote.api.JSystemStatus.monitorStatus (systemStatus)=>
-      new GlobalNotification
-        targetDate  : systemStatus.restartScheduled
-        title       : systemStatus.restartTitle
-        content     : systemStatus.restartContent
+    getSticky = =>
+      @getSingleton('windowController')?.stickyNotification
+    getStatus = =>
+      KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
+        if err
+          if err.message is 'none_scheduled'
+            getSticky()?.emit 'restartCanceled'
+          else
+            log 'current system status:',err
+        else
+          systemStatus.on 'restartCanceled', =>
+            getSticky()?.emit 'restartCanceled'
+          new GlobalNotification
+            targetDate  : systemStatus.scheduledAt
+            title       : systemStatus.title
+            content     : systemStatus.content
+            type        : systemStatus.type
+
+    # sticky = @getSingleton('windowController')?.stickyNotification
+    @utils.defer => getStatus()
 
     KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      if systemStatus.canceled
-        @getSingleton('windowController')?.stickyNotification?.emit 'restartCanceled'
+      sticky = @getSingleton('windowController')?.stickyNotification
+
+      if systemStatus.status isnt 'active'
+        getSticky()?.emit 'restartCanceled'
       else
+        systemStatus.on 'restartCanceled', =>
+          getSticky()?.emit 'restartCanceled'
         new GlobalNotification
-          targetDate : systemStatus.restartScheduled
-          title      : systemStatus.restartTitle
-          content    : systemStatus.restartContent
+          targetDate : systemStatus.scheduledAt
+          title      : systemStatus.title
+          content    : systemStatus.content
+          type       : systemStatus.type
 
   createSideBar:->
 
