@@ -449,9 +449,13 @@ class GroupsAppController extends AppController
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
+
+    @groupView.setStaleTab 'Members'
+
     complete = ->
       group.modifyMembershipPolicy formData, ->
         membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
     if policy.invitationsEnabled isnt formData.invitationsEnabled
 
       {remainingInvitationType, errorMessage, policyChangeButtons} =
@@ -591,7 +595,7 @@ class GroupsAppController extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
-    groupView = new GroupView
+    @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
     , group

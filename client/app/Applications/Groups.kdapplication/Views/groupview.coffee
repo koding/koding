@@ -73,6 +73,7 @@ class GroupView extends ActivityContentDisplay
       else
         @decorateUponRoles roles
 
+    @staleTabs = []
     @createTabs()
 
   assureTab:(tabName, showAppend=yes, konstructor, options, initializer)->
@@ -82,6 +83,7 @@ class GroupView extends ActivityContentDisplay
 
     pane = @tabView.getPaneByName tabName
 
+    # if the pane is not there yet, create it an populate with views
     unless pane
       view = new konstructor options ? {}, @getData()
       pane = new KDTabPaneView name: tabName
@@ -89,8 +91,27 @@ class GroupView extends ActivityContentDisplay
       @tabView.addPane pane, showAppend
       pane.addSubView view
 
-    @tabView.showPane pane if showAppend
+    # if the view is there and stale, remove the views and 'refresh'
+    else if @isStaleTab tabName
+      pane.getSubViews().forEach (view)->
+        pane.removeSubView view
+      view = new konstructor options ? {}, @getData()
+      pane.addSubView view
+      @unsetStaleTab tabName
+
+    # in any case: show the pane if it is hidden and should be shown
+    if showAppend and @tabView.getActivePane() isnt pane
+      @tabView.showPane pane
     return pane
+
+  setStaleTab:(tabName)->
+    @staleTabs.push tabName unless @staleTabs.indexOf(tabName) > -1
+
+  unsetStaleTab:(tabName)->
+    @staleTabs.splice @staleTabs.indexOf(tabName), 1
+
+  isStaleTab:(tabName)->
+    @staleTabs.indexOf(tabName) > -1
 
   createTabs:->
     data = @getData()
@@ -103,6 +124,12 @@ class GroupView extends ActivityContentDisplay
     , data
     @utils.defer => @emit 'ReadmeSelected'
 
+    @tabView.on 'PaneDidShow', (activePane)=>
+      name = ''
+      activePane.name.split(' ').forEach (n)->
+        name += n.charAt(0).toUpperCase()+n.slice(1)
+      @emit name+'Selected'
+
   decorateUponRoles:(roles)->
 
     if "admin" in roles
@@ -111,46 +138,6 @@ class GroupView extends ActivityContentDisplay
       @emit 'PermissionsSelected'
       @emit 'MembersSelected'
       @emit 'MembershipPolicySelected'
-
-      # @adminMenuLink = new CustomLinkView
-      #   cssClass    : 'fr'
-      #   title       : "Admin"
-      #   icon        :
-      #     cssClass  : 'admin'
-      #   click       : (event)=>
-      #     event.preventDefault()
-
-      #     contextMenu = new JContextMenu
-      #       cssClass    : "group-admin-menu"
-      #       event       : event
-      #       delegate    : @adminMenuLink
-      #       offset      :
-      #         top       : 10
-      #         left      : -30
-      #       arrow       :
-      #         placement : "top"
-      #         margin    : -20
-      #     ,
-      #       'Settings'              :
-      #         callback              : (source, event)=>
-      #           @emit 'SettingsSelected'
-      #           contextMenu.destroy()
-      #         separator             : yes
-      #       'Permissions'           :
-      #         callback              : (source, event)=>
-      #           @emit 'PermissionsSelected'
-      #           contextMenu.destroy()
-      #       'Members'               :
-      #         callback              : (source, event)=>
-      #           @emit 'MembersSelected'
-      #           contextMenu.destroy()
-      #       'Membership policy'     :
-      #         callback              : (source, event)=>
-      #           @emit 'MembershipPolicySelected'
-      #           contextMenu.destroy()
-
-      # @addSubView @adminMenuLink, ".navbar"
-
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
