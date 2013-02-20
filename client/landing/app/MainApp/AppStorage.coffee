@@ -37,6 +37,7 @@ class AppStorage extends KDEventEmitter
     pack = @zip key, group, value
 
     @fetchStorage (storage)=>
+      @_storage[group][key] = value
       storage.update {
         $set: pack
       }, callback
@@ -46,6 +47,7 @@ class AppStorage extends KDEventEmitter
     pack = @zip key, group, 1
 
     @fetchStorage (storage)=>
+      delete @_storage[group][key]
       storage.update {
         $unset: pack
       }, callback
