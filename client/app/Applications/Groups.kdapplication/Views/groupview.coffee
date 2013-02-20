@@ -99,6 +99,7 @@ class GroupView extends ActivityContentDisplay
       cssClass : 'group-content'
       hideHandleContainer : yes
       hideHandleCloseIcons : yes
+      tabHandleView : GroupTabHandleView
     , data
     @utils.defer => @emit 'ReadmeSelected'
 

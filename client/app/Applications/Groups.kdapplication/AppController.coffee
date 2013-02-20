@@ -565,9 +565,9 @@ class GroupsAppController extends AppController
         @hideApprovalTab view
 
   prepareMembersTab:(group, view, groupView)->
-    console.log 'Group', group
-    group.on 'NewMember', -> console.log 'new member'
-
+    group.on 'NewMember', ->
+      {tabHandle} = groupView.tabView.getPaneByName 'Members'
+      tabHandle.markDirty()
 
   prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
@@ -611,7 +611,7 @@ class GroupsAppController extends AppController
         (pane, view)=> @prepareMembersTab group, view, groupView
 
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyTabView,
+      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyView,
         (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView

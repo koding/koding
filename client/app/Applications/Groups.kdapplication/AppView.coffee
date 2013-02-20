@@ -359,6 +359,21 @@ class GroupsRequestView extends JView
 
     group.fetchInvitationRequests selector, options, callback
 
+class GroupTabHandleView extends KDTabHandleView
+
+  viewAppended:->
+    @currentCount = 0
+    @newCount = new KDView tagName: 'span'
+
+    JView::viewAppended.call this
+
+  pistachio:->
+    "#{@getOptions().title} {.new{> @newCount}}"
+
+  markDirty:->
+    @setClass 'dirty'  unless @currentCount++
+    @newCount.updatePartial @currentCount
+
 class GroupsApprovalRequestsView extends GroupsRequestView
 
   constructor:->
@@ -779,7 +794,7 @@ class GroupsMemberRolesEditView extends JView
 
     @loader.show()
 
-class GroupsMembershipPolicyTabView extends KDView
+class GroupsMembershipPolicyView extends KDView
   constructor:(options,data)->
     super options,data
 

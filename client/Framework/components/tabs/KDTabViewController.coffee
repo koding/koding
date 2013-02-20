@@ -36,7 +36,7 @@ class KDTabViewController extends KDScrollView
       @tabHandleContainer.destroy() if @tabHandleContainer?
       @tabHandleContainer = aViewInstance
     else
-      @tabHandleContainer = new KDView()
+      @tabHandleContainer = new KDView
       @appendHandleContainer()
     @tabHandleContainer.setClass "kdtabhandlecontainer"
   getTabHandleContainer:()-> @tabHandleContainer
