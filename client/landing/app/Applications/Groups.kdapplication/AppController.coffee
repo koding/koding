@@ -163,16 +163,30 @@ class GroupsAppController extends AppController
 
     tab.addSubView invitationRequestView
 
-  hideInvitationsTab:(tabView)->
+  removePaneByName:(tabView, paneName)->
     tabs = tabView.tabView
-    invitePane = tabs.getPaneByName 'Invitations'
+    invitePane = tabs.getPaneByName paneName
     tabs.removePane invitePane if invitePane
 
+  hideInvitationsTab:(tabView)->
+    @removePaneByName tabView, 'Invitations'
+
   showApprovalTab:(group, tabView)->
-    console.log 'show approval tab', {tabView}
+    pane = new KDTabPaneView name: 'Approval requests'
+    tab = tabView.tabView.addPane pane, no
+
+    approvalRequestView = new GroupsApprovalRequestsView {}, group
+
+    approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
+      invitationRequest.approveInvitation -> console.log {arguments}
+
+    approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
+      invitationRequest.declineInvitation -> console.log {arguments}
+
+    tab.addSubView approvalRequestView
 
   hideApprovalTab:(tabView)->
-    console.log 'hide approval tab', {tabView}
+    @removePaneByName tabView, 'Approval requests'
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
@@ -186,14 +200,12 @@ class GroupsAppController extends AppController
         if err then err.message
         else "Invitation has been requested!"
 
-
   openPrivateGroup:(group)->
     group.canOpenGroup (err, policy)=>
       if err
         @showErrorModal group, err
       else
         console.log 'access is granted!'
-
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -376,60 +388,6 @@ class GroupsAppController extends AppController
         backgroundImage : "url(#{stuff.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
 
-    # unless isNewGroup
-    #   if isPrivateGroup
-    #     group.fetchMembershipPolicy (err, policy)=>
-    #       membershipPolicyView = new GroupsMembershipPolicyView {}, policy
-
-    #       membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
-    #         @updateMembershipPolicy group, policy, formData, membershipPolicyView
-
-    #       forms["Membership policy"].addSubView membershipPolicyView
-
-    #       if policy.invitationsEnabled
-    #         @showInvitationsTab group, modal, forms
-    #       else if policy.approvalEnabled
-    #         @showApprovalTab group, modal, forms
-
-    #   forms["Members"].addSubView new GroupsMemberPermissionsView {}, group
-
-    #   forms["Permissions"].addSubView permissionsLoader = new KDLoaderView
-    #     size          :
-    #       width       : 32
-
-    #   addPermissionsView = (newPermissions)=>
-    #     group.fetchRoles (err,roles)->
-    #       group.fetchPermissions (err, permissionSet)=>
-    #         permissionsLoader.hide()
-    #         unless err
-    #           if newPermissions
-    #             permissionSet.permissions = newPermissions
-    #           if @permissions then forms["Permissions"].removeSubView @permissions
-    #           forms["Permissions"].addSubView @permissions = new PermissionsModal {
-    #             privacy: group.privacy
-    #             permissionSet
-    #             roles
-    #           }, group
-    #           @permissions.emit 'RoleViewRefreshed'
-    #           @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
-    #             copiedPermissions = []
-    #             for permission of newPermissions
-    #               if newPermissions[permission].role is copy
-    #                 copiedPermissions.push
-    #                   module : newPermissions[permission].module
-    #                   permissions : newPermissions[permission].permissions
-    #                   role : role
-    #             for item in copiedPermissions
-    #               newPermissions.push item
-    #             addPermissionsView(newPermissions)
-    #             # @render()
-    #         else
-    #           forms['Permissions'].addSubView new KDView
-    #             partial : 'No access'
-
-    #   permissionsLoader.show()
-    #   addPermissionsView()
-
   handleError =(err, buttons)->
     unless buttons
       new KDNotificationView title: err.message
@@ -439,6 +397,7 @@ class GroupsAppController extends AppController
         title   : "Error#{if err.code then " #{code}" else ""}"
         content : "<div class='modalformline'><p>#{err.message}</p></div>"
         buttons : {}
+        cancel  : err.cancel
 
       Object.keys(buttons).forEach (buttonTitle)->
         buttonOptions = buttons[buttonTitle]
@@ -449,56 +408,77 @@ class GroupsAppController extends AppController
 
       modal = new KDModalView modalOptions
 
-  resolvePendingInvitationRequests:(group, method, callback, modal)->
-    group.resolvePendingInvitationRequests method, (err)->
+  resolvePendingRequests:(group, takeDestructiveAction, callback, modal)->
+    group.resolvePendingRequests takeDestructiveAction, (err)->
       modal.destroy()
       handleError err  if err?
       callback err
 
-  cancelChange:(modal)-> modal.destroy()
+  getMembershipPolicyChangeData:(invitationsEnabled)->
+    if invitationsEnabled
+      {
+        remainingInvitationType: 'invitation'
+        errorMessage:
+          """
+          This group has pending invitations.  Before you can disable
+          invitations, you'll need to either resolve the pending invitations
+          by either sending them or deleting them.
+          """
+        policyChangeButtons: ['Send all', 'Delete all', 'cancel']
+      }
+    else
+      {
+        remainingInvitationType: 'basic approval'
+        errorMessage:
+          """
+          This group has pending approvals.  Before you can enable invitations,
+          you'll need to resolve the pending approvals by either approving
+          them or declining them.
+          """
+        policyChangeButtons: ['Approve all', 'Decline all', 'cancel']
+      }
 
-  updateMembershipPolicy:(group, policy, data, membershipPolicyView, callback)->
+  cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
+    membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
+
+  updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
 
     @groupView.setStaleTab 'Members'
 
     complete = ->
-      group.modifyMembershipPolicy data, ->
+      group.modifyMembershipPolicy formData, ->
         membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+    if policy.invitationsEnabled isnt formData.invitationsEnabled
 
-    if policy.invitationsEnabled and data.invitationsEnabled is off
+      {remainingInvitationType, errorMessage, policyChangeButtons} =
+        @getMembershipPolicyChangeData policy.invitationsEnabled
+
       targetSelector =
-        invitationType  : 'invitation'
-        status          : 'pending'
+        invitationType: remainingInvitationType
+        status: 'pending'
+
       group.countInvitationRequests {}, targetSelector, (err, count)=>
         if err then handleError err
         else if count isnt 0
           # handlers for buttons:
-          sendAll =
-            @resolvePendingInvitationRequests.bind this, group, 'send', complete
-          deleteAll =
-            @resolvePendingInvitationRequests.bind this, group, 'delete', complete
-
+          actions = [
+            @resolvePendingRequests.bind this, group, yes, complete
+            @resolvePendingRequests.bind this, group, no, complete
+            (modal)-> modal.cancel()
+          ]
+          cssClasses = ['modal-clean-green','modal-clean-red','modal-cancel']
+          policyChangeButtons = policyChangeButtons.reduce (acc, title, i)->
+            acc[title] = {
+              title
+              cssClass: cssClasses[i]
+              callback: actions[i]
+            }
+            return acc
+          , {}
           handleError {
-            #code: ???
-            message: """
-              This group has pending invitations.  Before you can disable
-              invitations, you'll need to either resolve the pending
-              invitations by either sending them or deleting them.
-              """
-          },{
-            'Send all'    :
-              cssClass    : 'modal-clean-green'
-              callback    : sendAll
-            'Delete all' :
-              cssClass    : 'modal-clean-red'
-              callback    : deleteAll
-            'cancel'      :
-              cssClass    : 'modal-cancel'
-              focus       : yes
-              callback    : (modal)->
-                modal.destroy()
-                membershipPolicyView.enableInvitations.setValue on
-          }
+            message : errorMessage
+            cancel  : @cancelMembershipPolicyChange.bind this, policy, membershipPolicyView
+          }, policyChangeButtons
         else complete()
     else complete()
 
@@ -511,39 +491,6 @@ class GroupsAppController extends AppController
           privacy: group.getData().privacy
           permissionSet
         }, group
-
-        # permissionsGrid = new PermissionsGrid {
-        #   privacy: group.getData().privacy
-        #   permissionSet
-        # }
-
-        # modal = new KDModalView
-        #   title     : "Edit permissions"
-        #   content   : ""
-        #   overlay   : yes
-        #   cssClass  : "new-kdmodal permission-modal"
-        #   width     : 500
-        #   height    : "auto"
-        #   buttons:
-        #     Save          :
-        #       style       : "modal-clean-gray"
-        #       loader      :
-        #         color     : "#444444"
-        #         diameter  : 12
-        #       callback    : ->
-        #         log permissionsGrid.reducedList()
-        #         # group.getData().updatePermissions(
-        #         #   permissionsGrid.reducedList()
-        #         #   console.log.bind(console) # TODO: do something with this callback
-        #         # )
-        #         modal.destroy()
-        #     Cancel        :
-        #       style       : "modal-clean-gray"
-        #       loader      :
-        #         color     : "#ffffff"
-        #         diameter  : 16
-        #       callback    : -> modal.destroy()
-        # modal.addSubView permissionsGrid
 
   loadView:(mainView, firstRun = yes)->
 
@@ -588,14 +535,6 @@ class GroupsAppController extends AppController
     else
       KD.remote.api.JTag.someWithRelationship {}, options, callback
 
-  # addATopic:(formData)->
-  #   # log formData,"controller"
-  #   KD.remote.api.JTag.create formData, (err, tag)->
-  #     if err
-  #       warn err,"there was an error creating topic!"
-  #     else
-  #       log tag,"created topic #{tag.title}"
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
@@ -616,17 +555,22 @@ class GroupsAppController extends AppController
     if policy.invitationsEnabled
       unless view.tabView.getPaneByName 'Invitations'
         @showInvitationsTab group, view
-      if view.tabView.getPaneByName 'Approvals'
+      if view.tabView.getPaneByName 'Approval requests'
         @hideApprovalTab view
     else
       if policy.approvalEnabled
-        unless view.tabView.getPaneByName 'Approvals'
+        unless view.tabView.getPaneByName 'Approval requests'
           @showApprovalTab group, view
         if view.tabView.getPaneByName 'Invitations'
           @hideInvitationsTab view
       else
         @hideInvitationsTab view
         @hideApprovalTab view
+
+  prepareMembersTab:(group, view, groupView)->
+    console.log 'Group', group
+    group.on 'NewMember', -> console.log 'new member'
+
 
   prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
@@ -666,10 +610,11 @@ class GroupsAppController extends AppController
       groupView.lazyBound 'assureTab', 'Permissions', no, GroupPermissionsView, {delegate : groupView}
 
     groupView.on 'MembersSelected',
-      groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView
+      groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView,
+        (pane, view)=> @prepareMembersTab group, view, groupView
 
     groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupMembershipPolicyTabView,
+      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyTabView,
         (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView

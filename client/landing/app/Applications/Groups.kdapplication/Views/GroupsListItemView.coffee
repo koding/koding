@@ -12,14 +12,14 @@ class GroupsListItemView extends KDListItemView
       attributes :
         src : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
 
-    @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent groups-settings-context groups-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : @settingsMenu data
-        callback    : (event)=> @settingsButton.contextMenu event
+    # @settingsButton = new KDButtonViewWithMenu
+    #     cssClass    : 'transparent groups-settings-context groups-settings-menu'
+    #     title       : ''
+    #     icon        : yes
+    #     delegate    : @
+    #     iconClass   : "arrow"
+    #     menu        : @settingsMenu data
+    #     callback    : (event)=> @settingsButton.contextMenu event
 
     # TODO : hide settings button for non-admins
     # @settingsButton.hide()
@@ -113,32 +113,32 @@ class GroupsListItemView extends KDListItemView
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
-  settingsMenu:(data)->
+  # settingsMenu:(data)->
 
-    account        = KD.whoami()
-    mainController = @getSingleton('mainController')
+  #   account        = KD.whoami()
+  #   mainController = @getSingleton('mainController')
 
-    menu =
-      'Group settings'  :
-        callback        : =>
-          mainController.emit 'EditGroupButtonClicked', @
-      # 'Permissions'     :
-      #   callback : =>
-      #     mainController.emit 'EditPermissionsButtonClicked', @
-      'My roles'        :
-        callback        : =>
-          mainController.emit 'MyRolesRequested', @
+  #   menu =
+  #     'Group settings'  :
+  #       callback        : =>
+  #         mainController.emit 'EditGroupButtonClicked', @
+  #     # 'Permissions'     :
+  #     #   callback : =>
+  #     #     mainController.emit 'EditPermissionsButtonClicked', @
+  #     'My roles'        :
+  #       callback        : =>
+  #         mainController.emit 'MyRolesRequested', @
 
-    # if KD.checkFlag 'super-admin'
-    #   menu =
-    #     'MARK USER AS TROLL' :
-    #       callback : =>
-    #         mainController.markUserAsTroll data
-    #     'UNMARK USER AS TROLL' :
-    #       callback : =>
-    #         mainController.unmarkUserAsTroll data
+  #   # if KD.checkFlag 'super-admin'
+  #   #   menu =
+  #   #     'MARK USER AS TROLL' :
+  #   #       callback : =>
+  #   #         mainController.markUserAsTroll data
+  #   #     'UNMARK USER AS TROLL' :
+  #   #       callback : =>
+  #   #         mainController.unmarkUserAsTroll data
 
-    return menu
+  #   return menu
 
   titleReceivedClick:(event)->
     group = @getData()
@@ -184,7 +184,6 @@ class GroupsListItemView extends KDListItemView
 
   pistachio:-> # {article{#(body)}}
     """
-    {{>@settingsButton}}
     <div class="topictext">
       <span class="avatar">{{>@avatar}}</span>
       <div class="content">
