@@ -237,7 +237,7 @@ task 'goBroker',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
   watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
-  if watchGoBroker?
+  if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
 
 task 'libratoWorker',({configFile})->
