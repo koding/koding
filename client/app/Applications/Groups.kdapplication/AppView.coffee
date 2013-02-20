@@ -285,7 +285,7 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
       title     : 'Approve'
       callback  : =>
         @getDelegate().emit 'RequestIsApproved', invitationRequest
-    
+
     @declineButton = new KDButtonView
       cssClass  : 'clean-red'
       title     : 'Decline'
@@ -420,7 +420,7 @@ class GroupsApprovalRequestsView extends GroupsRequestView
 class GroupsInvitationRequestsView extends GroupsRequestView
 
   constructor:->
-    super 
+    super
 
     group = @getData()
 
@@ -783,7 +783,7 @@ class GroupsMembershipPolicyTabView extends KDView
   constructor:(options,data)->
     super options,data
 
-    @setClass 'Membership Policy'
+    @setClass 'membership-policy'
 
     @loader           = new KDLoaderView
       cssClass        : 'loader'
