@@ -18,7 +18,7 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
-      instance        : ['sendInvitation','deleteInvitation']
+      instance        : ['sendInvitation','deleteInvitation','approveInvitation','declineInvitation']
     schema            :
       email           :
         type          : String
@@ -94,18 +94,29 @@ module.exports = class JInvitationRequest extends Model
     success: (client, callback)->
       @update $set:{ status: 'declined' }, callback
 
+  fetchAccount:(callback)->
+    JAccount = require './account'
+    if @koding.username
+      JAccount.one {'profile.nickname': @koding.username}, callback
+    else
+      callback new KodingError """
+        Unimplemented: we can't fetch an account from this type of invitation
+        """
+
   approveInvitation: permit 'send invitations'
     success: (client, callback)->
-      {delegate} = client.connection
       JGroup = require './group'
       JGroup.one {slug: @group}, (err, group)=>
         if err then callback err
         else unless group?
           callback new KodingError "No group! #{@group}"
         else
-          group.addMember delegate, (err)=>
+          @fetchAccount (err, account)=>
             if err then callback err
-            else @update $set:{ status: 'approved' }, callback
+            else
+              group.approveMember account, (err)=>
+                if err then callback err
+                else @update $set:{ status: 'approved' }, callback
 
   deleteInvitation: permit 'send invitations'
     success:(client, rest...)-> @remove rest...

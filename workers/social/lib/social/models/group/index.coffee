@@ -69,6 +69,8 @@ module.exports = class JGroup extends Module
         type        : String
         enum        : ['invalid visibility type', ['visible', 'hidden']]
       parent        : ObjectRef
+      counts        :
+        members     : Number
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -268,11 +270,12 @@ module.exports = class JGroup extends Module
     success:(client, callback)->
       @fetchRoles (err, roles)=>
         roleTitles = (role.title for role in roles)
-        Relationship.someData {
-          sourceName  : 'JAccount'
-          targetId    : @getId()
+        selector = {
+          targetName  : 'JAccount'
+          sourceId    : @getId()
           as          : { $in: roleTitles }
-        }, {as:1, sourceId:1}, (err, cursor)->
+        }
+        Relationship.someData selector, {as:1, targetId:1}, (err, cursor)->
           if err then callback err
           else
             cursor.toArray (err, arr)->
@@ -462,13 +465,6 @@ module.exports = class JGroup extends Module
               console.error err  if err
             else callback null
 
-  # resolvePendingRequests: permit 'send invitations'
-  #   success: (client, isApproved, callback)->
-  #     resolveMethod =
-  #       if @invitationsEnabled then 'resolvePendingInvitationRequests'
-  #       else 'resolvePendingApprovalRequests'
-  #     @[resolveMethod] isApproved, callback
-
   inviteMember: permit 'send invitations'
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
@@ -527,9 +523,11 @@ module.exports = class JGroup extends Module
           if err then callback err
           else admin.fetchUser (err, adminUser)=>
             if err then callback err
-            else @sendApprovalRequestEmail(
-              delegate, delegateUser, admin, adminUser, callback
-            )
+            else
+              @sendApprovalRequestEmail(
+                delegate, delegateUser, admin, adminUser, callback
+              )
+              @emit 'NewMembershipApprovalRequest'
 
   requestInvitation: secure (client, invitationType, callback)->
     JInvitationRequest = require '../invitationrequest'
@@ -547,17 +545,13 @@ module.exports = class JGroup extends Module
       else
         @addInvitationRequest invitationRequest, (err)-> callback err
 
-
-  # attachEnvironment:(name, callback)->
-  #   [callback, name] = [name, callback]  unless callback
-  #   name ?= @title
-  #   JEnvironment.one {name}, (err, env)->
-  #     if err then callback err
-  #     else if env?
-  #       @addEnvironment
-  #       callback null, env
-  #     else
-  #       env = new JEnvironment {name}
-  #       env.save (err)->
-  #         if err then callback err
-  #         else callback null
+  approveMember:(member, roles, callback)->
+    [callback, roles] = [roles, callback]  unless callback
+    roles ?= ['member']
+    queue = roles.map (role)=>=>
+      @addMember member, role, queue.fin.bind queue
+    dash queue, =>
+      callback()
+      @update $inc: 'counts.members': 1, ->
+      console.log 'this', this
+      @emit 'NewMember'

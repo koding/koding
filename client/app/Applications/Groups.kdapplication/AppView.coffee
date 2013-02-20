@@ -284,13 +284,13 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
       cssClass  : 'cupid-green'
       title     : 'Approve'
       callback  : =>
-        @getDelegate().emit 'InvitationIsSent', invitationRequest
+        @getDelegate().emit 'RequestIsApproved', invitationRequest
     
     @declineButton = new KDButtonView
       cssClass  : 'clean-red'
       title     : 'Decline'
       callback  : =>
-        @getDelegate().emit 'InvitationIsSent', invitationRequest
+        @getDelegate().emit 'RequestIsDeclined', invitationRequest
 
   hideButtons:->
     @approveButton.hide()
@@ -300,8 +300,7 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
     @approveButton.show()
     @declineButton.show()
 
-  render:->
-    super
+  initializeButtons:->
 
     invitationRequest = @getData()
 
@@ -310,6 +309,11 @@ class GroupApprovalRequestListItemView extends GroupsInvitationRequestListItemVi
     else
       @showButtons()
 
+
+  viewAppended:->
+    super
+    @initializeButtons()
+    @getData().on 'update', @bound 'initializeButtons'
 
   getStatusText:(status)->
     switch status
@@ -360,7 +364,7 @@ class GroupsApprovalRequestsView extends GroupsRequestView
   constructor:->
     super
 
-    groups = @getData()
+    group = @getData()
 
     @timestamp = new Date 0
 
@@ -377,10 +381,20 @@ class GroupsApprovalRequestsView extends GroupsRequestView
 
     @pendingRequestsView = @requestListController.getListView()
 
+    @pendingRequestsView.on 'RequestIsApproved', (invitationRequest)=>
+      @emit 'RequestIsApproved', invitationRequest
+
+    @pendingRequestsView.on 'RequestIsDeclined', (invitationRequest)=>
+      @emit 'RequestIsDeclined', invitationRequest
+
     @fetchSomeRequests 'basic approval', (err, requests)=>
       if err then console.error err
       else
         @requestListController.instantiateListItems requests.reverse()
+
+    @chris = new KDView
+      partial: 'chris'
+      click:=> group; debugger
 
   pistachio:->
     """
@@ -399,6 +413,7 @@ class GroupsApprovalRequestsView extends GroupsRequestView
       <h2>Pending approval</h2>
       {{> @pendingRequestsView}}
     </section>
+    {{> @chris}}
     </div>
     """
 
@@ -565,7 +580,7 @@ class GroupsMemberPermissionsView extends JView
           else
             userRolesHash = {}
             for userRole in userRoles
-              userRolesHash[userRole.sourceId] = userRole.as
+              userRolesHash[userRole.targetId] = userRole.as
 
             list.getOptions().userRoles = userRolesHash
             groupData.fetchMembers (err, members)=>
