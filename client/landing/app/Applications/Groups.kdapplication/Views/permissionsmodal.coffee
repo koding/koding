@@ -96,7 +96,7 @@ class PermissionsModal extends KDFormViewWithFields
     roles.push role.title for role in options.roles
 
     roles.splice(roles.indexOf('owner'),1)
-    roles.splice(roles.indexOf('admin'),1)
+    # roles.splice(roles.indexOf('admin'),1)
 
     options.buttons or=
       "Add Role"          :
