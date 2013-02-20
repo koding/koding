@@ -88,16 +88,6 @@ class NSetPermissionsView extends JView
           @setPermission()
     @switches[name]
 
-  bindSwitchNotifications: ->
-    ownerSwitches = @switches.owner
-    ownerSwitches[0].on "SwitchStateChanged", (newState) => @warnUser newState
-    ownerSwitches[1].on "SwitchStateChanged", (newState) => @warnUser newState
-
-  warnUser: (newState) ->
-    if newState is no 
-      new KDNotificationView
-        title:  "Everything is something happened!"
-
   getBinaryOfGroup: (group) ->
     binary = ''
     for switcher in @switches[group]
@@ -200,7 +190,6 @@ class NSetPermissionsView extends JView
       everyone  : mode[2]
     
     @createSwitches name, permission for name, permission of permissions
-    @bindSwitchNotifications()
 
     setTimeout =>
       @displayOctalPermissions()
