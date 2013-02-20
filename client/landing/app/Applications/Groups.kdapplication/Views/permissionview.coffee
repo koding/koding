@@ -65,7 +65,7 @@ class GroupPermissionsView extends JView
   setButtonPosition:(offset)->
     # @permissions.$('.formline.button-field').css
     #     top : "#{offset.buttons}px"
-    @permissions.$('.formline.permissions-header.head').css
+    @permissions?.$('.formline.permissions-header.head').css
         top : "#{offset.header}px"
 
 
