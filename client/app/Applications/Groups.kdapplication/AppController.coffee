@@ -458,9 +458,13 @@ class GroupsAppController extends AppController
   cancelChange:(modal)-> modal.destroy()
 
   updateMembershipPolicy:(group, policy, data, membershipPolicyView, callback)->
+
+    @groupView.setStaleTab 'Members'
+
     complete = ->
       group.modifyMembershipPolicy data, ->
         membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
     if policy.invitationsEnabled and data.invitationsEnabled is off
       targetSelector =
         invitationType  : 'invitation'
@@ -647,7 +651,7 @@ class GroupsAppController extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
-    groupView = new GroupView
+    @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
     , group
