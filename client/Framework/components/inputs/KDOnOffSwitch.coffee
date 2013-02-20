@@ -62,6 +62,7 @@ class KDOnOffSwitch extends KDInputView
 
   switchStateChanged:()->
     # log "new state of #{@getName()} is #{@getValue()}",@getCallback()?
+    @emit 'SwitchStateChanged', @getValue()
     @getCallback().call @,@getValue() if @getCallback()?
 
   mouseDown:(event)->
