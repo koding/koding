@@ -127,7 +127,15 @@ class NSetPermissionsView extends JView
       
     @addSubView @newModeInput = new KDInputView
       cssClass : "new-mode-input"
-      keyup    : =>
+      validate      :
+        event       : "keyup"
+        rules       :
+          required  : yes
+          maxLength : 3
+        messages    :
+          required  : "File permission mode required"
+          maxLength : "New file permission mode must be 3 chars"
+      keyup         : =>
         value = Encoder.XSSEncode @newModeInput.getValue()
         if value > 99 and value < 778
           @setPermission value, =>
