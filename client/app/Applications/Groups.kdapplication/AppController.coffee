@@ -171,17 +171,24 @@ class GroupsAppController extends AppController
   hideInvitationsTab:(tabView)-> 
     @removePaneByName tabView, 'Invitations'
 
-  showApprovalTab:(group, tabView)->
+  showApprovalTab:(group, groupView)->
     pane = new KDTabPaneView name: 'Approval requests'
-    tab = tabView.tabView.addPane pane, no
+    tab = groupView.tabView.addPane pane, no
 
     approvalRequestView = new GroupsApprovalRequestsView {}, group
 
+    group.on 'NewMembershipApprovalRequest', ->
+      pane.tabHandle.markDirty()
+
+    pane.on 'PaneDidShow', ->
+      approvalRequestView.refresh()  if pane.tabHandle.isDirty
+      pane.tabHandle.markDirty no
+
     approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
-      invitationRequest.approveInvitation -> console.log {arguments}
+      invitationRequest.approveInvitation()
   
     approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
-      invitationRequest.declineInvitation -> console.log {arguments}
+      invitationRequest.declineInvitation()
 
     tab.addSubView approvalRequestView
 
@@ -519,19 +526,6 @@ class GroupsAppController extends AppController
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
-  fetchSomeTopics:(options = {}, callback)->
-
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or=
-      "counts.followers": -1
-    selector = options.selector or {}
-    delete options.selector if options.selector
-    if selector
-      KD.remote.api.JTag.byRelevance selector, options, callback
-    else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
@@ -564,18 +558,22 @@ class GroupsAppController extends AppController
         @hideInvitationsTab view
         @hideApprovalTab view
 
-  prepareMembersTab:(group, view, groupView)->
+  prepareMembersTab:(pane, group, view, groupView)->
     group.on 'NewMember', ->
       {tabHandle} = groupView.tabView.getPaneByName 'Members'
       tabHandle.markDirty()
 
+    pane.on 'PaneDidShow', ->
+      view.refresh()  if pane.tabHandle.isDirty
+      pane.tabHandle.markDirty no
+
+
   prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
-
       view.loader.hide()
       view.loaderText.hide()
 
-      membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+      membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
 
       membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
         @updateMembershipPolicy group, policy, formData, membershipPolicyView
@@ -587,6 +585,7 @@ class GroupsAppController extends AppController
       @handleMembershipPolicyTabs policy, group, groupView
 
       view.addSubView membershipPolicyView
+      console.log {v: view.$()[0]}
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -608,7 +607,7 @@ class GroupsAppController extends AppController
 
     groupView.on 'MembersSelected',
       groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView,
-        (pane, view)=> @prepareMembersTab group, view, groupView
+        (pane, view)=> @prepareMembersTab pane, group, view, groupView
 
     groupView.on 'MembershipPolicySelected',
       groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyView,
@@ -620,10 +619,3 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
-  fetchTopics:({inputValue, blacklist}, callback)->
-
-    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
-      unless err
-        callback? tags
-      else
-        warn "there was an error fetching topics"

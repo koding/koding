@@ -54,7 +54,7 @@ class KDTabHandleView extends KDView
 
   setDomElement:()->
     c = if @getOptions().hidden then "hidden" else ""
-    @domElement = $ "<div class='kdtabhandle #{c}'>
+    @domElement = $ "<div class='kdtabhandle #{c} #{@getOptions().cssClass}'>
                       <span class='close-tab'></span>
                     </div>"
 

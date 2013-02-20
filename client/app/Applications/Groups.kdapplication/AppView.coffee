@@ -94,7 +94,7 @@ class GroupsMembershipPolicyLanguageEditor extends JView
     {{> @editorLabel}}{{> @editor}}{{> @saveButton}}{{> @cancelButton}}
     """
 
-class GroupsMembershipPolicyView extends JView
+class GroupsMembershipPolicyDetailView extends JView
 
   constructor:(options, data)->
     super
@@ -361,18 +361,27 @@ class GroupsRequestView extends JView
 
 class GroupTabHandleView extends KDTabHandleView
 
+  constructor:(options, data)->
+    options.cssClass = @utils.curryCssClass 'grouptabhandle', options.cssClass
+    super
+    @isDirty = no
+
   viewAppended:->
     @currentCount = 0
-    @newCount = new KDView tagName: 'span'
+    @newCount = new KDCustomHTMLView tagName: 'span'
 
     JView::viewAppended.call this
 
   pistachio:->
     "#{@getOptions().title} {.new{> @newCount}}"
 
-  markDirty:->
-    @setClass 'dirty'  unless @currentCount++
-    @newCount.updatePartial @currentCount
+  markDirty:(@isDirty=yes)->
+    if @isDirty
+      @setClass 'dirty'  unless @currentCount++
+      @newCount.updatePartial @currentCount
+    else
+      @unsetClass 'dirty'
+      @newCount.updatePartial ''
 
 class GroupsApprovalRequestsView extends GroupsRequestView
 
@@ -402,14 +411,14 @@ class GroupsApprovalRequestsView extends GroupsRequestView
     @pendingRequestsView.on 'RequestIsDeclined', (invitationRequest)=>
       @emit 'RequestIsDeclined', invitationRequest
 
+    @refresh()
+
+  refresh:->
+    @requestListController.removeAllItems()
     @fetchSomeRequests 'basic approval', (err, requests)=>
       if err then console.error err
       else
         @requestListController.instantiateListItems requests.reverse()
-
-    @chris = new KDView
-      partial: 'chris'
-      click:=> group; debugger
 
   pistachio:->
     """
@@ -428,7 +437,6 @@ class GroupsApprovalRequestsView extends GroupsRequestView
       <h2>Pending approval</h2>
       {{> @pendingRequestsView}}
     </section>
-    {{> @chris}}
     </div>
     """
 
@@ -569,8 +577,6 @@ class GroupsMemberPermissionsView extends JView
 
     super
 
-    groupData       = @getData()
-
     @listController = new KDListViewController
       itemClass     : GroupsMemberPermissionsListItemView
     @listWrapper    = @listController.getView()
@@ -584,6 +590,12 @@ class GroupsMemberPermissionsView extends JView
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
 
+    @refresh()
+
+  refresh:->
+    groupData = @getData()
+    @listController.removeAllItems()
+    @loader.show()
     list = @listController.getListView()
     list.getOptions().group = groupData
     groupData.fetchRoles (err, roles)=>
@@ -598,12 +610,13 @@ class GroupsMemberPermissionsView extends JView
               userRolesHash[userRole.targetId] = userRole.as
 
             list.getOptions().userRoles = userRolesHash
-            groupData.fetchMembers (err, members)=>
+            groupData.fetchMembers {}, {limit:10}, (err, members)=>
               if err then warn err
               else
                 @listController.instantiateListItems members
                 @loader.hide()
                 @loaderText.hide()
+
 
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
@@ -819,4 +832,3 @@ class GroupsMembershipPolicyView extends KDView
     {{> @loader}}
     {{> @loaderText}}
     """
-
