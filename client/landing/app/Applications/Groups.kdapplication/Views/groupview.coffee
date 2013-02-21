@@ -150,10 +150,6 @@ class GroupView extends ActivityContentDisplay
 
     if "admin" in roles
       @tabView.showHandleContainer()
-      @emit 'SettingsSelected'
-      @emit 'PermissionsSelected'
-      @emit 'MembersSelected'
-      @emit 'MembershipPolicySelected'
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
