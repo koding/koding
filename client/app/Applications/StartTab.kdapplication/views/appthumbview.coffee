@@ -11,7 +11,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description, authorNick, additionalinfo} = manifest = @getData()
+    {icns, name, version, author, description,
+     authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
     description    or= ''
@@ -25,13 +26,15 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
-    if manifest.devMode?
+    if manifest.devMode
       resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
 
-    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{resourceRoot}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-    else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+    thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    for size in [512, 256, 160, 128, 64]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
 
     @img = new KDCustomHTMLView
       tagName     : "img"
@@ -44,20 +47,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @loader = new KDLoaderView
       size          :
         width       : 40
-
-    @compile = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "icon compile"
-      tooltip  :
-        title  : "Click to compile"
-        offset :
-          top  : 4
-          left : -5
-      click    : =>
-        @showLoader()
-        @getSingleton("kodingAppsController").compileApp manifest.name, (err)=>
-          @hideLoader()
-        no
 
     @info = new KDCustomHTMLView
       tagName  : "span"
@@ -98,7 +87,42 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 diameter : 16
               callback   : => @appDeleteCall manifest
 
-    @setClass "dev-mode" if @getData().devMode
+    if @getData().devMode
+      @compile = new KDCustomHTMLView
+        tagName  : "span"
+        cssClass : "icon compile"
+        tooltip  :
+          title  : "Click to compile"
+          offset :
+            top  : 4
+            left : -5
+        click    : =>
+          @showLoader()
+          @getSingleton("kodingAppsController").compileApp \
+            manifest.name, (err)=>
+              @hideLoader()
+          no
+
+      @devModeView = new KDCustomHTMLView
+        partial  : "Dev Mode"
+        cssClass : "dev-mode"
+        tooltip  :
+          title  : "Dev-Mode enabled, click for help."
+        click    : =>
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Dev Mode"
+            content  : __utils.expandUrls """<div class='modalformline'><p>
+                          If you set <code>devMode</code> to <code>true</code>
+                          in the <code>.manifest</code> file, you can compile
+                          this app on the Koding Application servers. When you
+                          compile your app, shared resources like stylesheets
+                          or images in your app will be served from
+                          #{resourceRoot} </p></div>"""
+    else
+      @compile     = new KDView
+      @devModeView = new KDView
 
   appDeleteCall:(manifest)->
     finder = @getSingleton("finderController").treeController
@@ -126,7 +150,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   click:(event)->
 
-    return if $(event.target).closest('.icon-container').length > 0
+    return if $(event.target).closest('.icon-container').length > 0 or \
+              $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
     @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
@@ -143,6 +168,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   pistachio:->
     """
+      {{> @devModeView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}

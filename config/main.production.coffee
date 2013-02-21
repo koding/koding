@@ -3,7 +3,7 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.11" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
@@ -31,11 +31,12 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 6
     queueName   : socialQueueName+'web'
     watch       : no
   mongo         : mongo
   runGoBroker   : yes
+  watchGoBroker : yes
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -62,16 +63,16 @@ module.exports = deepFreeze
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 2
+    numberOfWorkers: 6
     watch       : no
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 2
+    numberOfWorkers: 6
     watch       : no
     queueName   : socialQueueName
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
   feeder        :
@@ -83,7 +84,7 @@ module.exports = deepFreeze
   client        :
     pistachios  : no
     version     : version
-    minify      : no
+    minify      : yes
     watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
@@ -141,4 +142,4 @@ module.exports = deepFreeze
     push: yes
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
-    interval: 30000
+    interval: 60000

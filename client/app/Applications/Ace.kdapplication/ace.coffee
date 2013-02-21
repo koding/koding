@@ -39,15 +39,15 @@ class Ace extends KDView
     @setSyntax()
     @setEditorListeners()
     @appStorage.fetchStorage (storage)=>
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         or yes
-      @setShowGutter          @appStorage.getValue('showGutter')          or yes
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         or no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     or no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') or yes
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      or no
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no
       @setSoftWrap            @appStorage.getValue('softWrap')            or 'off'
-      @setFontSize            @appStorage.getValue('fontSize')            or 12
-      @setTabSize             @appStorage.getValue('tabSize')             or 4
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4
 
   setEditorListeners:->
 
@@ -188,44 +188,44 @@ class Ace extends KDView
   setUseSoftTabs:(value)->
 
     @editor.getSession().setUseSoftTabs value
-    @appStorage.setValue 'useSoftTabs', value, =>
+    @appStorage.setValue 'useSoftTabs', value
 
   setShowGutter:(value)->
 
     @editor.renderer.setShowGutter value
-    @appStorage.setValue 'showGutter', value, =>
+    @appStorage.setValue 'showGutter', value
 
   setShowPrintMargin:(value)->
 
     @editor.setShowPrintMargin value
-    @appStorage.setValue 'showPrintMargin', value, =>
+    @appStorage.setValue 'showPrintMargin', value
 
   setHighlightActiveLine:(value)->
 
     @editor.setHighlightActiveLine value
-    @appStorage.setValue 'highlightActiveLine', value, =>
+    @appStorage.setValue 'highlightActiveLine', value
 
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
 
   setShowInvisibles:(value)->
 
     @editor.setShowInvisibles value
-    @appStorage.setValue 'showInvisibles', value, =>
+    @appStorage.setValue 'showInvisibles', value
 
   setFontSize:(value, store = yes)->
 
     @$("#editor#{@getId()}").css 'font-size', "#{value}px"
     if store
-      @appStorage.setValue 'fontSize', value, =>
+      @appStorage.setValue 'fontSize', value
 
   setTabSize:(value)->
     @editor.getSession().setTabSize +value
-    @appStorage.setValue 'tabSize', value, =>
+    @appStorage.setValue 'tabSize', value
 
   setUseWordWrap:(value)->
 
     @editor.getSession().setUseWrapMode value
-    @appStorage.setValue 'useWordWrap', value, =>
+    @appStorage.setValue 'useWordWrap', value
 
   setSoftWrap:(value)->
     softWrapValueMap =
@@ -240,7 +240,7 @@ class Ace extends KDView
     @editor.renderer.setPrintMarginColumn margin
     @setUseWordWrap no if value is "off"
 
-    @appStorage.setValue 'softWrap', value, =>
+    @appStorage.setValue 'softWrap', value
 
   ###
   HELPERS

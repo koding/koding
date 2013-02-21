@@ -17,9 +17,6 @@
 <% end %>
     {default_user, <<"<%= node['rabbitmq']['default_user'] %>">>},
     {default_pass, <<"<%= node['rabbitmq']['default_pass'] %>">>},
-    {heartbeat, 10},
-    {rabbitmq_tracing, [{directory, "/var/log/rabbitmq/trace"},
-                        {username,  "sysadmin"},
-                        {password, "dslkdscmckfjf55"}]}
+    {heartbeat, 10}
   ]}
 ].

@@ -49,20 +49,25 @@ func main() {
 
 		addToRouteMap := func(routingKeyPrefix string) {
 			routeMapMutex.Lock()
+			defer routeMapMutex.Unlock()
 			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
-			routeMapMutex.Unlock()
 		}
 		removeFromRouteMap := func(routingKeyPrefix string) {
 			routeMapMutex.Lock()
+			defer routeMapMutex.Unlock()
 			routeSessions := routeMap[routingKeyPrefix]
 			for i, routeSession := range routeSessions {
 				if routeSession == session {
 					routeSessions[i] = routeSessions[len(routeSessions)-1]
-					routeMap[routingKeyPrefix] = routeSessions[:len(routeSessions)-1]
+					routeSessions = routeSessions[:len(routeSessions)-1]
 					break
 				}
 			}
-			routeMapMutex.Unlock()
+			if len(routeSessions) == 0 {
+				delete(routeMap, routingKeyPrefix)
+				return
+			}
+			routeMap[routingKeyPrefix] = routeSessions
 		}
 
 		subscriptions := make(map[string]bool)
@@ -189,8 +194,8 @@ func main() {
 		}
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#")
-	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, true, false, false, nil); err != nil {
+	stream := amqputil.DeclareBindConsumeQueueNoDelete(consumeChannel, "topic", "broker", "#")
+	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
 	}
 	if err := consumeChannel.ExchangeBind("broker", "", "updateInstances", false, nil); err != nil {

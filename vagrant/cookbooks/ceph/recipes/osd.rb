@@ -22,6 +22,16 @@ if node[:ceph].has_key?(:osd_nodes)
                 group 'root'
             end
 
+            lvm_volume_group 'vg0' do
+                physical_volumes [ "/dev/xvdf", "/dev/xvdg" ]
+                logical_volume 'fs_osd' do
+                    size '50G'
+                    filesystem 'ext4'
+                    mount_point :location => "/var/lib/ceph/mon/ceph-#{ceph_node[:CephID]}", :options => 'noatime,nodiratime'
+                    stripes 2
+                end
+            end
+
             cookbook_file "/etc/ceph/keyring" do
                 source "keyring"
                 mode 00640

@@ -420,6 +420,38 @@ __utils =
     kallback.cancel = -> cancelled = yes
     kallback
 
+  # ~ GG
+  # Returns a new callback which calls the failcallback if
+  # first callback not finish its job in given timeout (default is 5000ms)
+  #
+  # Usage:
+  #
+  # Let assume that you have this:
+  #
+  #   asyncFunc (data)->
+  #     doSomethingWith data
+  #
+  # To set a timeout for it eg. 500ms:
+  #
+  #   asyncFunc getTimedOutCallBack (data)->
+  #     doSomethingWith data
+  #   , ->
+  #     console.log "asyncFunc is not responded in 500ms."
+  #   , 500
+  #
+  getTimedOutCallback:(callback, failcallback, timeout=5000)->
+    cancelled = no
+    kallback  = (rest...)->
+      clearTimeout fallbackTimer
+      callback rest...  unless cancelled
+
+    fallback = (rest...)->
+      failcallback rest...  unless cancelled
+      cancelled = yes
+
+    fallbackTimer = setTimeout fallback, timeout
+    kallback
+
   ###
   password-generator
   Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
@@ -446,6 +478,71 @@ __utils =
         return __utils.generatePassword length, memorable, pattern, prefix
 
       return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
+
+  # Version Compare
+  # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee
+  # http://phpjs.org/functions/version_compare
+  # MIT Licensed http://phpjs.org/pages/license
+  versionCompare: (v1,operator,v2) ->
+    i  = x = compare = 0
+    vm =
+      dev   : -6
+      alpha : -5
+      a     : -5
+      beta  : -4
+      b     : -4
+      RC    : -3
+      rc    : -3
+      '#'   : -2
+      p     : -1
+      pl    : -1
+
+    prepVersion = (v) ->
+      v = ('' + v).replace(/[_\-+]/g, '.')
+      v = v.replace(/([^.\d]+)/g, '.$1.').replace(/\.{2,}/g, '.')
+      if !v.length then [-8]
+      else v.split('.')
+
+    numVersion = (v) ->
+      if !v then 0
+      else
+        if isNaN(v) then vm[v] or -7
+        else parseInt(v, 10)
+
+    v1 = prepVersion(v1)
+    v2 = prepVersion(v2)
+    x  = Math.max(v1.length, v2.length)
+
+    for i in [0..x]
+      if (v1[i] == v2[i])
+        continue
+
+      v1[i] = numVersion(v1[i])
+      v2[i] = numVersion(v2[i])
+
+      if (v1[i] < v2[i])
+        compare = -1
+        break
+      else if v1[i] > v2[i]
+        compare = 1
+        break
+
+    return compare unless operator
+    return switch operator
+      when '>', 'gt'
+        compare > 0
+      when '>=', 'ge'
+        compare >= 0
+      when '<=', 'le'
+        compare <= 0
+      when '==', '=', 'eq', 'is'
+        compare == 0
+      when '<>', '!=', 'ne', 'isnt'
+        compare != 0
+      when '', '<', 'lt'
+        compare < 0
+      else
+        null
 
   registerDummyUser:->
 

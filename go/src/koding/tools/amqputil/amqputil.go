@@ -41,6 +41,29 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	return channel
 }
 
+func DeclareBindConsumeQueueNoDelete(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
+	// TODO: ugly hack, same as below, but autodelete is false for the exchange.
+
+	if err := channel.ExchangeDeclare(exchange, kind, false, false, false, false, nil); err != nil {
+		panic(err)
+	}
+
+	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+		panic(err)
+	}
+
+	if err := channel.QueueBind("", key, exchange, false, nil); err != nil {
+		panic(err)
+	}
+
+	stream, err := channel.Consume("", "", true, false, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	return stream
+}
+
 func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string) <-chan amqp.Delivery {
 	if err := channel.ExchangeDeclare(exchange, kind, false, true, false, false, nil); err != nil {
 		panic(err)
