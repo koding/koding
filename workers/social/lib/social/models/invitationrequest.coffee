@@ -91,7 +91,7 @@ module.exports = class JInvitationRequest extends Model
       csv.on 'error', (err)-> errors.push err
 
   declineInvitation: permit 'send invitations'
-    success: (client, callback)->
+    success: (client, callback=->)->
       @update $set:{ status: 'declined' }, callback
 
   fetchAccount:(callback)->
@@ -104,7 +104,7 @@ module.exports = class JInvitationRequest extends Model
         """
 
   approveInvitation: permit 'send invitations'
-    success: (client, callback)->
+    success: (client, callback=->)->
       JGroup = require './group'
       JGroup.one {slug: @group}, (err, group)=>
         if err then callback err
@@ -122,7 +122,7 @@ module.exports = class JInvitationRequest extends Model
     success:(client, rest...)-> @remove rest...
 
   sendInvitation: permit 'send invitations'
-    success: (client, callback)->
+    success: (client, callback=->)->
       JUser         = require './user'
       JInvitation   = require './invitation'
       JUser.someData username: @koding.username, {email:1}, (err, cursor)=>

@@ -553,5 +553,4 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @update $inc: 'counts.members': 1, ->
-      console.log 'this', this
       @emit 'NewMember'

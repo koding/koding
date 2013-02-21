@@ -76,33 +76,49 @@ class GroupView extends ActivityContentDisplay
     @staleTabs = []
     @createTabs()
 
-  assureTab:(tabName, showAppend=yes, konstructor, options, initializer)->
+  createLazyTab:(tabName, konstructor, options, initializer)->
     if 'function' is typeof options
-      initializer = options
+      initializer = options 
       options = {}
 
-    pane = @tabView.getPaneByName tabName
-
-    # if the pane is not there yet, create it an populate with views
-    unless pane
+    pane = new KDTabPaneView name: tabName
+    pane.once 'PaneDidShow', =>
       view = new konstructor options ? {}, @getData()
-      pane = new KDTabPaneView name: tabName
+      pane.addSubView view
       initializer?.call? pane, pane, view
-      @tabView.addPane pane, showAppend
-      pane.addSubView view
 
-    # if the view is there and stale, remove the views and 'refresh'
-    else if @isStaleTab tabName
-      pane.getSubViews().forEach (view)->
-        pane.removeSubView view
-      view = new konstructor options ? {}, @getData()
-      pane.addSubView view
-      @unsetStaleTab tabName
+    @tabView.addPane pane, no
 
-    # in any case: show the pane if it is hidden and should be shown
-    if showAppend and @tabView.getActivePane() isnt pane
-      @tabView.showPane pane
     return pane
+
+
+  # assureTab:(tabName, showAppend=yes, konstructor, options, initializer)->
+  #   if 'function' is typeof options
+  #     initializer = options
+  #     options = {}
+
+  #   pane = @tabView.getPaneByName tabName
+
+  #   # if the pane is not there yet, create it an populate with views
+  #   unless pane
+  #     view = new konstructor options ? {}, @getData()
+  #     pane = new KDTabPaneView name: tabName
+  #     initializer?.call? pane, pane, view
+  #     @tabView.addPane pane, showAppend
+  #     pane.addSubView view
+
+  #   # if the view is there and stale, remove the views and 'refresh'
+  #   else if @isStaleTab tabName
+  #     pane.getSubViews().forEach (view)->
+  #       pane.removeSubView view
+  #     view = new konstructor options ? {}, @getData()
+  #     pane.addSubView view
+  #     @unsetStaleTab tabName
+
+  #   # in any case: show the pane if it is hidden and should be shown
+  #   if showAppend and @tabView.getActivePane() isnt pane
+  #     @tabView.showPane pane
+  #   return pane
 
   setStaleTab:(tabName)->
     @staleTabs.push tabName unless @staleTabs.indexOf(tabName) > -1
@@ -120,6 +136,7 @@ class GroupView extends ActivityContentDisplay
       cssClass : 'group-content'
       hideHandleContainer : yes
       hideHandleCloseIcons : yes
+      tabHandleView : GroupTabHandleView
     , data
     @utils.defer => @emit 'ReadmeSelected'
 
@@ -133,10 +150,6 @@ class GroupView extends ActivityContentDisplay
 
     if "admin" in roles
       @tabView.showHandleContainer()
-      @emit 'SettingsSelected'
-      @emit 'PermissionsSelected'
-      @emit 'MembersSelected'
-      @emit 'MembershipPolicySelected'
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
