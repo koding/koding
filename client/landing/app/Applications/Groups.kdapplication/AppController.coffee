@@ -141,10 +141,13 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
-  showInvitationsTab:(group, tabView)->
+  showInvitationsTab:->
+    {groupView} = this
+
+    group = groupView.getData()
     # tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
     pane = new KDTabPaneView name: 'Invitations'
-    tab = tabView.tabView.addPane pane, no
+    tab = groupView.tabView.addPane pane, no
 
     invitationRequestView = new GroupsInvitationRequestsView {}, group
 
@@ -168,25 +171,36 @@ class GroupsAppController extends AppController
     invitePane = tabs.getPaneByName paneName
     tabs.removePane invitePane if invitePane
 
-  hideInvitationsTab:(tabView)->
-    @removePaneByName tabView, 'Invitations'
+  hideInvitationsTab:-> 
+    @removePaneByName @groupView, 'Invitations'
 
-  showApprovalTab:(group, tabView)->
+  showApprovalTab:->
+    {groupView} = this
+    
+    group = groupView.getData()
+
     pane = new KDTabPaneView name: 'Approval requests'
-    tab = tabView.tabView.addPane pane, no
+    tab = groupView.tabView.addPane pane, no
 
     approvalRequestView = new GroupsApprovalRequestsView {}, group
 
-    approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
-      invitationRequest.approveInvitation -> console.log {arguments}
+    group.on 'NewMembershipApprovalRequest', ->
+      pane.tabHandle.markDirty()
 
+    pane.on 'PaneDidShow', ->
+      approvalRequestView.refresh()  if pane.tabHandle.isDirty
+      pane.tabHandle.markDirty no
+
+    approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
+      invitationRequest.approveInvitation()
+  
     approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
-      invitationRequest.declineInvitation -> console.log {arguments}
+      invitationRequest.declineInvitation()
 
     tab.addSubView approvalRequestView
 
   hideApprovalTab:(tabView)->
-    @removePaneByName tabView, 'Approval requests'
+    @removePaneByName @groupView, 'Approval requests'
 
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
@@ -448,6 +462,7 @@ class GroupsAppController extends AppController
     complete = ->
       group.modifyMembershipPolicy formData, ->
         membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+
     if policy.invitationsEnabled isnt formData.invitationsEnabled
 
       {remainingInvitationType, errorMessage, policyChangeButtons} =
@@ -522,19 +537,6 @@ class GroupsAppController extends AppController
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
-  fetchSomeTopics:(options = {}, callback)->
-
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or=
-      "counts.followers": -1
-    selector = options.selector or {}
-    delete options.selector if options.selector
-    if selector
-      KD.remote.api.JTag.byRelevance selector, options, callback
-    else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
@@ -551,43 +553,54 @@ class GroupsAppController extends AppController
   selectTab:(groupView, tabName, konstructor)->
     groupView.assureTab tabName, konstructor
 
-  handleMembershipPolicyTabs:(policy, group, view)->
-    if policy.invitationsEnabled
-      unless view.tabView.getPaneByName 'Invitations'
-        @showInvitationsTab group, view
-      if view.tabView.getPaneByName 'Approval requests'
-        @hideApprovalTab view
-    else
-      if policy.approvalEnabled
-        unless view.tabView.getPaneByName 'Approval requests'
-          @showApprovalTab group, view
-        if view.tabView.getPaneByName 'Invitations'
-          @hideInvitationsTab view
+  handleMembershipPolicyTabs:->
+    {groupView} = this
+
+    group = groupView.getData()
+
+    group.fetchMembershipPolicy (err, policy)=>
+      if policy.invitationsEnabled
+        unless groupView.tabView.getPaneByName 'Invitations'
+          @showInvitationsTab group, groupView
+        if groupView.tabView.getPaneByName 'Approval requests'
+          @hideApprovalTab groupView
       else
-        @hideInvitationsTab view
-        @hideApprovalTab view
+        if policy.approvalEnabled
+          unless groupView.tabView.getPaneByName 'Approval requests'
+            @showApprovalTab group, groupView
+          if groupView.tabView.getPaneByName 'Invitations'
+            @hideInvitationsTab groupView
+        else
+          @hideInvitationsTab groupView
+          @hideApprovalTab groupView
 
-  prepareMembersTab:(group, view, groupView)->
-    console.log 'Group', group
-    group.on 'NewMember', -> console.log 'new member'
+  prepareMembersTab:(pane)->
+    {groupView} = this
 
+    group = groupView.getData()
+
+    group.on 'NewMember', ->
+      {tabHandle} = groupView.tabView.getPaneByName 'Members'
+      tabHandle.markDirty()
+
+  prepareMembersTab2:(pane, groupView)->
+    pane.on 'PaneDidShow', ->
+      groupView.refresh()  if pane.tabHandle.isDirty
+      pane.tabHandle.markDirty no
 
   prepareMembershipPolicyTab:(group, view, groupView)->
     group.fetchMembershipPolicy (err, policy)=>
-
       view.loader.hide()
       view.loaderText.hide()
 
-      membershipPolicyView = new GroupsMembershipPolicyView {}, policy
+      membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
 
       membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
         @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
       membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
-        group.fetchMembershipPolicy (err, policy)=>
-          @handleMembershipPolicyTabs policy, group, groupView
-
-      @handleMembershipPolicyTabs policy, group, groupView
+        # group.fetchMembershipPolicy (err, policy)=>
+        @handleMembershipPolicyTabs group, groupView
 
       view.addSubView membershipPolicyView
 
@@ -600,22 +613,21 @@ class GroupsAppController extends AppController
       delegate : @getView()
     , group
 
-    groupView.on 'ReadmeSelected',
-      groupView.lazyBound 'assureTab', 'Readme', yes, GroupReadmeView
+    groupView.createLazyTab 'Readme', GroupReadmeView
 
-    groupView.on 'SettingsSelected',
-      groupView.lazyBound 'assureTab', 'Settings', no, GroupGeneralSettingsView
+    groupView.createLazyTab 'Settings', GroupGeneralSettingsView
 
-    groupView.on 'PermissionsSelected',
-      groupView.lazyBound 'assureTab', 'Permissions', no, GroupPermissionsView, {delegate : groupView}
+    groupView.createLazyTab 'Permissions', GroupPermissionsView, {delegate : groupView}
 
-    groupView.on 'MembersSelected',
-      groupView.lazyBound 'assureTab', 'Members', no, GroupsMemberPermissionsView,
-        (pane, view)=> @prepareMembersTab group, view, groupView
+    membersPane = groupView.createLazyTab 'Members', GroupsMemberPermissionsView,
+      (pane, view)=> @prepareMembersTab2 pane, view
+    @prepareMembersTab membersPane
 
-    groupView.on 'MembershipPolicySelected',
-      groupView.lazyBound 'assureTab', 'Membership policy', no, GroupsMembershipPolicyTabView,
+    if 'private' is group.privacy
+      groupView.createLazyTab 'Membership policy', GroupsMembershipPolicyView,
         (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
+
+    @handleMembershipPolicyTabs()
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     callback groupView
@@ -623,10 +635,3 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
-  fetchTopics:({inputValue, blacklist}, callback)->
-
-    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
-      unless err
-        callback? tags
-      else
-        warn "there was an error fetching topics"
