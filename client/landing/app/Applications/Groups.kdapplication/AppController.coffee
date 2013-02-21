@@ -141,63 +141,38 @@ class GroupsAppController extends AppController
 
     _.extend defaultOptions, customOptions
 
-  showInvitationsTab:->
-    {groupView} = this
-
-    group = groupView.getData()
-    # tab = modal.modalTabs.createTab title: 'Invitations', shouldShow:no
-    pane = new KDTabPaneView name: 'Invitations'
-    tab = groupView.tabView.addPane pane, no
-
-    invitationRequestView = new GroupsInvitationRequestsView {}, group
-
-    invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-      count = invitationRequestView.batchInvites.inputs.Count.getValue()
-      group.sendSomeInvitations count, (err, message)->
-        if message is null
-          message = 'Done'
-          invitationRequestView.prepareBulkInvitations()
-        {statusInfo} = invitationRequestView.batchInvites.inputs
-        statusInfo.updatePartial Encoder.htmlDecode message
-
-    invitationRequestView.on 'InvitationIsSent', (request)->
-      request.sendInvitation ->
-        console.log 'invitation is sent', {arguments}
-
-    tab.addSubView invitationRequestView
-
   removePaneByName:(tabView, paneName)->
     tabs = tabView.tabView
     invitePane = tabs.getPaneByName paneName
     tabs.removePane invitePane if invitePane
 
-  hideInvitationsTab:-> 
-    @removePaneByName @groupView, 'Invitations'
+  # hideInvitationsTab:-> 
+  #   @removePaneByName @groupView, 'Invitations'
 
-  showApprovalTab:->
-    {groupView} = this
+  # showApprovalTab:->
+  #   {groupView} = this
     
-    group = groupView.getData()
+  #   group = groupView.getData()
 
-    pane = new KDTabPaneView name: 'Approval requests'
-    tab = groupView.tabView.addPane pane, no
+  #   pane = new KDTabPaneView name: 'Approval requests'
+  #   tab = groupView.tabView.addPane pane, no
 
-    approvalRequestView = new GroupsApprovalRequestsView {}, group
+  #   approvalRequestView = new GroupsApprovalRequestsView {}, group
 
-    group.on 'NewMembershipApprovalRequest', ->
-      pane.tabHandle.markDirty()
+  #   group.on 'NewMembershipApprovalRequest', ->
+  #     pane.tabHandle.markDirty()
 
-    pane.on 'PaneDidShow', ->
-      approvalRequestView.refresh()  if pane.tabHandle.isDirty
-      pane.tabHandle.markDirty no
+  #   pane.on 'PaneDidShow', ->
+  #     approvalRequestView.refresh()  if pane.tabHandle.isDirty
+  #     pane.tabHandle.markDirty no
 
-    approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
-      invitationRequest.approveInvitation()
+  #   approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
+  #     invitationRequest.approveInvitation()
   
-    approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
-      invitationRequest.declineInvitation()
+  #   approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
+  #     invitationRequest.declineInvitation()
 
-    tab.addSubView approvalRequestView
+  #   tab.addSubView approvalRequestView
 
   hideApprovalTab:(tabView)->
     @removePaneByName @groupView, 'Approval requests'
@@ -550,59 +525,117 @@ class GroupsAppController extends AppController
     @getView().$(".activityhead").html title
 
 
-  selectTab:(groupView, tabName, konstructor)->
-    groupView.assureTab tabName, konstructor
+  # selectTab:(groupView, tabName, konstructor)->
+  #   groupView.assureTab tabName, konstructor
 
-  handleMembershipPolicyTabs:->
+  # handleMembershipPolicyTabs:->
+  #   {groupView} = this
+
+  #   group = groupView.getData()
+
+  #   group.fetchMembershipPolicy (err, policy)=>
+  #     if policy.invitationsEnabled
+  #       unless groupView.tabView.getPaneByName 'Invitations'
+  #         @showInvitationsTab group, groupView
+  #       if groupView.tabView.getPaneByName 'Approval requests'
+  #         @hideApprovalTab groupView
+  #     else
+  #       if policy.approvalEnabled
+  #         unless groupView.tabView.getPaneByName 'Approval requests'
+  #           @showApprovalTab group, groupView
+  #         if groupView.tabView.getPaneByName 'Invitations'
+  #           @hideInvitationsTab groupView
+  #       else
+  #         @hideInvitationsTab groupView
+  #         @hideApprovalTab groupView
+
+  prepareReadmeTab:->
     {groupView} = this
-
     group = groupView.getData()
+    groupView.tabView.addPane pane = new KDTabPaneView
+      name: 'Readme'
+    pane.addSubView new GroupReadmeView {}, group
+    return pane
 
-    group.fetchMembershipPolicy (err, policy)=>
-      if policy.invitationsEnabled
-        unless groupView.tabView.getPaneByName 'Invitations'
-          @showInvitationsTab group, groupView
-        if groupView.tabView.getPaneByName 'Approval requests'
-          @hideApprovalTab groupView
-      else
-        if policy.approvalEnabled
-          unless groupView.tabView.getPaneByName 'Approval requests'
-            @showApprovalTab group, groupView
-          if groupView.tabView.getPaneByName 'Invitations'
-            @hideInvitationsTab groupView
-        else
-          @hideInvitationsTab groupView
-          @hideApprovalTab groupView
+  prepareSettingsTab:->
+    pane = @groupView.createLazyTab 'Settings', GroupGeneralSettingsView
+    return pane
 
-  prepareMembersTab:(pane)->
+  preparePermissionsTab:->
     {groupView} = this
+    pane = groupView.createLazyTab 'Permissions', GroupPermissionsView,
+      delegate: groupView
+    return pane
 
+  prepareMembersTab:->
+    {groupView} = this
     group = groupView.getData()
+    pane = groupView.createLazyTab 'Members', GroupsMemberPermissionsView,
+      (pane, view)=>
+        pane.on 'PaneDidShow', ->
+          groupView.refresh()  if pane.tabHandle.isDirty
+          pane.tabHandle.markDirty no
 
     group.on 'NewMember', ->
-      {tabHandle} = groupView.tabView.getPaneByName 'Members'
+      {tabHandle} = pane
       tabHandle.markDirty()
-
-  prepareMembersTab2:(pane, groupView)->
-    pane.on 'PaneDidShow', ->
-      groupView.refresh()  if pane.tabHandle.isDirty
-      pane.tabHandle.markDirty no
+    return pane
 
   prepareMembershipPolicyTab:(group, view, groupView)->
-    group.fetchMembershipPolicy (err, policy)=>
-      view.loader.hide()
-      view.loaderText.hide()
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Membership policy', GroupsMembershipPolicyView,
+      (pane, view)=>
 
-      membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
+        group.fetchMembershipPolicy (err, policy)=>
+          view.loader.hide()
+          view.loaderText.hide()
 
-      membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
-        @updateMembershipPolicy group, policy, formData, membershipPolicyView
+          membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
 
-      membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
-        # group.fetchMembershipPolicy (err, policy)=>
-        @handleMembershipPolicyTabs group, groupView
+          membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
+            @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
-      view.addSubView membershipPolicyView
+          membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
+            # group.fetchMembershipPolicy (err, policy)=>
+            @handleMembershipPolicyTabs group, groupView
+
+          view.addSubView membershipPolicyView
+    return pane
+
+  prepareInvitationsTab:->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
+      (pane, invitationRequestView)->
+
+        invitationRequestView.on 'BatchInvitationsAreSent', (count)->
+          count = invitationRequestView.batchInvites.inputs.Count.getValue()
+          group.sendSomeInvitations count, (err, message)->
+            if message is null
+              message = 'Done'
+              invitationRequestView.prepareBulkInvitations()
+            {statusInfo} = invitationRequestView.batchInvites.inputs
+            statusInfo.updatePartial Encoder.htmlDecode message
+
+        # invitationRequestView.on 'InvitationIsSent', (request)->
+        #   request.sendInvitation ->
+        #     console.log 'invitation is sent', {arguments}
+
+        invitationRequestView.on 'RequestIsApproved', (request)->
+          request.approveInvitation()
+  
+        invitationRequestView.on 'RequestIsDeclined', (request)->
+          request.declineInvitation()
+
+        pane.on 'PaneDidShow', ->
+          invitationRequestView.refresh()  if pane.tabHandle.isDirty
+          pane.tabHandle.markDirty no
+
+    group.on 'NewInvitationRequest', ->
+      pane.tabHandle.markDirty()
+
+    return pane
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -613,24 +646,16 @@ class GroupsAppController extends AppController
       delegate : @getView()
     , group
 
-    groupView.createLazyTab 'Readme', GroupReadmeView
-
-    groupView.createLazyTab 'Settings', GroupGeneralSettingsView
-
-    groupView.createLazyTab 'Permissions', GroupPermissionsView, {delegate : groupView}
-
-    membersPane = groupView.createLazyTab 'Members', GroupsMemberPermissionsView,
-      (pane, view)=> @prepareMembersTab2 pane, view
-    @prepareMembersTab membersPane
+    @prepareReadmeTab()
+    @prepareSettingsTab()
+    @preparePermissionsTab()
+    @prepareMembersTab()
 
     if 'private' is group.privacy
-      groupView.createLazyTab 'Membership policy', GroupsMembershipPolicyView,
-        (pane, view)=> @prepareMembershipPolicyTab group, view, groupView
-
-    @handleMembershipPolicyTabs()
+      @prepareMembershipPolicyTab()
+      @prepareInvitationsTab()
 
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
-    callback groupView
     # console.log {contentDisplay}
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
