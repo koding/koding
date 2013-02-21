@@ -79,7 +79,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
   @containsTimestamp = (timestamp, callback)->
 
-    date     = new Date timestamp
+    date     = new Date parseInt(timestamp,10)
     selector = to : { $gte : date }
 
     @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
@@ -383,11 +383,17 @@ module.exports = class JActivityCache extends jraphical.Module
       @update $set: setModifier, (err)-> callback?()
 
 
-  @modifyByTeaser = ({teaserId, createdAt}, callback)->
+  @modifyByTeaser = (teaser, callback)->
 
     CActivity = require './index'
 
+    {teaserId, createdAt} = teaser
+
+    # log teaser
+    # log teaserId, createdAt
+
     @containsTimestamp createdAt, (err, cache)->
+      # log {cache}
       if err then callback? err
       else
 
@@ -396,18 +402,26 @@ module.exports = class JActivityCache extends jraphical.Module
         # this is to get the activity
         idToUpdate = null
         for id, activity of cache.activities
+          # log id, activity.snapshotIds[0].equals teaserId
           if activity.snapshotIds[0].equals teaserId
             idToUpdate = id
+            break
+
+          # log "::::::", idToUpdate
 
         CActivity.one _id : idToUpdate, (err, activity)->
+          # log ">>>>>>>>>", err, activity
           if err then callback? err
-          else
+          else if activity
             setModifier = {}
             updatedActivity = activity.prune()
             # TODO: this is a workaround.  I need to look into a bug in bongo C.T.:
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
-            cache.update {$set : setModifier}, -> #console.log.bind(console)
+            cache.update {$set : setModifier}, ->
+              callback?()
+          else
+            callback?()
 
   @removeActivity = ({teaserId, createdAt}, callback)->
 
