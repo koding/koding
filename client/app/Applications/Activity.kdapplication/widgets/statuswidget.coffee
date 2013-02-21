@@ -65,7 +65,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       style       : "modal-cancel"
       callback    : =>
         @reset()
-        @parent.getDelegate().emit "ResetWidgets"
+        @parent.getDelegate().emit "ResetWidgets", yes
 
     @submitBtn = new KDButtonView
       style       : "clean-gray"
@@ -138,6 +138,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @appStorage = new AppStorage 'Activity', '1.0'
     @updateCheckboxFromStorage()
 
+    @lastestStatusMessage = ""
+
   updateCheckboxFromStorage:->
     @appStorage.fetchValue 'UrlSanitizerCheckboxIsChecked',(checked)=>
       @inputLinkInfoBox.setSwitchValue checked
@@ -204,6 +206,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput.setHeight 33
     @$('>div.large-input, >div.formline').hide()
     @smallInput.show()
+    @smallInput.setValue @lastestStatusMessage
 
   switchToLargeView:->
 
@@ -214,6 +217,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @utils.wait =>
       @largeInput.$().trigger "focus"
       @largeInput.setHeight 72
+      @largeInput.setValue @lastestStatusMessage
 
     # Do we really need this? Without that it works great.
     # yes we need this but with an improved implementation
@@ -280,21 +284,23 @@ class ActivityStatusUpdateWidget extends KDFormView
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
-  reset:->
-    @tagController.reset()
-    @submitBtn.setTitle "Submit"
-    @removeCustomData "activity"
-    @removeCustomData "link_url"
-    @removeCustomData "link_cache"
-    @removeCustomData "link_embed"
-    @removeCustomData "link_embed_hidden_items"
-    @removeCustomData "link_embed_image_index"
-    @embedBox.resetEmbedAndHide()
-    @previousURL = ""
-    @initialRequest = yes
-    @inputLinkInfoBoxPermaHide = off
-    @inputLinkInfoBox.hide()
-    @updateCheckboxFromStorage()
+  reset: (isHardReset) ->
+    @lastestStatusMessage = @largeInput.getValue()
+    if isHardReset
+      @tagController.reset()
+      @submitBtn.setTitle "Submit"
+      @removeCustomData "activity"
+      @removeCustomData "link_url"
+      @removeCustomData "link_cache"
+      @removeCustomData "link_embed"
+      @removeCustomData "link_embed_hidden_items"
+      @removeCustomData "link_embed_image_index"
+      @embedBox.resetEmbedAndHide()
+      @previousURL = ""
+      @initialRequest = yes
+      @inputLinkInfoBoxPermaHide = off
+      @inputLinkInfoBox.hide()
+      @updateCheckboxFromStorage()
 
     super
 
@@ -303,8 +309,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @template.update()
     @switchToSmallView()
     tabView = @parent.getDelegate()
-    tabView.on "MainInputTabsReset", =>
-      @reset()
+    tabView.on "MainInputTabsReset", (isHardReset) =>
+      @reset isHardReset
       @switchToSmallView()
 
 
