@@ -15,16 +15,17 @@ else
     name : "webServer on port #{webPort}"
     stats_id: "webserver." + process.pid
     interval : 30000
+    librato: KONFIG.librato
     limit_hard  :
       memory   : 300
       callback : ->
         console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
         process.exit()
-    die :
-      after: "non-overlapping, random, 3 digits prime-number of minutes"
-      middleware : (name,callback) -> koding.disconnect callback
-      middlewareTimeout : 5000
-    librato: KONFIG.librato
+    # DISABLED TO TEST MEMORY LEAKS
+    # die :
+    #   after: "non-overlapping, random, 3 digits prime-number of minutes"
+    #   middleware : (name,callback) -> koding.disconnect callback
+    #   middlewareTimeout : 5000
 
   # Services (order is important here)
   services =
