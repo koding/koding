@@ -52,6 +52,8 @@ class MainView extends KDView
       domId    : "content-panel"
       cssClass : "transition"
 
+    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
