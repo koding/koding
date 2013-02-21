@@ -18,10 +18,10 @@ async           = require "async"
 # {postProcess}   = require "pistachio-compiler"
 # qfunction      = require 'qfunction'
 
-queue = async.queue((task, callback) ->
+queue = async.queue (task, callback) ->
   fs.readFile task.path, task.encoding, (err,data)->
     callback null, data
-, 100)
+, 100
 
 class Watcher extends EventEmitter
   constructor:(filelistPath)->

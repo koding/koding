@@ -57,10 +57,10 @@ class KDTabHandleView extends KDView
     {pane}   = @getOptions()
     tabView  = pane.getDelegate()
     holder   = tabView.tabHandleContainer
-    @$cloned = @$().clone() 
+    @$cloned = @$().clone()
     holder.$().append @$cloned
     @$cloned.css marginLeft: -(tabView.handles.length - @index) * @getWidth()
-  
+
   updateClonedElementPosition: (x) ->
     @$cloned.css left: x
 
@@ -73,13 +73,13 @@ class KDTabHandleView extends KDView
       if x < targetDiff
         @emit "HandleIndexHasChanged", @index, 'left'
         @index--
-    else 
+    else
       targetIndex = @index + 1
       targetDiff  = width * targetIndex - width * @draggedItemIndex - width / 2
       if x > targetDiff
         @emit "HandleIndexHasChanged", @index, 'right'
         @index++
-    
+
   handleDragStart: (event, dragState) ->
     {pane}            = @getOptions()
     tabView           = pane.getDelegate()
@@ -100,7 +100,7 @@ class KDTabHandleView extends KDView
   handleDragFinished: (event) ->
     return unless @$cloned
 
-    @$cloned.remove() 
+    @$cloned.remove()
     @$().css { left: '', opacity: 1, marginLeft: '' }
     @$().css left: 0 if not @targetTabHandle and @draggedItemIndex is 0
     @targetTabHandle = null

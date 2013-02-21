@@ -114,8 +114,9 @@ class MainTabView extends KDTabView
 
     @removePaneByView mainView if mainView?
 
-    cssClass              = @utils.slugify(options?.name?.toLowerCase()) or ""
-    options.cssClass      = @utils.curryCssClass "content-area-pane", cssClass
+
+    if options.cssClass
+      options.cssClass    = @utils.curryCssClass "content-area-pane", options.cssClass
     options.type        or= "content"
     options.class       or= KDView
     options.hiddenHandle ?= yes

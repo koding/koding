@@ -50,6 +50,8 @@ class MainView extends KDView
       cssClass : "transition"
       bind     : "webkitTransitionEnd" #TODO: Cross browser support
 
+    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 

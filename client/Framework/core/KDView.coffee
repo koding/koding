@@ -86,7 +86,7 @@ class KDView extends KDObject
     @setInstanceVariables options
     @defaultInit options,data
 
-	@setClass 'kddraggable' if o.draggable
+    @setClass 'kddraggable' if o.draggable
 
     @on 'childAppended', @childAppended.bind @
 
@@ -557,21 +557,21 @@ class KDView extends KDObject
       containment : null     # a parent KDView
       handle      : null     # a parent KDView or a child selector
       axis        : null     # a String 'x' or 'y' or 'diagonal'
-      direction   : 
+      direction   :
         current   :
           x       : null     # a String 'left' or 'right'
           y       : null     # a String 'up'   or 'down'
         global    :
           x       : null     # a String 'left' or 'right'
           y       : null     # a String 'up'   or 'down'
-      position    : 
+      position    :
         relative  :
           x       : 0        # a Number
           y       : 0        # a Number
         initial   :
           x       : 0        # a Number
           y       : 0        # a Number
-        global    :          
+        global    :
           x       : 0        # a Number
           y       : 0        # a Number
       meta        :
@@ -594,14 +594,14 @@ class KDView extends KDObject
 
       @dragIsAllowed = yes
       @setEmptyDragState()
-      
+
       dragState             = @dragState
 
       # TODO: should move these lines
       dragState.containment = options.containment
       dragState.handle      = options.handle
       dragState.axis        = options.axis
-      
+
       dragMeta              = dragState.meta
       dragEl                = @$()[0]
       dragMeta.top          = parseInt(dragEl.style.top,    10) or 0
@@ -622,7 +622,7 @@ class KDView extends KDObject
   drag:(event, delta)->
 
     {directionX, directionY, axis} = @dragState
-    
+
     {x, y}       = delta
     dragPos      = @dragState.position
     dragRelPos   = dragPos.relative
@@ -656,7 +656,7 @@ class KDView extends KDObject
 
       newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
-      
+
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
 
