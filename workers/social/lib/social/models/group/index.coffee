@@ -527,7 +527,6 @@ module.exports = class JGroup extends Module
               @sendApprovalRequestEmail(
                 delegate, delegateUser, admin, adminUser, callback
               )
-              @emit 'NewMembershipApprovalRequest'
 
   requestInvitation: secure (client, invitationType, callback)->
     JInvitationRequest = require '../invitationrequest'
@@ -543,7 +542,10 @@ module.exports = class JGroup extends Module
           You've already requested an invitation to this group.
           """
       else
-        @addInvitationRequest invitationRequest, (err)-> callback err
+        @addInvitationRequest invitationRequest, (err)=>
+          callback err
+          @emit 'NewInvitationRequest'
+
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback

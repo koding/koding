@@ -18,7 +18,12 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
-      instance        : ['sendInvitation','deleteInvitation','approveInvitation','declineInvitation']
+      instance        : [
+        'sendInvitation'
+        'deleteInvitation'
+        'approveInvitation'
+        'declineInvitation'
+      ]
     schema            :
       email           :
         type          : String
