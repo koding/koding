@@ -592,7 +592,7 @@ class GroupsMemberPermissionsView extends JView
 
     @refresh()
 
-  refresh:->
+  fetchSomeMembers:(selector={})->
     groupData = @getData()
     @listController.removeAllItems()
     @loader.show()
@@ -610,13 +610,19 @@ class GroupsMemberPermissionsView extends JView
               userRolesHash[userRole.targetId] = userRole.as
 
             list.getOptions().userRoles = userRolesHash
-            groupData.fetchMembers {}, {limit:10}, (err, members)=>
+            options =
+              limit : 20
+              sort  : { timestamp: -1 }
+            groupData.fetchMembers selector, options, (err, members)=>
               if err then warn err
               else
                 @listController.instantiateListItems members
                 @loader.hide()
                 @loaderText.hide()
 
+  refresh:->
+    @timestamp = new Date 0
+    @fetchSomeMembers {timestamp: $gte: @timestamp}
 
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
