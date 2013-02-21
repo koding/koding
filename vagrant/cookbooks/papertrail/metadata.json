@@ -1,31 +1,6 @@
 {
   "recommendations": {
   },
-<<<<<<< HEAD
-  "groupings": {
-  },
-  "dependencies": {
-  },
-  "platforms": {
-  },
-  "license": "All rights reserved",
-  "long_description": "papertrail Cookbook\n===================\nTODO: Enter the cookbook description here.\n\ne.g.\nThis cookbook makes your favorite breakfast sandwhich.\n\nRequirements\n------------\nTODO: List your cookbook requirements. Be sure to include any requirements this cookbook has on platforms, libraries, other cookbooks, packages, operating systems, etc.\n\ne.g.\n#### packages\n- `toaster` - papertrail needs toaster to brown your bagel.\n\nAttributes\n----------\nTODO: List you cookbook attributes here.\n\ne.g.\n#### papertrail::default\n<table>\n  <tr>\n    <th>Key</th>\n    <th>Type</th>\n    <th>Description</th>\n    <th>Default</th>\n  </tr>\n  <tr>\n    <td><tt>['papertrail']['bacon']</tt></td>\n    <td>Boolean</td>\n    <td>whether to include bacon</td>\n    <td><tt>true</tt></td>\n  </tr>\n</table>\n\nUsage\n-----\n#### papertrail::default\nTODO: Write usage instructions for each cookbook.\n\ne.g.\nJust include `papertrail` in your node's `run_list`:\n\n```json\n{\n  \"name\":\"my_node\",\n  \"run_list\": [\n    \"recipe[papertrail]\"\n  ]\n}\n```\n\nContributing\n------------\nTODO: (optional) If this is a public cookbook, detail the process for contributing. If this is a private cookbook, remove this section.\n\ne.g.\n1. Fork the repository on Github\n2. Create a named feature branch (like `add_component_x`)\n3. Write you change\n4. Write tests for your change (if applicable)\n5. Run the tests, ensuring they all pass\n6. Submit a Pull Request using Github\n\nLicense and Authors\n-------------------\nAuthors: TODO: List authors\n",
-  "recipes": {
-  },
-  "attributes": {
-  },
-  "conflicting": {
-  },
-  "name": "papertrail",
-  "version": "0.1.0",
-  "replacing": {
-  },
-  "providing": {
-  },
-  "suggestions": {
-  },
-  "maintainer_email": "YOUR_EMAIL",
-=======
   "replacing": {
   },
   "dependencies": {
@@ -49,7 +24,6 @@
   },
   "platforms": {
   },
->>>>>>> e3a9adf51c1b136abfb411cef53e382630c72395
   "maintainer": "YOUR_COMPANY_NAME",
   "description": "Installs/Configures papertrail"
 }
