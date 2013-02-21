@@ -31,3 +31,6 @@ class DemosAppController extends AppController
             required : yes
           events  :
             required : 'blur'
+
+
+  parentDidResize:-> log "geldi mi >>>>>>>", arguments

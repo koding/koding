@@ -16,10 +16,8 @@ class AppStorage extends KDEventEmitter
       version = @_applicationVersion
 
       KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-        unless storage
-          storage = {appId,version,bucket:{}} # creating a fake storage
         unless error
-          callback @_storage = storage
+          callback @_storage = storage or {appId,version,bucket:{}}
           @emit "storageFetched"
         else
           callback null

@@ -1,17 +1,18 @@
 class WebTermController extends AppController
 
-  KD.registerAppClass @, name : "WebTerm"
+  KD.registerAppClass @,
+    name     : "WebTerm"
+    multiple : yes
 
-  bringToFront: ->
-    view = new WebTermAppView
-    
-	view.on "WebTerm.terminated", => log "WebTerm.terminated"
-    view.on 'WebTermAppViewWantsToClose', => log 'WebTermAppViewWantsToClose'
+  constructor:(options = {}, data)->
 
-    @emit "ApplicationWantsToBeShown", @, view,
+    options.view    = new WebTermAppView
+    options.appInfo =
       name         : "Terminal"
       hiddenHandle : no
       type         : "application"
       cssClass     : "webterm"
+
+    super options, data
 
 WebTerm = {}

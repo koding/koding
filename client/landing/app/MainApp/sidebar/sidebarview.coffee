@@ -143,7 +143,9 @@ class Sidebar extends JView
       else
         fpLastWidth = 208 if fpLastWidth < 100
         $fp.css "width", fpLastWidth
-        cp.$().css left : 52 + fpLastWidth, width : @wc.winWidth - 52 - fpLastWidth
+        cpWidth = @wc.winWidth - 52 - fpLastWidth
+        cp.$().css left : 52 + fpLastWidth, width : cpWidth
+        cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
         fpLastWidth = null
       @finderResizeHandle.$().css left: ''
 
@@ -170,6 +172,7 @@ class Sidebar extends JView
       newFpWidth = @_fpWidth + x
       return if newFpWidth < 13
       cp.$().css left : cp._left + x, width : cp._width - x
+      cp.emit "ViewResized", {newWidth : cp._width - x, unit: "px"}
       @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
 
