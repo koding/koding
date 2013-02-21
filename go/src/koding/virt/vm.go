@@ -191,7 +191,7 @@ func (vm *VM) mapRBD() {
 		}
 
 		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "100", vm.String()).CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
 		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).CombinedOutput(); err != nil {
