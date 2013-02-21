@@ -249,6 +249,20 @@ Includes =
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
         # GROUPS VIEWS
+        groupsWebhookView             : "./client/app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee"
+        groupsEditableWebhookView     : "./client/app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee"
+        groupsMembershipPolicyEditor  : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee"
+        groupsMembershipPolicyDetailView: "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee"
+        groupsrequestview             : "./client/app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee"
+        groupsinvitationrequestlistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee"
+        groupsinvitationrequestsview   : "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee"
+        groupsmemberpermissionslistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee"
+        groupsmemberpermissionsview: "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee"
+        groupsmemberroleseditview     : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee"
+        groupsmembershippolicyview    : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee"
+
+        groupTabHandleView            : "./client/app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee"
+
         joinButton                    : "./client/app/Applications/Groups.kdapplication/Views/joinbutton.coffee"
         groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
