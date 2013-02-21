@@ -4,8 +4,7 @@ class AppStorage extends KDEventEmitter
   constructor: (appId, version)->
     @_applicationID = appId
     @_applicationVersion = version
-    @_storage = null
-
+    @reset()
     super
 
   fetchStorage: (callback = noop)->
@@ -30,14 +29,17 @@ class AppStorage extends KDEventEmitter
   getValue: (key, group = 'bucket')->
 
     return unless @_storage
+    return if @_storageData[group]?[key]? then @_storageData[group][key]
     return if @_storage[group]?[key]? then @_storage[group][key]
 
   setValue: (key, value, callback, group = 'bucket')->
 
     pack = @zip key, group, value
 
+    @_storageData[group] = {} unless @_storageData[group]?
+    @_storageData[group][key] = value
+
     @fetchStorage (storage)=>
-      @_storage[group][key] = value
       storage.update {
         $set: pack
       }, callback
@@ -47,13 +49,14 @@ class AppStorage extends KDEventEmitter
     pack = @zip key, group, 1
 
     @fetchStorage (storage)=>
-      delete @_storage[group][key]
+      delete @_storageData[group]?[key]
       storage.update {
         $unset: pack
       }, callback
 
   reset: ->
     @_storage = null
+    @_storageData = {}
 
   zip: (key, group, value) ->
 
