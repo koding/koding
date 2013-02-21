@@ -58,7 +58,7 @@ func (k *Kite) Run() {
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
 	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
 	for {
 		select {

@@ -194,7 +194,7 @@ func main() {
 		}
 	}()
 
-	stream := amqputil.DeclareBindConsumeQueueNoDelete(consumeChannel, "topic", "broker", "#")
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#", false)
 	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
 	}
