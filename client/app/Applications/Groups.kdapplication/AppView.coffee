@@ -422,22 +422,22 @@ class GroupsApprovalRequestsView extends GroupsRequestView
 
   pistachio:->
     """
-    <section class="formline">
+    <section class="formline status-quo">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
-    <div class="formline">
     <section class="formline batch">
+    <div class="formline">
       <h2>Invite members by batch</h2>
       {{> @batchInvites}}
-    </section>
     </div>
-    <div class="formline">
+    </section>
     <section class="formline pending">
+    <div class="formline">
       <h2>Pending approval</h2>
       {{> @pendingRequestsView}}
-    </section>
     </div>
+    </section>
     """
 
 class GroupsInvitationRequestsView extends GroupsRequestView
@@ -463,7 +463,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @sentRequestListController = new KDListViewController
       viewOptions       :
-        cssClass        : 'request-list'
+        cssClass        : 'requests-list'
       itemClass         : GroupsInvitationRequestListItemView
       showDefaultItem   : yes
       defaultItem       :
@@ -475,7 +475,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @requestListController = new KDListViewController
       viewOptions       :
-        cssClass        : 'request-list'
+        cssClass        : 'requests-list'
       itemClass         : GroupsInvitationRequestListItemView
       showDefaultItem   : yes
       defaultItem       :

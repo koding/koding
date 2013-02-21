@@ -803,9 +803,18 @@
         borderBox()
         padding 20px
         .kdlistitemview-member-item
-          width 50%
+          // width 50%
+          width auto
+          min-width 350px
           display inline-block
+          margin 2px
+          padding 10px
           borderBox()
+          vendor transition, background-color 0.2s ease-in-out
+          background-color rgba(248,248,248,0.5)
+          &:hover
+            background-color rgba(248,248,248,1)
+
           section
             .profile
               borderBox()
@@ -824,6 +833,7 @@
 
     .invitations
     .membership-policy
+    .approval-requests
       padding-top: 20px
 
       section.formline
@@ -883,6 +893,7 @@
         padding-left 17px
 
     .invitations
+    .approval-requests
       padding-top 20px
 
       div.formline.button-field
@@ -917,7 +928,7 @@
         &.status-quo
           width 100%
 
-      .request-list
+      .requests-list
         margin-top 20px
 
         .default-item
@@ -959,6 +970,13 @@
               bg(size,cover)
               bg(repeat,no-repeat)
               size(30px,30px)
+
+    .approval-requests
+      section.formline
+        button
+          margin-left 10px
+          width 60px
+
 
     .permissions-view
       .add-role-dialog
