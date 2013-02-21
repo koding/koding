@@ -648,8 +648,8 @@ class JTreeViewController extends KDViewController
     return unless nodeView
 
     switch key
-      when "down"      then @performDownKey nodeView, event
-      when "up"        then @performUpKey nodeView, event
+      when "down"      then nextNode = @performDownKey nodeView, event
+      when "up"        then nextNode = @performUpKey nodeView, event
       when "left"      then @performLeftKey nodeView, event
       when "right"     then @performRightKey nodeView, event
       when "backspace" then @performBackspaceKey nodeView, event
@@ -660,7 +660,7 @@ class JTreeViewController extends KDViewController
     switch key
       when "down", "up"
         event.preventDefault()
-        @getView().scrollToSubView? nodeView
+        @getView().scrollToSubView? nextNode
 
   performDownKey:(nodeView, event)->
 

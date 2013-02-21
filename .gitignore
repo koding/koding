@@ -46,3 +46,5 @@ sftp-config.json
 
 .vagrant
 .pyc
+
+.cake_task_cache
