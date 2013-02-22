@@ -16,6 +16,7 @@ module.exports = class JMembershipPolicy extends Module
       #   default           : no
       webhookEndpoint     : String
       explanation         : String
+      fields              : Object
 
   explain:->
     return @explanation  if @explanation?
