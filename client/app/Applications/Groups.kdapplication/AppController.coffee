@@ -469,8 +469,6 @@ class GroupsAppController extends AppController
             @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
           membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
-            # group.fetchMembershipPolicy (err, policy)=>
-            @handleMembershipPolicyTabs group, groupView
 
           view.addSubView membershipPolicyView
     return pane
@@ -492,7 +490,7 @@ class GroupsAppController extends AppController
 
         invitationRequestView.on 'RequestIsApproved', (request)->
           request.approveInvitation()
-  
+
         invitationRequestView.on 'RequestIsDeclined', (request)->
           request.declineInvitation()
 

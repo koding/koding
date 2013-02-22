@@ -731,6 +731,7 @@
           // border none
         h3
           font-size 12px
+          padding-bottom 10px
 
         p
           margin-top 0px
@@ -855,19 +856,32 @@
           width 60px
 
     .form-generator
-
+      .form-builder
+        width 100%
+      .add-header
+        margin-bottom 0px
+        div
+          borderBox()
+          padding-left 5px
+          width 200px
+          font-weight bold
+          font-size 12px
+          display inline-block
       .add-inputs
         margin-top 5px
         .kdinput
           width  200px
           display inline-block
+        span.add-button
+          noTextDeco()
+          cursor pointer
       .form-item
         borderBox()
         width auto
-        border 1px solid #e3e3e3
-        border-bottom none
-        &:last-child
-          border-bottom 1px solid #e3e3e3
+        // border 1px solid #e3e3e3
+        // border-bottom none
+        // &:last-child
+        //   border-bottom 1px solid #e3e3e3
         div
           borderBox()
           width 200px
@@ -876,11 +890,20 @@
           overflow none
           padding 1px 9px
           line-height 1.5
-          &.title
-            border-right 1px solid #e3e3e3
-          &.key
-            border-right 1px solid #e3e3e3
-          // &.default
+          // &.title
+          //   border-right 1px solid #e3e3e3
+          // &.key
+          //   border-right 1px solid #e3e3e3
+          &.default
+            span
+              color #aaa
+        span.remove-button
+          // min-width 50px
+          borderBox()
+          noTextDeco()
+          display inline-block
+          margin 0
+          cursor pointer
 
     .permissions-view
       .add-role-dialog
