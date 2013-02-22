@@ -333,6 +333,8 @@ class PopupNotificationListItem extends NotificationListItem
 
     @initializeReadState()
 
+    @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
+
   initializeReadState:->
     if @getData().getFlagValue('glanced')
       @unsetClass 'unread'
@@ -346,7 +348,7 @@ class PopupNotificationListItem extends NotificationListItem
       <div class='right-overflow'>
         <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
         <footer>
-          <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
+          {{> @timeAgoView}
         </footer>
       </div>
     """
