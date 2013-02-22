@@ -47,10 +47,10 @@ class GroupsInvitationRequestListItemView extends KDListItemView
   initializeButtons:->
     invitationRequest = @getData()
 
-    if invitationRequest.status in ['approved','declined']
-      @hideButtons()
-    else
+    if invitationRequest.status is 'pending'
       @showButtons()
+    else
+      @hideButtons()
 
   viewAppended:->
     JView::viewAppended.call this
@@ -61,6 +61,7 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     switch status
       when 'approved' then '✓ Approved'
       when 'pending'  then '… Pending'
+      when 'sent'     then '… Sent'
       when 'declined' then '✗ Declined'
 
   pistachio:->

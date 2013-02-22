@@ -248,6 +248,9 @@ Includes =
         topicsInnerNavigation         : "./client/app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee"
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
+        # GROUPS CONTROLLERS
+        invitationrequestlistcontroller: "./client/app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee"
+
         # GROUPS VIEWS
         groupsWebhookView             : "./client/app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee"
         groupsEditableWebhookView     : "./client/app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee"

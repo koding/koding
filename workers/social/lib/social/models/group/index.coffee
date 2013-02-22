@@ -546,7 +546,6 @@ module.exports = class JGroup extends Module
           callback err
           @emit 'NewInvitationRequest'
 
-
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
