@@ -102,7 +102,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'rabbitmq.local'
     login       : 'PROD-k5it50s4676pO9O'
-    componentUser: "prod-<component>"
+    componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
