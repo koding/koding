@@ -129,6 +129,9 @@ Includes =
         KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
         registry              : "./client/Framework/classregistry.coffee"
 
+        #time
+        KDTimeAgoView         : "./client/Framework/components/time/timeagoview.coffee"
+
       Applications :
         KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"

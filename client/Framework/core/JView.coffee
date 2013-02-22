@@ -1,5 +1,5 @@
 class JView extends KDView
-  
+
   viewAppended:->
 
     @setTemplate @pistachio()
