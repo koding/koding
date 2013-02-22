@@ -81,6 +81,7 @@ class GroupsMembershipPolicyDetailView extends JView
       policy.explanation = explanation
       policy.emit 'update'
 
+    @formGenerator = new GroupsFormGeneratorView
 
   pistachio:->
     """
@@ -91,6 +92,9 @@ class GroupsMembershipPolicyDetailView extends JView
         <p>If you disable this feature, users will not be able to request
         access to this group.  Turn this off to globally disable new
         invitations and approval requests.</p>
+      </div>
+      <div class=""formline>
+        {{> @formGenerator}}
       </div>
     </section>
     {{> @enableWebhooks}}
