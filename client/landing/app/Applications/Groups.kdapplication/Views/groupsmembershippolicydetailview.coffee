@@ -5,7 +5,7 @@ class GroupsMembershipPolicyDetailView extends JView
     super
     policy = @getData()
 
-    {webhookEndpoint, approvalEnabled} = policy
+    {webhookEndpoint, approvalEnabled, dataCollectionEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
 
     # @enableInvitations = new KDOnOffSwitch
@@ -17,6 +17,12 @@ class GroupsMembershipPolicyDetailView extends JView
       defaultValue  : approvalEnabled
       callback      : (state) =>
         @emit 'MembershipPolicyChanged', approvalEnabled: state
+
+    @enableDataCollection = new KDOnOffSwitch
+      defaultValue  : dataCollectionEnabled
+      callback      : (state) =>
+        @emit 'MembershipPolicyChanged', dataCollectionEnabled: state
+        @formGenerator[if state then 'show' else 'hide']()
 
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
@@ -82,6 +88,7 @@ class GroupsMembershipPolicyDetailView extends JView
       policy.emit 'update'
 
     @formGenerator = new GroupsFormGeneratorView
+      cssClass : unless dataCollectionEnabled then 'hidden'
 
   pistachio:->
     """
@@ -93,9 +100,16 @@ class GroupsMembershipPolicyDetailView extends JView
         access to this group.  Turn this off to globally disable new
         invitations and approval requests.</p>
       </div>
-      <div class=""formline>
-        {{> @formGenerator}}
+    </section>
+    {{> @enableDataCollection}}
+    <section class="formline">
+      <h2>Enable data collection</h2>
+      <div class="formline">
+        <p>This will allow you to collect additional data from users who
+        request access to your group.</p>
       </div>
+
+      {{> @formGenerator}}
     </section>
     {{> @enableWebhooks}}
     <section class="formline">
