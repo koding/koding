@@ -78,7 +78,6 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     (@["#{controllerName}Controller"] for controllerName in controllerNames)
 
   refresh:->
-    @requestListController.removeAllItems()
     
     @fetchSomeRequests @invitationTypeFilter, @statusFilter, (err, requests)=>
       if err then console.error err
@@ -99,7 +98,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         {pending, sent, resolved} = groupedRequests
 
         # clear out any items that may be there already:
-        @getControllers().forEach (controller)-> controller.removeAllItems()
+        @getControllers().forEach controller.bound 'removeAllItems'
 
         # populate the lists:
         @requestListController.instantiateListItems pending     if pending?
