@@ -136,7 +136,9 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 				panic(err)
 			}
 			for _, file := range files {
-				copyFile(templateDir+"/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid)
+				if err := copyFile(templateDir+"/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid); err != nil {
+					panic(err)
+				}
 			}
 			prepareDir(vm.UpperdirFile("/var"), RootIdOffset)
 			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
@@ -170,10 +172,18 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 
 func (vm *VM) Unprepare() error {
 	var firstError error
+
+	// stop VM
 	out, err := vm.Stop()
 	if vm.GetState() != "STOPPED" {
 		panic(commandError("Could not stop VM.", err, out))
 	}
+
+	// backup dpkg database for statistical purposes
+	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
+	copyFile(vm.UpperdirFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+
+	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
 	}
@@ -186,12 +196,15 @@ func (vm *VM) Unprepare() error {
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("rbd unmap failed.", err, out)
 	}
+
+	// remove VM directory
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.File("rootfs.hold"))
 	os.Remove(vm.UpperdirFile("/"))
 	os.Remove(vm.File(""))
+
 	return firstError
 }
 
@@ -282,32 +295,33 @@ func chown(path string, uid, gid int) {
 	}
 }
 
-// may panic
-func copyFile(src, dst string, id int) {
+func copyFile(src, dst string, id int) error {
 	sf, err := os.Open(src)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer sf.Close()
 
 	df, err := os.Create(dst)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	defer sf.Close()
 	if _, err := io.Copy(df, sf); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := df.Chown(id, id); err != nil {
-		panic(err)
+		return err
 	}
 	info, err := sf.Stat()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if err := df.Chmod(info.Mode()); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
