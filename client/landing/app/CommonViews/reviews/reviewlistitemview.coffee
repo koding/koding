@@ -5,6 +5,8 @@ class ReviewListItemView extends CommentListItemView
     ,options
     super options,data
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   pistachio:->
     """
     <div class='item-content-review clearfix'>
@@ -15,7 +17,7 @@ class ReviewListItemView extends CommentListItemView
         </p>
         {{> @deleteLink}}
         <span class='footer'>
-          <time>{{> @author}} reviewed {{$.timeago #(meta.createdAt)}}</time>
+          {{> @author}} reviewed {{> @timeAgoView}}
           {{> @likeView}}
         </span>
       </div>

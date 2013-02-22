@@ -115,6 +115,8 @@ class NotificationListItem extends KDListItemView
         height : 40
       origin   : group[0]
 
+    @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -127,7 +129,7 @@ class NotificationListItem extends KDListItemView
       <div class='right-overflow'>
         <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
         <footer>
-          <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
+          {{> @timeAgoView}}
         </footer>
       </div>
     """

@@ -33,6 +33,8 @@ class InboxMessagesListItem extends KDListItemView
       origin  : group[0]
     }
 
+    @participants.hide() if group.length is 0
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
