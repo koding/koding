@@ -57,6 +57,8 @@ class CommentListItemView extends KDListItemView
     else
       @replyView = new KDView
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   applyTooltips:->
     @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
@@ -145,7 +147,7 @@ class CommentListItemView extends KDListItemView
           {{@utils.applyTextExpansions #(body), yes}}
         </p>
         {{> @deleteLink}}
-        <time>{{$.timeago #(meta.createdAt)}}</time>
+        {{> @timeAgoView}}
         {{> @likeView}}
         {{> @replyView}}
       </div>

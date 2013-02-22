@@ -39,6 +39,8 @@ class InboxMessagesListItem extends KDListItemView
         href      : '#'
       cssClass    : 'delete-link'
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     super()
     @setTemplate @pistachio()
@@ -59,7 +61,7 @@ class InboxMessagesListItem extends KDListItemView
         <h3>{{#(subject) or '(No title)'}}</h3>
         <p>{{@teaser #(body)}}</p>
         <footer>
-          {{> @participants}} <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @participants}} {{> @timeAgoView}}
         </footer>
       </div>
     """

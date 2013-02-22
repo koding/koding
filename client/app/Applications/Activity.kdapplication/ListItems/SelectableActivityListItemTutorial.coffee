@@ -78,6 +78,8 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
       cssClass    : "activity-opinion-list comment-container"
     , data
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     # When an opinion gets deleted, then the removeReply method of JDiscussion
     # will emit this event. This is a workaround for the OpinionIsDeleted
     # event not being caught for opinions that are loaded to the client data
@@ -136,7 +138,7 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
         </div>
         {{> @actionLinks}}
       </footer>
