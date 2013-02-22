@@ -21,22 +21,23 @@ import (
 	"time"
 )
 
-type VMState struct {
+type VMInfo struct {
 	vmId          bson.ObjectId
 	sessions      map[*kite.Session]bool
 	timeout       *time.Timer
 	totalCpuUsage int
 
-	CpuUsage    int `json:"cpuUsage"`
-	CpuShares   int `json:"cpuShares"`
-	MemoryUsage int `json:"memoryUsage"`
-	MemoryLimit int `json:"memoryLimit"`
+	State       string `json:"state"`
+	CpuUsage    int    `json:"cpuUsage"`
+	CpuShares   int    `json:"cpuShares"`
+	MemoryUsage int    `json:"memoryUsage"`
+	MemoryLimit int    `json:"memoryLimit"`
 }
 
 var ipPoolFetch <-chan int
 var ipPoolRelease chan<- int
-var states = make(map[bson.ObjectId]*VMState)
-var statesMutex sync.Mutex
+var infos = make(map[bson.ObjectId]*VMInfo)
+var infosMutex sync.Mutex
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -48,9 +49,9 @@ func main() {
 	for iter.Next(&vm) {
 		switch vm.GetState() {
 		case "RUNNING":
-			state := newState(&vm)
-			states[vm.Id] = state
-			state.startTimeout()
+			info := newInfo(&vm)
+			infos[vm.Id] = info
+			info.startTimeout()
 			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
 		case "STOPPED":
 			vm.Unprepare()
@@ -82,9 +83,11 @@ func main() {
 		return vm.Stop()
 	})
 
-	k.Handle("vm.state", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("vm.info", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		_, vm := findSession(session)
-		return states[vm.Id], nil
+		info := infos[vm.Id]
+		info.State = vm.GetState()
+		return info, nil
 	})
 
 	k.Handle("vm.nuke", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -223,30 +226,30 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	}
 	vm := getDefaultVM(&user)
 
-	statesMutex.Lock()
-	state, isExistingState := states[vm.Id]
+	infosMutex.Lock()
+	info, isExistingState := infos[vm.Id]
 	if !isExistingState {
-		state = newState(vm)
-		states[vm.Id] = state
+		info = newInfo(vm)
+		infos[vm.Id] = info
 	}
-	if !state.sessions[session] {
-		state.sessions[session] = true
-		if state.timeout != nil {
-			state.timeout.Stop()
-			state.timeout = nil
+	if !info.sessions[session] {
+		info.sessions[session] = true
+		if info.timeout != nil {
+			info.timeout.Stop()
+			info.timeout = nil
 		}
 
 		session.OnDisconnect(func() {
-			statesMutex.Lock()
-			defer statesMutex.Unlock()
+			infosMutex.Lock()
+			defer infosMutex.Unlock()
 
-			delete(state.sessions, session)
-			if len(state.sessions) == 0 {
-				state.startTimeout()
+			delete(info.sessions, session)
+			if len(info.sessions) == 0 {
+				info.startTimeout()
 			}
 		})
 	}
-	statesMutex.Unlock()
+	infosMutex.Unlock()
 
 	if !isExistingState {
 		ip := utils.IntToIP(<-ipPoolFetch)
@@ -308,8 +311,8 @@ func getUsers(vm *virt.VM) []virt.User {
 	return users
 }
 
-func newState(vm *virt.VM) *VMState {
-	return &VMState{
+func newInfo(vm *virt.VM) *VMInfo {
+	return &VMInfo{
 		vmId:          vm.Id,
 		sessions:      make(map[*kite.Session]bool),
 		totalCpuUsage: utils.MaxInt,
@@ -317,17 +320,17 @@ func newState(vm *virt.VM) *VMState {
 	}
 }
 
-func (state *VMState) startTimeout() {
-	state.timeout = time.AfterFunc(10*time.Minute, func() {
-		statesMutex.Lock()
-		defer statesMutex.Unlock()
+func (info *VMInfo) startTimeout() {
+	info.timeout = time.AfterFunc(10*time.Minute, func() {
+		infosMutex.Lock()
+		defer infosMutex.Unlock()
 
-		if len(state.sessions) != 0 {
+		if len(info.sessions) != 0 {
 			return
 		}
 
 		var vm virt.VM
-		if err := db.VMs.FindId(state.vmId).One(&vm); err != nil {
+		if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
 			log.Err("Could not find VM for shutdown.", err)
 		}
 		if out, err := vm.Shutdown(); err != nil {
@@ -341,7 +344,7 @@ func (state *VMState) startTimeout() {
 		ipPoolRelease <- utils.IPToInt(vm.IP)
 		vm.IP = nil
 
-		delete(states, vm.Id)
+		delete(infos, vm.Id)
 	})
 }
 

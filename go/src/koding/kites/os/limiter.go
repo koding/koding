@@ -14,14 +14,14 @@ func LimiterLoop() {
 	totalRAM := GetTotalRAM()
 
 	for {
-		statesMutex.Lock()
+		infosMutex.Lock()
 
 		// collect memory stats and calculate limit
-		vmCount := len(states)
+		vmCount := len(infos)
 		memoryUsages := make([]int, 0, vmCount)
-		for name, state := range states {
+		for name, info := range infos {
 			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes", name))
-			state.MemoryUsage = usage
+			info.MemoryUsage = usage
 			memoryUsages = append(memoryUsages, usage)
 		}
 		sort.Ints(memoryUsages)
@@ -46,31 +46,31 @@ func LimiterLoop() {
 		}
 
 		// apply limits
-		for name, state := range states {
+		for name, info := range infos {
 			newTotalCpuUsage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage", name))
 
-			state.CpuUsage = 0
-			if newTotalCpuUsage > state.totalCpuUsage {
-				state.CpuUsage = newTotalCpuUsage - state.totalCpuUsage
+			info.CpuUsage = 0
+			if newTotalCpuUsage > info.totalCpuUsage {
+				info.CpuUsage = newTotalCpuUsage - info.totalCpuUsage
 			}
-			state.totalCpuUsage = newTotalCpuUsage
+			info.totalCpuUsage = newTotalCpuUsage
 
-			state.CpuShares -= state.CpuUsage / 100000000
-			state.CpuShares += 1
-			if state.CpuShares < 1 {
-				state.CpuShares = 1
+			info.CpuShares -= info.CpuUsage / 100000000
+			info.CpuShares += 1
+			if info.CpuShares < 1 {
+				info.CpuShares = 1
 			}
-			if state.CpuShares > 1000 {
-				state.CpuShares = 1000
+			if info.CpuShares > 1000 {
+				info.CpuShares = 1000
 			}
 
-			state.MemoryLimit = memoryLimit
+			info.MemoryLimit = memoryLimit
 
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/cpu/lxc/%s/cpu.shares", name), []byte(strconv.Itoa(state.CpuShares)), 0644)
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(state.MemoryLimit)), 0644)
+			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/cpu/lxc/%s/cpu.shares", name), []byte(strconv.Itoa(info.CpuShares)), 0644)
+			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(info.MemoryLimit)), 0644)
 		}
 
-		statesMutex.Unlock()
+		infosMutex.Unlock()
 		time.Sleep(time.Second)
 	}
 }
