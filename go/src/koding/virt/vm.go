@@ -88,7 +88,7 @@ func LowerdirFile(path string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + path
 }
 
-func (vm *VM) Prepare(users []User) {
+func (vm *VM) Prepare(users []User, nuke bool) {
 	vm.Unprepare()
 
 	// write LXC files
@@ -100,9 +100,22 @@ func (vm *VM) Prepare(users []User) {
 	vm.mapRBD()
 
 	// mount block device to upperdir
-	prepareDir(vm.UpperdirFile(""), RootIdOffset)
+	prepareDir(vm.UpperdirFile("/"), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
+	}
+
+	// remove all except /home on nuke
+	if nuke {
+		entries, err := ioutil.ReadDir(vm.UpperdirFile("/"))
+		if err != nil {
+			panic(err)
+		}
+		for _, entry := range entries {
+			if entry.Name() != "home" {
+				os.RemoveAll(vm.UpperdirFile("/" + entry.Name()))
+			}
+		}
 	}
 
 	// prepare directories in upperdir
@@ -118,7 +131,7 @@ func (vm *VM) Prepare(users []User) {
 			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
 			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
 			prepareDir(vm.UpperdirFile(websiteDir), user.Uid)
-			files, err := ioutil.ReadDir("templates/website")
+			files, err := ioutil.ReadDir(templateDir + "/website")
 			if err != nil {
 				panic(err)
 			}

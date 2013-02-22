@@ -87,6 +87,12 @@ func main() {
 		return states[vm.Id], nil
 	})
 
+	k.Handle("vm.nuke", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		_, vm := findSession(session)
+		vm.Prepare(getUsers(vm), true)
+		return vm.Start()
+	})
+
 	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
@@ -249,17 +255,7 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 		}
 		vm.IP = ip
 
-		users := make([]virt.User, len(vm.Users))
-		for i, entry := range vm.Users {
-			if err := db.Users.FindId(entry.Id).One(&users[i]); err != nil {
-				panic(err)
-			}
-			if users[i].Uid == 0 {
-				panic("User with uid 0.")
-			}
-		}
-		vm.Prepare(users)
-
+		vm.Prepare(getUsers(vm), false)
 		if out, err := vm.Start(); err != nil {
 			log.Err("Could not start VM.", err, out)
 		}
@@ -297,6 +293,19 @@ func getDefaultVM(user *virt.User) *virt.VM {
 		panic(err)
 	}
 	return &vm
+}
+
+func getUsers(vm *virt.VM) []virt.User {
+	users := make([]virt.User, len(vm.Users))
+	for i, entry := range vm.Users {
+		if err := db.Users.FindId(entry.Id).One(&users[i]); err != nil {
+			panic(err)
+		}
+		if users[i].Uid == 0 {
+			panic("User with uid 0.")
+		}
+	}
+	return users
 }
 
 func newState(vm *virt.VM) *VMState {
