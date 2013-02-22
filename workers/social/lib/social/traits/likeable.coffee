@@ -43,6 +43,9 @@ module.exports = class Likeable
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                if constructor.name in ["JComment", "JOpinion"]
+                  constructor.fetchRelated? @getId(), (err, activity)->
+                    activity.triggerCache()
                 delegate.update ($inc: 'counts.likes': 1), (err)->
                   console.log err if err
                 @fetchActivityId? (err, id)->
