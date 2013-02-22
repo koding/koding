@@ -1,6 +1,6 @@
 class GroupsInvitationRequestsView extends GroupsRequestView
 
-  controllerNames = ['requestList','sentList','resolvedList']
+  controllerNames = ['pendingList','sentList','resolvedList']
 
   constructor:(options, data)->
     super
@@ -98,10 +98,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         {pending, sent, resolved} = groupedRequests
 
         # clear out any items that may be there already:
-        @getControllers().forEach controller.bound 'removeAllItems'
+        @getControllers().forEach (controller)-> controller.removeAllItems()
 
         # populate the lists:
-        @requestListController.instantiateListItems pending     if pending?
+        @pendingListController.instantiateListItems pending     if pending?
         @sentListController.instantiateListItems sent           if sent?
         @resolvedListController.instantiateListItems resolved   if resolved?
 
@@ -118,11 +118,13 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           cssClass      : 'default-item'
           partial       : 'No invitations sent'
 
+    @forwardEvent @sentListController, 'ShowMoreRequested', 'Sent'
+
     @sentRequestList = @sentListController.getView()
     return @sentRequestList
 
   prepareRequestList:->
-    @requestListController = new InvitationRequestListController
+    @pendingListController = new InvitationRequestListController
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
@@ -132,14 +134,16 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           cssClass      : 'default-item'
           partial       : 'No invitations pending'
 
-    @requestList = @requestListController.getView()
+    @pendingList = @pendingListController.getView()
 
-    listView = @requestListController.getListView()
+    listView = @pendingListController.getListView()
 
     @forwardEvent listView, 'RequestIsApproved'
     @forwardEvent listView, 'RequestIsDeclined'
 
-    return @requestList
+    @forwardEvent @pendingListController, 'ShowMoreRequested', 'Pending'
+
+    return @pendingList
 
   prepareResolvedList:->
     @resolvedListController = new InvitationRequestListController
@@ -148,6 +152,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         options         :
           cssClass      : 'default-item'
           partial       : 'No requests resolved'
+
+    @forwardEvent @resolvedListController, 'ShowMoreRequested', 'Resolved'
 
     @resolvedList = @resolvedListController.getView()
     return @resolvedList
@@ -171,7 +177,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     <div class="formline">
       <section class="formline pending">
         <h2>Pending requests</h2>
-        {{> @requestList}}
+        {{> @pendingList}}
       </section>
       <section class="formline sent">
         <h2>Sent invitations</h2>
