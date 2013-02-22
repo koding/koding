@@ -79,10 +79,14 @@ module.exports = class JActivityCache extends jraphical.Module
 
   @containsTimestamp = (timestamp, callback)->
 
-    date     = new Date parseInt(timestamp,10)
+    date     = new Date timestamp
     selector = to : { $gte : date }
 
-    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
+    options =
+      limit : 1
+      sort  : to : 1
+
+    @one selector, options, (err, cache)-> kallback err, cache, callback
 
   @init = (from, to)->
 
@@ -121,7 +125,7 @@ module.exports = class JActivityCache extends jraphical.Module
                 console.log "capped latest with #{remainderOverview.length} new items!"
                 cacheQueue.next()
 
-            # terminate only if there are no new items to be cached
+            # cancel only if there are no new items to be cached
             if overview.length is 0
               cacheQueue.push =>
                 log "caching finished.\n"
@@ -254,7 +258,7 @@ module.exports = class JActivityCache extends jraphical.Module
           overview = overview.concat cache
 
           if overview.length is 0
-            callback "no items to be cached, terminating..."
+            callback "no items to be cached, cancelling..."
             return
 
           console.log "total in this batch: #{overview.length}"
@@ -389,11 +393,9 @@ module.exports = class JActivityCache extends jraphical.Module
 
     {teaserId, createdAt} = teaser
 
-    # log teaser
-    # log teaserId, createdAt
+    log "modifying cache instance by teaser..."
 
     @containsTimestamp createdAt, (err, cache)->
-      # log {cache}
       if err then callback? err
       else
 
@@ -402,15 +404,11 @@ module.exports = class JActivityCache extends jraphical.Module
         # this is to get the activity
         idToUpdate = null
         for id, activity of cache.activities
-          # log id, activity.snapshotIds[0].equals teaserId
           if activity.snapshotIds[0].equals teaserId
             idToUpdate = id
             break
 
-          # log "::::::", idToUpdate
-
         CActivity.one _id : idToUpdate, (err, activity)->
-          # log ">>>>>>>>>", err, activity
           if err then callback? err
           else if activity
             setModifier = {}
