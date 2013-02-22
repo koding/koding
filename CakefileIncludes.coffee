@@ -255,11 +255,12 @@ Includes =
         groupsMembershipPolicyDetailView: "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee"
         groupsrequestview             : "./client/app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee"
         groupsinvitationrequestlistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee"
-        groupsinvitationrequestsview   : "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee"
+        groupsinvitationrequestsview  : "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee"
         groupsmemberpermissionslistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee"
-        groupsmemberpermissionsview: "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee"
+        groupsmemberpermissionsview   : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee"
         groupsmemberroleseditview     : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee"
         groupsmembershippolicyview    : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee"
+        groupsformgeneratorview       : "./client/app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee"
 
         groupTabHandleView            : "./client/app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee"
 
