@@ -16,6 +16,4 @@ class InvitationRequestListController extends KDListViewController
         href  : '#'
         click : (event)=>
           event.preventDefault()
-          @showMore()
-
-  showMore:-> console.log 'more requested'
+          @emit 'ShowMoreRequested'
