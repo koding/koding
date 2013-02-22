@@ -348,7 +348,7 @@ class PopupNotificationListItem extends NotificationListItem
       <div class='right-overflow'>
         <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
         <footer>
-          {{> @timeAgoView}
+          {{> @timeAgoView}}
         </footer>
       </div>
     """
