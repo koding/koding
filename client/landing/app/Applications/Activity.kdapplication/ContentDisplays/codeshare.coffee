@@ -83,6 +83,8 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
         @emit "ContentDisplayWantsToBeHidden"
         @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeShareActivity
     super()
@@ -127,7 +129,7 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
           {{> @tags}}
         </div>
         {{> @actionLinks}}

@@ -379,10 +379,14 @@ class PopupMessageListItem extends KDListItemView
       id              : participant.sourceId
 
     @participants = new ProfileTextGroup {group}
+    @participants.hide() if group.length is 0
+
     @avatar       = new AvatarStaticView {
       size    : {width: 40, height: 40}
       origin  : group[0]
     }
+
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
   initializeReadState:->
     if @getData().getFlagValue('read')
@@ -410,7 +414,7 @@ class PopupMessageListItem extends KDListItemView
       <a href='#'>{{#(subject) or '(No title)'}}</a><br/>
       {{@teaser #(body)}}
       <footer>
-        <time>{{> @participants}} {{$.timeago #(meta.createdAt)}}</time>
+        {{> @participants}} {{> @timeAgoView}}
       </footer>
     </div>
     """
