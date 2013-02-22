@@ -8,13 +8,7 @@ class KDTimeAgoView extends KDView
 
     super options, data
 
-    KDTimeAgoView.on "OneMinutePassed", =>
-      oldDate   = new Date @getData()
-      timestamp = oldDate.setMinutes oldDate.getMinutes() - 1
-
-      @setData dateFormat timestamp, "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
-
-      @updatePartial $.timeago @getData()
+    KDTimeAgoView.on "OneMinutePassed", => @updatePartial $.timeago @getData()
 
   viewAppended: ->
     @setPartial $.timeago @getData()
