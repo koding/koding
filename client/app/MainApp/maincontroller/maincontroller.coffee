@@ -24,9 +24,6 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
-      # FIXME GG
-      @getAppStorageSingleton 'Ace', '1.0'
-
     @on 'ManageRemotesRequested', -> new ManageRemotesModal
 
     @setFailTimer()
@@ -43,7 +40,7 @@ class MainController extends KDController
       storage = @appStorages[appName] = new AppStorage appName, version
 
     storage.fetchStorage()
-    storage
+    return storage
 
   appReady:do ->
     applicationIsReady = no
