@@ -146,37 +146,6 @@ class GroupsAppController extends AppController
     invitePane = tabs.getPaneByName paneName
     tabs.removePane invitePane if invitePane
 
-  # hideInvitationsTab:-> 
-  #   @removePaneByName @groupView, 'Invitations'
-
-  # showApprovalTab:->
-  #   {groupView} = this
-    
-  #   group = groupView.getData()
-
-  #   pane = new KDTabPaneView name: 'Approval requests'
-  #   tab = groupView.tabView.addPane pane, no
-
-  #   approvalRequestView = new GroupsApprovalRequestsView {}, group
-
-  #   group.on 'NewMembershipApprovalRequest', ->
-  #     pane.tabHandle.markDirty()
-
-  #   pane.on 'PaneDidShow', ->
-  #     approvalRequestView.refresh()  if pane.tabHandle.isDirty
-  #     pane.tabHandle.markDirty no
-
-  #   approvalRequestView.on 'RequestIsApproved', (invitationRequest)->
-  #     invitationRequest.approveInvitation()
-  
-  #   approvalRequestView.on 'RequestIsDeclined', (invitationRequest)->
-  #     invitationRequest.declineInvitation()
-
-  #   tab.addSubView approvalRequestView
-
-  hideApprovalTab:(tabView)->
-    @removePaneByName @groupView, 'Approval requests'
-
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
@@ -357,16 +326,6 @@ class GroupsAppController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
 
-    # unless isNewGroup
-    #   modalOptions.tabs.forms.Permissions =
-    #     title : 'Permissions'
-    #     cssClass : 'permissions-modal'
-    #   modalOptions.tabs.forms.Members =
-    #     title   : "User permissions"
-    #   if isPrivateGroup
-    #     modalOptions.tabs.forms['Membership policy'] =
-    #       title   : "Membership policy"
-
     modal = new KDModalViewWithForms modalOptions, group
 
     {forms} = modal.modalTabs
@@ -403,74 +362,12 @@ class GroupsAppController extends AppController
       handleError err  if err?
       callback err
 
-  getMembershipPolicyChangeData:(invitationsEnabled)->
-    if invitationsEnabled
-      {
-        remainingInvitationType: 'invitation'
-        errorMessage:
-          """
-          This group has pending invitations.  Before you can disable
-          invitations, you'll need to either resolve the pending invitations
-          by either sending them or deleting them.
-          """
-        policyChangeButtons: ['Send all', 'Delete all', 'cancel']
-      }
-    else
-      {
-        remainingInvitationType: 'basic approval'
-        errorMessage:
-          """
-          This group has pending approvals.  Before you can enable invitations,
-          you'll need to resolve the pending approvals by either approving
-          them or declining them.
-          """
-        policyChangeButtons: ['Approve all', 'Decline all', 'cancel']
-      }
-
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
-
-    @groupView.setStaleTab 'Members'
-
-    complete = ->
-      group.modifyMembershipPolicy formData, ->
-        membershipPolicyView.emit 'MembershipPolicyChangeSaved'
-
-    if policy.invitationsEnabled isnt formData.invitationsEnabled
-
-      {remainingInvitationType, errorMessage, policyChangeButtons} =
-        @getMembershipPolicyChangeData policy.invitationsEnabled
-
-      targetSelector =
-        invitationType: remainingInvitationType
-        status: 'pending'
-
-      group.countInvitationRequests {}, targetSelector, (err, count)=>
-        if err then handleError err
-        else if count isnt 0
-          # handlers for buttons:
-          actions = [
-            @resolvePendingRequests.bind this, group, yes, complete
-            @resolvePendingRequests.bind this, group, no, complete
-            (modal)-> modal.cancel()
-          ]
-          cssClasses = ['modal-clean-green','modal-clean-red','modal-cancel']
-          policyChangeButtons = policyChangeButtons.reduce (acc, title, i)->
-            acc[title] = {
-              title
-              cssClass: cssClasses[i]
-              callback: actions[i]
-            }
-            return acc
-          , {}
-          handleError {
-            message : errorMessage
-            cancel  : @cancelMembershipPolicyChange.bind this, policy, membershipPolicyView
-          }, policyChangeButtons
-        else complete()
-    else complete()
+    group.modifyMembershipPolicy formData, ->
+      membershipPolicyView.emit 'MembershipPolicyChangeSaved'
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -524,31 +421,6 @@ class GroupsAppController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-
-  # selectTab:(groupView, tabName, konstructor)->
-  #   groupView.assureTab tabName, konstructor
-
-  # handleMembershipPolicyTabs:->
-  #   {groupView} = this
-
-  #   group = groupView.getData()
-
-  #   group.fetchMembershipPolicy (err, policy)=>
-  #     if policy.invitationsEnabled
-  #       unless groupView.tabView.getPaneByName 'Invitations'
-  #         @showInvitationsTab group, groupView
-  #       if groupView.tabView.getPaneByName 'Approval requests'
-  #         @hideApprovalTab groupView
-  #     else
-  #       if policy.approvalEnabled
-  #         unless groupView.tabView.getPaneByName 'Approval requests'
-  #           @showApprovalTab group, groupView
-  #         if groupView.tabView.getPaneByName 'Invitations'
-  #           @hideInvitationsTab groupView
-  #       else
-  #         @hideInvitationsTab groupView
-  #         @hideApprovalTab groupView
-
   prepareReadmeTab:->
     {groupView} = this
     group = groupView.getData()
@@ -573,7 +445,7 @@ class GroupsAppController extends AppController
     pane = groupView.createLazyTab 'Members', GroupsMemberPermissionsView,
       (pane, view)=>
         pane.on 'PaneDidShow', ->
-          groupView.refresh()  if pane.tabHandle.isDirty
+          view.refresh()  if pane.tabHandle.isDirty
           pane.tabHandle.markDirty no
 
     group.on 'NewMember', ->
@@ -617,10 +489,6 @@ class GroupsAppController extends AppController
               invitationRequestView.prepareBulkInvitations()
             {statusInfo} = invitationRequestView.batchInvites.inputs
             statusInfo.updatePartial Encoder.htmlDecode message
-
-        # invitationRequestView.on 'InvitationIsSent', (request)->
-        #   request.sendInvitation ->
-        #     console.log 'invitation is sent', {arguments}
 
         invitationRequestView.on 'RequestIsApproved', (request)->
           request.approveInvitation()

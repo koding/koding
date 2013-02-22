@@ -110,8 +110,9 @@ module.exports = class JInvitationRequest extends Model
 
   approveInvitation: permit 'send invitations'
     success: (client, callback=->)->
+      console.trace()
       JGroup = require './group'
-      JGroup.one {slug: @group}, (err, group)=>
+      JGroup.one { slug: @group }, (err, group)=>
         if err then callback err
         else unless group?
           callback new KodingError "No group! #{@group}"
@@ -119,25 +120,32 @@ module.exports = class JInvitationRequest extends Model
           @fetchAccount (err, account)=>
             if err then callback err
             else
-              group.approveMember account, (err)=>
-                if err then callback err
-                else @update $set:{ status: 'approved' }, callback
+              
+              # send the invitation in any case:
+              @sendInvitation()
+              
+              if account?
+                group.approveMember account, (err)=>
+                  if err then callback err
+                  else @update $set:{ status: 'approved' }, callback
+              else
+                @update $set:{ status: 'sent' }, callback
 
   deleteInvitation: permit 'send invitations'
     success:(client, rest...)-> @remove rest...
 
-  sendInvitation: permit 'send invitations'
-    success: (client, callback=->)->
-      JUser         = require './user'
-      JInvitation   = require './invitation'
-      JUser.someData username: @koding.username, {email:1}, (err, cursor)=>
-        if err then callback err
-        else
-          cursor.nextObject (err, obj)=>
-            if err then callback err
-            else unless obj?
-              callback new KodingError "Unknown username: #{@koding.username}"
-            else
-              JInvitation.sendBetaInvite obj, (err)=>
-                if err then callback err
-                else @update $set: status: 'sent', (err)-> callback err
+  sendInvitation:(callback=->)->
+    JUser         = require './user'
+    JInvitation   = require './invitation'
+    JUser.someData username: @koding.username, { email: 1 }, (err, cursor)=>
+      if err then callback err
+      else
+        cursor.nextObject (err, obj)=>
+          if err then callback err
+          else unless obj?
+            callback new KodingError "Unknown username: #{@koding.username}"
+          else
+            JInvitation.sendBetaInvite obj, callback
+
+  sendInvitation$: permit 'send invitations'
+    success: (client, callback)-> @sendInvitation callback

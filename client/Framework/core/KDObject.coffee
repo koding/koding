@@ -26,6 +26,9 @@ class KDObject extends KDEventEmitter
 
   lazyBound: (method, rest...)-> @[method].bind this, rest...
 
+  forwardEvent:(target, event, prefix="")->
+    target.on event, @lazyBound 'emit', prefix + event
+
   ready:(listener)->
     if @readyState > 0 then listener()
     else @once 'ready', listener
