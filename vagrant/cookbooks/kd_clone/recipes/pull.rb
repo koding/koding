@@ -30,7 +30,7 @@ end
 git "/opt/koding" do
    user              "koding"
    group             "koding"
-   repository        'git@kodingen.beanstalkapp.com:/koding.git'
+   repo              'git@10.0.0.25:koding.git' # gitlab server
    # branch            'virtualization'
    revision          "virtualization" # or "HEAD" or "TAG_for_1.0" 
    action            :sync

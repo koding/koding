@@ -41,7 +41,7 @@ if (! ::File.exists?("/var/lib/lxc/vmroot/rootfs"))
 	# packages are installed with debootstrap
 	# additional packages are installed later on with apt-get
 	packages="ssh,curl,iputils-ping,iputils-tracepath,telnet,vim,rsync"
-	additional_packages="ubuntu-minimal ubuntu-standard apache2 php5 libapache2-mod-php5 htop iotop iftop screen nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client"
+	additional_packages="ubuntu-minimal ubuntu-standard mc apache2 php5 libapache2-mod-php5 htop iotop iftop screen nodejs nodejs-legacy php5-cgi erlang ghc swi-prolog clisp ruby ruby-dev ri rake golang python mercurial git subversion cvs bzr fish sudo net-tools wget aptitude emacs ldap-auth-client"
 	suite="#{node["lsb"].codename}"
 	variant="buildd"
 	target="/var/lib/lxc/vmroot/rootfs"
