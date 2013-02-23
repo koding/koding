@@ -17,9 +17,9 @@ class MainTabView extends KDTabView
 
       @showPaneByView options, appView
 
-    appManager.on 'AppViewRemovedFromAppManager', (appController, appView, options)=>
-      log "gelmii mi? removePaneByView"
-      @removePaneByView options, appView
+    # appManager.on 'AppViewRemovedFromAppManager', (appController, appView, options)=>
+
+    #   @removePaneByView options, appView
 
 
     @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
@@ -119,7 +119,7 @@ class MainTabView extends KDTabView
       options.cssClass    = @utils.curryCssClass "content-area-pane", options.cssClass
     options.type        or= "content"
     options.class       or= KDView
-    options.hiddenHandle ?= yes
+    # options.hiddenHandle ?= yes
 
     paneInstance = new MainTabPane options, mainView
 

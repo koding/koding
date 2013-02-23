@@ -1,15 +1,16 @@
 class WebTermController extends AppController
 
   KD.registerAppClass @,
-    name     : "WebTerm"
-    multiple : yes
+    name         : "WebTerm"
+    route        : "Develop"
+    multiple     : yes
+    hiddenHandle : no
 
   constructor:(options = {}, data)->
 
     options.view    = new WebTermAppView
     options.appInfo =
       name         : "Terminal"
-      hiddenHandle : no
       type         : "application"
       cssClass     : "webterm"
 

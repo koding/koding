@@ -3,49 +3,144 @@
 
 class ApplicationManager extends KDObject
 
-  constructor: ->
+  ###
 
-    @appControllers  = {}
+  * EMITTED EVENTS
+    - AppDidInitiate [appController, appView, appOptions]
+    - AppDidShow     [appController, appView, appOptions]
+    - AppDidQuit     [appOptions]
 
-    super
+  ###
 
-  setGroup:-> console.log 'setGroup', arguments
+  appControllers: {}
 
-  isAppUnderDevelop:(appName)->
+  open: do ->
 
-    appsWithCustomRoutes = [
-      'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
-      'Account','Chat','Demos'
-    ]
+    createOrShow = (appOptions, callback = noop)->
 
-    return !(appName in appsWithCustomRoutes)
-
-  openApplication:do->
-
-    openAppHandler =(app, appName, doBringToFront, callback)->
-      if 'function' is typeof callback then @utils.defer -> callback app
-      if doBringToFront then app.bringToFront()
-
-
-    (appName, doBringToFront, callback)->
-      # console.trace()
-      [callback, doBringToFront] = [doBringToFront, callback]  unless callback
-      doBringToFront ?= yes
-
-      appName  or= KD.getSingleton('mainController').getOptions().startPage
-      appOptions = KD.getAppOptions appName
-
-      unless appOptions.multiple
-        app = @getAppInstance appName
-
-      if app?
-        openAppHandler.call @, app, appName, doBringToFront, callback
+      appManager  = KD.getSingleton "appManager"
+      appInstance = appManager.getAppInstance appOptions
+      if appInstance
+        appManager.show appInstance, callback
       else
-        # this is the first time the app is opened.
-        console.trace()
-        @createAppInstance appName, (app)=>
-          @registerAppListeners app
-          openAppHandler.call @, app, appName, doBringToFront, callback
+        appManager.create appOptions, (appInstance)->
+          appManager.show appInstance, callback
+
+    (appOptions, callback = noop)->
+
+      if appOptions.multiple
+        switch appOptions.openWith
+          when "lastOpen" then createOrShow appOptions
+          when "prompt"
+            @createPromptModal appOptions, (appInstance)=>
+              if appInstance
+                @show appInstance, callback
+              else
+                @create appOptions, callback
+      else
+        createOrShow appOptions, callback
+
+  tell:(name, command, rest...)->
+
+    return warn "ApplicationManager::tell called without an app name!"  unless name
+
+    appOptions = KD.getAppOptions name
+    @open appOptions, (appInstance)-> appInstance?[command]? rest...
+
+  create:(appOptions, callback)->
+
+    {name}   = appOptions
+    AppClass = KD.getAppClass name
+
+    @register new AppClass appOptions  if AppClass
+
+  show:(appOptions, callback)->
+
+    return if appOptions.background
+
+    # show app here
+
+  quit:(appInstance, callback = noop)->
+
+    @unregister appInstance
+    callback()
+
+  register:(appInstance)->
+
+    name = appInstance.getOption "name"
+    @appControllers[name] ?= []
+    @appControllers[name].push appInstance
+    @setListeners appInstance
+
+  unregister:(appInstance)->
+
+    name  = appInstance.getOption "name"
+    index = @appControllers[name].indexOf appInstance
+
+    if index >= 0
+      @appControllers[name].splice index, 1
+      if @appControllers[name].length is 0
+        delete @appControllers[name]
+      appInstance.destroy()
+
+  createPromptModal:(appOptions, callback)->
+    # show modal and wait for response
+    callback appInstance
+
+  setListeners:(appInstance)->
+
+    appInstance.once "ApplicationWantsToBeShown", @bound "applicationWantsToBeShown"
+    appView = appInstance.getView?()
+    appView?.once "KDObjectWillBeDestroyed", =>
+      @applicationIsBeingClosed appInstance, appView
+
+
+
+
+
+
+  # setGroup:-> console.log 'setGroup', arguments
+
+  # isAppUnderDevelop:(appName)->
+
+  #   appsWithCustomRoutes = [
+  #     'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
+  #     'Account','Chat','Demos'
+  #   ]
+
+  #   return !(appName in appsWithCustomRoutes)
+
+
+
+
+  # openApplication:do->
+
+  #   openAppHandler =(app, appName, doBringToFront, callback)->
+  #     if 'function' is typeof callback then @utils.defer -> callback app
+  #     if doBringToFront then app.bringToFront()
+
+  #   (appName, doBringToFront, callback)->
+
+  #     [callback, doBringToFront] = [doBringToFront, callback]  unless callback
+  #     doBringToFront ?= yes
+
+  #     appName  or= KD.getSingleton('mainController').getOption "startPage"
+  #     appOptions = KD.getAppOptions appName
+
+  #     unless appOptions.multiple
+  #       app = @getAppInstance appName
+
+  #     if app?
+  #       openAppHandler.call @, app, appName, doBringToFront, callback
+  #     else
+  #       @createAppInstance appName, (app)=>
+  #         @registerAppListeners app
+  #         openAppHandler.call @, app, appName, doBringToFront, callback
+
+  # tell:(path, command, rest...)->
+  #   @openApplication path, no, (app)-> app?[command]? rest...
+
+
 
   registerAppListeners:(appController)->
 
@@ -64,23 +159,15 @@ class ApplicationManager extends KDObject
   applicationIsBeingClosed:(appController, appView, options)->
 
     log "applicationIsBeingClosed", appController, appView, options
-
     @removeAppInstance appController
-
-    # @emit 'AppViewRemovedFromAppManager', appController, appView, options
 
   openFile:(file)->
     @openFileWithApplication file, 'Ace'
 
   openFileWithApplication:(file, appPath)->
     @openApplication appPath, no, (app)->
-      # log app, file
       app.openFile file
 
-  tell:(path, command, rest...)->
-    @openApplication path, no, (app)-> app?[command]? rest...
-
-  getAllAppInstances:-> @openedInstances
 
   createAppInstance:(appName, callback)->
 
@@ -105,49 +192,11 @@ class ApplicationManager extends KDObject
     {name}  = appInfo
     index   = @appControllers[name].indexOf appController
 
-    # debugger
     if index >= 0
       @appControllers[name].splice index, 1
       if @appControllers[name].length is 0
         delete @appControllers[name]
       appController.destroy()
-
-  getAppViews:(path)->
-    # index = @appInstances.indexOf @getAppInstance path
-    # @appViews2d[index]
-
-  addOpenTab:(tab, controller)-> @openTabs.push tab
-
-  getOpenTabs:()-> @openTabs
-
-  removeOpenTab:(tab)-> @openTabs.splice (@openTabs.indexOf tab), 1
-
-  quitAll:(callback)->
-
-    @quitApplication path for own path of @getAllAppInstances()
-
-    #FIXME: make this async -sah 1/3/12
-    callback?()
-
-  forceQuit:(path)->
-    app   = @getAppInstance path
-    views = (@getAppViews path)?.slice 0
-    for view in views ? []
-      app.emit 'ApplicationWantsToClose', app, view
-      view.destroy()
-    @removeAppInstance path
-    app?.destroy()
-
-  quitApplication:(path)->
-    app = @getAppInstance path
-    if app and typeof app.quit is "function"
-      app.quit? ->
-        @removeAppInstance path
-      setTimeout ->
-        @forceQuit path
-      , 50000
-    else
-      @forceQuit path
 
 
   # temp

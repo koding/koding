@@ -1,6 +1,9 @@
 class AccountAppController extends AppController
 
-  KD.registerAppClass @, name : "Account"
+  KD.registerAppClass @,
+    name         : "Account"
+    route        : "Account"
+    hiddenHandle : yes
 
   constructor:(options={},data)->
 

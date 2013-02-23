@@ -1,6 +1,9 @@
 class DemosAppController extends AppController
 
-  KD.registerAppClass @, name : "Demos"
+  KD.registerAppClass @,
+    name         : "Demos"
+    route        : "Demos"
+    hiddenHandle : yes
 
   constructor:(options = {}, data)->
     options.view    = new DemosMainView

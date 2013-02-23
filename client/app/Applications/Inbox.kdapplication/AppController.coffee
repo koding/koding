@@ -1,6 +1,9 @@
 class InboxAppController extends AppController
 
-  KD.registerAppClass @, name : "Inbox"
+  KD.registerAppClass @,
+    name         : "Inbox"
+    route        : "Inbox"
+    hiddenHandle : yes
 
   {race} = Bongo
 

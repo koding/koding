@@ -1,6 +1,9 @@
 class ActivityAppController extends AppController
 
-  KD.registerAppClass @, name : "Activity"
+  KD.registerAppClass @,
+    name         : "Activity"
+    route        : "Activity"
+    hiddenHandle : yes
 
   activityTypes = [
       'CStatusActivity'

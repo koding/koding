@@ -175,7 +175,11 @@ KD.error = error = noop
     if KD.appClasses[name]
       return warn "AppClass #{name} is already registered or the name is already taken!"
 
-    options.multiple ?= no
+    options.multiple      ?= no           # a Boolean
+    options.background    ?= no           # a Boolean
+    options.hiddenHandle  ?= no           # a Boolean
+    options.route        or= ""           # a String
+    options.openWith     or= "lastActive" # a String "lastActive" or "prompt"
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
