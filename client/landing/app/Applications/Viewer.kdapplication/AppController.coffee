@@ -2,6 +2,7 @@ class ViewerAppController extends KDViewController
 
   KD.registerAppClass @,
     name     : "Viewer"
+    route    : "Develop"
     multiple : yes
 
   constructor:->

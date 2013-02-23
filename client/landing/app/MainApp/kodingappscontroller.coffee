@@ -2,7 +2,9 @@ KDApps = {}
 
 class KodingAppsController extends KDController
 
-  KD.registerAppClass @, name : "KodingAppsController"
+  KD.registerAppClass @,
+    name       : "KodingAppsController"
+    background : yes
 
   escapeFilePath = FSHelper.escapeFilePath
 

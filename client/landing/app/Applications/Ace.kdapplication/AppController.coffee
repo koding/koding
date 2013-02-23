@@ -1,16 +1,17 @@
 class AceAppController extends AppController
 
   KD.registerAppClass @,
-    name     : "Ace"
-    multiple : yes
-    # openWith : "last" # "confirm"
+    name         : "Ace"
+    multiple     : yes
+    hiddenHandle : no
+    openWith     : "lastActive"
+    route        : "Develop"
 
   constructor: (options = {}, data)->
 
     options.view = new AceAppView
     options.appInfo =
       name         : "Ace"
-      hiddenHandle : no
       type         : "application"
       cssClass     : "ace"
 

@@ -1,6 +1,9 @@
 class GroupsAppController extends AppController
 
-  KD.registerAppClass @, name : "Groups"
+  KD.registerAppClass @,
+    name         : "Groups"
+    route        : "Groups"
+    hiddenHandle : yes
 
   @privateGroupOpenHandler =(event)->
     data = @getData()

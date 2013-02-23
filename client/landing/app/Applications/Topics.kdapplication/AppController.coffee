@@ -1,6 +1,9 @@
 class TopicsAppController extends AppController
 
-  KD.registerAppClass @, name : "Topics"
+  KD.registerAppClass @,
+    name         : "Topics"
+    route        : "Topics"
+    hiddenHandle : yes
 
   constructor:(options = {}, data)->
 

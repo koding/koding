@@ -1,6 +1,10 @@
 class HomeAppController extends AppController
 
-  KD.registerAppClass @, name : "Home"
+  KD.registerAppClass @,
+    name         : "Home"
+    route        : "Home"
+    hiddenHandle : yes
+    background   : yes
 
   constructor:(options = {}, data)->
     # options.view    = new HomeMainView
@@ -8,7 +12,6 @@ class HomeAppController extends AppController
       cssClass      : "content-page home"
     options.appInfo =
       name          : "Home"
-      type          : 'background'
 
     super options,data
 
