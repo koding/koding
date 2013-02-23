@@ -60,9 +60,41 @@ class GroupsFormGeneratorView extends JView
           new KDNotificationView
             title : if key is '' then 'Please enter a key' else 'Duplicate key'
 
+    @saveButton = new KDButtonView
+      title : 'Save fields'
+      cssClass : 'clean-gray'
+      loader :
+        diameter : 12
+        color : '#444'
+      callback :=>
+        unless @listController.listView.items.length is 0
+          newFields = {}
+          for item in @listController.listView.items
+            {title,key,defaultValue} = item.getData()
+            key = Encoder.XSSEncode key
+            newFields[key]={}
+            newFields[key].title = Encoder.XSSEncode title
+            newFields[key].defaultValue = Encoder.XSSEncode defaultValue
+
+          @getDelegate().emit 'MembershipPolicyChanged', {fields : newFields}
+          @getDelegate().once 'MembershipPolicyChangeSaved', =>
+            @saveButton.hideLoader()
+        else
+          new KDNotificationView
+            title : 'Your fields are empty. There is nothing to be saved.'
+          @saveButton.hideLoader()
 
     @listController.listView.on 'RemoveButtonClicked', (instance)=>
       @listController.removeItem instance,{}
+
+    policy = @getData()
+    if policy.fields
+      for field of policy.fields
+        @listController.addItem
+          title        : policy.fields[field].title
+          defaultValue : policy.fields[field].defaultValue
+          key          : field
+
 
   pistachio:->
     """
@@ -78,6 +110,7 @@ class GroupsFormGeneratorView extends JView
       {{> @inputDefault}}
       {{> @addButton}}
     </div>
+    {{> @saveButton}}
     """
 
 class GroupsFormGeneratorItemView extends KDListItemView
@@ -89,12 +122,27 @@ class GroupsFormGeneratorItemView extends KDListItemView
     @title = new KDView
       cssClass : 'title'
       partial : title
+      tooltip :
+        title : title
+        placement : 'top'
+        direction : 'center'
+        showOnlyWhenOverflowing : yes
     @key = new KDView
       cssClass : 'key'
       partial : key
+      tooltip :
+        title : key
+        placement : 'top'
+        direction : 'center'
+        showOnlyWhenOverflowing : yes
     @defaultValue = new KDView
       cssClass : 'default'
       partial : defaultValue or '<span>none</span>'
+      tooltip :
+        title : defaultValue
+        placement : 'top'
+        direction : 'center'
+        showOnlyWhenOverflowing : yes
     @removeButton = new CustomLinkView
       tagName : 'span'
       cssClass : 'clean-gray remove-button'

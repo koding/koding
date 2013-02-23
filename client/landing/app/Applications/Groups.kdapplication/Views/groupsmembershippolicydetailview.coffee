@@ -41,7 +41,7 @@ class GroupsMembershipPolicyDetailView extends JView
     , policy
 
     @on 'MembershipPolicyChangeSaved', =>
-      console.log 'saved'
+      console.log 'saved', @getData()
       # @webhookEditor.saveButton.loader.hide()
 
     @webhook.on 'WebhookEditRequested', =>
@@ -89,6 +89,8 @@ class GroupsMembershipPolicyDetailView extends JView
 
     @formGenerator = new GroupsFormGeneratorView
       cssClass : unless dataCollectionEnabled then 'hidden'
+      delegate : @
+    , policy
 
   pistachio:->
     """

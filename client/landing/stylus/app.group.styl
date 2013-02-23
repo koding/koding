@@ -884,19 +884,29 @@
         //   border-bottom 1px solid #e3e3e3
         div
           borderBox()
+          overflow-x hidden
+          overflow-y hidden
+          text-overflow ellipsis
+          white-space nowrap
           width 200px
           // min-width 200px
           display inline-block
-          overflow none
-          padding 1px 9px
+          padding 3px 9px
+          margin 0
+          border 1px solid #f5f5f5
+          border-right none
+          border-bottom none
           line-height 1.5
           // &.title
           //   border-right 1px solid #e3e3e3
           // &.key
           //   border-right 1px solid #e3e3e3
           &.default
+            border-right 1px solid #f5f5f5
             span
               color #aaa
+        &:last-child div
+            border-bottom 1px solid #f5f5f5
         span.remove-button
           // min-width 50px
           borderBox()
