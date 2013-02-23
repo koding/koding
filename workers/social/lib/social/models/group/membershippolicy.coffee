@@ -11,6 +11,10 @@ module.exports = class JMembershipPolicy extends Module
       approvalEnabled     :
         type              : Boolean
         default           : yes
+      dataCollectionEnabled :
+        type              : Boolean
+        default           : no
+      fields              : Object
       # invitationsEnabled  :
       #   type              : Boolean
       #   default           : no

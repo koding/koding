@@ -731,6 +731,7 @@
           // border none
         h3
           font-size 12px
+          padding-bottom 10px
 
         p
           margin-top 0px
@@ -855,32 +856,64 @@
           width 60px
 
     .form-generator
-
+      .form-builder
+        width 100%
+      .add-header
+        margin-bottom 0px
+        div
+          borderBox()
+          padding-left 5px
+          width 200px
+          font-weight bold
+          font-size 12px
+          display inline-block
       .add-inputs
         margin-top 5px
         .kdinput
           width  200px
           display inline-block
+        span.add-button
+          noTextDeco()
+          cursor pointer
       .form-item
         borderBox()
         width auto
-        border 1px solid #e3e3e3
-        border-bottom none
-        &:last-child
-          border-bottom 1px solid #e3e3e3
+        // border 1px solid #e3e3e3
+        // border-bottom none
+        // &:last-child
+        //   border-bottom 1px solid #e3e3e3
         div
           borderBox()
+          overflow-x hidden
+          overflow-y hidden
+          text-overflow ellipsis
+          white-space nowrap
           width 200px
           // min-width 200px
           display inline-block
-          overflow none
-          padding 1px 9px
+          padding 3px 9px
+          margin 0
+          border 1px solid #f5f5f5
+          border-right none
+          border-bottom none
           line-height 1.5
-          &.title
-            border-right 1px solid #e3e3e3
-          &.key
-            border-right 1px solid #e3e3e3
-          // &.default
+          // &.title
+          //   border-right 1px solid #e3e3e3
+          // &.key
+          //   border-right 1px solid #e3e3e3
+          &.default
+            border-right 1px solid #f5f5f5
+            span
+              color #aaa
+        &:last-child div
+            border-bottom 1px solid #f5f5f5
+        span.remove-button
+          // min-width 50px
+          borderBox()
+          noTextDeco()
+          display inline-block
+          margin 0
+          cursor pointer
 
     .permissions-view
       .add-role-dialog
