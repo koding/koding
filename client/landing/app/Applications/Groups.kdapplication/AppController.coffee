@@ -468,7 +468,7 @@ class GroupsAppController extends AppController
           membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
             @updateMembershipPolicy group, policy, formData, membershipPolicyView
 
-          membershipPolicyView.on 'MembershipPolicyChangeSaved', =>
+          membershipPolicyView.on 'MembershipPolicyChangeSaved', => console.log 'sssaved'
 
           view.addSubView membershipPolicyView
     return pane
