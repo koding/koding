@@ -62,6 +62,11 @@ module.exports = class JOpinion extends JPost
       if not err and rel then rel.fetchSource callback
       else callback err, null
 
+  triggerCache:(updateParent = no) ->
+    if updateParent
+      JOpinion.fetchRelated @getId(), (err, activity)->
+        activity.triggerCache()
+
   reply: secure (client, comment, callback)->
     JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback
