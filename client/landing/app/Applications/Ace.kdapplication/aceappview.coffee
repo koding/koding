@@ -11,10 +11,17 @@ class AceAppView extends JView
     @tabView = new ApplicationTabView
       delegate           : @
       tabHandleContainer : @tabHandleContainer
+      saveSession        : yes
+      sessionName        : "AceAppViewTabHistory"
 
     @on 'ViewClosed', => @emit 'AceAppViewWantsToClose'
 
     @on 'AllViewsClosed', => @emit 'AceAppViewWantsToClose'
+
+    @on 'CreateSessionData', (openPanes) =>
+      paths = []
+      paths.push pane.getOptions().aceView.getData().path for pane in openPanes
+      @tabView.emit 'SaveSession', paths
 
     @tabView.on 'PaneDidShow', (pane) =>
       {ace} = pane.getOptions().aceView
@@ -23,9 +30,7 @@ class AceAppView extends JView
 
   viewAppended:->
     super
-    
-    @utils.defer =>
-      @addNewTab() if @tabView.panes.length is 0
+    @utils.defer => @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
