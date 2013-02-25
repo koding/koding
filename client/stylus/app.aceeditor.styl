@@ -192,6 +192,20 @@ app.aceeditor.styl
 .mini-code-wrapper
   size(100%,100%)
 
+.ace-find-and-replace-view
+  position         relative
+  vendor           transition, top 0.15s
+  gradient         #f9f9f9,#e7e7e7
+  color            #282828
+  border           1px solid #e2e2e2
+  border-top-color #dadada
+  z-index          1000
+  borderBox()
+
+  .ace-find-replace-input
+    margin           3px 10px
+  .close-icon
+    bg               position,-80px -222px
 
 .editor-bottom-bar
   bottom                0

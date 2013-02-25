@@ -30,7 +30,7 @@ class AceView extends JView
       cssClass      : "caret-position section"
       partial       : "<span>1</span>:<span>1</span>"
 
-    @ace = new Ace {}, file
+    @ace = new Ace delegate: @, file
 
     @advancedSettings = new KDButtonViewWithMenu
       style         : 'editor-advanced-settings-menu'
@@ -77,6 +77,8 @@ class AceView extends JView
 
     @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
     @compileAndRunButton.disable()
+
+    @findAndReplaceView = new AceFindAndReplaceView delegate: @
 
     @setViewListeners()
 
@@ -125,6 +127,7 @@ class AceView extends JView
     </div>
     <div class="kdview editor-main">
       {{> @ace}}
+      {{> @findAndReplaceView}}
       <div class="editor-bottom-bar clearfix">
         {{> @caretPosition}}
         {{> @advancedSettings}}
