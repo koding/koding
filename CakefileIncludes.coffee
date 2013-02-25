@@ -58,8 +58,8 @@ Includes =
         JTreeItemView         : "./client/Framework/components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabHandleView       : "./client/Framework/components/tabs/KDTabHandleView.coffee" 
-        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee" 
+        KDTabHandleView       : "./client/Framework/components/tabs/KDTabHandleView.coffee"
+        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee"
         KDTabPaneView         : "./client/Framework/components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
 
@@ -151,6 +151,7 @@ Includes =
         StartTabAppController      : "./client/app/Applications/StartTab.kdapplication/AppController.coffee"
 
         # new ace
+        AceFindAndReplaceView : "./client/app/Applications/Ace.kdapplication/acefindandreplaceview.coffee"
         AceAppView            : "./client/app/Applications/Ace.kdapplication/aceappview.coffee"
         AceAppController      : "./client/app/Applications/Ace.kdapplication/AppController.coffee"
         AceView               : "./client/app/Applications/Ace.kdapplication/AppView.coffee"
@@ -399,7 +400,7 @@ Includes =
 
         ApplicationTabHandleHolder : "./client/app/CommonViews/applicationview/applicationtabhandleholder.coffee"
         ApplicationTabView         : "./client/app/CommonViews/applicationview/applicationtabview.coffee"
-        
+
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
         customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
