@@ -12,6 +12,11 @@ directory "/opt/koding/go/pkg" do
 	action :delete
 end
 
+directory "/opt/koding/go/bin" do
+	recursive true
+	action :delete
+end
+
 execute "/opt/koding/go/build.sh" do
 	creates "/opt/koding/go/bin"
 end
