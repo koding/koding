@@ -179,13 +179,14 @@ class ActivityAppController extends AppController
         # memberbucket data has no serverside model it comes from cache
         # so it has no meta, that's why we check its date by its overview
         lastDate = if lastItemData.createdAtTimestamps
-          lastItemData.createdAtTimestamps.first
+          new Date lastItemData.createdAtTimestamps.first
         else
-          lastItemData.meta.createdAt
+          new Date lastItemData.meta.createdAt
       else
-        lastDate = Date.now()
+        lastDate = new Date
 
-      @populateActivity {slug : "before/#{(new Date(lastDate)).getTime()}"}
+      lastTimeStamp = lastDate.getTime()
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
 
