@@ -38,10 +38,10 @@ Templates =
                         height:100%; color: #666; width:100%;" cellspacing="0">
             <!-- HEADER -->
             <tr>
-              <td style="width: 10px; text-align:right; border-right: 1px
-                         solid #CCC; padding-right:10px; vertical-align:top;">
+              <td style="width: 40px; text-align:right; border-right: 1px
+                         solid #CCC; margin-left:12px; vertical-align:top;">
                 <!-- Koding Logo with pure table -->
-                <table width="28px" height="38px" style="height:38px; border:none; font-size:0px; " cellspacing="2">
+                <table width="28px" height="38px" style="margin-left:12px; text-align:right; height:38px; border:none; font-size:0px; " cellspacing="2">
                   <tr><td height="19%" style="height:19%; background-color:#FE6E00;" colspan="3">&nbsp;</td></tr>
                   <tr><td height="10%" style="height:10%; background-color:#403A32;" colspan="3">&nbsp;</td></tr>
                   <tr>
@@ -124,13 +124,16 @@ Templates =
 
     """
       <tr style="vertical-align:top; background-color:white; color: #282623;">
-        <td style="width: 10px; text-align:right; border-right: 1px solid #CCC;
+        <td style="width: 40px; text-align:right; border-right: 1px solid #CCC;
                    color: #999; font-size:11px; line-height: 28px;
-                   padding-right:10px;">#{activityTime}</td>
+                   padding-right:10px;"><a href='#'
+                   style='text-decoration:none; color:#999;pointer-event:none'>
+                   #{activityTime}</a></td>
         <td style="padding-left: 10px; color: #666; " colspan="2">
             #{avatar}
-            <div style="line-height: 20px; padding-left:28px; padding-top:4px;">#{sender} #{action}
-              #{m.contentLink}</div>
+            <div style="line-height: 20px; padding-left:28px; padding-top:4px;">
+              #{sender} #{action} #{m.contentLink}
+            </div>
             #{preview}
         </td>
       </tr>
@@ -153,7 +156,7 @@ Templates =
     description = "Here what's happened in Koding today!"
     Templates.mainTemplate m, content, Templates.footerTemplate(turnOffLink), description
 
-  commonHeader : (m)-> 
+  commonHeader : (m)->
     eventName   = flags[m.notification.eventFlag].definition
 
     return """You have a new #{eventName}"""
