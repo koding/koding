@@ -1,5 +1,7 @@
 {argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+Object.defineProperty global, 'KONFIG', {
+  value: require('koding-config-manager').load("main.#{argv.c}")
+}
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
@@ -191,6 +193,16 @@ else
       if url in caseSensitiveAliases
         alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
       if alias and rooted then "/#{alias}" else alias
+
+  app.get '/:groupName', (req, res, next)->
+    {JGroup} = koding.models
+    {groupName} = req.params
+    JGroup.one { slug: groupName }, (err, group)->
+      if err or !group? then next err
+      else
+        group.fetchHomepageView (err, view)->
+          if err then next err
+          else res.send view
 
   app.get '*', (req,res)->
     {url} = req

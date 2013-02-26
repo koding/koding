@@ -1,6 +1,6 @@
 class KDObject extends KDEventEmitter
 
-  READY = 1
+  [NOTREADY, READY] = [0,1]
 
   utils: __utils
 
@@ -30,7 +30,7 @@ class KDObject extends KDEventEmitter
     target.on event, @lazyBound 'emit', prefix + event
 
   ready:(listener)->
-    if @readyState > 0 then listener()
+    if @readyState is READY then listener()
     else @once 'ready', listener
 
   inheritanceChain:(options)->

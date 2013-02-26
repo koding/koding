@@ -15,6 +15,11 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  PERMISSION_EDIT_GROUPS = [
+    {permission: 'edit groups'}
+    {permission: 'edit own groups', validateWith: Validators.own}
+  ]
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -37,6 +42,7 @@ module.exports = class JGroup extends Module
       'update collection'                 : ['moderator']
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
+      'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
     sharedMethods   :
@@ -108,6 +114,83 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JReadme'
         as          : 'owner'
+
+  @getStyles =->
+    """
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Koding" />
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" href="/images/favicon.ico" />
+    <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
+    <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
+    <link rel="stylesheet" href="/fonts/stylesheet.css" />
+    """
+
+  @getScripts =->
+    """
+    <!--[if IE]>
+    <script type="text/javascript">
+      (function() { window.location.href = '/unsupported.html'})();
+    </script>
+    <![endif]-->
+
+    <script src="/js/require.js"></script>
+
+    <script>
+      require.config({baseUrl: "/js", waitSeconds:15});
+      require([
+        "order!/js/libs/jquery-1.8.2.min.js",
+        "order!/js/libs/jquery-ui-1.8.16.custom.min.js",
+        "order!/js/underscore-min.1.3.js",
+        "order!/js/libs/highlight.pack.js",
+        "order!/js/kd.#{KONFIG.version}.js",
+      ]);
+    </script>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-6520910-8']);
+      _gaq.push(['_setDomainName', 'koding.com']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    """
+
+
+  @getDefaultGroupContents:->
+    """
+    Hi —
+
+    This is a group on Koding.  It doesn't have a readme.  That's all we know.
+
+    Sincerly,
+    The Internet
+    """
+
+  @renderHomepage:({slug, title, content})->
+    content ?= @getDefaultGroupContents()
+    """
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>#{title}</title>
+      #{@getStyles()}
+    </head>
+    <body data-group="#{slug}">
+      <div class="main-loading">#{content}</div>
+      #{@getScripts()}
+    </body>
+    </html>
+    """
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -286,11 +369,15 @@ module.exports = class JGroup extends Module
     success:(client, rest...)->
       @fetchMembers rest...
 
-  fetchReadme$: permit 'open group'
+  fetchReadme$: permit 'view readme'
     success:(client, rest...)->
+      @fetchReadme (err, readme)->
+        console.log {err, readme}
+
       @fetchReadme rest...
 
-  setReadme$: permit 'edit groups'
+  setReadme$: permit
+    advanced: PERMISSION_EDIT_GROUPS
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
@@ -314,14 +401,21 @@ module.exports = class JGroup extends Module
           ]
 
         else 
-          readme.update 
-            $set : 
-              content : text
-          , (err)=>
+          readme.update $set:{ content: text }, (err)=>
             if err then callback err
             else callback null, readme
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
+
+  fetchHomepageView:(callback)->
+    @fetchReadme (err, readme)=>
+      if err then callback err
+      else
+        callback null, JGroup.renderHomepage {
+          @slug
+          @title
+          content: readme?.content
+        }
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
@@ -388,11 +482,8 @@ module.exports = class JGroup extends Module
       @update {$set:formData}, callback
 
   modifyMembershipPolicy: permit
-    advanced : [
-      { permission: 'edit own groups', validateWith: Validators.own }
-      { permission: 'edit groups' }
-    ]
-    success : (client, formData, callback)->
+    advanced: PERMISSION_EDIT_GROUPS
+    success: (client, formData, callback)->
       @fetchMembershipPolicy (err, policy)->
         if err then callback err
         else policy.update $set: formData, callback
@@ -555,3 +646,7 @@ module.exports = class JGroup extends Module
       callback()
       @update $inc: 'counts.members': 1, ->
       @emit 'NewMember'
+
+  each:(selector, rest...)->
+    selector.visibility = 'visible'
+    Module::each.call this, selector, rest...
