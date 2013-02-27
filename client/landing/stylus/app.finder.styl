@@ -322,13 +322,31 @@ dimmedNeighbor()
   abs()
   bottom                    0
   margin                    0
-  size                      100%,auto
+  size                      100%, 180px
+  vendor                    transition, height .2s linear // .1s
+  shadow                    0 0 8px rgba(0,0,0,0.15)
+  background-color          #e2e2e2
+  border-top                1px solid rgba(255,255,255,0.5)
+
+  .horizontal-handler
+    height                  5px
+    width                   30px
+    display                 block
+    margin                  0 auto
+    margin-top              12px
+    sprite()
+    bg(position,-60px -160px)
+
+  &.go-down
+    size                    100%, 28px
+
+  &:hover
+    height                  180px
+
   ul
     min-width               208px
     margin                  1px 10px 0 10px
     padding                 15px 0 5px 0
-    border-top              1px solid rgba(255,255,255,.5)
-    shadow                  0 -1px 0 rgba(0,0,0,.05)
     li
       margin                0 10px 2px 10px
       padding               0
@@ -351,11 +369,13 @@ dimmedNeighbor()
       span.resources
         bg(position,-120px -300px)
       span.cog
-        bg(position,-140px -300px)
+        bg(position,-138px -300px)
       span.shortcuts
-        bg(position,-160px -300px)
+        bg(position,-158px -300px)
       span.remotes
-        bg(position,-280px -160px)
+        bg(position,-220px -300px)
+      span.databases
+        bg(position,-198px -300px)
 
 /*
 **  Overriding Treeview STYLES

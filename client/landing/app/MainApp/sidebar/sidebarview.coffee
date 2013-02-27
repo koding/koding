@@ -160,15 +160,17 @@ class Sidebar extends JView
       cp.$().css left : cp._left - x, width : cp._width + x
       $fp.css "width", newFpWidth
 
+    KD.utils.wait 8000, =>
+      @$('#finder-bottom-controls').addClass 'go-down'
+      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 28
+
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
     @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
     @$('#main-nav').on "mouseleave", @animateLeftNavOut.bind @
 
   viewAppended:->
-
     super
-
     @setListeners()
 
   pistachio:->
@@ -198,6 +200,7 @@ class Sidebar extends JView
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
+        <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
     </div>
