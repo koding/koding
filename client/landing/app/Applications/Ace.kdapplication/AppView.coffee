@@ -79,6 +79,7 @@ class AceView extends JView
     @compileAndRunButton.disable()
 
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
+    @findAndReplaceView.hide()
 
     @setViewListeners()
 
@@ -127,11 +128,11 @@ class AceView extends JView
     </div>
     <div class="kdview editor-main">
       {{> @ace}}
-      {{> @findAndReplaceView}}
       <div class="editor-bottom-bar clearfix">
         {{> @caretPosition}}
         {{> @advancedSettings}}
       </div>
+      {{> @findAndReplaceView}}
     </div>
     """
 
@@ -156,7 +157,7 @@ class AceView extends JView
     editorHeight = height - @$('.editor-header').height()
     bottomBarHeight = @$('.editor-bottom-bar').height()
     @$('.editor-main').height editorHeight
-    @ace.setHeight editorHeight - bottomBarHeight
+    @ace.setHeight editorHeight - bottomBarHeight - 10
 
   openSaveDialog: (callback) ->
 

@@ -94,12 +94,10 @@ class Ace extends KDView
       @lastContentsSentForSave = @getContents()
 
   showFindReplaceView: (openReplaceView) ->
-    viewHeight = if openReplaceView then 60 else 34
-    findAndReplaceView = @getDelegate().findAndReplaceView
-    findAndReplaceView.$().css
-      height : viewHeight
-      top    : -viewHeight
-    if openReplaceView then findAndReplaceView.mode = 'replace' else 'find'
+    {findAndReplaceView} = @getDelegate()
+    selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
+    findAndReplaceView.setViewHeight openReplaceView
+    findAndReplaceView.setTextIntoFindInput selectedText
 
   ###
   FS REQUESTS
