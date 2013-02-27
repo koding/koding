@@ -217,9 +217,11 @@ class Watcher extends EventEmitter
             writeCacheFile file.path,css
             callback file
           else
-            log.info "error with styl file at #{file.path}"
-      when "coffee"
+            lines = err.message.split('\n') or ['0','No details supplied.']
+            log.error "\nStylus Compile Error in #{file.path} on line #{lines[0].match(/\d*$/)[0]}"
+            log.info line for line in lines[1...]
 
+      when "coffee"
         try
           file.contentsCs = newContent
           # if file.section is "Client"
@@ -228,8 +230,6 @@ class Watcher extends EventEmitter
           # else
           file.contents = cs.compile newContent,bare:yes
           writeCacheFile file.path,file.contents
-
-
 
           #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
         catch error
