@@ -1,4 +1,3 @@
-
 class FormGeneratorView extends JView
   constructor:(options,data)->
     super options,data
@@ -11,15 +10,13 @@ class FormGeneratorView extends JView
     @listWrapper    = @listController.getView()
     @listWrapper.setClass 'form-builder'
 
-    @loader         = new KDLoaderView
-      cssClass      : 'loader'
-    @loaderText     = new KDView
-      partial       : 'Loading Form Generator…'
-      cssClass      : ' loader-text'
+    ###
+    Single-Value Input Views
+    ###
 
     @inputTitle = new KDInputView
-      name : 'title'
-      placeholder : 'Field title, e.g. "Student ID"'
+      name          : 'title'
+      placeholder   : 'Field title, e.g. "Student ID"'
       keyup : (event)=>
         @inputKey.setValue @utils.slugify(@inputTitle.getValue()).replace(/-/g,'_')
       validate      :
@@ -29,43 +26,49 @@ class FormGeneratorView extends JView
           required  : "A title is required!"
 
     @inputKey = new KDInputView
-      name : 'key'
-      placeholder : 'Field key, e.g. "student_id"'
+      name          : 'key'
+      placeholder   : 'Field key, e.g. "student_id"'
 
     @inputDefault = new KDInputView
-      name : 'defaultValue'
-      placeholder : 'Default value'
+      name          : 'defaultValue'
+      placeholder   : 'Default value'
+
+    @inputDefaultTextarea = new KDInputView
+      name          : 'defaultValueTextarea'
+      type          : 'textarea'
+      cssClass      : 'add-textarea'
 
     @inputDefaultSelect = new KDSelectBox
-      name : 'defaultValueSelect'
+      name          : 'defaultValueSelect'
 
     @inputDefaultRadio = new KDInputRadioGroup
-      radios : []
-      name : 'defaultValueRadio'
+      radios        : []
+      name          : 'defaultValueRadio'
 
     @inputDefaultSwitch = new KDOnOffSwitch
-      defaultValue : @getData().defaultValue or no
-
-    @inputDefaultSelect.hide()
-    @inputDefaultRadio.hide()
-    @inputDefaultSwitch.hide()
+      defaultValue  : @getData().defaultValue or no
 
     @inputType      = new KDSelectBox
       name          : 'type'
       cssClass      : 'type-select'
       selectOptions : [
-        {title:'Add Text Field'           ,value:'text'},
-        {title:'Add Dropdown'             ,value:'select'},
-        {title:'Add Switch'               ,value:'checkbox'},
-        {title:'Add large Text Field'     ,value:'textarea'},
-        {title:'Add Multiple-Choice Field',value:'radio'}
+        {title:'Add Text Field'         ,value:'text'},
+        {title:'Add Select Box'         ,value:'select'},
+        {title:'Add On-Off Switch'      ,value:'checkbox'},
+        {title:'Add Textarea'           ,value:'textarea'},
+        {title:'Add Radio Button Field' ,value:'radio'}
       ]
-      change:=>
+      change        : =>
         switch @inputType.getValue()
-          when 'select' then @decorateInputs ['Select']
+          when 'select'   then @decorateInputs ['Select']
           when 'checkbox' then @decorateInputs ['Switch']
-          when 'radio' then  @decorateInputs ['Radio']
+          when 'textarea' then @decorateInputs ['Textarea']
+          when 'radio'    then @decorateInputs ['Radio']
           else @decorateInputs()
+
+    ###
+    Multi-item Input Views (radio, select)
+    ###
 
     @inputFieldsSelect = new FormGeneratorMultipleInputView
       cssClass  : 'select-fields'
@@ -78,29 +81,26 @@ class FormGeneratorView extends JView
       title     : 'Radio'
 
     @inputFieldsSelect.on 'InputChanged', ({type,value})=>
-          @inputDefaultSelect.removeSelectOptions()
-          @inputDefaultSelect.setSelectOptions value
-          @inputDefaultSelect.setValue value[0]
+      @inputDefaultSelect.removeSelectOptions()
+      @inputDefaultSelect.setSelectOptions value
+      @inputDefaultSelect.setValue value[0]
 
     @inputFieldsRadio.on 'InputChanged', ({type,value})=>
+      @inputDefaultRadio.$().empty()
+      for item,i in value
+        id = @utils.getRandomNumber()
+        @inputDefaultRadio.$().append \
+          """
+            <div class='kd-radio-holder'>
+              <input id="#{id}" class='no-kdinput' type='radio' name='add-radio' value='#{item.value}' />
+              <label for="#{id}">#{item.title}</label>
+            </div>
+          """
+        @inputDefaultRadio.setDefaultValue value[0]
 
-        @inputDefaultRadio.$().empty()
-        for item,i in value
-          id = @utils.getRandomNumber()
-          @inputDefaultRadio.$().append \
-            """
-              <div class='kd-radio-holder'>
-                <input id="#{id}" class='no-kdinput' type='radio' name='add-radio' value='#{item.value}' />
-                <label for="#{id}">#{item.title}</label>
-              </div>
-            """
-          @inputDefaultRadio.setDefaultValue value[0]
-# @inputDefaultRadio.removeSelectOptions()
-#           @inputDefaultRadio.setSelectOptions value
-#           @inputDefaultRadio.setValue value[0]
-
-    @inputFieldsSelect.hide()
-    @inputFieldsRadio.hide()
+    ###
+    Buttons
+    ###
 
     @addButton      = new CustomLinkView
       tagName       : 'span'
@@ -118,6 +118,14 @@ class FormGeneratorView extends JView
         color   : '#444'
       callback  :=>
         @saveToMembershipPolicy()
+
+    @inputDefaultSelect.hide()
+    @inputDefaultRadio.hide()
+    @inputDefaultSwitch.hide()
+    @inputDefaultTextarea.hide()
+
+    @inputFieldsSelect.hide()
+    @inputFieldsRadio.hide()
 
     @listController.listView.on 'RemoveButtonClicked', (instance)=>
       @listController.removeItem instance,{}
@@ -165,10 +173,11 @@ class FormGeneratorView extends JView
         title       : Encoder.XSSEncode @inputTitle.getValue()
         key         : Encoder.XSSEncode @inputKey.getValue()
         defaultValue: switch @inputType.getValue()
-          when 'text' then Encoder.XSSEncode @inputDefault.getValue()
-          when 'select' then @inputDefaultSelect.getValue()
+          when 'text'     then Encoder.XSSEncode @inputDefault.getValue()
+          when 'select'   then @inputDefaultSelect.getValue()
           when 'checkbox' then @inputDefaultSwitch.getValue()
-          when 'radio' then @inputDefaultRadio.getValue()
+          when 'radio'    then @inputDefaultRadio.getValue()
+          when 'textarea' then @inputDefaultTextarea.getValue()
           else Encoder.XSSEncode @inputDefault.getValue()
         type        : @inputType.getValue()
         options     : switch @inputType.getValue()
@@ -189,13 +198,10 @@ class FormGeneratorView extends JView
       new KDNotificationView
         title : if key is '' then 'Please enter a key' else 'Duplicate key'
 
-
   decorateInputs:(show=[''])->
     for inputSection in ['Fields','Default']
-      for input in ['Text','Select','Radio','Switch','']
+      for input in ['Text','Textarea','Select','Radio','Switch','']
         @['input'+inputSection+input]?[if input in show then "show" else "hide"]()
-
-
 
   pistachio:->
     """
@@ -218,6 +224,7 @@ class FormGeneratorView extends JView
           {{> @inputDefaultSelect}}
           {{> @inputDefaultSwitch}}
           {{> @inputDefaultRadio}}
+          {{> @inputDefaultTextarea}}
           </div>
         <div class='add-input button'>{{> @addButton}}</div>
         <div class='add-input select'>{{> @inputFieldsSelect}}{{> @inputFieldsRadio}}</div>
@@ -279,7 +286,7 @@ class FormGeneratorMultipleInputView extends JView
 
   pistachio:->
     """
-    <h3>Dropdown items</h3>
+    <h3>#{@getOptions().title} items</h3>
     {{> @listWrapper}}
     {{> @inputTitle}}
     {{> @addButton}}
@@ -289,8 +296,6 @@ class FormGeneratorMultipleInputView extends JView
 class FormGeneratorMultipleInputItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
-
-    # @setClass 'select-item'
 
     @optionTitle  = new KDView
       cssClass    : 'title'
@@ -324,10 +329,11 @@ class FormGeneratorItemView extends KDListItemView
     @type = new KDView
       cssClass    : 'type'
       partial     : switch type
-        when 'text' then 'Text'
-        when 'select' then 'Dropdown'
-        when 'checkbox' then 'Switch'
-        when 'radio' then 'Multiple Choice'
+        when 'text' then 'Text Field'
+        when 'select' then 'Select Box'
+        when 'checkbox' then 'On-Off Switch'
+        when 'radio' then 'Radio Buttons'
+        when 'textarea' then 'Textarea'
         else 'Other'
       tooltip     :
         title     : type
@@ -354,9 +360,9 @@ class FormGeneratorItemView extends KDListItemView
         showOnlyWhenOverflowing : yes
 
     switch type
-      when 'text'
+      when 'text', 'textarea'
         @defaultValue = new KDView
-          cssClass    : 'default'
+          cssClass    : "default #{type}"
           partial     : defaultValue or '<span>none</span>'
           tooltip     :
             title     : defaultValue
@@ -364,7 +370,7 @@ class FormGeneratorItemView extends KDListItemView
             direction : 'center'
             showOnlyWhenOverflowing : yes
 
-      when 'select'#,'radio
+      when 'select'
         @defaultValue   = new KDSelectBox
           cssClass      : 'default'
           selectOptions : options or []

@@ -948,6 +948,9 @@
           border none
           line-height 1.5
           vertical-align middle
+
+          &.title
+            font-weight 500
           // height 25px
           .kdselectbox
             margin-top -4px
@@ -962,6 +965,8 @@
               top 0
           div.default
           fieldset
+            &.textarea
+              white-space normal
             opacity 0.5
             vendor transition, opacity 0.15s ease-in-out
             &:hover
@@ -981,6 +986,9 @@
       cursor pointer
       span.title
         noTextDeco()
+        color black
+        line-height 2.5
+        font-weight 600
 
     span.remove-button
       borderBox()
