@@ -39,40 +39,68 @@ class FormGeneratorView extends JView
     @inputDefaultSelect = new KDSelectBox
       name : 'defaultValueSelect'
 
+    @inputDefaultRadio = new KDInputRadioGroup
+      radios : []
+      name : 'defaultValueRadio'
+
+    @inputDefaultSwitch = new KDOnOffSwitch
+      defaultValue : @getData().defaultValue or no
+
     @inputDefaultSelect.hide()
+    @inputDefaultRadio.hide()
+    @inputDefaultSwitch.hide()
 
     @inputType      = new KDSelectBox
       name          : 'type'
       cssClass      : 'type-select'
       selectOptions : [
-        {title:'Add Text Field',value :'text'},
-        {title:'Add large Text Field',value :'textarea'},
-        {title:'Add Dropdown',value:'select'},
-        {title:'Add Checkbox',value:'checkbox'},
+        {title:'Add Text Field'           ,value:'text'},
+        {title:'Add Dropdown'             ,value:'select'},
+        {title:'Add Switch'               ,value:'checkbox'},
+        {title:'Add large Text Field'     ,value:'textarea'},
         {title:'Add Multiple-Choice Field',value:'radio'}
-
       ]
       change:=>
-
         switch @inputType.getValue()
-          when 'select'
-            @inputSelectFields.show()
-            @inputDefaultSelect.show()
-            @inputDefault.hide()
-          else
-            @inputSelectFields.hide()
-            @inputDefaultSelect.hide()
-            @inputDefault.show()
+          when 'select' then @decorateInputs ['Select']
+          when 'checkbox' then @decorateInputs ['Switch']
+          when 'radio' then  @decorateInputs ['Radio']
+          else @decorateInputs()
 
-    @inputSelectFields = new FormGeneratorSelectView
-      cssClass : 'select-fields'
+    @inputFieldsSelect = new FormGeneratorMultipleInputView
+      cssClass  : 'select-fields'
+      type      : 'select'
+      title     : 'Dropdown'
 
-    @inputSelectFields.hide()
+    @inputFieldsRadio = new FormGeneratorMultipleInputView
+      cssClass  : 'radio-fields'
+      type      : 'radio'
+      title     : 'Radio'
 
-    @inputSelectFields.on 'SelectChanged', (selectData)=>
-      @inputDefaultSelect.removeSelectOptions()
-      @inputDefaultSelect.setSelectOptions selectData
-      @inputDefaultSelect.setValue selectData[0]
+    @inputFieldsSelect.on 'InputChanged', ({type,value})=>
+          @inputDefaultSelect.removeSelectOptions()
+          @inputDefaultSelect.setSelectOptions value
+          @inputDefaultSelect.setValue value[0]
+
+    @inputFieldsRadio.on 'InputChanged', ({type,value})=>
+
+        @inputDefaultRadio.$().empty()
+        for item,i in value
+          id = @utils.getRandomNumber()
+          @inputDefaultRadio.$().append \
+            """
+              <div class='kd-radio-holder'>
+                <input id="#{id}" class='no-kdinput' type='radio' name='add-radio' value='#{item.value}' />
+                <label for="#{id}">#{item.title}</label>
+              </div>
+            """
+          @inputDefaultRadio.setDefaultValue value[0]
+# @inputDefaultRadio.removeSelectOptions()
+#           @inputDefaultRadio.setSelectOptions value
+#           @inputDefaultRadio.setValue value[0]
+
+    @inputFieldsSelect.hide()
+    @inputFieldsRadio.hide()
 
     @addButton      = new CustomLinkView
       tagName       : 'span'
@@ -80,35 +108,7 @@ class FormGeneratorView extends JView
       style         : 'clean-gray'
       cssClass      : 'add-button'
       click         : =>
-
-        key = @inputKey.getValue()
-        newItem = key isnt ''
-        for item in @listController.listView.items
-          if item.getData().key is key
-            newItem = false
-
-        if newItem
-          @listController.addItem
-            title       : Encoder.XSSEncode @inputTitle.getValue()
-            key         : Encoder.XSSEncode @inputKey.getValue()
-            defaultValue: switch @inputType.getValue()
-              when 'text' then Encoder.XSSEncode @inputDefault.getValue()
-              when 'select' then @inputDefaultSelect.getValue()
-              else Encoder.XSSEncode @inputDefault.getValue()
-            type        : @inputType.getValue()
-            options     : @inputSelectFields.getValue()
-
-          @inputTitle.setValue ''
-          @inputKey.setValue ''
-          @inputDefault.setValue ''
-
-          @inputSelectFields.listController.removeAllItems()
-          @inputDefaultSelect.removeSelectOptions()
-          @inputDefaultSelect.setValue null
-
-        else
-          new KDNotificationView
-            title : if key is '' then 'Please enter a key' else 'Duplicate key'
+        @addFieldToList()
 
     @saveButton = new KDButtonView
       title     : 'Save fields'
@@ -117,23 +117,7 @@ class FormGeneratorView extends JView
         diameter: 12
         color   : '#444'
       callback  :=>
-
-          newFields = []
-          for item in @listController.listView.items
-
-            {type,title,key,defaultValue,options} = item.getData()
-
-            newFields.push
-              key           : Encoder.XSSEncode key
-              type          : type
-              title         : Encoder.XSSEncode title
-              defaultValue  : Encoder.XSSEncode defaultValue
-              options       : options if options
-
-
-          @getDelegate().emit 'MembershipPolicyChanged', {fields : newFields}
-          @getDelegate().once 'MembershipPolicyChangeSaved', =>
-            @saveButton.hideLoader()
+        @saveToMembershipPolicy()
 
     @listController.listView.on 'RemoveButtonClicked', (instance)=>
       @listController.removeItem instance,{}
@@ -148,6 +132,71 @@ class FormGeneratorView extends JView
           type         : field.type or 'text'
           options      : field.options
 
+  saveToMembershipPolicy:->
+    newFields = []
+    for item in @listController.listView.items
+
+      {type,title,key,defaultValue,options} = item.getData()
+
+      newFields.push
+        key           : Encoder.XSSEncode key
+        type          : type
+        title         : Encoder.XSSEncode title
+        defaultValue  :
+          if 'string' is typeof defaultValue
+            Encoder.XSSEncode defaultValue
+          else defaultValue
+        options       : options if options
+
+
+    @getDelegate().emit 'MembershipPolicyChanged', {fields : newFields}
+    @getDelegate().once 'MembershipPolicyChangeSaved', =>
+      @saveButton.hideLoader()
+
+  addFieldToList:->
+    key = @inputKey.getValue()
+    newItem = key isnt ''
+    for item in @listController.listView.items
+      if item.getData().key is key
+        newItem = false
+
+    if newItem
+      @listController.addItem
+        title       : Encoder.XSSEncode @inputTitle.getValue()
+        key         : Encoder.XSSEncode @inputKey.getValue()
+        defaultValue: switch @inputType.getValue()
+          when 'text' then Encoder.XSSEncode @inputDefault.getValue()
+          when 'select' then @inputDefaultSelect.getValue()
+          when 'checkbox' then @inputDefaultSwitch.getValue()
+          when 'radio' then @inputDefaultRadio.getValue()
+          else Encoder.XSSEncode @inputDefault.getValue()
+        type        : @inputType.getValue()
+        options     : switch @inputType.getValue()
+          when 'select'
+            @inputFieldsSelect.getValue()
+          when 'radio'
+            @inputFieldsRadio.getValue()
+
+      @inputTitle.setValue ''
+      @inputKey.setValue ''
+      @inputDefault.setValue ''
+
+      @inputFieldsSelect.listController.removeAllItems()
+      @inputDefaultSelect.removeSelectOptions()
+      @inputDefaultSelect.setValue null
+
+    else
+      new KDNotificationView
+        title : if key is '' then 'Please enter a key' else 'Duplicate key'
+
+
+  decorateInputs:(show=[''])->
+    for inputSection in ['Fields','Default']
+      for input in ['Text','Select','Radio','Switch','']
+        @['input'+inputSection+input]?[if input in show then "show" else "hide"]()
+
+
+
   pistachio:->
     """
     <div class="wrapper">
@@ -155,7 +204,7 @@ class FormGeneratorView extends JView
         <div class="add-type">Field type</div>
         <div class="add-title">Title</div>
         <div class="add-key">Key</div>
-        <div class="add-default">Default value</div>
+        <div class="add-default">Default value / Preview</div>
       </div>
 
       {{> @listWrapper}}
@@ -164,27 +213,35 @@ class FormGeneratorView extends JView
         <div class='add-input'>{{> @inputType}}</div>
         <div class='add-input'>{{> @inputTitle}}</div>
         <div class='add-input'>{{> @inputKey}}</div>
-        <div class='add-input'>{{> @inputDefault}}{{> @inputDefaultSelect}}</div>
+        <div class='add-input'>
+          {{> @inputDefault}}
+          {{> @inputDefaultSelect}}
+          {{> @inputDefaultSwitch}}
+          {{> @inputDefaultRadio}}
+          </div>
         <div class='add-input button'>{{> @addButton}}</div>
-        <div class='add-input select'>{{> @inputSelectFields}}</div>
+        <div class='add-input select'>{{> @inputFieldsSelect}}{{> @inputFieldsRadio}}</div>
       </div>
     </div>
     {{> @saveButton}}
     """
 
-class FormGeneratorSelectView extends JView
+class FormGeneratorMultipleInputView extends JView
   constructor:(options,data)->
     super options,data
+
+    {type,title} = @getOptions()
+
     @listController   = new KDListViewController
-      itemClass       : FormGeneratorSelectItemView
+      itemClass       : FormGeneratorMultipleInputItemView
       showDefaultItem : yes
       defaultItem     :
         options       :
           cssClass    : 'default-item'
-          partial     : 'Please add Dropdown options'
+          partial     : "Please add #{title} options"
 
     @listWrapper      = @listController.getView()
-    @listWrapper.setClass 'form-builder-select'
+    @listWrapper.setClass "form-builder-#{type}"
 
     @inputTitle = new KDInputView
       cssClass  : 'title'
@@ -198,12 +255,19 @@ class FormGeneratorSelectView extends JView
           title : Encoder.XSSEncode @inputTitle.getValue()
           value : @utils.slugify(@inputTitle.getValue()).replace(/-/g,'_')
 
-        @emit 'SelectChanged', @getValue()
+        @emit 'InputChanged', {
+          type
+          value:@getValue()
+        }
+
         @inputTitle.setValue ''
 
     @listController.listView.on 'RemoveButtonClicked', (instance)=>
       @listController.removeItem instance,{}
-      @emit 'SelectChanged', @getValue()
+      @emit 'InputChanged', {
+        type
+        value:@getValue()
+      }
 
   getValue:->
     data = []
@@ -221,11 +285,12 @@ class FormGeneratorSelectView extends JView
     {{> @addButton}}
     """
 
-class FormGeneratorSelectItemView extends KDListItemView
+
+class FormGeneratorMultipleInputItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
 
-    @setClass 'select-item'
+    # @setClass 'select-item'
 
     @optionTitle  = new KDView
       cssClass    : 'title'
@@ -250,7 +315,6 @@ class FormGeneratorSelectItemView extends KDListItemView
     """
 
 
-
 class FormGeneratorItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
@@ -262,6 +326,8 @@ class FormGeneratorItemView extends KDListItemView
       partial     : switch type
         when 'text' then 'Text'
         when 'select' then 'Dropdown'
+        when 'checkbox' then 'Switch'
+        when 'radio' then 'Multiple Choice'
         else 'Other'
       tooltip     :
         title     : type
@@ -298,10 +364,23 @@ class FormGeneratorItemView extends KDListItemView
             direction : 'center'
             showOnlyWhenOverflowing : yes
 
-      when 'select'
+      when 'select'#,'radio
         @defaultValue   = new KDSelectBox
           cssClass      : 'default'
           selectOptions : options or []
+          defaultValue  : defaultValue
+
+      when 'radio'
+        @defaultValue   = new KDInputRadioGroup
+          radios        : options
+          name          : 'radios_'+@utils.getRandomNumber()
+          cssClass      : 'default'
+        @defaultValue.setDefaultValue defaultValue
+
+      when 'checkbox'
+        @defaultValue   = new KDOnOffSwitch
+          size         : "tiny"
+          cssClass      : 'default'
           defaultValue  : defaultValue
 
     @removeButton = new CustomLinkView
