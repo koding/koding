@@ -59,12 +59,16 @@ do ->
         cachingInProgress = yes
         JActivityCache.init()
 
-    emitter.on "post-updated",  JActivityCache.modifyByTeaser.bind JActivityCache
     emitter.on "PostIsDeleted", JActivityCache.removeActivity.bind JActivityCache
+    emitter.on "post-updated", (teaser)->
+      {teaserId, createdAt} = teaser
+      createdAt = (new Date createdAt).getTime()
+      JActivityCache.modifyByTeaser {teaserId, createdAt}
 
     emitter.on "BucketIsUpdated", (bucketOptions)->
       {type, teaserId, createdAt} = bucketOptions
       if type in typesToBeCached
+        createdAt = (new Date createdAt).getTime()
         JActivityCache.modifyByTeaser {teaserId, createdAt}
 
     console.log "Activity Cache Worker is ready."
