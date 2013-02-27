@@ -19,8 +19,8 @@ class KDMultipleChoice extends KDInputView
 
     options.size         or= "small"             # a String tiny/small/big
     options.labels       or= ["ON", "OFF"]       # supports multiple labels as string
-    options.multiple     or= no
-    options.defaultValue or= options.labels[0]
+    options.multiple     ?= no
+    options.defaultValue or= if options.multiple then options.labels[0]
 
     if not options.multiple and Array.isArray options.defaultValue
       options.defaultValue = options.defaultValue[0]
@@ -33,15 +33,14 @@ class KDMultipleChoice extends KDInputView
     @oldValue     = null
     @currentValue = [] if options.multiple
 
-    @setValue options.defaultValue, no
-
   setDomElement:(cssClass)->
     {title, labels, name} = @getOptions()
     title = if title then "<span>#{title}</span>" else ''
 
     labelItems = ""
     for label in labels
-      labelItems += "<a href='#' name='#{label}' title='Select #{label}'>#{label}</a>"
+      clsName     = "multiple-choice-#{label}"
+      labelItems += "<a href='#' name='#{label}' class='#{clsName}' title='Select #{label}'>#{label}</a>"
 
     @domElement = $ """
       <div class='kdinput on-off multiple-choice #{cssClass}'>
