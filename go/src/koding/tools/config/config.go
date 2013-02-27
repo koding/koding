@@ -18,6 +18,9 @@ type Config struct {
 		ComponentUser string
 		Password      string
 	}
+	Broker struct {
+		Port int
+	}
 	Loggr struct {
 		Push   bool
 		Url    string
