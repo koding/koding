@@ -11,8 +11,9 @@ module.exports = class JMarkdownDoc extends Module
       checksum  : String
 
   update:(atomically)->
-    atomically.html = require('marked') @content
-    atomically.checksum = require('crypto')
+    setOp = atomically.$set ?= {}
+    setOp.html = require('marked') @content
+    setOp.checksum = require('crypto')
       .createHash('sha1')
       .update(@content)
       .digest 'hex'
