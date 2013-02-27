@@ -192,9 +192,11 @@ app.aceeditor.styl
 .mini-code-wrapper
   size(100%,100%)
 
-.ace-find-and-replace-view
+.ace-find-replace-view
   position         relative
+  display          block
   vendor           transition, top 0.15s
+  vendor           transition, height 0.15s
   gradient         #f9f9f9,#e7e7e7
   color            #282828
   border           1px solid #e2e2e2
@@ -202,13 +204,53 @@ app.aceeditor.styl
   z-index          1000
   borderBox()
 
-  .ace-find-replace-input
-    margin           3px 10px
+  .ace-find-replace-settings
+    float          left
+
+  .ace-find-replace-line
+    margin-left    10px
+    height         27px
+    line-height    27px
+
+  .kdinput
+    display        inline !important
+
+  .label
+    display        inline-block
+    width          55px
+
   .close-icon
-    bg               position,-80px -222px
+    bg             position,-80px -222px
+
+  button
+    width          80px
+
+  .multiple-choice
+    float          left
+    top            2px
+    position       relative
+    margin-left    12px
+    a
+      text-indent  -10000px
+      width        10px
+      sprite()
+      &.multiple-choice-case-sensitive
+        bg         position, 5px 0
+      &.multiple-choice-whole-word
+        bg         position, 5px -18px
+      &.multiple-choice-regex
+        bg         position, 6px -39px
+      &.multiple-choice-case-sensitive.active
+        bg         position, -17px 0px
+      &.multiple-choice-whole-word.active
+        bg         position, -17px -18px
+      &.multiple-choice-regex.active
+        bg         position, -18px -39px
+      &.active
+        border-color #cfcfcf !important
 
 .editor-bottom-bar
-  bottom                0
+  bottom                8px
   color                 #282828
   border                1px solid #e2e2e2
   border-top-color      #dadada

@@ -7,7 +7,7 @@ todo:
 
 
 class KDHitEnterInputView extends KDInputView
-  
+
   constructor:(options = {}, data)->
 
     options.type            or= "textarea"
