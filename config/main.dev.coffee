@@ -43,7 +43,7 @@ module.exports = deepFreeze
     updateAllSlugs : no
     debugConnectionErrors: yes
   uploads       :
-    enableStreamingUploads: no
+    enableStreamingUploads: yes
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'

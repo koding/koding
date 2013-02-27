@@ -15,6 +15,11 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  PERMISSION_EDIT_GROUPS = [
+    {permission: 'edit groups'}
+    {permission: 'edit own groups', validateWith: Validators.own}
+  ]
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -37,6 +42,7 @@ module.exports = class JGroup extends Module
       'update collection'                 : ['moderator']
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
+      'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
     sharedMethods   :
@@ -106,8 +112,10 @@ module.exports = class JGroup extends Module
         targetType  : 'JInvitationRequest'
         as          : 'owner'
       readme        :
-        targetType  : 'JReadme'
+        targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @renderHomepage: require './render-homepage'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -286,17 +294,20 @@ module.exports = class JGroup extends Module
     success:(client, rest...)->
       @fetchMembers rest...
 
-  fetchReadme$: permit 'open group'
+  fetchReadme$: permit 'view readme'
     success:(client, rest...)->
+      @fetchReadme (err, readme)->
+        console.log {err, readme}
+
       @fetchReadme rest...
 
-  setReadme$: permit 'edit groups'
+  setReadme$: permit
+    advanced: PERMISSION_EDIT_GROUPS
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
-          JReadme = require '../readme'
-          readme = new JReadme
-            content : text
+          JMarkdownDoc = require '../markdowndoc'
+          readme = new JMarkdownDoc content: text
           
           daisy queue = [
             ->
@@ -314,14 +325,24 @@ module.exports = class JGroup extends Module
           ]
 
         else 
-          readme.update 
-            $set : 
-              content : text
-          , (err)=>
+          readme.update $set:{ content: text }, (err)=>
             if err then callback err
             else callback null, readme
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
+
+  fetchHomepageView:(callback)->
+    @fetchReadme (err, readme)=>
+      return callback err  if err
+      @fetchMembershipPolicy (err, policy)=>
+        if err then callback err
+        else
+          callback null, JGroup.renderHomepage {
+            @slug
+            @title
+            policy
+            content : readme?.html ? readme?.content
+          }
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
@@ -388,11 +409,8 @@ module.exports = class JGroup extends Module
       @update {$set:formData}, callback
 
   modifyMembershipPolicy: permit
-    advanced : [
-      { permission: 'edit own groups', validateWith: Validators.own }
-      { permission: 'edit groups' }
-    ]
-    success : (client, formData, callback)->
+    advanced: PERMISSION_EDIT_GROUPS
+    success: (client, formData, callback)->
       @fetchMembershipPolicy (err, policy)->
         if err then callback err
         else policy.update $set: formData, callback
@@ -555,3 +573,7 @@ module.exports = class JGroup extends Module
       callback()
       @update $inc: 'counts.members': 1, ->
       @emit 'NewMember'
+
+  each:(selector, rest...)->
+    selector.visibility = 'visible'
+    Module::each.call this, selector, rest...

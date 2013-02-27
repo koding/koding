@@ -29,7 +29,7 @@ class MainView extends KDView
         @sidebar.hideFinderPanel()
 
   removeLoader:->
-
+    console.trace()
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @windowController
     $loadingScreen.css
