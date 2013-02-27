@@ -101,6 +101,25 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
+    @mainSettingsMenuView = new KDButtonView
+      domId    : "main-settings-menu"
+      cssClass : "kdsettingsmenucontainer clean-gray"
+      iconOnly : yes
+      iconClass: "cog"
+      callback : ->
+        appController = KD.getSingleton "kodingAppsController"
+        appManifest = appController.constructor.manifests['AppWithMenu']
+
+        $.each appManifest.menu, (title, menu)->
+          appManifest.menu[title].callback = (contextmenu)->
+            mainView = KD.getSingleton "mainView"
+            mainView.mainTabView.activePane?.mainView.emit "menu", title, contextmenu
+
+        contextMenu = new JContextMenu
+            event    : event
+            delegate : @
+          , appManifest.menu
+
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
       listenToFinder     : yes
@@ -140,6 +159,7 @@ class MainView extends KDView
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
+    @contentPanel.addSubView @mainSettingsMenuView
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
