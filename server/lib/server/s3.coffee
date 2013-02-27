@@ -7,6 +7,7 @@ koding = require './bongo'
 
 mime = require 'mime'
 {IncomingForm} = require 'formidable'
+IncomingForm.blow = 12
 
 {BufferedStream} = require './bufferedstream'
 
@@ -45,7 +46,7 @@ module.exports = (config)->
       next()
 
     (req, res, next) ->
-      clientId = req.cookies.clientid
+      {clientId} = req.cookies
       koding.models.JSession.fetchSession clientId, (err, session)->
         if err
           next(err)
@@ -54,7 +55,11 @@ module.exports = (config)->
           res.send 403, 'Access denied!'
         else
           for own name, file of req.files
-            file.path = s3CreatePath(session.username, file.filename, file.extension)
+            file.path = s3CreatePath(
+              session.username
+              file.filename
+              file.extension
+            )
             s3.put(
               file.path
               {
@@ -62,6 +67,7 @@ module.exports = (config)->
                 'content-type'    : file.mime
               }
               file.stream
+              -> # noop
             )
           next()
   ]

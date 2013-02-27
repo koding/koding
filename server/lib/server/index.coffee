@@ -76,7 +76,7 @@ else
     app.set 'case sensitive routing', on
     app.use express.cookieParser()
     app.use express.session {"secret":"foo"}
-    app.use express.bodyParser()
+    # app.use express.bodyParser()
     app.use express.compress()
     app.use express.static "#{projectRoot}/website/"
 
@@ -120,9 +120,10 @@ else
     s3 = require('./s3') uploads.s3
 
     app.post '/Upload', s3..., (req, res)->
+      [protocol, path] = uploads.distribution.split('//')
       res.send(for own key, file of req.files
         filename  : file.filename
-        resource  : nodePath.join uploads.distribution, file.path
+        resource  : "#{protocol}//#{nodePath.join path, file.path}"
       )
 
     app.get '/Upload/test', (req, res)->
@@ -141,7 +142,7 @@ else
             return true;
           }
         </script>
-        <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+        <form method="post" action="/Upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
           <p>Title: <input type="text" name="title" /></p>
           <p>Image: <input type="file" name="image" id="image" /></p>
           <p><input type="submit" value="Upload" /></p>
