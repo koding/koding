@@ -111,7 +111,7 @@ class KDModalView extends KDView
     @modalWidth = value
     @$().width value
 
-  setPositions:()->
+  setPositions:->
     @utils.wait =>
       {position} = @getOptions()
       newPosition = {}

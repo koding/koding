@@ -435,6 +435,7 @@ Includes =
         FollowButton                : "./client/app/CommonViews/followbutton.coffee"
 
         ManageRemotesModal          : "./client/app/CommonViews/remotesmodal.coffee"
+        ManageDatabaseModal         : "./client/app/CommonViews/databasesmodal.coffee"
 
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
