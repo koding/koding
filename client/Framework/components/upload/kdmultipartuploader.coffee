@@ -61,8 +61,8 @@ Content-Type: #{@file.type}\r\n\r\n
 
         arrb = new ArrayBuffer len
         ui8a = new Uint8Array arrb
-        while i--
-          ui8a[i] = body.charCodeAt(i) & 0xff
+        
+        ui8a[i] = body.charCodeAt(i) & 0xff  while i--
 
         blob = new Blob [ui8a]
         xhr.send blob
