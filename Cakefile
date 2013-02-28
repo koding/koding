@@ -5,7 +5,8 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
-option '-u', '--username [USER]', 'Subdomain for AWS deployment'
+option '-u', '--username [USER]', 'User for AWS deployment or user which will be added to VPN'
+option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -451,7 +452,26 @@ task 'resetGuests', (options)->
   {resetGuests} = require './workers/guestcleanup/guestinit'
   resetGuests configFile
 
+task 'addVPNuser', "adds a VPN user, use with -u and -e", (options) ->
+  {username, email} = options
+  if username in ["",undefined,"undefined"]
+    log.warn "username not set! Use -u flag"
+    return false
+  if email in ["",undefined,"undefined"]
+    log.warn "email not set! Use -e flag"
+    return false
 
+  # cmd = "ssh cblum@gateway.dev.service.aws.koding.com && sudo su && source /etc/openvpn/easy-rsa/vars && /etc/openvpn/easy-rsa/pkitool #{username}"
+  cmd = "ssh cblum@10.116.118.191 -- sudo /root/addVPNuser.sh #{username} #{email}"
+  log.info "executing... cmd: #{cmd}"
+  processes.spawn
+    name: 'addUser'
+    cmd : cmd
+    stdout : process.stdout
+    stderr : process.stderr
+    verbose : yes
+    onExit : null
+      
 
 
 
