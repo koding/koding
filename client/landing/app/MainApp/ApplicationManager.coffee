@@ -29,14 +29,6 @@ class ApplicationManager extends KDObject
 
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
-  getByView: (view)->
-    appInstance = null
-    for name, apps of @appControllers
-      apps.forEach (appController)=>
-        if view.getId() is appController.getView().getId()
-          appInstance = appController
-    return appInstance
-
   open: do ->
 
     createOrShow = (appOptions, callback = noop)->
@@ -132,9 +124,17 @@ class ApplicationManager extends KDObject
     @unregister appInstance
     callback()
 
-  get:(name)->
+  get:(name)-> @appControllers[name]?.first or null
 
-    @appControllers[name]?.first or null
+  getByView: (view)->
+
+    appInstance = null
+    for name, apps of @appControllers
+      apps.forEach (appController)=>
+        if view.getId() is appController.getView?().getId()
+          appInstance = appController
+
+    return appInstance
 
   getFrontApp:-> @frontApp
 
