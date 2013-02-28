@@ -162,7 +162,7 @@ class Sidebar extends JView
 
     KD.utils.wait 8000, =>
       @$('#finder-bottom-controls').addClass 'go-down'
-      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 28
+      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
@@ -331,6 +331,7 @@ class Sidebar extends JView
     items : [
       { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
       { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
+      { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
