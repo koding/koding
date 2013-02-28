@@ -27,7 +27,7 @@ class AvatarPopupMessages extends AvatarPopup
       cssClass : "sublink"
       partial  : "<a href='#'>See all messages...</a>"
       click    : =>
-        KD.getSingleton("appManager").openApplication('Inbox')
+        KD.getSingleton("appManager").open('Inbox')
         KD.getSingleton("appManager").tell 'Inbox', "goToMessages"
         @hide()
 

@@ -16,5 +16,6 @@ class KDViewController extends KDController
     cb = @loadView.bind @, aViewInstance
     if aViewInstance.isViewReady() then do cb
     else
-      aViewInstance.on 'viewAppended', cb
-      aViewInstance.on 'KDObjectWillBeDestroyed', => @destroy()
+      aViewInstance.once 'viewAppended', cb
+      aViewInstance.once 'KDObjectWillBeDestroyed', =>
+        KD.utils.defer => @destroy()

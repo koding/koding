@@ -92,7 +92,7 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
-    log userRoute, options
+    # log userRoute, options
     # debugger
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 

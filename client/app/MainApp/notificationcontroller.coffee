@@ -83,7 +83,7 @@ class NotificationController extends KDObject
       options.click = ->
         view = @
         if subject.constructorName is "JPrivateMessage"
-          KD.getSingleton("appManager").openApplication "Inbox"
+          KD.getSingleton("appManager").open "Inbox"
         else if subject.constructorName in ["JComment", "JOpinion"]
           KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
             KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post

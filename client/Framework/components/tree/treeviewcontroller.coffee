@@ -49,7 +49,7 @@ class JTreeViewController extends KDViewController
     o.dragdrop                   ?= no
 
     super o, data
-    log @
+
     @listData                     = {}
     @listControllers              = {}
     @nodes                        = {}

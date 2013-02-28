@@ -109,30 +109,30 @@ class KDWindowController extends KDController
   beforeUnload:(event)->
     # fixme: fix this with appmanager
 
-    if @getSingleton('mainView')?.mainTabView?.panes
-      for pane in @getSingleton('mainView').mainTabView.panes
-        msg = no
+    # if @getSingleton('mainView')?.mainTabView?.panes
+    #   for pane in @getSingleton('mainView').mainTabView.panes
+    #     msg = no
 
-        # For open Tabs (apps, editors)
-        if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
-          msg = "Please make sure that you saved all your work."
+    #     # For open Tabs (apps, editors)
+    #     if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
+    #       msg = "Please make sure that you saved all your work."
 
-        # This cssClass needs to be added to the KDInputView OR
-        # a shadow KDInputView
-        pane.data.$(".warn-on-unsaved-data").each (i,element) =>
-
-
-          # If the View is a KDInputview, we don"t need to look
-          # further than the .val(). For ACE and others, we have
-          # to implement content shadowing in the widgets/inputs
-          if $(element).hasClass("kdinput") and $(element).val()
-            msg = "You may lose some input that you filled in."
+    #     # This cssClass needs to be added to the KDInputView OR
+    #     # a shadow KDInputView
+    #     pane.data.$(".warn-on-unsaved-data").each (i,element) =>
 
 
-    if msg # has to be created in the above checks
-      event or= window.event
-      event.returnValue = msg if event # For IE and Firefox prior to version 4
-      return msg
+    #       # If the View is a KDInputview, we don"t need to look
+    #       # further than the .val(). For ACE and others, we have
+    #       # to implement content shadowing in the widgets/inputs
+    #       if $(element).hasClass("kdinput") and $(element).val()
+    #         msg = "You may lose some input that you filled in."
+
+
+    # if msg # has to be created in the above checks
+    #   event or= window.event
+    #   event.returnValue = msg if event # For IE and Firefox prior to version 4
+    #   return msg
 
 
 

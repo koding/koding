@@ -3,14 +3,12 @@ class AccountAppController extends AppController
   KD.registerAppClass @,
     name         : "Account"
     route        : "Account"
+    behavior     : "hideTabs"
     hiddenHandle : yes
 
   constructor:(options={},data)->
 
-    options.view    = new KDView cssClass : "content-page"
-    options.appInfo =
-      name          : "Account"
-      type          : "background"
+    options.view = new KDView cssClass : "content-page"
 
     super options, data
 

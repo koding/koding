@@ -3,6 +3,7 @@ class StartTabAppController extends AppController
   KD.registerAppClass @,
     name         : "StartTab"
     route        : "Develop"
+    behavior     : "application"
     multiple     : yes
 
   constructor:(options = {}, data)->

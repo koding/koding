@@ -180,6 +180,7 @@ KD.error = error = noop
     options.hiddenHandle  ?= no           # a Boolean
     options.route        or= ""           # a String
     options.openWith     or= "lastActive" # a String "lastActive" or "prompt"
+    options.behavior     or= ""           # a String "application", "hideTabs", or ""
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes

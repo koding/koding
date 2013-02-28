@@ -12,6 +12,7 @@ class FeederAppController extends KDController
     super options, data
 
   createContentFeedController:(options, callback, feedControllerConstructor)->
+
     callback? \
       if feedControllerConstructor?
         new feedControllerConstructor options

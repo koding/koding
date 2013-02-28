@@ -32,7 +32,7 @@ class PopupMessageListItem extends KDListItemView
     __utils.shortenText(text, minLength: 40, maxLength: 70) or ''
 
   click:(event)->
-    KD.getSingleton("appManager").openApplication 'Inbox'
+    KD.getSingleton("appManager").open 'Inbox'
     KD.getSingleton("appManager").tell "Inbox", "goToMessages", @
     popupList = @getDelegate()
     popupList.emit 'AvatarPopupShouldBeHidden'

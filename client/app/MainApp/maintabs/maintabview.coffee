@@ -8,14 +8,21 @@ class MainTabView extends KDTabView
     options.sortable            = yes
     @visibleHandles             = []
     @totalSize                  = 0
-    @paneViewIndex              = {}
     super options,data
 
     appManager = @getSingleton("appManager")
 
-    appManager.on 'AppViewAddedToAppManager', (appController, appView, options)=>
+    appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
 
-      @showPaneByView options, appView
+      if view.parent
+        log "gel buraa baban var"
+        @showPane view.parent
+      else
+        log "anan baban nerde"
+        @createTabPane options, view
+
+      # @showPaneByName options, view
+
 
     # appManager.on 'AppViewRemovedFromAppManager', (appController, appView, options)=>
 
@@ -35,7 +42,6 @@ class MainTabView extends KDTabView
       @removePane pane
       return no
 
-    @getSingleton("contentDisplayController").emit "ContentDisplaysShouldBeHidden"
     @showPane pane
 
   showHandleContainer:()->
@@ -54,10 +60,12 @@ class MainTabView extends KDTabView
 
     paneMainView = pane.getMainView()
 
-    if paneMainView.data?.constructor.name is 'FSFile'
-      @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
+    # fix this SY
 
-    paneMainView.handleEvent type : "click"
+    # if paneMainView.data?.constructor.name is 'FSFile'
+    #   @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
+
+    # paneMainView.handleEvent type : "click"
     @handleEvent {type : "MainTabPaneShown", pane}
 
     return pane
@@ -68,7 +76,6 @@ class MainTabView extends KDTabView
     isActivePane = @getActivePane() is pane
     @panes.splice(index,1)
     pane.destroy()
-    @unindexPaneByView pane, pane.getData()
     handle = @getHandleByIndex index
     @handles.splice(index,1)
     handle.destroy()
@@ -88,72 +95,49 @@ class MainTabView extends KDTabView
     if appPanes.length is 0
       @emit "AllApplicationPanesClosed"
 
-  removePaneByView:(view)->
-    # log view, @getPaneByView view
-    return unless (pane = @getPaneByView view)
-    @_removePane pane
-
-  showPaneByView:(options, view)->
-    viewId = view
-    pane = @getPaneByView view
-    if pane?
-      @showPane pane
-    else
-      @createTabPane options, view
-
-  getPaneByView:(view)->
-    if view then @paneViewIndex[view.id] else null
-
-  indexPaneByView:(pane,view)->
-    @paneViewIndex[view.id] = pane
-
-  unindexPaneByView:(pane,view)->
-    delete @paneViewIndex[view.id]
+  # showPaneByName:(options, view)->
+  #   {name} = options
+  #   pane   = @getPaneByName name
+  #   if pane
+  #     super name
+  #   else
+  #     @createTabPane options, view
 
   createTabPane:(options = {}, mainView)->
 
-    @removePaneByView mainView if mainView?
+    options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
+    options.class  or= KDView
 
+    paneInstance = new MainTabPane options
 
-    if options.cssClass
-      options.cssClass    = @utils.curryCssClass "content-area-pane", options.cssClass
-    options.type        or= "content"
-    options.class       or= KDView
-    # options.hiddenHandle ?= yes
-
-    paneInstance = new MainTabPane options, mainView
-
-    paneInstance.on "viewAppended", =>
+    paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
 
     @addPane paneInstance
-    @indexPaneByView paneInstance,mainView
-
-    # paneInstance.on "KDObjectWillBeDestroyed", => log "go to hell"
-    # mainView.on "KDObjectWillBeDestroyed", => log "go to hell x 2"
 
     return paneInstance
 
   applicationPaneReady: (pane, mainView) ->
     # mainView.setDelegate pane
-    mainView.setClass 'application-page' if pane.options.type is "application"
+    if pane.getOption("behavior") is "application"
+      mainView.setClass 'application-page'
     pane.setMainView mainView
 
-  tabPaneReady:(pane,event)->
-    pageClass = KDView
-    type = "content"
-    if /^ace/.test pane.name
-      pageClass = KD.getPageClass("Editor")
-      type = "application"
-    else if /^shell/.test pane.name
-      pageClass = KD.getPageClass("Shell")
-      type = "application"
-    else
-      pageClass = KD.getPageClass(pane.name) if KD.getPageClass(pane.name)
+  # tabPaneReady:(pane,event)->
+  #   pageClass = KDView
+  #   type = "content"
+  #   if /^ace/.test pane.name
+  #     pageClass = KD.getPageClass("Editor")
+  #     type = "application"
+  #   else if /^shell/.test pane.name
+  #     pageClass = KD.getPageClass("Shell")
+  #     type = "application"
+  #   else
+  #     pageClass = KD.getPageClass(pane.name) if KD.getPageClass(pane.name)
 
-    pane.addSubView page = new pageClass
-      delegate : pane
-      cssClass : "#{type}-page"
+  #   pane.addSubView page = new pageClass
+  #     delegate : pane
+  #     cssClass : "#{type}-page"
 
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []

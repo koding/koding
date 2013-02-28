@@ -1,11 +1,12 @@
 class MainTabPane extends KDTabPaneView
-  constructor:(options,data)->
-    @id or= options.id
-    super
-  
-  setMainView:(view)->
-    @mainView = view
-    @addSubView view
-  
-  getMainView:()->
-    @mainView
+
+  constructor:(options, data)->
+
+    @id        or= options.id
+    options.type = options.behavior
+
+    super options, data
+
+  setMainView:(view)-> @addSubView @mainView = view
+
+  getMainView:()-> @mainView

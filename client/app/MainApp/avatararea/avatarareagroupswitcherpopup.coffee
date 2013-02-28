@@ -32,7 +32,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass : "sublink"
       partial  : "<a href='#'>See all groups...</a>"
       click    : =>
-        KD.getSingleton("appManager").openApplication "Groups"
+        KD.getSingleton("appManager").open "Groups"
         @hide()
 
   accountChanged:->

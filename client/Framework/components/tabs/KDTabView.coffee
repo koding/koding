@@ -14,11 +14,13 @@ class KDTabView extends KDScrollView
 
     super options, data
 
+    @activePane = null
+
     @setTabHandleContainer options.tabHandleContainer ? null
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
-
+    @on "PaneDidShow", @bound "setActivePane"
     if options.tabNames?
       @on "viewAppended", @createPanes.bind @
 
@@ -33,7 +35,7 @@ class KDTabView extends KDScrollView
 
     @tabHandleContainer.on "mouseenter", => @blockTabHandleResize = yes
 
-    @tabHandleContainer.on "mouseleave", => 
+    @tabHandleContainer.on "mouseleave", =>
       @blockTabHandleResize = no
       @resizeTabHandles()
 
@@ -78,7 +80,7 @@ class KDTabView extends KDScrollView
       targetIndex = index + 1
     else
       methodName  = 'insertBefore'
-      targetIndex = index - 1  
+      targetIndex = index - 1
     @handles[index].$()[methodName] @handles[targetIndex].$()
 
     newIndex       = if dir is 'left' then index - 1 else index + 1
@@ -211,11 +213,9 @@ class KDTabView extends KDScrollView
       paneInstance = pane if pane.id is id
     paneInstance
 
-  getActivePane:()->
-    @activePane = undefined if @panes.length is 0
-    for pane in @panes
-      @activePane = pane if pane.active
-    @activePane
+  getActivePane:-> @activePane
+
+  setActivePane:(@activePane)->
 
   getPaneByIndex:(index)-> @panes[index]
   getHandleByIndex:(index)-> @handles[index]

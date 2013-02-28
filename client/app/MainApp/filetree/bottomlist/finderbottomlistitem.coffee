@@ -20,7 +20,7 @@ class FinderBottomControlsListItem extends KDListItemView
     {appPath} = @getData()
     event.preventDefault()
     if appPath?
-      KD.getSingleton("appManager").openApplication appPath if appPath?
+      KD.getSingleton("appManager").open appPath if appPath?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else if @getData().action is "manageRemotes"

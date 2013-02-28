@@ -28,7 +28,7 @@ class BookUpdateWidget extends KDView
         duration   : 3000
       return
 
-    KD.getSingleton("appManager").openApplication "Activity"
+    KD.getSingleton("appManager").open "Activity"
     @getDelegate().$().css left : -1349
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>

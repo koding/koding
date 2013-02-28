@@ -1,7 +1,9 @@
 class MainViewController extends KDViewController
 
   constructor:->
+
     super
+
     mainView = @getView()
     @registerSingleton 'mainView', mainView, yes
 
@@ -11,41 +13,26 @@ class MainViewController extends KDViewController
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
 
-
     KDView.appendToDOMBody mainView
 
   loadView:(mainView)->
+
     mainView.mainTabView.on "MainTabPaneShown", (data)=>
       @mainTabPaneChanged mainView, data.pane
 
   mainTabPaneChanged:(mainView, pane)->
-    {sidebarController} = @
-    sidebar             = sidebarController.getView()
-    {navController}     = sidebar
-    paneType            = pane.options.type
-    paneName            = pane.options.name
-    navItemName         = paneName
 
+    {sidebarController}    = @
+    sidebar                = sidebarController.getView()
+    {navController}        = sidebar
+    {type, name, behavior} = pane.getOptions()
+    {route}                = KD.getAppOptions name
 
-    if KD.getSingleton("appManager").isAppUnderDevelop pane.name
-      # log ">>>>>>>>>>>> DEVELOP", pane.name
+    @getSingleton("contentDisplayController").emit "ContentDisplaysShouldBeHidden"
+
+    if route is 'Develop'
       @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
-    # else
-    #   if @getSingleton('router')? and pane.name isnt @getSingleton('router').getCurrentPath()
-    #     @getSingleton('router').handleRoute "/#{pane.name}", suppressListeners: yes
 
-    if paneType is 'application'
-      mainView.setViewState 'application'
-      navItemName = 'Develop'
+    mainView.setViewState behavior
 
-    else if paneType is 'background'
-      mainView.setViewState 'background'
-
-    else if paneName is 'Environment'
-      navItemName = 'Develop'
-      mainView.setViewState 'application'
-
-    else
-      mainView.setViewState 'default'
-
-    navController.selectItemByName navItemName
+    navController.selectItemByName route

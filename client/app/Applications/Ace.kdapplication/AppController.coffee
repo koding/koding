@@ -6,6 +6,7 @@ class AceAppController extends AppController
     hiddenHandle : no
     openWith     : "lastActive"
     route        : "Develop"
+    behavior     : "application"
 
   constructor: (options = {}, data)->
 

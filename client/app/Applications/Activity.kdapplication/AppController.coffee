@@ -55,14 +55,11 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-  bringToFront:->
-
-    super
-
+  loadView:->
     if @listController then @populateActivity()
     else
       ac = @getSingleton('activityController')
-      ac.once "ActivityListControllerReady", @populateActivity.bind @
+      ac.once "ActivityListControllerReady", @bound "populateActivity"
 
   resetList:->
 
