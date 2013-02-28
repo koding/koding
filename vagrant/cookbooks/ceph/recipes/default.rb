@@ -74,3 +74,5 @@ service "ceph" do
   stop_command "/etc/init.d/ceph -a stop"
   restart_command "/etc/init.d/ceph -a restart"
 end
+
+execute "ceph osd pool create vms 50"
