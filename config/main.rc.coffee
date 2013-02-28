@@ -116,6 +116,8 @@ module.exports = deepFreeze
     vhost       : '/'
   broker        :
     port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'

@@ -19,7 +19,9 @@ type Config struct {
 		Password      string
 	}
 	Broker struct {
-		Port int
+		Port     int
+		CertFile string
+		KeyFile  string
 	}
 	Loggr struct {
 		Push   bool
