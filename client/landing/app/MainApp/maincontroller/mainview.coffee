@@ -105,18 +105,20 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
+    getFrontAppManifest = ->
+      appManager = KD.getSingleton "appManager"
+      appController = KD.getSingleton "kodingAppsController"
+      frontApp = appManager.getFrontApp()
+      frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
+      appController.constructor.manifests?[frontAppName]
+
     @mainSettingsMenuButton = new KDButtonView
       domId    : "main-settings-menu"
       cssClass : "kdsettingsmenucontainer clean-gray"
       iconOnly : yes
       iconClass: "cog"
       callback : ->
-        appManager = KD.getSingleton "appManager"
-        appController = KD.getSingleton "kodingAppsController"
-        frontApp = appManager.getFrontApp()
-        frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
-        appManifest = appController.constructor.manifests?[frontAppName]
-
+        appManifest = getFrontAppManifest()
         if appManifest?.menu
           appManifest.menu.forEach (item, index)->
             item.callback = (contextmenu)->
@@ -135,9 +137,7 @@ class MainView extends KDView
                 placement : "top"
                 margin    : -10
             , appManifest.menu
-        else
-          new KDNotificationView
-            title: "There is no option."
+    @mainSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -148,9 +148,8 @@ class MainView extends KDView
     ,null
 
     @mainTabView.on "PaneDidShow", =>
-      mainView = KD.getSingleton "mainView"
-      view = mainView.mainTabView.activePane?.mainView
-      @getSingleton('appManager').getFrontApp()
+      appManifest = getFrontAppManifest()
+      @mainSettingsMenuButton.$()[if appManifest?.menu then "fadeIn" else "fadeOut"]()
 
     mainController = @getSingleton('mainController')
     mainController.popupController = new VideoPopupController
