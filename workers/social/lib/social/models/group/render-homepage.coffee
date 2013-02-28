@@ -1,5 +1,5 @@
 
-module.exports = ({slug, title, content, policy})->
+module.exports = ({slug, title, content, body, avatar, policy})->
   content ?= getDefaultGroupContents()
   """
   <!DOCTYPE html>
@@ -8,10 +8,40 @@ module.exports = ({slug, title, content, policy})->
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body data-group="#{slug}">
-    <div class="group-landing-content">#{content}</div>
-    #{getNavigation policy}
-    #{getScripts()}
+  <body class="login" data-group="#{slug}">
+    <div class='group-landing'>
+    <div class="group-landing-content">
+      <div class="group-wrapper">
+
+        <span class="avatar">
+          <img src="#{avatar or "http://lorempixel.com/150/150/"}">
+        </span>
+
+        <div class="content-title">
+          <a class="betatag">beta</a>
+          #{title}
+        </div>
+
+        <div class="content-body">
+          #{body}
+        </div>
+
+
+        <div class="group-content">
+          <div class="content-markdown has-markdown">
+            #{content}
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+    <div class="group-navigation">
+      #{getNavigation policy}
+      #{getScripts()}
+
+    </div>
+    </div00%>
   </body>
   </html>
   """

@@ -308,7 +308,7 @@ module.exports = class JGroup extends Module
         unless readme
           JMarkdownDoc = require '../markdowndoc'
           readme = new JMarkdownDoc content: text
-          
+
           daisy queue = [
             ->
               readme.save (err)->
@@ -318,13 +318,13 @@ module.exports = class JGroup extends Module
             =>
               @addReadme readme, (err)->
                 console.log err
-                if err then callback err                
+                if err then callback err
                 else queue.next()
             ->
               callback null, readme
           ]
 
-        else 
+        else
           readme.update $set:{ content: text }, (err)=>
             if err then callback err
             else callback null, readme
@@ -341,13 +341,15 @@ module.exports = class JGroup extends Module
             @slug
             @title
             policy
+            @avatar
+            @body
             content : readme?.html ? readme?.content
           }
 
   createRole: permit 'grant permissions'
     success:(client, formData, callback)->
       JGroupRole = require './role'
-      JGroupRole.create 
+      JGroupRole.create
         title           : formData.title
         isConfigureable : formData.isConfigureable or no
       , callback
@@ -358,14 +360,14 @@ module.exports = class JGroup extends Module
         console.log err,role
         unless err
           @addRole role, callback
-        else 
+        else
           callback err, null
 
   createMembershipPolicy:(queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
     queue ?= []
     JMembershipPolicy = require './membershippolicy'
-    membershipPolicy  = new JMembershipPolicy 
+    membershipPolicy  = new JMembershipPolicy
     queue.push(
       -> membershipPolicy.save (err)->
         if err then callback err
@@ -429,7 +431,7 @@ module.exports = class JGroup extends Module
           else if explanation? then ERROR_POLICY
           else ERROR_NO_POLICY
         callback clientError, no
- 
+
   countPendingInvitationRequests: permit 'send invitations'
     success: (client, callback)->
       @countInvitationRequests {}, {status: 'pending'}, callback
@@ -463,7 +465,7 @@ module.exports = class JGroup extends Module
 
           invitationType =
             if policy.invitationsEnabled then 'invitation' else 'basic approval'
-        
+
           method =
             if 'invitation' is invitationType
               if isApproved then 'send' else 'delete'
@@ -512,7 +514,7 @@ module.exports = class JGroup extends Module
               setTimeout queue.next.bind(queue), 50
           queue.push -> callback null, null
           daisy queue
-  
+
   requestAccess: secure (client, callback)->
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
@@ -520,7 +522,7 @@ module.exports = class JGroup extends Module
         @requestInvitation client, 'invitation', callback
       else
         @requestApproval client, callback
- 
+
   sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
     JMail = require '../email'
     (new JMail
@@ -530,7 +532,7 @@ module.exports = class JGroup extends Module
         This will be the content for the approval request email.
         """
     ).save callback
- 
+
   requestApproval: secure (client, callback)->
     {delegate} = client.connection
     @requestInvitation client, 'basic approval', (err)=>
