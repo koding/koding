@@ -36,3 +36,7 @@ class MainViewController extends KDViewController
     mainView.setViewState behavior
 
     navController.selectItemByName route
+
+    appManager = @getSingleton "appManager"
+    appInstance = appManager.getByView pane.mainView
+    appManager.setFrontApp appInstance

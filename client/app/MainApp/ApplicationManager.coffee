@@ -29,6 +29,13 @@ class ApplicationManager extends KDObject
 
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
+  getByView: (view)->
+    appInstance = null
+    for name, apps of @appControllers
+      apps.forEach (appController)=>
+        if view.getId() is appController.getView().getId()
+          appInstance = appController
+    return appInstance
 
   open: do ->
 
