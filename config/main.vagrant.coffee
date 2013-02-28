@@ -109,6 +109,8 @@ module.exports = deepFreeze
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
