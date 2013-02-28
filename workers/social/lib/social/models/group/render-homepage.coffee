@@ -1,5 +1,5 @@
 
-module.exports = ({slug, title, content, body, avatar, policy})->
+module.exports = ({slug, title, content, body, avatar, counts, policy})->
   content ?= getDefaultGroupContents()
   """
   <!DOCTYPE html>
@@ -24,6 +24,14 @@ module.exports = ({slug, title, content, body, avatar, policy})->
 
         <div class="content-body">
           #{body}
+        </div>
+
+        <div class="content-meta">
+          <div class="followers"><span class="icon"></span>
+            <span class="count">#{counts.members or '0'}</span> Followers
+          </div>
+          <div class="posts"><span class="icon"></span>
+            <span class="count">#{counts.posts or '0'}</span> Posts</div>
         </div>
 
         <div class="group-content">
