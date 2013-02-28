@@ -1,82 +1,19 @@
-Index: lxc-0.8.0~rc1/src/lxc/attach.c
+Index: koding/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c
 ===================================================================
---- lxc-0.8.0~rc1.orig/src/lxc/attach.c	2013-02-07 14:15:49.000000000 +0000
-+++ lxc-0.8.0~rc1/src/lxc/attach.c	2013-02-07 14:16:34.000000000 +0000
-@@ -159,7 +159,7 @@
- 			ptr2[l] = '\0';
- 
- 		info->cgroups[i].subsystems = strndup(ptr + 1, ptr2 - (ptr + 1));
--		info->cgroups[i].cgroup = strdup(ptr2 + 1);
-+		info->cgroups[i].cgroup = strdup(ptr2 + 1 + 4);
- 
- 		i++;
- 	}
-@@ -230,13 +230,7 @@
- int lxc_attach_to_ns(pid_t pid, int which)
- {
- 	char path[MAXPATHLEN];
--	/* TODO: we assume that the file in /proc for attaching to user
--	 * namespaces will be called /proc/$pid/ns/usr, in accordance
--	 * with the naming convention of previous namespaces. Once the
--	 * kernel really supports setns() on a user namespace, make sure
--	 * the array here matches the array in the kernel
--	 */
--	static char *ns[] = { "mnt", "pid", "uts", "ipc", "usr", "net" };
-+	static char *ns[] = { "mnt", "pid", "uts", "ipc", "user", "net" };
- 	static int flags[] = {
- 		CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUTS, CLONE_NEWIPC,
- 		CLONE_NEWUSER, CLONE_NEWNET
-@@ -262,35 +256,6 @@
- 		snprintf(path, MAXPATHLEN, "/proc/%d/ns/%s", pid, ns[i]);
- 		fd[i] = open(path, O_RDONLY);
- 		if (fd[i] < 0) {
--			/* there is currently no support in the kernel for
--			 * attaching to user namespaces - therefore, we
--			 * ignore the error, if the file does not exist
--			 */
--			if (flags[i] == CLONE_NEWUSER && errno == ENOENT) {
--				if (which != -1) {
--					/* we don't want the error
--					 * message on every full attach,
--					 * so we only show it if the
--					 * user really requested it
--					 * explicitly
--					 */
--					ERROR("Kernel does not support "
--					      "attaching to user "
--					      "namespaces, skipping.");
--				} else {
--					/* but do show it as a debug
--					 * message otherwise, so users
--					 * aren't completely left in the
--					 * dark
--					 */
--					DEBUG("Kernel does not support "
--					      "attaching to user "
--					      "namespaces, skipping.");
--				}
--				fd[i] = -1;
--				continue;
--			}
--
- 			saved_errno = errno;
- 
- 			/* close all already opened files before we return
-Index: lxc-0.8.0~rc1/src/lxc/lxc_attach.c
-===================================================================
---- lxc-0.8.0~rc1.orig/src/lxc/lxc_attach.c	2013-02-07 14:15:49.000000000 +0000
-+++ lxc-0.8.0~rc1/src/lxc/lxc_attach.c	2013-02-07 14:17:22.000000000 +0000
-@@ -30,6 +30,9 @@
+--- koding.orig/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c	2013-01-14 22:03:59.000000000 +0000
++++ koding/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c	2013-02-11 00:08:15.000000000 +0000
+@@ -29,6 +29,10 @@
+ #include <sys/param.h>
  #include <sys/types.h>
  #include <sys/wait.h>
- #include <sys/personality.h>
 +#include <utmp.h>
 +#include <sys/stat.h>
 +#include <fcntl.h>
++#include <grp.h>
  
  #include "attach.h"
  #include "commands.h"
-@@ -49,6 +52,7 @@
+@@ -53,6 +57,7 @@
  	{"arch", required_argument, 0, 'a'},
  	{"namespaces", required_argument, 0, 's'},
  	{"remount-sys-proc", no_argument, 0, 'R'},
@@ -84,7 +21,7 @@ Index: lxc-0.8.0~rc1/src/lxc/lxc_attach.c
  	LXC_COMMON_OPTIONS
  };
  
-@@ -56,6 +60,7 @@
+@@ -60,6 +65,7 @@
  static signed long new_personality = -1;
  static int namespace_flags = -1;
  static int remount_sys_proc = 0;
@@ -92,16 +29,16 @@ Index: lxc-0.8.0~rc1/src/lxc/lxc_attach.c
  
  static int my_parser(struct lxc_arguments* args, int c, char* arg)
  {
-@@ -76,6 +81,7 @@
- 		if (ret)
- 			return -1;
+@@ -83,6 +89,7 @@
+ 		/* -s implies -e */
+ 		elevated_privileges = 1;
  		break;
 +	case 't': tty = arg; break;
  	}
  
  	return 0;
-@@ -122,6 +128,8 @@
- 	struct lxc_handler *handler;
+@@ -130,6 +137,8 @@
+ 	void *cgroup_data = NULL;
  	uid_t uid;
  	char *curdir;
 +	gid_t groups[1] = { 0 };
@@ -109,9 +46,44 @@ Index: lxc-0.8.0~rc1/src/lxc/lxc_attach.c
  
  	ret = lxc_caps_init();
  	if (ret)
-@@ -231,6 +239,33 @@
- 			}
+@@ -183,21 +192,6 @@
  		}
+ 	}
+ 
+-	/* we need to attach before we fork since certain namespaces
+-	 * (such as pid namespaces) only really affect children of the
+-	 * current process and not the process itself
+-	 */
+-	ret = lxc_attach_to_ns(init_pid, namespace_flags);
+-	if (ret < 0) {
+-		ERROR("failed to enter the namespace");
+-		return -1;
+-	}
+-
+-	if (curdir && chdir(curdir))
+-		WARN("could not change directory to '%s'", curdir);
+-
+-	free(curdir);
+-
+ 	/* hack: we need sync.h infrastructure - and that needs a handler */
+ 	handler = calloc(1, sizeof(*handler));
+ 
+@@ -265,6 +259,12 @@
+ 		lxc_sync_fini_parent(handler);
+ 		lxc_cgroup_dispose_attach(cgroup_data);
+ 
++		ret = lxc_attach_to_ns(init_pid, namespace_flags);
++		if (ret < 0) {
++			ERROR("failed to enter the user namespace");
++			return -1;
++		}
++
+ 		/* A description of the purpose of this functionality is
+ 		 * provided in the lxc-attach(1) manual page. We have to
+ 		 * remount here and not in the parent process, otherwise
+@@ -301,6 +301,38 @@
+ 
+ 		lxc_sync_fini(handler);
  
 +		if (tty != 0) {
 +			if((tty_fd = open(tty, O_RDWR)) == 0) {
@@ -126,20 +98,25 @@ Index: lxc-0.8.0~rc1/src/lxc/lxc_attach.c
 +		}
 +
 +		if (setuid(0) != 0) {
-+			ERROR("could not set user id: ", strerror(errno));
++			ERROR("could not set user id: %s", strerror(errno));
 +			return -1;
 +		}
 +
 +		if (setgid(0) != 0) {
-+			ERROR("could not set group id: ", strerror(errno));
++			ERROR("could not set group id: %s", strerror(errno));
 +			return -1;
 +		}
 +
 +		if (setgroups(1, groups) != 0) {
-+			ERROR("could not set groups: ", strerror(errno));
++			ERROR("could not set groups: %s", strerror(errno));
 +			return -1;
 +		}
 +
- 		if (curdir && chdir(curdir))
- 			WARN("could not change directory to '%s'", curdir);
- 
++		if (curdir && chdir(curdir))
++			WARN("could not change directory to '%s'", curdir);
++
++		free(curdir);
++
+ 		if (my_args.argc) {
+ 			execvp(my_args.argv[0], my_args.argv);
+ 			SYSERROR("failed to exec '%s'", my_args.argv[0]);
