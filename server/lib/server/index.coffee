@@ -119,35 +119,35 @@ else
 
     s3 = require('./s3') uploads.s3
 
-    app.post '/Upload', s3..., (req, res)->
-      [protocol, path] = uploads.distribution.split('//')
+    app.post '/Upload', s3..., (req, res)-> 
+      [protocol, path] = uploads.distribution.split '//'
       res.send(for own key, file of req.files
         filename  : file.filename
-        resource  : "#{protocol}//#{nodePath.join path, file.path}"
+        resource  : [protocol, nodePath.join path, file.path].join '//'
       )
 
-    app.get '/Upload/test', (req, res)->
-      res.send \
-        """
-        <script>
-          function submitForm(form) {
-            var file, fld;
-            input = document.getElementById('image');
-            file = input.files[0];
-            fld = document.createElement('input');
-            fld.hidden = true;
-            fld.name = input.name + '-size';
-            fld.value = file.size;
-            form.appendChild(fld);
-            return true;
-          }
-        </script>
-        <form method="post" action="/Upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-          <p>Title: <input type="text" name="title" /></p>
-          <p>Image: <input type="file" name="image" id="image" /></p>
-          <p><input type="submit" value="Upload" /></p>
-        </form>
-        """
+    # app.get '/Upload/test', (req, res)->
+    #   res.send \
+    #     """
+    #     <script>
+    #       function submitForm(form) {
+    #         var file, fld;
+    #         input = document.getElementById('image');
+    #         file = input.files[0];
+    #         fld = document.createElement('input');
+    #         fld.hidden = true;
+    #         fld.name = input.name + '-size';
+    #         fld.value = file.size;
+    #         form.appendChild(fld);
+    #         return true;
+    #       }
+    #     </script>
+    #     <form method="post" action="/Upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+    #       <p>Title: <input type="text" name="title" /></p>
+    #       <p>Image: <input type="file" name="image" id="image" /></p>
+    #       <p><input type="submit" value="Upload" /></p>
+    #     </form>
+    #     """
 
   app.get "/", (req, res)->
     if frag = req.query._escaped_fragment_?

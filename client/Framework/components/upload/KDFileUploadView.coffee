@@ -16,7 +16,6 @@
 #
 # NOTE: since it creates input fields with filedata it should be added to forms
 #####
-
 class KDFileUploadView extends KDView
   constructor:(options,data)->
     if window.FileReader?
@@ -63,12 +62,17 @@ class KDFileUploadView extends KDView
   addThumbnailList:()-> new KDFileUploadThumbListView delegate : @
 
   fileDropped:(file)->
-    reader = new FileReader()
-    reader.onload = (event)=>
-      @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
-      @emit "FileReadComplete", {progressEvent : event, file : file}
+    uploader = new KDMultipartUploader { url: '/Upload', file }
+    
+    # TODO: figure out why this is failing
+    uploader.on 'success', console.log.bind console, 'success'
 
-    reader.readAsDataURL file
+    # reader = new FileReader
+    # reader.onload = (event)=>
+    #   @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
+    #   @emit "FileReadComplete", {progressEvent : event, file : file}
+
+    # reader.readAsDataURL file
 
   fileReadComplete:(pubInst,event)->
     file = event.file

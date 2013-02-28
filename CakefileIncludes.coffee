@@ -89,6 +89,7 @@ Includes =
         KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
 
         # upload
+        kdmultipartuploader : "./client/Framework/components/upload/kdmultipartuploader.coffee"
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
         KDImageUploadView   : "./client/Framework/components/upload/KDImageUploadView.coffee"
 
