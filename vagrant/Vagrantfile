@@ -49,8 +49,7 @@ end
 private_ssh_key = "vagrant.pem"
 template_centos_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/centos64.box"
 template_cloudlinux_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/cloudlinux64.box"
-# template_ubuntu120464_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/ubuntu1204-64.box"
-template_ubuntu121064_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/ubuntu1210-64.box"
+template_ubuntu121064_2_0_url = "https://s3.amazonaws.com/koding-vagrant-Lti5bj61mVnfMkhX/ubuntu1210-64-2.0.box"
 
 koding_git_dir = ENV['PWD']
 cookbooks_dir = "#{koding_git_dir}/vagrant/cookbooks"
@@ -72,8 +71,8 @@ Vagrant::Config.run do |config|
     # ---- Ceph client configuration -------
     config.vm.define :cephClient do |cephClient_config|
 
-          cephClient_config.vm.box = "ubuntu1210-64-2.0"
-          cephClient_config.vm.box_url = template_ubuntu121064_url
+          cephClient_config.vm.box = "ubuntu1210-64-2_0"
+          cephClient_config.vm.box_url = template_ubuntu121064_2_0_url
           cephClient_config.vm.network :hostonly, hosts["cephClient.local"]
           cephClient_config.vm.host_name = "cephClient.local"
           cephClient_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
