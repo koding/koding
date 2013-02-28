@@ -5,12 +5,8 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
-<<<<<<< Updated upstream
-option '-u', '--username [USER]', 'User for AWS deployment or user which will be added to VPN'
-=======
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
->>>>>>> Stashed changes
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 
 {argv} = require 'optimist'
