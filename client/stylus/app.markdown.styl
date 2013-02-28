@@ -25,7 +25,11 @@
     display                                       block
     margin-bottom                                 5px
 
+  b,strong
+    word-break break-all
+
   p
+    white-space normal
     line-height                                   170%
     margin-bottom                                 15px
 
@@ -83,6 +87,7 @@
       padding 1px 4px
       border 1px solid rgba(255,255,255,0.16)
       rounded 2px
+      white-space pre
       // vendor transition, background-color 0.2s linear
       // &:hover
       //   bg color, lighten(#403C36,2%)

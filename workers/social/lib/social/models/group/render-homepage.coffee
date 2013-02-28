@@ -26,13 +26,11 @@ module.exports = ({slug, title, content, body, avatar, policy})->
           #{body}
         </div>
 
-
         <div class="group-content">
           <div class="content-markdown has-markdown dark">
             #{content}
           </div>
         </div>
-
 
       </div>
     </div>
