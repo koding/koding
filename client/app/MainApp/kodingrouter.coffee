@@ -165,7 +165,6 @@ class KodingRouter extends KDRouter
 
     requireLogout =(fn)->
       mainController.accountReady ->
-        # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 

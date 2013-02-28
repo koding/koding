@@ -7,7 +7,6 @@ koding = require './bongo'
 
 mime = require 'mime'
 {IncomingForm} = require 'formidable'
-IncomingForm.blow = 12
 
 {BufferedStream} = require './bufferedstream'
 
@@ -33,8 +32,7 @@ module.exports = (config)->
         if /-size$/.test(name)
           req.sizes[name.split('-').slice(0,-1).join('-')] = value
       form.onPart = (part)->
-        unless part.mime?
-          return IncomingForm::onPart.call @, part
+        return IncomingForm::onPart.call @, part  unless part.mime?
         parts = []
         file = req.files[part.name] =
           stream    : new BufferedStream
@@ -71,12 +69,3 @@ module.exports = (config)->
             )
           next()
   ]
-
-  # connectMiddleware:connectStreamS3(
-  #   accessKeyId: config.awsAccessKeyId
-  #   secretAccessKey: config.awsSecretAccessKey
-  #   awsAccountId: config.awsAccountId
-  #   region: amazon.US_EAST_1
-  #   bucketName: config.bucket
-  #   concurrency: 2 # number of concurrent uploads to S3 (default: 3)
-  # )
