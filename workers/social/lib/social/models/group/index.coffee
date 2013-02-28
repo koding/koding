@@ -343,6 +343,7 @@ module.exports = class JGroup extends Module
             policy
             @avatar
             @body
+            @counts
             content : readme?.html ? readme?.content
           }
 
