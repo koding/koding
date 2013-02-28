@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/config"
 	"koding/tools/log"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
@@ -173,7 +174,7 @@ func main() {
 			"/subscribe": service,
 		},
 	}}
-	listener, err := net.Listen("tcp", ":8008")
+	listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
 	if err != nil {
 		panic(err)
 	}

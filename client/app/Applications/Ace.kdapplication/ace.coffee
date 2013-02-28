@@ -114,32 +114,32 @@ class Ace extends KDView
   getSyntax:-> @syntaxMode
 
   getUseSoftTabs:->
-    @appStorage.getValue('useSoftTabs') or @editor.getSession().getUseSoftTabs()
+    @appStorage.getValue('useSoftTabs') ? @editor.getSession().getUseSoftTabs()
 
   getShowGutter:->
-    @appStorage.getValue('showGutter') or @editor.renderer.getShowGutter()
+    @appStorage.getValue('showGutter') ? @editor.renderer.getShowGutter()
 
   getShowPrintMargin:->
-    @appStorage.getValue('showPrintMargin') or @editor.getShowPrintMargin()
+    @appStorage.getValue('showPrintMargin') ? @editor.getShowPrintMargin()
 
   getHighlightActiveLine:->
-    @appStorage.getValue('highlightActiveLine') or @editor.getHighlightActiveLine()
+    @appStorage.getValue('highlightActiveLine') ? @editor.getHighlightActiveLine()
 
   getShowInvisibles:->
-    @appStorage.getValue('showInvisibles') or @editor.getShowInvisibles()
+    @appStorage.getValue('showInvisibles') ? @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue('fontSize') or parseInt @$("#editor#{@getId()}").css("font-size") ? 12, 10
+    @appStorage.getValue('fontSize') ? parseInt @$("#editor#{@getId()}").css("font-size") ? 12, 10
 
   getTabSize:->
-    @appStorage.getValue('tabSize') or @editor.getSession().getTabSize()
+    @appStorage.getValue('tabSize') ? @editor.getSession().getTabSize()
 
   getUseWordWrap:->
-    @appStorage.getValue('useWordWrap') or @editor.getSession().getUseWrapMode()
+    @appStorage.getValue('useWordWrap') ? @editor.getSession().getUseWrapMode()
 
   getSoftWrap:->
 
-    limit = @appStorage.getValue('softWrap') or @editor.getSession().getWrapLimitRange().max
+    limit = @appStorage.getValue('softWrap') ? @editor.getSession().getWrapLimitRange().max
     if limit then limit
     else
       if @getUseWordWrap() then "free" else "off"

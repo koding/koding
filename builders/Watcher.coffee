@@ -225,7 +225,9 @@ class Watcher extends EventEmitter
               writeCacheFile file.path,css
               callback file
             else
-              log.info "error with styl file at #{file.path}"
+              lines = err.message.split('\n') or ['0','No details supplied.']
+              log.error "\nStylus Compile Error in #{file.path} on line #{lines[0].match(/\d*$/)[0]}"
+              log.info line for line in lines[1...]
         when "coffee"
           try
             file.contentsCs = newContent
