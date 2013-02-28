@@ -105,26 +105,39 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
-    @mainSettingsMenuView = new KDButtonView
+    @mainSettingsMenuButton = new KDButtonView
       domId    : "main-settings-menu"
       cssClass : "kdsettingsmenucontainer clean-gray"
       iconOnly : yes
       iconClass: "cog"
       callback : ->
+        appManager = KD.getSingleton "appManager"
         appController = KD.getSingleton "kodingAppsController"
-        appManifest = appController.constructor.manifests['AppWithMenu']
+        frontApp = appManager.getFrontApp()
+        frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
+        appManifest = appController.constructor.manifests?[frontAppName]
 
-        appManifest.menu.forEach (item, index)->
-          item.callback = (contextmenu)->
-            mainView = KD.getSingleton "mainView"
-            view = mainView.mainTabView.activePane?.mainView
-            item.eventName or= item.title
-            view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
+        if appManifest?.menu
+          appManifest.menu.forEach (item, index)->
+            item.callback = (contextmenu)->
+              mainView = KD.getSingleton "mainView"
+              view = mainView.mainTabView.activePane?.mainView
+              item.eventName or= item.title
+              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
 
-        contextMenu = new JContextMenu
-            event    : event
-            delegate : @
-          , appManifest.menu
+          offset = @$().offset()
+          contextMenu = new JContextMenu
+              event       : event
+              delegate    : @
+              x           : offset.left - 143
+              y           : offset.top + 25
+              arrow       :
+                placement : "top"
+                margin    : -10
+            , appManifest.menu
+        else
+          new KDNotificationView
+            title: "There is no option."
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -133,6 +146,11 @@ class MainView extends KDView
       slidingPanes       : no
       tabHandleContainer : @mainTabHandleHolder
     ,null
+
+    @mainTabView.on "PaneDidShow", =>
+      mainView = KD.getSingleton "mainView"
+      view = mainView.mainTabView.activePane?.mainView
+      @getSingleton('appManager').getFrontApp()
 
     mainController = @getSingleton('mainController')
     mainController.popupController = new VideoPopupController
@@ -165,7 +183,7 @@ class MainView extends KDView
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
-    @contentPanel.addSubView @mainSettingsMenuView
+    @contentPanel.addSubView @mainSettingsMenuButton
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
