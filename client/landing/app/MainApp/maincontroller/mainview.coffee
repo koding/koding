@@ -110,10 +110,12 @@ class MainView extends KDView
         appController = KD.getSingleton "kodingAppsController"
         appManifest = appController.constructor.manifests['AppWithMenu']
 
-        $.each appManifest.menu, (title, menu)->
-          appManifest.menu[title].callback = (contextmenu)->
+        appManifest.menu.forEach (item, index)->
+          item.callback = (contextmenu)->
             mainView = KD.getSingleton "mainView"
-            mainView.mainTabView.activePane?.mainView.emit "menu", title, contextmenu
+            view = mainView.mainTabView.activePane?.mainView
+            item.eventName or= item.title
+            view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
 
         contextMenu = new JContextMenu
             event    : event
