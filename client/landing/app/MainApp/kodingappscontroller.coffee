@@ -67,6 +67,7 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
+    @manifests = KodingAppsController.manifests
 
   # #
   # FETCHERS
