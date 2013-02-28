@@ -206,7 +206,7 @@ func main() {
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
-		payload := json.RawMessage(amqpMessage.Body)
+		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
 		jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
