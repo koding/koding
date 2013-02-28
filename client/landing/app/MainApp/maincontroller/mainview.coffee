@@ -8,21 +8,22 @@ class MainView extends KDView
     @createSideBar()
     @listenWindowResize()
 
-  addBook:->
-    @addSubView new BookView
+  addBook:-> @addSubView new BookView
 
   setViewState:(state)->
-    if state is 'background'
-      @contentPanel.setClass 'no-shadow'
-      @mainTabView.hideHandleContainer()
-    else
-      @contentPanel.unsetClass 'no-shadow'
-      @mainTabView.showHandleContainer()
 
     switch state
+      when 'hideTabs'
+        @contentPanel.setClass 'no-shadow'
+        @mainTabView.hideHandleContainer()
+        @sidebar.hideFinderPanel()
       when 'application'
+        @contentPanel.unsetClass 'no-shadow'
+        @mainTabView.showHandleContainer()
         @sidebar.showFinderPanel()
       else
+        @contentPanel.unsetClass 'no-shadow'
+        @mainTabView.showHandleContainer()
         @sidebar.hideFinderPanel()
 
   removeLoader:->

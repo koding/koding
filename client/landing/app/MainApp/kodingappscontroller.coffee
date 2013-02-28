@@ -376,7 +376,7 @@ class KodingAppsController extends KDController
               callback? err
             else
               # log app, "app published"
-              KD.getSingleton("appManager").openApplication "Apps"
+              KD.getSingleton("appManager").open "Apps"
               KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
 
@@ -506,7 +506,7 @@ class KodingAppsController extends KDController
                       log err if err
                       # log callback
                       # This doesnt work :#
-                      KD.getSingleton("appManager").openApplication "StartTab"
+                      KD.getSingleton("appManager").open "StartTab"
                       @refreshApps()
                       # callback?()
 

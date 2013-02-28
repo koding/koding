@@ -1,5 +1,5 @@
 class MainTabHandleHolder extends KDView
-  
+
   constructor: (options = {}, data) ->
 
     options.bind = "mouseenter mouseleave"
@@ -38,7 +38,8 @@ class MainTabHandleHolder extends KDView
       delegate : @
       click    : (event)=>
         if @plusHandle.$().hasClass('first')
-          KD.getSingleton("appManager").openApplication "StartTab"
+          log "here"
+          KD.getSingleton("appManager").open "StartTab"
         else
           offset = @plusHandle.$().offset()
           contextMenu = new JContextMenu
@@ -52,12 +53,12 @@ class MainTabHandleHolder extends KDView
           ,
             'New Tab'              :
               callback             : (source, event)=>
-                KD.getSingleton("appManager").openApplication "StartTab"
+                KD.getSingleton("appManager").open "StartTab", forceNew : yes
                 contextMenu.destroy()
               separator            : yes
             'Ace Editor'           :
               callback             : (source, event)=>
-                KD.getSingleton("appManager").openApplication "Ace"
+                KD.getSingleton("appManager").open "Ace", forceNew : yes
                 contextMenu.destroy()
             'CodeMirror'           :
               callback             : (source, event)=> KD.getSingleton("appManager").notify()

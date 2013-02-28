@@ -101,7 +101,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
-      KD.getSingleton("appManager").openApplication "Activity"
+      KD.getSingleton("appManager").open "Activity"
       mainView.setClass "edit-mode"
       switchForEditView activity.bongo_.constructorName, activity
 

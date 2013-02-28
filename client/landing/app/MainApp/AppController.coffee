@@ -11,6 +11,9 @@ class AppController extends KDViewController
 
   handleQuery:(query)->
 
-    @ready => @feedController?.handleQuery? query
+    # log "#{@getOption "name"} handles the query!"
+    @ready =>
+      # log "#{@getOption "name"} handled the query!"
+      @feedController?.handleQuery? query
 
   setGroup:(group)-> @bringToFront()

@@ -99,11 +99,11 @@ class MainController extends KDController
       @loginScreen.slideDown =>
         KD.getSingleton("appManager").quitAll =>
           @mainViewController.sidebarController.accountChanged account
-          # KD.getSingleton("appManager").openApplication "Home"
+          # KD.getSingleton("appManager").open "Home"
           @mainViewController.getView().decorateLoginState no
     else
       @mainViewController.sidebarController.accountChanged account
-      # KD.getSingleton("appManager").openApplication "Home"
+      # KD.getSingleton("appManager").open "Home"
       @mainViewController.getView().decorateLoginState no
       @loginScreen.slideDown()
 
@@ -113,7 +113,7 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      #KD.getSingleton("appManager").openApplication @getOptions().startPage, yes
+      #KD.getSingleton("appManager").open @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
   doJoin:->
@@ -150,13 +150,13 @@ class MainController extends KDController
   #   if path is "Login"
   #     @loginScreen.slideDown()
   #   else
-  #     KD.getSingleton("appManager").openApplication path, yes
+  #     KD.getSingleton("appManager").open path, yes
 
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.isWebTerm
-        KD.getSingleton("appManager").openApplication 'WebTerm'
+        KD.getSingleton("appManager").open 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
