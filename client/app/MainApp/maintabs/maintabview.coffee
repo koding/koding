@@ -15,18 +15,9 @@ class MainTabView extends KDTabView
     appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
 
       if view.parent
-        log "gel buraa baban var"
         @showPane view.parent
       else
-        log "anan baban nerde"
         @createTabPane options, view
-
-      # @showPaneByName options, view
-
-
-    # appManager.on 'AppViewRemovedFromAppManager', (appController, appView, options)=>
-
-    #   @removePaneByView options, appView
 
 
     @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
