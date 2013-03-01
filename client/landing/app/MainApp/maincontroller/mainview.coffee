@@ -110,6 +110,7 @@ class MainView extends KDView
       appController = KD.getSingleton "kodingAppsController"
       frontApp = appManager.getFrontApp()
       frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
+      console.log frontAppName
       appController.constructor.manifests?[frontAppName]
 
     @mainSettingsMenuButton = new KDButtonView
@@ -147,9 +148,9 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "PaneDidShow", =>
+    @mainTabView.on "PaneDidShow", => KD.utils.wait 100, =>
       appManifest = getFrontAppManifest()
-      @mainSettingsMenuButton.$()[if appManifest?.menu then "fadeIn" else "fadeOut"]()
+      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
     mainController = @getSingleton('mainController')
     mainController.popupController = new VideoPopupController
