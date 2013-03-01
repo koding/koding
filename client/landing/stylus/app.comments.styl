@@ -35,6 +35,9 @@ app.comments.styl
       font-size             11px
       color                 #444
       padding               10px
+      &:hover
+        .action-link.reply-link
+          display           inline
       span.avatar
         border              1px solid #E3E3E3
         padding             1px
@@ -79,7 +82,9 @@ app.comments.styl
               // bg            position, -80px -540px
         .reply-link
           noTextDeco()
-          margin-left       5px
+          abs()
+          right             10px
+          display           none
 
   .delete-link
     display                 block
@@ -372,3 +377,4 @@ app.comments.styl
 
   a.count
     noTextDeco()
+
