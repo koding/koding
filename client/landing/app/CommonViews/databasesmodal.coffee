@@ -4,7 +4,7 @@ class ManageDatabasesModal extends KDModalViewWithForms
 
     options =
       title                   : "Manage Databases"
-      content                 : ''#"You can create and manage your databases here."
+      content                 : ''
       helpContent             :
         """
           You can create and modify your databases from this modal.
@@ -99,17 +99,28 @@ class ManageDatabasesModal extends KDModalViewWithForms
         @newDBCreatedWidget = new NewDBCreatedWidget {}, data
 
       dbCreateForm.buttons.Create.setTitle "Ok, got it"
+
+      dbCreateForm.buttons.Create.setClass "modal-clean-gray"
+      dbCreateForm.buttons.Create.unsetClass "modal-clean-green"
+
       dbCreateForm.buttons.Create.setCallback =>
         @newDBCreatedWidget.unsetClass 'ready'
+
         dbCreateForm.inputs.dbType.makeEnabled()
         dbCreateForm.inputs.dbKind.makeEnabled()
+
         dbCreateForm.buttons.Create.setTitle "Create"
+        dbCreateForm.buttons.Create.setClass "modal-clean-green"
+        dbCreateForm.buttons.Create.unsetClass "modal-clean-gray"
         dbCreateForm.buttons.Create.hideLoader()
+
         dbCreateForm.buttons.Create.setCallback =>
           form = @modalTabs.forms["Create New Database"]
           @dbController.addDatabase form.getFormData(), =>
             form.buttons.Create.hideLoader()
+
         KD.utils.wait 300, => @setPositions()
+
       @dbController.loadItems()
 
 class AccountDatabaseListController extends KDListViewController
@@ -185,16 +196,17 @@ class AccountDatabaseListController extends KDListViewController
           responses = responses.concat dbs
         if responseToWait == 0
           @hideLazyLoader()
-
           if responses.length > 0
             @instantiateListItems responses
           else
-            @addCustomItem "You don't have any database to show."
-
+            @addCustomItem """You don't have any databases.
+                              Why don't you create a new one?"""
           callback?()
       , =>
+        @hideLazyLoader()
         @addCustomItem """It seems there is something wrong with
                           database provider. Please try again later."""
+        callback?()
       , 10000
 
   deleteDatabase:(listItem)->
@@ -214,7 +226,6 @@ class AccountDatabaseListController extends KDListViewController
   updateDatabase:(listItem, password)->
 
     data = listItem.getData()
-    log "Requested DB Type", data
 
     @talkToKite
       method        : @commands[data.dbType].update
