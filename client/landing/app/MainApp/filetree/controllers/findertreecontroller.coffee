@@ -125,7 +125,7 @@ class NFinderTreeController extends JTreeViewController
 
     return unless nodeView
     file = nodeView.getData()
-    KD.getSingleton("appManager").openFileWithApplication file, "Ace"
+    KD.getSingleton("appManager").openFile file
 
   previewFile:(nodeView, event)->
 
