@@ -27,8 +27,8 @@ class AccountListWrapper extends KDView
       subscriptionsController  : AccountSubscriptionsListController
       subscriptions            : AccountSubscriptionsList
     develop                    :
-      databasesController      : AccountDatabaseListController
-      databases                : AccountDatabaseList
+      # databasesController      : AccountDatabaseListController
+      # databases                : AccountDatabaseList
       editorsController        : AccountEditorListController
       editors                  : AccountEditorList
       mountsController         : AccountMountListController

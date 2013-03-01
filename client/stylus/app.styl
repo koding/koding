@@ -1196,18 +1196,20 @@ span.main-nav-icon
       bg          color,linkColor1
       color       white
 
-
-// remotes modal
+// remotes & db modal
 .kdmodal.remotes-modal
+.kdmodal.databases-modal
 
   button
     span.icon
       sprite()
       &.delete
         bg        position,-120px -420px
+      &.edit
+        bg        position, 0px -200px
 
-  .no-remote-found
-    padding       15px
+  .no-item-found
+    padding       14px
 
   .mount-toggle
     right         45px !important
@@ -1292,3 +1294,95 @@ span.main-nav-icon
       color       linkColor1
       cursor      pointer
 
+// database modal
+.kdmodal.databases-modal
+
+  .no-database-found
+    padding       15px
+
+  .database-list
+    padding       0
+
+    .database-details
+      padding       8px
+      margin-left  50px
+      cite
+        cursor    pointer
+        color     linkColor1
+
+    .database-listitem
+      border-bottom 1px solid #CCC
+      h4
+        margin-bottom 2px
+        color         #666
+      button
+        top       8px
+        right     10px
+        abs()
+      button:first-of-type
+        right     44px
+      &.ghost
+        opacity   .6
+
+  span.database-type
+    color          white
+    width          40px
+    margin         7px
+    font-variant   small-caps
+    font-weight    bold
+    top            6px
+    border-radius  4px
+    text-align     center
+    padding-bottom 2px
+    bg             color, linkColor1
+    abs()
+
+    &.mysql
+      bg           color, #416481
+
+    &.mongo
+      bg           color, #5C8F30
+
+  .modal-hint
+    height         0px
+    vendor         transition, height .1s linear .1s
+
+    &.ready
+      height       194px
+
+    p:first-of-type
+      font-size    16px
+      line-height  20px
+      cite
+        font-size  16px
+    p
+      line-height  8px
+    p:last-of-type
+      line-height  16px
+
+  .inline-edit-widget
+  .inline-delete-widget
+    box-shadow       inset 0 0 8px rgba(0,0,0,0.15)
+    background-color rgba(240,240,240,.4)
+    height           0px
+    vendor           transition, height .1s linear .1s
+
+    &.ready
+      height         40px
+
+    &.collapsed
+      height         0px
+
+    p
+      padding        9px
+
+    button
+      max-width      62px
+
+    button:first-of-type
+      right          80px !important
+
+  .inline-edit-widget
+    input
+      width          300px
+      margin         8px
