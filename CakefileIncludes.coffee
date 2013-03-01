@@ -127,6 +127,7 @@ Includes =
         KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
+        KodingAppController   : "./client/app/MainApp/kodingappcontroller.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
@@ -394,7 +395,7 @@ Includes =
 
         ApplicationTabHandleHolder : "./client/app/CommonViews/applicationview/applicationtabhandleholder.coffee"
         ApplicationTabView         : "./client/app/CommonViews/applicationview/applicationtabview.coffee"
-        
+
         linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
         customLinkView              : "./client/app/CommonViews/linkviews/customlinkview.coffee"
         linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"

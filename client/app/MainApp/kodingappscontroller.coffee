@@ -294,33 +294,11 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-          # mainView = @getSingleton('mainView')
-          # mainView.mainTabView.showPaneByView
-          #   name         : manifest.name
-          #   hiddenHandle : no
-          #   type         : "application"
-          # , (appView = new KDView)
-
-          # appView.on 'ViewClosed', =>
-          #   @emit "ApplicationWantsToClose", @, appView
-          #   KD.getSingleton("appManager").removeOpenTab appView
-          #   appView.destroy()
-
-          # appView       = new KDView
-          # appController = new KDViewController {
-          #   view     : appView
-          #   appInfo  :
-          #     name   : manifest.name
-          #   manifest
-          # }
-
-
 
           manifest.route    = "Develop"
           manifest.behavior = "application"
 
-          KD.registerAppClass KDViewController, manifest
-
+          KD.registerAppClass KodingAppController, manifest
           KD.getSingleton("appManager").open manifest.name, (appInstance)->
 
             appView = appInstance.getView()
