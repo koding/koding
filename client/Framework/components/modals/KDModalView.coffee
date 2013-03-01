@@ -17,6 +17,9 @@ class KDModalView extends KDView
     # TO BE IMPLEMENTED
     options.resizable    or= no            # a Boolean
 
+    options.helpContent  or= null
+    options.helpTitle    or= "Need help?"
+
     super options, data
 
     @setClass "initial"
@@ -56,10 +59,18 @@ class KDModalView extends KDView
 
   setDomElement:(cssClass)->
 
+    {helpContent, helpTitle} = @getOptions()
+
+    if helpContent
+      helpButton = "<span class='showHelp'>#{helpTitle}</span>"
+    else
+      helpButton = ''
+
     @domElement = $ "
     <div class='kdmodal #{cssClass}'>
       <div class='kdmodal-shadow'>
         <div class='kdmodal-inner'>
+          #{helpButton}
           <span class='close-icon closeModal'></span>
           <div class='kdmodal-title hidden'></div>
           <div class='kdmodal-content'></div>
@@ -88,6 +99,16 @@ class KDModalView extends KDView
 
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")
+    if $(e.target).is(".showHelp")
+      {helpContent} = @getOptions()
+      if helpContent
+        helpContent = KD.utils.applyMarkdown helpContent
+        new KDModalView
+          # title   : "Help"
+          cssClass : "help-dialog"
+          overlay  : yes
+          content  : "<div class='modalformline'><p>#{helpContent}</p></div>"
+
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
   keyUp:(e)->
@@ -128,7 +149,7 @@ class KDModalView extends KDView
     @$('.kdmodal-content').css 'max-height', winHeight - 200
     @setY (winHeight - @getHeight())/2
 
-  putOverlay:()->
+  putOverlay:->
     @$overlay = $ "<div/>"
       class : "kdoverlay"
     @$overlay.hide()
