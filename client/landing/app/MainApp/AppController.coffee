@@ -1,9 +1,5 @@
 class AppController extends KDViewController
 
-  bringToFront:(view = @getView(), options = @getOption "appInfo")->
-
-    @emit 'ApplicationWantsToBeShown', @, view, options
-
   createContentDisplay:(tag, doShow, callback)->
 
     [callback, doShow] = [doShow, callback] unless callback

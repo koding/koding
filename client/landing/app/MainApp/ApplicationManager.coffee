@@ -98,8 +98,8 @@ class ApplicationManager extends KDObject
 
     appInstance = @get appOptions.name
     appView     = appInstance.getView?()
-    unless appView
-      appInstance.setView appView = new KDView
+
+    return unless appView
 
     log "::: Show #{appOptions.name}"
 
