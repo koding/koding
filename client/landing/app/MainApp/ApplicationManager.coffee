@@ -97,7 +97,10 @@ class ApplicationManager extends KDObject
     return if appOptions.background
 
     appInstance = @get appOptions.name
-    appView     = appInstance.getView?() or null
+    appView     = appInstance.getView?()
+    unless appView
+      appInstance.setView appView = new KDView
+
     log "::: Show #{appOptions.name}"
 
     if KD.isLoggedIn()
