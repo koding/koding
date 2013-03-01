@@ -110,7 +110,6 @@ class MainView extends KDView
       appController = KD.getSingleton "kodingAppsController"
       frontApp = appManager.getFrontApp()
       frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
-      console.log frontAppName
       appController.constructor.manifests?[frontAppName]
 
     @mainSettingsMenuButton = new KDButtonView
