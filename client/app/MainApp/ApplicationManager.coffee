@@ -70,6 +70,10 @@ class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+  openFile:(file)->
+
+    log "openFileWithApplication", file
+
   tell:(name, command, rest...)->
 
     return warn "ApplicationManager::tell called without an app name!"  unless name
@@ -178,12 +182,9 @@ class ApplicationManager extends KDObject
 
   # setGroup:-> console.log 'setGroup', arguments
 
-  openFile:(file)->
-    @openFileWithApplication file, 'Ace'
-
-  openFileWithApplication:(file, appPath)->
-    @open appPath, no, (app)->
-      app.openFile file
+  # openFileWithApplication:(file, appPath)->
+  #   @open appPath, no, (app)->
+  #     app.openFile file
 
   # temp
   notification = null

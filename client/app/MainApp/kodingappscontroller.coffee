@@ -295,8 +295,8 @@ class KodingAppsController extends KDController
       else
         if options and options.type is "tab"
 
-          manifest.route    = "Develop"
-          manifest.behavior = "application"
+          manifest.route      = "Develop"
+          manifest.behavior or= "application"
 
           KD.registerAppClass KodingAppController, manifest
           KD.getSingleton("appManager").open manifest.name, (appInstance)->

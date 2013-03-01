@@ -27,16 +27,16 @@ class MainViewController extends KDViewController
     {navController}        = sidebar
     {type, name, behavior} = pane.getOptions()
     {route}                = KD.getAppOptions name
+    router                 = @getSingleton('router')
+    cdController           = @getSingleton("contentDisplayController")
+    appManager             = @getSingleton "appManager"
+    appInstance            = appManager.getByView pane.mainView
 
-    @getSingleton("contentDisplayController").emit "ContentDisplaysShouldBeHidden"
+    cdController.emit "ContentDisplaysShouldBeHidden"
 
     if route is 'Develop'
-      @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
+      router.handleRoute '/Develop', suppressListeners: yes
 
     mainView.setViewState behavior
-
     navController.selectItemByName route
-
-    appManager = @getSingleton "appManager"
-    appInstance = appManager.getByView pane.mainView
     appManager.setFrontApp appInstance
