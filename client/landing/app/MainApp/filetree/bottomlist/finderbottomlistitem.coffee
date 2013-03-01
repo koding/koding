@@ -24,7 +24,9 @@ class FinderBottomControlsListItem extends KDListItemView
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else if @getData().action is "manageRemotes"
-      @getSingleton('mainController').emit 'ManageRemotesRequested'
+      @getSingleton('mainController').emit 'ManageRemotes'
+    else if @getData().action is "manageDatabases"
+      @getSingleton('mainController').emit 'ManageDatabases'
     else
       new KDNotificationView
         title : "Coming Soon!"
