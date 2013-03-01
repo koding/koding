@@ -256,3 +256,8 @@ class ActivityAppController extends AppController
           else
             callback instances
 
+  unhideNewItems: ->
+    @listController?.activityHeader.updateShowNewItemsLink yes
+
+  getNewItemsCount: (callback) ->
+    callback? @listController?.activityHeader?.getNewItemsCount() or 0
