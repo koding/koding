@@ -36,8 +36,8 @@ class KDMultipleChoice extends KDInputView
     @setValue options.defaultValue, no
 
   setDomElement:(cssClass)->
-    {title, labels, name} = @getOptions()
-    title = if title then "<span>#{title}</span>" else ''
+    {labels, name} = @getOptions()
+    @inputName = name
 
     labelItems = ""
     for label in labels
@@ -45,7 +45,6 @@ class KDMultipleChoice extends KDInputView
 
     @domElement = $ """
       <div class='kdinput on-off multiple-choice #{cssClass}'>
-        #{title}
         #{labelItems}
       </div> """
 
