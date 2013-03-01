@@ -109,10 +109,11 @@ class ManageDatabasesModal extends KDModalViewWithForms
           form = @modalTabs.forms["Create New Database"]
           @dbController.addDatabase form.getFormData(), =>
             form.buttons.Create.hideLoader()
-
+        KD.utils.wait 300, => @setPositions()
       @dbController.loadItems()
 
 class AccountDatabaseListController extends KDListViewController
+
   constructor:->
     super
     @account = KD.whoami()
@@ -153,45 +154,48 @@ class AccountDatabaseListController extends KDListViewController
 
     @on "DatabaseDeleted", (listItem)=>
       list.removeItem listItem
+      if @itemsOrdered.length == 0
+        @addCustomItem "You don't have any database to show."
+
       @emit "ListUpdated"
 
-  loadItems:(callback)->
+  addCustomItem:(message)->
     @removeAllItems()
-    dbTypes = ['mysql', 'mongo']
-    @_loaderCount = dbTypes.length
-    @_timeout?.destroy?()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
+
+  loadItems:(callback)->
+
+    @removeAllItems()
+    @customItem?.destroy()
     @showLazyLoader no
 
-    hideLoaderWhenFinished = =>
-      @_loaderCount--
-      @hideLazyLoader() if @_loaderCount <= 0
+    dbTypes = ['mysql', 'mongo']
+    responses = []
+    responseToWait = dbTypes.length
 
-    setTimeout =>
-      @hideLazyLoader()
-      if @_loaderCount > 0
-        @_timeout?.destroy?()
-        @scrollView.addSubView @_timeout = new KDCustomHTMLView
-          cssClass : "lazy-loader"
-          partial  : "Fetching database list failed. <a href='#'>Retry</a>"
-          click    : (event)=>
-            if $(event.target).is "a"
-              @loadItems()
-              @_timeout.destroy()
-    , 10000
-
-    responseAdded = []
     for dbtype in dbTypes
       @talkToKite
         method : @commands[dbtype].fetch
-      , (err, response)=>
-        if err then warn err
-        else
-          if response.length > 0
-            # unless response[0].dbName in responseAdded
-            @instantiateListItems response
-            responseAdded.push response[0].dbName
+      , KD.utils.getTimedOutCallback (err, dbs)=>
+        responseToWait--
+        if dbs?.length > 0
+          responses = responses.concat dbs
+        if responseToWait == 0
+          @hideLazyLoader()
+
+          if responses.length > 0
+            @instantiateListItems responses
+          else
+            @addCustomItem "You don't have any database to show."
+
           callback?()
-          hideLoaderWhenFinished()
+      , =>
+        @addCustomItem """It seems there is something wrong with
+                          database provider. Please try again later."""
+      , 10000
 
   deleteDatabase:(listItem)->
     data       = listItem.getData()
@@ -244,7 +248,6 @@ class AccountDatabaseListController extends KDListViewController
 
   talkToKite:(options, callback)->
 
-    # log "Run on kite:", options.method
     @getSingleton("kiteController").run
       kiteName  : "databases"
       method    : options.method
