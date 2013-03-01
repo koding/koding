@@ -59,3 +59,6 @@ class ActivityListHeader extends JView
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
+
+  getNewItemsCount: ->
+    return @_newItemsCount

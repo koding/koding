@@ -431,6 +431,7 @@ Includes =
         # Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
+        NavigationActivityLink      : "./client/app/CommonViews/mainnavigation/navigationactivitylink.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
         VerifyPINModal              : "./client/app/CommonViews/VerifyPINModal.coffee"
