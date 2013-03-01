@@ -29,7 +29,8 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
-    @on 'ManageRemotesRequested', -> new ManageRemotesModal
+    @on 'ManageRemotes', -> new ManageRemotesModal
+    @on 'ManageDatabases', -> new ManageDatabasesModal
 
     @setFailTimer()
     @putGlobalEventListeners()

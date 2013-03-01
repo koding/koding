@@ -120,15 +120,6 @@ class AccountAppController extends AppController
         { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
       ]
-    develop :
-      title : "Develop"
-      items : [
-        { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
-        # { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
-        # { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
-        # { title : "Editor settings",      listHeader: "Editor Settings",            listType: "editors",        id : 10,      parentId : null }
-        # { title : "SSH Keys",             listHeader: "SSH Keys",                   listType: "keys",           id : 40,      parentId : null }
-      ]
     billing :
       title : "Billing"
       items : [
