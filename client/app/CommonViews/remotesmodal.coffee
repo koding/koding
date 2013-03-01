@@ -202,7 +202,7 @@ class ManageRemotesModal extends KDModalViewWithForms
     @mountController.removeAllItems()
     @customItem?.destroy()
     @mountController.scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass: "no-remote-found"
+      cssClass: "no-item-found"
       partial : message
 
   refreshMountList:(callback)->
