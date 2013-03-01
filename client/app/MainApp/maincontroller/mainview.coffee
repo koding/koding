@@ -115,9 +115,9 @@ class MainView extends KDView
 
     @mainSettingsMenuButton = new KDButtonView
       domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer clean-gray"
+      cssClass : "kdsettingsmenucontainer transparent"
       iconOnly : yes
-      iconClass: "cog"
+      iconClass: "dot"
       callback : ->
         appManifest = getFrontAppManifest()
         if appManifest?.menu
@@ -132,11 +132,11 @@ class MainView extends KDView
           contextMenu = new JContextMenu
               event       : event
               delegate    : @
-              x           : offset.left - 143
-              y           : offset.top + 25
+              x           : offset.left - 150
+              y           : offset.top + 20
               arrow       :
                 placement : "top"
-                margin    : -10
+                margin    : -5
             , appManifest.menu
     @mainSettingsMenuButton.hide()
 
@@ -148,7 +148,7 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "PaneDidShow", => KD.utils.wait 100, =>
+    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
       appManifest = getFrontAppManifest()
       @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
