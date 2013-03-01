@@ -327,8 +327,9 @@ class DatabaseListItem extends KDListItemView
     @template.update()
 
   pistachio:->
+    {dbType} = @getData()
     """
-    <span class='database-type'>{{#(dbType)}}</span>
+    <span class='database-type #{dbType}'>{{#(dbType)}}</span>
     <div class='database-details'>
       <h4>{{#(dbUser)}}</h4>
       <cite>{{#(dbHost)}}</cite>
