@@ -301,26 +301,40 @@ class KodingAppsController extends KDController
           #   type         : "application"
           # , (appView = new KDView)
 
-          @emit 'ApplicationWantsToBeShown', @, (appView = new KDView),
-            hiddenHandle  : no
-            type          : 'application'
-            name          : manifest.name
-
           # appView.on 'ViewClosed', =>
           #   @emit "ApplicationWantsToClose", @, appView
           #   KD.getSingleton("appManager").removeOpenTab appView
           #   appView.destroy()
 
-          try
-            # security please!
-            do (appView)->
-              appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
-              eval appScript
-          catch error
-            # if not manifest.ignoreWarnings? # GG FIXME
-            showError error
-          callback?()
-          return appView
+          # appView       = new KDView
+          # appController = new KDViewController {
+          #   view     : appView
+          #   appInfo  :
+          #     name   : manifest.name
+          #   manifest
+          # }
+
+
+
+          manifest.route    = "Develop"
+          manifest.behavior = "application"
+
+          KD.registerAppClass KDViewController, manifest
+
+          KD.getSingleton("appManager").open manifest.name, (appInstance)->
+
+            appView = appInstance.getView()
+
+            try
+              # security please!
+              do (appView)->
+                appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
+                eval appScript
+            catch error
+              # if not manifest.ignoreWarnings? # GG FIXME
+              showError error
+            callback?()
+            return appView
         else
           try
             # security please!
