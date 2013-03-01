@@ -277,7 +277,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
     @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
 
-    @once 'FormValidationPassed', => @reset()
+    @once 'FormValidationPassed', => @reset yes
 
     super
 
