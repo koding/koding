@@ -5,6 +5,13 @@ class ManageDatabasesModal extends KDModalViewWithForms
     options =
       title                   : "Manage Databases"
       content                 : ''#"You can create and manage your databases here."
+      helpContent             :
+        """
+          You can create and modify your databases from this modal.
+          Under the **Current Databases** tab you can list current databases
+          you have created before and you can use same name for your database
+          name and database user name.
+        """
       overlay                 : yes
       width                   : 500
       height                  : "auto"
@@ -37,11 +44,11 @@ class ManageDatabasesModal extends KDModalViewWithForms
                   { title : "MySql",    value : "mysql" }
                   { title : "Mongo",    value : "mongo" }
                 ]
-              Kind            :
+              dbKind          :
                 label         : "Kind"
                 itemClass     : KDSelectBox
                 type          : "select"
-                name          : "type"
+                name          : "dbKind"
                 defaultValue  : "free"
                 selectOptions : [
                   { title : "Free Database for Development", value : "free" }
@@ -81,12 +88,28 @@ class ManageDatabasesModal extends KDModalViewWithForms
     @modalTabs.panes[0].on "KDTabPaneActive", => @setPositions()
 
     dbCreateForm = @modalTabs.forms["Create New Database"]
+
     @dbController.on "DatabaseAdded", (data)=>
+
       dbCreateForm.inputs.dbType.makeDisabled()
+      dbCreateForm.inputs.dbKind.makeDisabled()
       @newDBCreatedWidget?.destroy?()
+
       dbCreateForm.fields.Information.addSubView \
         @newDBCreatedWidget = new NewDBCreatedWidget {}, data
+
       dbCreateForm.buttons.Create.setTitle "Ok, got it"
+      dbCreateForm.buttons.Create.setCallback =>
+        @newDBCreatedWidget.unsetClass 'ready'
+        dbCreateForm.inputs.dbType.makeEnabled()
+        dbCreateForm.inputs.dbKind.makeEnabled()
+        dbCreateForm.buttons.Create.setTitle "Create"
+        dbCreateForm.buttons.Create.hideLoader()
+        dbCreateForm.buttons.Create.setCallback =>
+          form = @modalTabs.forms["Create New Database"]
+          @dbController.addDatabase form.getFormData(), =>
+            form.buttons.Create.hideLoader()
+
       @dbController.loadItems()
 
 class AccountDatabaseListController extends KDListViewController
@@ -268,19 +291,9 @@ class DatabaseListItem extends KDListItemView
       callback    : =>
         @deleteDatabase.hideLoader()
         hasWidget = @deleteWidget?
-        listView.emit "hideAllWidgets"
+        listView.emit "HideAllWidgets"
         unless hasWidget
           @addSubView @deleteWidget = new InlineDeleteWidget @
-        # @unsetClass 'ghost'
-
-    # @getDelegate().on "showAllItems", =>
-    #   @unsetClass 'ghost'
-    #   @deleteWidget?.destroy?()
-
-    @getDelegate().on "hideAllWidgets", =>
-      # @setClass 'ghost'
-      @deleteWidget?.destroy?()
-      delete @deleteWidget
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -290,7 +303,7 @@ class DatabaseListItem extends KDListItemView
     """
     <span class='database-type'>{{#(dbType)}}</span>
     <div class='database-details'>
-      <h4>{{#(dbUser)}}@{{#(dbName)}}</h4>
+      <h4>{{#(dbUser)}}</h4>
       <cite>{{#(dbHost)}}</cite>
       {{> @changePassword}}
       {{> @deleteDatabase}}
