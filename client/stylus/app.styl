@@ -1236,28 +1236,45 @@ span.main-nav-icon
     abs()
 
   .modal-hint
+    height         0px
+    vendor         transition, height .1s linear .1s
+
+    &.ready
+      height       194px
+
+    p:first-of-type
+      font-size    16px
+      line-height  20px
+      cite
+        font-size  16px
     p
       line-height  8px
     p:last-of-type
       line-height  16px
 
-.inline-delete-widget
-  box-shadow       inset 0 0 8px rgba(0,0,0,0.15)
-  background-color rgba(240,240,240,.4)
-  height           0px
-  vendor           transition, height .1s linear .1s
+  .inline-edit-widget
+  .inline-delete-widget
+    box-shadow       inset 0 0 8px rgba(0,0,0,0.15)
+    background-color rgba(240,240,240,.4)
+    height           0px
+    vendor           transition, height .1s linear .1s
 
-  &.ready
-    height         40px
+    &.ready
+      height         40px
 
-  &.collapsed
-    height         0px
+    &.collapsed
+      height         0px
 
-  p
-    padding        9px
+    p
+      padding        9px
 
-  button
-    max-width      62px
+    button
+      max-width      62px
 
-  button:first-of-type
-    right          80px !important
+    button:first-of-type
+      right          80px !important
+
+  .inline-edit-widget
+    input
+      width          300px
+      margin         8px
