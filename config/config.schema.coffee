@@ -185,6 +185,8 @@ config =
       vhost       : 1
     broker        :
       port        : 1
+      certFile    : 1
+      keyFile     : 1
     kites:
       disconnectTimeout: 1
       vhost       : 1

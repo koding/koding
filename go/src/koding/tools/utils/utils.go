@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	"time"
+	"unicode/utf8"
 )
 
 var version string
@@ -78,4 +79,23 @@ func RunStatusLogger() {
 			time.Sleep(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
 		}
 	}()
+}
+
+func FilterInvalidUTF8(buf []byte) []byte {
+	i := 0
+	j := 0
+	for {
+		r, l := utf8.DecodeRune(buf[i:])
+		if l == 0 {
+			break
+		}
+		if r < 0xD800 {
+			if i != j {
+				copy(buf[j:], buf[i:i+l])
+			}
+			j += l
+		}
+		i += l
+	}
+	return buf[:j]
 }
