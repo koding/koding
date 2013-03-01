@@ -22,7 +22,7 @@
   width                   90%
   border                  1px solid rgba(255,255,255,0.16)
   rounded                 8px
-  margin                  30px auto 30px auto
+  margin                  60px auto 30px auto
   shadow                  0 0 150px rgba(0,0,0,0.32)
   bg color,               rgba(255,255,255,0.05)
 
@@ -122,8 +122,25 @@
     overflow              auto
     padding               10px
 
+.group-koding-logo
+  abs()
+  left                    0
+  bottom                  0
+  text-align              center
+  width                   auto
+  .text
+    margin                30px 30px 10px 30px
+    .logo
+      cursor              pointer
+      display             inline-block
+      width               140px
+      height              40px
+      sprite()
+      bg position,        -400px 0px
+
 @media screen and (max-width: 500px)
   .group-landing-content
+    margin-top            30px
     .avatar
       padding-right       10px
       img
