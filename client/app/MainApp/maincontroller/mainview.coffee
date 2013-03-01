@@ -189,13 +189,42 @@ class MainView extends KDView
   decorateLoginState:(isLoggedIn = no)->
 
     if isLoggedIn
-      $('body').addClass "loggedIn"
+      if $('.group-landing').length > 0
+        if $('.group-loader').length > 0
+          $('.group-loader')[0].remove?()
+        $('body').addClass "login"
+        console.log "LOGGED IN WITH GROUPS"
+
+        LoginLink = new KDCustomHTMLView
+          partial: "Login"
+          cssClass: "bigLink"
+          click: ->
+            $('.group-landing').css 'height', 0
+
+        LoginLink.appendToSelector '.group-login-buttons'
+
+        $('.group-landing').css 'height', window.innerHeight - 50
+
+      else
+        console.log "LOGGED IN NO GROUPS"
+        $('body').addClass "loggedIn"
+
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
       # @logo.show()
       # @buttonHolder.hide()
     else
-      $('body').removeClass "loggedIn"
+      if $('.group-landing').length > 0
+        unless window._called_once
+          a = new KDButtonView
+            title: "Click ME!"
+            callback: ->
+              alert 'Clicked yay!'
+          a.appendToSelector '.group-login-buttons'
+          window._called_once = yes
+      else
+        $('body').removeClass "loggedIn"
+
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
       # @buttonHolder.show()

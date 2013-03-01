@@ -46,9 +46,6 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
       </div>
     </div>
 
-    <div class="group-koding-logo">
-      <div class="text"><span class="logo"></span></div>
-    </div>
     <div class="group-navigation">
       #{getNavigation policy}
       #{getScripts()}
@@ -65,10 +62,7 @@ getInviteLink =(policy)->
 
 getNavigation =(policy)->
   """
-  <div class="login-footer">
-    #{getInviteLink policy}
-    <p class="bigLink"><a href="#">Login</a></p>
-  </div>
+  <div class="group-login-buttons"></div>
   """
 
 getStyles =->

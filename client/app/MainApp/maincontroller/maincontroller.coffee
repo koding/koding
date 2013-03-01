@@ -17,7 +17,6 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    
 
     KD.registerSingleton 'router', new KodingRouter location.pathname
     KD.registerSingleton "groupsController", new GroupsController
@@ -79,6 +78,7 @@ class MainController extends KDController
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
+      @loginScreen.hide()
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
