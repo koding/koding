@@ -63,7 +63,7 @@ class NewMemberLinkGroup extends LinkGroup
 
     super
 
-    @loader = new KDLoaderView
+    # @loader = new KDLoaderView
 
   createMoreLink:->
 
@@ -95,7 +95,7 @@ class NewMemberLinkGroup extends LinkGroup
       tmpl += " and {{> @more}}"
 
     tmpl += " became a member."
-    tmpl += "{{> @loader }}"
+    # tmpl += "{{> @loader }}"
 
 
 # SLIGHTLY OLD
