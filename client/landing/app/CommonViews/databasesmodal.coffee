@@ -136,12 +136,24 @@ class AccountDatabaseListController extends KDListViewController
     @loadItems()
 
     list.on "DeleteDatabaseSubmitted", (listItem)=> @deleteDatabase listItem
-    list.on "UpdateDatabaseSubmitted", (listItem, formdata)=> @updateDatabase listItem, formdata
+    list.on "UpdateDatabaseSubmitted", (listItem, password)=>
+      @updateDatabase listItem, password
+
+    list.on "HideAllWidgets", =>
+      for item in @itemsOrdered
+        item.deleteWidget?.destroy?()
+        item.editWidget?.destroy?()
+        delete item.deleteWidget
+        delete item.editWidget
+
+    @on "DatabaseUpdated", (listItem)=>
+      listItem.changePassword.hideLoader()
+      @emit "ListUpdated"
+      list.emit "HideAllWidgets"
 
     @on "DatabaseDeleted", (listItem)=>
       list.removeItem listItem
       @emit "ListUpdated"
-    # @on "DatabaseUpdated", (listItem)=>
 
   loadItems:(callback)->
     @removeAllItems()
@@ -195,7 +207,7 @@ class AccountDatabaseListController extends KDListViewController
         @notify "Database deleted!", "succes"
         @emit "DatabaseDeleted", listItem
 
-  updateDatabase:(listItem, formData)->
+  updateDatabase:(listItem, password)->
 
     data = listItem.getData()
     log "Requested DB Type", data
@@ -204,16 +216,13 @@ class AccountDatabaseListController extends KDListViewController
       method        : @commands[data.dbType].update
       withArgs      :
         dbUser      : data.dbUser
-        newPassword : formData.password
+        newPassword : password
     , (err, response)=>
-      {modal} = @getListView()
-      modal.modalTabs.forms["Update Database"].buttons.Update.hideLoader()
       if err
         @notify "An error occured, try again later!", "error"
       else
         @notify "Database updated!", "succes"
         @emit "DatabaseUpdated", listItem
-        modal.destroy()
 
   addDatabase:(formData, callback)->
     {dbType} = formData
@@ -270,12 +279,16 @@ class DatabaseListItem extends KDListItemView
       iconClass   : "edit"
       tooltip     :
         title     : "Change Password"
-        placement : "top"
+        placement : "left"
       loader      :
         color     : "#666"
         diameter  : 16
       callback    : =>
         @changePassword.hideLoader()
+        hasWidget = @editWidget?
+        listView.emit "HideAllWidgets"
+        unless hasWidget
+          @addSubView @editWidget = new InlineEditWidget @
 
     @deleteDatabase = new KDButtonView
       style       : "clean-gray"
@@ -332,7 +345,7 @@ class InlineDeleteWidget extends JView
     @cancelButton = new KDButtonView
       title    : "Cancel"
       cssClass : "modal-clean-gray"
-      callback : => item.getDelegate().emit "hideAllWidgets"
+      callback : => item.getDelegate().emit "HideAllWidgets"
 
     KD.utils.wait => @setClass 'ready'
 
@@ -342,13 +355,58 @@ class InlineDeleteWidget extends JView
       {{> @cancelButton}} {{> @deleteButton}}
     """
 
+class InlineEditWidget extends JView
+
+  constructor:(item)->
+    options =
+      cssClass : 'inline-edit-widget'
+    data = item.getData()
+
+    super options, data
+
+    @newPassword = new KDInputView
+      type        : "password"
+      placeholder : "Type your new password here..."
+
+    @updateButton = new KDButtonView
+      title    : "Update"
+      cssClass : "modal-clean-green"
+      callback : =>
+        @updateButton.disable()
+        @cancelButton.disable()
+        item.changePassword.showLoader()
+        item.getDelegate().emit \
+          "UpdateDatabaseSubmitted", item, @newPassword.getValue()
+
+    @cancelButton = new KDButtonView
+      title    : "Cancel"
+      cssClass : "modal-clean-gray"
+      callback : => item.getDelegate().emit "HideAllWidgets"
+
+    KD.utils.wait => @setClass 'ready'
+
+  pistachio:->
+    """
+      {{> @newPassword}} {{> @cancelButton}} {{> @updateButton}}
+    """
+
 class NewDBCreatedWidget extends KDView
 
   constructor:(options = {}, data)->
 
+    # We can provide a connection string for mongo dbs
+    # But I couldn't find a proper solution to put it in view
+    #
+    # connectionString = ''
+    # if data.dbType is 'mongo'
+    #   connectionString = \
+    #     "mongodb://#{data.dbUser}:#{data.dbPass}@#{data.dbHost}/#{data.dbName}"
+    #   connectionString = \
+    #     "<p><label>Connection String:</label> <b>#{connectionString}</b></p>"
+
     options.cssClass = "modal-hint"
     options.partial  = """
-      <h3>Your new #{data.dbType} database just created!</h3>
+      <p>Your new <cite>#{data.dbType}</cite> database has just been created!</p>
       <p><label>Host:</label> <i>#{data.dbHost}</i></p>
       <p><label>Name:</label> <i>#{data.dbName}</i></p>
       <p><label>User:</label> <i>#{data.dbUser}</i></p>
@@ -361,3 +419,5 @@ class NewDBCreatedWidget extends KDView
       """
 
     super
+
+    KD.utils.wait => @setClass 'ready'
