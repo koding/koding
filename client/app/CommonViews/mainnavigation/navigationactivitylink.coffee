@@ -26,7 +26,7 @@ class NavigationActivityLink extends KDCustomHTMLView
       @getSingleton('activityController').on "ActivitiesArrived", (activities) =>
         return if @getSingleton('router').currentPath is "Activity"
         myId = KD.whoami().getId()
-        @newActivityCount++ for activity in activities when activity.originId isnt myId
+        @newActivityCount++ for activity in activities when activity.originId and activity.originId isnt myId
 
         appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
           @updateNewItemsCount itemCount
