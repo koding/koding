@@ -24,7 +24,6 @@ class GroupsController extends KDObject
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
       if pageInfo.path
         {group} = @userArea
-        console.log 'UA', @userArea
         route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
         router.handleRoute route
     @groups = {}
@@ -58,3 +57,6 @@ class GroupsController extends KDObject
     @setUserArea {
       group: 'koding', user: account.profile.nickname
     }
+
+  openAdminDashboard:->
+    console.log 'open admin', {arguments}
