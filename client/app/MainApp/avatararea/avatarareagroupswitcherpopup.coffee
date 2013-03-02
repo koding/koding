@@ -74,7 +74,7 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
-      href        : "/#{slug}"
+      href        : "/#{slug}/Activity"
       target      : slug
       icon        :
         cssClass  : 'new-page'
@@ -87,11 +87,11 @@ class PopupGroupListItem extends KDListItemView
     JView::viewAppended.call this
     
     {group:{slug}, roles} = @getData()
-    
+ 
     dashboardHref = "/#{slug}/Dashboard"
     
     if 'admin' in roles
-      @addSubView new KDCustomHTMLView
+      @addSubView new CustomLinkView
         title     : 'Admin dashboard'
         href      : dashboardHref
         click     : (event)->
@@ -103,7 +103,8 @@ class PopupGroupListItem extends KDListItemView
     """
     <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
-      {{> @switchLink}}<span class="roles">#{roles.join ', '}</span>
+      {{> @switchLink}}
+      <span class="roles">#{roles.join ', '}</span>
     </div>
     """
 
