@@ -13,7 +13,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
-
     @avatarPopupContent.addSubView switchToTitle = new KDView
       height   : "auto"
       cssClass : "sublink top"
@@ -83,20 +82,7 @@ class PopupGroupListItem extends KDListItemView
           title   : "Opens in a new browser window."
           delayIn : 300
 
-  viewAppended:->
-    JView::viewAppended.call this
-    
-    {group:{slug}, roles} = @getData()
- 
-    dashboardHref = "/#{slug}/Dashboard"
-    
-    if 'admin' in roles
-      @addSubView new CustomLinkView
-        title     : 'Admin dashboard'
-        href      : dashboardHref
-        click     : (event)->
-          event.preventDefault()
-          KD.getSingleton('router').handleRoute dashboardHref
+  viewAppended: JView::viewAppended
 
   pistachio: ->
     {roles} = @getData()
