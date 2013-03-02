@@ -78,7 +78,7 @@ class MainController extends KDController
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
-      @loginScreen.hide()
+      @loginScreen.hide() unless $('.group-landing').length is 0
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
