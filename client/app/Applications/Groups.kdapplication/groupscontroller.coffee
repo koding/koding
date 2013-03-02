@@ -28,7 +28,7 @@ class GroupsController extends KDObject
         router.handleRoute route
     @groups = {}
     @currentGroupData = new GroupData
-  
+
   getCurrentGroupData:-> @currentGroupData
 
   changeGroup:(groupName)->

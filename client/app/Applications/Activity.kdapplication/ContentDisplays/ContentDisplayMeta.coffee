@@ -7,7 +7,7 @@ class ContentDisplayMeta extends KDView
   click:(event)->
     if $(event.target).is "a"
       {account} = @getData()
-      appManager.tell "Members", "createContentDisplay", account
+      KD.getSingleton("appManager").tell "Members", "createContentDisplay", account
 
   partial: (activity, account) ->
     dom = $ """

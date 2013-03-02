@@ -162,9 +162,6 @@ module.exports = class JAccount extends jraphical.Module
           "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
           "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
         ]
-      feed         :
-        as          : "owner"
-        targetType  : "JFeed"
 
   constructor:->
     super
@@ -554,14 +551,6 @@ module.exports = class JAccount extends jraphical.Module
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
-
-  fetchFeedByTitle: secure (client, title, callback) ->
-    if @equals(client.connection.delegate)
-      @fetchFeeds (err, feeds) ->
-        for feed in feeds
-          if feed.title is title
-            return callback null, feed
-        return callback new KodingError 'Feed not found.'
 
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->

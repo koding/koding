@@ -16,18 +16,16 @@ class BookTopics extends KDView
 
     @utils.wait -> loader.show()
 
-    appManager.tell "Topics", "fetchSomeTopics",
+    KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics",
       limit : 20
     , (err, topics)=>
       loader.hide()
       if err then warn err
       else
-        for topic in topics
-          @addSubView topicLink = new TagLinkView null, topic
-          topicLink.registerListener
-            KDEventTypes : "click"
-            listener     : @
-            callback     : =>
+        topics.forEach (topic)=>
+          @addSubView topicLink = new TagLinkView
+            click : =>
               @getDelegate().$().css left : -1349
               @utils.wait 4000, =>
                 @getDelegate().$().css left : -700
+          , topic

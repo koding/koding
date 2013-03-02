@@ -27,8 +27,8 @@ class KDFormView extends KDView
 
   childAppended:(child)->
     child.associateForm? @
-    if child instanceof KDInputView
-      @propagateEvent KDEventType: 'inputWasAdded', child
+    @emit 'inputWasAdded', child  if child instanceof KDInputView
+
     super
 
   bindEvents:()->

@@ -22,7 +22,7 @@ class CodeShareActivityItemView extends ActivityItemChild
   click:(event)->
     super
     if $(event.target).is(".activity-item-right-col h3")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+      KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeShareActivity

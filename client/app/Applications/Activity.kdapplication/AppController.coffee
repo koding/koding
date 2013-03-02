@@ -1,5 +1,10 @@
 class ActivityAppController extends AppController
 
+  KD.registerAppClass @,
+    name         : "Activity"
+    route        : "Activity"
+    hiddenHandle : yes
+
   activityTypes = [
       'CStatusActivity'
       'CCodeSnipActivity'
@@ -27,7 +32,7 @@ class ActivityAppController extends AppController
 
   isExempt = (callback)->
 
-    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+    KD.getSingleton("appManager").fetchStorage 'Activity', '1.0', (err, storage) =>
       if err
         log 'error fetching app storage', err
         callback no
@@ -39,7 +44,9 @@ class ActivityAppController extends AppController
 
   constructor:(options={})->
 
-    options.view = new ActivityAppView
+    options.view    = new ActivityAppView
+    options.appInfo =
+      name          : 'Activity'
 
     super options
 
@@ -48,14 +55,11 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-  bringToFront:()->
-
-    super name : 'Activity'
-
+  loadView:->
     if @listController then @populateActivity()
     else
       ac = @getSingleton('activityController')
-      ac.once "ActivityListControllerReady", @populateActivity.bind @
+      ac.once "ActivityListControllerReady", @bound "populateActivity"
 
   resetList:->
 
@@ -179,13 +183,14 @@ class ActivityAppController extends AppController
         # memberbucket data has no serverside model it comes from cache
         # so it has no meta, that's why we check its date by its overview
         lastDate = if lastItemData.createdAtTimestamps
-          lastItemData.createdAtTimestamps.first
+          new Date lastItemData.createdAtTimestamps.first
         else
-          lastItemData.meta.createdAt
+          new Date lastItemData.meta.createdAt
       else
-        lastDate = Date.now()
+        lastDate = new Date
 
-      @populateActivity {slug : "before/#{(new Date(lastDate)).getTime()}"}
+      lastTimeStamp = lastDate.getTime()
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
 

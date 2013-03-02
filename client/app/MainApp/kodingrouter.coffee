@@ -53,11 +53,11 @@ class KodingRouter extends KDRouter
     @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group
     unless group?
-      appManager.openApplication app
+      KD.getSingleton("appManager").open app
     else
-      appManager.tell app, 'setGroup', group
-      appManager.openApplication app
-    appManager.tell app, 'handleQuery', query
+      # KD.getSingleton("appManager").tell app, 'setGroup', group
+      KD.getSingleton("appManager").open app
+    KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -94,7 +94,7 @@ class KodingRouter extends KDRouter
 
   openContent:(name, section, state, route)->
     @setPageTitle @getContentTitle state
-    appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
+    KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
@@ -124,7 +124,7 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
       else
-        # appManager.tell section, 'setGroup', name  if name? and not state?
+        # KD.getSingleton("appManager").tell section, 'setGroup', name  if name? and not state?
         if state?
           @openContent name, section, state, route
         else

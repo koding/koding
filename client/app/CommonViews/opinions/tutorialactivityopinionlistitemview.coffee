@@ -56,9 +56,9 @@ class TutorialActivityOpinionListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
     else
-      appManager.tell "Activity", "createContentDisplay", @parent.getData()
+      KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @parent.getData()
 
   pistachio:->
     """

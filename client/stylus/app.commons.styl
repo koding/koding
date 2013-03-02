@@ -196,6 +196,8 @@ button.kdbutton.icon-only
       bg            position,-100px -560px
     &.refresh
       bg            position,-120px -580px
+    &.dot
+      bg            position,0 -140px
 
 /* editor-button
 *******************************************************************************/
@@ -338,7 +340,7 @@ button.editor-button
   noTextDeco()
 
   &.expandable
-    vendor            transition, max-width .4s linear
+    vendor            transition, max-width .4s linear .4s
     &:hover
       max-width       300px
       > span
@@ -817,18 +819,6 @@ button.cancel-edit-button
 
 
 
-.small-loader
-  opacity         .5
-  display         inline-block
-  padding         0!important
-  bg(image,url("../images/small-loader.gif"))
-  bg(color,transparent)
-  bg(repeat,no-repeat)
-  bg(position,0 0)
-  size(10px!important,10px!important)
-  &.white
-    bg(image,url("../images/small-loader-white.gif"))
-
 .right-overflow
   width           auto
   display         block
@@ -909,6 +899,16 @@ button.cancel-edit-button
         overflow          hidden
         blockMid()
 
+    .showHelp
+      abs()
+      top                 26px
+      color               #AAA
+      right               45px
+      font-size           11px
+      cursor              pointer
+      &:hover
+        color             #555
+
     .close-icon
       right               23px
       top                 23px
@@ -916,6 +916,7 @@ button.cancel-edit-button
       bg                  position,-80px -220px
       &:hover
         bg                position,-80px -240px
+
     .kdmodal-content
       margin              0
       padding             0
@@ -1411,6 +1412,15 @@ figure.code-container
     text-decoration     underline
     color               linkColor1
 
+
+.application-tab-handle-holder
+  .plus
+    padding     0 5px 0 5px
+  .icon
+    size        20px,20px
+    sprite()
+    bg          position,-60px -260px
+    display     block
 
 
 // /*

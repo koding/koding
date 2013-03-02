@@ -445,11 +445,14 @@ module.exports = class JPost extends jraphical.Message
     # in any case, it should be resolved permanently once we implement Model#prune
     super
 
+  triggerCache:->
+    CActivity.emit "post-updated",
+      teaserId  : @getId()
+      createdAt : @meta.createdAt
+
   update:(rest..., callback)->
     kallback =(rest...)=>
       callback rest...
-      eventOptions =
-        teaserId   : @getId()
-        createdAt  : @meta.createdAt
-      CActivity.emit "post-updated", eventOptions
+      @triggerCache()
+
     jraphical.Message::update.apply @, rest.concat kallback

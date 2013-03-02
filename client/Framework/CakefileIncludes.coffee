@@ -44,15 +44,11 @@ Includes =
         KDListItemView        : "./components/list/KDListItemView.coffee"
 
         #tree
-        KDTreeViewController  : "./components/tree/KDTreeViewController.coffee"
-        KDTreeView            : "./components/tree/KDTreeView.coffee"
-        KDTreeItemView        : "./components/tree/KDTreeItemView.coffee"
         JTreeViewController   : "./components/tree/treeviewcontroller.coffee"
         JTreeView             : "./components/tree/treeview.coffee"
         JTreeItemView         : "./components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabViewController   : "./components/tabs/KDTabViewController.coffee"
         KDTabView             : "./components/tabs/KDTabView.coffee"
         KDTabPaneView         : "./components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./components/tabs/KDTabViewWithForms.coffee"

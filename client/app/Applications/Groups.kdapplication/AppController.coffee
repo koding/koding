@@ -1,5 +1,10 @@
 class GroupsAppController extends AppController
 
+  KD.registerAppClass @,
+    name         : "Groups"
+    route        : "Groups"
+    hiddenHandle : yes
+
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
     @emit 'PrivateGroupIsOpened', @getData()
@@ -14,27 +19,23 @@ class GroupsAppController extends AppController
     ERROR_POLICY
   ] = [403010, 403001, 403002, 403003, 403004, 403005, 403009]
 
-  constructor:(options, data)->
-    options = $.extend
-      # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
-      # view : new TopicsComingSoon
-      view : new GroupsMainView(cssClass : "content-page groups")
-    ,options
-    super options,data
+  constructor:(options = {}, data)->
+
+    options.view    = new GroupsMainView
+      cssClass      : "content-page groups"
+    options.appInfo =
+      name          : "Groups"
+
+    super options, data
+
     @listItemClass = GroupsListItemView
     @controllers = {}
 
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Groups'
-      data : @getView()
-
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
       help                  :
