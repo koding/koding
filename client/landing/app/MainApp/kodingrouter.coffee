@@ -295,8 +295,25 @@ class KodingRouter extends KDRouter
         nameHandler =(routeInfo, state, route)->
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
+
+          # console.log "GROUP", window._group_loaded
+
           if state?
             open routeInfo, state, status_404
+
+          # Shows that we are in groups
+          else if $('.group-landing').length > 0
+
+            unless $('.group-loader').length > 0
+              waitress = new KDLoaderView
+                size          :
+                  width       : 30
+                loaderOptions :
+                  color       : "#ff9200"
+                cssClass      : 'group-loader'
+              waitress.appendToSelector '.group-login-buttons'
+              waitress.show()
+
           else
             KD.remote.cacheable params.name, (err, model, name)->
               open routeInfo, model, status_404
