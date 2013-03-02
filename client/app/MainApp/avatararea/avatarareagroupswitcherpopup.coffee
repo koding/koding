@@ -41,11 +41,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   populateGroups:->
     @listController.removeAllItems()
     @listController.showLazyLoader()
-    KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
+#    KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
+    KD.whoami().fetchGroups (err, groups)=>
       if err then warn err
-      else if res?.length
+      else if groups?
         @listController.hideLazyLoader()
-        @listController.addItem res[0]
+        @listController.addItem group  for group in groups
 
   show:->
     super
@@ -59,8 +60,12 @@ class PopupGroupListItem extends KDListItemView
 
     super
 
-    {title, avatar} = @getData()
-
+    {group:{title, avatar, slug}, roles} = @getData()
+  
+    roleClasses = roles.map((role)-> "role-#{role}").join ' '
+   
+    @setClass "role #{roleClasses}"
+  
     @avatar = new KDCustomHTMLView
       tagName    : 'img'
       cssClass   : 'avatar-image'
@@ -69,6 +74,8 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
+      href        : "/#{slug}"
+      target      : slug
       icon        :
         cssClass  : 'new-page'
         placement : 'right'
@@ -76,13 +83,27 @@ class PopupGroupListItem extends KDListItemView
           title   : "Opens in a new browser window."
           delayIn : 300
 
-  viewAppended: JView::viewAppended
+  viewAppended:->
+    JView::viewAppended.call this
+    
+    {group:{slug}, roles} = @getData()
+    
+    dashboardHref = "/#{slug}/Dashboard"
+    
+    if 'admin' in roles
+      @addSubView new KDCustomHTMLView
+        title     : 'Admin dashboard'
+        href      : dashboardHref
+        click     : (event)->
+          event.preventDefault()
+          KD.getSingleton('router').handleRoute dashboardHref
 
   pistachio: ->
+    {roles} = @getData()
     """
     <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
-      {{> @switchLink}}
+      {{> @switchLink}}<span class="roles">#{roles.join ', '}</span>
     </div>
     """
 

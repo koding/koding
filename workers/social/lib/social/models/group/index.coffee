@@ -179,11 +179,12 @@ module.exports = class JGroup extends Module
               else
                 console.log 'roles are added'
                 queue.next()
-          -> delegate.addGroup group, 'admin', (err)->
-              if err then callback err
-              else
-                console.log 'group is added'
-                queue.next()
+# TODO: we used to do the below, but on second thought, it's not a very good idea:
+#          -> delegate.addGroup group, 'admin', (err)->
+#              if err then callback err
+#              else
+#                console.log 'group is added'
+#                queue.next()
         ]
         if 'private' is group.privacy
           queue.push -> group.createMembershipPolicy -> queue.next()

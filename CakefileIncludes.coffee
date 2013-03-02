@@ -653,6 +653,7 @@ Includes =
         kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
         kdFormView          : "./client/Framework/themes/default/kd.form.styl"
         kdTooltip           : "./client/Framework/themes/default/kd.tooltip.styl"
+        kdFileUploader      : "./client/Framework/themes/default/kd.fileuploader.styl"
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"

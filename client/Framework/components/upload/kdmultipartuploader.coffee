@@ -6,7 +6,6 @@ class KDMultipartUploader extends KDEventEmitter
     throw new Error "FileReader API not found!" unless "FileReader" of window
     super()
     @id = id ? 'file'
-    @send()
 
   makeMultipartItem: (name, value) ->
     "
@@ -31,8 +30,9 @@ Content-Type: #{@file.type}\r\n\r\n
 #{fileData}\r\n
 --#{boundary}--\r\n
 "
-    fr.onload = (event) ->
+    fr.onload = (event) =>
       return unless event.loaded is event.total
+      @emit 'FileReadComplete', event
       callback wrapFile event.currentTarget.result
     fr.readAsBinaryString @file
 
@@ -44,12 +44,12 @@ Content-Type: #{@file.type}\r\n\r\n
     xhr.open "POST", @url, true
     xhr.setRequestHeader "Content-Type",
       "multipart/form-data; boundary=#{boundary}"
-    xhr.onReadyStateChange = =>
+    xhr.onreadystatechange = =>
       return unless xhr.readyState is 4
       if xhr.status >= 200 and xhr.status < 400
-        @emit 'success', JSON.parse xhr.responseText
+        @emit 'FileUploadSuccess', JSON.parse xhr.responseText
       else
-        @emit 'error', xhr
+        @emit 'FileUploadError', xhr
 
     body += @serializedToMultipart [name: "#{@id}-size", value: @file.size]
     @fileToMultipart (fileData) ->

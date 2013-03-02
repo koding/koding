@@ -59,7 +59,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags'
+        'fetchFeedByTitle', 'updateFlags','fetchGroups'
       ]
     schema                  :
       skillTags             : [String]
@@ -153,9 +153,9 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
-      group         :
-        targetType  : require './group'
-        as          : require('./group').memberRoles
+      # group         :
+      #   targetType  : require './group'
+      #   as          : require('./group').memberRoles
 
       content       :
         as          : 'creator'
@@ -170,6 +170,37 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  fetchGroups: secure (client, callback)->
+    JGroup        = require './group'
+    {groupBy}     = require 'underscore'
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    edgeSelector  =
+      sourceName  : 'JGroup'
+      targetId    : @getId()
+    edgeFields    =
+      sourceId    : 1
+      as          : 1
+    edgeOptions   =
+      sort        : { timestamp: -1 }
+      limit       : 10
+    Relationship.someData edgeSelector, edgeFields, edgeOptions, (err, cursor)->
+      if err then callback err
+      else
+        cursor.toArray (err, docs)->
+          if err then callback err
+          else unless docs
+            callback null, []
+          else
+            groupedDocs = groupBy docs, 'sourceId'
+            targetSelector = { _id: $in: (doc.sourceId for doc in docs) }
+            targetSelector.visibility = 'visible'  unless isMine
+            JGroup.all targetSelector, (err, groups)->
+              if err then callback err
+              else callback null, groups.map (group)->
+                roles = (doc.as for doc in groupedDocs[group.getId()])
+                return { group, roles }
 
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client

@@ -25,15 +25,12 @@ class KDFileUploadView extends KDView
       options.extensions    ?= null
       options.preview       ?= "list"
       options.title         ?= "Drop your files here!"
+      options.onlyOne       ?= no
       super options,data
       @listController = null
       @addDropArea()
       @addList()
       @files = {}
-      @listenTo
-        KDEventTypes        : "FileReadComplete"
-        listenedToInstance  : @
-        callback            : @fileReadComplete
       @totalSizeToUpload = 0
       @setClass "kdfileupload"
     else
@@ -63,23 +60,28 @@ class KDFileUploadView extends KDView
 
   fileDropped:(file)->
     uploader = new KDMultipartUploader { url: '/Upload', file }
-    
-    # TODO: figure out why this is failing
-    uploader.on 'success', console.log.bind console, 'success'
+    uploader.send()
+    uploader.once 'FileReadComplete', (event)=>
+      @emit 'FileReadComplete', {file, progressEvent:event}
+      @fileReadComplete file, event
+    uploader.once 'FileUploadSuccess', (res)=> @fileUploadComplete file, res
+    uploader.once 'FileUploadError', @bound 'handleUploadError'
 
-    # reader = new FileReader
-    # reader.onload = (event)=>
-    #   @propagateEvent KDEventType : "FileReadComplete", {progressEvent : event, file : file}
-    #   @emit "FileReadComplete", {progressEvent : event, file : file}
+  handleUploadError:(xhr)->
+    # TODO: handle this error, if any
 
-    # reader.readAsDataURL file
+  fileUploadComplete:(file, res)->
+    @fileList.itemsByName[file.name]?.setClass 'uploaded'
+    @emit 'FileUploadComplete', res
 
-  fileReadComplete:(pubInst,event)->
-    file = event.file
-    file.data = event.progressEvent.target.result
+  fileReadComplete:(file, event)->
+    file.data = event.target.result
     @putFileInQueue file
 
   putFileInQueue:(file)->
+    if @getOptions().onlyOne
+      @files = {}
+      @fileList.empty()
     if not @isDuplicate(file) and @checkLimits(file)
       @files[file.name] = file
       @fileList.addItem file
@@ -201,23 +203,19 @@ class KDFileUploadArea extends KDView
         selector  : null
         partial   : "i"
 
-    # TIPTIP DEPRECATED
-    # @$().find("span.iconic").tipTip defaultPosition : "top"
-
 
 class KDFileUploadListView extends KDListView
   constructor:(options,data)->
+    options.itemClass ?= KDFileUploadItemView
     super options,data
     @setClass "kdfileuploadlist"
+    @itemsByName = {}
 
   addItem:(file)->
-    itemInstance = new KDKDFileUploadListItemView {delegate : @},file
-    @getDelegate().listenTo
-      KDEventTypes:
-        eventType:        "removeFile"
-      listenedToInstance: itemInstance
-      callback:           @getDelegate().removeFile
+    itemInstance = new (@getOptions().itemClass) {delegate : @},file
+    @getDelegate().on "removeFile", @getDelegate().removeFile
     @addItemView itemInstance
+    @itemsByName[file.name] = itemInstance
 
 class KDKDFileUploadListItemView extends KDListItemView
   constructor:(options,data)->
@@ -236,19 +234,11 @@ class KDKDFileUploadListItemView extends KDListItemView
        <span class='file-size'>#{(file.size / 1024).toFixed(2)}kb</span>
        <span class='x'></span>"
 
-class KDFileUploadThumbListView extends KDListView
+class KDFileUploadThumbListView extends KDFileUploadListView
   constructor:(options,data)->
+    options.itemClass ?= KDFileUploadThumbItemView
     super options,data
     @setClass "kdfileuploadthumblist"
-
-  addItem:(file)->
-    itemInstance = new KDFileUploadThumbItemView {delegate : @},file
-    @getDelegate().listenTo
-      KDEventTypes:
-        eventType:        "removeFile"
-      listenedToInstance: itemInstance
-      callback:           @getDelegate().removeFile
-    @addItemView itemInstance
 
 class KDFileUploadThumbItemView extends KDListItemView
   constructor:(options,data)->
@@ -272,7 +262,6 @@ class KDFileUploadThumbItemView extends KDListItemView
 
 
   partial:(file)->
-    log file
     imageType = /image.*/
     fileUrl = if file.type.match imageType then window.URL.createObjectURL file else "./images/icon.file.png"
 
@@ -282,15 +271,3 @@ class KDFileUploadThumbItemView extends KDListItemView
         <span class='file-size'>#{(file.size / 1024).toFixed(2)}kb</span>
         <span class='close-icon'></span>
        </p>"
-
-class KDFileUploadSingleView extends KDFileUploadView
-
-    putFileInQueue:(file)->
-      @files = {}
-      @fileList.empty()
-      if not @isDuplicate(file) and @checkLimits(file)
-        @files[file.name] = file
-        @fileList.addItem file
-        return yes
-      else
-        return no
