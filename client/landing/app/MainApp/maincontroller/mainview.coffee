@@ -66,7 +66,9 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        return if @groupsEnabled()
+        if @groupsEnabled()
+          @closeGroupView()
+          return
 
         event.stopPropagation()
         event.preventDefault()
@@ -198,38 +200,44 @@ class MainView extends KDView
     $('body').addClass "login"
     console.log "LOGGED IN WITH GROUPS"
 
-    LoginLink = new KDCustomHTMLView
+    groupLink = new KDCustomHTMLView
       partial: "Login"
       cssClass: "bigLink"
 
-
-
     if state
       KD.getSingleton('router').handleRoute "/#{@getSingleton("router")?.getCurrentPath()+'/Activity'}", state:{}
-      LoginLink.click = =>
-        @mainTabView.showHandleContainer()
-        @groupLandingView._windowDidResize = =>
-        # @utils.wait 200, =>
-        $('.group-landing').css 'height', 0
+      groupLink.click = =>
+        @closeGroupView()
 
-      LoginLink.updatePartial 'Go to Group'
+      groupLink.updatePartial 'Go to Group'
 
     else
-      LoginLink.click = =>
+      groupLink.click = =>
         @groupLandingView._windowDidResize = =>
 
         @getSingleton('mainController').loginScreen.show()
         @getSingleton('mainController').loginScreen.animateToForm 'login'
         $('.group-landing').css 'height', 0
 
-    LoginLink.appendToSelector '.group-login-buttons'
+    groupLink.appendToSelector '.group-login-buttons'
 
     $('.group-landing').css 'height', window.innerHeight - 50
+
+  closeGroupView:->
+    @mainTabView.showHandleContainer()
+    @groupLandingView._windowDidResize = noop
+    $('.group-landing').css 'height', 0
 
   decorateLoginState:(isLoggedIn = no)->
 
     @groupLandingView = new KDView
       lazyDomId : 'group-landing'
+
+    groupLandingContentView = new KDView
+      lazyDomId : 'group-landing-content'
+
+    groupLandingGroupContentView = new KDView
+      lazyDomId : 'group-content-wrapper'
 
     @groupLandingView.listenWindowResize()
 
@@ -240,12 +248,6 @@ class MainView extends KDView
       groupLandingGroupContentView.$().css
         height : groupLandingContentView.getHeight() - (256)
 
-
-    groupLandingContentView = new KDView
-      lazyDomId : 'group-landing-content'
-
-    groupLandingGroupContentView = new KDView
-      lazyDomId : 'group-content-wrapper'
 
 
     if isLoggedIn
