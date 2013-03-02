@@ -33,12 +33,12 @@ module.exports = class JGroup extends Module
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
       'grant permissions'                 : []
-      'open group'                        : ['member', 'moderator']
-      'list members'                      : ['member', 'moderator']
+      'open group'                        : ['member','moderator']
+      'list members'                      : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
-      'edit own groups'                   : ['member', 'moderator']
-      'query collection'                  : ['member', 'moderator']
+      'edit own groups'                   : ['member','moderator']
+      'query collection'                  : ['member','moderator']
       'update collection'                 : ['moderator']
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
@@ -67,7 +67,8 @@ module.exports = class JGroup extends Module
       avatar        : String
       slug          :
         type        : String
-        default     : -> Inflector.dasherize @title.toLowerCase()
+        validate    : require('../name').validateName
+        set         : (value)-> value.toLowerCase()
       privacy       :
         type        : String
         enum        : ['invalid privacy type', ['public', 'private']]
@@ -296,11 +297,7 @@ module.exports = class JGroup extends Module
       @fetchMembers rest...
 
   fetchReadme$: permit 'view readme'
-    success:(client, rest...)->
-      @fetchReadme (err, readme)->
-        console.log {err, readme}
-
-      @fetchReadme rest...
+    success:(client, rest...)-> @fetchReadme rest...
 
   setReadme$: permit
     advanced: PERMISSION_EDIT_GROUPS

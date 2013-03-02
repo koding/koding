@@ -87,8 +87,7 @@ module.exports = class JAccount extends jraphical.Module
         about               : String
         nickname            :
           type              : String
-          validate          : (value)->
-            3 < value.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test value
+          validate          : require('./name').validateName
           set               : (value)-> value.toLowerCase()
         hash                :
           type              : String
