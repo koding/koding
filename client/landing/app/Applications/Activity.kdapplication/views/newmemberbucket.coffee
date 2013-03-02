@@ -22,32 +22,37 @@ class NewMemberBucketView extends JView
     lastFetchedDate = null
 
     @group.on "moreLinkClicked", =>
-      # TBDL an accordion view
-      return
-      log "expand the view to show more users"
+      # @group.loader.show()
+
       selector    =
         type      : { $in : ['CNewMemberBucketActivity'] }
         createdAt :
-          $lt     : lastFetchedDate or @getData().createdAt[0]
-          $gt     : @getData().createdAt[1]
+          $gt     : lastFetchedDate or @getData().createdAtTimestamps[0]
+          $lt     : @getData().createdAtTimestamps[1]
 
       options     =
-        limit     : 20
+        limit     : 10
 
-      @group.loader.show()
       KD.remote.api.CActivity.some selector, options, (err, activities)=>
-        if err then warn err
-        else
-          activities = ActivityAppController.clearQuotes activities
-          lastFetchedDate = activities.last.createdAt
-          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-            if err then warn err
-            else
-              @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
-              @group.setData @getData().anchors
-              @group.visibleCount += 20
-              @group.render()
-              @group.loader.hide()
+        return warn err if err
+        activities = ActivityAppController.clearQuotes activities
+        # lastFetchedDate = activities.last.createdAt
+        KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+          if err then warn err
+          else
+            @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
+            @group.setData @getData().anchors
+            @group.visibleCount += 10
+            # @group.render()
+            # @group.loader.hide()
+
+            @newMembersList = new KDListViewController
+              view        : new NewMemberList
+              wrapper     : no
+              scrollView  : no
+            , items: @getData().anchors
+
+            @group.addSubView @newMembersList.getView()
 
   pistachio:->
 
@@ -57,13 +62,45 @@ class NewMemberBucketView extends JView
     {{> @group}}
     """
 
+
+class NewMemberList extends KDListView
+  constructor: (options = {}, data) ->
+    options.tagName   = "ul"
+    options.itemClass = NewMemberListItem
+
+    super options, data
+
+
+class NewMemberListItem extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.tagName   = "li"
+
+    super options, data
+
+  fetchUserDetails: ->
+    KD.remote.cacheable "JAccount", @getData().id, (err, res) =>
+      @addSubView new MembersListItemView {}, res
+
+  viewAppended: ->
+    @setTemplate @pistachio()
+    @template.update()
+    @fetchUserDetails()
+
+  pistachio: -> ""
+
+  userTemplate: (data) ->
+    # """
+    #   <a href="#">#{userName}</a>
+    # """
+
+
 class NewMemberLinkGroup extends LinkGroup
 
   constructor:->
 
     super
 
-    # @loader = new KDLoaderView
+    @loader = new KDLoaderView
 
   createMoreLink:->
 
