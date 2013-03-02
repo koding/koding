@@ -15,7 +15,7 @@ Content-Disposition: form-data; name=\"#{name}\"\r\n\r\n
 "
 
   serializedToMultipart: (list) ->
-    (@makeMultipartItem i.name, i.value for i in list).join("")
+    (@makeMultipartItem i.name, i.value for i in list).join ""
 
   fileToMultipart: (callback) ->
     # {files, id} = @input
@@ -54,16 +54,19 @@ Content-Type: #{@file.type}\r\n\r\n
     body += @serializedToMultipart [name: "#{@id}-size", value: @file.size]
     @fileToMultipart (fileData) ->
       body += fileData
-      if xhr.sendAsBinary?  # Firefox 4 - 5
-        xhr.sendAsBinary body
-      else if Uint8Array?  # File API, Chrome / Firefox 6.
-        len = i = body.length
+      # TODO: review: better feature detection, commenting-out "the immediately below":
+      # if xhr.sendAsBinary?  # Firefox 4 - 5
+      #   xhr.sendAsBinary body
+      # else if Uint8Array?  # File API, Chrome / Firefox 6.
+      # / "the immediately below"
 
-        arrb = new ArrayBuffer len
-        ui8a = new Uint8Array arrb
-        
-        ui8a[i] = body.charCodeAt(i) & 0xff  while i--
+      len = i = body.length
 
-        blob = new Blob [ui8a]
-        xhr.send blob
+      arrb = new ArrayBuffer len
+      ui8a = new Uint8Array arrb
+      
+      ui8a[i] = body.charCodeAt(i) & 0xff  while i--
+
+      blob = new Blob [ui8a]
+      xhr.send blob
     return this
