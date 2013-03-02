@@ -205,6 +205,8 @@ class MainView extends KDView
     if state
       LoginLink.click = ->
         $('.group-landing').css 'height', 0
+
+      LoginLink.updatePartial 'Go to Group'
     else
       LoginLink.click = ->
         @getSingleton('mainController').loginScreen.show()
@@ -216,6 +218,13 @@ class MainView extends KDView
     $('.group-landing').css 'height', window.innerHeight - 50
 
   decorateLoginState:(isLoggedIn = no)->
+
+    groupLandingView = new KDView
+      lazyDomId : 'group-landing'
+
+    groupLandingView.listenWindowResize()
+    groupLandingView._windowDidResize = =>
+      groupLandingView.setHeight window.innerHeight - 50
 
     if isLoggedIn
       if @groupsEnabled() then @switchGroupState yes

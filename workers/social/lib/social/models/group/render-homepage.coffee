@@ -9,7 +9,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
     #{getStyles()}
   </head>
   <body class="login" data-group="#{slug}">
-    <div class='group-landing'>
+    <div id="group-landing" class='group-landing'>
     <div class="group-landing-content">
       <div class="group-wrapper">
 
