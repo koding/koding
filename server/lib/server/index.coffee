@@ -119,7 +119,7 @@ else
 
     s3 = require('./s3') uploads.s3
 
-    app.post '/Upload', s3..., (req, res)-> 
+    app.post '/Upload', s3..., (req, res)->
       [protocol, path] = uploads.distribution.split '//'
       res.send(for own key, file of req.files
         filename  : file.filename

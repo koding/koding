@@ -44,7 +44,6 @@ class MainView extends KDView
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
 
-
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
 
@@ -67,6 +66,8 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
+        return if @groupsEnabled()
+
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
@@ -186,16 +187,58 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
+  groupsEnabled:->
+    return $('.group-landing').length > 0
+
+  switchGroupState:(state)->
+
+    if $('.group-loader').length > 0
+      $('.group-loader')[0].remove?()
+
+    $('body').addClass "login"
+    console.log "LOGGED IN WITH GROUPS"
+
+    LoginLink = new KDCustomHTMLView
+      partial: "Login"
+      cssClass: "bigLink"
+
+    if state
+      LoginLink.click = ->
+        $('.group-landing').css 'height', 0
+
+      LoginLink.updatePartial 'Go to Group'
+    else
+      LoginLink.click = ->
+        @getSingleton('mainController').loginScreen.show()
+        @getSingleton('mainController').loginScreen.animateToForm 'login'
+        $('.group-landing').css 'height', 0
+
+    LoginLink.appendToSelector '.group-login-buttons'
+
+    $('.group-landing').css 'height', window.innerHeight - 50
+
   decorateLoginState:(isLoggedIn = no)->
 
+    groupLandingView = new KDView
+      lazyDomId : 'group-landing'
+
+    groupLandingView.listenWindowResize()
+    groupLandingView._windowDidResize = =>
+      groupLandingView.setHeight window.innerHeight - 50
+
     if isLoggedIn
-      $('body').addClass "loggedIn"
+      if @groupsEnabled() then @switchGroupState yes
+      else $('body').addClass "loggedIn"
+
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
       # @logo.show()
       # @buttonHolder.hide()
+
     else
-      $('body').removeClass "loggedIn"
+      if @groupsEnabled() then @switchGroupState no
+      else $('body').removeClass "loggedIn"
+
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
       # @buttonHolder.show()

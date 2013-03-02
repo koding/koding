@@ -204,11 +204,19 @@ class KDView extends KDObject
 
   setDomElement:(cssClass)->
     cssClass = if cssClass then " #{cssClass}" else ""
-    @domElement = $ "<#{@options.tagName} class='kdview#{cssClass}'></#{@options.tagName} >"
+    {lazyDomId, tagName} = @getOptions()
+    if lazyDomId
+      @domElement = $("#{tagName}##{lazyDomId}")
+      @domElement.addClass "kdview#{cssClass}"
+      if @domElement?.length is 0
+        warn "No lazy DOM Element found with given id #{lazyDomId}."
+
+    @domElement ?= \
+      $ "<#{tagName} class='kdview#{cssClass}'></#{tagName} >"
+
 
   setDomId:(id)->
     @domElement.attr "id",id
-
 
   setDataId:()->
     @domElement.data "data-id",@getId()
@@ -255,6 +263,10 @@ class KDView extends KDObject
       @emit 'viewAppended', @
     @
 
+  appendToSelector:(selector)->
+    $(selector).append @$()
+    @emit 'viewAppended', @
+
   prepend:(child, selector)->
     @$(selector).prepend child.$()
     if @parentIsInDom
@@ -266,6 +278,10 @@ class KDView extends KDObject
     if @parentIsInDom
       @emit 'viewAppended', @
     @
+
+  prependToSelector:(selector)->
+    $(selector).prepend @$()
+    @emit 'viewAppended', @
 
   setPartial:(partial,selector)->
     @$(selector).append partial
@@ -714,12 +730,12 @@ class KDView extends KDObject
     o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
     @on "viewAppended", =>
-      # For this to work, the DOM element must have layout box information 
-      # associated such as overflow, border-sizing, text-overflow 
+      # For this to work, the DOM element must have layout box information
+      # associated such as overflow, border-sizing, text-overflow
       #
       #                                                          Arvid Feb 2013
-    
-      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth 
+
+      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
 
       if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
         @bindTooltipEvents o

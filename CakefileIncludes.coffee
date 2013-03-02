@@ -674,6 +674,7 @@ Includes =
         bootstrap           : "./client/stylus/app.bootstrap.styl"
         apploginsignup      : "./client/stylus/app.login-signup.styl"
         appkeyboard         : "./client/stylus/app.keyboard.styl"
+        appmarkdown         : "./client/stylus/app.markdown.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
         apphome             : "./client/stylus/app.home.styl"

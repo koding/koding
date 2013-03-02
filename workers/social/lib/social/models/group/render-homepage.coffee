@@ -1,5 +1,5 @@
 
-module.exports = ({slug, title, content, policy})->
+module.exports = ({slug, title, content, body, avatar, counts, policy})->
   content ?= getDefaultGroupContents()
   """
   <!DOCTYPE html>
@@ -8,10 +8,49 @@ module.exports = ({slug, title, content, policy})->
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body data-group="#{slug}">
-    <div class="group-landing-content">#{content}</div>
-    #{getNavigation policy}
-    #{getScripts()}
+  <body class="login" data-group="#{slug}">
+    <div id="group-landing" class='group-landing'>
+    <div class="group-landing-content">
+      <div class="group-wrapper">
+
+        <span class="avatar">
+          <img src="#{avatar or "http://lorempixel.com/150/150/"}">
+        </span>
+
+        <div class="content-title">
+          <a class="betatag">beta</a>
+          #{title}
+        </div>
+
+        <div class="content-body">
+          #{body}
+        </div>
+
+        <div class="content-meta">
+          <div class="followers"><span class="icon"></span>
+            <span class="count">#{counts?.members or '0'}</span>
+            <span class="text"> Followers</span>
+          </div>
+          <div class="posts"><span class="icon"></span>
+            <span class="count">#{counts?.posts or '0'}</span>
+            <span class="text"> Posts</span>
+          </div>
+        </div>
+
+        <div class="group-content">
+          <div class="content-markdown has-markdown dark">
+            #{content}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="group-navigation">
+      #{getNavigation policy}
+      #{getScripts()}
+    </div>
+    </div>
   </body>
   </html>
   """
@@ -23,10 +62,7 @@ getInviteLink =(policy)->
 
 getNavigation =(policy)->
   """
-  <div class="login-footer">
-    #{getInviteLink policy}
-    <p class="bigLink"><a href="#">Login</a></p>
-  </div>
+  <div class="group-login-buttons"></div>
   """
 
 getStyles =->

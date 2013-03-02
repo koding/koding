@@ -10,12 +10,174 @@
 
 */
 
+.group-landing
+  height                  100%
+  overflow                auto
+  vendor transition,      height .2s linear
+
 .group-landing-content
-  width             800px
-  background-color  white
-  shadow(0px 0px 8px 1px #c5c5c5)
-  margin            200px auto 0 auto
-  padding           50px
+  borderBox()
+  rel()
+  overflow                visible
+  max-height              660px
+  max-width               980px
+  width                   90%
+  border                  1px solid rgba(255,255,255,0.16)
+  rounded                 8px
+  margin                  60px auto 30px auto
+  shadow                  0 0 150px rgba(0,0,0,0.32)
+  bg color,               rgba(255,255,255,0.05)
+
+  .group-wrapper
+    max-height            650px
+    overflow              auto
+
+  .avatar
+    borderBox()
+    padding               30px 30px 10px 30px
+    fl()
+
+    img
+      padding             5px
+      border              1px solid rgba(255,255,255,0.2)
+      bg color,           rgba(0,0,0,0.2)
+      rounded             5px
+      vendor transition,  all 0.2s ease-in-out
+      width               150px
+      height              150px
+
+  .content-title
+    vendor transition,    margin-left 0.2s ease-in-out
+    font-weight           500
+    overflow              hidden
+    white-space           nowrap
+    text-overflow         ellipsis
+    font-size             24px
+    padding               30px 30px 20px 0
+    color                 #f5f5f5
+    vendor                font-smoothing antialiased
+    text-rendering        geometricPrecision
+    margin-left           215px
+
+    .betatag
+      text-indent         -9999px
+      abs()
+      top                 -2px
+      right               -3px
+      width               64px
+      height              38px
+      sprite()
+      bg position,        -400px -120px
+
+  .content-body
+    vendor transition,    margin-left 0.2s ease-in-out
+    color                 rgba(227, 227, 227, 0.5)
+    font-weight           300
+    margin-left           215px
+    padding-right         30px
+
+  .content-meta
+    fr()
+    borderBox()
+    clear                 both
+    height                27px
+    rounded               4px
+    padding               5px 8px 5px 5px
+    margin                -25px 30px 15px 30px
+    shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+
+    bg color,             rgba(0,0,0,0.25)
+    div
+      vertical-align      top
+      color               rgba(227,227,227,0.5)
+      font-weight         300
+      display             inline-block
+      .count
+        color             #f5f5f5
+        vertical-align    top
+      .icon
+        sprite()
+        width             20px
+        height            20px
+        display           inline-block
+      .text
+        vertical-align    top
+      &.followers
+        .icon
+          bg position,    -201px -523px
+      &.posts
+        .icon
+          bg position,    -99px -523px
+
+  .group-content
+    clear                 both
+    borderBox()
+    height                394px
+    overflow              auto
+    margin                30px
+    bg color,             rgba(0, 0, 0, 0.25) //#282520
+    border                10px solid rgba(0, 0, 0, 0) //#282520
+    shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+    rounded               5px
+
+  .content-markdown
+    overflow              auto
+    padding               10px
+
+.group-koding-logo
+  abs()
+  left                    0
+  bottom                  0
+  text-align              center
+  width                   auto
+  .text
+    margin                30px 30px 10px 30px
+    .logo
+      cursor              pointer
+      display             inline-block
+      width               140px
+      height              40px
+      sprite()
+      bg position,        -400px 0px
+
+@media screen and (max-width: 500px)
+  .group-landing-content
+    margin-top            30px
+    .avatar
+      padding-right       10px
+      img
+        padding           2px
+        width             40px
+        height            40px
+    .content-title
+      margin-left         90px
+    .content-body
+      margin-left         90px
+    .content-meta
+      float               none
+      margin-top          20px
+      margin-bottom       0px
+    .content-markdown
+      img
+        max-width         100%
+
+.group-navigation
+  width                   100%
+  height                  100px
+  text-align              center
+  .bigLink
+    display               inline-block
+    text-shadow           0 -1px 0 rgba(0,0,0,0.8)
+    font-size             20px
+    line-height           40px
+    margin-right          40px
+    color                 #ffb500
+    noTextDeco()
+    vertical-align        baseline
+    bg color,             transparent
+    &:hover
+      color               white
+    cursor                pointer
 
 #group-content
   height            100%
@@ -773,7 +935,7 @@
             hidden()
 
       a.edit-link
-      div.on-off
+      > div.kdview > div.on-off
         fl()
         margin-left 25px
         margin-top 20px
@@ -863,33 +1025,85 @@
           width 60px
 
     .form-generator
+      overflow scroll
+      .wrapper
+        width 880px
       .form-builder
         width 100%
       .add-header
-        margin-bottom 0px
+        bg color, #f5f5f5
+        rounded 5px 5px 0 0
         div
+          color #aaa
           borderBox()
-          padding-left 5px
+          padding 5px 8px 4px 8px
+          margin 0
           width 200px
           font-weight bold
           font-size 12px
           display inline-block
+          vertical-align top
       .add-inputs
-        margin-top 5px
-        .kdinput
+        padding-top 10px
+        bg color, #f5f5f5
+        width 880px
+        rounded 0 0 5px 5px
+        .add-input
           width  200px
+          borderBox()
           display inline-block
-        span.add-button
-          noTextDeco()
-          cursor pointer
+          padding 4px 9px
+          vertical-align top
+
+          &.button
+            padding 0
+            width auto
+
+          &.select
+            display block
+
+          .kdinput
+            width auto
+
+          .kdselectbox
+            width 180px
+        .select-fields
+        .radio-fields
+          margin-left 600px
+          padding 5px
+          width 255px
+          borderBox()
+          > input.text
+            display inline-block
+          h3
+            bg color, #f5f5f5
+            color #444
+            padding 5px 5px 5px 0
+          .form-builder-select
+          .form-builder-radio
+            margin-bottom 10px
+            .default-item
+              color #aaa
+            .kdlistitemview
+              width auto
+              bg color, white
+              margin 3px
+              padding 5px 5px 0px 5px
+              span.value
+                color #aaa
+              .title
+                display inline-block
+                width auto
+              .remove-button
+                display inline-block
+                width auto
+                fr()
       .form-item
         borderBox()
         width auto
-        // border 1px solid #e3e3e3
-        // border-bottom none
-        // &:last-child
-        //   border-bottom 1px solid #e3e3e3
-        div
+        border-right 1px solid #f5f5f5
+        border-left 1px solid #f5f5f5
+        > div
           borderBox()
           overflow-x hidden
           overflow-y hidden
@@ -900,27 +1114,59 @@
           display inline-block
           padding 3px 9px
           margin 0
-          border 1px solid #f5f5f5
-          border-right none
-          border-bottom none
+          border none
           line-height 1.5
-          // &.title
-          //   border-right 1px solid #e3e3e3
-          // &.key
-          //   border-right 1px solid #e3e3e3
-          &.default
-            border-right 1px solid #f5f5f5
+          vertical-align middle
+
+          &.title
+            font-weight 500
+          // height 25px
+          .kdselectbox
+            margin-top -4px
+            height 18px
+            width 180px
+            span.title
+              height 18px
+              line-height 18px
+              overflow hidden
+              text-overflow ellipsis
+            span.arrows
+              top 0
+          div.default
+          fieldset
+            &.textarea
+              white-space normal
+            opacity 0.5
+            vendor transition, opacity 0.15s ease-in-out
+            &:hover
+              opacity 1
             span
               color #aaa
-        &:last-child div
-            border-bottom 1px solid #f5f5f5
-        span.remove-button
-          // min-width 50px
-          borderBox()
-          noTextDeco()
-          display inline-block
-          margin 0
-          cursor pointer
+              &.title
+                color #444
+          &:first-child
+            border-left none
+          &:last-child
+            border-right 1px solid #f5f5f5
+        &:last-child //> div
+          padding-bottom 4px
+    span.add-button
+      noTextDeco()
+      cursor pointer
+      span.title
+        noTextDeco()
+        color black
+        line-height 2.5
+        font-weight 600
+
+    span.remove-button
+      borderBox()
+      noTextDeco()
+      display inline-block
+      margin 0
+      cursor pointer
+      span.title
+        noTextDeco()
 
     .permissions-view
       .add-role-dialog

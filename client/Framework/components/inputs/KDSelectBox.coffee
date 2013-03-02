@@ -7,7 +7,7 @@ class KDSelectBox extends KDInputView
     options = $.extend
       type     : "select"       # mandatory
       cssClass : ""
-    ,options  
+    ,options
     super options
 
   setDomElement:(cssClass)->
@@ -32,7 +32,7 @@ class KDSelectBox extends KDInputView
       @handleEvent event
     super
 
-  setDefaultValue:(value)-> 
+  setDefaultValue:(value)->
     @getDomElement().val value if value isnt ""
     @_$select.val value
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
@@ -40,7 +40,7 @@ class KDSelectBox extends KDInputView
   getDefaultValue:()-> @inputDefaultValue
 
   getValue:()-> @_$select.val()
-  setValue:(value)-> 
+  setValue:(value)->
     @_$select.val value
     @change()
 
@@ -64,12 +64,15 @@ class KDSelectBox extends KDInputView
         @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
     else
       warn "no valid options specified for the input:", @
-    
+
     @_$select.val @getDefaultValue()
 
     value = @getDefaultValue() + "" # casting number to string
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
+
+  removeSelectOptions:->
+    @_$select.find("option").remove()
 
   change:->
     @_$title.text @_$select.find("option[value=\"#{@getValue()}\"]").text()
