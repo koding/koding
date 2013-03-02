@@ -21,8 +21,8 @@ module.exports = class JName extends Model
   @release =(name, callback=->)->
     @remove {name}, callback
 
-  @validateName =(candiate)->
-    3 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test value
+  @validateName =(candidate)->
+    3 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test candidate
 
   @claimNames = secure (client, callback=->)->
     unless client.connection.delegate.can 'administer names'
