@@ -204,7 +204,16 @@ class KDView extends KDObject
 
   setDomElement:(cssClass)->
     cssClass = if cssClass then " #{cssClass}" else ""
-    @domElement = $ "<#{@options.tagName} class='kdview#{cssClass}'></#{@options.tagName} >"
+    {lazyDomId, tagName} = @getOptions()
+    if lazyDomId
+      @domElement = $("#{tagName}##{lazyDomId}")
+      @domElement.addClass "kdview#{cssClass}"
+      if @domElement?.length is 0
+        warn "No lazy DOM Element found with given id #{lazyDomId}."
+
+    @domElement ?= \
+      $ "<#{tagName} class='kdview#{cssClass}'></#{tagName} >"
+
 
   setDomId:(id)->
     @domElement.attr "id",id
