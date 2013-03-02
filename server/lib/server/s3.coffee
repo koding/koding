@@ -59,6 +59,7 @@ module.exports = (config)->
           res.send 403, 'Access denied!'
         else
           count = 0
+          totalFiles = Object.keys(req.files).length
           for own name, file of req.files
             file.path = s3CreatePath(
               session.username
@@ -72,11 +73,6 @@ module.exports = (config)->
                 'content-type'    : file.mime
               }
               file.stream
-              ->
-                if ++count is req.files.length
-                  console.log 'kount', count
-                  next()
-                else
-                  console.log 'sfsfsfsffssf', count, req.files
+              -> next()  if ++count is totalFiles
             )
   ]
