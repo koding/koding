@@ -136,12 +136,7 @@ class HomeMainView extends KDScrollView
   viewAppended:->
     @listenWindowResize()
     # mainController = @getSingleton("mainController")
-    @registerListener
-      KDEventTypes : "AboutButtonClicked"
-      listener     : @
-      callback     : (pubInst,event)=>
-        @showAboutDisplay()
-
+    @on "AboutButtonClicked", (event)=> @showAboutDisplay()
 
   putSlideShow:->
 
@@ -579,11 +574,8 @@ class ScreenshotDemoView extends KDView
       , screenshot
       screenshotArray.push screenshotItem
 
-    @registerListener
-      KDEventTypes  : "SetScreenshotModal"
-      listener      : @
-      callback      : (pubInst, {screenshot, itemCalling})=>
-        @createScreenshotModal itemCalling, screenshot, screenshotArray
+    @on "SetScreenshotModal", ({screenshot, itemCalling})=>
+      @createScreenshotModal itemCalling, screenshot, screenshotArray
 
   screenshots:
     [
@@ -648,7 +640,7 @@ class ScreenshotItemLinkView extends KDView
     """
 
   click:(event)=>
-    @parent.parent.propagateEvent {KDEventType : 'SetScreenshotModal'}, {screenshot : @getData(), itemCalling : @}
+    @parent.parent.emit 'SetScreenshotModal', {screenshot : @getData(), itemCalling : @}
 
 
 class ScreenshotDemoModalView extends KDModalView

@@ -96,10 +96,16 @@ class FSHelper
     name = getFileName path
     name.split('.').shift()
 
+  @getParentPath = (path)->
+    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
+    parentPath = path.split('/')
+    parentPath.pop()
+    return parentPath.join('/')
+
   @createFileFromPath = (path, type = "file")->
 
     return warn "pass a path to create a file instance" unless path
-    parentPath = __utils.getParentPath path
+    parentPath = @getParentPath path
     name       = @getFileNameFromPath path
     return @createFile { path, parentPath, name, type }
 

@@ -11,7 +11,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description, authorNick, additionalinfo} = manifest = @getData()
+    {icns, name, version, author, description,
+     authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
     description    or= ''
@@ -21,17 +22,19 @@ class StartTabAppThumbView extends KDCustomHTMLView
       authorNick = KD.whoami().profile.nickname
 
     proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
-    if manifest.devMode?
+    if manifest.devMode
       resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
 
-    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{resourceRoot}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-    else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+    thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    for size in [512, 256, 160, 128, 64]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
 
     @img = new KDCustomHTMLView
       tagName     : "img"
@@ -196,7 +199,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
-    appManager.openApplication 'Apps', => @hideLoader()
+    KD.getSingleton("appManager").open 'Apps', => @hideLoader()
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -231,6 +234,6 @@ class AppShortcutButton extends StartTabAppThumbView
 
     if type is 'koding-app'
       @showLoader()
-      appManager.openApplication path, => @hideLoader()
+      KD.getSingleton("appManager").open path, => @hideLoader()
 
     return no

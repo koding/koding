@@ -6,32 +6,30 @@ class MainView extends KDView
     @createMainPanels()
     @createMainTabView()
     @createSideBar()
-    @windowController = @getSingleton("windowController")
     @listenWindowResize()
 
-  addBook:->
-    @addSubView new BookView
+  addBook:-> @addSubView new BookView
 
   setViewState:(state)->
-    if state is 'background'
-      @contentPanel.setClass 'no-shadow'
-      @mainTabView.hideHandleContainer()
-    else
-      @contentPanel.unsetClass 'no-shadow'
-      @mainTabView.showHandleContainer()
 
     switch state
+      when 'hideTabs'
+        @contentPanel.setClass 'no-shadow'
+        @mainTabView.hideHandleContainer()
+        @sidebar.hideFinderPanel()
       when 'application'
+        @contentPanel.unsetClass 'no-shadow'
+        @mainTabView.showHandleContainer()
         @sidebar.showFinderPanel()
-      when 'environment'
-        @sidebar.showEnvironmentPanel()
       else
+        @contentPanel.unsetClass 'no-shadow'
+        @mainTabView.showHandleContainer()
         @sidebar.hideFinderPanel()
 
   removeLoader:->
     console.trace()
     $loadingScreen = $(".main-loading").eq(0)
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
       marginTop : -winHeight
       opacity   : 0
@@ -50,9 +48,15 @@ class MainView extends KDView
     @panelWrapper.addSubView @contentPanel = new KDView
       domId    : "content-panel"
       cssClass : "transition"
+      bind     : "webkitTransitionEnd" #TODO: Cross browser support
+
+    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
+
+    @contentPanel.on "webkitTransitionEnd", (e) =>
+      @emit "mainViewTransitionEnd", e
 
   addHeader:()->
 
@@ -102,6 +106,40 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
+    getFrontAppManifest = ->
+      appManager = KD.getSingleton "appManager"
+      appController = KD.getSingleton "kodingAppsController"
+      frontApp = appManager.getFrontApp()
+      frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
+      appController.constructor.manifests?[frontAppName]
+
+    @mainSettingsMenuButton = new KDButtonView
+      domId    : "main-settings-menu"
+      cssClass : "kdsettingsmenucontainer transparent"
+      iconOnly : yes
+      iconClass: "dot"
+      callback : ->
+        appManifest = getFrontAppManifest()
+        if appManifest?.menu
+          appManifest.menu.forEach (item, index)->
+            item.callback = (contextmenu)->
+              mainView = KD.getSingleton "mainView"
+              view = mainView.mainTabView.activePane?.mainView
+              item.eventName or= item.title
+              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
+
+          offset = @$().offset()
+          contextMenu = new JContextMenu
+              event       : event
+              delegate    : @
+              x           : offset.left - 150
+              y           : offset.top + 20
+              arrow       :
+                placement : "top"
+                margin    : -5
+            , appManifest.menu
+    @mainSettingsMenuButton.hide()
+
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
       listenToFinder     : yes
@@ -109,6 +147,10 @@ class MainView extends KDView
       slidingPanes       : no
       tabHandleContainer : @mainTabHandleHolder
     ,null
+
+    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
+      appManifest = getFrontAppManifest()
+      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
     mainController = @getSingleton('mainController')
     mainController.popupController = new VideoPopupController
@@ -141,6 +183,7 @@ class MainView extends KDView
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
+    @contentPanel.addSubView @mainSettingsMenuButton
     @contentPanel.addSubView @videoButton
     @contentPanel.addSubView @popupList
 
@@ -249,5 +292,5 @@ class MainView extends KDView
 
   _windowDidResize:->
 
-    {winHeight} = @windowController
+    {winHeight} = @getSingleton "windowController"
     @panelWrapper.setHeight winHeight - 51

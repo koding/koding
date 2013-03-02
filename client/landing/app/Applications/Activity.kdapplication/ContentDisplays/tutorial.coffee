@@ -328,11 +328,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 #         animate : no
 #         className : "tutorial-video"
 #       callback:=>
-#         unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#         unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   click:->
 #     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
-#     unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#     unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   viewAppended:->
 #     super()

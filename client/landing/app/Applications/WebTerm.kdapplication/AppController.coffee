@@ -1,52 +1,19 @@
 class WebTermController extends AppController
 
-  constructor: (options = {}, data) ->
+  KD.registerAppClass @,
+    name         : "WebTerm"
+    route        : "Develop"
+    multiple     : yes
+    hiddenHandle : no
 
-    options.view     = new WebTermView
-    options.cssClass = "webterm"
+  constructor:(options = {}, data)->
 
-    super options, data
-
-    {view} =  @getOptions()
-
-    view.on "WebTerm.terminated", =>
-      @propagateEvent
-       KDEventType  : "ApplicationWantsToClose"
-       globalEvent  : yes
-      , data: view
-
-    view.on 'ViewClosed', =>
-      @propagateEvent
-        KDEventType : 'ApplicationWantsToClose'
-        globalEvent : yes
-      ,
-        data : view
-
-  bringToFront: ->
-
-    data = new WebTermView
-    data.on "WebTerm.terminated", =>
-      @propagateEvent
-       KDEventType  : "ApplicationWantsToClose"
-       globalEvent  : yes
-      , data: data
-
-    data.on 'ViewClosed', =>
-      @propagateEvent
-        KDEventType : 'ApplicationWantsToClose'
-        globalEvent : yes
-      ,
-        data : data
-
-    options =
+    options.view    = new WebTermAppView
+    options.appInfo =
       name         : "Terminal"
-      hiddenHandle : no
       type         : "application"
       cssClass     : "webterm"
 
-    @propagateEvent
-      KDEventType  : "ApplicationWantsToBeShown"
-      globalEvent  : yes
-    , {options, data}
+    super options, data
 
 WebTerm = {}

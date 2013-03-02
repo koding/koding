@@ -1,8 +1,8 @@
-class TopicsInnerNavigation extends CommonInnerNavigation
+class GroupsInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
     showController = @setListController {},@showMenuData
     @addSubView showListWrapper = showController.getView()
-    
+
     showItemToBeSelected = showController.getItemsOrdered()[0]
     showController.selectItem showItemToBeSelected
 
@@ -10,11 +10,11 @@ class TopicsInnerNavigation extends CommonInnerNavigation
     @addSubView sortListWrapper = sortController.getView()
 
     setTimeout =>
-      @propagateEvent {KDEventType : "CommonInnerNavigationListItemReceivedClick"}, showItemToBeSelected.getData()
+      @emit "CommonInnerNavigationListItemReceivedClick", showItemToBeSelected.getData()
     ,10
 
     @addSubView helpBox = new HelpBox
-  
+
   showMenuData :
     title : "SHOW ME",
     items : [
@@ -30,4 +30,3 @@ class TopicsInnerNavigation extends CommonInnerNavigation
         { title : "Latest Activity",  type : "latest",      action : "sort" }
         { title : "Most Activity",    type : "prolific",    action : "sort" }
       ]
-  

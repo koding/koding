@@ -1,31 +1,30 @@
 class ContentDisplayControllerTopic extends KDViewController
-  constructor:(options={}, data)->
-    options = $.extend
-      view : mainView = new KDView
-        cssClass : 'topic content-display'
-    ,options
+
+  constructor:(options = {}, data)->
+
+    options.view = mainView = new KDView cssClass : 'topic content-display'
 
     super options, data
 
   loadView:(mainView)->
     topic = @getData()
 
-    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+    mainView.addSubView subHeader = new KDCustomHTMLView
+      tagName  : "h2"
+      cssClass : 'sub-header'
 
-    contentDisplayController = @getSingleton "contentDisplayController"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : backLink
-      callback : (pubInst, event)=>
+    subHeader.addSubView backLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : (event)=>
         event.stopPropagation()
         event.preventDefault()
-        contentDisplayController.emit "ContentDisplayWantsToBeHidden",mainView
+        contentDisplayController = @getSingleton "contentDisplayController"
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     topicView = @addTopicView topic
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
       noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."

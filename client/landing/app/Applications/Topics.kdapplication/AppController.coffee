@@ -1,24 +1,26 @@
 class TopicsAppController extends AppController
 
-  constructor:(options, data)->
-    options = $.extend
-      # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
-      # view : new TopicsComingSoon
-      view : new TopicsMainView(cssClass : "content-page topics")
-    ,options
-    super options,data
+  KD.registerAppClass @,
+    name         : "Topics"
+    route        : "Topics"
+    hiddenHandle : yes
+
+  constructor:(options = {}, data)->
+
+    options.view    = new TopicsMainView
+      cssClass      : "content-page topics"
+    options.appInfo =
+      name          : "Topics"
+
+
+    super options, data
+
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Topics'
-      data : @getView()
-
   createFeed:(view)->
     {JTag} = KD.remote.api
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
       noItemFoundText       : "There is no topics."
