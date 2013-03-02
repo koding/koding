@@ -486,7 +486,7 @@ class NFinderTreeController extends JTreeViewController
                 CodeShareItemSource  : content
                 CodeShareItemTitle   : file.name
                 CodeShareItemType    :
-                  syntax             : @utils.getFileExtension file.path
+                  syntax             : FSItem.getFileExtension file.path
               CodeShares.push CodeShare
             if count == files.length
               @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares

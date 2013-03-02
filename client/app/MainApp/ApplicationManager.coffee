@@ -4,6 +4,7 @@
 class ApplicationManager extends KDObject
 
   @debug = yes
+
   log = (rest...)->
     if ApplicationManager.debug
       console.log rest...
@@ -25,7 +26,12 @@ class ApplicationManager extends KDObject
 
     super
 
-    @frontApp = null
+    @frontApp    = null
+    @defaultApps =
+      text  : "Ace"
+      video : "Viewer"
+      image : "Viewer"
+      sound : "Viewer"
 
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
@@ -45,8 +51,6 @@ class ApplicationManager extends KDObject
       [callback, options] = [options, callback] if 'function' is typeof options
 
       options or= {}
-
-      log options, ">>>"
 
       return warn "ApplicationManager::open called without an app name!"  unless name
 
@@ -72,7 +76,22 @@ class ApplicationManager extends KDObject
 
   openFile:(file)->
 
-    log "openFileWithApplication", file
+    type = FSItem.getFileType file.getExtension()
+
+    switch type
+      when 'code','text','unknown'
+        log "open with a text editor"
+        @open @defaultApps.text, (appController)->
+          appController.openFile file
+      when 'image'
+        log "open with an image processing app"
+      when 'video'
+        log "open with a video app"
+      when 'sound'
+        log "open with a sound app"
+      when 'archive'
+        log "extract the thing."
+
 
   tell:(name, command, rest...)->
 

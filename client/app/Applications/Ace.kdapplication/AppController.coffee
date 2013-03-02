@@ -7,6 +7,7 @@ class AceAppController extends AppController
     openWith     : "lastActive"
     route        : "Develop"
     behavior     : "application"
+    # mimeTypes    : "text"
 
   constructor: (options = {}, data)->
 
@@ -20,9 +21,6 @@ class AceAppController extends AppController
 
 
 
-  #openFile: (file) ->
-  #  isAceAppOpen = KD.getSingleton('mainView').mainTabView.getPaneByName 'Editor' #FIXME
-  #
-  #  @bringToFront()
+  openFile: (file) ->
 
-  #  @getView().openFile file
+   @getView().openFile file
