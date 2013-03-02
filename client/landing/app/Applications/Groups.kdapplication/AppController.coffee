@@ -276,11 +276,10 @@ class GroupsAppController extends AppController
                 itemClass         : KDInputView
                 name              : "title"
                 keydown           : (pubInst, event)->
-                  setTimeout =>
+                  @utils.defer =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
                     # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
-                  , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
               # SlugText                :
@@ -422,6 +421,9 @@ class GroupsAppController extends AppController
       href    : "/#{slug}/Activity"
       target  : slug
       title   : 'Open group'
+      # click   : (event)->
+      #   event.preventDefault()
+      #   @getSingleton('windowManager').open @href, slug
 
 
   setCurrentViewHeader:(count)->

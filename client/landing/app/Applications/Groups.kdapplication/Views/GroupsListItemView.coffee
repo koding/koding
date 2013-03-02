@@ -28,7 +28,8 @@ class GroupsListItemView extends KDListItemView
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{slug}"
+        target    : slug
       pistachio   : '{div{#(title)}}'
       tooltip     :
         title     : title
@@ -39,7 +40,7 @@ class GroupsListItemView extends KDListItemView
           top     : 6
           left    : -2
         showOnlyWhenOverflowing : yes
-      click       : (event) => @titleReceivedClick event
+      # click       : (event) => @titleReceivedClick event
     , data
 
     @bodyView = new KDCustomHTMLView
