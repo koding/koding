@@ -202,13 +202,22 @@ class MainView extends KDView
       partial: "Login"
       cssClass: "bigLink"
 
+
+
     if state
-      LoginLink.click = ->
+      KD.getSingleton('router').handleRoute "/#{@getSingleton("router")?.getCurrentPath()+'/Activity'}", state:{}
+      LoginLink.click = =>
+        @mainTabView.showHandleContainer()
+        @groupLandingView._windowDidResize = =>
+        # @utils.wait 200, =>
         $('.group-landing').css 'height', 0
 
       LoginLink.updatePartial 'Go to Group'
+
     else
-      LoginLink.click = ->
+      LoginLink.click = =>
+        @groupLandingView._windowDidResize = =>
+
         @getSingleton('mainController').loginScreen.show()
         @getSingleton('mainController').loginScreen.animateToForm 'login'
         $('.group-landing').css 'height', 0
@@ -219,18 +228,35 @@ class MainView extends KDView
 
   decorateLoginState:(isLoggedIn = no)->
 
-    groupLandingView = new KDView
+    @groupLandingView = new KDView
       lazyDomId : 'group-landing'
 
-    groupLandingView.listenWindowResize()
-    groupLandingView._windowDidResize = =>
-      groupLandingView.setHeight window.innerHeight - 50
+    @groupLandingView.listenWindowResize()
+
+    @groupLandingView._windowDidResize = =>
+      @groupLandingView.setHeight window.innerHeight - 50
+      groupLandingContentView.$().css
+        maxHeight : window.innerHeight - (200)
+      groupLandingGroupContentView.$().css
+        height : groupLandingContentView.getHeight() - (256)
+
+
+    groupLandingContentView = new KDView
+      lazyDomId : 'group-landing-content'
+
+    groupLandingGroupContentView = new KDView
+      lazyDomId : 'group-content-wrapper'
+
 
     if isLoggedIn
-      if @groupsEnabled() then @switchGroupState yes
-      else $('body').addClass "loggedIn"
+      if @groupsEnabled()
+        @switchGroupState yes
+        @mainTabView.hideHandleContainer()
 
-      @mainTabView.showHandleContainer()
+      else
+        $('body').addClass "loggedIn"
+        @mainTabView.showHandleContainer()
+
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
       # @logo.show()
       # @buttonHolder.hide()
