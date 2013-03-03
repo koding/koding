@@ -72,7 +72,7 @@ func (vm *VM) UpperdirFile(path string) string {
 }
 
 func (vm *VM) PtsDir() string {
-	return vm.File("rootfs/dev/pts2")
+	return vm.File("rootfs/dev/pts")
 }
 
 func (vm *VM) GetUserEntry(user *User) *UserEntry {

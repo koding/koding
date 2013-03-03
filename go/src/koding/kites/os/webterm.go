@@ -37,7 +37,7 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args [
 	server.SetSize(float64(sizeX), float64(sizeY))
 
 	server.pty.Slave.Chown(user.Uid, -1)
-	cmd := vm.AttachCommand(user.Uid, "/dev/pts2/"+strconv.Itoa(server.pty.No)) // empty command is default shell
+	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No)) // empty command is default shell
 
 	err := cmd.Start()
 	if err != nil {

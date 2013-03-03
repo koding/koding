@@ -88,6 +88,9 @@ end
 	execute "lxc-attach -n vmroot -- /usr/bin/rename s/\.conf/\.conf\.disabled/ #{VM_upstart}/-*"
 	execute "lxc-attach -n vmroot -- /bin/mv #{VM_upstart}/ssh.conf #{VM_upstart}/ssh.conf.disabled"
 
+	# Replace /dev/ptmx by proper symlink
+	execute "lxc-attach -n vmroot -- /bin/ln -sf pts/ptmx /dev/ptmx"
+
 	execute "lxc-stop -n vmroot"
 	execute "sleep 1"
 	execute "lxc-start -n vmroot -d"

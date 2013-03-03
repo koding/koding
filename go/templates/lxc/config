@@ -8,11 +8,10 @@ lxc.network.ipv4.gateway = 172.16.0.1
 lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
 lxc.utsname = {{.Hostname}}
 
+lxc.tty = 0
+lxc.pts = 0
 lxc.devttydir = lxc
-#lxc.tty = 4
-lxc.pts = 1024
 lxc.mount  = /var/lib/lxc/{{.}}/fstab
-lxc.arch = amd64
 lxc.cap.drop = sys_module mac_admin mac_override
 lxc.pivotdir = lxc_putold
 
