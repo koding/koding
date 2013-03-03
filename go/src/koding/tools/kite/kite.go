@@ -16,6 +16,7 @@ import (
 	"os/user"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 type Kite struct {
@@ -42,6 +43,15 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 func (k *Kite) Run() {
 	lifecycle.RunStatusLogger()
 
+	routeMap := make(map[string](chan<- []byte))
+	defer func() {
+		for _, channel := range routeMap {
+			close(channel)
+		}
+	}()
+
+	timeoutChannel := make(chan string)
+
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
@@ -50,13 +60,6 @@ func (k *Kite) Run() {
 
 	publishConn := amqputil.CreateConnection("kite-" + k.Name)
 	defer publishConn.Close()
-
-	routeMap := make(map[string](chan<- []byte))
-	defer func() {
-		for _, channel := range routeMap {
-			close(channel)
-		}
-	}()
 
 	publishChannel := amqputil.CreateChannel(publishConn)
 	defer publishChannel.Close()
@@ -85,7 +88,8 @@ func (k *Kite) Run() {
 				}
 
 				if _, found := routeMap[client.RoutingKey]; found {
-					continue // duplicate key
+					log.Warn("Duplicate auth.join for same routing key.")
+					continue
 				}
 				channel := make(chan []byte, 1024)
 				routeMap[client.RoutingKey] = channel
@@ -169,9 +173,17 @@ func (k *Kite) Run() {
 
 					d.Send("ready", "kite-"+k.Name)
 
-					for message := range channel {
-						log.Debug("Read", client.RoutingKey, message)
-						d.ProcessMessage(message)
+					for {
+						select {
+						case message, ok := <-channel:
+							if !ok {
+								return
+							}
+							log.Debug("Read", client.RoutingKey, message)
+							d.ProcessMessage(message)
+						case <-time.After(24 * time.Hour):
+							timeoutChannel <- client.RoutingKey
+						}
 					}
 				}()
 
@@ -203,6 +215,14 @@ func (k *Kite) Run() {
 						log.Warn("Dropped client because of message buffer overflow.")
 					}
 				}
+			}
+
+		case routingKey := <-timeoutChannel:
+			channel, found := routeMap[routingKey]
+			if found {
+				close(channel)
+				delete(routeMap, routingKey)
+				log.Warn("Dropped client because of fallback session timeout.")
 			}
 
 		case <-sigtermChannel:
