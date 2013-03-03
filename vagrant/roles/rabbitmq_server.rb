@@ -12,4 +12,4 @@ default_attributes(
                                 "admin_password" => "dslkdscmckfjf55",
                                 "user_password" => "djfjfhgh4455__5"
                      },
-})
+)
