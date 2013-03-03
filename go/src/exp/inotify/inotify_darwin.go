@@ -1,3 +1,4 @@
+// this is a dummy for OSX
 package inotify
 
 type Event struct {
