@@ -12,7 +12,7 @@ case node['platform_family']
 when "rhel", "cloudlinux"
     include_recipe "yum::golang"
     yum_package "go" do
-        version "#{node["go"]["rpm_version"]}"
+#        version "#{node["go"]["rpm_version"]}"
         action :install
     end
 when "debian"

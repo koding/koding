@@ -40,7 +40,6 @@ use_https = True
 verbosity = WARNING
 EOF
 export DEBIAN_FRONTEND=noninteractive
-apt-get update
 DEBIAN_FRONTEND=noninteractive
 apt-get update >> $LOGFILE
 apt-get install opscode-keyring >> $LOGFILE

@@ -45,7 +45,7 @@ default['nginx']['group'] = node['nginx']['user']
 
 default['nginx']['pid'] = "/var/run/nginx.pid"
 
-default['nginx']['gzip']              = "on"
+default['nginx']['gzip']              = "off"
 default['nginx']['gzip_http_version'] = "1.0"
 default['nginx']['gzip_comp_level']   = "2"
 default['nginx']['gzip_proxied']      = "any"
