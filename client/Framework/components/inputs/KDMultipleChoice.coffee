@@ -36,8 +36,8 @@ class KDMultipleChoice extends KDInputView
     @setValue options.defaultValue, no
 
   setDomElement:(cssClass)->
-    {title, labels, name} = @getOptions()
-    title = if title then "<span>#{title}</span>" else ''
+    {labels, name} = @getOptions()
+    @inputName = name
 
     labelItems = ""
     for label in labels
@@ -45,7 +45,6 @@ class KDMultipleChoice extends KDInputView
 
     @domElement = $ """
       <div class='kdinput on-off multiple-choice #{cssClass}'>
-        #{title}
         #{labelItems}
       </div> """
 
@@ -54,7 +53,7 @@ class KDMultipleChoice extends KDInputView
   getValue:-> @currentValue
 
   setCurrent = (view, label)=>
-    if label in @currentValue
+    if label in view.currentValue
       view.$("a[name$='#{label}']").removeClass('active')
       view.currentValue.splice(view.currentValue.indexOf(label), 1)
     else
@@ -66,7 +65,7 @@ class KDMultipleChoice extends KDInputView
 
     if multiple
       # FIXME later with .first
-      @oldValue = [obj for obj in @currentValue][0]
+      @oldValue = [obj for obj in @currentValue]?.first
 
       if Array.isArray label
         [setCurrent(@, val) for val in label]

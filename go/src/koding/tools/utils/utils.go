@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"net"
 	"sort"
+	"unicode/utf8"
 )
 
 const MaxInt = int(^uint(0) >> 1)
@@ -55,4 +56,23 @@ func IntToIP(v int) net.IP {
 
 func IPToInt(ip net.IP) int {
 	return int(binary.BigEndian.Uint32(ip[12:16]))
+}
+
+func FilterInvalidUTF8(buf []byte) []byte {
+	i := 0
+	j := 0
+	for {
+		r, l := utf8.DecodeRune(buf[i:])
+		if l == 0 {
+			break
+		}
+		if r < 0xD800 {
+			if i != j {
+				copy(buf[j:], buf[i:i+l])
+			}
+			j += l
+		}
+		i += l
+	}
+	return buf[:j]
 }

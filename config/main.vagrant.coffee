@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
+mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -32,7 +32,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -106,6 +106,10 @@ module.exports = deepFreeze
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

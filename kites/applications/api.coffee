@@ -74,27 +74,31 @@ checkFlag = (username, flag, callback)->
   # Just for worst case scenarios
   return callback yes if username is 'gokmen'
 
-  data   = ''
+  rdata   = ''
   state  = false
   flag  ?= 'app-publisher'
   apiUrl = "https://koding.com/-/api/user/#{username}/flags/#{flag}"
 
   request = https.get apiUrl, (res)->
     res.on 'data', (data)->
-      data += data
+      rdata += data
     res.on 'end', ->
-      state = data.toString() is 'true'
+      state = rdata.toString() is 'true'
       console.warn "User #{username} tried to make bad things." unless state
       callback state
 
   request.on 'error', (e)->
     console.error "An error occured while communicating with Koding!"
     callback no
+
   request.setTimeout 10000, ->
     console.error "Timeout reached, does Internet too bad?"
     callback no
 
 module.exports = new Kite 'applications'
+
+  pink: (options, callback)->
+    callback null, "Ponk #{options.username}"
 
   installApp: (options, callback)->
 

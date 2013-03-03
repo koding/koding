@@ -10,7 +10,6 @@ module.exports = class JUser extends jraphical.Module
   JSession       = require './session'
   JGuest         = require './guest'
   JInvitation    = require './invitation'
-  JFeed          = require './feed'
   JName          = require './name'
 
   createId       = require 'hat'
@@ -147,19 +146,14 @@ module.exports = class JUser extends jraphical.Module
         else if username?
           JUser.one {username}, (err, user)->
             if err
-              callback? err
+              callback createKodingError err
             else
               user.fetchAccount context, (err, account)->
                 if err
                   callback createKodingError err
                 else
-                  feedData = {title: "followed"}
-                  JFeed.assureFeed account, feedData, (err, feed) ->
-                    if err
-                      callback err
-                    else
-                      #JAccount.emit "AccountAuthenticated", account
-                      callback null, account
+                  #JAccount.emit "AccountAuthenticated", account
+                  callback null, account
         else @logout clientId, callback
 
 
@@ -240,20 +234,15 @@ module.exports = class JUser extends jraphical.Module
                   if err
                     callback err
                   else
-                    feedData = {title: "followed"}
-                    JFeed.assureFeed account, feedData, (err, feed) ->
-                      if err
-                        callback err
-                      else
-                        connection.delegate = account
-                        JAccount.emit "AccountAuthenticated", account
+                    connection.delegate = account
+                    JAccount.emit "AccountAuthenticated", account
 
-                        # This should be called after login and this
-                        # is not correct place to do it, FIXME GG
-                        # p.s. we could do that in workers
-                        account.updateCounts()
+                    # This should be called after login and this
+                    # is not correct place to do it, FIXME GG
+                    # p.s. we could do that in workers
+                    account.updateCounts()
 
-                        callback null, account, replacementToken
+                    callback null, account, replacementToken
 
   @logout = secure (client, callback)->
     if 'string' is typeof clientId
@@ -390,33 +379,28 @@ module.exports = class JUser extends jraphical.Module
                                   if err
                                     callback err
                                   else
-                                    feedData = {title:"followed", description: "Followed Feed"}
-                                    JFeed.createFeed account, feedData, (err, feed) ->
-                                      if err
-                                        callback err
-                                      else
-                                        if silence
+                                    if silence
+                                      JUser.grantInitialInvitations user.username
+                                      createNewMemberActivity account
+                                      callback null, account
+                                    else
+                                      replacementToken = createId()
+                                      session.update {
+                                        $set:
+                                          username      : user.username
+                                          lastLoginDate : new Date
+                                          clientId      : replacementToken
+                                        $unset          :
+                                          guestId       : 1
+                                      }, (err, docs)->
+                                        if err
+                                          callback err
+                                        else
+                                          user.sendEmailConfirmation()
                                           JUser.grantInitialInvitations user.username
                                           createNewMemberActivity account
-                                          callback null, account
-                                        else
-                                          replacementToken = createId()
-                                          session.update {
-                                            $set:
-                                              username      : user.username
-                                              lastLoginDate : new Date
-                                              clientId      : replacementToken
-                                            $unset          :
-                                              guestId       : 1
-                                          }, (err, docs)->
-                                            if err
-                                              callback err
-                                            else
-                                              user.sendEmailConfirmation()
-                                              JUser.grantInitialInvitations user.username
-                                              createNewMemberActivity account
-                                              JAccount.emit "AccountAuthenticated", account
-                                              callback null, account, replacementToken
+                                          JAccount.emit "AccountAuthenticated", account
+                                          callback null, account, replacementToken
 
   @grantInitialInvitations = (username)->
     JInvitation.grant {'profile.nickname': username}, 3, (err)->

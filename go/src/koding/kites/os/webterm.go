@@ -5,6 +5,7 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"koding/tools/pty"
+	"koding/tools/utils"
 	"koding/virt"
 	"os"
 	"strconv"
@@ -56,8 +57,7 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args [
 	go func() {
 		defer log.RecoverAndLog()
 
-		buf := make([]byte, (1<<12)-4, 1<<12)
-		runes := make([]rune, 1<<12)
+		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 		for {
 			n, err := server.pty.Master.Read(buf)
 			for n < cap(buf)-1 {
@@ -83,23 +83,7 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args [
 				time.Sleep(time.Second)
 			}
 
-			// convert manually to fix invalid utf-8 chars
-			i := 0
-			c := 0
-			for {
-				r, l := utf8.DecodeRune(buf[i:n])
-				if l == 0 {
-					break
-				}
-				if r >= 0xD800 {
-					r = utf8.RuneError
-				}
-				runes[c] = r
-				i += l
-				c++
-			}
-
-			server.remote.Output(string(runes[:c]))
+			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
 			}

@@ -34,7 +34,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -111,6 +111,10 @@ module.exports = deepFreeze
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
