@@ -105,8 +105,9 @@ class WebTermView extends KDView
       @terminal.setFocused @focused
 
     $(document).on "paste", (event) =>
-      @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
-      @setKeyView()
+      if @focused
+        @terminal.server.input event.originalEvent.clipboardData.getData("text/plain")
+        @setKeyView()
 
     @bindEvent 'contextmenu'
 
