@@ -235,6 +235,9 @@ class MainView extends KDView
   groupsEnabled:->
     return $('.group-landing').length > 0
 
+  profileEnabled:->
+    return $('.user-landing').length > 0
+
   switchGroupState:(state)->
 
     if $('.group-loader').length > 0
@@ -272,6 +275,11 @@ class MainView extends KDView
     $('.group-landing').css 'height', 0
 
   decorateLoginState:(isLoggedIn = no)->
+    if @profileEnabled()
+
+      @profileLandingView = new KDView
+        lazyDomId : 'profile-landing'
+
     if @groupsEnabled()
 
       @groupLandingView = new KDView

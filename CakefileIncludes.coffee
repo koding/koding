@@ -683,6 +683,7 @@ Includes =
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
         groups              : "./client/stylus/app.group.styl"
+        user                : "./client/stylus/app.user.styl"
 
         temp             : "./client/stylus/temp.styl"
 
