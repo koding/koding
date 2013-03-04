@@ -275,7 +275,7 @@ class MainView extends KDView
       @profileLandingView = new KDView
         lazyDomId : 'profile-landing'
 
-    if @groupsEnabled()
+    if @userEnteredFromGroup()
 
       @groupLandingView = new KDView
         lazyDomId : 'group-landing'
@@ -296,10 +296,7 @@ class MainView extends KDView
           height : groupLandingContentView.getHeight() - (256)
 
     if isLoggedIn
-      if @userEnteredFromGroup() then @switchGroupState yes
-      else $('body').addClass "loggedIn"
-
-      if @groupsEnabled()
+      if @userEnteredFromGroup()
         @switchGroupState yes
         @mainTabView.hideHandleContainer()
 
