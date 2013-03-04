@@ -354,6 +354,12 @@ class LoginView extends KDScrollView
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
+  prepare:(callback)->
+    unless KD.config.groupEntryPoint?
+      @slideUp callback
+    else
+      callback()
+
   slideUp:(callback)->
     {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight

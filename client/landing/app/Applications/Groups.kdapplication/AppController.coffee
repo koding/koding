@@ -60,9 +60,8 @@ class GroupsAppController extends AppController
               if err then error err
               else
                 {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, ({joinButton,enterButton})->
-                  joinButton.setState 'Leave'
-                  joinButton.redecorateState()
+                everything.forEachItemByIndex groups, (view)->
+                  view.setClass 'own-group'
         following           :
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
