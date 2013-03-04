@@ -27,7 +27,6 @@ class MainView extends KDView
         @sidebar.hideFinderPanel()
 
   removeLoader:->
-    console.trace()
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
@@ -234,7 +233,6 @@ class MainView extends KDView
     return $('.group-landing').length > 0
 
   switchGroupState:(state)->
-
     if $('.group-loader').length > 0
       $('.group-loader')[0].remove?()
 
