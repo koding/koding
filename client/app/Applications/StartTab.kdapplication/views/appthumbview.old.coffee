@@ -23,7 +23,4 @@ class StartTabOldAppThumbView extends KDView
   click:(event)->
     {appToOpen, disabled} = @getData()
     {tab}                 = @getOptions()
-    if appToOpen isnt "Apps"
-      appManager.replaceStartTabWithApplication appToOpen, tab unless disabled
-    else
-      appManager.openApplication appToOpen
+    KD.getSingleton("appManager").open appToOpen

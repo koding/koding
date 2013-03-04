@@ -1,12 +1,17 @@
 class DemosAppController extends AppController
+
+  KD.registerAppClass @,
+    name         : "Demos"
+    route        : "Demos"
+    hiddenHandle : yes
+
   constructor:(options = {}, data)->
-    options.view = new DemosMainView
-      cssClass : "content-page demos"
+    options.view    = new DemosMainView
+      cssClass      : "content-page demos"
+    options.appInfo =
+      name          : "Demos"
 
     super options, data
-
-  bringToFront:()->
-    super name : 'Demos'#, type : 'background'
 
   loadView:(mainView)->
 
@@ -29,3 +34,6 @@ class DemosAppController extends AppController
             required : yes
           events  :
             required : 'blur'
+
+
+  parentDidResize:-> log "geldi mi >>>>>>>", arguments

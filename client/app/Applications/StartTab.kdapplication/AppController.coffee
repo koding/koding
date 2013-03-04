@@ -1,64 +1,16 @@
 class StartTabAppController extends AppController
 
-  constructor:->
-    super
-    @openTabs = []
+  KD.registerAppClass @,
+    name         : "StartTab"
+    route        : "Develop"
+    behavior     : "application"
+    multiple     : yes
 
-  bringToFront:->
-    frontTab = if !@openTabs.length then @createNewTab() else @openTabs[@openTabs.length - 1]
+  constructor:(options = {}, data)->
 
-    @propagateEvent
-      KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
-    ,
-      options:
-        hiddenHandle  : no
-        type          : 'application'
-        name          : 'New Tab'
-        controller    : @
-      data : frontTab
+    options.view    = new StartTabMainView
+    options.appInfo =
+      type          : 'application'
+      name          : 'Your Apps'
 
-    # @setViewListeners frontTab
-
-  # setViewListeners:(view)->
-  #   view.on 'ViewClosed', =>
-  #     @removeOpenTab view
-  #     @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : view
-  #     view.destroy()
-
-  createNewTab:->
-    appController = @
-    tab = new StartTabMainView delegate  : @
-    tab.on 'ViewClosed', => @closeTab tab
-    @addOpenTab tab
-    return tab
-
-  addOpenTab:(tab)->
-    appManager.addOpenTab tab, @
-    @openTabs.push tab
-
-  removeOpenTab:(tab)->
-    appManager.removeOpenTab tab
-    @openTabs.splice (@openTabs.indexOf tab), 1
-
-  openFreshTab:->
-    frontTab = @createNewTab()
-
-    @propagateEvent
-      KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
-    ,
-      options:
-        hiddenHandle  : no
-        type          : 'application'
-        name          : 'New Tab'
-        controller    : @
-      data : frontTab
-
-  closeTab: (tab) ->
-    appController = @getDelegate() or @
-    appController.removeOpenTab tab
-    appController.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : tab
-
-    tab.destroy()
-
-  @getName: ->
-    'startTab'
+    super options, data

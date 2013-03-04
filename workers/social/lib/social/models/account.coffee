@@ -59,7 +59,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags'
+        'fetchFeedByTitle', 'updateFlags','fetchGroups'
       ]
     schema                  :
       skillTags             : [String]
@@ -87,8 +87,7 @@ module.exports = class JAccount extends jraphical.Module
         about               : String
         nickname            :
           type              : String
-          validate          : (value)->
-            3 < value.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test value
+          validate          : require('./name').validateName
           set               : (value)-> value.toLowerCase()
         hash                :
           type              : String
@@ -153,9 +152,9 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
-      group         :
-        targetType  : require './group'
-        as          : require('./group').memberRoles
+      # group         :
+      #   targetType  : require './group'
+      #   as          : require('./group').memberRoles
 
       content       :
         as          : 'creator'
@@ -163,13 +162,41 @@ module.exports = class JAccount extends jraphical.Module
           "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
           "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
         ]
-      feed         :
-        as          : "owner"
-        targetType  : "JFeed"
 
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  fetchGroups: secure (client, callback)->
+    JGroup        = require './group'
+    {groupBy}     = require 'underscore'
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    edgeSelector  =
+      sourceName  : 'JGroup'
+      targetId    : @getId()
+    edgeFields    =
+      sourceId    : 1
+      as          : 1
+    edgeOptions   =
+      sort        : { timestamp: -1 }
+      limit       : 10
+    Relationship.someData edgeSelector, edgeFields, edgeOptions, (err, cursor)->
+      if err then callback err
+      else
+        cursor.toArray (err, docs)->
+          if err then callback err
+          else unless docs
+            callback null, []
+          else
+            groupedDocs = groupBy docs, 'sourceId'
+            targetSelector = { _id: $in: (doc.sourceId for doc in docs) }
+            targetSelector.visibility = 'visible'  unless isMine
+            JGroup.all targetSelector, (err, groups)->
+              if err then callback err
+              else callback null, groups.map (group)->
+                roles = (doc.as for doc in groupedDocs[group.getId()])
+                return { group, roles }
 
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client
@@ -524,14 +551,6 @@ module.exports = class JAccount extends jraphical.Module
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
-
-  fetchFeedByTitle: secure (client, title, callback) ->
-    if @equals(client.connection.delegate)
-      @fetchFeeds (err, feeds) ->
-        for feed in feeds
-          if feed.title is title
-            return callback null, feed
-        return callback new KodingError 'Feed not found.'
 
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->

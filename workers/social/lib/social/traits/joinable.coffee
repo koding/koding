@@ -11,9 +11,11 @@ module.exports = class Joinable
   addToGroup_ =(client, {as}, callback)->
     as ?= 'member'
     {delegate} = client.connection
-    @addMember delegate, as, (err)=>
-      if err then callback err
-      else delegate.addGroup this, as, callback
+    @addMember delegate, as, callback
+    # TODO: we used to do the below, but on second thought, it's not a very good idea:
+#    @addMember delegate, as, (err)=>
+#      if err then callback err
+#      else delegate.addGroup this, as, callback
 
   addToPrivateGroup_ =(client, {as, inviteCode}, callback)->
     {delegate} = client.connection

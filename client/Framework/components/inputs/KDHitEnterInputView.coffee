@@ -7,7 +7,7 @@ todo:
 
 
 class KDHitEnterInputView extends KDInputView
-  
+
   constructor:(options = {}, data)->
 
     options.type            or= "textarea"
@@ -46,18 +46,12 @@ class KDHitEnterInputView extends KDInputView
   setToggler:->
     o = @getOptions()
     @inputEnterToggler = new KDCustomHTMLView
-      tagName : "a"
-      cssClass: "hitenterview-toggle"
-      partial : if o.showButton then o.togglerPartials[0] else o.togglerPartials[1]
+      tagName  : "a"
+      cssClass : "hitenterview-toggle"
+      partial  : if o.showButton then o.togglerPartials[0] else o.togglerPartials[1]
+      click    : @bound "toggleEnterKey"
 
     @inputLabel.addSubView @inputEnterToggler
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : @inputEnterToggler
-      callback : @toggleEnterKey
-
-  # click:-> no
 
   hideButton:-> @button.hide()
 

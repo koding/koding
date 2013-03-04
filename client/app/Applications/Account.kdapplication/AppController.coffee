@@ -1,11 +1,18 @@
 class AccountAppController extends AppController
-  constructor:(options={},data)->
-    options.view = new KDView {cssClass : "content-page" }
-    super options, data
-    @itemsOrdered = []
 
-  bringToFront:()->
-    super name : 'Account', type : 'background'
+  KD.registerAppClass @,
+    name         : "Account"
+    route        : "Account"
+    behavior     : "hideTabs"
+    hiddenHandle : yes
+
+  constructor:(options={},data)->
+
+    options.view = new KDView cssClass : "content-page"
+
+    super options, data
+
+    @itemsOrdered = []
 
   loadView:(mainView)->
     items = @items
@@ -58,28 +65,17 @@ class AccountAppController extends AppController
       resizable : yes
     mainView.addSubView split
 
-    split.panels[1].registerListener
-      KDEventTypes : "scroll"
-      listener     : @
-      callback     : @contentScrolled
+    [panel0, panel1] = split.panels
 
-    split.panels[0].addSubView @leftToggler = new KDView
+    panel1.on "scroll", (event)=> @contentScrolled panel1, event
+
+    panel0.addSubView @leftToggler = new KDView
       cssClass : "account-sidebar-toggler left"
-
-    @listenTo
-      KDEventTypes        : "click"
-      listenedToInstance  : @leftToggler
-      callback            : -> @toggleSidebar show:no
+      click    : => @toggleSidebar show:no
 
     split.addSubView @rightToggler = new KDView
-      cssClass : "account-sidebar-toggler right"
-
-    @listenTo
-      KDEventTypes        : "click"
-      listenedToInstance  : @rightToggler
-      callback            : -> @toggleSidebar show:yes
-
-    @rightToggler.hide()
+      cssClass : "account-sidebar-toggler right hidden"
+      click    : => @toggleSidebar show:yes
 
     @_windowDidResize()
     @getSingleton("windowController").registerWindowResizeListener @
@@ -123,15 +119,6 @@ class AccountAppController extends AppController
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
         { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
-      ]
-    develop :
-      title : "Develop"
-      items : [
-        { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
-        { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
-        { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
-        { title : "Editor settings",      listHeader: "Editor Settings",            listType: "editors",        id : 10,      parentId : null }
-        { title : "SSH Keys",             listHeader: "SSH Keys",                   listType: "keys",           id : 40,      parentId : null }
       ]
     billing :
       title : "Billing"

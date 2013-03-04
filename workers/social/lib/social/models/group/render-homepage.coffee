@@ -124,4 +124,4 @@ getDefaultGroupContents =->
 
   Sincerly,
   The Internet
-  """
+  """.replace /\n/g, '<br>'

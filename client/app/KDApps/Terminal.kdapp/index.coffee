@@ -1,2 +1,0 @@
-do ->
-  appManager.openApplication "Shell"

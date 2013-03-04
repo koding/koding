@@ -9,7 +9,7 @@ JSON_DIR = os.path.join(CF_DIR, 'json/development')
 
 def call(cmd):
     proc = subprocess.Popen(cmd, cwd=CF_DIR)
-    proc.wait()
+    return proc.wait()
 
 def write(text):
     sys.stdout.write(text + '\n')
@@ -102,7 +102,9 @@ def main():
     else:
         # Re-generate templates
         cmd = os.path.join(CF_DIR, 'generateDev.rb')
-        call([cmd, options.username, options.branch])
+        if 0 != call([cmd, options.username, options.branch]):
+            write('Unable to generate templates for CloudFormation')
+            return
         # Create/update stacks
         for filename in os.listdir(JSON_DIR):
             name = filename.split('.')[0]

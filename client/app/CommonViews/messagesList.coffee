@@ -19,13 +19,12 @@ class MessagesListController extends KDListViewController
       @emit 'AvatarPopupShouldBeHidden'
 
   fetchMessages:(callback)->
-    appManager.tell 'Inbox', 'fetchMessages',
+    KD.getSingleton("appManager").tell 'Inbox', 'fetchMessages',
       # as          : 'recipient'
       limit       : 3
       sort        :
         timestamp : -1
     , (err, messages)=>
-      # @propagateEvent KDEventType : "ClearMessagesListLoaderTimeout"
       @removeAllItems()
       @instantiateListItems messages
 
@@ -153,7 +152,7 @@ class NotificationListItem extends KDListItemView
     showPost = (err, post)->
       if post
         internalApp = if post.constructor.name is "JApp" then "Apps" else "Activity"
-        # appManager.tell internalApp, "createContentDisplay", post
+        # KD.getSingleton("appManager").tell internalApp, "createContentDisplay", post
         KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
 
       else
@@ -162,16 +161,9 @@ class NotificationListItem extends KDListItemView
           duration : 1000
 
     if @snapshot.anchor.constructorName is "JPrivateMessage"
-      appManager.openApplication "Inbox"
-      appManager.tell 'Inbox', "goToMessages"
+      KD.getSingleton("appManager").open "Inbox"
+      KD.getSingleton("appManager").tell 'Inbox', "goToMessages"
     else if @snapshot.anchor.constructorName in ["JComment", "JReview", "JOpinion"]
       KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
       KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
-
-    # {sourceName,sourceId} = @getData()[0]
-    # contentDisplayController = @getSingleton('contentDisplayController')
-    # list = @getDelegate()
-    # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    # KD.remote.cacheable sourceName, sourceId, (err, source)=>
-    #   appManager.tell "Activity", "createContentDisplay", source

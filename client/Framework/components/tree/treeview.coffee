@@ -39,7 +39,7 @@ class JTreeView extends KDListView
 
   keyDown:(event)->
 
-    @propagateEvent KDEventType : "KeyDownOnTreeView", event
+    @emit "KeyDownOnTreeView", event
 
   destroy:->
 

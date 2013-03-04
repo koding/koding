@@ -13,7 +13,7 @@ class NewReviewForm extends NewCommentForm
       @commentInput.setValue ''
       @commentInput.blur()
       @commentInput.$().blur()
-      @getDelegate().propagateEvent KDEventType: 'ReviewSubmitted', review
+      @getDelegate().emit 'ReviewSubmitted', review
     else
       new KDNotificationView
         type      : "growl"

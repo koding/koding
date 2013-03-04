@@ -12,14 +12,20 @@ mime = require 'mime'
 
 
 # give each uploaded file a unique name (up to you to make sure they are unique, this is an example)
+
+s3CreatePath =(username, filename, extension)->
+  hash = require('crypto')
+    .createHash('sha1')
+    .update("#{filename}#{Date.now()}")
+    .digest 'hex'
+  "/users/#{username}/#{hash}.#{extension}"
+
 module.exports = (config)->
 
-  s3CreatePath =(username, filename, extension)->
-    hash = require('crypto').createHash('sha1').update(filename).digest('hex')
-    "/users/#{username}/#{hash}.#{extension}"
+  {awsAccessKeyId, awsSecretAccessKey, bucket} = config
 
-  s3 = require('aws2js').load('s3', config.awsAccessKeyId, config.awsSecretAccessKey)
-  s3.setBucket config.bucket
+  s3 = require('aws2js').load 's3', awsAccessKeyId, awsSecretAccessKey
+  s3.setBucket bucket
   [
     (req, res, next) ->
       req.files = {}
@@ -32,7 +38,7 @@ module.exports = (config)->
         if /-size$/.test(name)
           req.sizes[name.split('-').slice(0,-1).join('-')] = value
       form.onPart = (part)->
-        return IncomingForm::onPart.call @, part  unless part.mime?
+        return IncomingForm::onPart.call this, part  unless part.mime?
         parts = []
         file = req.files[part.name] =
           stream    : new BufferedStream
@@ -52,6 +58,8 @@ module.exports = (config)->
           req.files.forEach (file)-> file.destroy
           res.send 403, 'Access denied!'
         else
+          count = 0
+          totalFiles = Object.keys(req.files).length
           for own name, file of req.files
             file.path = s3CreatePath(
               session.username
@@ -65,7 +73,6 @@ module.exports = (config)->
                 'content-type'    : file.mime
               }
               file.stream
-              -> # noop
+              -> next()  if ++count is totalFiles
             )
-          next()
   ]

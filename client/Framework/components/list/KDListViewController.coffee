@@ -156,20 +156,11 @@ class KDListViewController extends KDViewController
       @itemsIndexed[view.getItemDataId()] = view
 
     if options.selection
-      @listenTo
-        KDEventTypes        : 'click'
-        listenedToInstance  : view
-        callback            : (view, event)=> @selectItem view, event
+      view.on 'click', (event)=> @selectItem view, event
 
     if options.keyNav or options.multipleSelection
-      @listenTo
-        KDEventTypes       : ["mousedown","mouseenter"]
-        listenedToInstance : view
-        callback           : (view, event)=>
-          switch event.type
-            when "mousedown"  then @mouseDownHappenedOnItem view, event
-            when "mouseenter" then @mouseEnterHappenedOnItem view, event
-
+      view.on "mousedown", (event)=> @mouseDownHappenedOnItem view, event
+      view.on "mouseenter", (event)=> @mouseEnterHappenedOnItem view, event
 
   unregisterItem:(itemInfo)->
 
@@ -230,7 +221,7 @@ class KDListViewController extends KDViewController
       @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
       @selectItemsByRange @mouseDownTempItem,item
     else
-      @propagateEvent KDEventType : "MouseEnterHappenedOnItem", item
+      @emit "MouseEnterHappenedOnItem", item
 
   ###
   HANDLING KEY EVENTS
@@ -241,7 +232,7 @@ class KDListViewController extends KDViewController
     switch event.which
       when 40, 38
         @selectItemBelowOrAbove event
-        @propagateEvent KDEventType : "KeyDownOnListHandled", @selectedItems
+        @emit "KeyDownOnListHandled", @selectedItems
 
   ###
   ITEM SELECTION
@@ -254,7 +245,11 @@ class KDListViewController extends KDViewController
     return unless item?
 
     @lastEvent = event
-    @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
+
+    if not(@getOption("multipleSelection"))\
+       and item.getOption("selectable")\
+       and not(event.metaKey or event.ctrlKey or event.shiftKey)
+      @deselectAllItems()
 
     if event.shiftKey and @selectedItems.length > 0
       @selectItemsByRange @selectedItems[0], item
@@ -319,7 +314,7 @@ class KDListViewController extends KDViewController
 
   selectSingleItem:(item)->
 
-    unless item in @selectedItems
+    if item.getOption("selectable") and !(item in @selectedItems)
       item.highlight()
       @selectedItems.push item
       if item is @itemsOrdered[@itemsOrdered.length-1]
@@ -341,11 +336,11 @@ class KDListViewController extends KDViewController
 
   itemSelectionPerformed:->
 
-    @propagateEvent KDEventType : "ItemSelectionPerformed", (event : @lastEvent, items : @selectedItems)
+    @emit "ItemSelectionPerformed", @, (event : @lastEvent, items : @selectedItems)
 
   itemDeselectionPerformed:(deselectedItems)->
 
-    @propagateEvent KDEventType : "ItemDeselectionPerformed", (event : @lastEvent, items : deselectedItems)
+    @emit "ItemDeselectionPerformed", @, (event : @lastEvent, items : deselectedItems)
 
   ###
   LAZY LOADER

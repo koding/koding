@@ -1,10 +1,13 @@
 class GroupsAppController extends AppController
 
+  KD.registerAppClass @,
+    name         : "Groups"
+    route        : "Groups"
+    hiddenHandle : yes
+
   @privateGroupOpenHandler =(event)->
-    data = @getData()
-    return yes  unless data.privacy is 'private'
     event.preventDefault()
-    @emit 'PrivateGroupIsOpened', data
+    @emit 'PrivateGroupIsOpened', @getData()
 
   [
     ERROR_UNKNOWN
@@ -16,27 +19,23 @@ class GroupsAppController extends AppController
     ERROR_POLICY
   ] = [403010, 403001, 403002, 403003, 403004, 403005, 403009]
 
-  constructor:(options, data)->
-    options = $.extend
-      # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
-      # view : new TopicsComingSoon
-      view : new GroupsMainView(cssClass : "content-page groups")
-    ,options
-    super options,data
+  constructor:(options = {}, data)->
+
+    options.view    = new GroupsMainView
+      cssClass      : "content-page groups"
+    options.appInfo =
+      name          : "Groups"
+
+    super options, data
+
     @listItemClass = GroupsListItemView
     @controllers = {}
 
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Groups'
-      data : @getView()
-
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
       help                  :
@@ -65,12 +64,12 @@ class GroupsAppController extends AppController
                   joinButton.setState 'Leave'
                   joinButton.redecorateState()
         following           :
-          title             : "Following"
+          title             : "My groups"
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchGroups selector, options, (err, items)=>
+            KD.whoami().fetchGroups (err, items)=>
               for item in items
                 item.followee = true
-              callback err, items
+              callback err, (item.group for item in items)
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -159,11 +158,11 @@ class GroupsAppController extends AppController
         else "Invitation has been requested!"
 
   openPrivateGroup:(group)->
-    group.canOpenGroup (err, policy)=>
+    group.canOpenGroup (err, hasPermission)=>
       if err
         @showErrorModal group, err
-      else
-        console.log 'access is granted!'
+      else if hasPermission
+        @openGroup group
 
   putAddAGroupButton:->
     {facetsController} = @feedController
@@ -278,11 +277,10 @@ class GroupsAppController extends AppController
                 itemClass         : KDInputView
                 name              : "title"
                 keydown           : (pubInst, event)->
-                  setTimeout =>
+                  @utils.defer =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
                     # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
-                  , 1
                 defaultValue      : Encoder.htmlDecode group.title ? ""
                 placeholder       : 'Please enter a title here'
               # SlugText                :
@@ -331,9 +329,9 @@ class GroupsAppController extends AppController
     {forms} = modal.modalTabs
 
     avatarUploadView = forms["General Settings"].inputs["Avatar"]
-    avatarUploadView.on 'FileReadComplete', (stuff)->
+    avatarUploadView.on 'FileReadComplete', (event)->
       avatarUploadView.$('.kdfileuploadarea').css
-        backgroundImage : "url(#{stuff.file.data})"
+        backgroundImage : "url(#{event.file.data})"
       avatarUploadView.$('span').addClass 'hidden'
 
   handleError =(err, buttons)->
@@ -408,6 +406,26 @@ class GroupsAppController extends AppController
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
+
+  openGroup:(group)->
+    {slug, title} = group
+    modal = new KDModalView
+      title           : title
+      content         : "<div class='modalformline'>You are about to open a third-party group.</div>"
+      height          : "auto"
+      overlay         : yes
+      buttons         : 
+        'cancel'      :
+          style       : 'modal-cancel'
+          callback    : -> modal.destroy()
+    modal.buttonHolder.addSubView new CustomLinkView
+      href    : "/#{slug}/Activity"
+      target  : slug
+      title   : 'Open group'
+      # click   : (event)->
+      #   event.preventDefault()
+      #   @getSingleton('windowManager').open @href, slug
+
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count

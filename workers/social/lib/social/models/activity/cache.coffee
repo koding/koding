@@ -82,7 +82,11 @@ module.exports = class JActivityCache extends jraphical.Module
     date     = new Date timestamp
     selector = to : { $gte : date }
 
-    @one selector, defaultOptions, (err, cache)-> kallback err, cache, callback
+    options =
+      limit : 1
+      sort  : to : 1
+
+    @one selector, options, (err, cache)-> kallback err, cache, callback
 
   @init = (from, to)->
 
@@ -121,7 +125,7 @@ module.exports = class JActivityCache extends jraphical.Module
                 console.log "capped latest with #{remainderOverview.length} new items!"
                 cacheQueue.next()
 
-            # terminate only if there are no new items to be cached
+            # cancel only if there are no new items to be cached
             if overview.length is 0
               cacheQueue.push =>
                 log "caching finished.\n"
@@ -254,7 +258,7 @@ module.exports = class JActivityCache extends jraphical.Module
           overview = overview.concat cache
 
           if overview.length is 0
-            callback "no items to be cached, terminating..."
+            callback "no items to be cached, cancelling..."
             return
 
           console.log "total in this batch: #{overview.length}"
@@ -383,9 +387,13 @@ module.exports = class JActivityCache extends jraphical.Module
       @update $set: setModifier, (err)-> callback?()
 
 
-  @modifyByTeaser = ({teaserId, createdAt}, callback)->
+  @modifyByTeaser = (teaser, callback)->
 
     CActivity = require './index'
+
+    {teaserId, createdAt} = teaser
+
+    log "modifying cache instance by teaser..."
 
     @containsTimestamp createdAt, (err, cache)->
       if err then callback? err
@@ -398,16 +406,20 @@ module.exports = class JActivityCache extends jraphical.Module
         for id, activity of cache.activities
           if activity.snapshotIds[0].equals teaserId
             idToUpdate = id
+            break
 
         CActivity.one _id : idToUpdate, (err, activity)->
           if err then callback? err
-          else
+          else if activity
             setModifier = {}
             updatedActivity = activity.prune()
             # TODO: this is a workaround.  I need to look into a bug in bongo C.T.:
             updatedActivity.snapshotIds = [].slice.call updatedActivity.snapshotIds
             setModifier["activities.#{idToUpdate}"] = updatedActivity
-            cache.update {$set : setModifier}, -> #console.log.bind(console)
+            cache.update {$set : setModifier}, ->
+              callback?()
+          else
+            callback?()
 
   @removeActivity = ({teaserId, createdAt}, callback)->
 

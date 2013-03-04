@@ -1,238 +1,209 @@
 # uncomplicate this - Sinan 7/2012
-class ApplicationManager extends KDObject
-  constructor: ->
-    # @controllers            = {}
-    @openedInstances        = {}
-    @appInstances           = []
-    @appViews2d             = []
-    @openTabs               = []
-    @activePath             = null
+# rewriting this - Sinan 2/2013
 
-    @listenTo KDEventTypes : ['ApplicationWantsToBeShown'], callback: @appShowedAView
-    @listenTo KDEventTypes : ['ApplicationWantsToClose'], callback: @appClosedAView
+class ApplicationManager extends KDObject
+
+  @debug = yes
+
+  log = (rest...)->
+    if ApplicationManager.debug
+      console.log rest...
+    else
+      noop
+
+  ###
+
+  * EMITTED EVENTS
+    - AppDidInitiate              [appController, appView, appOptions]
+    - AppDidShow                  [appController, appView, appOptions]
+    - AppDidQuit                  [appOptions]
+    - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
+  ###
+
+  appControllers: {}
+
+  constructor:->
+
     super
 
-  quitAll:(callback)->
-    # log @openedInstances
-    for own path of @getAllAppInstances()
-      @quitApplication path
+    @frontApp    = null
+    @defaultApps =
+      text  : "Ace"
+      video : "Viewer"
+      image : "Viewer"
+      sound : "Viewer"
 
-    #FIXME: make this async -sah 1/3/12
-    callback?()
+    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
-  setGroup:-> console.log 'setGroup', arguments
+  open: do ->
 
-  forceQuit:(path)->
-    app = @getAppInstance path
-    views = (@getAppViews path)?.slice 0
-    for view in views ? []
-      app.propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : view
-      view.destroy()
-    @removeAppInstance path
-    app?.destroy()
+    createOrShow = (appOptions, callback = noop)->
 
-  quitApplication:(path)->
-    app = @getAppInstance path
-    if app and typeof app.quit is "function"
-      app.quit? ->
-        @removeAppInstance path
-      setTimeout ->
-        @forceQuit path
-      , 50000
-    else
-      @forceQuit path
+      appManager  = KD.getSingleton "appManager"
+      {name}      = appOptions
+      appInstance = appManager.get name
+      cb          = -> appManager.show appOptions, callback
+      if appInstance then do cb
+      else appManager.create name, cb
 
-  setFrontApp:(app)-> @frontApp = app
+    (name, options, callback)->
 
-  getFrontApp:-> @frontApp
+      [callback, options] = [options, callback] if 'function' is typeof options
 
-  expandApplicationPath = (path)->
-    path ?= KD.getSingleton('mainController').getOptions().startPage
-    if /\.kdapplication$/.test path then path
-    else "./client/app/Applications/#{path}.kdapplication"
+      options or= {}
 
-  isAppUnderDevelop:(appName)->
+      return warn "ApplicationManager::open called without an app name!"  unless name
 
-    appsWithCustomRoutes = [
-      'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
-      'Account','Chat','Demos'
-    ]
+      appOptions      = KD.getAppOptions name
+      defaultCallback = -> createOrShow appOptions, callback
 
-    return !(appName in appsWithCustomRoutes)
+      if appOptions.multiple
 
-  openApplication:do->
+        if options.forceNew
+          @create name, @bound "showInstance"
+          return
 
-    openAppHandler =(app, path, doBringToFront, callback)->
-      if 'function' is typeof callback then @utils.defer -> callback app
-      if doBringToFront
-        appManager.setFrontApp path
-        app.bringToFront()
+        switch appOptions.openWith
+          when "lastActive" then do defaultCallback
+          when "prompt"
+            @createPromptModal appOptions, (appInstance)=>
+              if appInstance
+                @show appInstance, callback
+              else
+                @create name, callback
 
-        # # TODO: this is a quick hack
-        # appName = path.split(/(?:\/)|(?:\.kdapplication$)/).slice(-2,-1)[0]
-
-        # router = @getSingleton('router')
-        # appsWithCustomRoutes = [
-        #   'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
-        #   'Account','Chat','Demos'
-        # ]
-        # isBlacklisted = appName not in appsWithCustomRoutes
-        # if isBlacklisted and 'Develop' isnt router?.getCurrentPath()
-        #   router.handleRoute '/Develop', suppressListeners: yes
-
-    openApplication =(path, doBringToFront, callback)->
-      [callback, doBringToFront] = [doBringToFront, callback]  unless callback
-      doBringToFront ?= yes
-
-      path = expandApplicationPath path
-      app = @getAppInstance path
-
-      if app? then openAppHandler.call @, app, path, doBringToFront, callback
-      else # this is the first time the app is opened.
-        @createAppInstance path, (app)=>
-          handler = openAppHandler.bind @, app, path, doBringToFront, callback
-          @initApp path, app, handler
-
-  replaceStartTabWithApplication:(appPath, tab)->
-    @openApplication appPath, no, (app)->
-      app.bringToFront()
-      tabDelegate = tab.getDelegate()
-      tabDelegate.closeTab tab
-
-  # replaceStartTabWithSplit:(splitType, tab)->
-  #   @openApplication 'Ace', no, (app)->
-  #     app.createFreshSplit splitType
-  #     tabDelegate = tab.getDelegate()
-  #     tabDelegate.closeTab tab
+      else do defaultCallback
 
   openFile:(file)->
-    @openFileWithApplication file, 'Ace'
 
-  newFileWithApplication:(appPath)->
-    @openApplication appPath, no, (app)->
-      app.bringToFront()
-    # @openApplication appPath, no, (app)->
-    #   app.newFile()
+    type = FSItem.getFileType file.getExtension()
 
-  openFileWithApplication:(file, appPath)->
-    @openApplication appPath, no, (app)->
-      # log app, file
-      app.openFile file
+    switch type
+      when 'code','text','unknown'
+        log "open with a text editor"
+        @open @defaultApps.text, (appController)->
+          appController.openFile file
+      when 'image'
+        log "open with an image processing app"
+      when 'video'
+        log "open with a video app"
+      when 'sound'
+        log "open with a sound app"
+      when 'archive'
+        log "extract the thing."
 
-  tell:(path, command, rest...)->
-    @openApplication path, no, (app)-> app?[command]? rest...
 
-  fakeRequire:(path)->
-    classes =
-      "./client/app/Applications/Activity.kdapplication"    : ActivityAppController
-      "./client/app/Applications/Topics.kdapplication"      : TopicsAppController
-      "./client/app/Applications/Feeder.kdapplication"      : FeederAppController
-      "./client/app/Applications/Members.kdapplication"     : MembersAppController
-      "./client/app/Applications/StartTab.kdapplication"    : StartTabAppController
-      "./client/app/Applications/Home.kdapplication"        : HomeAppController
-      "./client/app/Applications/Account.kdapplication"     : AccountAppController
-      "./client/app/Applications/Apps.kdapplication"        : AppsAppController
-      "./client/app/Applications/Inbox.kdapplication"       : InboxAppController
-      "./client/app/Applications/Demos.kdapplication"       : DemosAppController
-      "./client/app/Applications/Ace.kdapplication"         : AceAppController
-      "./client/app/Applications/Viewer.kdapplication"      : ViewerAppController
-      "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
-      "./client/app/Applications/Groups.kdapplication"      : GroupsAppController
-    if classes[path]?
-      new classes[path]
+  tell:(name, command, rest...)->
 
-  setEnvironment:(@environment)->
-    app.setEnvironment? @environment for own index, app of @getAllAppInstances()
+    return warn "ApplicationManager::tell called without an app name!"  unless name
 
-  getEnvironment:()->
-    @environment# or warn 'fdasfasdf'
+    log "::: Telling #{command} to #{name}"
 
-  getAllAppInstances:->
-    @openedInstances
+    app = @get name
+    cb  = (appInstance)-> appInstance?[command]? rest...
 
-  createAppInstance:(path, callback)->
-    appManager = @
+    if app then cb app
+    else @create name, (appInstance)->  cb appInstance
 
-    # fake require (code is concatenated in codebase)
-    app = @fakeRequire path
+  create:(name, callback)->
 
-    if app?
-      @addAppInstance path, app
-      callback app
-    else
-      appSrc = "js/KDApplications/#{path}/AppController.js?#{KD.version}"
-      requirejs [appSrc], (app)->
-        if app
-          appManager.addAppInstance path, app
-          callback app
-        else
-          callback new Error "Application does not exist!"
-          new KDNotificationView title : "Application does not exist!"
+    AppClass   = KD.getAppClass name
+    appOptions = KD.getAppOptions name
+    log "::: Creating #{name}"
+    @register appInstance = new AppClass appOptions  if AppClass
+    callback? appInstance
 
-  initApp:(path, app, callback)->
-    if app.initApp? then app.initApp {}, callback
-    else callback()
+    return appInstance
 
-    @passStorageToApp path, null, app
+  show:(appOptions, callback)->
 
-  addAppInstance:(path, instance)->
-    @appInstances.push instance
-    @appViews2d.push []
-    @openedInstances[path] = instance
+    return if appOptions.background
 
-  getAppInstance: (path) ->
-    @openedInstances[expandApplicationPath path]
+    appInstance = @get appOptions.name
+    appView     = appInstance.getView?()
 
-  removeAppInstance:(path)->
-    app = @getAppInstance path
-    index = @appInstances.indexOf app
-    @appInstances.splice index, 1
-    @appViews2d.splice index, 1
-    delete @openedInstances[path]
+    return unless appView
 
-  getAppViews:(path)->
-    index = @appInstances.indexOf @getAppInstance path
-    @appViews2d[index]
+    log "::: Show #{appOptions.name}"
 
-  appShowedAView:(app,{options,data})=>
     if KD.isLoggedIn()
-      index = @appInstances.indexOf app
-      @appViews2d[index].push data
-      @emit 'ApplicationShowedAView', app
+      @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+      callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 
+  showInstance:(appInstance, callback)->
 
-  appClosedAView:(app,{options,data}) =>
-    index = @appInstances.indexOf app
-    (views = @appViews2d[index]).splice (views.indexOf data), 1
+    appView    = appInstance.getView?() or null
+    appOptions = KD.getAppOptions appInstance.getOption "name"
 
-  passStorageToApp:(path, version, app, callback)->
-    @fetchStorage path, version, (error, storage)->
-      if error then warn 'error'
-      else
-        app.setStorage? storage
-        callback?()
+    return if appOptions.background
 
-  fetchStorage: (appId, version, callback) ->
-    notifyView = null
-    # warn "System still trying to access application storage for #{appId}"
-    KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-      unless storage
-        storage = {appId,version,bucket:{}} # creating a fake storage
-      callback error, storage
+    if KD.isLoggedIn()
+      @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+      callback? appInstance
+    else
+      KD.getSingleton('router').handleRoute '/', replaceState: yes
+
+  quit:(appInstance, callback = noop)->
+
+    @unregister appInstance
+    callback()
+
+  get:(name)-> @appControllers[name]?.first or null
+
+  getByView: (view)->
+
+    appInstance = null
+    for name, apps of @appControllers
+      apps.forEach (appController)=>
+        if view.getId() is appController.getView?().getId()
+          appInstance = appController
+
+    return appInstance
+
+  getFrontApp:-> @frontApp
+
+  setFrontApp:(@frontApp)->
+
+  register:(appInstance)->
+
+    name = appInstance.getOption "name"
+    @appControllers[name] ?= []
+    @appControllers[name].push appInstance
+    @setListeners appInstance
+
+  unregister:(appInstance)->
+
+    name  = appInstance.getOption "name"
+    index = @appControllers[name].indexOf appInstance
+
+    if index >= 0
+      @appControllers[name].splice index, 1
+      if @appControllers[name].length is 0
+        delete @appControllers[name]
+      appInstance.destroy()
+
+  createPromptModal:(appOptions, callback)->
+    # show modal and wait for response
+    callback appInstance
+
+  setListeners:(appInstance)->
+
+    appView = appInstance.getView?()
+    appView?.once "KDObjectWillBeDestroyed", =>
+      @unregister appInstance
 
 
-  addOpenTab:(tab, controller)->
-    # docManager.addOpenDocument tab.getActiveFile() if tab.getActiveFile?
-    @openTabs.push tab
 
-  getOpenTabs:()->
-    @openTabs
 
-  removeOpenTab:(tab)->
-    # docManager.removeOpenDocument tab.getActiveFile() if tab.getActiveFile?
-    @openTabs.splice (@openTabs.indexOf tab), 1
+
+
+  # setGroup:-> console.log 'setGroup', arguments
+
+  # openFileWithApplication:(file, appPath)->
+  #   @open appPath, no, (app)->
+  #     app.openFile file
 
   # temp
   notification = null
@@ -245,3 +216,22 @@ class ApplicationManager extends KDObject
       title     : msg or "Currently disabled!"
       type      : "mini"
       duration  : 2500
+
+
+
+
+
+
+
+
+
+
+
+  # deprecate these
+
+  fetchStorage: (appId, version, callback) ->
+    # warn "System still trying to access application storage for #{appId}"
+    KD.whoami().fetchStorage {appId, version}, (error, storage) =>
+      unless storage
+        storage = {appId,version,bucket:{}} # creating a fake storage
+      callback error, storage

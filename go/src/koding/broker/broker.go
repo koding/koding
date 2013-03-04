@@ -2,15 +2,18 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/config"
 	"koding/tools/log"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -20,14 +23,8 @@ func main() {
 	utils.Startup("broker", false)
 	utils.RunStatusLogger()
 
-	consumeConn := utils.CreateAmqpConnection("broker")
-	defer consumeConn.Close()
-
 	publishConn := utils.CreateAmqpConnection("broker")
 	defer publishConn.Close()
-
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
-	defer consumeChannel.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
 	var routeMapMutex sync.Mutex
@@ -168,20 +165,35 @@ func main() {
 	defer service.Close()
 	service.PanicHandler = log.RecoverAndLog
 
-	server := &http.Server{Handler: &sockjs.Mux{
-		Services: map[string]*sockjs.Service{
-			"/subscribe": service,
-		},
-	}}
-	listener, err := net.Listen("tcp", ":8008")
-	if err != nil {
-		panic(err)
-	}
-	defer listener.Close()
-
 	go func() {
+		defer os.Exit(1)
 		defer log.RecoverAndLog()
-		defer consumeChannel.Close()
+
+		server := &http.Server{
+			Handler: &sockjs.Mux{
+				Services: map[string]*sockjs.Service{
+					"/subscribe": service,
+				},
+			},
+		}
+
+		var listener net.Listener
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
+		if err != nil {
+			panic(err)
+		}
+
+		if config.Current.Broker.CertFile != "" {
+			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
+			if err != nil {
+				panic(err)
+			}
+			listener = tls.NewListener(listener, &tls.Config{
+				NextProtos:   []string{"http/1.1"},
+				Certificates: []tls.Certificate{cert},
+			})
+		}
+
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
@@ -195,6 +207,12 @@ func main() {
 		}
 	}()
 
+	consumeConn := utils.CreateAmqpConnection("broker")
+	defer consumeConn.Close()
+
+	consumeChannel := utils.CreateAmqpChannel(consumeConn)
+	defer consumeChannel.Close()
+
 	stream := utils.DeclareBindConsumeAmqpQueueNoDelete(consumeChannel, "topic", "broker", "#")
 	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
@@ -205,7 +223,7 @@ func main() {
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
-		payload := json.RawMessage(amqpMessage.Body)
+		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
 		jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
