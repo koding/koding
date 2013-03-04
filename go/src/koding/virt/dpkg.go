@@ -32,7 +32,7 @@ func (pkg *Package) InfoFile(extension string) string {
 }
 
 func (vm *VM) MergeDpkgDatabase() {
-	dpkgStatusFile := vm.UpperdirFile("/var/lib/dpkg/status")
+	dpkgStatusFile := vm.OverlayFile("/var/lib/dpkg/status")
 	upperPackages, err := ReadDpkgStatus(dpkgStatusFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -60,9 +60,9 @@ func (vm *VM) MergeDpkgDatabase() {
 				}
 			}
 
-			// delete package files from upperdir
+			// delete package files from overlay
 			listFile := upperPkg.InfoFile("list")
-			list, err := ioutil.ReadFile(vm.UpperdirFile(listFile))
+			list, err := ioutil.ReadFile(vm.OverlayFile(listFile))
 			if err != nil {
 				list, err = ioutil.ReadFile(LowerdirFile(listFile))
 				if err != nil {
@@ -71,29 +71,29 @@ func (vm *VM) MergeDpkgDatabase() {
 			}
 			files := strings.Split(string(list), "\n")
 			for _, file := range files {
-				upperdirFile := vm.UpperdirFile(file)
+				overlayFile := vm.OverlayFile(file)
 				originalHash, found := conffiles[file]
 				if found {
 					hash := md5.New()
-					f, err := os.Open(upperdirFile)
+					f, err := os.Open(overlayFile)
 					if err != nil {
 						if os.IsNotExist(err) {
-							continue // file not found in upperdir
+							continue // file not found in overlay
 						}
 						panic(err)
 					}
 					io.Copy(hash, f)
 					f.Close()
 					if string(hash.Sum(nil)) != originalHash {
-						continue // config file was changed, do not delete from upperdir
+						continue // config file was changed, do not delete from overlay
 					}
 				}
-				os.Remove(upperdirFile)
+				os.Remove(overlayFile)
 			}
 
-			// delete informations from upperdir
+			// delete informations from overlay
 			for _, ext := range DPKG_INFO_EXTENSIONS {
-				os.Remove(vm.UpperdirFile(upperPkg.InfoFile(ext)))
+				os.Remove(vm.OverlayFile(upperPkg.InfoFile(ext)))
 			}
 		}
 		upperPackages[name] = lowerPkg
@@ -104,9 +104,9 @@ func (vm *VM) MergeDpkgDatabase() {
 		if _, found := lowerPackages[name]; found {
 			continue // still in lower
 		}
-		_, err := os.Stat(vm.UpperdirFile(upperPkg.InfoFile("list")))
+		_, err := os.Stat(vm.OverlayFile(upperPkg.InfoFile("list")))
 		if err == nil {
-			continue // files in upperdir
+			continue // files in overlay
 		}
 		delete(upperPackages, name)
 	}

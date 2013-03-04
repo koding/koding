@@ -22,7 +22,7 @@ type SysGroup struct {
 }
 
 func (vm *VM) MergePasswdFile() {
-	passwdFile := vm.UpperdirFile("/etc/passwd")
+	passwdFile := vm.OverlayFile("/etc/passwd")
 	users, _ := ReadPasswd(passwdFile) // error ignored
 
 	lowerUsers, err := ReadPasswd(LowerdirFile("/etc/passwd"))
@@ -41,7 +41,7 @@ func (vm *VM) MergePasswdFile() {
 }
 
 func (vm *VM) MergeGroupFile() {
-	groupFile := vm.UpperdirFile("/etc/group")
+	groupFile := vm.OverlayFile("/etc/group")
 	groups, _ := ReadGroup(groupFile) // error ignored
 
 	lowerGroups, err := ReadGroup(LowerdirFile("/etc/group"))

@@ -67,8 +67,8 @@ func (vm *VM) File(path string) string {
 	return fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
 }
 
-func (vm *VM) UpperdirFile(path string) string {
-	return vm.File("overlayfs-upperdir/" + path)
+func (vm *VM) OverlayFile(path string) string {
+	return vm.File("overlay/" + path)
 }
 
 func (vm *VM) PtsDir() string {
@@ -99,66 +99,67 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 	// map rbd image to block device
 	vm.mapRBD()
 
-	// mount block device to upperdir
-	prepareDir(vm.UpperdirFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.UpperdirFile("")).CombinedOutput(); err != nil {
+	// mount block device to overlay
+	prepareDir(vm.OverlayFile("/"), RootIdOffset)
+	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
 	// remove all except /home on nuke
 	if nuke {
-		entries, err := ioutil.ReadDir(vm.UpperdirFile("/"))
+		entries, err := ioutil.ReadDir(vm.OverlayFile("/"))
 		if err != nil {
 			panic(err)
 		}
 		for _, entry := range entries {
 			if entry.Name() != "home" {
-				os.RemoveAll(vm.UpperdirFile("/" + entry.Name()))
+				os.RemoveAll(vm.OverlayFile("/" + entry.Name()))
 			}
 		}
 	}
 
-	// prepare directories in upperdir
-	prepareDir(vm.UpperdirFile("/"), RootIdOffset)           // for chown
-	prepareDir(vm.UpperdirFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(vm.UpperdirFile("/etc"), RootIdOffset)
-	prepareDir(vm.UpperdirFile("/home"), RootIdOffset)
+	// prepare directories in overlay
+	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
+	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
+	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
+	prepareDir(vm.OverlayFile("/home"), RootIdOffset)
 
 	// create user homes
 	for i, user := range users {
-		if prepareDir(vm.UpperdirFile("/home/"+user.Name), user.Uid) && i == 0 {
-			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites"), user.Uid)
-			prepareDir(vm.UpperdirFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
+		if prepareDir(vm.OverlayFile("/home/"+user.Name), user.Uid) && i == 0 {
+			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites"), user.Uid)
+			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
 			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			prepareDir(vm.UpperdirFile(websiteDir), user.Uid)
+			prepareDir(vm.OverlayFile(websiteDir), user.Uid)
 			files, err := ioutil.ReadDir(templateDir + "/website")
 			if err != nil {
 				panic(err)
 			}
 			for _, file := range files {
-				if err := copyFile(templateDir+"/website/"+file.Name(), vm.UpperdirFile(websiteDir+"/"+file.Name()), user.Uid); err != nil {
+				if err := copyFile(templateDir+"/website/"+file.Name(), vm.OverlayFile(websiteDir+"/"+file.Name()), user.Uid); err != nil {
 					panic(err)
 				}
 			}
-			prepareDir(vm.UpperdirFile("/var"), RootIdOffset)
-			if err := os.Symlink(websiteDir, vm.UpperdirFile("/var/www")); err != nil {
+			prepareDir(vm.OverlayFile("/var"), RootIdOffset)
+			if err := os.Symlink(websiteDir, vm.OverlayFile("/var/www")); err != nil {
 				panic(err)
 			}
 		}
 	}
 
-	// generate upperdir files
-	vm.generateFile(vm.UpperdirFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	vm.generateFile(vm.UpperdirFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	vm.generateFile(vm.UpperdirFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	// generate overlay files
+	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
+	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
+	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
 	vm.MergePasswdFile()
 	vm.MergeGroupFile()
 	vm.MergeDpkgDatabase()
 
-	// mount overlayfs
+	// mount overlay
 	prepareDir(vm.File("rootfs"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.UpperdirFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-		panic(commandError("mount overlayfs failed.", err, out))
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("br=%s:%s", vm.OverlayFile("/"), LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
+		panic(commandError("mount overlay failed.", err, out))
 	}
 
 	// mount devpts
@@ -181,16 +182,16 @@ func (vm *VM) Unprepare() error {
 
 	// backup dpkg database for statistical purposes
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-	copyFile(vm.UpperdirFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
+	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
 
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
 	}
 	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount overlayfs failed.", err, out)
+		firstError = commandError("umount overlay failed.", err, out)
 	}
-	if out, err := exec.Command("/bin/umount", vm.UpperdirFile("")).CombinedOutput(); err != nil && firstError == nil {
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount rbd failed.", err, out)
 	}
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
@@ -202,7 +203,7 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.File("rootfs.hold"))
-	os.Remove(vm.UpperdirFile("/"))
+	os.Remove(vm.OverlayFile("/"))
 	os.Remove(vm.File(""))
 
 	return firstError
