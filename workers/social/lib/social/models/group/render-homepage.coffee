@@ -27,13 +27,9 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
         </div>
 
         <div class="content-meta">
-          <div class="followers"><span class="icon"></span>
+          <div class="members"><span class="icon"></span>
             <span class="count">#{counts?.members or '0'}</span>
-            <span class="text"> Followers</span>
-          </div>
-          <div class="posts"><span class="icon"></span>
-            <span class="count">#{counts?.posts or '0'}</span>
-            <span class="text"> Posts</span>
+            <span class="text"> Members</span>
           </div>
         </div>
 
