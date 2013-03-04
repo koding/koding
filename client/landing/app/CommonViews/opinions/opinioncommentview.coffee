@@ -1,6 +1,7 @@
 class OpinionCommentView extends KDView
 
   constructor:(options, data)->
+
     super
 
     @setClass "comment-container"
@@ -39,25 +40,16 @@ class OpinionCommentView extends KDView
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-    @listenTo
-      KDEventTypes : "DecorateActiveCommentView"
-      listenedToInstance : @commentList
-      callback : @decorateActiveCommentState
+    @commentList.on "DecorateActiveCommentView", @bound "decorateActiveCommentState"
 
-    @listenTo
-      KDEventTypes : "CommentLinkReceivedClick"
-      listenedToInstance : @commentList
-      callback : (pubInst, event) =>
-        @commentForm.commentInput.setFocus()
+    @commentList.on "CommentLinkReceivedClick", (event) =>
+      @commentForm.commentInput.setFocus()
 
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
       @commentForm.commentInput.setFocus()
 
-    @listenTo
-      KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @commentList
-      callback : @resetDecoration
+    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
 
   resetDecoration:->
     post = @getData()

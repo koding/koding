@@ -39,9 +39,9 @@ class NFileItemView extends KDCustomHTMLView
 
   decorateItem:->
 
-    extension = __utils.getFileExtension @getData().name
+    extension = FSItem.getFileExtension @getData().name
     if extension
-      fileType = __utils.getFileType extension
+      fileType = FSItem.getFileType extension
       @icon.$().attr "class", "icon #{extension} #{fileType}"
 
   render:->

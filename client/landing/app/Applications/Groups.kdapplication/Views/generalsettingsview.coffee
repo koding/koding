@@ -133,10 +133,17 @@ class GroupGeneralSettingsView extends JView
     @settingsForm = new KDFormViewWithFields formOptions, @getData()
 
     avatarUploadView = @settingsForm.inputs["Avatar"]
-    avatarUploadView.on 'FileReadComplete', (stuff)->
+
+    avatarUploadView.on 'FileReadComplete', ({file, progressEvent})->
       avatarUploadView.$('.kdfileuploadarea').css
-        backgroundImage : "url(#{stuff.file.data})"
+        backgroundImage : "url(#{file.data})"
       avatarUploadView.$('span').addClass 'hidden'
+
+    avatarUploadView.on 'FileUploadComplete', (files)->
+      for {filename, resource} in files
+        console.log {filename, resource}
+
+
 
   viewAppended:->
     super

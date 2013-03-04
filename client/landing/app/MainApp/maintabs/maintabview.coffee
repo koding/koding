@@ -3,20 +3,27 @@ class MainTabView extends KDTabView
   lastOpenPaneIndex = null
 
   constructor:(options,data)->
-    @visibleHandles = []
-    @totalSize      = 0
-    @paneViewIndex  = {}
+    options.resizeTabHandles    = yes
+    options.lastTabHandleMargin = 40
+    options.sortable            = yes
+    @visibleHandles             = []
+    @totalSize                  = 0
     super options,data
 
-    @listenTo
-      KDEventTypes : 'ApplicationWantsToBeShown'
-      callback     :(app, {options, data})->
-        @showPaneByView options, data
+    appManager = @getSingleton("appManager")
 
-    @listenTo
-      KDEventTypes : 'ApplicationWantsToClose'
-      callback     :(app, {options, data})->
-        @removePaneByView data
+    appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
+
+      if view.parent
+        @showPane view.parent
+      else
+        @createTabPane options, view
+
+
+    @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
+      if e.target is @getSingleton("contentPanel").domElement[0]
+        @tabHandleContainer.setWidth @getWidth()
+        @resizeTabHandles()
 
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
@@ -26,7 +33,6 @@ class MainTabView extends KDTabView
       @removePane pane
       return no
 
-    @getSingleton("contentDisplayController").emit "ContentDisplaysShouldBeHidden"
     @showPane pane
 
   showHandleContainer:()->
@@ -45,21 +51,22 @@ class MainTabView extends KDTabView
 
     paneMainView = pane.getMainView()
 
-    if paneMainView.data?.constructor.name is 'FSFile'
-      @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
+    # fix this SY
 
-    paneMainView.handleEvent type : "click"
+    # if paneMainView.data?.constructor.name is 'FSFile'
+    #   @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
+
+    # paneMainView.handleEvent type : "click"
     @handleEvent {type : "MainTabPaneShown", pane}
 
     return pane
 
-  _removePane: (pane) ->
+  removePane: (pane) ->
     pane.handleEvent type : "KDTabPaneDestroy"
     index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
     @panes.splice(index,1)
     pane.destroy()
-    @unindexPaneByView pane, pane.getData()
     handle = @getHandleByIndex index
     @handles.splice(index,1)
     handle.destroy()
@@ -79,106 +86,52 @@ class MainTabView extends KDTabView
     if appPanes.length is 0
       @emit "AllApplicationPanesClosed"
 
+  # showPaneByName:(options, view)->
+  #   {name} = options
+  #   pane   = @getPaneByName name
+  #   if pane
+  #     super name
+  #   else
+  #     @createTabPane options, view
 
-  removePane:(pane)->
-    pane.getData().emit 'ViewClosed'
-    # delete appManager.terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
+  createTabPane:(options = {}, mainView)->
 
-  removePaneByView:(view)->
-    return unless (pane = @getPaneByView view)
-    @_removePane pane
+    options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
+    options.class  or= KDView
 
-  showPaneByView:(options,view)->
-    viewId = view
-    pane = @getPaneByView view
-    if pane?
-      @showPane pane
-    else
-      @createTabPane options, view
+    paneInstance = new MainTabPane options
 
-  getPaneByView:(view)->
-    if view then @paneViewIndex[view.id] else null
-
-  indexPaneByView:(pane,view)->
-    @paneViewIndex[view.id] = pane
-
-  unindexPaneByView:(pane,view)->
-    delete @paneViewIndex[view.id]
-
-  createTabPane:(options,mainView)->
-    @removePaneByView mainView if mainView?
-
-    options = $.extend
-      cssClass     : "content-area-pane #{__utils.slugify(options?.name?.toLowerCase()) or ""} content-area-new-tab-pane"
-      hiddenHandle : yes
-      type         : "content"
-      class        : KDView
-    ,options
-    paneInstance = new MainTabPane options,mainView
-    # log 'options', options
-    paneInstance.on "viewAppended", =>
-      # if options.controller  #dont need that anymore as tabHandle could be controlled by application
-      #   options.controller.applicationPaneReady? mainView, paneInstance
+    paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
 
     @addPane paneInstance
-    @indexPaneByView paneInstance,mainView
 
     return paneInstance
 
   applicationPaneReady: (pane, mainView) ->
     # mainView.setDelegate pane
-    mainView.setClass 'application-page' if pane.options.type is "application"
+    if pane.getOption("behavior") is "application"
+      mainView.setClass 'application-page'
     pane.setMainView mainView
 
-  tabPaneReady:(pane,event)->
-    pageClass = KDView
-    type = "content"
-    if /^ace/.test pane.name
-      pageClass = KD.getPageClass("Editor")
-      type = "application"
-    else if /^shell/.test pane.name
-      pageClass = KD.getPageClass("Shell")
-      type = "application"
-    else
-      pageClass = KD.getPageClass(pane.name) if KD.getPageClass(pane.name)
+  # tabPaneReady:(pane,event)->
+  #   pageClass = KDView
+  #   type = "content"
+  #   if /^ace/.test pane.name
+  #     pageClass = KD.getPageClass("Editor")
+  #     type = "application"
+  #   else if /^shell/.test pane.name
+  #     pageClass = KD.getPageClass("Shell")
+  #     type = "application"
+  #   else
+  #     pageClass = KD.getPageClass(pane.name) if KD.getPageClass(pane.name)
 
-    pane.addSubView page = new pageClass
-      delegate : pane
-      cssClass : "#{type}-page"
+  #   pane.addSubView page = new pageClass
+  #     delegate : pane
+  #     cssClass : "#{type}-page"
 
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
-
-  resizeTabHandles:(event)->
-
-    return if event.type is "PaneAdded" and event.pane.hiddenHandle
-    return if @handlesHidden
-
-    containerSize   = @tabHandleContainer.getWidth()
-    {plusHandle}    = @tabHandleContainer
-
-    if event.type in ['PaneAdded','PaneRemoved']
-      @totalSize    = 0
-      @rearrangeVisibleHandlesArray()
-      for handle in @visibleHandles
-        @totalSize += handle.$().outerWidth(no)
-
-    plusHandleWidth = plusHandle.$().outerWidth(no)
-    containerSize -= plusHandleWidth
-
-    handleSize = if containerSize < @totalSize
-      containerSize / @visibleHandles.length
-    else
-      if containerSize / @visibleHandles.length > 130
-        130
-      else
-        containerSize / @visibleHandles.length
-
-    for handle in @visibleHandles
-      handle.$().css width : handleSize
-      subtractor = if handle.$('span').length is 1 then 25 else 25 + (handle.$('span:not(".close-tab")').length * 25)
-      handle.$('> b').css width : (handleSize - subtractor)

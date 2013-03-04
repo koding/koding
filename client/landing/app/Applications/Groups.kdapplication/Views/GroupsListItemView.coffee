@@ -28,7 +28,8 @@ class GroupsListItemView extends KDListItemView
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{slug}"
+        target    : slug
       pistachio   : '{div{#(title)}}'
       tooltip     :
         title     : title
@@ -39,7 +40,7 @@ class GroupsListItemView extends KDListItemView
           top     : 6
           left    : -2
         showOnlyWhenOverflowing : yes
-      click       : (event) => @titleReceivedClick event
+      # click       : (event) => @titleReceivedClick event
     , data
 
     @bodyView = new KDCustomHTMLView
@@ -145,7 +146,7 @@ class GroupsListItemView extends KDListItemView
     KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
     event.stopPropagation()
     event.preventDefault()
-    #appManager.tell "Groups", "createContentDisplay", group
+    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"
@@ -206,36 +207,16 @@ class GroupsListItemView extends KDListItemView
     </div>
     """
 
-  refreshPartial: ->
-    @skillList?.destroy()
-    @locationList?.destroy()
-    super
-    @_addSkillList()
-    @_addLocationsList()
-
-  _addSkillList: ->
-
-    @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
-    @addSubView @skillList, '.profile-meta'
-
-  _addLocationsList: ->
-
-    @locationList = new TopicsLocationView {}, @getData().locations
-    @addSubView @locationList, '.personal'
-
 class ModalGroupsListItem extends TopicsListItemView
 
   constructor:(options,data)->
 
     super options,data
 
-    @titleLink = new TagLinkView {expandable: no}, data
-
-    @titleLink.registerListener
-      KDEventTypes  : 'click'
-      listener      : @
-      callback      : (pubInst, event)=>
-        @getDelegate().emit "CloseTopicsModal"
+    @titleLink = new TagLinkView
+      expandable: no
+      click     : => @getDelegate().emit "CloseTopicsModal"
+    , data
 
   pistachio:->
     """
