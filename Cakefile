@@ -330,11 +330,6 @@ clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   {libraries,kdjs}      = code
   {minify, pistachios}  = options
 
-
-  kdjs =  "var KD = {};\n" +
-          "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
-          kdjs
-
   if commandLineOptions.pistachios or pistachios
     console.log "[PISTACHIO] compiler started."
     kdjs = compilePistachios kdjs
@@ -357,8 +352,9 @@ buildClient =(options, callback=->)->
   config = require('koding-config-manager').load("main.#{options.configFile}")
 
   builderOptions =
-    config      : config.client
-    commandLine : options
+    config          : config.client
+    configScriptTag : config.getConfigScriptTag()
+    commandLine     : options
 
   builder = new Builder builderOptions,clientFileMiddleware,""
 

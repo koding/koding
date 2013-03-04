@@ -44,9 +44,10 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
 
     <div class="group-navigation">
       #{getNavigation policy}
-      #{getScripts()}
     </div>
     </div>
+    #{KONFIG.getConfigScriptTag groupEntryPoint: slug}
+    #{getScripts()}
   </body>
   </html>
   """

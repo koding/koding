@@ -69,7 +69,7 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        return if @groupsEnabled()
+        return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()
@@ -229,8 +229,7 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
-  groupsEnabled:->
-    return $('.group-landing').length > 0
+  userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
   switchGroupState:(state)->
     if $('.group-loader').length > 0
@@ -268,7 +267,7 @@ class MainView extends KDView
       groupLandingView.setHeight window.innerHeight - 50
 
     if isLoggedIn
-      if @groupsEnabled() then @switchGroupState yes
+      if @userEnteredFromGroup() then @switchGroupState yes
       else $('body').addClass "loggedIn"
 
       @mainTabView.showHandleContainer()
@@ -277,7 +276,7 @@ class MainView extends KDView
       # @buttonHolder.hide()
 
     else
-      if @groupsEnabled() then @switchGroupState no
+      if @userEnteredFromGroup() then @switchGroupState no
       else $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"

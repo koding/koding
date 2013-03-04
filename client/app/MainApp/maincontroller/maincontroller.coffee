@@ -109,7 +109,7 @@ class MainController extends KDController
   createLoggedInState:(account)->
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
-    @loginScreen.slideUp =>
+    @loginScreen.prepare =>
       @mainViewController.sidebarController.accountChanged account
       #KD.getSingleton("appManager").open @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
