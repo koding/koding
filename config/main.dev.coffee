@@ -28,7 +28,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'webserver'
     port        : 3000
-    clusterSize : 4
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   mongo         : mongo
@@ -76,7 +76,7 @@ module.exports = deepFreeze
     watch       : yes
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -108,7 +108,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : 'https://dmq.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
