@@ -27,7 +27,6 @@ class MainView extends KDView
         @sidebar.hideFinderPanel()
 
   removeLoader:->
-    console.trace()
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
@@ -70,9 +69,7 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        if @groupsEnabled()
-          @closeGroupView()
-          return
+        return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()
@@ -232,14 +229,12 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
-  groupsEnabled:->
-    return $('.group-landing').length > 0
+  userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
   profileEnabled:->
     return $('.user-landing').length > 0
 
   switchGroupState:(state)->
-
     if $('.group-loader').length > 0
       $('.group-loader')[0].remove?()
 
@@ -301,6 +296,8 @@ class MainView extends KDView
           height : groupLandingContentView.getHeight() - (256)
 
     if isLoggedIn
+      if @userEnteredFromGroup() then @switchGroupState yes
+      else $('body').addClass "loggedIn"
 
       if @groupsEnabled()
         @switchGroupState yes
@@ -315,7 +312,7 @@ class MainView extends KDView
       # @buttonHolder.hide()
 
     else
-      if @groupsEnabled() then @switchGroupState no
+      if @userEnteredFromGroup() then @switchGroupState no
       else $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"

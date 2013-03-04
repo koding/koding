@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
@@ -16,7 +14,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-vagrant"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'

@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 domainName = "stage.aws.koding.com"
@@ -18,7 +16,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-autoscale"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
