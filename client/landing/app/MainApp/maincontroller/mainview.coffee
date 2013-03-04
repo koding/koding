@@ -229,28 +229,28 @@ class MainView extends KDView
     $('.group-landing').css 'height', 0
 
   decorateLoginState:(isLoggedIn = no)->
+    if @groupsEnabled()
 
-    @groupLandingView = new KDView
-      lazyDomId : 'group-landing'
+      @groupLandingView = new KDView
+        lazyDomId : 'group-landing'
 
-    groupLandingContentView = new KDView
-      lazyDomId : 'group-landing-content'
+      groupLandingContentView = new KDView
+        lazyDomId : 'group-landing-content'
 
-    groupLandingGroupContentView = new KDView
-      lazyDomId : 'group-content-wrapper'
+      groupLandingGroupContentView = new KDView
+        lazyDomId : 'group-content-wrapper'
 
-    @groupLandingView.listenWindowResize()
+      @groupLandingView.listenWindowResize()
 
-    @groupLandingView._windowDidResize = =>
-      @groupLandingView.setHeight window.innerHeight - 50
-      groupLandingContentView.$().css
-        maxHeight : window.innerHeight - (200)
-      groupLandingGroupContentView.$().css
-        height : groupLandingContentView.getHeight() - (256)
-
-
+      @groupLandingView._windowDidResize = =>
+        @groupLandingView?.setHeight window.innerHeight - 50
+        groupLandingContentView?.$().css
+          maxHeight : window.innerHeight - (200)
+        groupLandingGroupContentView?.$().css
+          height : groupLandingContentView.getHeight() - (256)
 
     if isLoggedIn
+
       if @groupsEnabled()
         @switchGroupState yes
         @mainTabView.hideHandleContainer()
