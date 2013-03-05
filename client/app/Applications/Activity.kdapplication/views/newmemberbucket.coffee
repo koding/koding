@@ -25,9 +25,9 @@ class NewMemberBucketView extends JView
     @listViews            = []
 
     @group.on "moreLinkClicked", =>
-      groupLoader = new KDLoaderView size: width: 24
-      @group.addSubView groupLoader
-      groupLoader.show()
+      @groupLoader = new KDLoaderView size: width: 24
+      @group.addSubView @groupLoader
+      @groupLoader.show()
 
       count = 10
 
@@ -36,12 +36,16 @@ class NewMemberBucketView extends JView
         @createShowMore count
         @isUserViewCreated = yes
 
-      options =
-        limit: count
-        from : @lastFetchedDate or @getData().createdAtTimestamps[0]
-        to   : @getData().createdAtTimestamps[1]
+      selector    =
+        type      : { $in : [options.type or= 'CNewMemberBucketActivity'] }
+        createdAt :
+          $gt     : @lastFetchedDate or @getData().createdAtTimestamps[0]
+          $lt     : @getData().createdAtTimestamps[1]
 
-      appManager.tell "Activity", "fetchQuery", options, (teasers, activities) =>
+      options     =
+        limit     : count
+
+      appManager.tell "Activity", "fetch", selector, options, (teasers, activities) =>
         @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
         @group.setData @getData().anchors
         @group.loader.hide()
@@ -57,9 +61,9 @@ class NewMemberBucketView extends JView
         @listViews.push newMembersList
         @group.addSubView newMembersList.getView()
         @lastFetchedItemCount = @lastFetchedItemCount + count
-        @showMore.hide() if @getData().count <= @lastFetchedItemCount
+        @showMore.hide() if @getData().count <= @lastFetchedItemCount and @showMore
         @lastFetchedDate = activities.last.createdAt
-        groupLoader.destroy()
+        @groupLoader.destroy()
 
   createCloseButton: ->
     @addSubView @closeButton = new KDView
@@ -68,7 +72,8 @@ class NewMemberBucketView extends JView
       click    : =>
         list.getView().destroy() for list in @listViews
         @closeButton.destroy()
-        @showMore.destroy()
+        @showMore?.destroy()
+        @groupLoader?.destroy()
         @lastFetchedItemCount = 0
         @isUserViewCreated    = no
         @lastFetchedDate      = null
