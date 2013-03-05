@@ -262,6 +262,7 @@ Includes =
         groupsmemberroleseditview     : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee"
         groupsmembershippolicyview    : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee"
         groupsformgeneratorview       : "./client/app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee"
+        groupslandingpageloginlink    : "./client/app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee"
 
         groupTabHandleView            : "./client/app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee"
 

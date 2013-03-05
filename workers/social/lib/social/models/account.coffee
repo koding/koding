@@ -59,7 +59,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups'
+        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles'
       ]
     schema                  :
       skillTags             : [String]
@@ -197,6 +197,23 @@ module.exports = class JAccount extends jraphical.Module
               else callback null, groups.map (group)->
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
+
+  fetchGroupRoles: secure (client, slug, callback)->
+    {delegate} = client.connection
+    JGroup = require './group'
+    JGroup.fetchIdBySlug slug, (err, groupId)->
+      if err then callback err
+      else
+        selector = {
+          sourceId: groupId
+          targetId: delegate.getId()
+        }
+        Relationship.someData selector, {as:1}, (err, cursor)->
+          if err then callback err
+          else
+            cursor.toArray (err, arr)->
+              if err then callback err
+              else callback null, (doc.as for doc in arr)
 
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client
