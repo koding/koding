@@ -17,6 +17,9 @@ class KDModalView extends KDView
     # TO BE IMPLEMENTED
     options.resizable    or= no            # a Boolean
 
+    options.helpContent  or= null
+    options.helpTitle    or= "Need help?"
+
     super options, data
 
     @setClass "initial"
@@ -58,10 +61,18 @@ class KDModalView extends KDView
 
   setDomElement:(cssClass)->
 
+    {helpContent, helpTitle} = @getOptions()
+
+    if helpContent
+      helpButton = "<span class='showHelp'>#{helpTitle}</span>"
+    else
+      helpButton = ''
+
     @domElement = $ "
     <div class='kdmodal #{cssClass}'>
       <div class='kdmodal-shadow'>
         <div class='kdmodal-inner'>
+          #{helpButton}
           <span class='close-icon closeModal'></span>
           <div class='kdmodal-title hidden'></div>
           <div class='kdmodal-content'></div>
@@ -88,7 +99,17 @@ class KDModalView extends KDView
     @buttons[defaultFocusTitle].setFocus()  unless focused
 
   click:(e)->
-    @cancel() if $(e.target).is(".closeModal")
+    @destroy() if $(e.target).is(".closeModal")
+    if $(e.target).is(".showHelp")
+      {helpContent} = @getOptions()
+      if helpContent
+        helpContent = KD.utils.applyMarkdown helpContent
+        new KDModalView
+          # title   : "Help"
+          cssClass : "help-dialog"
+          overlay  : yes
+          content  : "<div class='modalformline'><p>#{helpContent}</p></div>"
+
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
   # keyUp:(e)->
@@ -112,7 +133,7 @@ class KDModalView extends KDView
     @modalWidth = value
     @$().width value
 
-  setPositions:()->
+  setPositions:->
     @utils.wait =>
       {position} = @getOptions()
       newPosition = {}
@@ -129,7 +150,7 @@ class KDModalView extends KDView
     @$('.kdmodal-content').css 'max-height', winHeight - 200
     @setY (winHeight - @getHeight())/2
 
-  putOverlay:()->
+  putOverlay:->
     @$overlay = $ "<div/>"
       class : "kdoverlay"
     @$overlay.hide()
@@ -143,12 +164,14 @@ class KDModalView extends KDView
 
     buttonOptions.title    = title
     buttonOptions.delegate = @
-    @buttonHolder.addSubView button = new KDButtonView buttonOptions
+    itemClass = buttonOptions.itemClass
+    delete buttonOptions.itemClass
+    @buttonHolder.addSubView button = new (itemClass or KDButtonView) buttonOptions
+    # @buttonHolder.addSubView button = new KDButtonView buttonOptions
       # title       : title
       # style       : buttonOptions.style     if buttonOptions.style?
       # callback    : buttonOptions.callback  if buttonOptions.callback?
-    button.registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:->
-      @propagateEvent KDEventType:'KDModalShouldClose'
+    button.on 'KDModalShouldClose', => @emit 'KDModalShouldClose'
     button
 
   setContent:(content)->
@@ -167,13 +190,13 @@ class KDModalView extends KDView
 
   destroy:()->
     $(window).off "keydown.modal"
-    uber = KDView::destroy.bind(@)
+    uber = KDView::destroy.bind @
 
     if @options.fx
       @unsetClass "active"
-      setTimeout uber,300
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+      setTimeout uber, 300
     else
       @getDomElement().hide()
       uber()
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+
+    @emit 'KDModalViewDestroyed', @

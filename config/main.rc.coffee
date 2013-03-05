@@ -1,13 +1,11 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = "0.9.10" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.11" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
 # mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@db-m0.prod.aws.koding.com:27017/beta_koding'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@dbrc-m0.prod.aws.koding.com:27017/beta_koding'
 
 # RabbitMQ Host
 rabbit_host = 'rabbit-b.prod.aws.koding.com'
@@ -21,7 +19,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-rc"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -37,7 +35,7 @@ module.exports = deepFreeze
     watch       : no
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -114,6 +112,10 @@ module.exports = deepFreeze
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'

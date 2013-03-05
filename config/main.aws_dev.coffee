@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 username = fs.readFileSync '/etc/koding-dev-username', 'utf-8'
@@ -19,7 +17,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-autoscale"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -35,7 +33,7 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -112,6 +110,10 @@ module.exports = deepFreeze
     password    : 'djfjfhgh4455__5'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
@@ -19,7 +17,7 @@ rabbitPrefix = (
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -110,7 +108,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : 'https://dmq.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -121,6 +119,10 @@ module.exports = deepFreeze
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

@@ -1,16 +1,18 @@
 class KDScrollView extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      ownScrollBars : no
-      bind          : "mouseenter"
-    ,options
+
+  constructor:(options = {}, data)->
+
+    options.ownScrollBars ?= no
+    options.bind         or= "mouseenter"
+    options.cssClass       = KD.utils.curryCssClass "kdscrollview", options.cssClass
+
     super options,data
-    @setClass "kdscrollview"
 
     # if @getOptions().ownScrollBars
     #   @_createScrollBars()
 
   bindEvents:()->
+
     @getDomElement().bind "scroll mousewheel",(event,delta,deltaX,deltaY)=> #FIXME: mousewheel works in FF, IE??
       event._delta = {delta,deltaX,deltaY} if delta
       @handleEvent event
@@ -128,10 +130,7 @@ class KDScrollThumb extends KDView
 
     @on "viewAppended", @_calculateSize.bind @
 
-    @listenTo
-      KDEventTypes : "scroll"
-      listenedToInstance : @_view
-      callback : @_calculatePosition
+    @_view.on "scroll", @bound "_calculatePosition"
 
   isDraggable:()->yes
 

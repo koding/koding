@@ -12,7 +12,7 @@ module.exports = class JMarkdownDoc extends Module
 
   update:(atomically)->
     setOp = atomically.$set ?= {}
-    setOp.html = require('marked') @content
+    setOp.html = require('marked') setOp.content
     setOp.checksum = require('crypto')
       .createHash('sha1')
       .update(@content)

@@ -140,12 +140,6 @@ class GroupView extends ActivityContentDisplay
     , data
     @utils.defer => @emit 'ReadmeSelected'
 
-    @tabView.on 'PaneDidShow', (activePane)=>
-      name = ''
-      activePane.name.split(' ').forEach (n)->
-        name += n.charAt(0).toUpperCase()+n.slice(1)
-      @emit name+'Selected'
-
   decorateUponRoles:(roles)->
 
     if "admin" in roles

@@ -63,7 +63,7 @@ __aceSettings =
       { title: 'Dawn',                  value: 'dawn' }
       { title: 'Dreamweaver',           value: 'dreamweaver' }
       { title: 'Eclipse',               value: 'eclipse' }
-      { title: 'GitHub',                value: 'GitHub' }
+      { title: 'GitHub',                value: 'github' }
       { title: 'Solarized Light',       value: 'solarized_light' }
       { title: 'TextMate',              value: 'textmate' }
       { title: 'Tomorrow',              value: 'tomorrow' }

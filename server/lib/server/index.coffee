@@ -17,16 +17,17 @@ else
     name : "webServer on port #{webPort}"
     stats_id: "webserver." + process.pid
     interval : 30000
+    librato: KONFIG.librato
     limit_hard  :
       memory   : 300
       callback : ->
         console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
         process.exit()
-    die :
-      after: "non-overlapping, random, 3 digits prime-number of minutes"
-      middleware : (name,callback) -> koding.disconnect callback
-      middlewareTimeout : 5000
-    librato: KONFIG.librato
+    # DISABLED TO TEST MEMORY LEAKS
+    # die :
+    #   after: "non-overlapping, random, 3 digits prime-number of minutes"
+    #   middleware : (name,callback) -> koding.disconnect callback
+    #   middlewareTimeout : 5000
 
   # Services (order is important here)
   services =
@@ -119,7 +120,7 @@ else
 
     s3 = require('./s3') uploads.s3
 
-    app.post '/Upload', s3..., (req, res)-> 
+    app.post '/Upload', s3..., (req, res)->
       [protocol, path] = uploads.distribution.split '//'
       res.send(for own key, file of req.files
         filename  : file.filename

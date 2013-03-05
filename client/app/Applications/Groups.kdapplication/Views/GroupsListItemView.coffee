@@ -28,7 +28,8 @@ class GroupsListItemView extends KDListItemView
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{slug}"
+        target    : slug
       pistachio   : '{div{#(title)}}'
       tooltip     :
         title     : title
@@ -39,7 +40,7 @@ class GroupsListItemView extends KDListItemView
           top     : 6
           left    : -2
         showOnlyWhenOverflowing : yes
-      click       : (event) => @titleReceivedClick event
+      # click       : (event) => @titleReceivedClick event
     , data
 
     @bodyView = new KDCustomHTMLView
@@ -145,7 +146,7 @@ class GroupsListItemView extends KDListItemView
     KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
     event.stopPropagation()
     event.preventDefault()
-    #appManager.tell "Groups", "createContentDisplay", group
+    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"
@@ -192,36 +193,14 @@ class GroupsListItemView extends KDListItemView
       </div>
       <div class="topicmeta clearfix">
         <div class="topicstats">
-          <p class="posts">
+          <p class="members">
             <span class="icon"></span>
-            <a href="#">{{#(counts.post) or 0}}</a> Posts
-          </p>
-          <p class="followers">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.followers) or 0}}</a> Followers
+            <a href="#">{{#(counts.members) or 0}}</a> Members
           </p>
         </div>
       </div>
-      <div class="button-container"><div class="enter-button">{{>@enterLink}}</div>{{> @joinButton}}</div>
     </div>
     """
-
-  refreshPartial: ->
-    @skillList?.destroy()
-    @locationList?.destroy()
-    super
-    @_addSkillList()
-    @_addLocationsList()
-
-  _addSkillList: ->
-
-    @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
-    @addSubView @skillList, '.profile-meta'
-
-  _addLocationsList: ->
-
-    @locationList = new TopicsLocationView {}, @getData().locations
-    @addSubView @locationList, '.personal'
 
 class ModalGroupsListItem extends TopicsListItemView
 
@@ -229,13 +208,10 @@ class ModalGroupsListItem extends TopicsListItemView
 
     super options,data
 
-    @titleLink = new TagLinkView {expandable: no}, data
-
-    @titleLink.registerListener
-      KDEventTypes  : 'click'
-      listener      : @
-      callback      : (pubInst, event)=>
-        @getDelegate().emit "CloseTopicsModal"
+    @titleLink = new TagLinkView
+      expandable: no
+      click     : => @getDelegate().emit "CloseTopicsModal"
+    , data
 
   pistachio:->
     """
@@ -244,11 +220,8 @@ class ModalGroupsListItem extends TopicsListItemView
         <div class="button-container">{{> @joinButton}}</div>
         {{> @titleLink}}
         <div class="stats">
-          <p class="posts">
-            <span class="icon"></span>{{#(counts.post) or 0}} Posts
-          </p>
-          <p class="fers">
-            <span class="icon"></span>{{#(counts.followers) or 0}} Followers
+          <p class="members">
+            <span class="icon"></span>{{#(counts.members) or 0}} Members
           </p>
         </div>
       </div>

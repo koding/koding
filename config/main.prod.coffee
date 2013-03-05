@@ -1,9 +1,7 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
 mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
@@ -17,7 +15,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-prod"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -33,7 +31,7 @@ module.exports = deepFreeze
     watch       : no
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -65,6 +63,11 @@ module.exports = deepFreeze
     authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : no
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : no
+    queueName   : socialQueueName+'cache'
+    run         : yes
   social        :
     login       : 'prod-social'
     numberOfWorkers: 10
@@ -105,6 +108,10 @@ module.exports = deepFreeze
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'

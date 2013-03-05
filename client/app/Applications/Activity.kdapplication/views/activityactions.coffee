@@ -56,11 +56,8 @@ class ActivityActionsView extends KDView
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
 
-    @commentLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : (pubInst, event) ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
+    @commentLink.on "click", (event)->
+      commentList.emit "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->

@@ -5,7 +5,9 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
-option '-u', '--username [USER]', 'Subdomain for AWS deployment'
+option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
+option '-n', '--name [NAME]', 'The name of the new VPN user'
+option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -80,7 +82,7 @@ task 'runKites', ({configFile})->
     invoke 'webtermKite'
 
 task 'webtermKite',({configFile})->
-  configFile = "dev-new" if configFile in ["",undefined,"undefined"]
+  configFile = "dev" if configFile in ["",undefined,"undefined"]
   processes.spawn
     name    : 'webterm'
     cmd     : __dirname+"/kites/webterm -c #{configFile}"
@@ -253,7 +255,7 @@ task 'goBroker',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
   watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
-  if watchGoBroker?
+  if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
 
 task 'libratoWorker',({configFile})->
@@ -310,8 +312,8 @@ run =({configFile})->
 
 task 'run', (options)->
   {configFile} = options
+  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
 
   config.buildClient = yes if options.buildClient
 
@@ -321,19 +323,12 @@ task 'run', (options)->
   queue.push -> run options
   daisy queue
 
-
-
 clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
   {libraries,kdjs}      = code
   {minify, pistachios}  = options
-
-
-  kdjs =  "var KD = {};\n" +
-          "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
-          kdjs
 
   if commandLineOptions.pistachios or pistachios
     console.log "[PISTACHIO] compiler started."
@@ -357,8 +352,9 @@ buildClient =(options, callback=->)->
   config = require('koding-config-manager').load("main.#{options.configFile}")
 
   builderOptions =
-    config      : config.client
-    commandLine : options
+    config          : config.client
+    configScriptTag : config.getConfigScriptTag()
+    commandLine     : options
 
   builder = new Builder builderOptions,clientFileMiddleware,""
 
@@ -471,7 +467,29 @@ task 'resetGuests', (options)->
   {resetGuests} = require './workers/guestcleanup/guestinit'
   resetGuests configFile
 
+task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
+  {name, username, email} = options
+  if name in ["",undefined,"undefined"]
+    log.warn "name not set! Use -n flag"
+    return false
+  if username in ["",undefined,"undefined"]
+    log.warn "username not set! Use -u flag"
+    return false
+  if email in ["",undefined,"undefined"]
+    log.warn "email not set! Use -e flag"
+    return false
 
+  # cmd = "ssh cblum@gateway.dev.service.aws.koding.com && sudo su && source /etc/openvpn/easy-rsa/vars && /etc/openvpn/easy-rsa/pkitool #{username}"
+  cmd = "ssh #{username}@10.116.118.191 -- sudo /root/addVPNuser.sh #{name} #{email}"
+  log.info "executing... cmd: #{cmd}"
+  processes.spawn
+    name: 'addUser'
+    cmd : cmd
+    stdout : process.stdout
+    stderr : process.stderr
+    verbose : yes
+    onExit : null
+      
 
 
 

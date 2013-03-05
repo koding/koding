@@ -31,7 +31,8 @@ class KDAutoCompleteListItemView extends KDListItemView
     @unsetClass "active"
 
   click:()->
-    @propagateEvent KDEventType: 'KDAutoCompleteSubmit', globalEvent : yes, @data
+    list = @getDelegate()
+    list.emit 'KDAutoCompleteSubmit', @, @data
     no
 
   partial:()->

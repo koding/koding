@@ -103,8 +103,9 @@ module.exports = new Kite 'sharedHosting'
           callback err
         else
           @executeCommand {username, command:"cp #{tmpPath} #{path}"}, (err,res)->
+            fs.unlink tmpPath
             unless err
-              callback? null,path
+              callback? null, path
             else
               callback? "[ERROR] can't upload file : #{err}"
 

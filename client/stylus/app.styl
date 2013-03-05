@@ -211,6 +211,11 @@ body.loggedIn
     margin              0 6px 0 0
     overflow            visible
 
+    hr
+      border-top            1px solid rgba(44,41,36,.5)
+      border-bottom         1px solid rgba(255,255,255,.07)
+      size                  auto, 0
+
     &.selected
       border                1px solid transparent
       border-width          1px 0
@@ -229,15 +234,20 @@ body.loggedIn
           color             white
           text-decoration   none
 
-  &.account
-    margin                16px 0 15px 0
-    .kdlistitemview.navigation-item
+    &.account
+    &.admin
       min-width         135px
       .title
         padding-top     3px
         margin-top      -1px
         font-size       11px
-        line-height
+
+    &.separator
+      margin            10px 0 6px
+      padding           0 11px
+      cursor            default
+      borderBox()
+
 
 .kdview.kdlistview-footer-menu
   size                  100%, 30px
@@ -489,6 +499,18 @@ span.main-nav-icon
   z-index         1
   bg              color, white
 
+#main-settings-menu
+  z-index             100
+  position            absolute
+  top                 0
+  margin-top          -23px
+  right               3px
+  width               20px
+  height              20px
+  padding             0
+  .icon
+    padding           0
+
 #main-tab-handle-holder
   abs()
   top                 0
@@ -500,34 +522,34 @@ span.main-nav-icon
   size                100%,25px
   z-index             0
   bg                  color,transparent
-  vendor              transition, top .3s linear
+  vendor              transition, top .3s linear \, width .3s linear
   .kdtabhandle
     color             rgba(255,255,255,0.85)
     line-height       23px
     font-size         11px
-    padding           0 5px 0 10px
+    padding           0 20px 0 10px
     size              128px,25px
     border            1px solid rgba(255,255,255,.15)
     border-right      1px solid transparent
     overflow          hidden
     cursor            pointer
     text-shadow       0 -1px 0 rgba(0,0,0,.61)
+    vendor            transition, width .15s linear
     bg                color,rgba(255,255,255,.2)
     gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
     rounded           0
     shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+    b
+      z-index       0
+      font-weight   normal
+      text-overflow ellipsis
+      white-space   nowrap
+      overflow      hidden
+      width         100%
+      margin-right  0
+      display       block
     > div
       margin-right    14px
-      b
-        z-index       0
-        font-weight   normal
-        text-overflow ellipsis
-        white-space   nowrap
-        overflow      hidden
-        width         100%
-        margin-right  0
-        display       block
-
     span.close-tab
       z-index     10
       bg          color,transparent
@@ -535,6 +557,7 @@ span.main-nav-icon
     &:hover
       bg          color,rgba(255,255,255,.3)
 
+    &:first-child,
     &.first
       rounded       3px 0 0 0
       margin-left   0
@@ -915,13 +938,6 @@ span.main-nav-icon
       &:hover span.icon
         bg              position, -160px -540px
 
-    hr
-      margin                0 11px
-      border-top            1px solid rgba(44,41,36,.5)
-      border-bottom         1px solid rgba(255,255,255,.07)
-      size                  auto,auto
-
-
 .kdview.kdlistitemview
   rel()
   clear               both
@@ -1193,18 +1209,20 @@ span.main-nav-icon
       bg          color,linkColor1
       color       white
 
-
-// remotes modal
+// remotes & db modal
 .kdmodal.remotes-modal
+.kdmodal.databases-modal
 
   button
     span.icon
       sprite()
       &.delete
         bg        position,-120px -420px
+      &.edit
+        bg        position, 0px -200px
 
-  .no-remote-found
-    padding       15px
+  .no-item-found
+    padding       14px
 
   .mount-toggle
     right         45px !important
@@ -1289,3 +1307,95 @@ span.main-nav-icon
       color       linkColor1
       cursor      pointer
 
+// database modal
+.kdmodal.databases-modal
+
+  .no-database-found
+    padding       15px
+
+  .database-list
+    padding       0
+
+    .database-details
+      padding       8px
+      margin-left  50px
+      cite
+        cursor    pointer
+        color     linkColor1
+
+    .database-listitem
+      border-bottom 1px solid #CCC
+      h4
+        margin-bottom 2px
+        color         #666
+      button
+        top       8px
+        right     10px
+        abs()
+      button:first-of-type
+        right     44px
+      &.ghost
+        opacity   .6
+
+  span.database-type
+    color          white
+    width          40px
+    margin         7px
+    font-variant   small-caps
+    font-weight    bold
+    top            6px
+    border-radius  4px
+    text-align     center
+    padding-bottom 2px
+    bg             color, linkColor1
+    abs()
+
+    &.mysql
+      bg           color, #416481
+
+    &.mongo
+      bg           color, #5C8F30
+
+  .modal-hint
+    height         0px
+    vendor         transition, height .1s linear .1s
+
+    &.ready
+      height       194px
+
+    p:first-of-type
+      font-size    16px
+      line-height  20px
+      cite
+        font-size  16px
+    p
+      line-height  8px
+    p:last-of-type
+      line-height  16px
+
+  .inline-edit-widget
+  .inline-delete-widget
+    box-shadow       inset 0 0 8px rgba(0,0,0,0.15)
+    background-color rgba(240,240,240,.4)
+    height           0px
+    vendor           transition, height .1s linear .1s
+
+    &.ready
+      height         40px
+
+    &.collapsed
+      height         0px
+
+    p
+      padding        9px
+
+    button
+      max-width      62px
+
+    button:first-of-type
+      right          80px !important
+
+  .inline-edit-widget
+    input
+      width          300px
+      margin         8px

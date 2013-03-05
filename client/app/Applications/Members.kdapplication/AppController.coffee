@@ -1,20 +1,23 @@
 class MembersAppController extends AppController
-  constructor:(options, data)->
-    options = $.extend
-      view : mainView = (new MembersMainView cssClass : "content-page members")
-    ,options
-    super options,data
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Members'
-      data : @getView()
+  KD.registerAppClass @,
+    name         : "Members"
+    route        : "Members"
+    hiddenHandle : yes
+
+  constructor:(options = {}, data)->
+
+    options.view    = new MembersMainView
+      cssClass      : 'content-page members'
+    options.appInfo =
+      name          : 'Members'
+
+    super options, data
 
   setGroup:-> console.trace()
 
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       noItemFoundText       : "There is no member."
@@ -68,7 +71,7 @@ class MembersAppController extends AppController
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
@@ -112,7 +115,7 @@ class MembersAppController extends AppController
 
   createLikedFeedForContentDisplay:(view, account)->
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
@@ -171,8 +174,7 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView
 
-  showMemberContentDisplay:(pubInst, event)=>
-    {content} = event
+  showMemberContentDisplay:({content})=>
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerMember null, content
     contentDisplay = controller.getView()
@@ -251,16 +253,7 @@ class MembersListViewController extends KDListViewController
         when newFollower, oldFollower
           if newFollower then item.unfollowTheButton() else item.followTheButton()
 
-    item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
-    item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount
-    item.registerListener KDEventTypes : "MemberWantsToBeShown",  listener : @, callback : @getDelegate().showMemberContentDisplay
-    @
-
-  followAccount:(pubInst, {account,callback})->
-    account.follow callback
-
-  unfollowAccount:(pubInst, {account,callback})->
-    account.unfollow callback
+    return @
 
   reloadView:()->
     {query, skip, limit, currentFilter} = @getOptions()
@@ -268,11 +261,11 @@ class MembersListViewController extends KDListViewController
 
     currentFilter query, {skip, limit}, (err, members)->
       controller.removeAllItems()
-      controller.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), members.length
       controller.instantiateListItems members
       if (myItem = controller.itemForId KD.whoami().getId())?
         myItem.isMyItem()
-        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showMemberContentDisplay
+
+        myItem.on "VisitorProfileWantsToBeShown", controller.getDelegate().showMemberContentDisplay.bind controller
       controller._windowDidResize()
 
   pageDown:()->
@@ -285,9 +278,8 @@ class MembersListViewController extends KDListViewController
         listController.addItem member for member in members
         if (myItem = listController.itemForId KD.whoami().getId())?
           myItem.isMyItem()
-          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showMemberContentDisplay
+          myItem.on "VisitorProfileWantsToBeShown", listController.getDelegate().showMemberContentDisplay.bind listController
         listController._windowDidResize()
-        listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no
         listController.hideLazyLoader()
 

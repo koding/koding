@@ -43,27 +43,33 @@ flags =
     definition      : "private messages"
 
 sendDailyEmail = (details, content)->
-  # console.log template.dailyMail details, content
-
-  Emailer.send
-    To        : emailWorker.defaultRecepient or details.email
-    Subject   : template.dailyHeader details
-    HtmlBody  : template.dailyMail details, content
-  , (err, status)->
-    log "An error occured: #{err}" if err
-    log "Daily e-mail sent to #{details.email}"
+  unless content or details.email
+    log "Content not found, notification postponed"
+  else
+    Emailer.send
+      To        : emailWorker.defaultRecepient or details.email
+      Subject   : template.dailyHeader details
+      HtmlBody  : template.dailyMail details, content
+    , (err, status)->
+      log "An error occured: #{err}" if err
+      log "Daily e-mail sent to #{details.email}"
 
 sendInstantEmail = (details)->
   {notification} = details
 
-  Emailer.send
-    To        : emailWorker.defaultRecepient or details.email
-    Subject   : template.commonHeader details
-    HtmlBody  : flags[details.key].template details
-  , (err, status)->
-    log "An error occured: #{err}" if err
-    notification.update $set: status: 'attempted', (err)->
-      console.error err if err
+  if details.realContent?.deletedAt? or not details.email?
+    log "Content not found, notification postponed"
+    notification.update $set: status: 'postponed', (err)->
+      console.error if err
+  else
+    Emailer.send
+      To        : emailWorker.defaultRecepient or details.email
+      Subject   : template.commonHeader details
+      HtmlBody  : flags[details.key].template details
+    , (err, status)->
+      log "An error occured: #{err}" if err
+      notification.update $set: status: 'attempted', (err)->
+        console.error err if err
 
 fetchSubjectContent = (contents, callback)->
   {constructorName} = contents.subject

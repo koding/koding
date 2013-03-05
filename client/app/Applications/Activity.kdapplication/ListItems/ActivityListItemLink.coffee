@@ -34,7 +34,7 @@ class LinkActivityItemView extends ActivityItemChild
   #   super
 
   #   if $(event.target).is("[data-paths~=body]")
-  #     appManager.tell "Activity", "createContentDisplay", @getData()
+  #     KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")-> @utils.applyTextExpansions str, yes
 
