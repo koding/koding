@@ -19,43 +19,60 @@ class NewMemberBucketView extends JView
 
     @group = new NewMemberLinkGroup (totalCount : @getData().count), @getData().anchors
 
-    lastFetchedDate = null
+    @lastFetchedDate      = null
+    @lastFetchedItemCount = 0
+    @isUserViewCreated    = no
 
     @group.on "moreLinkClicked", =>
-      # @group.loader.show()
+      if not @isUserViewCreated
+        @addSubView new KDView
+          cssName : "close-button"
+          click   : =>
+        @isUserViewCreated = yes
 
-      selector    =
-        type      : { $in : ['CNewMemberBucketActivity'] }
-        createdAt :
-          $gt     : lastFetchedDate or @getData().createdAtTimestamps[0]
-          $lt     : @getData().createdAtTimestamps[1]
+      count = 10
 
-      options     =
-        limit     : 10
+      @fetchUsers count, (teasers) =>
+        @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
+        @group.setData @getData().anchors
+        # @group.visibleCount += 10
+        # @group.render()
+        # @group.loader.hide()
 
-      KD.remote.api.CActivity.some selector, options, (err, activities)=>
+        items = @getData().anchors.slice @lastFetchedItemCount, @lastFetchedItemCount + count
+
+        @newMembersList = new KDListViewController
+          view        : new NewMemberList
+          wrapper     : no
+          scrollView  : no
+        , items: items
+
+        @group.addSubView @newMembersList.getView()
+        @lastFetchedItemCount = @lastFetchedItemCount + count
+
+  fetchUsers: (count, callback) ->
+    # @group.loader.show()
+
+    selector    =
+      type      : { $in : ['CNewMemberBucketActivity'] }
+      createdAt :
+        $gt     : @lastFetchedDate or @getData().createdAtTimestamps[0]
+        $lt     : @getData().createdAtTimestamps[1]
+
+    options     =
+      limit     : count
+
+    KD.remote.api.CActivity.some selector, options, (err, activities)=>
+      return if err or activities.length is 0
+
+      activities = ActivityAppController.clearQuotes activities
+      @lastFetchedDate = activities.last.createdAt
+      KD.remote.reviveFromSnapshots activities, (err, teasers)=>
         return warn err if err
-        activities = ActivityAppController.clearQuotes activities
-        # lastFetchedDate = activities.last.createdAt
-        KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-          if err then warn err
-          else
-            @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
-            @group.setData @getData().anchors
-            @group.visibleCount += 10
-            # @group.render()
-            # @group.loader.hide()
 
-            @newMembersList = new KDListViewController
-              view        : new NewMemberList
-              wrapper     : no
-              scrollView  : no
-            , items: @getData().anchors
-
-            @group.addSubView @newMembersList.getView()
+        callback? teasers
 
   pistachio:->
-
     """
     <span class='icon fx out'></span>
     <span class='icon'></span>
@@ -71,6 +88,26 @@ class NewMemberList extends KDListView
     super options, data
 
 
+class NewMemberActivityListItem extends MembersListItemView
+  constructor: (options = {}, data) ->
+    options.avatarSizes = [30, 30]
+
+    super options,data
+
+  pistachio:->
+    """
+      <span>{{> @avatar}}</span>
+      <div class='member-details'>
+        <header class='personal'>
+          <h3>{{> @profileLink}}</h3>
+        </header>
+        <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
+        <footer>
+          <span class='button-container'>{{> @followButton}}</span>
+        </footer>
+      </div>
+    """
+
 class NewMemberListItem extends KDListItemView
   constructor: (options = {}, data) ->
     options.tagName   = "li"
@@ -79,7 +116,7 @@ class NewMemberListItem extends KDListItemView
 
   fetchUserDetails: ->
     KD.remote.cacheable "JAccount", @getData().id, (err, res) =>
-      @addSubView new MembersListItemView {}, res
+      @addSubView new NewMemberActivityListItem {}, res
 
   viewAppended: ->
     @setTemplate @pistachio()
@@ -87,11 +124,6 @@ class NewMemberListItem extends KDListItemView
     @fetchUserDetails()
 
   pistachio: -> ""
-
-  userTemplate: (data) ->
-    # """
-    #   <a href="#">#{userName}</a>
-    # """
 
 
 class NewMemberLinkGroup extends LinkGroup
