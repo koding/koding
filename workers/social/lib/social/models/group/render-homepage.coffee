@@ -48,6 +48,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
     </div>
     #{KONFIG.getConfigScriptTag groupEntryPoint: slug}
     #{getScripts()}
+    <div id="group-loader-container"></div>
   </body>
   </html>
   """
