@@ -150,6 +150,10 @@ class ApplicationManager extends KDObject
     @unregister appInstance
     callback()
 
+  quitAll:->
+    for own name, apps of @appControllers
+      @quit app  for app in apps
+
   get:(name)-> @appControllers[name]?.first or null
 
   getByView: (view)->
