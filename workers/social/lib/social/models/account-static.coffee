@@ -2,6 +2,7 @@
 module.exports = ({profile,skillTags,counts})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
+  console.log skillTags
   """
   <!DOCTYPE html>
   <html>
@@ -10,7 +11,7 @@ module.exports = ({profile,skillTags,counts})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div id="profile-landing" class='profile-landing'>
+    <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
     <div id="profile-landing-content" class="profile-landing-content">
       <div class="profile-wrapper">
 
@@ -27,6 +28,13 @@ module.exports = ({profile,skillTags,counts})->
         <div class="content-about">
           #{about}
         </div>
+
+        <div class="content-tags" data-tags='#{getTagData(skillTags)}'>
+          <div class="tag-group" id="skill-tags">
+          #{ getTags(skillTags) }
+          </div>
+        </div>
+
 
         <div class="content-meta">
           <div class="followers"><span class="icon"></span>
@@ -59,6 +67,19 @@ module.exports = ({profile,skillTags,counts})->
   </body>
   </html>
   """
+
+getTags = (tags)->
+  for i in [0...tags.length]
+    value = tags[i]
+    """
+    <div class='ttag' data-tag='#{value}'>#{value}</div>
+    """
+
+getTagData = (tags)->
+  tagData = []
+  for i in [0...tags.length]
+    tagData.push tags[i]
+  tagData.join ','
 
 getStyles =->
   """
