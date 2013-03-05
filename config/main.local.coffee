@@ -3,39 +3,44 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
-# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
-# mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
 mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitPrefix = (
+rabbitPrefix = ((
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
-).trim()
+  catch e then require("os").hostname()
+).trim())+"-dev-#{version}"
+rabbitPrefix = rabbitPrefix.split('.').join('-')
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
+webPort         = 3000
+brokerPort      = 8000 + (version % 100)
+dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
+
 module.exports = deepFreeze
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3000"
+    address     : "http://localhost:#{webPort}"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'webserver'
-    port        : 3000
+    port        : dynConfig.webInternalPort
     clusterSize : 4
     queueName   : socialQueueName+'web'
     watch       : yes
   mongo         : mongo
-  runGoBroker   : no
+  runGoBroker   : yes
   watchGoBroker : no
-  compileGo     : no
+  compileGo     : yes
   buildClient   : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -58,11 +63,6 @@ module.exports = deepFreeze
     email     : ""
     token     : ""
     interval  : 60000
-  # loadBalancer  :
-  #   port        : 3000
-  #   heartbeat   : 5000
-    # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo
   goConfig:
     HomePrefix:   "/Users/"
     UseLVE:       true
@@ -98,30 +98,30 @@ module.exports = deepFreeze
     watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
+    indexMaster : "./client/index-master.html"
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: "http://localhost:3000"
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : "http://localhost:#{webPort}"
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : "http://localhost:#{brokerPort}/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'web0.dev.system.aws.koding.com'
+    host        : 'localhost'
     login       : 'guest'
     componentUser: "<component>"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'guest'
     heartbeat   : 10
     vhost       : '/'
   broker        :
-    port        : 8008
+    port        : brokerPort
     certFile    : ""
     keyFile     : ""
   kites:
@@ -144,9 +144,7 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'web0.dev.system.aws.koding.com'
+      host          : 'localhost'
       login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
+      password      : 'guest'
   pidFile       : '/tmp/koding.server.pid'
-  haproxy:
-    webPort     : 3020

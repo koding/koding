@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-v', '--version [VERSION]', 'Switch to a specific version'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -43,6 +44,7 @@ fs                 = require "fs"
 http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
+portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
@@ -380,8 +382,166 @@ buildClient =(options, callback=->)->
 task 'buildClient', (options)->
   buildClient options
 
+task 'release',(options)->
+  # Release and shared data directories
+  dataDir         = nodePath.join __dirname, "../koding-data"
+  releaseDir      = nodePath.join __dirname, "../koding-release"
 
+  unless fs.existsSync dataDir
+    fs.mkdirSync dataDir
+  unless fs.existsSync releaseDir
+    fs.mkdirSync releaseDir
 
+  # Temporary file for runnings bash scripts
+  tmpFile         = "/tmp/#{Date.now()}"
+
+  # Get ready for new release
+  config          = require('koding-config-manager').load("main.#{options.configFile}")
+  version         = parseInt config.version
+
+  buildDir        = "#{releaseDir}/#{version}"
+  proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
+  dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
+
+  # Starting ports
+  webPortOffset = config.haproxy.webPort + 1
+
+  newRelease = ->
+    # Get previous dynamic config
+    if fs.existsSync dataDir+"/dynamic-config.json"
+      conf = JSON.parse fs.readFileSync dataDir+"/dynamic-config.json"
+    else
+      conf = JSON.parse fs.readFileSync __dirname+"/config/.dynamic-config.json"
+
+    # Find next available ports
+    portchecker.getFirstAvailable webPortOffset, webPortOffset + 100, '0.0.0.0', (port, host) ->
+      webPort = port
+
+      # Build dynamic config
+      conf.webInternalPort = webPort
+      unless conf.releaseDir == buildDir
+        conf.oldReleaseDir   = conf.releaseDir
+      conf.webPort         = config.haproxy.webPort
+      conf.releaseDir      = buildDir
+
+      # Install new release
+      bash = """
+        echo Preparing new release...
+        rm -rf #{buildDir}
+        mkdir -p #{buildDir}
+        cp -R . #{buildDir}
+        cd #{buildDir}
+        npm install --unsafe-perm
+        echo
+      """
+
+      fs.writeFileSync tmpFile,bash
+
+      processes.exec "bash #{tmpFile}",()->
+        # Save config to release directory
+        fs.writeFileSync dynCfgPath,JSON.stringify conf
+
+        # Show release information
+        console.log "Version        : " + version
+        console.log "Release Folder : " + buildDir
+        console.log "Web Port       : " + webPort
+
+        haproxyCfg = """
+          global
+              daemon
+              maxconn 512
+
+          defaults
+              mode http
+              timeout connect 5000ms
+              timeout client 50000ms
+              timeout server 50000ms
+
+          listen http-in
+              bind *:#{config.haproxy.webPort}
+              server server1 127.0.0.1:#{webPort} maxconn 128
+
+          # listen stats :1936
+          #     mode http
+          #     stats enable
+          #     stats hide-version
+          #     stats realm 'Koding'
+          #     stats uri /
+          #     stats auth admin:admin
+        """
+
+        # Save proxy configuration to release directory
+        fs.writeFileSync proxyCfgPath, haproxyCfg
+
+  # Deploy new release if necessary
+  if fs.existsSync dynCfgPath
+    oldConf = JSON.parse fs.readFileSync dynCfgPath
+    portchecker.isOpen oldConf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
+      if webOpen
+        console.log "Version #{version} is running. Creating a new release."
+        version++
+        fs.writeFileSync 'VERSION', version
+        buildDir        = "#{releaseDir}/#{version}"
+        proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
+        dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
+      newRelease()
+  else
+    newRelease()
+
+task 'switchProxy', (options) ->
+  releaseDir      = nodePath.join __dirname, "../koding-release"
+  dataDir         = nodePath.join __dirname, "../koding-data"
+
+  proxyCfgPath    = "#{dataDir}/haproxy.cfg"
+  dynCfgPath      = "#{dataDir}/dynamic-config.json"
+  haPidFile       = "#{dataDir}/haproxy.pid"
+
+  unless options.version
+    console.log "Available versions:"
+    for version in fs.readdirSync releaseDir
+      vConf = JSON.parse fs.readFileSync "#{releaseDir}/#{version}/config/.dynamic-config.json"
+      console.log "  #{version} : port #{vConf.webInternalPort}" 
+    console.log ""
+    console.log "Use cake -v [VERSION] switchProxy"
+    process.exit()
+
+  newProxyCfg = "#{releaseDir}/#{options.version}/config/.haproxy.cfg"
+  newDynCfg   = "#{releaseDir}/#{options.version}/config/.dynamic-config.json"
+
+  unless fs.existsSync newProxyCfg
+    console.log "No such version"
+    process.exit()
+
+  conf        = JSON.parse fs.readFileSync newDynCfg
+
+  updateProxy = ->
+    if fs.existsSync proxyCfgPath
+      fs.unlinkSync proxyCfgPath
+    fs.symlinkSync newProxyCfg, proxyCfgPath
+
+    if fs.existsSync dynCfgPath
+      fs.unlinkSync dynCfgPath
+    fs.symlinkSync newDynCfg, dynCfgPath
+    fs.readFile haPidFile, (err, data) ->
+      unless err
+        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile} -st #{data.toString().trim()}"
+      else
+        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile}"
+
+      processes.exec haProxyBash, ()->
+        console.log "Proxying:"
+        console.log "  #{conf.webPort} -> #{conf.webInternalPort}"
+
+  printWarning =  ->
+    console.log "This release is not running: #{conf.releaseDir}"
+    console.log "CD into #{conf.releaseDir}/ and execute cake run"
+
+  # Switch HaProxy to new release, if release is already running
+  portchecker.isOpen conf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
+    if webOpen
+      updateProxy()
+    else
+      printWarning()
 
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build/.cache",->

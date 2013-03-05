@@ -88,6 +88,8 @@ config =
         baseDir             : 1
         setfacl             : 1
   main :
+    haproxy       :
+      webPort     : 1
     aws           :
       key         : 1
       secret      : 1
