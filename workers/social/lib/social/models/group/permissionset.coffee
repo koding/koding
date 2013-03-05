@@ -68,6 +68,7 @@ module.exports = class JPermissionSet extends Module
     JGroup.one {slug: groupName}, (err, group)->
       if err then callback err, no
       else unless group?
+        callback new KodingError "Unknown group! #{groupName}"
       else
         group.fetchPermissionSet (err, permissionSet)->
           if err then callback err, no
@@ -114,7 +115,7 @@ module.exports = class JPermissionSet extends Module
       JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
           args = [client, rest..., callback]
-          if err then failure err
+          if err then callback err
           else if hasPermission
             success.apply null, args
           else if failure?
