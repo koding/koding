@@ -230,9 +230,14 @@ class MainView extends KDView
   changeHomeLayout:(isLoggedIn)->
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
+  userEnteredFromProfile:-> KD.config.profileEntryPoint?
 
   profileEnabled:->
     return $('.user-landing').length > 0
+
+  switchProfileState:(state)->
+    log 'stuff'
+    $('body').addClass "login"
 
   switchGroupState:(state)->
     if $('.group-loader').length > 0
@@ -262,18 +267,76 @@ class MainView extends KDView
 
     groupLink.appendToSelector '.group-login-buttons'
 
-    $('.group-landing').css 'height', window.innerHeight - 50
+    $('.group-landing').css 'height', window.outerHeight - 50
 
   closeGroupView:->
     @mainTabView.showHandleContainer()
     @groupLandingView._windowDidResize = noop
     $('.group-landing').css 'height', 0
 
-  decorateLoginState:(isLoggedIn = no)->
-    if @profileEnabled()
+  addProfileViews:->
+    @profileLandingView = new KDView
+      lazyDomId : 'profile-landing'
 
-      @profileLandingView = new KDView
-        lazyDomId : 'profile-landing'
+    @profileContentView = new KDView
+      lazyDomId : 'profile-content'
+
+    @profileContentView.addSubView statusUpdatesWrapper = new KDView
+      cssClass : 'status-updates profile-wrapper'
+
+    @profileContentView.addSubView otherWrapper = new KDView
+      cssClass : 'other profile-wrapper'
+
+    @profileContentView.addSubView footerWrapper = new KDView
+      cssClass : 'footer profile-wrapper'
+
+    statusUpdatesWrapper.addSubView statusUpdatesListHeader = new KDView
+      cssClass : 'profile-list'
+      partial : 'I am a Status Update list'
+
+    log 'le fetch'
+
+    selector =
+      originId  : KD.whoami().getId()
+      type      : 'CStatusActivity'
+    log selector
+
+    @getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, {}
+    , (data)->
+      log 'teasers?'
+      log data
+
+    @getSingleton("appManager").tell 'Activity', 'fetchCachedActivity', {}
+    , (err, data)->
+      log 'cache?'
+      log data
+
+    statusUpdatesWrapper.addSubView  statusUpdatesList = new KDListView
+      itemClass : StatusActivityItemView
+
+
+    otherWrapper.addSubView otherList = new KDView
+      cssClass : 'profile-list'
+      partial : 'I am a list of other things'
+
+    footerWrapper.addSubView footerList = new KDView
+      cssClass : 'profile-list'
+      partial : 'I am a list of footer'
+
+
+    @profileContentView.setClass 'ready'
+    @profileContentView.render()
+
+
+    @profileLandingView.listenWindowResize()
+
+    @profileLandingView._windowDidResize = =>
+      @profileLandingView?.setHeight window.outerHeight
+
+  decorateLoginState:(isLoggedIn = no)->
+
+    if @userEnteredFromProfile()
+      @addProfileViews()
 
     if @userEnteredFromGroup()
 
@@ -289,7 +352,7 @@ class MainView extends KDView
       @groupLandingView.listenWindowResize()
 
       @groupLandingView._windowDidResize = =>
-        @groupLandingView?.setHeight window.innerHeight - 50
+        @groupLandingView?.setHeight window.outerHeight - 50
         groupLandingContentView?.$().css
           maxHeight : window.innerHeight - (200)
         groupLandingGroupContentView?.$().css
@@ -300,6 +363,9 @@ class MainView extends KDView
         @switchGroupState yes
         @mainTabView.hideHandleContainer()
 
+      else if @userEnteredFromProfile()
+        @switchProfileState yes
+        log 'entered from profile'
       else
         $('body').addClass "loggedIn"
         @mainTabView.showHandleContainer()
@@ -310,6 +376,7 @@ class MainView extends KDView
 
     else
       if @userEnteredFromGroup() then @switchGroupState no
+      else if @userEnteredFromProfile() then @switchProfileState no
       else $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"

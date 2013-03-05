@@ -302,7 +302,7 @@ class KodingRouter extends KDRouter
             open routeInfo, state, status_404
 
           # Shows that we are in groups
-          else if $('.group-landing').length > 0
+          else if ($('.group-landing').length > 0) or ($('.profile-landing').length > 0)
 
             unless $('.group-loader').length > 0
               waitress = new KDLoaderView

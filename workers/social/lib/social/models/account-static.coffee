@@ -24,7 +24,7 @@ module.exports = ({profile,skillTags,counts})->
           #{firstName} #{lastName} <span class='nickname'>#{nickname}</span>
         </div>
 
-        <div class="content-body">
+        <div class="content-about">
           #{about}
         </div>
 
@@ -49,8 +49,11 @@ module.exports = ({profile,skillTags,counts})->
           </div>
         </div>
 
+        #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
+
       </div>
     </div>
+    <div id='profile-content' class='profile-content'></div>
     #{getScripts()}
     </div>
   </body>

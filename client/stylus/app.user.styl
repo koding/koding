@@ -55,6 +55,8 @@
     text-rendering        geometricPrecision
     margin-left           215px
 
+    span.nickname
+      color               #aaa
     .betatag
       text-indent         -9999px
       abs()
@@ -65,7 +67,7 @@
       sprite()
       bg position,        -400px -120px
 
-  .content-body
+  .content-about
     vendor transition,    margin-left 0.2s ease-in-out
     color                 rgba(227, 227, 227, 0.5)
     font-weight           300
@@ -127,6 +129,44 @@
     overflow              auto
     padding               10px
 
+.profile-content
+  max-width               980px
+  width                   90%
+  opacity                 0
+  margin                  10px auto
+  vendor                  transition, opacity 1s ease-in-out
+  &.ready
+    opacity               1
+  .profile-wrapper
+    borderBox()
+
+    &.status-updates
+      width 50%
+      display inline-block
+      height 200px
+      padding-right 15px
+    &.other
+      width 50%
+      display inline-block
+      height 200px
+      padding-left 15px
+    &.footer
+      padding-top 30px
+      clear both
+      width 100%
+      height 100px
+
+    .profile-list
+      borderBox()
+      border                  1px solid rgba(255,255,255,0.16)
+      rounded                 8px
+      shadow                  0 0 10px rgba(0,0,0,0.32)
+      bg color,               rgba(255,255,255,0.05)
+      color #f5f5f5
+      padding 25px
+
+
+
 .profile-koding-logo
   abs()
   left                    0
@@ -154,12 +194,12 @@
         height            40px
     .content-title
       margin-left         90px
-    .content-body
+    .content-about
       margin-left         90px
     .content-meta
       float               none
       margin-top          20px
-      margin-bottom       0px
+      margin-bottom       25px
     .content-markdown
       img
         max-width         100%
