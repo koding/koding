@@ -584,7 +584,8 @@ Includes =
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
 
-
+        jquery            : "./client/libs/jquery-1.8.2.min.js"
+        jqueryUI          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
         jqueryHash        : "./client/libs/jquery-hashchange.js"
         jqueryTimeAgo     : "./client/libs/jquery-timeago.js"
         jqueryDateFormat  : "./client/libs/date.format.js"
@@ -605,7 +606,7 @@ Includes =
         async             : "./client/libs/async.js"
         jMouseWheel       : "./client/libs/jquery.mousewheel.js"
         jMouseWheelIntent : "./client/libs/mwheelIntent.js"
-        # underscore        : "./client/libs/underscore.js"
+        underscore        : "./client/libs/underscore-min.1.3.js"
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
 
@@ -629,7 +630,7 @@ Includes =
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
-        # highlightjs       : "./client/libs/highlight.pack.js"
+        highlightjs       : "./client/libs/highlight.pack.js"
         # jquery            : "./client/libs/jquery-1.7.1.js"
         # jquery            : "./client/libs/jquery-1.7.1.min.js"
         # jqueryUi          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
