@@ -43,7 +43,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
   click:(event)->
     if $(event.target).is "a.delete-icon"
-      @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
+      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
 
   partial:(data)->
     linkedString  = if data.linked then "Linked to" else "Not linked"
