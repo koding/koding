@@ -202,7 +202,6 @@ Includes =
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
         embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
         embedboxviews               : "./client/app/Applications/Activity.kdapplication/views/embedboxviews.coffee"
-        NewMemberBucket             : "./client/app/Applications/Activity.kdapplication/views/newmemberbucket.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -283,6 +282,7 @@ Includes =
         ownprofileview                : "./client/app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee"
         profileview                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee"
         contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
+        NewMemberBucket               : "./client/app/Applications/Activity.kdapplication/views/newmemberbucket.coffee"
 
         # START TAB VIEWS
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
