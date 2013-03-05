@@ -169,16 +169,7 @@ class ActivityAppController extends AppController
         cache.overview.reverse()  if cache?.overview
         callback null, cache
 
-  fetchQuery: (options, callback) ->
-    selector    =
-      type      : { $in : [options.type or= 'CNewMemberBucketActivity'] }
-      createdAt :
-        $gt     : options.from
-        $lt     : options.to
-
-    options     =
-      limit     : options.limit
-
+  fetch: (selector = {}, options = {}, callback) ->
     KD.remote.api.CActivity.some selector, options, (err, activities)=>
       return if err or activities.length is 0
 
