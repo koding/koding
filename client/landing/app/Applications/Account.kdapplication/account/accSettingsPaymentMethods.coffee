@@ -152,16 +152,11 @@ class AccountCreditCardForm extends KDFormView
       cssClass : "actions-wrapper"
 
     actionsWrapper.addSubView cancelLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Cancel"
+      tagName  : "a"
+      partial  : "Cancel"
+      click    : => @emit "FormCancelled"
 
     buttons.addSubView okButton = new KDButtonView title: 'Change payment method', style: 'cupid-green'
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : cancelLink
-      callback:()=>
-        @handleEvent type : "FormCancelled"
 
 
 class AccountCreditCardInput extends KDView
@@ -224,9 +219,10 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #   ,@data
   #
   #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName      : "a"
-  #     partial      : "Edit"
-  #     cssClass     : "action-link"
+  #     tagName  : "a"
+  #     partial  : "Edit"
+  #     cssClass : "action-link"
+  #     click    : @bound "swapSwappable"
   #
   #   @swappable = swappable = new AccountsSwappable
   #     views : [form,info]
@@ -235,9 +231,7 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #   @addSubView swappable,".swappable-wrapper"
   #   form.putEditButtons()
   #
-  #
-  #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
-  #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
+  #   form.on "FormCancelled", @bound "swapSwappable"
 
   swapSwappable:()=>
     @swappable.swapViews()

@@ -1,27 +1,24 @@
 class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
 
   viewAppended:->
+
     super
-    @panels[0].setClass "toggling"
-    @panels[0].addSubView @_toggler = new KDCustomHTMLView
+
+    [panel0, panel1] = @panels
+
+    panel0.setClass "toggling"
+    panel0.addSubView @_toggler = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "generic-menu-toggler"
+      click    : @bound "toggleFirstPanel"
 
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : @_toggler
-      callback : @toggleFirstPanel
+    panel0.on "click", (event)=>
+      if panel0.$().hasClass "collapsed"
+        @toggleFirstPanel event
 
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : @panels[0]
-      callback : (p,e)=>
-        if @panels[0].$().hasClass("collapsed")
-          @toggleFirstPanel p,e
+    panel1.on "PanelDidResize", => @setRightColumnClass()
 
-    @panels[1].on "PanelDidResize", => @setRightColumnClass()
-
-  toggleFirstPanel:(p,e)=>
+  toggleFirstPanel:(event)=>
     $panel = @panels[0].$()
     if $panel.hasClass "collapsed"
       $panel.removeClass "collapsed"
@@ -29,7 +26,7 @@ class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
     else
       @resizePanel 10, 0, ->
         $panel.addClass "collapsed"
-    e.stopPropagation()
+    event.stopPropagation()
 
   _windowDidResize:=>
     super

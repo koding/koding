@@ -2,6 +2,10 @@ KDApps = {}
 
 class KodingAppsController extends KDController
 
+  KD.registerAppClass @,
+    name       : "KodingAppsController"
+    background : yes
+
   escapeFilePath = FSHelper.escapeFilePath
 
   defaultManifest = (type, name)->
@@ -63,8 +67,7 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
-
-    appManager.addAppInstance "KodingAppsController", @
+    @manifests = KodingAppsController.manifests
 
   # #
   # FETCHERS
@@ -252,7 +255,7 @@ class KodingAppsController extends KDController
     {stylesheets} = manifest.source if manifest.source
 
     proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     if stylesheets
       $("head .app-#{__utils.slugify name}").remove()
@@ -291,38 +294,25 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-          # mainView = @getSingleton('mainView')
-          # mainView.mainTabView.showPaneByView
-          #   name         : manifest.name
-          #   hiddenHandle : no
-          #   type         : "application"
-          # , (appView = new KDView)
 
-          @propagateEvent
-            KDEventType     : 'ApplicationWantsToBeShown'
-            globalEvent     : yes
-          ,
-            options         :
-              name          : manifest.name
-              hiddenHandle  : no
-              type          : 'application'
-            data            : appView = new KDView
+          manifest.route      = "Develop"
+          manifest.behavior or= "application"
 
-          appView.on 'ViewClosed', =>
-            @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : appView
-            appManager.removeOpenTab appView
-            appView.destroy()
+          KD.registerAppClass KodingAppController, manifest
+          KD.getSingleton("appManager").open manifest.name, (appInstance)->
 
-          try
-            # security please!
-            do (appView)->
-              appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
-              eval appScript
-          catch error
-            # if not manifest.ignoreWarnings? # GG FIXME
-            showError error
-          callback?()
-          return appView
+            appView = appInstance.getView()
+
+            try
+              # security please!
+              do (appView)->
+                appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
+                eval appScript
+            catch error
+              # if not manifest.ignoreWarnings? # GG FIXME
+              showError error
+            callback?()
+            return appView
         else
           try
             # security please!
@@ -373,14 +363,14 @@ class KodingAppsController extends KDController
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
             manifest   : manifest
 
-          appManager.tell "Apps", "createApp", jAppData, (err, app)=>
+          KD.getSingleton("appManager").tell "Apps", "createApp", jAppData, (err, app)=>
             if err
               warn err
               callback? err
             else
               # log app, "app published"
-              appManager.openApplication "Apps"
-              appManager.tell "Apps", "updateApps"
+              KD.getSingleton("appManager").open "Apps"
+              KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
 
   approveApp:(app, callback)->
@@ -509,7 +499,7 @@ class KodingAppsController extends KDController
                       log err if err
                       # log callback
                       # This doesnt work :#
-                      appManager.openApplication "StartTab"
+                      KD.getSingleton("appManager").open "StartTab"
                       @refreshApps()
                       # callback?()
 

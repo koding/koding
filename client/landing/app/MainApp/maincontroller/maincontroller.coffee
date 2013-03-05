@@ -4,20 +4,20 @@ class MainController extends KDController
     connected   : no
     wasLoggedIn : no
 
-
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
-
+    # window.appManager is there for backwards compatibilty
+    # will be deprecated soon.
     window.appManager = new ApplicationManager
+    KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    
 
     KD.registerSingleton 'router', new KodingRouter location.pathname
     KD.registerSingleton "groupsController", new GroupsController
@@ -28,10 +28,8 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
-      # FIXME GG
-      @getAppStorageSingleton 'Ace', '1.0'
-
-    @on 'ManageRemotesRequested', -> new ManageRemotesModal
+    @on 'ManageRemotes', -> new ManageRemotesModal
+    @on 'ManageDatabases', -> new ManageDatabasesModal
 
     @setFailTimer()
     @putGlobalEventListeners()
@@ -47,7 +45,7 @@ class MainController extends KDController
       storage = @appStorages[appName] = new AppStorage appName, version
 
     storage.fetchStorage()
-    storage
+    return storage
 
   appReady:do ->
     applicationIsReady = no
@@ -79,6 +77,7 @@ class MainController extends KDController
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
+      @loginScreen.hide() unless $('.group-landing').length is 0
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
@@ -96,13 +95,13 @@ class MainController extends KDController
 
     if connectedState.wasLoggedIn
       @loginScreen.slideDown =>
-        appManager.quitAll =>
+        KD.getSingleton("appManager").quitAll =>
           @mainViewController.sidebarController.accountChanged account
-          # appManager.openApplication "Home"
+          # KD.getSingleton("appManager").open "Home"
           @mainViewController.getView().decorateLoginState no
     else
       @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Home"
+      # KD.getSingleton("appManager").open "Home"
       @mainViewController.getView().decorateLoginState no
       @loginScreen.slideDown()
 
@@ -110,9 +109,9 @@ class MainController extends KDController
   createLoggedInState:(account)->
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
-    @loginScreen.slideUp =>
+    @loginScreen.prepare =>
       @mainViewController.sidebarController.accountChanged account
-      #appManager.openApplication @getOptions().startPage, yes
+      #KD.getSingleton("appManager").open @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
   doJoin:->
@@ -149,13 +148,13 @@ class MainController extends KDController
   #   if path is "Login"
   #     @loginScreen.slideDown()
   #   else
-  #     appManager.openApplication path, yes
+  #     KD.getSingleton("appManager").open path, yes
 
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.isWebTerm
-        appManager.openApplication 'WebTerm'
+        KD.getSingleton("appManager").open 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()

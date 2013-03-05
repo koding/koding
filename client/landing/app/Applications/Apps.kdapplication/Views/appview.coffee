@@ -75,7 +75,7 @@ class AppView extends KDView
                     modal.destroy()
                     if not err
                       @emit 'AppDeleted', app
-                      appManager.openApplication "Apps", yes, (instance)=>
+                      KD.getSingleton("appManager").open "Apps", yes, (instance)=>
                         @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
                         callback?()
                     else

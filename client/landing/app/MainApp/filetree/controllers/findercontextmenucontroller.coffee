@@ -39,7 +39,7 @@ class NFinderContextMenuController extends KDController
 
   handleContextMenuClick:(fileView, contextMenuItem)->
 
-    @propagateEvent KDEventType : 'ContextMenuItemClicked', {fileView, contextMenuItem}
+    @emit 'ContextMenuItemClicked', {fileView, contextMenuItem}
 
   getFileMenu:(fileView)->
 
@@ -99,7 +99,7 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : 'gitHubClone'
 
-    if 'archive' isnt @utils.getFileType @utils.getFileExtension fileData.name
+    if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
       delete items.Extract
     else
       delete items.Compress

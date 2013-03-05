@@ -53,19 +53,6 @@ class AccountRepoList extends KDListView
   setDomElement:(cssClass)->
     @domElement = $ "<ul class='kdview #{cssClass}'></ul>"
 
-  # viewAppended:->
-  #   super
-  #   @parent.addSubView addButton = new KDButtonView
-  #     style     : "clean-gray account-header-button"
-  #     title     : ""
-  #     icon      : yes
-  #     iconOnly  : yes
-  #     iconClass : "plus"
-  #     callback  : ()=>
-  #       @showAddEditModal null
-  #
-  #   @propagateEvent KDEventType : "ListViewIsReady"
-
   showAddEditModal:(data,listItem)=>
 
     @_listItemToBeUpdated = listItem
