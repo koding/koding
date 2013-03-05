@@ -22,55 +22,66 @@ class NewMemberBucketView extends JView
     @lastFetchedDate      = null
     @lastFetchedItemCount = 0
     @isUserViewCreated    = no
+    @listViews            = []
 
     @group.on "moreLinkClicked", =>
-      if not @isUserViewCreated
-        @addSubView new KDView
-          cssName : "close-button"
-          click   : =>
-        @isUserViewCreated = yes
+      groupLoader = new KDLoaderView size: width: 24
+      @group.addSubView groupLoader
+      groupLoader.show()
 
       count = 10
 
-      @fetchUsers count, (teasers) =>
+      if not @isUserViewCreated
+        @createCloseButton()
+        @createShowMore count
+        @isUserViewCreated = yes
+
+      options =
+        limit: count
+        from : @lastFetchedDate or @getData().createdAtTimestamps[0]
+        to   : @getData().createdAtTimestamps[1]
+
+      appManager.tell "Activity", "fetchQuery", options, (teasers, activities) =>
         @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
         @group.setData @getData().anchors
-        # @group.visibleCount += 10
-        # @group.render()
-        # @group.loader.hide()
+        @group.loader.hide()
 
         items = @getData().anchors.slice @lastFetchedItemCount, @lastFetchedItemCount + count
 
-        @newMembersList = new KDListViewController
+        newMembersList = new KDListViewController
           view        : new NewMemberList
           wrapper     : no
           scrollView  : no
         , items: items
 
-        @group.addSubView @newMembersList.getView()
+        @listViews.push newMembersList
+        @group.addSubView newMembersList.getView()
         @lastFetchedItemCount = @lastFetchedItemCount + count
+        @showMore.hide() if @getData().count <= @lastFetchedItemCount
+        @lastFetchedDate = activities.last.createdAt
+        groupLoader.destroy()
 
-  fetchUsers: (count, callback) ->
-    # @group.loader.show()
+  createCloseButton: ->
+    @addSubView @closeButton = new KDView
+      cssClass : "close-button"
+      partial  : "Close"
+      click    : =>
+        list.getView().destroy() for list in @listViews
+        @closeButton.destroy()
+        @showMore.destroy()
+        @lastFetchedItemCount = 0
+        @isUserViewCreated    = no
+        @lastFetchedDate      = null
+        @listViews            = []
 
-    selector    =
-      type      : { $in : ['CNewMemberBucketActivity'] }
-      createdAt :
-        $gt     : @lastFetchedDate or @getData().createdAtTimestamps[0]
-        $lt     : @getData().createdAtTimestamps[1]
-
-    options     =
-      limit     : count
-
-    KD.remote.api.CActivity.some selector, options, (err, activities)=>
-      return if err or activities.length is 0
-
-      activities = ActivityAppController.clearQuotes activities
-      @lastFetchedDate = activities.last.createdAt
-      KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-        return warn err if err
-
-        callback? teasers
+  createShowMore: (count) ->
+    return if @getData().count < @lastFetchedItemCount + count
+    @addSubView @showMore = new KDView
+      cssClass : "show-more-link"
+      partial  : "Show More"
+      click    : =>
+        @group.emit "moreLinkClicked"
+        @showMore.hide() if @getData().count <= @lastFetchedItemCount + count
 
   pistachio:->
     """
