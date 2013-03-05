@@ -281,6 +281,11 @@ class MainView extends KDView
     @profileContentView = new KDView
       lazyDomId : 'profile-content'
 
+    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+      @profileTagGroupView = new SkillTagGroup
+        lazyDomId :  'skill-tags'
+      , user
+
     @profileContentView.addSubView statusUpdatesWrapper = new KDView
       cssClass : 'status-updates profile-wrapper'
 
