@@ -229,9 +229,9 @@ class ApplicationManager extends KDObject
 
   # deprecate these
 
-  fetchStorage: (appId, version, callback) ->
-    # warn "System still trying to access application storage for #{appId}"
-    KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-      unless storage
-        storage = {appId,version,bucket:{}} # creating a fake storage
-      callback error, storage
+  # fetchStorage: (appId, version, callback) ->
+  #   # warn "System still trying to access application storage for #{appId}"
+  #   KD.whoami().fetchStorage {appId, version}, (error, storage) =>
+  #     unless storage
+  #       storage = {appId,version,bucket:{}} # creating a fake storage
+  #     callback error, storage
