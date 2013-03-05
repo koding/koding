@@ -8,11 +8,11 @@ class KDTabPaneView extends KDView
 
     super options, data
 
-    @name                 = options.name
+    @name = options.name
 
-    @on "KDTabPaneActive"   , @becameActive
-    @on "KDTabPaneInactive" , @becameInactive
-    @on "KDTabPaneDestroy"  , @aboutToBeDestroyed
+    @on "KDTabPaneActive",   @becameActive
+    @on "KDTabPaneInactive", @becameInactive
+    @on "KDTabPaneDestroy",  @aboutToBeDestroyed
 
   becameActive: noop
   becameInactive: noop
@@ -32,7 +32,7 @@ class KDTabPaneView extends KDView
 
   setTitle:(title)->
     @getDelegate().setPaneTitle @,title
-    @setOption "name", name
+    # @setOption "name", name
     @name = title
 
   getHandle: ->

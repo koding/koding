@@ -96,7 +96,6 @@ KD.error = error = noop
     [callback, errMsg] = [errMsg, callback] unless callback
 
     if KD.whoami() instanceof KD.remote.api.JGuest
-      # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'
         title    : 'Access denied!'

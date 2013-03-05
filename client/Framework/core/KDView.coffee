@@ -35,6 +35,7 @@ class KDView extends KDObject
     mouseenter  : "mouseEnter"
     mouseleave  : "mouseLeave"
     mousemove   : "mouseMove"
+    mousewheel  : "mouseWheel"
     contextmenu : "contextMenu"
     dragstart   : "dragStart"
     dragenter   : "dragEnter"
@@ -376,7 +377,7 @@ class KDView extends KDObject
 # ADD/DESTROY VIEW INSTANCES
 # #
 
-  destroy:()->
+  destroy:->
     # instance destroys own subviews
     @destroySubViews() if @getSubViews().length > 0
 
@@ -493,17 +494,17 @@ class KDView extends KDObject
     [eventName, $elm] = [$elm, @$()] unless eventName
 
     $elm.bind eventName, (event)=>
-      willPropagateToDOM = @handleEvent event
-      event.stopPropagation() unless willPropagateToDOM
+      shouldPropagate = @handleEvent event
+      event.stopPropagation() unless shouldPropagate
       yes
 
   handleEvent:(event)->
-    methodName = eventToMethodMap()[event.type] or event.type
-    result     = if @[methodName]? then @[methodName] event else yes
+    methodName      = eventToMethodMap()[event.type] or event.type
+    shouldPropagate = if @[methodName]? then @[methodName] event else yes
 
-    @emit event.type, event  unless result is no
+    @emit event.type, event  unless shouldPropagate is no
 
-    willPropagateToDOM = result
+    return shouldPropagate
 
   scroll:(event)->     yes
 
