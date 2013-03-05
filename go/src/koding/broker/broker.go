@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/amqputil"
 	"koding/tools/config"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
@@ -20,10 +22,10 @@ import (
 )
 
 func main() {
-	utils.Startup("broker", false)
-	utils.RunStatusLogger()
+	lifecycle.Startup("broker", false)
+	lifecycle.RunStatusLogger()
 
-	publishConn := utils.CreateAmqpConnection("broker")
+	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
@@ -36,10 +38,10 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 
-		utils.ChangeNumClients <- 1
+		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
 		defer func() {
-			utils.ChangeNumClients <- -1
+			lifecycle.ChangeNumClients <- -1
 			log.Debug("Client disconnected: " + socketId)
 		}()
 
@@ -103,14 +105,13 @@ func main() {
 			}
 			for {
 				err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-				amqpError, isAmqpError := err.(*amqp.Error)
 				if err == nil {
 					break
-				} else if isAmqpError && amqpError.Code == 504 {
-					resetControlChannel()
-				} else {
+				}
+				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
 					panic(err)
 				}
+				resetControlChannel()
 			}
 		}()
 
@@ -137,22 +138,21 @@ func main() {
 				case "publish":
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
-					if strings.HasPrefix(routingKey, "client.") {
-						for {
-							lastPayload = ""
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-							amqpError, isAmqpError := err.(*amqp.Error)
-							if err == nil {
-								lastPayload = message["payload"].(string)
-								break
-							} else if isAmqpError && amqpError.Code == 504 {
-								resetControlChannel()
-							} else {
-								panic(err)
-							}
-						}
-					} else {
+					if !strings.HasPrefix(routingKey, "client.") {
 						log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
+						return
+					}
+					for {
+						lastPayload = ""
+						err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
+						if err == nil {
+							lastPayload = message["payload"].(string)
+							break
+						}
+						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+							panic(err)
+						}
+						resetControlChannel()
 					}
 
 				default:
@@ -207,13 +207,13 @@ func main() {
 		}
 	}()
 
-	consumeConn := utils.CreateAmqpConnection("broker")
+	consumeConn := amqputil.CreateConnection("broker")
 	defer consumeConn.Close()
 
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(consumeConn)
 	defer consumeChannel.Close()
 
-	stream := utils.DeclareBindConsumeAmqpQueueNoDelete(consumeChannel, "topic", "broker", "#")
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#", false)
 	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
 	}
@@ -229,10 +229,9 @@ func main() {
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 		for pos != -1 && pos < len(routingKey) {
 			index := strings.IndexRune(routingKey[pos+1:], '.')
+			pos += index + 1
 			if index == -1 {
 				pos = len(routingKey)
-			} else {
-				pos += 1 + index
 			}
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()

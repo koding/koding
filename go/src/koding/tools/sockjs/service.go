@@ -55,10 +55,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	path := r.URL.Path
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Header.Get("Origin") != "" && r.Header.Get("Origin") != "null" {
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-	} else {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 	}
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	h := r.Header.Get("Access-Control-Request-Headers")
@@ -77,13 +76,15 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.Write(s.iFrameContent)
 		return
+	}
 
-	} else if path == "" || path == "/" {
+	if path == "" || path == "/" {
 		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		w.Write([]byte("Welcome to SockJS!\n"))
 		return
+	}
 
-	} else if path == "/info" {
+	if path == "/info" {
 		if r.Method == "OPTIONS" {
 			answerOptions(w, "OPTIONS, GET")
 			return
@@ -99,8 +100,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		info["entropy"] = rand.Int31()
 		enc.Encode(info)
 		return
+	}
 
-	} else if path == "/websocket" {
+	if path == "/websocket" {
 		s.serveRawWebsocket(w, r)
 		return
 	}
@@ -162,33 +164,36 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := make([]byte, r.ContentLength)
 		io.ReadFull(r.Body, data)
-		if session.ReadMessages(data) {
-			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-			w.WriteHeader(http.StatusNoContent)
-		} else {
+		if !session.ReadMessages(data) {
 			http.Error(w, "Broken JSON encoding.", http.StatusInternalServerError)
+			return
 		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		w.WriteHeader(http.StatusNoContent)
 
 	case "jsonp_send":
 		var data []byte
-		if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+		switch r.Header.Get("Content-Type") {
+		case "application/x-www-form-urlencoded":
 			data = []byte(r.FormValue("d"))
-		} else {
+		default:
 			data = make([]byte, r.ContentLength)
 			io.ReadFull(r.Body, data)
 		}
+
 		if len(data) == 0 {
 			http.Error(w, "Payload expected.", http.StatusInternalServerError)
 			return
 		}
-
-		if session.ReadMessages(data) {
-			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ok"))
-		} else {
+		if !session.ReadMessages(data) {
 			http.Error(w, "Broken JSON encoding.", http.StatusInternalServerError)
+			return
 		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 
 	case "xhr":
 		if r.Method == "OPTIONS" {

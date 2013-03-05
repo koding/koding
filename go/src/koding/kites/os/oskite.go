@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/utils"
+	"koding/tools/lifecycle"
 	"os"
 	"path"
 	"syscall"
 )
 
 func main() {
-	utils.Startup("kite.os", true)
+	lifecycle.Startup("kite.os", true)
 
 	k := kite.New("os")
 
