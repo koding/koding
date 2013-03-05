@@ -8,7 +8,7 @@ module.exports =
   pidPath               : "/var/run/node/SharedHosting.pid"
   logFile               : "/var/log/node/SharedHosting.log"
   amqp                  :
-    host                : 'rabbitmq.local'
+    host                : 'localhost'
     login               : 'prod-sharedhosting-kite'
     password            : 'djfjfhgh4455__5'
     heartbeat           : 10
@@ -42,9 +42,9 @@ module.exports =
     configFilePath      : '/opt/lsws/conf/httpd_config.xml'
     minRestartInterval  : '10000' # 10 sec
   ldap                  :
-    ldapUrl             : 'ldap://ldap.local'
-    rootUser            : "cn=directory manager"
-    rootPass            : 'Secret123'
+    ldapUrl             : 'ldap://ldap0.prod.system.aws.koding.com'
+    rootUser            : "uid=KAdmin,ou=Special Users,dc=koding,dc=com"
+    rootPass            : 'sOg4:L]iM7!_UV-H'
     groupDN             : 'ou=Beta,ou=Groups,dc=koding,dc=com'
     userDN              : 'ou=Beta,ou=People,dc=koding,dc=com'
     freeUID             : 'uid=betaUsersIDs,dc=koding,dc=com' # special record for next free uid, increments each time when create new user
