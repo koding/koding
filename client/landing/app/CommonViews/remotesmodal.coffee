@@ -188,7 +188,8 @@ class ManageRemotesModal extends KDModalViewWithForms
     @havingTrouble.hide()
 
   showMessage:(message, details = '')->
-    message = "<strong>An error occured!</strong> <span>Click</span> here for details." unless message
+    unless message
+      message = "<strong>An error occured!</strong> <span>Click</span> here for details."
     @savePasswordWarning.hide()
     @statusText1.updatePartial message
     @statusText1.show()
@@ -197,22 +198,33 @@ class ManageRemotesModal extends KDModalViewWithForms
     @havingTrouble.hide()
     @detailsHint.updatePartial "<p>#{details}</p><span class='close-icon'></span>"
 
+  addCustomItem:(message)->
+    @mountController.removeAllItems()
+    @customItem?.destroy()
+    @mountController.scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass: "no-item-found"
+      partial : message
+
   refreshMountList:(callback)->
     @mountController.removeAllItems()
-    @noRemoteFoundItem?.destroy()
+    @customItem?.destroy()
+    @addCustomItem "Retrieving your remotes..."
     @kc.run
       method : 'readMountInfo'
-    , (err, mounts)=>
+    , KD.utils.getTimedOutCallback (err, mounts)=>
       @hideMessages()
+      @customItem?.destroy()
       if not err and mounts?.length == 0
-        @mountController.scrollView.addSubView @noRemoteFoundItem = new KDCustomHTMLView
-          cssClass: "no-remote-found"
-          partial : "There is no remote drive attached to your Virtual Environment."
+        @addCustomItem "There is no remote drive attached to your Virtual Environment."
       else
         @mountController.instantiateListItems mounts unless err
-        @havingTrouble.show()
+      @havingTrouble.show()
       error err if err
       callback?()
+    , =>
+      @addCustomItem "It seems there is something wrong with remote servers. Please try again later."
+      callback?()
+    , 8000
 
   mountRemote:(mount, callback)=>
     {remotehost, haspass, remotepass, remoteuser} = mount
@@ -315,7 +327,8 @@ class RemoteListItem extends KDListItemView
         "Mount", (callback)=>
           unless data.haspass
             @mountToggle.hideLoader()
-            new AskForPassword "Password required to mount #{data.remotehost}", (password)=>
+            new AskForPassword \
+            "Password required to mount #{data.remotehost}", (password)=>
               data.remotepass = password
               @mountToggle.showLoader()
               @changeMountState {state : 'mount', data}, callback
@@ -397,7 +410,8 @@ class RemoteListItem extends KDListItemView
 
   click:(event)->
     {mounted, remoteuser, remotehost} = @getData()
-    @getDelegate().emit "RefreshFolder", "#{remoteuser}@#{remotehost}", yes if mounted
+    if mounted
+      @getDelegate().emit "RefreshFolder", "#{remoteuser}@#{remotehost}", yes
 
 class KDYesNoSwitch extends KDOnOffSwitch
   constructor:(options = {}, data)->
