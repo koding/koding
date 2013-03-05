@@ -242,12 +242,16 @@ class MainView extends KDView
     loginLink = new GroupsLandingPageLoginLink {groupEntryPoint}, {}
     loginLink.on 'LoginLinkRedirect', ({section})=>
       route =  "/#{groupEntryPoint}/#{section}"
-      console.log route
       # KD.getSingleton('router').handleRoute route
-      if section is 'Join'
-        mc = @getSingleton 'mainController'
-        mc.loginScreen.show()
-        mc.loginScreen.animateToForm 'login'
+      mc = @getSingleton 'mainController'
+
+      switch section
+        when 'Join'
+          mc.loginScreen.show()
+          mc.loginScreen.animateToForm 'login'
+        when 'Activity'
+          console.log {m:mc.loginScreen}
+          mc.loginScreen.slideUp()
 
     if isLoggedIn and groupEntryPoint?
       KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
