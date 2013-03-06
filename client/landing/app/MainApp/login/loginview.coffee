@@ -374,13 +374,13 @@ class LoginView extends KDScrollView
       @emit "LoginViewHidden"
       @hidden = yes
       $('body').removeClass 'login'
-      # @hide()
+      @hide()
       callback?()
 
   slideDown:(callback)->
 
     $('body').addClass 'login'
-    # @show()
+    @show()
     @emit "LoginViewShown"
     @$().css marginTop : 0
     @utils.wait 601,()=>

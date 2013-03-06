@@ -255,7 +255,9 @@ class MainView extends KDView
 
         when 'Activity'
           console.log {m:mc.loginScreen}
-          mc.loginScreen.slideUp()
+          mc.loginScreen.hide()
+          KD.getSingleton('router').handleRoute route
+          $('#group-landing').css 'height', 0
 
     if isLoggedIn and groupEntryPoint?
       KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
@@ -291,7 +293,8 @@ class MainView extends KDView
 
     if isLoggedIn
       if @userEnteredFromGroup() then @switchGroupState yes
-      else $('body').addClass "loggedIn"
+
+      $('body').addClass "loggedIn"
 
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
