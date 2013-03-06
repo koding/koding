@@ -22,6 +22,7 @@ type Session struct {
 	closed                       bool
 	closeMutex                   sync.Mutex
 	cookie                       string
+	Tag                          string
 }
 
 func newSession(service *Service) *Session {
