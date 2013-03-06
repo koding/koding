@@ -39,7 +39,7 @@ class ActivityAppController extends AppController
       else
         flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
-        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+        exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
         callback exempt
 
   constructor:(options={})->

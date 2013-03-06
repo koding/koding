@@ -254,7 +254,6 @@ class MainView extends KDView
           # $('#group-landing').css 'opacity', 0
 
         when 'Activity'
-          console.log {m:mc.loginScreen}
           mc.loginScreen.hide()
           KD.getSingleton('router').handleRoute route
           $('#group-landing').css 'height', 0
