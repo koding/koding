@@ -30,17 +30,6 @@ class ActivityAppController extends AppController
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
 
-  isExempt = (callback)->
-
-    KD.getSingleton("appManager").fetchStorage 'Activity', '1.0', (err, storage) =>
-      if err
-        log 'error fetching app storage', err
-        callback no
-      else
-        flags = KD.whoami().globalFlags
-        exempt = flags?.indexOf 'exempt'
-        exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
-        callback exempt
 
   constructor:(options={})->
 
@@ -103,6 +92,15 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
+  isExempt:(callback)->
+
+    @appStorage.fetchStorage (storage) =>
+      flags  = KD.whoami().globalFlags
+      exempt = flags?.indexOf 'exempt'
+      exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
+      callback exempt
+
+
   populateActivity:(options = {})->
 
     return if isLoading
@@ -110,7 +108,7 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
 
-    isExempt (exempt)=>
+    @isExempt (exempt)=>
 
       if exempt or @getFilter() isnt activityTypes
 
