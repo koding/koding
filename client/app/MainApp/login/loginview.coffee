@@ -337,6 +337,12 @@ class LoginView extends KDScrollView
     $('body').addClass 'recovery'
     @headBanner.click = callback
 
+  headBannerShowGoBackGroup:(groupTitle)->
+    @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
+      @headBanner.hide()
+      $('#group-landing').css 'height', '100%'
+      $('#group-landing').css 'opacity', 1
+
   headBannerShowRecovery:(recoveryToken)->
 
     @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
@@ -346,6 +352,7 @@ class LoginView extends KDScrollView
       @animateToForm "reset"
 
   headBannerShowInvitation:(invite)->
+
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
       @getSingleton('router').clear '/Register'
