@@ -45,29 +45,9 @@ class Sidebar extends JView
     , currentGroupData
 
     # handle group related decisions
-    groupsController = @getSingleton 'groupsController'
-    groupsController.on 'GroupChanged', =>
-      currentGroupData = groupsController.getCurrentGroupData()
-      unless currentGroupData?.data?.slug is 'koding'
-        @avatar.setClass 'shared-avatar'
-        @avatar.setWidth 80
-
-        # group avatar should be either a URL or a dataURL
-
-        @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/100/100/?' + @utils.getRandomNumber()})"
-        @groupAvatar.show()
-        @groupAvatar.setClass 'flash'
-        @avatarHeader.setData currentGroupData
-        @avatarHeader.show()
-      else
-        @avatar.unsetClass 'shared-avatar'
-        @avatar.setWidth 160
-        @groupAvatar.hide()
-        @groupAvatar.unsetClass 'flash'
-        @avatarHeader.setData currentGroupData
-        @avatarHeader.hide()
-      @render()
-
+    @initializeGroup()
+    
+    
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -118,6 +98,29 @@ class Sidebar extends JView
     # @statusLEDs = new StatusLEDView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
+
+  initializeGroup:->
+    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+    unless currentGroupData?.data?.slug is 'koding'
+      @avatar.setClass 'shared-avatar'
+      @avatar.setWidth 80
+
+      # group avatar should be either a URL or a dataURL
+
+      @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/100/100/?' + @utils.getRandomNumber()})"
+      @groupAvatar.show()
+      @groupAvatar.setClass 'flash'
+      @avatarHeader.setData currentGroupData
+      @avatarHeader.show()
+#    else
+#      @avatar.unsetClass 'shared-avatar'
+#      @avatar.setWidth 160
+#      @groupAvatar.hide()
+#      @groupAvatar.unsetClass 'flash'
+#      @avatarHeader.setData currentGroupData
+#      @avatarHeader.hide()
+    @render()
+
 
   setListeners:->
 

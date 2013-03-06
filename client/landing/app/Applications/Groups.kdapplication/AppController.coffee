@@ -1,5 +1,8 @@
 class GroupsAppController extends AppController
 
+  KD.registerSingleton "groupsController", new GroupsController
+
+
   KD.registerAppClass @,
     name         : "Groups"
     route        : "Groups"
