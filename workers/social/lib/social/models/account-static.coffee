@@ -2,7 +2,13 @@
 module.exports = ({profile,skillTags,counts})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
-  console.log skillTags
+
+  sortedTags = []
+  skillTags ?= {}
+  for i in [0...skillTags.length]
+    sortedTags.push skillTags[i]
+  sortedTags.sort()
+
   """
   <!DOCTYPE html>
   <html>
@@ -14,27 +20,6 @@ module.exports = ({profile,skillTags,counts})->
     <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
     <div id="profile-landing-content" class="profile-landing-content">
       <div class="profile-wrapper">
-
-        <span class="avatar">
-          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
-        </span>
-
-
-        <div class="content-title">
-          <a class="betatag">beta</a>
-          #{firstName} #{lastName} <span class='nickname'>#{nickname}</span>
-        </div>
-
-        <div class="content-about">
-          #{about}
-        </div>
-
-        <div class="content-tags" data-tags='#{getTagData(skillTags)}'>
-          <div class="tag-group" id="skill-tags">
-          #{ getTags(skillTags) }
-          </div>
-        </div>
-
 
         <div class="content-meta">
           <div class="followers"><span class="icon"></span>
@@ -57,6 +42,28 @@ module.exports = ({profile,skillTags,counts})->
           </div>
         </div>
 
+        <span class="avatar">
+          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
+        </span>
+
+        <div class="content-title">
+          <a class="betatag">beta</a>
+          #{firstName} #{lastName} <span class='nickname'>@#{nickname}</span>
+        </div>
+
+        <div class="content-about">
+          #{about}
+        </div>
+
+        <div class="content-tags">
+          <div class='tag-label'>Skills</div>
+          <div class="tag-group" id="skill-tags">
+          #{ getTags(sortedTags) }
+          </div>
+        </div>
+
+
+
         #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
 
       </div>
@@ -69,17 +76,10 @@ module.exports = ({profile,skillTags,counts})->
   """
 
 getTags = (tags)->
-  for i in [0...tags.length]
-    value = tags[i]
+  for value in tags
     """
     <div class='ttag' data-tag='#{value}'>#{value}</div>
     """
-
-getTagData = (tags)->
-  tagData = []
-  for i in [0...tags.length]
-    tagData.push tags[i]
-  tagData.join ','
 
 getStyles =->
   """
