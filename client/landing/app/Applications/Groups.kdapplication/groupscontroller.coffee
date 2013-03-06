@@ -17,9 +17,9 @@ class GroupsController extends KDObject
 
   constructor:->
     super
-    @utils.defer @bound 'init'
+    # @utils.defer @bound 'init'
 
-  init:->
+  # init:->
     mainController = @getSingleton 'mainController'
     mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
