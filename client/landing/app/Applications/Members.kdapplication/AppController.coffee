@@ -14,7 +14,7 @@ class MembersAppController extends AppController
 
     super options, data
 
-  setGroup:-> console.trace()
+#  setGroup:-> console.trace()
 
   createFeed:(view)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {

@@ -12,7 +12,9 @@ class MainController extends KDController
 
     # window.appManager is there for backwards compatibilty
     # will be deprecated soon.
-    window.appManager = new ApplicationManager
+    appManager = new ApplicationManager
+    window.appManager = appManager
+
     KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
@@ -21,8 +23,9 @@ class MainController extends KDController
 
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
-    KD.registerSingleton "groupsController", new GroupsController
-    
+
+    KD.registerSingleton "groupsController", appManager.create 'Groups'
+
     @appReady =>
       router.listen()
       KD.registerSingleton "activityController", new ActivityController
