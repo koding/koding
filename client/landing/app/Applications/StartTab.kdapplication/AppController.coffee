@@ -11,6 +11,6 @@ class StartTabAppController extends AppController
     options.view    = new StartTabMainView
     options.appInfo =
       type          : 'application'
-      name          : 'Your Apps'
+      title         : 'Your Apps'
 
     super options, data
