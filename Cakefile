@@ -334,7 +334,12 @@ clientFileMiddleware  = (options, commandLineOptions, code, callback)->
     console.log "[PISTACHIO] compiler started."
     kdjs = compilePistachios kdjs
     console.log "[PISTACHIO] compiler finished."
-
+  else # if options.configFile is "dev"
+    # we don't want pistachio compilation on dev mode
+    console.log "[CLIENT FILE MIDDLEWARE] Coffee-script is appended to kd.js. U should only see this on dev mode." 
+    coffeescripT = fs.readFileSync "./client/libs/coffee-script.1.6.1.js",'utf8'
+    libraries = coffeescripT+";"+libraries
+    # console.log coffeescripT,libraries
   js = "#{libraries}#{kdjs}"
 
   if minify
