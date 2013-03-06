@@ -108,27 +108,7 @@ KD.error = error = noop
     @backendIsConnected = yes
     KDObject.emit "KDBackendConnectedEvent"
 
-  setApplicationPartials:(partials)->
-
-    @appPartials = partials
-
-  subscribe : (subscription)->
-    # unless subscription.KDEventType.toLowerCase() is "resize"
-    @subscriptions.push subscription
-
-  # FIXME: very wasteful way to remove subscriptions, vs. splice ??
-  removeSubscriptions : (aKDViewInstance) ->
-    newSubscriptions = for subscription,i in @subscriptions
-      subscription if subscription.subscribingInstance isnt aKDViewInstance
-    @recreateSubscriptions newSubscriptions
-
-  recreateSubscriptions:(newSubscriptions)->
-    @subscriptions = []
-    for subscription in newSubscriptions
-      @subscriptions.push subscription if subscription?
-
-  getAllSubscriptions: ->
-    @subscriptions
+  setApplicationPartials:(@appPartials)->
 
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
