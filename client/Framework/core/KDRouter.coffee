@@ -18,6 +18,8 @@ class KDRouter extends KDObject
     @tree   = {} # this is the tree for quick lookups
     @routes = {} # this is the flat namespace containing all routes
     @addRoutes routes
+
+  listen:->
     # this handles the case that the url is an "old-style" hash fragment hack.
     if location.hash.length
       hashFragment = location.hash.substr 1
@@ -92,8 +94,6 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
-    # log userRoute, options
-    # debugger
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
     query = @utils.parseQuery query.join '&'
@@ -142,6 +142,8 @@ class KDRouter extends KDObject
       listeners = node[listenerKey]
       if listeners?.length
         listener.call @, routeInfo, state, path  for listener in listeners
+
+    return this
 
   handleQuery:(query)->
     query = @utils.stringifyQuery query  unless 'string' is typeof query

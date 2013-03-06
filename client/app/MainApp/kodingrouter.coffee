@@ -14,8 +14,10 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
+  listen:->
+    super
     unless @userRoute
-      @handleRoute defaultRoute,
+      @handleRoute @defaultRoute,
         shouldPushState: yes
         replaceState: yes
 
@@ -156,9 +158,6 @@ class KodingRouter extends KDRouter
 
     clear = @bound 'clear'
 
-    openGroupAdminDashboard = =>
-      @getSingleton('groupsController').openAdminDashboard arguments...
-
     requireLogin =(fn)->
       mainController.accountReady ->
         # console.log 'faafafaf'
@@ -197,7 +196,11 @@ class KodingRouter extends KDRouter
       '/:name?/Account'                 : section.Account
 
       # group dashboard
-      '/:name?/Dashboard'               : content.Groups
+      '/:name?/Dashboard'               : (routeInfo, state, route)->
+        {name} = routeInfo.params
+        KD.remote.cacheable name, (err, group, nameObj)=>
+          @openContent name, 'Groups', group, route
+
 
       # content
       '/:name?/Topics/:topicSlug'       : content.Topics
@@ -214,7 +217,8 @@ class KodingRouter extends KDRouter
           mainController.loginScreen.hidden = no
 
           recoveryToken = decodeURIComponent recoveryToken
-          KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)=>
+          {JPasswordRecovery} = KD.remote.api
+          JPasswordRecovery.validate recoveryToken, (err, isValid)=>
             if err or !isValid
               new KDNotificationView
                 title   : 'Something went wrong.'
