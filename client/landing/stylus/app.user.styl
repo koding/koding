@@ -7,269 +7,339 @@
 
 
 .profile-landing
-  height                  100%
-  overflow                auto
-  vendor transition,      height .2s linear
-
-.profile-landing-content
-  borderBox()
-  rel()
-  overflow                visible
-  max-height              660px
-  max-width               980px
-  width                   90%
-  border                  1px solid rgba(255,255,255,0.16)
-  rounded                 8px
-  margin                  60px auto 30px auto
-  shadow                  0 0 150px rgba(0,0,0,0.32)
-  bg color,               rgba(255,255,255,0.05)
-
-  .profile-wrapper
-    // max-height            650px
-    overflow              auto
-
-  .avatar
-    borderBox()
-    padding               30px 30px 25px 30px
-    fl()
-
-    img
-      padding             5px
-      border              1px solid rgba(255,255,255,0.2)
-      bg color,           rgba(0,0,0,0.2)
-      rounded             5px
-      vendor transition,  all 0.2s ease-in-out
-      width               150px
-      height              150px
-
-  .content-title
-    vendor transition,    margin-left 0.2s ease-in-out
-    font-weight           500
-    overflow              hidden
-    white-space           nowrap
-    text-overflow         ellipsis
-    font-size             24px
-    padding               30px 30px 20px 0
-    color                 #f5f5f5
-    vendor                font-smoothing antialiased
-    text-rendering        geometricPrecision
-    margin-left           215px
-
-    span.nickname
-      color               #aaa
-    .betatag
-      text-indent         -9999px
-      abs()
-      top                 -2px
-      right               -3px
-      width               64px
-      height              38px
-      sprite()
-      bg position,        -400px -120px
-
-  .content-about
-    vendor transition,    margin-left 0.2s ease-in-out
-    color                 rgba(227, 227, 227, 0.5)
-    font-weight           300
-    margin-left           215px
-    padding-right         30px
-
-  .content-tags
-
-    borderBox()
-    // fr()
-    clear right
-    padding-right 10px
-    .tag-label
-      color #aaa
-      font-weight 300
-      display inline-block
-      padding-right 10px
-    .tag-group
-      display inline-block
-      width auto
-
-  .content-meta
-    fr()
-    borderBox()
-    clear                 both
-    min-height            27px
-    rounded               4px
-    padding               5px 10px
-    margin                30px 30px 20px 30px
-    shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
-
-    bg color,             rgba(0,0,0,0.25)
-    div
-      vertical-align      top
-      color               rgba(227,227,227,0.5)
-      font-weight         300
-      display             block
-      padding-top         5px
-      .count
-        color             #f5f5f5
-        vertical-align    top
-      .icon
-        sprite()
-        width             20px
-        height            20px
-        display           inline-block
-      .text
-        vertical-align    top
-      &.followers
-        .icon
-          bg position,    -201px -523px
-      &.following
-        .icon
-          bg position,    -160px -522px
-      &.likes
-        .icon
-          bg position,    -99px -502px
-      &.topics
-        .icon
-          bg position,    -99px -523px
-
-  // .profile-content
-  //   borderBox()
-  //   clear                 both
-  //   height                394px
-  //   overflow              auto
-  //   margin                30px
-  //   bg color,             rgba(0, 0, 0, 0.25) //#282520
-  //   border                10px solid rgba(0, 0, 0, 0) //#282520
-  //   shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
-  //   rounded               5px
-  //   width                 auto
-
-  .content-markdown
-    overflow              auto
-    padding               10px
-
-.profile-content
-  max-width               980px
-  width                   90%
-  opacity                 0.5
-  // bg color, red
-  height auto
-  margin                  10px auto
-  vendor                  transition, opacity 1s ease-in-out
-  &.ready
-    opacity               1
-  .profile-wrapper
-    borderBox()
-
-    &.status-updates
-      width 61.8%
-      display inline-block
-      height 200px
-      padding-right 15px
-    &.other
-      width 38.2%
-      display inline-block
-      height 200px
-      padding-left 15px
-    &.footer
-      padding-top 30px
-      clear both
-      width 100%
-      height 100px
-
-    .profile-list
-      borderBox()
-      border                  1px solid rgba(255,255,255,0.16)
-      rounded                 8px
-      shadow                  0 0 10px rgba(0,0,0,0.32)
-      bg color,               rgba(255,255,255,0.05)
-      color #f5f5f5
-      padding 25px
-
-
-
-
-.profile-koding-logo
+  height 100%
+  width 100%
+  z-index 10000
   abs()
-  left                    0
-  bottom                  0
-  text-align              center
-  width                   auto
-  .text
-    margin                30px 30px 10px 30px
-    .logo
-      cursor              pointer
-      display             inline-block
-      width               140px
-      height              40px
-      sprite()
-      bg position,        -400px 0px
+  bg image, url("../images/koding-new-bg.png");
+  bg repeat, repeat-x
+  opacity 1
+  vendor transition, opacity 1s linear
+  &.profile-fading
+    opacity 0
+  &.profile-hidden
+    z-index 1
+.profile-header
+  width 100%
+  height 51px
+  // bg color, rgba(255,255,255,0.1)
 
-@media screen and (max-width: 650px)
-  .profile-landing-content
-    margin-top            30px
-    margin-bottom         0px
-    .avatar
-      padding-right       10px
-      img
-        padding           2px
-        width             40px
-        height            40px
-    .content-title
-      margin-left         90px
-    .content-about
-      margin-left         90px
-    .content-tags
-      margin-left         90px
-    .content-meta
-      float               none
-      margin-top          20px
-      margin-bottom       25px
-      text-align          center
-      .following
-        clear both
-    .content-markdown
-      img
-        max-width         100%
+.profile-personal-wrapper
+  height 100%
+  width 160px
+  fl()
 
-  .profile-content
-    margin                  10px auto
-    .profile-wrapper
-      &.status-updates
-        width 100%
-        display block
-        height 200px
-        margin 0px 0 0 0
-        padding 0
-      &.other
-        margin 10px 0 0 0
-        width 100%
-        display block
-        height 200px
-        padding 0
-      &.footer
-        padding 0
-        margin 10px 0 0 0
-        clear both
-        width 100%
-        height 100px
+.profile-avatar
+  height 76px
+  width 160px
+  background-position center center
+  background-repeat no-repeat
+  vendor background-size, 160px auto
 
-      .profile-list
-        padding 10px
+.profile-buttons
+  height 27px
+  border-top 1px solid #403d37
+  width 100%
+  bg color, rgba(0,0,0,0.2)
+
+.profile-content-wrapper
+  margin-left 160px
+  height 100%
+  width 100%
+  bg color, white
+
+.profile-title
+  borderBox()
+  height 77px
+  width 100%
+  bg                    color, white
+  border-bottom         1px solid rgb(229,229,229)
+  shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
+  gradient              rgb(255,255,255),rgb(242,242,242)
 
 
 
-.profile-navigation
-  width                   100%
-  height                  100px
-  text-align              center
-  .bigLink
-    display               inline-block
-    text-shadow           0 -1px 0 rgba(0,0,0,0.8)
-    font-size             20px
-    line-height           40px
-    margin-right          40px
-    color                 #ffb500
+.profile-content-links
+  width 125px
+  height 100%
+  border-right 1px solid #e8e8e8
+  padding 19px 23px
+
+  h4
+    text-transform uppercase
+    font-size: 9px;
+    color: #9f9d9a;
+    font-weight 400
+    margin-bottom 9px
+
+  li
+    color #7c603b
+    font-weight normal
     noTextDeco()
-    vertical-align        baseline
-    bg color,             transparent
-    &:hover
-      color               white
-    cursor                pointer
+    cursor pointer
+    line-height 16px
+    font-size 12px
+    vertical-align baseline
+    margin-bottom 6px
+
+// .profile-landing
+//   height                  100%
+//   width                   100%
+//   overflow                auto
+//   vendor transition,      height .2s linear
+
+// .profile-landing-content
+//   borderBox()
+//   rel()
+//   overflow                visible
+//   width                   25%
+//   height                  100%
+//   margin                  0
+//   bg color,               white
+//   display                 inline-block
+//   fl()
+//   border-right 1px solid rgba(255,255,255,0.3)
+//   // border                  1px solid rgba(255,255,255,0.16)
+//   // rounded                 8px
+//   // margin                  60px auto 30px auto
+//   // shadow                  0 0 150px rgba(0,0,0,0.32)
+//   // bg color,               rgba(255,255,255,0.05)
+
+//   .profile-wrapper
+//     // max-height            650px
+//     overflow              auto
+
+//   .avatar
+//     borderBox()
+//     float none
+//     img
+//       padding             5px
+//       border              1px solid rgba(255,255,255,0.2)
+//       bg color,           rgba(0,0,0,0.2)
+//       rounded             5px
+//       vendor transition,  all 0.2s ease-in-out
+//       width               150px
+//       height              150px
+
+//   .content-title
+//     font-weight           500
+//     overflow              hidden
+//     white-space           nowrap
+//     text-overflow         ellipsis
+//     font-size             24px
+//     color                 #444
+//     vendor                font-smoothing antialiased
+//     text-rendering        geometricPrecision
+
+
+//     span.nickname
+//       display block
+//       color               #aaa
+//     .betatag
+//       display none
+//     //   text-indent         -9999px
+//     //   abs()
+//     //   top                 -2px
+//     //   right               -3px
+//     //   width               64px
+//     //   height              38px
+//     //   sprite()
+//     //   bg position,        -400px -120px
+
+//   .content-about
+//     color                 rgba(227, 227, 227, 0.5)
+//     font-weight           300
+
+//   .content-tags
+
+//     borderBox()
+//     // fr()
+
+//     .tag-label
+//       color #aaa
+//       font-weight 300
+//       display inline-block
+//       padding-right 10px
+//     .tag-group
+//       display inline-block
+//       width auto
+
+//   .content-meta
+//     borderBox()
+
+//     bg color,             rgba(0,0,0,0.25)
+//     div
+//       vertical-align      top
+//       color               rgba(227,227,227,0.5)
+//       font-weight         300
+//       display             block
+//       padding-top         5px
+//       .count
+//         color             #444
+//         vertical-align    top
+//       .icon
+//         sprite()
+//         width             20px
+//         height            20px
+//         display           inline-block
+//       .text
+//         vertical-align    top
+//       &.followers
+//         .icon
+//           bg position,    -201px -523px
+//       &.following
+//         .icon
+//           bg position,    -160px -522px
+//       &.likes
+//         .icon
+//           bg position,    -99px -502px
+//       &.topics
+//         .icon
+//           bg position,    -99px -523px
+
+//   // .profile-content
+//   //   borderBox()
+//   //   clear                 both
+//   //   height                394px
+//   //   overflow              auto
+//   //   margin                30px
+//   //   bg color,             rgba(0, 0, 0, 0.25) //#282520
+//   //   border                10px solid rgba(0, 0, 0, 0) //#282520
+//   //   shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+//   //   rounded               5px
+//   //   width                 auto
+
+//   .content-markdown
+//     overflow              auto
+//     padding               10px
+
+// .profile-content
+//   width                   75%
+//   margin-left             25%
+//   display                 inline-block
+//   opacity                 0.5
+//   margin                  10px auto
+//   height 100%
+//   bg color, white
+//   vendor                  transition, opacity 1s ease-in-out
+//   &.ready
+//     opacity               1
+
+//   .profile-wrapper
+//     borderBox()
+
+//     &.status-updates
+//       width 61.8%
+//       display inline-block
+//       height 200px
+//       padding-right 15px
+//     &.other
+//       width 38.2%
+//       display inline-block
+//       height 200px
+//       padding-left 15px
+//     &.footer
+//       padding-top 30px
+//       clear both
+//       width 100%
+//       height 100px
+
+//     .profile-list
+//       borderBox()
+//       border                  1px solid rgba(255,255,255,0.16)
+//       rounded                 8px
+//       shadow                  0 0 10px rgba(0,0,0,0.32)
+//       bg color,               rgba(255,255,255,0.05)
+//       color #f5f5f5
+//       padding 25px
+
+
+
+
+// .profile-koding-logo
+//   abs()
+//   left                    0
+//   bottom                  0
+//   text-align              center
+//   width                   auto
+//   .text
+//     margin                30px 30px 10px 30px
+//     .logo
+//       cursor              pointer
+//       display             inline-block
+//       width               140px
+//       height              40px
+//       sprite()
+//       bg position,        -400px 0px
+
+// @media screen and (max-width: 650px)
+//   .profile-landing-content
+//     margin-top            30px
+//     margin-bottom         0px
+//     .avatar
+//       padding-right       10px
+//       img
+//         padding           2px
+//         width             40px
+//         height            40px
+//     .content-title
+//       margin-left         90px
+//     .content-about
+//       margin-left         90px
+//     .content-tags
+//       margin-left         90px
+//     .content-meta
+//       float               none
+//       margin-top          20px
+//       margin-bottom       25px
+//       text-align          center
+//       .following
+//         clear both
+//     .content-markdown
+//       img
+//         max-width         100%
+
+//   .profile-content
+//     margin                  10px auto
+//     .profile-wrapper
+//       &.status-updates
+//         width 100%
+//         display block
+//         height 200px
+//         margin 0px 0 0 0
+//         padding 0
+//       &.other
+//         margin 10px 0 0 0
+//         width 100%
+//         display block
+//         height 200px
+//         padding 0
+//       &.footer
+//         padding 0
+//         margin 10px 0 0 0
+//         clear both
+//         width 100%
+//         height 100px
+
+//       .profile-list
+//         padding 10px
+
+
+
+// .profile-navigation
+//   width                   100%
+//   height                  100px
+//   text-align              center
+//   .bigLink
+//     display               inline-block
+//     text-shadow           0 -1px 0 rgba(0,0,0,0.8)
+//     font-size             20px
+//     line-height           40px
+//     margin-right          40px
+//     color                 #ffb500
+//     noTextDeco()
+//     vertical-align        baseline
+//     bg color,             transparent
+//     &:hover
+//       color               white
+//     cursor                pointer
