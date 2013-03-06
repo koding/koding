@@ -16,12 +16,6 @@ class KDObject extends KDEventEmitter
     super
     @once 'ready', => @readyState = READY
 
-  if KD.MODE is 'development'
-    interfere:(o)-> o
-    o:(o)-> @interfere o
-  else
-    o:(o)->o
-
   bound: Bongo.bound
 
   lazyBound: (method, rest...)-> @[method].bind this, rest...
