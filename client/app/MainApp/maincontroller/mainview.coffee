@@ -290,8 +290,6 @@ class MainView extends KDView
 
   decorateLoginState:(isLoggedIn = no)->
 
-    log "Called me.", arguments, console.trace()
-
     groupLandingView = new KDView
       lazyDomId : 'group-landing'
 
