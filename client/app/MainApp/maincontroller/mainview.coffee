@@ -235,6 +235,7 @@ class MainView extends KDView
   switchProfileState:(isLoggedIn)->
     $('body').addClass "login"
     @addProfileViews()
+    @getSingleton('router').handleRoute "/Activity"
 
   switchGroupState:(isLoggedIn)->
 
@@ -298,6 +299,10 @@ class MainView extends KDView
   addProfileViews:->
     @profileLandingView = new KDView
       lazyDomId : 'profile-landing'
+      click:=>
+        @profileLandingView.setClass 'profile-fading'
+        @utils.wait 2000, =>
+          @profileLandingView.setClass 'profile-hidden'
 
     @profileContentView = new KDView
       lazyDomId : 'profile-content'
@@ -308,7 +313,6 @@ class MainView extends KDView
           lazyDomId :  'skill-tags'
         , user
         @profileTagGroupView.on 'TagWasClicked', =>
-          log 'closing'
           @closeProfileView()
         @profileTagGroupView.viewAppended()
 

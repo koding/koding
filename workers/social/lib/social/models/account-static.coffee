@@ -18,8 +18,64 @@ module.exports = ({profile,skillTags,counts})->
   </head>
   <body class="login" data-profile="#{nickname}">
     <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
-    <div id="profile-landing-content" class="profile-landing-content">
+
+    <div class="profile-header"></div>
+
+    <div class="profile-personal-wrapper">
+      <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
+
+      </div>
+      <div class="profile-buttons">
+      </div>
+      <div class="profile-links">
+        <ul>
+          <li>Blog</li>
+          <li>Twitter</li>
+          <li>GitHub</li>
+        </ul>
+
+      </div>
+      <div class="profile-koding-logo">
+      </div>
+
+    </div>
+
+    <div class="profile-content-wrapper">
+      <div class="profile-title">
+      </div>
+      <div class="profile-content-links">
+        <h4>Show me</h4>
+        <ul>
+          <li>Everything</li>
+          <li>Status Updates</li>
+          <li>Code Snippets</li>
+          <li>Discussions</li>
+          <li>Tutorials</li>
+          <li>Q&amp;A</li>
+          <li>Links</li>
+        </ul>
+      </div>
+      <div class="profile-content">
+      </div>
+    </div>
+
+
+    <!-- <div id="profile-landing-content" class="profile-landing-content">
       <div class="profile-wrapper">
+
+
+        <span class="avatar">
+          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
+        </span>
+
+        <div class="content-title">
+          <a class="betatag">beta</a>
+          #{firstName} #{lastName} <span class='nickname'>@#{nickname}</span>
+        </div>
+
+        <div class="content-about">
+          #{about}
+        </div>
 
         <div class="content-meta">
           <div class="followers"><span class="icon"></span>
@@ -42,19 +98,6 @@ module.exports = ({profile,skillTags,counts})->
           </div>
         </div>
 
-        <span class="avatar">
-          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
-        </span>
-
-        <div class="content-title">
-          <a class="betatag">beta</a>
-          #{firstName} #{lastName} <span class='nickname'>@#{nickname}</span>
-        </div>
-
-        <div class="content-about">
-          #{about}
-        </div>
-
         <div class="content-tags">
           <div class='tag-label'>Skills</div>
           <div class="tag-group" id="skill-tags">
@@ -63,12 +106,10 @@ module.exports = ({profile,skillTags,counts})->
         </div>
 
 
-
-        #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
-
       </div>
     </div>
-    <div id='profile-content' class='profile-content'></div>
+    <div id='profile-content' class='profile-content'></div> -->
+    #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
     #{getScripts()}
     </div>
   </body>
