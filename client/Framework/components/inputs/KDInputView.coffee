@@ -43,12 +43,9 @@ class KDInputView extends KDView
 
     if options.validate?
       @setValidation options.validate
-      @on "ValidationError", (err)=> @giveValidationFeedback err
-      @on "ValidationPassed", => @giveValidationFeedback()
-      @listenTo
-        KDEventTypes       : "focus"
-        listenedToInstance : @
-        callback           : => @clearValidationFeedback()
+      @on "ValidationError", @bound "giveValidationFeedback"
+      @on "ValidationPassed", @bound "giveValidationFeedback"
+      @on "focus", @bound "clearValidationFeedback"
 
     if options.type is "select" and options.selectOptions
       @on "viewAppended", =>
@@ -150,17 +147,13 @@ class KDInputView extends KDView
   _prevVal = null
 
   setCase:(forceCase)->
+    cb = =>
+      val = @getValue()
+      return if val is _prevVal
+      @setValue _prevVal = val
 
-    @listenTo
-      KDEventTypes       : [ "keyup", "blur" ]
-      listenedToInstance : @
-      callback           : =>
-        val = @getValue()
-        return if val is _prevVal
-        @setValue val
-        _prevVal = val
-
-
+    @on "keyup", cb.bind this
+    @on "blur",  cb.bind this
 
   setValidation:(ruleSet)->
 
@@ -305,42 +298,31 @@ class KDInputView extends KDView
     @setClass "autogrow"
     $growCalculator = $ "<div/>", class : "invisible"
 
-    @listenTo
-      KDEventTypes       : "focus"
-      listenedToInstance : @
-      callback           : ->
-        @utils.wait 10, =>
-          $growCalculator.appendTo 'body'
-          $growCalculator.css
-            height        : "auto"
-            "z-index"     : 100000
-            width         : @$().width()
-            padding       : @$().css('padding')
-            "word-break"  : @$().css('word-break')
-            "font-size"   : @$().css('font-size')
-            "line-height" : @$().css('line-height')
+    @on "focus", =>
+      @utils.defer =>
+        $growCalculator.appendTo 'body'
+        $growCalculator.css
+          height        : "auto"
+          "z-index"     : 100000
+          width         : @$().width()
+          padding       : @$().css('padding')
+          "word-break"  : @$().css('word-break')
+          "font-size"   : @$().css('font-size')
+          "line-height" : @$().css('line-height')
 
-    @listenTo
-      KDEventTypes       : "blur"
-      listenedToInstance : @
-      callback           : ->
-        $growCalculator.detach()
-        @$()[0].style.height = "none" # hack to set to initial
+    @on "blur", =>
+      $growCalculator.detach()
+      @$()[0].style.height = "none" # hack to set to initial
 
-    @listenTo
-      KDEventTypes : "keyup"
-      listenedToInstance : @
-      callback : ->
-        $growCalculator.text @getValue()
-        height    = $growCalculator.height()
-        if @$().css('box-sizing') is "border-box"
-          padding = parseInt(@$().css('padding-top'),10) + parseInt(@$().css('padding-bottom'),10)
-          border  = parseInt(@$().css('border-top-width'),10) + parseInt(@$().css('border-bottom-width'),10)
-          height  = height + border + padding
+    @on "keyup", =>
+      $growCalculator.text @getValue()
+      height    = $growCalculator.height()
+      if @$().css('box-sizing') is "border-box"
+        padding = parseInt(@$().css('padding-top'),10) + parseInt(@$().css('padding-bottom'),10)
+        border  = parseInt(@$().css('border-top-width'),10) + parseInt(@$().css('border-bottom-width'),10)
+        height  = height + border + padding
 
-        @setHeight height
-
-
+      @setHeight height
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 

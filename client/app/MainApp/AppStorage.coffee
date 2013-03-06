@@ -18,6 +18,7 @@ class AppStorage extends KDEventEmitter
           @emit "storageFetched"
         else
           callback null
+
     else
       callback @_storage
       KD.utils.defer => @emit "storageFetched"

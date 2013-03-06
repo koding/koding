@@ -9,7 +9,7 @@ class ContentDisplayController extends KDController
     @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
     @on "ContentDisplayWantsToBeHidden", (view)=> @hideContentDisplay view
     @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
-    appManager.on "ApplicationShowedAView",    => @hideAllContentDisplays()
+    KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
   showContentDisplay:(view, callback=->)->
     contentPanel = @getSingleton "contentPanel"

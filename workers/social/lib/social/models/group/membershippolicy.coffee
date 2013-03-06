@@ -11,12 +11,13 @@ module.exports = class JMembershipPolicy extends Module
       approvalEnabled     :
         type              : Boolean
         default           : yes
-      invitationsEnabled  :
+      dataCollectionEnabled :
         type              : Boolean
         default           : no
-      accessRequestsEnabled:
-        type              : Boolean
-        default           : yes
+      fields              : Object
+      # invitationsEnabled  :
+      #   type              : Boolean
+      #   default           : no
       webhookEndpoint     : String
       explanation         : String
 

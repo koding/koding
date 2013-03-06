@@ -23,6 +23,9 @@ module.exports = class JPermissionSet extends Module
       'permissions.roles'   : 'sparse'
       'permissions.title'   : 'sparse'
     schema                  :
+      isCustom              :
+        type                : Boolean
+        default             : yes
       permissions           :
         type                : Array
         default             : -> []
@@ -33,20 +36,21 @@ module.exports = class JPermissionSet extends Module
 
   constructor:->
     super
-    # initialize the permission set with some sane defaults:
-    {permissionDefaultsByModule} = require '../../traits/protected'
-    permissionsByRole = {}
+    unless @isCustom
+      # initialize the permission set with some sane defaults:
+      {permissionDefaultsByModule} = require '../../traits/protected'
+      permissionsByRole = {}
 
-    for own module, modulePerms of permissionDefaultsByModule
-      for own perm, roles of modulePerms
-        for role in roles
-          permissionsByRole[module] ?= {}
-          permissionsByRole[module][role] ?= []
-          permissionsByRole[module][role].push perm
-    @permissions = []
-    for own module, moduleRoles of permissionsByRole
-      for own role, modulePerms of moduleRoles
-        @permissions.push {module, role, permissions: modulePerms}
+      for own module, modulePerms of permissionDefaultsByModule
+        for own perm, roles of modulePerms
+          for role in roles
+            permissionsByRole[module] ?= {}
+            permissionsByRole[module][role] ?= []
+            permissionsByRole[module][role].push perm
+      @permissions = []
+      for own module, moduleRoles of permissionsByRole
+        for own role, modulePerms of moduleRoles
+          @permissions.push {module, role, permissions: modulePerms}
 
   @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
@@ -70,7 +74,7 @@ module.exports = class JPermissionSet extends Module
           else unless permissionSet then callback null, no
           else
             queue = advanced.map ({permission, validateWith})->->
-              validateWith ?= require('./validators').any
+              validateWith ?= (require './validators').any
               validateWith.call target, client, group, permission, permissionSet,
                 (err, hasPermission)->
                   if err then queue.next err
@@ -83,13 +87,21 @@ module.exports = class JPermissionSet extends Module
             daisy queue
 
   @permit =(permission, promise)->
-    [promise, permission] = [permission, promise]  unless promise
+    # parameter hockey to allow either parameter to be optional
+    if arguments.length is 1 and 'string' isnt typeof permission
+      [promise, permission] = [permission, promise]
+    promise ?= {}
+    # convert simple rules to complex rules:
     advanced =
       if promise.advanced
         promise.advanced
       else
         [{permission, validateWith: require('./validators').any}]
-    secure (client, rest...)->
+    # Support a "stub" form of permit that simply calls back with yes if the
+    # permission is supported:
+    promise.success ?= (client, callback)-> callback null, yes
+    # return the validator:
+    permit = secure (client, rest...)->
       if 'function' is typeof rest[rest.length-1]
         [rest..., callback] = rest
       else

@@ -73,8 +73,7 @@ module.exports = class JUser extends jraphical.Module
     schema          :
       username      :
         type        : String
-        validate    : (value)->
-          3 < value.length < 26 and /^[^-][a-z0-9-]+$/.test value
+        validate    : require('./name').validateName
         set         : (value)-> value.toLowerCase()
       email         :
         type        : String

@@ -7,6 +7,7 @@ version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'ut
 
 # mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
 # mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
+
 mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
@@ -42,7 +43,7 @@ module.exports = deepFreeze
     updateAllSlugs : no
     debugConnectionErrors: yes
   uploads       :
-    enableStreamingUploads: no
+    enableStreamingUploads: yes
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
@@ -77,7 +78,7 @@ module.exports = deepFreeze
     watch       : yes
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -109,7 +110,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : 'https://dmq.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'

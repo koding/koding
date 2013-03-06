@@ -9,23 +9,19 @@ class ContentDisplayControllerMember extends KDViewController
 
   loadView:(mainView)->
     member = @getData()
-
-    # mainView.addSubView header = new HeaderViewSection type : "big", title : "Profile"
+    log "asdsd"
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView
-        tagName : "a"
-        partial : "<span>&laquo;</span> Back"
-        click: -> console.log history; history.back(); no
-
-    contentDisplayController = @getSingleton "contentDisplayController"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : backLink
-      callback : (pubInst, event)=>
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : (event)->
         event.stopPropagation()
         event.preventDefault()
+        contentDisplayController = KD.getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+        history.back()
+        no
+
 
     # FIX THIS GG
 
@@ -49,15 +45,6 @@ class ContentDisplayControllerMember extends KDViewController
 
     memberProfile = @addProfileView member
     memberStream  = @addActivityView member
-
-    # unless KD.isMine member
-    #   @listenTo
-    #     KDEventTypes       : "mouseenter"
-    #     listenedToInstance : memberProfile
-    #     callback           : => @mouseEnterOnHeader()
-
-    memberProfile.on 'FollowButtonClicked', @followAccount
-    memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
 
   addProfileView:(member)->
 
@@ -93,15 +80,9 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 
-  followAccount:(account, callback)->
-    account.follow callback
-
-  unfollowAccount:(account,callback)->
-    account.unfollow callback
-
   addActivityView:(account)->
 
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
@@ -121,21 +102,21 @@ class ContentDisplayControllerMember extends KDViewController
               'CFolloweeBucketActivity', 'CNewMemberBucket'
               'CDiscussionActivity',"CTutorialActivity"
             ]
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         statuses            :
           title             : "Status Updates"
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type = 'CStatusActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         codesnips           :
           title             : "Code Snippets"
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type     = 'CCodeSnipActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
         # Discussions Disabled
         # discussions         :
@@ -143,7 +124,7 @@ class ContentDisplayControllerMember extends KDViewController
         #   dataSource        : (selector, options, callback)=>
         #     selector.originId = account.getId()
         #     selector.type     = 'CDiscussionActivity'
-        #     appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+        #     KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
         #       callback null, data
 
       sort                  :
@@ -158,13 +139,6 @@ class ContentDisplayControllerMember extends KDViewController
           direction         : -1
         # and more
     }, (controller)=>
-      #put listeners here, look for the other feeder instances
 
-      # unless KD.isMine account
-      #   @listenTo
-      #     KDEventTypes       : "mouseenter"
-      #     listenedToInstance : controller.getView()
-      #     callback           : => @mouseEnterOnFeed()
-      # log controller
       @getView().addSubView controller.getView()
 

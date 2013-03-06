@@ -4,6 +4,10 @@ module.exports = class JInvitationRequest extends Model
 
   {daisy}   = require 'bongo'
 
+  {permit} = require './group/permissionset'
+
+  KodingError = require '../error'
+
   #csvParser = require 'csv'
 
   @share()
@@ -11,8 +15,15 @@ module.exports = class JInvitationRequest extends Model
   @set
     indexes           :
       email           : ['unique','sparse']
+      status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
+      instance        : [
+        'sendInvitation'
+        'deleteInvitation'
+        'approveInvitation'
+        'declineInvitation'
+      ]
     schema            :
       email           :
         type          : String
@@ -28,11 +39,26 @@ module.exports = class JInvitationRequest extends Model
         type          : Date
         default       : -> new Date
       group           : String
+      status          :
+        type          : String
+        enum          : ['Invalid status', [
+          'pending'
+          'sent'
+          'declined'
+          'approved'
+        ]]
+        default       : 'pending'
+      invitationType  :
+        type          : String
+        enum          : ['invalid invitation type',[
+          'invitation'
+          'basic approval'
+        ]]
+        default       : 'invitation'
 
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
-      console.log "->",arguments
       if err
         callback err
       else
@@ -68,3 +94,58 @@ module.exports = class JInvitationRequest extends Model
         callback "Finished parsing #{count} records, of which #{queue.length} were valid."
         daisy queue
       csv.on 'error', (err)-> errors.push err
+
+  declineInvitation: permit 'send invitations'
+    success: (client, callback=->)->
+      @update $set:{ status: 'declined' }, callback
+
+  fetchAccount:(callback)->
+    JAccount = require './account'
+    if @koding.username
+      JAccount.one {'profile.nickname': @koding.username}, callback
+    else
+      callback new KodingError """
+        Unimplemented: we can't fetch an account from this type of invitation
+        """
+
+  approveInvitation: permit 'send invitations'
+    success: (client, callback=->)->
+      console.trace()
+      JGroup = require './group'
+      JGroup.one { slug: @group }, (err, group)=>
+        if err then callback err
+        else unless group?
+          callback new KodingError "No group! #{@group}"
+        else
+          @fetchAccount (err, account)=>
+            if err then callback err
+            else
+              
+              # send the invitation in any case:
+              @sendInvitation()
+              
+              if account?
+                group.approveMember account, (err)=>
+                  if err then callback err
+                  else @update $set:{ status: 'approved' }, callback
+              else
+                @update $set:{ status: 'sent' }, callback
+
+  deleteInvitation: permit 'send invitations'
+    success:(client, rest...)-> @remove rest...
+
+  sendInvitation:(callback=->)->
+    JUser         = require './user'
+    JInvitation   = require './invitation'
+    JUser.someData username: @koding.username, { email: 1 }, (err, cursor)=>
+      if err then callback err
+      else
+        cursor.nextObject (err, obj)=>
+          if err then callback err
+          else unless obj?
+            callback new KodingError "Unknown username: #{@koding.username}"
+          else
+            JInvitation.sendBetaInvite obj, callback
+
+  sendInvitation$: permit 'send invitations'
+    success: (client, callback)-> @sendInvitation callback

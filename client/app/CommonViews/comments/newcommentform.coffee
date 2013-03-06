@@ -23,30 +23,23 @@ class NewCommentForm extends KDView
     {itemTypeString} = @getOptions()
 
     commentFormWrapper.addSubView @commentInput   = new KDHitEnterInputView
-      type        : "textarea"
-      delegate    : @
-      placeholder : "Type your #{itemTypeString} and hit enter..."
-      autogrow    : yes
-      validate    :
-        # event       : "keyup"
+      type          : "textarea"
+      delegate      : @
+      placeholder   : "Type your #{itemTypeString} and hit enter..."
+      autogrow      : yes
+      validate      :
         rules       :
           required  : yes
           maxLength : 2000
         messages    :
-          required    : "Please type a #{itemTypeString}..."
-      callback    : @commentInputReceivedEnter
+          required  : "Please type a #{itemTypeString}..."
+      callback      : @commentInputReceivedEnter
 
     @attachListeners()
 
   attachListeners:->
-    @listenTo
-      KDEventTypes:       "Focus"
-      listenedToInstance: @commentInput
-      callback:           @commentInputReceivedFocus
-    @listenTo
-      KDEventTypes:       "Blur"
-      listenedToInstance: @commentInput
-      callback:           @commentInputReceivedBlur
+    @commentInput.on "focus", @bound "commentInputReceivedFocus"
+    @commentInput.on "blur", @bound "commentInputReceivedBlur"
 
   commentPosted:()->
     @commentInput.setValue ""
@@ -69,23 +62,17 @@ class NewCommentForm extends KDView
     @makeCommentFieldActive()
     list = @getDelegate()
     listLength = list.items.length
-    # list.emit "BackgroundActivityStarted"
+
     if list.items.length > 0
       firstCommentTimestamp = list.items[0].getData().meta.createdAt
-      fromUnixTime = Date.parse firstCommentTimestamp
+      fromUnixTime          = Date.parse firstCommentTimestamp
     else
       fromUnixTime = Date.parse 1e7
 
-    callback = (err,comments)=>
-      @makeCommentFieldActive()
-
-    list.propagateEvent KDEventType : "CommentInputReceivedFocus",{fromUnixTime,callback}
-    no
+    callback = => @makeCommentFieldActive()
 
   commentInputReceivedBlur:()->
-    if @commentInput.getValue() is ""
-      @resetCommentField()
-    no
+    @resetCommentField()  if @commentInput.getValue() is ""
 
   commentInputReceivedEnter:(instance,event)=>
     if KD.isLoggedIn()
@@ -93,7 +80,7 @@ class NewCommentForm extends KDView
       @commentInput.setValue ''
       @commentInput.blur()
       @commentInput.$().blur()
-      @getDelegate().propagateEvent KDEventType: 'CommentSubmitted', reply
+      @getDelegate().emit 'CommentSubmitted', reply
     else
       new KDNotificationView
         type      : "growl"

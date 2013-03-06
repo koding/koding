@@ -27,8 +27,8 @@ class AvatarPopupNotifications extends AvatarPopup
       cssClass : "sublink"
       partial  : "<a href='#'>View all of your activity notifications...</a>"
       click    : =>
-        appManager.openApplication('Inbox')
-        appManager.tell 'Inbox', "goToNotifications"
+        KD.getSingleton("appManager").open('Inbox')
+        KD.getSingleton("appManager").tell 'Inbox', "goToNotifications"
         @hide()
 
   hide:->

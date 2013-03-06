@@ -29,6 +29,8 @@ class KDModalView extends KDView
     @setContent options.content                   if options.content
     @addSubView options.view,".kdmodal-content"   if options.view
 
+    @on 'ModalCancelled', options.cancel          if options.cancel
+
     @on "viewAppended", =>
       @utils.wait 500, => @unsetClass "initial"
 
@@ -51,7 +53,7 @@ class KDModalView extends KDView
 
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).one "keydown.modal",(e)=>
-      @destroy() if e.which is 27
+      @cancel() if e.which is 27
 
     @on "childAppended", @setPositions.bind @
 
@@ -87,15 +89,14 @@ class KDModalView extends KDView
 
     @buttons or= {}
     @setClass "with-buttons"
+    defaultFocusTitle = null
     for own buttonTitle, buttonOptions of buttonDataSet
+      defaultFocusTitle ?= buttonTitle
       button = @createButton buttonTitle, buttonOptions
       @buttons[buttonTitle] = button
-      if buttonOptions.focus
-        focused = yes
-        button.$().trigger "focus"
+      focused = yes  if buttonOptions.focus
 
-    unless focused
-      @$("button").eq(0).trigger "focus"
+    @buttons[defaultFocusTitle].setFocus()  unless focused
 
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")
@@ -111,8 +112,8 @@ class KDModalView extends KDView
 
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
-  keyUp:(e)->
-    @destroy() if e.which is 27
+  # keyUp:(e)->
+  #   @cancel() if e.which is 27
 
   setTitle:(title)->
     @$().find(".kdmodal-title").removeClass('hidden').html("<span class='title'>#{title}</span>")
@@ -163,12 +164,14 @@ class KDModalView extends KDView
 
     buttonOptions.title    = title
     buttonOptions.delegate = @
-    @buttonHolder.addSubView button = new KDButtonView buttonOptions
+    itemClass = buttonOptions.itemClass
+    delete buttonOptions.itemClass
+    @buttonHolder.addSubView button = new (itemClass or KDButtonView) buttonOptions
+    # @buttonHolder.addSubView button = new KDButtonView buttonOptions
       # title       : title
       # style       : buttonOptions.style     if buttonOptions.style?
       # callback    : buttonOptions.callback  if buttonOptions.callback?
-    button.registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:->
-      @propagateEvent KDEventType:'KDModalShouldClose'
+    button.on 'KDModalShouldClose', => @emit 'KDModalShouldClose'
     button
 
   setContent:(content)->
@@ -181,15 +184,19 @@ class KDModalView extends KDView
       @utils.wait =>
         @setClass "active"
 
+  cancel:->
+    @emit 'ModalCancelled'
+    @destroy()
+
   destroy:()->
     $(window).off "keydown.modal"
-    uber = KDView::destroy.bind(@)
+    uber = KDView::destroy.bind @
 
     if @options.fx
       @unsetClass "active"
-      setTimeout uber,300
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+      setTimeout uber, 300
     else
       @getDomElement().hide()
       uber()
-      @propagateEvent KDEventType : 'KDModalViewDestroyed'
+
+    @emit 'KDModalViewDestroyed', @

@@ -306,48 +306,6 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-  getFileExtension: (path) ->
-    fileName = path or ''
-    [name, extension...]  = fileName.split '.'
-    extension = if extension.length is 0 then '' else extension[extension.length-1]
-
-  getFileType: (extension)->
-
-    fileType = "unknown"
-
-    _extension_sets =
-      code    : [
-        "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
-        "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
-        "js","json","coffee"
-        "css","styl","sass"
-      ]
-      text    : [
-        "txt", "doc", "rtf", "csv", "docx", "pdf"
-      ]
-      archive : [
-        "zip","gz","bz2","tar","7zip","rar","gzip","bzip2","arj","cab"
-        "chm","cpio","deb","dmg","hfs","iso","lzh","lzma","msi","nsis"
-        "rpm","udf","wim","xar","z","jar","ace","7z","uue"
-      ]
-      image   : [
-        "png","gif","jpg","jpeg","bmp","svg","psd","qt","qtif","qif"
-        "qti","tif","tiff","aif","aiff"
-      ]
-      video   : [
-        "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
-        "3gp","wmv","flv","swf","wma","rm","rpm","rv"
-      ]
-      sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
-      app     : ["kdapp"]
-
-
-    for own type,set of _extension_sets
-      for ext in set
-        if extension is ext
-          fileType = type
-
-    return fileType
 
   _permissionMap: ->
     map =
@@ -370,12 +328,6 @@ __utils =
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
-
-  getParentPath :(path)->
-    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
-    parentPath = path.split('/')
-    parentPath.pop()
-    return parentPath.join('/')
 
   removeBrokenSymlinksUnder:(path)->
     kiteController = KD.getSingleton('kiteController')
@@ -573,7 +525,7 @@ __utils =
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
-        appManager.tell 'Activity', 'ownActivityArrived', reply
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 

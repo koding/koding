@@ -1,5 +1,7 @@
 {argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+Object.defineProperty global, 'KONFIG', {
+  value: require('koding-config-manager').load("main.#{argv.c}")
+}
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
@@ -75,7 +77,7 @@ else
     app.set 'case sensitive routing', on
     app.use express.cookieParser()
     app.use express.session {"secret":"foo"}
-    app.use express.bodyParser()
+    # app.use express.bodyParser()
     app.use express.compress()
     app.use express.static "#{projectRoot}/website/"
 
@@ -119,33 +121,34 @@ else
     s3 = require('./s3') uploads.s3
 
     app.post '/Upload', s3..., (req, res)->
+      [protocol, path] = uploads.distribution.split '//'
       res.send(for own key, file of req.files
         filename  : file.filename
-        resource  : nodePath.join uploads.distribution, file.path
+        resource  : [protocol, nodePath.join path, file.path].join '//'
       )
 
-    app.get '/Upload/test', (req, res)->
-      res.send \
-        """
-        <script>
-          function submitForm(form) {
-            var file, fld;
-            input = document.getElementById('image');
-            file = input.files[0];
-            fld = document.createElement('input');
-            fld.hidden = true;
-            fld.name = input.name + '-size';
-            fld.value = file.size;
-            form.appendChild(fld);
-            return true;
-          }
-        </script>
-        <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-          <p>Title: <input type="text" name="title" /></p>
-          <p>Image: <input type="file" name="image" id="image" /></p>
-          <p><input type="submit" value="Upload" /></p>
-        </form>
-        """
+    # app.get '/Upload/test', (req, res)->
+    #   res.send \
+    #     """
+    #     <script>
+    #       function submitForm(form) {
+    #         var file, fld;
+    #         input = document.getElementById('image');
+    #         file = input.files[0];
+    #         fld = document.createElement('input');
+    #         fld.hidden = true;
+    #         fld.name = input.name + '-size';
+    #         fld.value = file.size;
+    #         form.appendChild(fld);
+    #         return true;
+    #       }
+    #     </script>
+    #     <form method="post" action="/Upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+    #       <p>Title: <input type="text" name="title" /></p>
+    #       <p>Image: <input type="file" name="image" id="image" /></p>
+    #       <p><input type="submit" value="Upload" /></p>
+    #     </form>
+    #     """
 
   app.get "/", (req, res)->
     if frag = req.query._escaped_fragment_?
@@ -192,6 +195,16 @@ else
       if url in caseSensitiveAliases
         alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
       if alias and rooted then "/#{alias}" else alias
+
+  app.get '/:groupName', (req, res, next)->
+    {JGroup} = koding.models
+    {groupName} = req.params
+    JGroup.one { slug: groupName }, (err, group)->
+      if err or !group? then next err
+      else
+        group.fetchHomepageView (err, view)->
+          if err then next err
+          else res.send view
 
   app.get '*', (req,res)->
     {url} = req

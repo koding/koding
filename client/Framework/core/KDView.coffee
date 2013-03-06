@@ -88,20 +88,6 @@ class KDView extends KDObject
 
     @setClass 'kddraggable' if o.draggable
 
-    if location.hostname is "localhost"
-      @listenTo
-        KDEventTypes        : "click"
-        listenedToInstance  : @
-        callback            : (publishingInstance, event)=>
-          if event.metaKey and event.altKey and event.ctrlKey
-            log @getData()
-            event.stopPropagation?()
-            event.preventDefault?()
-            return false
-          else if event.altKey and (event.metaKey or event.ctrlKey)
-            log @
-            return false
-
     @on 'childAppended', @childAppended.bind @
 
     @on 'viewAppended', =>
@@ -125,6 +111,17 @@ class KDView extends KDObject
             child.parentIsInDom = yes
             child.emit 'viewAppended', child
 
+    # development only
+    if location.hostname is "localhost"
+      @on "click", (event)=>
+        if event.metaKey and event.altKey and event.ctrlKey
+          log @getData()
+          event.stopPropagation?()
+          event.preventDefault?()
+          return false
+        else if event.altKey and (event.metaKey or event.ctrlKey)
+          log @
+          return false
 
   setTemplate:(tmpl, params)->
     params ?= @getOptions()?.pistachioParams
@@ -206,11 +203,19 @@ class KDView extends KDObject
 
   setDomElement:(cssClass)->
     cssClass = if cssClass then " #{cssClass}" else ""
-    @domElement = $ "<#{@options.tagName} class='kdview#{cssClass}'></#{@options.tagName} >"
+    {lazyDomId, tagName} = @getOptions()
+    if lazyDomId
+      @domElement = $("#{tagName}##{lazyDomId}")
+      @domElement.addClass "kdview#{cssClass}"
+      if @domElement?.length is 0
+        warn "No lazy DOM Element found with given id #{lazyDomId}."
+
+    @domElement ?= \
+      $ "<#{tagName} class='kdview#{cssClass}'></#{tagName} >"
+
 
   setDomId:(id)->
     @domElement.attr "id",id
-
 
   setDataId:()->
     @domElement.data "data-id",@getId()
@@ -257,6 +262,10 @@ class KDView extends KDObject
       @emit 'viewAppended', @
     @
 
+  appendToSelector:(selector)->
+    $(selector).append @$()
+    @emit 'viewAppended', @
+
   prepend:(child, selector)->
     @$(selector).prepend child.$()
     if @parentIsInDom
@@ -268,6 +277,10 @@ class KDView extends KDObject
     if @parentIsInDom
       @emit 'viewAppended', @
     @
+
+  prependToSelector:(selector)->
+    $(selector).prepend @$()
+    @emit 'viewAppended', @
 
   setPartial:(partial,selector)->
     @$(selector).append partial
@@ -379,7 +392,7 @@ class KDView extends KDObject
 
     # call super to remove instance subscriptions
     # and delete instance from KD.instances registry
-    super()
+    super
 
   destroySubViews:()->
     # (subView.destroy() for subView in @getSubViews())
@@ -455,10 +468,8 @@ class KDView extends KDObject
           @emit 'LazyLoadThresholdReached', {ratio}
         lastRatio = ratio
 
-  # counter = 0
   bindEvents:($elm)->
     $elm or= @getDomElement()
-    # defaultEvents = "mousedown mouseup click dblclick dragstart dragenter dragleave dragover drop resize"
     defaultEvents = "mousedown mouseup click dblclick paste"
     instanceEvents = @getOptions().bind
 
@@ -476,29 +487,22 @@ class KDView extends KDObject
       event.stopPropagation() unless willPropagateToDOM
       yes
 
-    # if @contextMenu?
-    #   $elm.bind "contextmenu",(event)=>
-    #     @handleEvent event
-
     eventsToBeBound
 
   bindEvent:($elm, eventName)->
-    [eventName, $elm] = [$elm, @$()] unless eventName
+    [eventName, $elm] = [$elm, @$()] unless eventName
 
-    $elm.bind eventName, (event)=>
-      willPropagateToDOM = @handleEvent event
-      event.stopPropagation() unless willPropagateToDOM
-      yes
+    $elm.bind eventName, (event)=>
+      willPropagateToDOM = @handleEvent event
+      event.stopPropagation() unless willPropagateToDOM
+      yes
 
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
 
-    unless result is no
-      @emit event.type, event
-      # deprecate below 09/2012 sinan
-      @propagateEvent (KDEventType:event.type.capitalize()),event
-      @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
+    @emit event.type, event  unless result is no
+
     willPropagateToDOM = result
 
   scroll:(event)->     yes
@@ -569,21 +573,21 @@ class KDView extends KDObject
       containment : null     # a parent KDView
       handle      : null     # a parent KDView or a child selector
       axis        : null     # a String 'x' or 'y' or 'diagonal'
-      direction   : 
+      direction   :
         current   :
           x       : null     # a String 'left' or 'right'
           y       : null     # a String 'up'   or 'down'
         global    :
           x       : null     # a String 'left' or 'right'
           y       : null     # a String 'up'   or 'down'
-      position    : 
+      position    :
         relative  :
           x       : 0        # a Number
           y       : 0        # a Number
         initial   :
           x       : 0        # a Number
           y       : 0        # a Number
-        global    :          
+        global    :
           x       : 0        # a Number
           y       : 0        # a Number
       meta        :
@@ -594,6 +598,7 @@ class KDView extends KDObject
 
 
   setDraggable:(options = {})->
+
     options = {} if options is yes
 
     @setEmptyDragState()
@@ -605,14 +610,14 @@ class KDView extends KDObject
 
       @dragIsAllowed = yes
       @setEmptyDragState()
-      
+
       dragState             = @dragState
 
       # TODO: should move these lines
       dragState.containment = options.containment
       dragState.handle      = options.handle
       dragState.axis        = options.axis
-      
+
       dragMeta              = dragState.meta
       dragEl                = @$()[0]
       dragMeta.top          = parseInt(dragEl.style.top,    10) or 0
@@ -631,8 +636,9 @@ class KDView extends KDObject
       return no
 
   drag:(event, delta)->
+
     {directionX, directionY, axis} = @dragState
-    
+
     {x, y}       = delta
     dragPos      = @dragState.position
     dragRelPos   = dragPos.relative
@@ -666,7 +672,7 @@ class KDView extends KDObject
 
       newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
-      
+
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
 
@@ -770,12 +776,18 @@ class KDView extends KDObject
     o.view      or= null
     o.delegate  or= @
     o.viewCssClass or= null
+    o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
     @on "viewAppended", =>
-      @utils.wait =>
-        # this is unacceptable will fix it - Arvid Jan 2013
-        unless o.showOnlyWhenOverflowing and (@$()[0]?.scrollWidth<=@getWidth()+parseInt(@$().css('padding-right'),10)+parseInt(@$().css('padding-left'),10))
-          @bindTooltipEvents o
+      # For this to work, the DOM element must have layout box information
+      # associated such as overflow, border-sizing, text-overflow
+      #
+      #                                                          Arvid Feb 2013
+
+      isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
+
+      if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
+        @bindTooltipEvents o
 
   bindTooltipEvents:(o)->
     @bindEvent name for name in ['mouseenter','mouseleave']
@@ -838,6 +850,8 @@ class KDView extends KDObject
       delete @tooltip
     else
       log 'There was nothing to remove.'
+
+  _windowDidResize:->
 
   listenWindowResize:->
 

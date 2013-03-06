@@ -8,8 +8,8 @@ class SidebarController extends KDViewController
 
     {
      avatar, finderHeader, navController
-     accNavController, avatarAreaIconMenu
-     finderController, footerMenuController
+     avatarAreaIconMenu, finderController
+     footerMenuController
     } = sidebar
 
     avatar.setData account
@@ -21,10 +21,22 @@ class SidebarController extends KDViewController
     finderHeader.render()
 
     navController.reset()
-    accNavController.reset()
     footerMenuController.reset()
-    sidebar.resetAdminNavController()
+    @resetAdminNavItems()
 
     avatarAreaIconMenu.accountChanged account
 
     finderController.reset()
+
+  resetAdminNavItems:->
+
+    return unless KD.isLoggedIn()
+
+    @utils.wait 5000, =>
+      KD.whoami().fetchRole? (err, role)=>
+        if role is "super-admin"
+          @getView().navController.addItem
+            title    : "Admin Panel"
+            type     : "admin"
+            loggedIn : yes
+            callback : -> new AdminModal

@@ -44,9 +44,6 @@ Includes =
         KDListItemView        : "./components/list/KDListItemView.coffee"
 
         #tree
-        KDTreeViewController  : "./components/tree/KDTreeViewController.coffee"
-        KDTreeView            : "./components/tree/KDTreeView.coffee"
-        KDTreeItemView        : "./components/tree/KDTreeItemView.coffee"
         JTreeViewController   : "./components/tree/treeviewcontroller.coffee"
         JTreeView             : "./components/tree/treeview.coffee"
         JTreeItemView         : "./components/tree/treeitemview.coffee"

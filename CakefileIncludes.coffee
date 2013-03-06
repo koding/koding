@@ -50,9 +50,6 @@ Includes =
         KDListItemView        : "./client/Framework/components/list/KDListItemView.coffee"
 
         #tree
-        KDTreeViewController  : "./client/Framework/components/tree/KDTreeViewController.coffee"
-        KDTreeView            : "./client/Framework/components/tree/KDTreeView.coffee"
-        KDTreeItemView        : "./client/Framework/components/tree/KDTreeItemView.coffee"
         JTreeViewController   : "./client/Framework/components/tree/treeviewcontroller.coffee"
         JTreeView             : "./client/Framework/components/tree/treeview.coffee"
         JTreeItemView         : "./client/Framework/components/tree/treeitemview.coffee"
@@ -62,9 +59,6 @@ Includes =
         KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee"
         KDTabPaneView         : "./client/Framework/components/tabs/KDTabPaneView.coffee"
         KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
-
-        # menus
-        KDContextMenu         : "./client/Framework/components/menus/KDContextMenu.coffee"
 
         # menus
         JContextMenu          : "./client/Framework/components/contextmenu/contextmenu.coffee"
@@ -89,6 +83,7 @@ Includes =
         KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
 
         # upload
+        kdmultipartuploader : "./client/Framework/components/upload/kdmultipartuploader.coffee"
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
         KDImageUploadView   : "./client/Framework/components/upload/KDImageUploadView.coffee"
 
@@ -133,6 +128,7 @@ Includes =
         KiteChannel           : "./client/app/MainApp/channels/kitechannel.coffee"
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
         AppController         : "./client/app/MainApp/AppController.coffee"
+        KodingAppController   : "./client/app/MainApp/kodingappcontroller.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
         AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
@@ -251,7 +247,25 @@ Includes =
         topicsInnerNavigation         : "./client/app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee"
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
 
+        # GROUPS CONTROLLERS
+        invitationrequestlistcontroller: "./client/app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee"
+
         # GROUPS VIEWS
+        groupsWebhookView             : "./client/app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee"
+        groupsEditableWebhookView     : "./client/app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee"
+        groupsMembershipPolicyEditor  : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee"
+        groupsMembershipPolicyDetailView: "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee"
+        groupsrequestview             : "./client/app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee"
+        groupsinvitationrequestlistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee"
+        groupsinvitationrequestsview  : "./client/app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee"
+        groupsmemberpermissionslistitemview: "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee"
+        groupsmemberpermissionsview   : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee"
+        groupsmemberroleseditview     : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee"
+        groupsmembershippolicyview    : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee"
+        groupsformgeneratorview       : "./client/app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee"
+
+        groupTabHandleView            : "./client/app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee"
+
         joinButton                    : "./client/app/Applications/Groups.kdapplication/Views/joinbutton.coffee"
         groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
         groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
@@ -259,12 +273,14 @@ Includes =
         permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
         permissionsModal              : "./client/app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee"
         groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
+        groupReadmeView               : "./client/app/Applications/Groups.kdapplication/Views/readmeview.coffee"
+        groupPermissionView           : "./client/app/Applications/Groups.kdapplication/Views/permissionview.coffee"
+        groupGeneralSettingsView      : "./client/app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee"
         groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
         groupsAdminModal              : "./client/app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee"
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
-        appsController                : "./client/app/Applications/Apps.kdapplication/AppController.coffee"
 
         appsInnerNavigation           : "./client/app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee"
         appslistItemView              : "./client/app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee"
@@ -304,7 +320,7 @@ Includes =
         inboxNewMessageBar            : "./client/app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee"
         inboxMessageDetail            : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee"
         inboxReplyForm                : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyForm.coffee"
-        inboxReplyMessageView         : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee"
+        # inboxReplyMessageView         : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee"
         inboxReplyView                : "./client/app/Applications/Inbox.kdapplication/Views/InboxReplyView.coffee"
 
         # FEED CONTROLLERS
@@ -320,7 +336,6 @@ Includes =
         # HOME VIEWS
         homeAppView                   : "./client/app/Applications/Home.kdapplication/AppView.coffee"
 
-        aboutContentDisplayController : "./client/app/Applications/Home.kdapplication/ContentDisplays/AboutContentDisplayController.coffee"
         aboutView                     : "./client/app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee"
 
         footerView                    : "./client/app/Applications/Home.kdapplication/Views/FooterBarContents.coffee"
@@ -361,7 +376,7 @@ Includes =
         #
         # pageHome              : "./client/app/MainApp/oldPages/pageHome.coffee"
         # pageRegister          : "./client/app/MainApp/oldPages/pageRegister.coffee"
-        pageEnvironment       : "./client/app/MainApp/oldPages/pageEnvironment.coffee"
+        # pageEnvironment       : "./client/app/MainApp/oldPages/pageEnvironment.coffee"
 
 
         # ENVIRONMENT SETTINGS
@@ -431,7 +446,6 @@ Includes =
         ContentPageSplitBelowHeader : "./client/app/CommonViews/ContentPageSplitBelowHeader.coffee"
         CommonListHeader            : "./client/app/CommonViews/CommonListHeader.coffee"
         CommonInnerNavigation       : "./client/app/CommonViews/CommonInnerNavigation.coffee"
-        CommonFeedMessage           : "./client/app/CommonViews/CommonFeedMessage.coffee"
         Headers                     : "./client/app/CommonViews/headers.coffee"
         # Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
@@ -638,6 +652,7 @@ Includes =
         kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
         kdFormView          : "./client/Framework/themes/default/kd.form.styl"
         kdTooltip           : "./client/Framework/themes/default/kd.tooltip.styl"
+        kdFileUploader      : "./client/Framework/themes/default/kd.fileuploader.styl"
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
@@ -658,6 +673,7 @@ Includes =
         bootstrap           : "./client/stylus/app.bootstrap.styl"
         apploginsignup      : "./client/stylus/app.login-signup.styl"
         appkeyboard         : "./client/stylus/app.keyboard.styl"
+        appmarkdown         : "./client/stylus/app.markdown.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
         apphome             : "./client/stylus/app.home.styl"

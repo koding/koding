@@ -30,7 +30,7 @@ class MemberMailLink extends KDCustomHTMLView
         navigable             : yes
         callback              : (formOutput)=>
           callback = modal.destroy.bind modal
-          @propagateEvent KDEventType : "MessageShouldBeSent", {formOutput,callback}
+          @emit "MessageShouldBeSent", {formOutput, callback}
         forms                 :
           sendForm            :
             fields            :
@@ -75,11 +75,9 @@ class MemberMailLink extends KDCustomHTMLView
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in recipient.getSelectedItemData())
-        @propagateEvent KDEventType : "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
+        @emit "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
-
-    @propagateEvent KDEventType: "NewMessageModalShouldOpen"
 
     recipient.setDefaultValue [member]

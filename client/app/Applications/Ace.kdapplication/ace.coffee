@@ -196,7 +196,7 @@ class Ace extends KDView
     mode or= file.syntax
 
     unless mode
-      ext  = @utils.getFileExtension file.path
+      ext  = FSItem.getFileExtension file.path
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name

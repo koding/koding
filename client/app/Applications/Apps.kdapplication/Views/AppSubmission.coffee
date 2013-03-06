@@ -1,16 +1,16 @@
 class AppSubmissionModal extends KDModalViewWithForms
   constructor:->
-    options = 
+    options =
       title                     : "Submit an Application"
       width                     : 800
       height                    : "auto"
       cssClass                  : "app-submission"
       overlay                   : yes
-      overlayClick              : no 
+      overlayClick              : no
       tabs                      :
         navigable               : no
         callback                : (formOutput)=>
-          @propagateEvent KDEventType : "AppSubmissionFormSubmitted", formOutput
+          @emit "AppSubmissionFormSubmitted", formOutput
         forms                   :
           "App Essentials"      :
             buttons             :
@@ -43,7 +43,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back1             :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=> 
+                callback        : ()=>
                   @modalTabs.showPreviousPane()
             fields              :
               ScriptInfo        :
@@ -80,7 +80,7 @@ class AppSubmissionModal extends KDModalViewWithForms
                     type          : "hidden"
                     name          : "scriptSyntax"
                     defaultValue  : "bash"
-              Tags              :           
+              Tags              :
                 label           : "Tags:"
                 type            : "hidden"
                 name            : "dummy"
@@ -93,7 +93,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back              :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=> 
+                callback        : ()=>
                   @modalTabs.showPreviousPane()
             fields              :
               thumbnail         :
@@ -113,7 +113,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back              :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=> 
+                callback        : ()=>
                   @modalTabs.showPreviousPane()
 
     super options
@@ -134,7 +134,7 @@ class AppPreSubmitPreview extends KDScrollView
   viewAppended:()->
     @setTemplate @pistachio()
     @template.update()
-    
+
   pistachio:->
     """
     <div class='formline title'>
@@ -168,7 +168,7 @@ class AppPreSubmitPreview extends KDScrollView
     """
 
   displayTags:(tags = [])->
-    spans = tags.map (tag)-> 
+    spans = tags.map (tag)->
       "<span class='ttag'>#{tag}</span>"
     spans.join('')
 
@@ -203,37 +203,37 @@ class AppCodeSnippetView extends CodeSnippetView
 #   host : formOutput.host
 #   name : formOutput.name
 #   pass : formOutput.pass
-# 
+#
 # script = """
 #   #!/bin/bash
 #   $path = #{path}
 #   $host = #{db.host}
-#   
+#
 #   function wordpressInstall {
 #     echo $path
 #     echo $host
 #   }
-#   
-#   wordpressInstall 
-#   
+#
+#   wordpressInstall
+#
 # """
-# 
+#
 # """
 #   #!/bin/bash
 #   $path = "/asdas/asdasd"
 #   $host = "localhost"
-#   
-# 
+#
+#
 #   curl $url >$path
-#   
+#
 # """
-# 
-# 
-# 
-# # 
+#
+#
+#
+# #
 # # installScript = requirements+"\n"+script
-# 
-# 
+#
+#
 # # REQUIREMENT SCRIPT
 # "Application Path"    :
 #   fields              :
@@ -274,4 +274,4 @@ class AppCodeSnippetView extends CodeSnippetView
 #       type            : "password"
 #       name            : "pass"
 #       placeholder     : "Database password..."
-# 
+#

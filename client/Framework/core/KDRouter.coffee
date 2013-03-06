@@ -92,6 +92,8 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
+    # log userRoute, options
+    # debugger
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
     query = @utils.parseQuery query.join '&'
@@ -123,7 +125,7 @@ class KDRouter extends KDObject
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
       history[method] objRef, path, "/#{path}"
-  
+
     for edge in frag
       if node[edge]
         node = node[edge]

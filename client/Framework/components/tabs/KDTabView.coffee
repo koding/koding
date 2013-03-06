@@ -1,7 +1,7 @@
 class KDTabView extends KDScrollView
 
   constructor:(options = {}, data)->
-    
+
     options.resizeTabHandles    ?= no
     options.maxHandleWidth      ?= 128
     options.minHandleWidth      ?= 30
@@ -14,11 +14,13 @@ class KDTabView extends KDScrollView
 
     super options, data
 
+    @activePane = null
+
     @setTabHandleContainer options.tabHandleContainer ? null
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
-
+    @on "PaneDidShow", @bound "setActivePane"
     if options.tabNames?
       @on "viewAppended", @createPanes.bind @
 
@@ -33,7 +35,7 @@ class KDTabView extends KDScrollView
 
     @tabHandleContainer.on "mouseenter", => @blockTabHandleResize = yes
 
-    @tabHandleContainer.on "mouseleave", => 
+    @tabHandleContainer.on "mouseleave", =>
       @blockTabHandleResize = no
       @resizeTabHandles()
 
@@ -53,18 +55,14 @@ class KDTabView extends KDScrollView
         hidden    : paneInstance.options.hiddenHandle
         view      : paneInstance.options.tabHandleView
         sortable  : @getOptions().sortable
+        click     : (event)=> @handleMouseDownDefaultAction newTabHandle, event
 
       paneInstance.tabHandle = newTabHandle
-      @listenTo
-        KDEventTypes : "click"
-        listenedToInstance : newTabHandle
-        callback : @handleMouseDownDefaultAction
       @appendPane paneInstance
       @showPane paneInstance
       @emit "PaneAdded", paneInstance
 
       newTabHandle.$().css maxWidth: @getOptions().maxHandleWidth
-
       newTabHandle.on "HandleIndexHasChanged", @bound "resortTabHandles"
 
       return paneInstance
@@ -82,7 +80,7 @@ class KDTabView extends KDScrollView
       targetIndex = index + 1
     else
       methodName  = 'insertBefore'
-      targetIndex = index - 1  
+      targetIndex = index - 1
     @handles[index].$()[methodName] @handles[targetIndex].$()
 
     newIndex       = if dir is 'left' then index - 1 else index + 1
@@ -108,7 +106,7 @@ class KDTabView extends KDScrollView
       @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
     @emit "PaneRemoved"
 
-  
+
   appendHandleContainer:()->
     @addSubView @tabHandleContainer
 
@@ -122,7 +120,7 @@ class KDTabView extends KDScrollView
     @tabHandleContainer.addSubView tabHandle
     # unless tabHandle.options.hidden
     #   tabHandle.$().css {marginTop : @handleHeight}
-    #   tabHandle.$().animate({marginTop : 0},300) 
+    #   tabHandle.$().animate({marginTop : 0},300)
 
   # ADD/REMOVE HANDLES
   addHandle:(handle)->
@@ -136,7 +134,7 @@ class KDTabView extends KDScrollView
 
   removeHandle:()->
 
-  
+
   #SHOW/HIDE ELEMENTS
   showPane:(pane)=>
     return unless pane
@@ -149,7 +147,7 @@ class KDTabView extends KDScrollView
     @emit "PaneDidShow", pane
     pane
 
-  
+
   hideAllPanes:()->
     for pane in @panes
       pane.hide()
@@ -172,9 +170,9 @@ class KDTabView extends KDScrollView
   showHandleCloseIcons:()->
     @tabHandleContainer.$().removeClass "hide-close-icons"
 
-  handleMouseDownDefaultAction:(clickedTabHandle,event)->
+  handleMouseDownDefaultAction:(clickedTabHandle, event)->
     for handle, index in @handles when clickedTabHandle is handle
-      @handleClicked index, event      
+      @handleClicked index, event
 
   # DEFAULT ACTIONS
   handleClicked:(index,event)=>
@@ -215,11 +213,9 @@ class KDTabView extends KDScrollView
       paneInstance = pane if pane.id is id
     paneInstance
 
-  getActivePane:()->
-    @activePane = undefined if @panes.length is 0
-    for pane in @panes
-      @activePane = pane if pane.active
-    @activePane
+  getActivePane:-> @activePane
+
+  setActivePane:(@activePane)->
 
   getPaneByIndex:(index)-> @panes[index]
   getHandleByIndex:(index)-> @handles[index]

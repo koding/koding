@@ -13,7 +13,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
-
     @avatarPopupContent.addSubView switchToTitle = new KDView
       height   : "auto"
       cssClass : "sublink top"
@@ -32,7 +31,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass : "sublink"
       partial  : "<a href='#'>See all groups...</a>"
       click    : =>
-        appManager.openApplication "Groups"
+        KD.getSingleton("appManager").open "Groups"
         @hide()
 
   accountChanged:->
@@ -41,11 +40,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   populateGroups:->
     @listController.removeAllItems()
     @listController.showLazyLoader()
-    KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
+#    KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
+    KD.whoami().fetchGroups (err, groups)=>
       if err then warn err
-      else if res?.length
+      else if groups?
         @listController.hideLazyLoader()
-        @listController.addItem res[0]
+        @listController.addItem group  for group in groups
 
   show:->
     super
@@ -59,8 +59,12 @@ class PopupGroupListItem extends KDListItemView
 
     super
 
-    {title, avatar} = @getData()
-
+    {group:{title, avatar, slug}, roles} = @getData()
+  
+    roleClasses = roles.map((role)-> "role-#{role}").join ' '
+   
+    @setClass "role #{roleClasses}"
+  
     @avatar = new KDCustomHTMLView
       tagName    : 'img'
       cssClass   : 'avatar-image'
@@ -69,6 +73,8 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
+      href        : "/#{slug}/Activity"
+      target      : slug
       icon        :
         cssClass  : 'new-page'
         placement : 'right'
@@ -79,10 +85,12 @@ class PopupGroupListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio: ->
+    {roles} = @getData()
     """
     <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
       {{> @switchLink}}
+      <span class="roles">#{roles.join ', '}</span>
     </div>
     """
 

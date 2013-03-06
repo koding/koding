@@ -1,7 +1,8 @@
 # KDEventEmitter
-# author : devrim - 12/27/2011
+# author     : devrim - 12/27/2011
 # refactored : sinan - 05/2012
 # refactored : sinan - 01/2013
+# improved   : sinan - 02/2013
 
 class KDEventEmitter
   @KDEventEmitterEvents = {}
@@ -9,14 +10,14 @@ class KDEventEmitter
   # listeners will be put inside @KDEventEmitterEvents[className]
   _e = @KDEventEmitterEvents[@name] = {}
 
-  _on = (registry, eventName, callback)->
+  _registerEvent = (registry, eventName, callback)->
     # on can be defined before any emit, so create
     # the event registry, if it doesn't exist.
     registry[eventName] ?= []
     # register the listeners callback.
     registry[eventName].push callback
 
-  _off = (registry, eventName, callback)->
+  _unregisterEvent = (registry, eventName, callback)->
     if eventName is "*"
       registry = {}
     # reset the listener container so no event
@@ -27,6 +28,19 @@ class KDEventEmitter
       registry[eventName].splice cbIndex, 1 if cbIndex >= 0
     else
       registry[eventName] = []
+
+  _on = (registry, eventName, callback)->
+    if Array.isArray eventName
+      _registerEvent registry, name, callback for name in eventName
+    else
+      _registerEvent registry, eventName, callback
+
+
+  _off = (registry, eventName, callback)->
+    if Array.isArray eventName
+      _unregisterEvent registry, name, callback for name in eventName
+    else
+      _unregisterEvent registry, eventName, callback
 
 
   getEventParser = (event)->
