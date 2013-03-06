@@ -43,7 +43,7 @@ class GroupsAppController extends AppController
       if pageInfo.path
         {group} = @userArea
         route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
-        router.handleRoute route
+        KD.getSingleton('router').handleRoute route
     @groups = {}
     @currentGroupData = new GroupData
 
