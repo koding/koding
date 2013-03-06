@@ -85,7 +85,7 @@ class KDMultipleInputView extends KDSimpleAutocomplete
       @_hiddenInputs.push newInput
       @addSubView newInput
 
-    @handleEvent type: 'MultipleInputChanged', values: @getValue()
+    @emit 'MultipleInputChanged', values: @getValue()
 
   click: (event) ->
     if $(event.target).hasClass 'addNewItem'

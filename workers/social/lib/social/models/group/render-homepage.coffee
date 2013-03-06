@@ -10,7 +10,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
   </head>
   <body class="login" data-group="#{slug}">
     <div id="group-landing" class='group-landing'>
-    <div class="group-landing-content">
+    <div id="group-landing-content" class="group-landing-content">
       <div class="group-wrapper">
 
         <span class="avatar">
@@ -37,7 +37,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
           </div>
         </div>
 
-        <div class="group-content">
+        <div id="group-content-wrapper" class="group-content">
           <div class="content-markdown has-markdown dark">
             #{content}
           </div>
