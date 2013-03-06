@@ -23,17 +23,24 @@ class NewMemberBucketView extends JView
     @lastFetchedItemCount = 0
     @isUserViewCreated    = no
     @listViews            = []
+    @isLoading            = no
 
     @group.on "moreLinkClicked", =>
-      @groupLoader = new KDLoaderView size: width: 24
-      @group.addSubView @groupLoader
+      return if @isLoading or @getData().count <= @lastFetchedItemCount and @showMore
+      @isLoading = yes
+      @groupLoader = new KDLoaderView
+        cssClass : "new-members-loader"
+        size     :
+          width  : 24
+
+      @addSubView @groupLoader
       @groupLoader.show()
+      @showMore?.hide()
 
       count = 10
 
       if not @isUserViewCreated
         @createCloseButton()
-        @createShowMore count
         @isUserViewCreated = yes
 
       selector    =
@@ -48,7 +55,6 @@ class NewMemberBucketView extends JView
       appManager.tell "Activity", "fetch", selector, options, (teasers, activities) =>
         @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
         @group.setData @getData().anchors
-        @group.loader.hide()
 
         items = @getData().anchors.slice @lastFetchedItemCount, @lastFetchedItemCount + count
 
@@ -59,11 +65,13 @@ class NewMemberBucketView extends JView
         , items: items
 
         @listViews.push newMembersList
-        @group.addSubView newMembersList.getView()
+        @addSubView newMembersList.getView()
         @lastFetchedItemCount = @lastFetchedItemCount + count
         @showMore.hide() if @getData().count <= @lastFetchedItemCount and @showMore
         @lastFetchedDate = activities.last.createdAt
         @groupLoader.destroy()
+        @createShowMore count
+        @isLoading = no
 
   createCloseButton: ->
     @addSubView @closeButton = new KDView
@@ -76,13 +84,14 @@ class NewMemberBucketView extends JView
         @groupLoader?.destroy()
         @lastFetchedItemCount = 0
         @isUserViewCreated    = no
+        @isLoading            = no
         @lastFetchedDate      = null
         @listViews            = []
 
   createShowMore: (count) ->
-    return if @getData().count < @lastFetchedItemCount + count
+    return if @getData().count < @lastFetchedItemCount
     @addSubView @showMore = new KDView
-      cssClass : "show-more-link"
+      cssClass : "show-more"
       partial  : "Show More"
       click    : =>
         @group.emit "moreLinkClicked"
@@ -99,6 +108,7 @@ class NewMemberBucketView extends JView
 class NewMemberList extends KDListView
   constructor: (options = {}, data) ->
     options.tagName   = "ul"
+    options.cssClass  = "activity-new-members"
     options.itemClass = NewMemberListItem
 
     super options, data
@@ -147,8 +157,6 @@ class NewMemberLinkGroup extends LinkGroup
   constructor:->
 
     super
-
-    @loader = new KDLoaderView
 
   createMoreLink:->
 
