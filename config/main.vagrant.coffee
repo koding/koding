@@ -84,7 +84,7 @@ module.exports = deepFreeze
     pistachios  : no
     version     : version
     minify      : no
-    watch       : yes
+    watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
@@ -103,7 +103,7 @@ module.exports = deepFreeze
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
   mq            :
-    host        : 'rabbitmq.local'
+    host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'

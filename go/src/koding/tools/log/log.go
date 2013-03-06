@@ -15,13 +15,12 @@ import (
 var loggrSource string
 var libratoSource string
 var tags string
-var LogDebug bool = false
 
-func Init(service, profile string) {
+func Init(service string) {
 	hostname, _ := os.Hostname()
 	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
 	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
-	tags = service + " " + profile
+	tags = service + " " + config.Profile
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
@@ -35,9 +34,9 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 		for i, part := range data {
 			if bytes, ok := part.([]byte); ok {
 				dataStrings[i] = string(bytes)
-			} else {
-				dataStrings[i] = fmt.Sprint(part)
+				continue
 			}
+			dataStrings[i] = fmt.Sprint(part)
 		}
 		event.Add("data", strings.Join(dataStrings, "\n"))
 	}
@@ -65,7 +64,7 @@ func Send(event url.Values) {
 }
 
 func Log(level int, text string, data ...interface{}) {
-	if level == DEBUG && !LogDebug {
+	if level == DEBUG && !config.LogDebug {
 		return
 	}
 	Send(NewEvent(level, text, data...))
@@ -103,12 +102,9 @@ func LogError(err interface{}, stackOffset int) {
 		if !ok {
 			break
 		}
-		fn := runtime.FuncForPC(pc)
-		var name string
-		if fn != nil {
+		name := "<unknown>"
+		if fn := runtime.FuncForPC(pc); fn != nil {
 			name = fn.Name()
-		} else {
-			name = "<unknown>"
 		}
 		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}
