@@ -167,6 +167,19 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
+  @renderHomepage: require './account-static'
+
+  fetchHomepageView:(callback)->
+    console.log 'rendering hp'
+    console.log 'acc is',@
+    callback null, JAccount.renderHomepage {
+      profile : @profile
+      account : @
+      counts  : @counts
+      skillTags : @skillTags
+    }
+
+
   fetchGroups: secure (client, callback)->
     JGroup        = require './group'
     {groupBy}     = require 'underscore'

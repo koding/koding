@@ -206,6 +206,20 @@ else
           if err then next err
           else res.send view
 
+  app.get '/:userName', (req, res, next)->
+    {JAccount} = koding.models
+    {userName} = req.params
+    JAccount.one { 'profile.nickname': userName }, (err, account)->
+      if err or !account? then next err
+      else
+        console.log 'displaying static account'
+        account.fetchHomepageView (err, view)->
+          console.log 'homepage fetched'
+          if err then next err
+          else res.send view
+
+
+
   app.get '*', (req,res)->
     {url} = req
     queryIndex = url.indexOf '?'
