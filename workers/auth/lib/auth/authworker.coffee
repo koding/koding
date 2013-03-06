@@ -157,11 +157,9 @@ module.exports = class AuthWorker extends EventEmitter
       member    : @resourceName
     }
     @presence.on 'join', (serviceKey)=>
-      console.log 'j', {serviceKey}
       try @addService parseServiceKey serviceKey
       catch e then console.error e
     @presence.on 'leave', (serviceKey)=>
-      console.log 'l', {serviceKey}
       try @removeService parseServiceKey serviceKey
       catch e then console.error e
     @presence.listen()
