@@ -233,22 +233,26 @@ class MainView extends KDView
 
   switchGroupState:(isLoggedIn)->
 
-    $('.group-loader').remove()
-
+    $('.group-loader').removeClass 'pulsing'
     $('body').addClass "login"
 
     {groupEntryPoint} = KD.config
 
-    loginLink = new GroupsLandingPageLoginLink {groupEntryPoint}, {}
+    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
+
     loginLink.on 'LoginLinkRedirect', ({section})=>
+
       route =  "/#{groupEntryPoint}/#{section}"
       # KD.getSingleton('router').handleRoute route
       mc = @getSingleton 'mainController'
 
       switch section
-        when 'Join'
-          mc.loginScreen.show()
+        when 'Join', 'Login'
           mc.loginScreen.animateToForm 'login'
+          mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
+          $('#group-landing').css 'height', 0
+          # $('#group-landing').css 'opacity', 0
+
         when 'Activity'
           console.log {m:mc.loginScreen}
           mc.loginScreen.slideUp()
@@ -270,47 +274,20 @@ class MainView extends KDView
                 }
     else
       @utils.defer -> loginLink.setState { isLoggedIn: no }
-      # loginLink.click = ->
-      #   @getSingleton('mainController').loginScreen.show()
-      #   @getSingleton('mainController').loginScreen.animateToForm 'login'
-      #   $('.group-landing').css 'height', 0
 
-      
     loginLink.appendToSelector '.group-login-buttons'
-
     # $('.group-landing').css 'height', window.innerHeight - 50
 
   closeGroupView:->
     @mainTabView.showHandleContainer()
-    # @groupLandingView._windowDidResize = noop
     $('.group-landing').css 'height', 0
 
   decorateLoginState:(isLoggedIn = no)->
-  
+
+    log "Called me.", arguments, console.trace()
+
     groupLandingView = new KDView
       lazyDomId : 'group-landing'
-
-    groupLandingView.listenWindowResize()
-    groupLandingView._windowDidResize = =>
-      groupLandingView.setHeight window.innerHeight - 50
-
-    # if @userEnteredFromGroup()
-
-      # @groupLandingView = new KDView
-      #   lazyDomId : 'group-landing'
-
-      # groupLandingContentView = new KDView
-      #   lazyDomId : 'group-landing-content'
-
-      # groupLandingGroupContentView = new KDView
-      #   lazyDomId : 'group-content-wrapper'
-
-      # @groupLandingView._windowDidResize = =>
-      #   # @groupLandingView?.setHeight window.innerHeight - 50
-      #   groupLandingContentView?.$().css
-      #     maxHeight : window.innerHeight - (200)
-      #   groupLandingGroupContentView?.$().css
-      #     height : groupLandingContentView.getHeight() - (256)
 
     if isLoggedIn
       if @userEnteredFromGroup() then @switchGroupState yes
@@ -318,8 +295,7 @@ class MainView extends KDView
 
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      # @logo.show()
-      # @buttonHolder.hide()
+      @buttonHolder.hide()
 
     else
       if @userEnteredFromGroup() then @switchGroupState no
@@ -327,13 +303,10 @@ class MainView extends KDView
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      # @buttonHolder.show()
-      # @logo.hide()
+      @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()
-
-    # @groupLandingView.listenWindowResize() if @userEnteredFromGroup()
 
   _windowDidResize:->
 

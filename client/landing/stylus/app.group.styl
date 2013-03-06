@@ -13,7 +13,7 @@
 .own-group
   background-color        chartreuse !important
 
-.group-landing
+#group-landing
   height                  100%
   overflow                auto
   vendor transition,      height .2s linear
@@ -27,9 +27,12 @@
   sprite()
 
 #group-loader-container
-  top                     17px
+  top                     40px
   width                   100%
   abs()
+
+.landing-button
+  font-size               17px !important
 
 .group-landing-content
   borderBox()
@@ -40,7 +43,7 @@
   width                   90%
   border                  1px solid rgba(255,255,255,0.16)
   rounded                 8px
-  margin                  60px auto 30px auto
+  margin                  100px auto 30px auto
   shadow                  0 0 150px rgba(0,0,0,0.32)
   bg color,               rgba(255,255,255,0.05)
   vendor transition,      height .2s linear
@@ -187,12 +190,12 @@
   margin-top              8px
 
   .group-login-buttons
-    border                1px solid rgba(255,255,255,0.1)
-    border-radius         7px
+    // border                1px solid rgba(255,255,255,0.1)
+    // border-radius         7px
     padding               3px
     opacity               0
-    background-color      rgba(255,255,255,0.1)
-    vendor transition,    opacity .2s linear
+    // background-color      rgba(255,255,255,0.1)
+    vendor transition,    opacity .3s linear
 
     &.ready
       opacity             1.0
