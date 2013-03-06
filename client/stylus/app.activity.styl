@@ -75,22 +75,42 @@ h1.kdheaderview.notification-header
       font-size          12px
       color              #5F5F5F
 
-.kdlistitemview-activity
-  .kdlistview
-    width           650px
+.new-members-loader
+  display           block !important
+  margin            10px auto !important
+
+
+.new-member
+  .close-button
+    abs()
+    top              3px
+    right            0px
+    width           40px
+    height          20px
+    text-align      right
+    cursor          pointer
+  .show-more
+    width           70px
+    cursor          pointer
+    margin          0 auto 10px
+.activity-new-members
+  max-width         737px
+  margin-left       53px
   .kdlistitemview
-    width           320px
+    max-width       348px
     height           40px
     float           left
     clear           none
+    &:nth-child(2n)
+      margin-left   40px
     .member-details
       float         left
       margin-left   20px
     .avatarview
       float         left
     footer
-      position      absolute
-      right         20px
+      abs()
+      right          0px
       top            5px
 
 
@@ -175,7 +195,7 @@ h1.kdheaderview.notification-header
       padding             2px 0 0 0
       &.new-member
         overflow          visible
-
+        max-width         790px
 
     .ttag
       margin              -1px 0 0 0
