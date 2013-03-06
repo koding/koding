@@ -250,7 +250,6 @@ class MainView extends KDView
           mc.loginScreen.show()
           mc.loginScreen.animateToForm 'login'
         when 'Activity'
-          console.log {m:mc.loginScreen}
           mc.loginScreen.slideUp()
 
     if isLoggedIn and groupEntryPoint?
@@ -263,10 +262,15 @@ class MainView extends KDView
           JMembershipPolicy.byGroupSlug groupEntryPoint,
             (err, policy)->
               if err then console.warn err
-              else
+              else if policy?
                 loginLink.setState {
                   isMember        : no
                   approvalEnabled : policy.approvalEnabled
+                }
+              else
+                loginLink.setState {
+                  isMember        : no
+                  isPublic        : yes
                 }
     else
       @utils.defer -> loginLink.setState { isLoggedIn: no }

@@ -155,8 +155,8 @@ Includes =
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
 
         # groups
-        GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
         GroupsController      : "./client/app/Applications/Groups.kdapplication/groupscontroller.coffee"
+        GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
 
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'

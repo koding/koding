@@ -9,7 +9,7 @@ class ContentDisplayCodeSnippet extends ContentDisplayStatusUpdate
 
     super options, data
 
-    @codeSnippetView = new CodeSnippetView {},@getData().attachments[0]
+    @codeSnippetView = new CodeSnippetView {}, @getData().attachments[0]
 
   pistachio:->
 
