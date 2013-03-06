@@ -2,7 +2,7 @@ class GroupData extends KDEventEmitter
 
   constructor:(currentGroup="koding")->
     super
-
+    
     KD.remote.on 'ready', =>
       KD.remote.cacheable currentGroup, (err, group)=> @setGroup group
 
