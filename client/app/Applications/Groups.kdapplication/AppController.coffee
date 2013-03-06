@@ -414,7 +414,7 @@ class GroupsAppController extends AppController
       height          : "auto"
       overlay         : yes
       buttons         : 
-        'cancel'      :
+        cancel        :
           style       : 'modal-cancel'
           callback    : -> modal.destroy()
     modal.buttonHolder.addSubView new CustomLinkView

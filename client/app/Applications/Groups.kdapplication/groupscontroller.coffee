@@ -57,6 +57,3 @@ class GroupsController extends KDObject
     @setUserArea {
       group: 'koding', user: account.profile.nickname
     }
-
-  openAdminDashboard:->
-    console.log 'open admin', {arguments}
