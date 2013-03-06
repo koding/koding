@@ -22,8 +22,8 @@ class StartTabRecentFileItemView extends JView
 
     path = @getData()
     name = (path.split '/')[(path.split '/').length - 1]
-    extension = __utils.getFileExtension name
-    fileType  = __utils.getFileType extension
+    extension = FSItem.getFileExtension name
+    fileType  = FSItem.getFileType extension
 
     """
       <span class='icon #{fileType} #{extension}'></span>
@@ -33,7 +33,7 @@ class StartTabRecentFileItemView extends JView
 
   click:(event)->
 
-    # appManager.notify()
+    # KD.getSingleton("appManager").notify()
     file = FSHelper.createFileFromPath @getData()
     @loader.show()
     file.fetchContents (err, contents)=>
@@ -48,4 +48,4 @@ class StartTabRecentFileItemView extends JView
             cssClass  : "error"
       else
         file.contents = contents
-        appManager.openFile file
+        KD.getSingleton("appManager").openFile file

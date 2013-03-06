@@ -70,7 +70,7 @@ class StatusLEDView extends KDView
 
   pistachio:->
     """
-    {{>@ledList}}
+    {{> @ledList}}
     """
 
 class StatusLEDItemView extends KDListItemView

@@ -1,11 +1,10 @@
-
 class GroupView extends ActivityContentDisplay
 
   constructor:->
-    super
-    data = @getData()
 
-    @setClass 'group-header'
+    super
+
+    data = @getData()
 
     @thumb = new KDCustomHTMLView
       tagName     : "img"
@@ -13,8 +12,7 @@ class GroupView extends ActivityContentDisplay
       error       : =>
         @thumb.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
-        src       : @getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(10)}/#{100+@utils.getRandomNumber(10)}"
-        # src       : "#{KD.apiUri + '/images/default.app.thumb.png'}"
+        src       : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}}"
 
     @joinButton = new JoinButton
       style           : if data.member then "join follow-btn following-topic" else "join follow-btn"
@@ -45,41 +43,107 @@ class GroupView extends ActivityContentDisplay
       ]
     , data
 
-
-    @joinButton.on 'Joined', =>
-      @enterLink.show()
-
-    @joinButton.on 'Left', =>
-      @enterLink.hide()
-
-    {slug, privacy} = @getData()
+    {slug, privacy} = data
 
     @enterLink = new CustomLinkView
-      cssClass  : 'enter-group'
-      href      : "/#{slug}/Activity"
-      target    : slug
-      title     : 'Open group'
-      click     : if privacy is 'private' then @bound 'privateGroupOpenHandler'
+      cssClass    : 'enter-group'
+      href        : "/#{slug}/Activity"
+      target      : slug
+      title       : 'Open group'
+      click       : if privacy is 'private' then @bound 'privateGroupOpenHandler'
+      icon        :
+        placement : "right"
+        cssClass  : "enter-group"
+
+    @joinButton.on 'Joined', @enterLink.bound "show"
+
+    @joinButton.on 'Left', @enterLink.bound "hide"
 
     {JGroup} = KD.remote.api
+
     JGroup.fetchMyMemberships data.getId(), (err, groups)=>
       if err then error err
       else
         if data.getId() in groups
           @joinButton.setState 'Leave'
           @joinButton.redecorateState()
-          # @enterButton.show()
-    # @homeLink = new KDCustomHTMLView
-    #   tagName     : 'a'
-    #   attributes  :
-    #     href      : data.slug
-    #   pistachio   : "Enter {{#(title)}}"
-    #   click       : (event)->
-    #     # debugger
-    #     event.stopPropagation()
-    #     event.preventDefault()
-    #     KD.getSingleton('router').handleRoute "/#{data.slug}/Activity"
-    # , data
+
+    data.fetchMyRoles (err, roles)=>
+      if err then error err
+      else
+        @decorateUponRoles roles
+
+    @staleTabs = []
+    @createTabs()
+
+  createLazyTab:(tabName, konstructor, options, initializer)->
+    if 'function' is typeof options
+      initializer = options 
+      options = {}
+
+    pane = new KDTabPaneView name: tabName
+    pane.once 'PaneDidShow', =>
+      view = new konstructor options ? {}, @getData()
+      pane.addSubView view
+      initializer?.call? pane, pane, view
+
+    @tabView.addPane pane, no
+
+    return pane
+
+
+  # assureTab:(tabName, showAppend=yes, konstructor, options, initializer)->
+  #   if 'function' is typeof options
+  #     initializer = options
+  #     options = {}
+
+  #   pane = @tabView.getPaneByName tabName
+
+  #   # if the pane is not there yet, create it an populate with views
+  #   unless pane
+  #     view = new konstructor options ? {}, @getData()
+  #     pane = new KDTabPaneView name: tabName
+  #     initializer?.call? pane, pane, view
+  #     @tabView.addPane pane, showAppend
+  #     pane.addSubView view
+
+  #   # if the view is there and stale, remove the views and 'refresh'
+  #   else if @isStaleTab tabName
+  #     pane.getSubViews().forEach (view)->
+  #       pane.removeSubView view
+  #     view = new konstructor options ? {}, @getData()
+  #     pane.addSubView view
+  #     @unsetStaleTab tabName
+
+  #   # in any case: show the pane if it is hidden and should be shown
+  #   if showAppend and @tabView.getActivePane() isnt pane
+  #     @tabView.showPane pane
+  #   return pane
+
+  setStaleTab:(tabName)->
+    @staleTabs.push tabName unless @staleTabs.indexOf(tabName) > -1
+
+  unsetStaleTab:(tabName)->
+    @staleTabs.splice @staleTabs.indexOf(tabName), 1
+
+  isStaleTab:(tabName)->
+    @staleTabs.indexOf(tabName) > -1
+
+  createTabs:->
+    data = @getData()
+
+    @tabView = new KDTabView
+      cssClass : 'group-content'
+      hideHandleContainer : yes
+      hideHandleCloseIcons : yes
+      tabHandleView : GroupTabHandleView
+    , data
+    @utils.defer => @emit 'ReadmeSelected'
+
+  decorateUponRoles:(roles)->
+
+    if "admin" in roles
+      @tabView.showHandleContainer()
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
@@ -88,21 +152,22 @@ class GroupView extends ActivityContentDisplay
   pistachio:->
     """
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class="profileleft">
-      <span>
-        <a class='profile-avatar' href='#'>{{> @thumb}}</a>
-      </span>
-    </div>
-    <section class="right-overflow">
-      <h3 class='profilename'>{{#(title)}}<cite></cite></h3>
-      <div class='profilebio'>
-        {p{#(body)}}
+    <div class='group-header'>
+      <div class='avatar'>
+        <span>{{> @thumb}}</span>
       </div>
-      <div class="installerbar clearfix">
-        <div class="appfollowlike">
-          {{> @enterLink}}
+      <section class="right-overflow">
+        {h2{#(title)}}
+        <div class="buttons">
           {{> @joinButton}}
         </div>
+      </section>
+      <div class="navbar clearfix">
+        {{> @enterLink}}
       </div>
-    </section>
+      <div class='desc#{if @getData().body is '' then ' hidden' else ''}'>
+        {p{#(body)}}
+      </div>
+    </div>
+    {{> @tabView}}
     """

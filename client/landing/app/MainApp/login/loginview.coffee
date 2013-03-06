@@ -28,7 +28,7 @@ class LoginView extends KDScrollView
       # @animateToForm "home"
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").open "Home"
 
 
     @backToHomeLink = new KDCustomHTMLView
@@ -38,7 +38,7 @@ class LoginView extends KDScrollView
       # partial     : "<span></span> Koding Homepage <span></span>"
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").open "Home"
 
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
@@ -47,7 +47,7 @@ class LoginView extends KDScrollView
       click       : homeHandler
       # click       : =>
       #   @slideUp ->
-      #     appManager.openApplication "Home"
+      #     KD.getSingleton("appManager").open "Home"
 
     @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"
@@ -163,7 +163,7 @@ class LoginView extends KDScrollView
     @slideShow = new HomeSlideShowHolder
 
   viewAppended:->
-    @windowController = @getSingleton("windowController")
+
     @listenWindowResize()
     @setClass "login-screen home"
     @setTemplate @pistachio()
@@ -355,7 +355,7 @@ class LoginView extends KDScrollView
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
   slideUp:(callback)->
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight
     @utils.wait 601,()=>
       @emit "LoginViewHidden"
@@ -376,7 +376,7 @@ class LoginView extends KDScrollView
 
   _windowDidResize:(event)->
 
-    {winWidth,winHeight} = @windowController
+    {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight if @hidden
 
   animateToForm: (name)->

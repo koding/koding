@@ -1,11 +1,15 @@
 class ViewerAppController extends KDViewController
-  initApp:(options,callback)=>
+
+  KD.registerAppClass @,
+    name     : "Viewer"
+    route    : "Develop"
+    multiple : yes
+
+  constructor:->
+
+    super
+
     @openDocuments = []
-    # log 'init application called'
-    # @applyStyleSheet ()=>
-    @propagateEvent
-      KDEventType : 'ApplicationInitialized', globalEvent : yes
-    callback()
 
   bringToFront:(frontDocument, path, callback)=>
     unless frontDocument
@@ -13,15 +17,12 @@ class ViewerAppController extends KDViewController
         frontDocument = @getFrontDocument()
       else
         frontDocument = @createNewDocument()
-    @propagateEvent
-      KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
-    ,
-      options:
-        hiddenHandle    : no
-        type            : 'application'
-        name            : path
-        applicationType : 'Viewer.kdApplication'
-      data : frontDocument
+
+    @emit 'ApplicationWantsToBeShown', @, frontDocument,
+      hiddenHandle    : no
+      type            : 'application'
+      name            : path
+      applicationType : 'Viewer.kdApplication'
 
     callback()
 
@@ -41,11 +42,11 @@ class ViewerAppController extends KDViewController
     frontDocument
 
   addOpenDocument:(doc)->
-    appManager.addOpenTab doc, 'Viewer.kdApplication'
+    KD.getSingleton("appManager").addOpenTab doc, 'Viewer.kdApplication'
     @openDocuments.push doc
 
   removeOpenDocument:(doc)->
-    appManager.removeOpenTab doc, @
+    KD.getSingleton("appManager").removeOpenTab doc, @
     @openDocuments.splice (@openDocuments.indexOf doc), 1
 
   createNewDocument:()->
@@ -58,7 +59,7 @@ class ViewerAppController extends KDViewController
   closeDocument:(doc)->
     doc.parent.removeSubView doc
     @removeOpenDocument doc
-    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : doc
+    @emit "ApplicationWantsToClose", @, doc
     doc.destroy()
 
   loadDocumentView:(docView)->

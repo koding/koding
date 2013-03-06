@@ -56,7 +56,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
     widgetController = @
-    paneMap.forEach (pane)=> 
+    paneMap.forEach (pane)=>
       @[pane.name] = mainView.addWidgetPane
         paneName : pane.paneName
         mainContent : @[pane.widgetName] = new pane.widgetType
@@ -101,7 +101,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
-      appManager.openApplication "Activity"
+      KD.getSingleton("appManager").open "Activity"
       mainView.setClass "edit-mode"
       switchForEditView activity.bongo_.constructorName, activity
 
@@ -128,7 +128,7 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
-      appManager.tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
+      KD.getSingleton("appManager").tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
         data.group = currentGroup
         KD.remote.api[constructorName].create data, (err, activity)=>
           callback? err, activity

@@ -47,17 +47,17 @@ class KodingRouter extends KDRouter
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
-  go:(app, group, query, rest...)->
+  go:(app, group, query)->
     return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group
     unless group?
-      appManager.openApplication app
+      KD.getSingleton("appManager").open app
     else
-      # appManager.tell app, 'setGroup', group
-      appManager.openApplication app
-    appManager.tell app, 'handleQuery', query
+      # KD.getSingleton("appManager").tell app, 'setGroup', group
+      KD.getSingleton("appManager").open app
+    KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -94,7 +94,7 @@ class KodingRouter extends KDRouter
 
   openContent:(name, section, state, route)->
     @setPageTitle @getContentTitle state
-    appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
+    KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
@@ -124,7 +124,7 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
       else
-        appManager.tell section, 'setGroup', name  if name? and not state?
+        # KD.getSingleton("appManager").tell section, 'setGroup', name  if name? and not state?
         if state?
           @openContent name, section, state, route
         else
@@ -150,12 +150,14 @@ class KodingRouter extends KDRouter
     )
 
     section = createLinks(
-      'Account Activity Apps Groups Inbox Members StartTab Topics'
-      # 'Account Activity Apps Inbox Members StartTab Topics'
+      'Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
     clear = @bound 'clear'
+
+    openGroupAdminDashboard = =>
+      @getSingleton('groupsController').openAdminDashboard arguments...
 
     requireLogin =(fn)->
       mainController.accountReady ->
@@ -165,7 +167,6 @@ class KodingRouter extends KDRouter
 
     requireLogout =(fn)->
       mainController.accountReady ->
-        # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
@@ -194,6 +195,9 @@ class KodingRouter extends KDRouter
       '/:name?/Develop'                 : section.StartTab
       '/:name?/Apps'                    : section.Apps
       '/:name?/Account'                 : section.Account
+
+      # group dashboard
+      '/:name?/Dashboard'               : content.Groups
 
       # content
       '/:name?/Topics/:topicSlug'       : content.Topics
@@ -291,8 +295,25 @@ class KodingRouter extends KDRouter
         nameHandler =(routeInfo, state, route)->
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
+
+          # console.log "GROUP", window._group_loaded
+
           if state?
             open routeInfo, state, status_404
+
+          # Shows that we are in groups
+          else if $('.group-landing').length > 0
+
+            unless $('.group-loader').length > 0
+              waitress = new KDLoaderView
+                size          :
+                  width       : 30
+                loaderOptions :
+                  color       : "#ff9200"
+                cssClass      : 'group-loader'
+              waitress.appendToSelector '.group-login-buttons'
+              waitress.show()
+
           else
             KD.remote.cacheable params.name, (err, model, name)->
               open routeInfo, model, status_404

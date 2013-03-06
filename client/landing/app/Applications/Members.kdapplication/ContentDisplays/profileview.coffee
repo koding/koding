@@ -76,7 +76,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -86,7 +86,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
     @likes = new KDView
@@ -96,7 +96,7 @@ class ProfileView extends JView
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
@@ -135,7 +135,9 @@ class ProfileView extends JView
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
-    userDomain = "#{@getData().profile.nickname}.koding.com"
+    account      = @getData()
+    userDomain   = "#{account.profile.nickname}.koding.com"
+    amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     """
     <div class="profileleft">
       <span>
@@ -151,7 +153,10 @@ class ProfileView extends JView
       <div class="profileinfo">
         <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
-        <h5><span class='icon fl'></span><a class="user-home-link right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a></h5>
+        <h5>
+          <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
+        </h5>
         <div class="profilestats">
           <div class="fers">
             {{> @followers}}
@@ -170,7 +175,6 @@ class ProfileView extends JView
         <div class="profilebio">
           <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
         </div>
-
         <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>
       </div>
     </section>
@@ -191,35 +195,19 @@ class ProfileView extends JView
     skillTagHTML
 
   setListeners:->
-    @sendMessageLink.registerListener
-      KDEventTypes : "ToFieldHasNewInput"
-      listener     : @
-      callback     : (pubInst, data)->
-        return if data.disabledForBeta
-        {type,action} = data
-        mainView.showTab type
-        if action is "change-tab"
-          mainView.showTab data.type
-        else
-          mainView.sort data.type
 
-    @sendMessageLink.registerListener
-      KDEventTypes  : "AutoCompleteNeedsMemberData"
-      listener      : @
-      callback      : (pubInst,event)=>
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteForToField inputValue,blacklist,callback
+    @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event)=>
+      {callback,inputValue,blacklist} = event
+      @fetchAutoCompleteForToField inputValue,blacklist,callback
 
-    @sendMessageLink.registerListener
-      KDEventTypes  : 'MessageShouldBeSent'
-      listener      : @
-      callback      : (pubInst,{formOutput,callback})->
-        @prepareMessage formOutput,callback
+    @sendMessageLink.on 'MessageShouldBeSent', ({formOutput,callback})=>
+      @prepareMessage formOutput, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
+  # FIXME: this should be taken to inbox app controller using KD.getSingleton("appManager").tell
   prepareMessage:(formOutput, callback)=>
     {body, subject, recipients} = formOutput
     to = recipients.join ' '

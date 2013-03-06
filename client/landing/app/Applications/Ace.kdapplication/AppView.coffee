@@ -53,7 +53,7 @@ class AceView extends JView
       callback  : =>
         publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
         return if publicPath is @getData().path
-        appManager.openFileWithApplication publicPath, "Viewer"
+        KD.getSingleton("appManager").openFileWithApplication publicPath, "Viewer"
 
     @previewButton.hide() unless publicUrlCheck.test(@getData().path)
     @previewButton.disable()

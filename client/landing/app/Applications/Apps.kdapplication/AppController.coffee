@@ -1,22 +1,26 @@
 class AppsAppController extends AppController
-  constructor:(options, data)->
-    options = $.extend
-      view : new AppsMainView
-        cssClass : "content-page appstore"
-    ,options
-    super options,data
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name  : 'Apps'
-      data    : @getView()
+  KD.registerAppClass @,
+    name         : "Apps"
+    route        : "Apps"
+    hiddenHandle : yes
+
+  constructor:(options = {}, data)->
+
+    options.view    = new AppsMainView
+      cssClass      : "content-page appstore"
+    options.appInfo =
+      name          : 'Apps'
+
+    super options, data
 
   loadView:(mainView)->
+
     mainView.createCommons()
     @createFeed()
 
   createFeed:(view)->
+
     options =
       itemClass          : AppsListItemView
       limitPerPage          : 10
@@ -79,15 +83,12 @@ class AppsAppController extends AppController
           selector.approved = no
           KD.remote.api.JApp.someWithRelationship selector, options, callback
 
-    appManager.tell 'Feeder', 'createContentFeedController', options, (controller)=>
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
       # @getSingleton("kodingAppsController").fetchAppsFromDb (err, apps)=>
       #   log "Installed Apps:", apps
       for own name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'AppWantsToExpand'
-          listener      : @
-          callback      : (pubInst, app)->
-            KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
+        listController.getListView().on 'AppWantsToExpand', (app)->
+          KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
         listController.getListView().on "AppDeleted", =>
           log arguments, ">>>>>"
@@ -136,19 +137,16 @@ class AppsAppController extends AppController
     modal.$().css top : 75
     {modalTabs} = modal
     {forms}     = modalTabs
-    modal.registerListener
-      KDEventTypes  : "AppSubmissionFormSubmitted"
-      listener      : @
-      callback      : (pubInst,formData)=>
-        @createApp formData, (err,res)=>
-          unless err
-            new KDNotificationView
-              title : "App created successfully!"
-            modal.destroy()
-          else
-            warn "there was an error creating the app",err
-            new KDNotificationView
-              title : "there was an error creating the app"
+    modal.on "AppSubmissionFormSubmitted", (formData)=>
+      @createApp formData, (err,res)=>
+        unless err
+          new KDNotificationView
+            title : "App created successfully!"
+          modal.destroy()
+        else
+          warn "there was an error creating the app",err
+          new KDNotificationView
+            title : "there was an error creating the app"
 
     modalTabs.on "PaneDidShow", (pane)=>
       # scriptForm = forms['Technical Stuff']
@@ -183,11 +181,7 @@ class AppsAppController extends AppController
     tagsField.addSubView tagAutoComplete
     tagsField.addSubView selectedItemWrapper
 
-    modal.registerListener
-      KDEventTypes  : "KDModalViewDestroyed"
-      listener      : @
-      callback      : ->
-        tagController.destroy()
+    modal.on "KDModalViewDestroyed", -> tagController.destroy()
 
     # # INSTALL SCRIPT ACE
     # scriptForm      = forms['Technical Stuff']

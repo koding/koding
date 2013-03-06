@@ -2,11 +2,11 @@ class MainPageFooterView extends KDView
   viewAppended:->
     @addLeftLinks()
     @addRightLinks()
-  
+
   addLeftLinks:->
     @addSubView @linkHolder = new KDView
       cssClass  : "footer-left"
-    
+
     @linkHolder.addSubView new KDView
       tagName     : 'a'
       cssClass    : 'footer-fb-link'
@@ -14,7 +14,7 @@ class MainPageFooterView extends KDView
       attributes  :
         href        : 'https://www.facebook.com/pages/Koding/109012155844171'
         target      : '_blank'
-    
+
     @linkHolder.addSubView new KDView
       tagName     : 'a'
       cssClass    : 'footer-tw-link'
@@ -22,7 +22,7 @@ class MainPageFooterView extends KDView
       attributes  :
         href        : 'https://twitter.com/kodingen'
         target      : '_blank'
-  
+
   addRightLinks:->
     @addSubView @buttonHolder = new KDView
       cssClass  : "footer-right"
@@ -36,8 +36,7 @@ class MainPageFooterView extends KDView
         attributes  :
           href        : '#'
         click     : =>
-          @getDelegate().propagateEvent 
-            KDEventType : "AboutButtonClicked"
+          @getDelegate().emit "AboutButtonClicked"
 
     @buttonHolder.addSubView new KDView
       tagName     : 'a'

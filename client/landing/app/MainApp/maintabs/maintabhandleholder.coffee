@@ -1,5 +1,5 @@
 class MainTabHandleHolder extends KDView
-  
+
   constructor: (options = {}, data) ->
 
     options.bind = "mouseenter mouseleave"
@@ -18,16 +18,13 @@ class MainTabHandleHolder extends KDView
       tabHandle = pane.tabHandle
 
       tabHandle.on "DragStarted", =>
-        if @subViews.length <= 2 then tabHandle.dragIsAllowed = no else tabHandle.dragIsAllowed = yes
+        tabHandle.dragIsAllowed = if @subViews.length <= 2 then no else yes
       tabHandle.on "DragInAction", =>
         @plusHandle.hide() if tabHandle.dragIsAllowed
       tabHandle.on "DragFinished", =>
         @plusHandle.show()
 
     @listenWindowResize()
-
-  click:(event)->
-    @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
 
   _windowDidResize:->
     mainView = @getDelegate()
@@ -39,44 +36,45 @@ class MainTabHandleHolder extends KDView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
-      click    : (event) =>
-        unless @plusHandle.$().hasClass('first')
+      click    : (event)=>
+        if @plusHandle.$().hasClass('first')
+          log "here"
+          KD.getSingleton("appManager").open "StartTab"
+        else
+          offset = @plusHandle.$().offset()
           contextMenu = new JContextMenu
-            event    : event
-            delegate : @plusHandle
+            event       : event
+            delegate    : @plusHandle
+            x           : offset.left - 133
+            y           : offset.top + 22
+            arrow       :
+              placement : "top"
+              margin    : -20
           ,
             'New Tab'              :
               callback             : (source, event)=>
-                appManager.tell "StartTab", 'openFreshTab'
+                KD.getSingleton("appManager").open "StartTab", forceNew : yes
                 contextMenu.destroy()
               separator            : yes
             'Ace Editor'           :
               callback             : (source, event)=>
-                appManager.newFileWithApplication "Ace"
+                KD.getSingleton("appManager").open "Ace", forceNew : yes
                 contextMenu.destroy()
             'CodeMirror'           :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'yMacs'                :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'Pixlr'                :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
               separator            : yes
             'Search the App Store' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
             'Contribute An Editor' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
 
 
   removePlusHandle:()->
     @plusHandle.destroy()
-
-  _plusHandleClicked: () ->
-    if @plusHandle?.__shouldAdd
-      @plusHandle.delegate.propagateEvent KDEventType : 'AddEditorClick', @plusHandle
-      # appManager.newFileWithApplication "Ace"
-    else
-      appManager.openApplication "StartTab"
-      # @getSingleton('router').handleRoute "/Develop"
 
   _repositionPlusHandle:(event)->
 
@@ -92,11 +90,9 @@ class MainTabHandleHolder extends KDView
     if appTabCount is 0
       @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"
-      @plusHandle.__shouldAdd = no
     else
       visibleTabs[0].tabHandle.setClass "first"
       @removePlusHandle()
       @addPlusHandle()
       @plusHandle.unsetClass "first"
       @plusHandle.setClass "last"
-      @plusHandle.__shouldAdd = yes

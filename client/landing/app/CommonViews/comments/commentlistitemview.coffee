@@ -40,10 +40,7 @@ class CommentListItemView extends KDListItemView
        loggedInId is activity.originId or       # if activity/app owner
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
       @deleteLink.unsetClass "hidden"
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @deleteLink
-        callback           : => @confirmDeleteComment data
+      @deleteLink.on "click", => @confirmDeleteComment data
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 
@@ -84,7 +81,7 @@ class CommentListItemView extends KDListItemView
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
           KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
-          # appManager.tell "Members", "createContentDisplay", origin
+          # KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
     {type} = @getOptions()
