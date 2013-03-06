@@ -13,23 +13,11 @@ class KDScrollView extends KDView
 
   bindEvents:()->
 
-    @getDomElement().bind "scroll mousewheel",(event,delta,deltaX,deltaY)=> #FIXME: mousewheel works in FF, IE??
+    #FIXME: mousewheel works in FF, IE??
+    @$().bind "scroll mousewheel",(event, delta, deltaX, deltaY)=>
       event._delta = {delta,deltaX,deltaY} if delta
       @handleEvent event
     super
-
-  viewAppended:->
-    super
-
-  handleEvent:(event)->
-    # log event.type
-    # thisEvent = @[event.type]? event or yes #this would be way awesomer than lines 98-103, but then we have to break camelcase convention in mouseUp, etc. names....??? worth it?
-    switch event.type
-      when "scroll" then thisEvent = @scroll event
-      when "mousewheel" then thisEvent = @mouseWheel event
-    superResponse = super event #always needs to be called for propagation
-    thisEvent = thisEvent ? superResponse #only return superResponse if local handle didn't happen
-    willPropagateToDOM = thisEvent
 
   hasScrollBars:()-> @getScrollHeight() > @getHeight()
 
@@ -48,8 +36,7 @@ class KDScrollView extends KDView
         scrollTop  : top
         scrollLeft : left
       , duration
-      , ->
-        callback?()
+      , -> callback?()
     else
       @$().scrollTop top
       @$().scrollLeft left

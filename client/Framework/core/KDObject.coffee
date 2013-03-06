@@ -5,15 +5,15 @@ class KDObject extends KDEventEmitter
   utils: __utils
 
   constructor:(options = {}, data)->
+
     @id or= options.id or __utils.getUniqueId()
     @setOptions options
     @setData data  if data
     @setDelegate options.delegate if options.delegate
     @registerKDObjectInstance()
-    @subscriptionsByEvent = {}
-    @subscriptionCountByListenerId = {}
-    @listeningTo = []
+
     super
+
     @once 'ready', => @readyState = READY
 
   bound: Bongo.bound
@@ -27,44 +27,12 @@ class KDObject extends KDEventEmitter
     if @readyState is READY then listener()
     else @once 'ready', listener
 
-  inheritanceChain:(options)->
-    #need to detect () to know whether to call as function or get value as parameter
-    methodArray = options.method.split "."
-    options.callback
-    proto = @__proto__
-    chain = @
-    chain = chain[method] for method in methodArray
-    while proto = proto.__proto__
-      newChain = proto
-      newChain = newChain[method] for method in methodArray
-      chain = options.callback chain:chain,newLink:newChain
-    chain
-
-  chainNames:(options)->
-    options.chain
-    options.newLink
-    "#{options.chain}.#{options.newLink}"
-
-  setListeningTo:(obj)->
-    @listeningTo.push obj
-
   registerSingleton:KD.registerSingleton
 
   getSingleton:KD.getSingleton
 
   getInstance:(instanceId)->
     KD.getAllKDInstances()[instanceId] ? null
-
-  removeListener:( {listener} )->
-    for eventType, count of @subscriptionCountByListenerId[listener]
-      subscriptionList = @subscriptionsByEvent[eventType]
-      _i = 0; subscriptionListCopy = subscriptionList.slice 0; _len = subscriptionListCopy.length
-      while count > 0 and _i < _len
-        if subscriptionListCopy[_i].listener is listener
-          subscriptionList.splice _i, 1
-          count--
-        _i++
-      subscriptionCountByListenerId[listener][eventType] = 0
 
   requireLogin:KD.requireLogin
 
@@ -106,9 +74,22 @@ class KDObject extends KDEventEmitter
   destroy:->
 
     @emit 'KDObjectWillBeDestroyed'
-    KD.removeSubscriptions @
-    for obj in @listeningTo
-      obj.removeListener listener : @
+    KD.deleteInstance @id
 
-    id = @id
-    KD.deleteInstance id
+  inheritanceChain:(options)->
+    #need to detect () to know whether to call as function or get value as parameter
+    methodArray = options.method.split "."
+    options.callback
+    proto = @__proto__
+    chain = @
+    chain = chain[method] for method in methodArray
+    while proto = proto.__proto__
+      newChain = proto
+      newChain = newChain[method] for method in methodArray
+      chain = options.callback chain:chain,newLink:newChain
+    chain
+
+  chainNames:(options)->
+    options.chain
+    options.newLink
+    "#{options.chain}.#{options.newLink}"

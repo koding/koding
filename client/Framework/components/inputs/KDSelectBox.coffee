@@ -1,18 +1,14 @@
-#####
-# KDSelectBox
-#####
-
 class KDSelectBox extends KDInputView
-  constructor:(options)->
-    options = $.extend
-      type     : "select"       # mandatory
-      cssClass : ""
-    ,options
+
+  constructor:(options = {})->
+
+    options.type = "select"
+
     super options
 
   setDomElement:(cssClass)->
-    @inputName = @options.name
-    name = "name='#{@options.name}'"
+    @inputName  = @getOption name
+    name        = "name='#{@options.name}'"
     @domElement = $ """
         <div class='kdselectbox #{cssClass}'>
           <select #{name}></select>
@@ -20,8 +16,8 @@ class KDSelectBox extends KDInputView
           <span class='arrows'></span>
         </div>"
       """
-    @_$select = @$().find("select").eq(0)
-    @_$title  = @$().find("span.title").eq(0)
+    @_$select = @$("select").eq(0)
+    @_$title  = @$("span.title").eq(0)
     @domElement
 
   bindEvents:()->
@@ -71,14 +67,11 @@ class KDSelectBox extends KDInputView
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
 
-  removeSelectOptions:->
-    @_$select.find("option").remove()
+  removeSelectOptions:-> @_$select.find("option").remove()
 
   change:->
     @_$title.text @_$select.find("option[value=\"#{@getValue()}\"]").text()
 
-  focus:->
-    @setClass 'focus'
+  focus:-> @setClass 'focus'
 
-  blur:->
-    @unsetClass 'focus'
+  blur:-> @unsetClass 'focus'
