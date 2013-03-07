@@ -1,5 +1,3 @@
-KDApps = {}
-
 class KodingAppsController extends KDController
 
   KD.registerAppClass @,
@@ -169,7 +167,7 @@ class KodingAppsController extends KDController
   refreshApps:(callback)->
 
     @constructor.manifests = {}
-    KDApps = {}
+    KD.resetAppScripts()
     @fetchAppsFromFs (err, apps)=>
       @appStorage.fetchStorage =>
         @emit "AppsRefreshed", apps
@@ -228,22 +226,22 @@ class KodingAppsController extends KDController
 
   defineApp:(name, script)->
 
-    KDApps[name] = script if script
+    KD.registerAppScript name, script if script
 
   getAppScript:(manifest, callback = noop)->
 
     {name} = manifest
 
-    if KDApps[name]
-      callback null, KDApps[name]
+    if script = KD.getAppScript name
+      callback null, script
     else
       @fetchCompiledApp manifest, (err, script)=>
         if err
           @compileApp name, (err)->
-            callback err, KDApps[name]
+            callback err, script
         else
           @defineApp name, script
-          callback err, KDApps[name]
+          callback err, script
 
   # #
   # KITE INTERACTIONS
@@ -295,19 +293,15 @@ class KodingAppsController extends KDController
       else
         if options and options.type is "tab"
 
-          manifest.route      = "Develop"
-          manifest.behavior or= "application"
-
-          KD.registerAppClass KodingAppController, manifest
-          KD.getSingleton("appManager").open manifest.name, (appInstance)->
+          KD.getSingleton("appManager").open manifest.name, thirdParty : yes, (appInstance)->
 
             appView = appInstance.getView()
+            id      = appView.getId()
 
             try
               # security please!
               do (appView)->
-                appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
-                eval appScript
+                eval "var appView = KD.instances[\"#{id}\"];\n\n" + appScript
             catch error
               # if not manifest.ignoreWarnings? # GG FIXME
               showError error
