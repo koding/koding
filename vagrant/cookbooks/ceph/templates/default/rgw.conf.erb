@@ -1,0 +1,34 @@
+<% if node['ceph']['radosgw']['rgw_port'] -%>
+FastCgiExternalServer /var/www/dummyradosgw.fcgi -host 127.0.0.1:<%= node['ceph']['radosgw']['rgw_port'] %>
+<% else -%>
+FastCgiExternalServer /var/www/dummyradosgw.fcgi -socket /var/run/ceph/radosgw.client.radosgw.<%= node[:hostname] %>
+<% end -%>
+
+LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
+LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_debug
+
+<VirtualHost <%= @ceph_rgw_addr %>>
+  ServerName <%= @ceph_api_fqdn %>
+  ServerAdmin <%= @ceph_admin_email %>
+  DocumentRoot /var/www/
+
+  RewriteEngine On
+  RewriteRule             ^/(.*) /dummyradosgw.fcgi?params=$1&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+
+  <IfModule mod_fastcgi.c>
+    <Directory /var/www/>
+      Options +ExecCGI
+      AllowOverride All
+      SetHandler fastcgi-script
+      Order allow,deny
+      Allow from all
+      AuthBasicAuthoritative Off
+    </Directory>
+  </IfModule>
+
+  AllowEncodedSlashes On
+
+  ErrorLog /var/log/apache2/error.log
+  CustomLog /var/log/apache2/sssrgw-access.log proxy_combined
+  ServerSignature Off
+</VirtualHost>

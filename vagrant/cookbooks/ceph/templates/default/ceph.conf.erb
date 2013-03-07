@@ -1,0 +1,35 @@
+[global]
+	auth supported = cephx
+	keyring = /etc/ceph/$cluster.$name.keyring
+	#keyring = /var/lib/ceph/mon/$cluster-$id/keyring
+
+	# this will be used by all clients to discover the mons to
+	# talk to; this way we don't need to have separate [mon.foo]
+	# sections, and come up with names for the mons just to be
+	# able to list their addresses
+ 	mon host = <%= @mon_addresses.join(', ') %>
+
+	<% node['ceph']['config'].each do |k, v| %>
+	<%= k %> = <%= v %>
+	<% end %>
+
+[mon]
+	keyring = /var/lib/ceph/mon/ceph-$id/keyring
+
+[osd]
+	keyring = /var/lib/ceph/osd/ceph-$id/keyring
+	
+	# osd journal size = {2 * (expected throughput * filestore max sync interval)}
+    # filestore max sync interval default is 5 (seconds)
+    # Assuming a possible throuput of 70 MB/s (depending on HDD and network)
+    osd journal size = 700
+
+	filestore_xattr_use_omap = true
+
+<% node['ceph']['config-sections'].each do |name, sect| %>
+
+[<%= name %>]
+<% sect.each do |k, v| %>
+<%= k %> = <%= v %>
+<% end %>
+<% end %>
