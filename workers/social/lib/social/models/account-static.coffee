@@ -19,29 +19,43 @@ module.exports = ({profile,skillTags,counts})->
   <body class="login" data-profile="#{nickname}">
     <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
 
-    <div class="profile-header"></div>
+    <div class="profile-header">
+    </div>
 
-    <div class="profile-personal-wrapper">
+    <div class="profile-personal-wrapper" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
       <div class="profile-buttons">
+                <div class="profile-nickname">@#{nickname}</div>
+
       </div>
       <div class="profile-links">
-        <ul>
-          <li>Blog</li>
-          <li>Twitter</li>
-          <li>GitHub</li>
+        <ul class='main'>
+          <li class='blog'><a href=""><span class="icon"></span>Blog</a></li>
+          <li class='twitter'><a href=""><span class="icon"></span>Twitter</a></li>
+          <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
+        </ul>
+        <hr/>
+        <ul class='admin'>
+          <li class="login"><a href="/Login"><span class="icon"></span>Login</a></li>
+          <li class="register"><a href="/Register"><span class="icon"></span>Register</a></li>
+          <li class="share"><a href="/"><span class="icon"></span>Share</a></li>
         </ul>
 
       </div>
       <div class="profile-koding-logo">
+        <div class="logo" id='profile-koding-logo'></div>
       </div>
 
     </div>
 
-    <div class="profile-content-wrapper">
+    <div class="profile-content-wrapper" id="profile-content-wrapper">
       <div class="profile-title">
+        <div class="profile-title-wrapper">
+        <div class="profile-name">#{firstName} #{lastName}</div>
+        <div class="profile-bio">#{about}</div>
+        </div>
       </div>
       <div class="profile-content-links">
         <h4>Show me</h4>
@@ -55,7 +69,22 @@ module.exports = ({profile,skillTags,counts})->
           <li>Links</li>
         </ul>
       </div>
-      <div class="profile-content">
+      <div class="profile-content" id="profile-content">
+        <div class="content-item">
+          <div class="has-markdown">
+          <h1>This is a test title</h1>
+          <p>Hello! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem est magnam similique culpa pariatur commodi veritatis vero saepe aliquid aliquam doloremque inventore possimus molestiae! Iste mollitia quod porro necessitatibus quas? </p>
+          </div>
+        </div>
+        <div class="content-item">
+          <div class="has-markdown">
+            <h1>Second title?</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit hic consequatur nulla repudiandae eaque assumenda ratione vitae facilis dolores molestiae. Voluptate earum iure aliquam accusamus hic unde sint beatae repudiandae!</p>
+          </div>
+        </div>
+        <div class="content-item">
+          <div class="has-markdown"></div>
+        </div>
       </div>
     </div>
 

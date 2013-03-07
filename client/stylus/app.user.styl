@@ -6,81 +6,190 @@
 @import "nib/vendor"
 
 
+.slideable
+  vendor transition, margin-top 0.5s linear
+.slide-down
+  margin-top 51px
+
+
 .profile-landing
-  height 100%
-  width 100%
-  z-index 10000
+  height                100%
+  width                 100%
+  z-index               10000
   abs()
-  bg image, url("../images/koding-new-bg.png");
-  bg repeat, repeat-x
-  opacity 1
-  vendor transition, opacity 1s linear
+  bg image,             url("../images/koding-new-bg.png");
+  bg repeat,            repeat-x
+  opacity               1
+  vendor transition,    opacity 1s linear\, height 1s linear \, margin-top 1s linear
+  shadow 0 0 50px 20px rgba(0,0,0,0.4)
+  &.profile-leaving
+    rel()
+  &.profile-shrinking
+    height 0
   &.profile-fading
-    opacity 0
+    opacity             0
   &.profile-hidden
-    z-index 1
+    z-index             1
+    display             none
 .profile-header
-  width 100%
-  height 51px
+  width                 100%
+  height                51px
+  display               none
   // bg color, rgba(255,255,255,0.1)
 
 .profile-personal-wrapper
-  height 100%
-  width 160px
+  height                100%
+  width                 160px
   fl()
 
 .profile-avatar
-  height 76px
-  width 160px
-  background-position center center
-  background-repeat no-repeat
+  height                76px
+  width                 160px
+  background-position   center center
+  background-repeat     no-repeat
   vendor background-size, 160px auto
+  shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+
 
 .profile-buttons
-  height 27px
-  border-top 1px solid #403d37
-  width 100%
-  bg color, rgba(0,0,0,0.2)
+  height                27px
+  border-top            1px solid #403d37
+  width                 100%
+  bg color,             rgba(0,0,0,0.2)
 
 .profile-content-wrapper
-  margin-left 160px
-  height 100%
-  width 100%
-  bg color, white
+  margin-left           160px
+  height                100%
+  width                 auto
+  bg color,             white
+  borderBox()
 
 .profile-title
   borderBox()
-  height 77px
-  width 100%
+  height                77px
+  width                 auto
   bg                    color, white
   border-bottom         1px solid rgb(229,229,229)
   shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
   gradient              rgb(255,255,255),rgb(242,242,242)
+  padding 20px 23px
+  .profile-title-wrapper
+    height auto
+    width auto
+    // margin auto 23px
+  .profile-name
+    borderBox()
+    color #ff9200
+    font-size 16px
+    width auto
+    display inline-block
+  .profile-bio
+    borderBox()
+    color #888
+    font-size 12px
+    height 29px
+    overflow-y scroll
+    width auto
+    font-weight 300
 
+.profile-nickname
+  borderBox()
+  font-size 14px
+  width auto
+  display inline-block
+  color #aaa
+  padding 5px 5px 0 13px
+
+.profile-links
+  margin                24px 0 27px 15px
+  ul
+    li
+      a
+        color             #adadad!important
+        noTextDeco()
+        font-size         14px
+        font-weight       300
+      line-height       20px
+      margin-bottom     4px
+      span.icon
+        sprite()
+        fl()
+        size            20px, 20px
+        margin-right    18px
+      &.blog
+        span.icon
+          bg position,  0 -80px
+      &.twitter
+        span.icon
+          bg position,  0 -100px
+      &.github
+        span.icon
+          bg position,  0 -280px
+
+  ul.admin
+    li
+      a
+        padding-top 3px
+        font-size         11px
+  hr
+    border-top          1px solid rgba(44,41,36,0.5)
+    border-bottom       1px solid rgba(255,255,255,0.07)
+    width               auto
+    height              0
+    margin              20px 20px 10px 6px
+    padding             0 11px
 
 
 .profile-content-links
-  width 125px
-  height 100%
-  border-right 1px solid #e8e8e8
-  padding 19px 23px
+  width                 125px
+  height                100%
+  border-right          1px solid #e8e8e8
+  padding               19px 23px
+  fl()
+  borderBox()
 
   h4
-    text-transform uppercase
-    font-size: 9px;
-    color: #9f9d9a;
-    font-weight 400
-    margin-bottom 9px
+    text-transform      uppercase
+    font-size           9px
+    color               #9f9d9a
+    font-weight         400
+    margin-bottom       9px
 
   li
-    color #7c603b
-    font-weight normal
+    color               #7c603b
+    font-weight         normal
     noTextDeco()
-    cursor pointer
-    line-height 16px
-    font-size 12px
-    vertical-align baseline
-    margin-bottom 6px
+    cursor              pointer
+    line-height         16px
+    font-size           12px
+    vertical-align      baseline
+    margin-bottom       6px
+
+.profile-koding-logo
+  height 100%
+  .logo
+    sprite()
+    width 120px
+    height 30px
+    bg position, -240px -40px
+    position fixed
+    bottom 12px
+    left 15px
+    &.animate
+      vendor transition, top 0.5s linear
+    &.top
+      top 12px!important
+      bottom none
+
+  vertical-align bottom
+
+.profile-content
+  margin-left 125px
+  padding 20px
+  borderBox()
+  height 100%
+  width auto
+
 
 // .profile-landing
 //   height                  100%
