@@ -62,7 +62,7 @@ class ActivityAppController extends AppController
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
-  fetchCurrentGroup:(callback)-> callback @currentGroup
+  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   attachEvents:(controller)->
 
@@ -136,7 +136,7 @@ class ActivityAppController extends AppController
     slug = currentGroup.getAt 'slug'
 
     unless slug is 'koding'
-      options.group = slug
+      # options.group = slug
       @fetchActivitiesDirectly options
 
     else
