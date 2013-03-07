@@ -46,12 +46,18 @@ class ApplicationManager extends KDObject
 
       return warn "ApplicationManager::open called without an app name!"  unless name
 
-      appOptions      = KD.getAppOptions name
-      defaultCallback = -> createOrShow appOptions, callback
+      appOptions           = KD.getAppOptions name
+      defaultCallback      = -> createOrShow appOptions, callback
+      kodingAppsController = @getSingleton("kodingAppsController")
 
-      unless appOptions?
-        @fetchManifests => @open name, options, callback
-        return
+      unless options.thirdParty
+        # if there is no registered appController
+        # we assume it should be a 3rd party app
+        # that's why it should be run via kodingappscontroller
+        if not appOptions?
+          @fetchManifests =>
+            kodingAppsController.runApp (KD.getAppOptions name), callback
+          return
 
       if appOptions.multiple
 
@@ -76,8 +82,9 @@ class ApplicationManager extends KDObject
       manifestsFetched = yes
       for name, manifest of manifests
 
-        manifest.route      = "Develop"
-        manifest.behavior or= "application"
+        manifest.route        = "Develop"
+        manifest.behavior   or= "application"
+        manifest.thirdParty or= yes
 
         KD.registerAppClass KodingAppController, manifest
 
