@@ -12,7 +12,10 @@ mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_co
 projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
-  fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  catch e
+    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
+    throw e
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
