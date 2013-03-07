@@ -49,9 +49,8 @@ class MainTabView extends KDTabView
 
     super pane
 
-    paneMainView = pane.getMainView()
-
     # FIXME: SY
+    # paneMainView = pane.getMainView()
     # if paneMainView.data?.constructor.name is 'FSFile'
     #   @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
 

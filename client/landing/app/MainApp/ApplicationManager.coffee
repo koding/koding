@@ -3,13 +3,7 @@
 
 class ApplicationManager extends KDObject
 
-  @debug = yes
-
-  log = (rest...)->
-    if ApplicationManager.debug
-      console.log rest...
-    else
-      noop
+  manifestsFetched = no
 
   ###
 
@@ -20,19 +14,17 @@ class ApplicationManager extends KDObject
     - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
   ###
 
-  appControllers: {}
-
   constructor:->
 
     super
 
-    @frontApp    = null
-    @defaultApps =
+    @appControllers = {}
+    @frontApp       = null
+    @defaultApps    =
       text  : "Ace"
       video : "Viewer"
       image : "Viewer"
       sound : "Viewer"
-
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
   open: do ->
@@ -54,8 +46,18 @@ class ApplicationManager extends KDObject
 
       return warn "ApplicationManager::open called without an app name!"  unless name
 
-      appOptions      = KD.getAppOptions name
-      defaultCallback = -> createOrShow appOptions, callback
+      appOptions           = KD.getAppOptions name
+      defaultCallback      = -> createOrShow appOptions, callback
+      kodingAppsController = @getSingleton("kodingAppsController")
+
+      unless options.thirdParty
+        # if there is no registered appController
+        # we assume it should be a 3rd party app
+        # that's why it should be run via kodingappscontroller
+        if not appOptions?
+          @fetchManifests =>
+            kodingAppsController.runApp (KD.getAppOptions name), callback
+          return
 
       if appOptions.multiple
 
@@ -73,6 +75,21 @@ class ApplicationManager extends KDObject
                 @create name, callback
 
       else do defaultCallback
+
+  fetchManifests:(callback)->
+
+    @getSingleton("kodingAppsController").fetchApps (err, manifests)->
+      manifestsFetched = yes
+      for name, manifest of manifests
+
+        manifest.route        = "Develop"
+        manifest.behavior   or= "application"
+        manifest.thirdParty or= yes
+
+        KD.registerAppClass KodingAppController, manifest
+
+      callback?()
+
 
   openFile:(file)->
 
