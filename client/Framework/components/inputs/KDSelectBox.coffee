@@ -7,7 +7,7 @@ class KDSelectBox extends KDInputView
     super options
 
   setDomElement:(cssClass)->
-    @inputName  = @getOption name
+    @inputName  = @getOption "name"
     name        = "name='#{@options.name}'"
     @domElement = $ """
         <div class='kdselectbox #{cssClass}'>
