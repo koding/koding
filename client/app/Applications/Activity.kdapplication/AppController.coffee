@@ -30,17 +30,6 @@ class ActivityAppController extends AppController
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
 
-  isExempt = (callback)->
-
-    KD.getSingleton("appManager").fetchStorage 'Activity', '1.0', (err, storage) =>
-      if err
-        log 'error fetching app storage', err
-        callback no
-      else
-        flags = KD.whoami().globalFlags
-        exempt = flags?.indexOf 'exempt'
-        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-        callback exempt
 
   constructor:(options={})->
 
@@ -103,6 +92,40 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
+  isExempt:(callback)->
+
+    @appStorage.fetchStorage (storage) =>
+      flags  = KD.whoami().globalFlags
+      exempt = flags?.indexOf 'exempt'
+      exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
+      callback exempt
+
+  fetchActivitiesDirectly:(options = {})->
+
+    options = to : options.to or Date.now()
+
+    @fetchActivity options, (err, teasers)=>
+      isLoading = no
+      @listController.hideLazyLoader()
+      if err or teasers.length is 0
+        warn err
+        @listController.noActivityItem.show()
+      else
+        @listController.listActivities teasers
+
+  fetchActivitiesFromCache:(options = {})->
+
+    @fetchCachedActivity options, (err, cache)=>
+      isLoading = no
+      if err or cache.length is 0
+        warn err
+        @listController.hideLazyLoader()
+        @listController.noActivityItem.show()
+      else
+        @sanitizeCache cache, (err, cache)=>
+          @listController.hideLazyLoader()
+          @listController.listActivitiesFromCache cache
+
   populateActivity:(options = {})->
 
     return if isLoading
@@ -110,32 +133,15 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
 
-    isExempt (exempt)=>
+    console.log @getSingleton('groupsController').getCurrentGroupData()
+
+    @isExempt (exempt)=>
 
       if exempt or @getFilter() isnt activityTypes
-
-        options = to : options.to or Date.now()
-
-        @fetchActivity options, (err, teasers)=>
-          isLoading = no
-          @listController.hideLazyLoader()
-          if err or teasers.length is 0
-            warn err
-            @listController.noActivityItem.show()
-          else
-            @listController.listActivities teasers
+        @fetchActivitiesDirectly options
 
       else
-        @fetchCachedActivity options, (err, cache)=>
-          isLoading = no
-          if err or cache.length is 0
-            warn err
-            @listController.hideLazyLoader()
-            @listController.noActivityItem.show()
-          else
-            @sanitizeCache cache, (err, cache)=>
-              @listController.hideLazyLoader()
-              @listController.listActivitiesFromCache cache
+        @fetchActivitiesFromCache options
 
   sanitizeCache:(cache, callback)->
 

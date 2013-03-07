@@ -140,7 +140,7 @@ class KDTabView extends KDScrollView
     return unless pane
     @hideAllPanes()
     pane.show()
-    index = @getPaneIndex pane
+    index  = @getPaneIndex pane
     handle = @getHandleByIndex index
     handle.makeActive()
     pane.emit "PaneDidShow"

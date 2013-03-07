@@ -10,6 +10,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
   </head>
   <body class="login" data-group="#{slug}">
     <div id="group-landing" class='group-landing'>
+    <div id="group-loader-container"></div>
     <div id="group-landing-content" class="group-landing-content">
       <div class="group-wrapper">
 

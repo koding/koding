@@ -3,13 +3,7 @@
 
 class ApplicationManager extends KDObject
 
-  @debug = yes
-
-  log = (rest...)->
-    if ApplicationManager.debug
-      console.log rest...
-    else
-      noop
+  manifestsFetched = no
 
   ###
 
@@ -20,19 +14,17 @@ class ApplicationManager extends KDObject
     - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
   ###
 
-  appControllers: {}
-
   constructor:->
 
     super
 
-    @frontApp    = null
-    @defaultApps =
+    @appControllers = {}
+    @frontApp       = null
+    @defaultApps    =
       text  : "Ace"
       video : "Viewer"
       image : "Viewer"
       sound : "Viewer"
-
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
   open: do ->
@@ -57,6 +49,10 @@ class ApplicationManager extends KDObject
       appOptions      = KD.getAppOptions name
       defaultCallback = -> createOrShow appOptions, callback
 
+      unless appOptions?
+        @fetchManifests => @open name, options, callback
+        return
+
       if appOptions.multiple
 
         if options.forceNew
@@ -73,6 +69,20 @@ class ApplicationManager extends KDObject
                 @create name, callback
 
       else do defaultCallback
+
+  fetchManifests:(callback)->
+
+    @getSingleton("kodingAppsController").fetchApps (err, manifests)->
+      manifestsFetched = yes
+      for name, manifest of manifests
+
+        manifest.route      = "Develop"
+        manifest.behavior or= "application"
+
+        KD.registerAppClass KodingAppController, manifest
+
+      callback?()
+
 
   openFile:(file)->
 
@@ -233,9 +243,9 @@ class ApplicationManager extends KDObject
 
   # deprecate these
 
-  fetchStorage: (appId, version, callback) ->
-    # warn "System still trying to access application storage for #{appId}"
-    KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-      unless storage
-        storage = {appId,version,bucket:{}} # creating a fake storage
-      callback error, storage
+  # fetchStorage: (appId, version, callback) ->
+  #   # warn "System still trying to access application storage for #{appId}"
+  #   KD.whoami().fetchStorage {appId, version}, (error, storage) =>
+  #     unless storage
+  #       storage = {appId,version,bucket:{}} # creating a fake storage
+  #     callback error, storage

@@ -5,13 +5,13 @@ class WebTermController extends AppController
     route        : "Develop"
     multiple     : yes
     hiddenHandle : no
+    behavior     : "application"
 
   constructor:(options = {}, data)->
 
     options.view    = new WebTermAppView
     options.appInfo =
-      name         : "Terminal"
-      type         : "application"
+      title        : "Terminal"
       cssClass     : "webterm"
 
     super options, data
