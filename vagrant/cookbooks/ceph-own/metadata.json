@@ -1,0 +1,30 @@
+{
+  "description": "Installs/Configures ceph servers and clients",
+  "recommendations": {
+  },
+  "platforms": {
+  },
+  "providing": {
+  },
+  "maintainer": "Aleksey Mykhailov",
+  "long_description": "Description\n===========\nrecipe[ceph::server] installs and configure ceph osd/mon\nrecipe[ceph::client] installs and configure ceph client\nRequirements\n============\nrecipe[apt::cepth]\nAttributes\n==========\ndefault[\"ceph\"][\"version\"]\nUsage\n=====\n\n",
+  "conflicting": {
+  },
+  "license": "All rights reserved",
+  "name": "ceph",
+  "groupings": {
+  },
+  "replacing": {
+  },
+  "suggestions": {
+  },
+  "maintainer_email": "<aleksey@koding.com>",
+  "recipes": {
+  },
+  "attributes": {
+  },
+  "dependencies": {
+    "apt": ">= 0.0.0"
+  },
+  "version": "0.1.0"
+}
