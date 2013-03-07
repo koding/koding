@@ -40,15 +40,15 @@ use_https = True
 verbosity = WARNING
 EOF
 export DEBIAN_FRONTEND=noninteractive
-DEBIAN_FRONTEND=noninteractive
+echo "deb http://apt.opscode.com/ `lsb_release -cs`-0.10 main" | sudo tee /etc/apt/sources.list.d/opscode.list
 apt-get update >> $LOGFILE
-apt-get install opscode-keyring >> $LOGFILE
-apt-get -y upgrade >> $LOGFILE
-apt-get -y install s3cmd >> $LOGFILE
+apt-get -y --force-yes install opscode-keyring 2>&1 $LOGFILE
+apt-get -y upgrade 2>&1 $LOGFILE
+apt-get -y install s3cmd 2>&1 $LOGFILE
 /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/ceph0-validator.pem /etc/chef/ceph0-validator.pem
 /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chris-test-validator.pem /etc/chef/chris-test-validator.pem
-/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client.rb /etc/chef/client.rb
-apt-get -y install chef >> $LOGFILE
+/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/client.rb /etc/chef/chrisTest-client.rb
+apt-get -y install chef 2>&1 $LOGFILE
 
 service chef-client restart
 
