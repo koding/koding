@@ -19,6 +19,7 @@ class AceAppController extends AppController
 
     super options, data
 
+    @on "AppDidQuit", -> @getView().emit "AceAppDidQuit"
 
 
   openFile: (file) ->
