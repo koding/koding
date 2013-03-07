@@ -1,5 +1,5 @@
 
-module.exports = ({profile,skillTags,counts})->
+module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
 
@@ -75,20 +75,7 @@ module.exports = ({profile,skillTags,counts})->
         </ul>
       </div>
       <div class="profile-content" id="profile-content">
-        <div class="content-item">
-          <div class="has-markdown">
-          <h1>This is a test title</h1>
-          <p>Hello! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem est magnam similique culpa pariatur commodi veritatis vero saepe aliquid aliquam doloremque inventore possimus molestiae! Iste mollitia quod porro necessitatibus quas? </p>
-          </div>
-        </div>
-        <div class="content-item">
-          <div class="has-markdown">
-            <h1>Second title?</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit hic consequatur nulla repudiandae eaque assumenda ratione vitae facilis dolores molestiae. Voluptate earum iure aliquam accusamus hic unde sint beatae repudiandae!</p>
-          </div>
-        </div>
-        <div class="content-item">
-          <div class="has-markdown"></div>
+        #{getBlogPosts(lastBlogPosts)}
         </div>
       </div>
     </div>
@@ -149,6 +136,18 @@ module.exports = ({profile,skillTags,counts})->
   </body>
   </html>
   """
+
+getBlogPosts = (blogPosts=[])->
+  posts = ""
+  for blog in blogPosts
+    posts+="""
+      <div class="content-item">
+        <div class="title">#{blog.title}</div>
+        <div class="has-markdown">
+          #{blog.html}
+        </div>
+    """
+  posts
 
 getTags = (tags)->
   for value in tags
