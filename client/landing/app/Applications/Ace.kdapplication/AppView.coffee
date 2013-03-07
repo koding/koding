@@ -15,6 +15,12 @@ class AceView extends JView
 
     @listenWindowResize()
 
+    @editorHeader = new KDView
+      cssClass : "editor-header header-buttons"
+
+    @editorHeader.addSubView @headerButtonContainer = new KDView
+      cssClass : "header-buttons"
+
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
       style         : "editor-button save-menu"
@@ -81,6 +87,10 @@ class AceView extends JView
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
 
+    @headerButtonContainer.addSubView @compileAndRunButton
+    @headerButtonContainer.addSubView @previewButton
+    @headerButtonContainer.addSubView @saveButton
+
     @setViewListeners()
 
   setViewListeners:->
@@ -119,13 +129,7 @@ class AceView extends JView
   pistachio:->
 
     """
-    <div class="kdview editor-header">
-      <div class="kdview header-buttons">
-        {{> @compileAndRunButton}}
-        {{> @previewButton}}
-        {{> @saveButton}}
-      </div>
-    </div>
+    {{> @editorHeader}}
     <div class="kdview editor-main">
       {{> @ace}}
       <div class="editor-bottom-bar clearfix">
