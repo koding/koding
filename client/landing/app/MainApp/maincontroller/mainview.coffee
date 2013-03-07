@@ -235,7 +235,7 @@ class MainView extends KDView
   switchProfileState:(isLoggedIn)->
     $('body').addClass "login"
     @addProfileViews()
-    @getSingleton('router').handleRoute "/Activity"
+    # @getSingleton('router').handleRoute "/Activity"
 
   switchGroupState:(isLoggedIn)->
 
@@ -299,13 +299,40 @@ class MainView extends KDView
   addProfileViews:->
     @profileLandingView = new KDView
       lazyDomId : 'profile-landing'
-      click:=>
-        @profileLandingView.setClass 'profile-fading'
-        @utils.wait 2000, =>
-          @profileLandingView.setClass 'profile-hidden'
 
     @profileContentView = new KDView
       lazyDomId : 'profile-content'
+      click:(event)=>
+        log 'clicked page'
+        if event.shiftKey
+          if event.altKey
+            @profileLandingView.$().css marginTop : -@profileLandingView.getHeight()
+            @profileLandingView.setClass 'profile-leaving'
+          else @profileLandingView.setHeight 0
+        else
+          @profileLandingView.setClass 'profile-fading'
+        @utils.wait 2000, =>
+          @profileLandingView.setClass 'profile-hidden'
+    @profileContentWrapperView = new KDView
+      lazyDomId : 'profile-content-wrapper'
+      cssClass : 'slideable'
+    @profilePersonalWrapperView = new KDView
+      lazyDomId : 'profile-personal-wrapper'
+      cssClass : 'slideable'
+
+    @profileLogoView = new KDView
+      lazyDomId: 'profile-koding-logo'
+      click :=>
+        log 'clicked logo'
+        @profilePersonalWrapperView.setClass 'slide-down'
+        @profileContentWrapperView.setClass 'slide-down'
+
+        @profileLogoView.setClass 'top'
+
+    @profileLogoView.$().css top: @profileLandingView.getHeight()-42
+    @utils.wait 500, => @profileLogoView.setClass 'animate'
+
+    log @profileLandingView.getHeight()-30
 
     KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
       if user.skillTags
