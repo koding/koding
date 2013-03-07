@@ -125,12 +125,10 @@ class KodingRouter extends KDRouter
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
+      else if state?
+        @openContent name, section, state, route
       else
-        # KD.getSingleton("appManager").tell section, 'setGroup', name  if name? and not state?
-        if state?
-          @openContent name, section, state, route
-        else
-          @loadContent name, section, slug, route
+        @loadContent name, section, slug, route
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -300,23 +298,17 @@ class KodingRouter extends KDRouter
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 
-          # console.log "GROUP", window._group_loaded
-
           if state?
             open routeInfo, state, status_404
 
           # Shows that we are in groups
-          else if ($('.group-landing').length > 0) or ($('.profile-landing').length > 0)
+          else if KD.config.groupEntryPoint?
 
+            # Its calling twice, weird. FIXME
             unless $('.group-loader').length > 0
-              waitress = new KDLoaderView
-                size          :
-                  width       : 30
-                loaderOptions :
-                  color       : "#ff9200"
-                cssClass      : 'group-loader'
-              waitress.appendToSelector '.group-login-buttons'
-              waitress.show()
+              groupLazyLoader = new KDView
+                cssClass : 'group-loader pulsing'
+              groupLazyLoader.appendToSelector '#group-loader-container'
 
           else
             KD.remote.cacheable params.name, (err, model, name)->

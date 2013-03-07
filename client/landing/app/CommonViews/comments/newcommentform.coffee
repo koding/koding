@@ -46,11 +46,11 @@ class NewCommentForm extends KDView
     @resetCommentField()
 
   makeCommentFieldActive:()->
-    @getDelegate().handleEvent type : "DecorateActiveCommentView"
+    @getDelegate().emit "DecorateActiveCommentView"
     (@getSingleton "windowController").setKeyView @commentInput
 
   resetCommentField:()->
-    @getDelegate().handleEvent type : "CommentViewShouldReset"
+    @getDelegate().emit "CommentViewShouldReset"
 
   otherCommentInputReceivedFocus:(instance)->
     if instance isnt @commentInput

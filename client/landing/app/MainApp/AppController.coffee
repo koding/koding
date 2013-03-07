@@ -12,4 +12,4 @@ class AppController extends KDViewController
       # log "#{@getOption "name"} handled the query!"
       @feedController?.handleQuery? query
 
-  setGroup:(group)-> @bringToFront()
+#  setGroup:(group)-> @bringToFront()

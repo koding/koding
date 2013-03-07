@@ -239,25 +239,30 @@ class MainView extends KDView
 
   switchGroupState:(isLoggedIn)->
 
-    $('.group-loader').remove()
-
+    $('.group-loader').removeClass 'pulsing'
     $('body').addClass "login"
 
     {groupEntryPoint} = KD.config
 
-    loginLink = new GroupsLandingPageLoginLink {groupEntryPoint}, {}
+    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
+
     loginLink.on 'LoginLinkRedirect', ({section})=>
+
       route =  "/#{groupEntryPoint}/#{section}"
       # KD.getSingleton('router').handleRoute route
       mc = @getSingleton 'mainController'
 
       switch section
-        when 'Join'
-          mc.loginScreen.show()
+        when 'Join', 'Login'
           mc.loginScreen.animateToForm 'login'
+          mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
+          $('#group-landing').css 'height', 0
+          # $('#group-landing').css 'opacity', 0
+
         when 'Activity'
-          console.log {m:mc.loginScreen}
-          mc.loginScreen.slideUp()
+          mc.loginScreen.hide()
+          KD.getSingleton('router').handleRoute route
+          $('#group-landing').css 'height', 0
 
     if isLoggedIn and groupEntryPoint?
       KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
@@ -269,26 +274,23 @@ class MainView extends KDView
           JMembershipPolicy.byGroupSlug groupEntryPoint,
             (err, policy)->
               if err then console.warn err
-              else
+              else if policy?
                 loginLink.setState {
                   isMember        : no
                   approvalEnabled : policy.approvalEnabled
                 }
+              else
+                loginLink.setState {
+                  isMember        : no
+                  isPublic        : yes
+                }
     else
       @utils.defer -> loginLink.setState { isLoggedIn: no }
-      # loginLink.click = ->
-      #   @getSingleton('mainController').loginScreen.show()
-      #   @getSingleton('mainController').loginScreen.animateToForm 'login'
-      #   $('.group-landing').css 'height', 0
-
 
     loginLink.appendToSelector '.group-login-buttons'
 
-    $('.group-landing').css 'height', window.outerHeight - 50
-
   closeGroupView:->
     @mainTabView.showHandleContainer()
-    @groupLandingView._windowDidResize = noop
     $('.group-landing').css 'height', 0
 
   closeProfileView:->
@@ -302,17 +304,15 @@ class MainView extends KDView
 
     @profileContentView = new KDView
       lazyDomId : 'profile-content'
-      click:(event)=>
-        log 'clicked page'
-        if event.shiftKey
-          if event.altKey
-            @profileLandingView.$().css marginTop : -@profileLandingView.getHeight()
-            @profileLandingView.setClass 'profile-leaving'
-          else @profileLandingView.setHeight 0
-        else
-          @profileLandingView.setClass 'profile-fading'
-        @utils.wait 2000, =>
-          @profileLandingView.setClass 'profile-hidden'
+      # click:(event)=>
+      #   log 'clicked page'
+      #   if event.shiftKey
+      #     if event.altKey
+      #       @profileLandingView.$().css marginTop : -@profileLandingView.getHeight()
+      #       @profileLandingView.setClass 'profile-leaving'
+      #     else @profileLandingView.setHeight 0
+      #   else
+      #     @profileLandingView.setClass 'profile-fading'
     @profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
@@ -323,67 +323,70 @@ class MainView extends KDView
     @profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
       click :=>
-        log 'clicked logo'
         @profilePersonalWrapperView.setClass 'slide-down'
         @profileContentWrapperView.setClass 'slide-down'
-
         @profileLogoView.setClass 'top'
 
-    @profileLogoView.$().css top: @profileLandingView.getHeight()-42
-    @utils.wait 500, => @profileLogoView.setClass 'animate'
+        @utils.wait 1000, => @profileLandingView.setClass 'profile-fading'
+        @utils.wait 2000, => @profileLandingView.setClass 'profile-hidden'
 
-    log @profileLandingView.getHeight()-30
+    @profileLogoView.$().css
+      top: @profileLandingView.getHeight()-42
 
-    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
-      if user.skillTags
-        @profileTagGroupView = new SkillTagGroup
-          lazyDomId :  'skill-tags'
-        , user
-        @profileTagGroupView.on 'TagWasClicked', =>
-          @closeProfileView()
-        @profileTagGroupView.viewAppended()
+    @utils.wait => @profileLogoView.setClass 'animate'
 
-      # selector =
-      #   originId  : user.getId()
-      #   type      : 'CStatusActivity'
-      # log selector
+    # KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+    #   if user.skillTags
+    #     @profileTagGroupView = new SkillTagGroup
+    #       lazyDomId :  'skill-tags'
+    #     , user
+    #     @profileTagGroupView.on 'TagWasClicked', =>
+    #       @closeProfileView()
+    #     @profileTagGroupView.viewAppended()
 
-      # @getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, {}
-      # , (data)->
-      #   log 'teasers?'
-      #   log data
+    #   # selector =
+    #   #   originId  : user.getId()
+    #   #   type      : 'CStatusActivity'
+    #   # log selector
 
-      # @getSingleton("appManager").tell 'Activity', 'fetchCachedActivity', {}
-      # , (err, data)->
-      #   log 'cache?'
-      #   log data
+    #   # @getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, {}
+    #   # , (data)->
+    #   #   log 'teasers?'
+    #   #   log data
 
-      # statusUpdatesWrapper.addSubView  statusUpdatesList = new KDListView
-      #   itemClass : StatusActivityItemView
-      @profileContentView.addSubView statusUpdatesWrapper = new KDView
-        cssClass : 'status-updates profile-wrapper'
-      @profileContentView.addSubView otherWrapper = new KDView
-        cssClass : 'other profile-wrapper'
+    #   # @getSingleton("appManager").tell 'Activity', 'fetchCachedActivity', {}
+    #   # , (err, data)->
+    #   #   log 'cache?'
+    #   #   log data
 
-      @profileContentView.addSubView footerWrapper = new KDView
-        cssClass : 'footer profile-wrapper'
+    #   # statusUpdatesWrapper.addSubView  statusUpdatesList = new KDListView
+    #   #   itemClass : StatusActivityItemView
 
-      statusUpdatesWrapper.addSubView statusUpdatesListHeader = new KDView
-        cssClass : 'profile-list'
-        partial : 'I am a Status Update list'
+    #   @profileContentView.addSubView statusUpdatesWrapper = new KDView
+    #     cssClass : 'status-updates profile-wrapper'
 
+    #   @profileContentView.addSubView otherWrapper = new KDView
+    #     cssClass : 'other profile-wrapper'
 
-      otherWrapper.addSubView otherList = new KDView
-        cssClass : 'profile-list'
-        partial : 'I am a list of other things'
+    #   @profileContentView.addSubView footerWrapper = new KDView
+    #     cssClass : 'footer profile-wrapper'
 
-      footerWrapper.addSubView footerList = new KDView
-        cssClass : 'profile-list'
-        partial : 'I am a list of footer'
+    #   statusUpdatesWrapper.addSubView statusUpdatesListHeader = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a Status Update list'
 
 
-      @profileContentView.setClass 'ready'
-      @profileContentView.render()
+    #   otherWrapper.addSubView otherList = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a list of other things'
+
+    #   footerWrapper.addSubView footerList = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a list of footer'
+
+
+    #   @profileContentView.setClass 'ready'
+    #   @profileContentView.render()
 
 
 
@@ -415,9 +418,9 @@ class MainView extends KDView
         $('body').addClass "loggedIn"
         @mainTabView.showHandleContainer()
 
+      @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      # @logo.show()
-      # @buttonHolder.hide()
+      @buttonHolder.hide()
 
     else
       if @userEnteredFromGroup() then @switchGroupState no
@@ -426,8 +429,7 @@ class MainView extends KDView
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      # @buttonHolder.show()
-      # @logo.hide()
+      @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()

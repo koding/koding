@@ -34,6 +34,48 @@ class GroupsAppController extends AppController
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
+    @utils.defer @bound 'init'
+
+  init:->
+    mainController = @getSingleton 'mainController'
+    mainController.on 'AccountChanged', @bound 'resetUserArea'
+    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
+      if pageInfo.path
+        {group} = @userArea
+        route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
+        KD.getSingleton('router').handleRoute route
+    @groups = {}
+    @currentGroupData = new GroupData
+
+  getCurrentGroupData:-> @currentGroupData
+
+  changeGroup:(groupName)->
+    groupName ?= "koding"
+    unless @currentGroup is groupName
+      @setGroup groupName
+      KD.remote.cacheable groupName, (err, group)=>
+        @currentGroupData.setGroup group
+        @emit 'GroupChanged', groupName, group
+
+  getUserArea:-> @userArea
+
+  setUserArea:(userArea)->
+    @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
+    @userArea = userArea
+
+  # getGroup:-> @userArea?.group
+
+  setGroup:(groupName)->
+    @currentGroup = groupName
+    @setUserArea {
+      group: groupName, user: KD.whoami().profile.nickname
+    }
+
+  resetUserArea:(account)->
+    @setUserArea {
+      group: 'koding', user: account.profile.nickname
+    }
+
   createFeed:(view)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
@@ -542,4 +584,3 @@ class GroupsAppController extends AppController
     # console.log {contentDisplay}
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
-
