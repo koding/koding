@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
 
-KodingError = require '../error'
+KodingError = require '../../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
@@ -9,15 +9,15 @@ module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
 
-  @trait __dirname, '../traits/followable'
-  @trait __dirname, '../traits/filterable'
-  @trait __dirname, '../traits/taggable'
-  @trait __dirname, '../traits/notifiable'
-  @trait __dirname, '../traits/notifying'
-  @trait __dirname, '../traits/flaggable'
+  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/filterable'
+  @trait __dirname, '../../traits/taggable'
+  @trait __dirname, '../../traits/notifiable'
+  @trait __dirname, '../../traits/notifying'
+  @trait __dirname, '../../traits/flaggable'
 
-  JAppStorage = require './appstorage'
-  JTag = require './tag'
+  JAppStorage = require '../appstorage'
+  JTag = require '../tag'
 
   @getFlagRole = 'content'
 
@@ -87,7 +87,7 @@ module.exports = class JAccount extends jraphical.Module
         about               : String
         nickname            :
           type              : String
-          validate          : require('./name').validateName
+          validate          : require('../name').validateName
           set               : (value)-> value.toLowerCase()
         hash                :
           type              : String
@@ -110,7 +110,7 @@ module.exports = class JAccount extends jraphical.Module
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
-      JPrivateMessage = require './messages/privatemessage'
+      JPrivateMessage = require '../messages/privatemessage'
 
       mount         :
         as          : 'owner'
@@ -152,10 +152,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
-      # group         :
-      #   targetType  : require './group'
-      #   as          : require('./group').memberRoles
-
       content       :
         as          : 'creator'
         targetType  : [
@@ -167,7 +163,7 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  @renderHomepage: require './account-static'
+  @renderHomepage: require './render-homepage'
 
   fetchHomepageView:(callback)->
     console.log 'rendering hp'
@@ -181,7 +177,7 @@ module.exports = class JAccount extends jraphical.Module
 
 
   fetchGroups: secure (client, callback)->
-    JGroup        = require './group'
+    JGroup        = require '../group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
     isMine        = this.equals delegate
@@ -213,7 +209,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
-    JGroup = require './group'
+    JGroup = require '../group'
     JGroup.fetchIdBySlug slug, (err, groupId)->
       if err then callback err
       else
@@ -233,7 +229,7 @@ module.exports = class JAccount extends jraphical.Module
     unless delegate.can 'administer accounts'
       callback new KodingError 'Access denied!'
     else
-      JSession = require './session'
+      JSession = require '../session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
   @reserveNames =(options, callback)->
@@ -241,7 +237,7 @@ module.exports = class JAccount extends jraphical.Module
     options ?= {}
     options.limit ?= 100
     options.skip ?= 0
-    JName = require './name'
+    JName = require '../name'
     @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
       if err then callback err
       else
@@ -298,7 +294,7 @@ module.exports = class JAccount extends jraphical.Module
     user.update {$set: emailFrequency: current}, callback
 
   setEmailPreferences$: secure (client, prefs, callback)->
-    JUser = require './user'
+    JUser = require '../user'
     JUser.fetchUser client, (err, user)=>
       if err
         callback err
@@ -637,7 +633,7 @@ module.exports = class JAccount extends jraphical.Module
         callback err, storage
 
   fetchUser:(callback)->
-    JUser = require './user'
+    JUser = require '../user'
     JUser.one {username: @profile.nickname}, callback
 
   markAllContentAsLowQuality:->

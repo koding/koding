@@ -198,7 +198,9 @@ module.exports = class CActivity extends jraphical.Capsule
         type         : { $in : facets }
         createdAt    : { $lt : new Date to }
         isLowQuality : { $ne : lowQuality }
-        group        : options.group ? 'koding'
+        group        : client.groupName ? 'koding'
+
+      console.log {selector}
 
       options =
         limit : limit or 20

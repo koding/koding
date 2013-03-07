@@ -65,7 +65,7 @@ class GroupsAppController extends AppController
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  # getGroup:-> @userArea?.group
+  getGroupSlug:-> @currentGroup
 
   setGroup:(groupName)->
     @currentGroup = groupName
