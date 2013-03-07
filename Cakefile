@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-t', '--type [TYPE]', 'AWS machine type'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -380,12 +381,41 @@ buildClient =(options, callback=->)->
 task 'buildClient', (options)->
   buildClient options
 
-
-
-
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build/.cache",->
     console.log "Cache is pruned."
+
+task 'aws', (options) ->
+  {configFile,type} = options
+  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+
+  # List available machines
+  unless type
+    console.log "Machine types:"
+    for filename in fs.readdirSync './aws'
+      if filename.match /\.coffee$/
+        console.log "  #{filename.slice(0, -7)}"
+    console.log ""
+    console.log "Run: cake -c #{configFile} -t <type> aws"
+    process.exit()
+
+  console.log "Using ./aws/#{type}.coffee file as template"
+  console.log ""
+
+  # AWS Utils
+  awsUtil = require 'koding-aws'
+
+  # Machine template
+  awsTemplate = require "./aws/#{type}"
+
+  # Load configuration
+  awsUtil.init aws
+
+  # Build template
+  awsUtil.print awsTemplate
+  awsUtil.build awsTemplate
+
+  # TODO: Push template to AWS
 
 
 task 'deploy', (options) ->
