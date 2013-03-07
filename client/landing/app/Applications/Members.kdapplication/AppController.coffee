@@ -37,8 +37,16 @@ class MembersAppController extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               JAccount.byRelevance @_searchValue, options, callback
             else
-              console.log KD.getSingleton('groupsController').getGroupSlug() #.fetchMembers 
-              #JAccount.someWithRelationship selector, options, callback
+              group = KD.getSingleton('groupsController').getCurrentGroup()
+              if group?
+                targetSelector = selector
+                selector = {}
+                options ?= {}
+                options.targetOptions ?= {}
+                options.targetOptions.selector = targetSelector
+                group.fetchMembers selector, options, callback
+              else
+                JAccount.someWithRelationship selector, options, callback
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
