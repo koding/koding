@@ -49,7 +49,9 @@ class GroupsAppController extends AppController
 
   getCurrentGroupData:-> @currentGroupData
 
-  changeGroup:(groupName)->
+  changeGroup:(groupName, callback=->)->
+    return callback()  if groupName is @currentGroup
+    @once 'GroupChanged', callback
     groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
