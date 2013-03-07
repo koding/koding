@@ -9,19 +9,32 @@ class AceAppView extends JView
       delegate: @
 
     @tabView = new ApplicationTabView
-      delegate           : @
-      tabHandleContainer : @tabHandleContainer
-      saveSession        : yes
-      sessionName        : "AceAppViewTabHistory"
+      delegate             : @
+      tabHandleContainer   : @tabHandleContainer
+      saveSession          : yes
+      sessionName          : "AceTabHistory"
 
     @on 'ViewClosed', => @emit 'AceAppViewWantsToClose'
 
     @on 'AllViewsClosed', => @emit 'AceAppViewWantsToClose'
 
-    @on 'CreateSessionData', (openPanes) =>
+    @on 'UpdateSessionData', (openPanes, data = {}) =>
       paths = []
       paths.push pane.getOptions().aceView.getData().path for pane in openPanes
-      @tabView.emit 'SaveSession', paths
+
+      data[@id] = paths
+      data.latestSessions or= []
+
+      data.latestSessions.push @id if data.latestSessions.indexOf(@id) is -1
+      if data.latestSessions.length > 3
+        shifted = data.latestSessions.shift()
+        delete data[shifted]
+
+      @tabView.emit 'SaveSession', data
+
+    @on "SessionListCreated", (pane, sessionList) =>
+      #ooops!
+      pane.getOptions().aceView.editorHeader.addSubView sessionList
 
     @tabView.on 'PaneDidShow', (pane) =>
       {ace} = pane.getOptions().aceView
