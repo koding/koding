@@ -70,6 +70,7 @@ KD.error = error = noop
   appsUri         : KD.config.appsUri
   utils           : __utils
   appClasses      : {}
+  appScripts      : {}
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -160,6 +161,7 @@ KD.error = error = noop
     options.route        or= ""           # a String
     options.openWith     or= "lastActive" # a String "lastActive" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
+    options.thirdParty    ?= no           # a Boolean
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
@@ -170,12 +172,21 @@ KD.error = error = noop
         options
       }
 
-  unregisterAppClass:(name)-> delete KD.appClasses[name]
+  unregisterAppClass :(name)-> delete KD.appClasses[name]
 
-  getAppClass:(name)-> KD.appClasses[name]?.fn or null
-  getAppOptions:(name)-> KD.appClasses[name]?.options or null
+  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
 
-  getAllKDInstances:()-> KD.instances
+  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+
+  getAppScript       :(name)-> @appScripts[name] or null
+
+  registerAppScript  :(name, script)-> @appScripts[name] = script
+
+  unregisterAppScript:(name)-> delete @appScripts[name]
+
+  resetAppScripts    :-> @appScripts = {}
+
+  getAllKDInstances  :-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
