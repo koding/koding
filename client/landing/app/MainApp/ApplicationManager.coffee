@@ -193,6 +193,7 @@ class ApplicationManager extends KDObject
     appView = appInstance.getView?()
     appView?.once "KDObjectWillBeDestroyed", =>
       @unregister appInstance
+      appInstance.emit "AppDidQuit"
 
 
 
