@@ -14,7 +14,9 @@ projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
+  catch e
+    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
+    throw e
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
@@ -30,7 +32,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'webserver'
     port        : 3000
-    clusterSize : 4
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   mongo         : mongo
