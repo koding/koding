@@ -3,6 +3,11 @@ module.exports = ({profile,skillTags,counts})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
 
+  firstName ?= 'Koding'
+  lastName  ?= 'User'
+  nickname  ?= ''
+  about     ?= ''
+
   sortedTags = []
   skillTags ?= {}
   for i in [0...skillTags.length]
