@@ -10,8 +10,8 @@ buildTemplate = (callback) ->
       type          : 'm1.medium'
       ami           : 'ami-de0d9eb7'
       keyName       : 'koding'
-      securityGroups: []
-      subnet        : 'subnet-f5d0199'
+      securityGroups: ['sg-3942b156']
+      subnet        : 'subnet-f5d0199f'
       tags          : [
         Key         : 'Name'
         Value       : "ceph-osd-#{nextName}-test"
