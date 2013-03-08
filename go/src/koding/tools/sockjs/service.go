@@ -121,7 +121,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.sessionsMutex.Lock()
 	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
 		for key, session := range s.sessions {
-			if session.closed || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
+			if session.lastSendTime.Add(s.Timeout).Before(time.Now()) {
 				session.Close()
 				delete(s.sessions, key)
 			}
@@ -138,7 +138,6 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session = s.newSession()
 		s.sessions[parts[1]] = session
 	}
-	session.lastActivity = time.Now()
 	s.sessionsMutex.Unlock()
 
 	if s.CookieNeeded {

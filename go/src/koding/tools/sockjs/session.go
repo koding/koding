@@ -18,10 +18,11 @@ type Session struct {
 	doConnCheck, connCheckResult chan bool
 	readSemaphore                chan bool
 	writeOpenFrame               bool
-	lastActivity                 time.Time
+	lastSendTime                 time.Time
 	closed                       bool
 	closeMutex                   sync.Mutex
 	cookie                       string
+	Tag                          string
 }
 
 func newSession(service *Service) *Session {
@@ -33,6 +34,7 @@ func newSession(service *Service) *Session {
 		connCheckResult: make(chan bool),
 		readSemaphore:   make(chan bool, 1),
 		writeOpenFrame:  true,
+		lastSendTime:    time.Now(),
 		cookie:          "JSESSIONID=dummy",
 	}
 }
@@ -51,18 +53,19 @@ func (s *Session) Send(data interface{}) bool {
 }
 
 func (s *Session) Close() {
-	s.closeMutex.Lock()
-	defer s.closeMutex.Unlock()
-	if !s.closed {
-		s.closed = true
-		close(s.ReceiveChan)
-	}
+	go func() {
+		s.closeMutex.Lock()
+		defer s.closeMutex.Unlock()
+		if !s.closed {
+			s.closed = true
+			close(s.ReceiveChan)
+		}
+	}()
 }
 
 func (s *Session) ReadMessages(data []byte) bool {
 	s.closeMutex.Lock()
 	defer s.closeMutex.Unlock()
-
 	if s.closed {
 		return true
 	}
@@ -145,6 +148,7 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 		frame, closed = s.CreateNextFrame(frameStart, frameEnd, escape)
 		total += len(frame)
 		c <- frame
+		s.lastSendTime = time.Now()
 		if !streaming {
 			break
 		}
