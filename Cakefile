@@ -20,7 +20,6 @@ option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 
 ProgressBar = require 'progress'
 Builder     = require './builders/Builder'
-S3          = require './builders/s3'
 # log4js      = require "log4js"
 # log         = log4js.getLogger("[Main]")
 
@@ -574,14 +573,3 @@ task 'analyzeCss','',(options)->
     log.info "#{counter.fns} selectors contain identical CSS properties"
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
-
-task 'uploadToS3','',(options)->
-  S3 = new require("./build/s3")
-  s3 = new S3
-    key     : "AKIAJO74E23N33AFRGAQ"
-    secret  : "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"
-    bucket  : "koding"
-
-  s3.putFile targetPaths.client,"js/kd.js",()->
-  s3.putFile targetPaths.css,"css/kd.css",()->
-  s3.putFile targetPaths.index,"index.html",()->
