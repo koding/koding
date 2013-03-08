@@ -128,17 +128,16 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
-      KD.getSingleton("appManager").tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
-        data.group = currentGroup
-        KD.remote.api[constructorName].create data, (err, activity)=>
-          callback? err, activity
-          unless err
-            @utils.killWait updateTimeout
-            @emit 'OwnActivityHasArrived', activity
-          else
-            @emit 'OwnActivityHasFailed', data
-            new KDNotificationView
-              title : "There was an error, try again later!"
+      data.group = KD.getSingleton('groupsController').getGroupSlug()
+      KD.remote.api[constructorName].create data, (err, activity)=>
+        callback? err, activity
+        unless err
+          @utils.killWait updateTimeout
+          @emit 'OwnActivityHasArrived', activity
+        else
+          @emit 'OwnActivityHasFailed', data
+          new KDNotificationView
+            title : "There was an error, try again later!"
 
   createFakeTags = (originalTags)->
 
