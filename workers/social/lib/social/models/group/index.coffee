@@ -48,7 +48,7 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups', 'fetchMyMemberships'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -115,6 +115,32 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @__importKodingMembers = secure (client, callback)->
+    JAccount = require '../account'
+    {delegate} = client.connection
+    count = 0
+    if delegate.can 'migrate-koding-users'
+      @one slug:'koding', (err, koding)->
+        if err then callback err
+        else
+          JAccount.each {}, {}, (err, account)->
+            if err
+              callback err
+            else unless account?
+              callback null
+            else
+              isMember =
+                sourceId  : koding.getId()
+                targetId  : account.getId()
+                as        : 'member'
+              Relationship.count isMember, (err, count)->
+                if err then callback err
+                else if count is 0
+                  process.nextTick ->
+                    koding.approveMember account, ->
+                      console.log "added member: #{account.profile.nickname}"
+
 
   @renderHomepage: require './render-homepage'
 

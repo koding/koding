@@ -459,7 +459,8 @@ module.exports = class JAccount extends jraphical.Module
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
            'administer url aliases', 'migrate-kodingen-users', \
-           'administer accounts', 'grant-invites', 'send-invites'
+           'administer accounts', 'grant-invites', 'send-invites', \
+           'migrate-koding-users'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
