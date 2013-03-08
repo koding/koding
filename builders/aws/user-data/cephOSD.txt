@@ -1,5 +1,5 @@
 #!/bin/bash
-/bin/hostname ceph-MON.beta.system.aws.koding.com
+/bin/hostname 1.ceph.system.aws.koding.com
 echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
 set -e -x
 LOGFILE="/var/log/user-data-out.log"
@@ -46,9 +46,9 @@ apt-get update >> $LOGFILE
 apt-get -y --force-yes install opscode-keyring >> $LOGFILE
 apt-get -y upgrade >> $LOGFILE
 apt-get -y install s3cmd chef --force-yes >> $LOGFILE
-/usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/ceph-osd.pem /etc/chef/ceph-osd.pem --force
 /usr/bin/s3cmd --config /root/.s3cfg get s3://koding-vagrant-Lti5bj61mVnfMkhX/chef-conf/chris-test-validator.pem /etc/chef/chris-test-validator.pem --force
 /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-osd.rb /etc/chef/client.rb --force
+echo "{ \"run_list\": [ \"role[ceph-osd]\" ] }" > /etc/chef/client.json
 
 service chef-client restart
 

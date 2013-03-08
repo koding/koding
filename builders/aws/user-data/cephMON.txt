@@ -1,5 +1,5 @@
 #!/bin/bash
-/bin/hostname a.beta.system.aws.koding.com
+/bin/hostname a.ceph.system.aws.koding.com
 echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
 set -e -x
 LOGFILE="/var/log/user-data-out.log"
@@ -51,4 +51,3 @@ apt-get -y install s3cmd chef --force-yes >> $LOGFILE
 /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-mon.rb /etc/chef/client.rb --force
 
 service chef-client restart
-
