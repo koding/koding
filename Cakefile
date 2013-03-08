@@ -34,7 +34,6 @@ hat       = require "hat"
 mkdirp    = require 'mkdirp'
 commander = require 'commander'
 
-sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes          = new (require "processes") main : true
 closureCompile     = require 'koding-closure-compiler'
 {daisy}            = require 'sinkrow'

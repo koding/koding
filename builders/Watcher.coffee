@@ -246,7 +246,6 @@ class Watcher extends EventEmitter
 
 
           callback file
-          @emit "coffeeFileContents",file # for sourceCodeAnalyzer.
         else
           file.contents = newContent
           callback file
