@@ -299,20 +299,14 @@ class MainView extends KDView
     $('.profile-landing').css 'height', 0
 
   addProfileViews:->
+
+
     @profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
     @profileContentView = new KDView
       lazyDomId : 'profile-content'
-      # click:(event)=>
-      #   log 'clicked page'
-      #   if event.shiftKey
-      #     if event.altKey
-      #       @profileLandingView.$().css marginTop : -@profileLandingView.getHeight()
-      #       @profileLandingView.setClass 'profile-leaving'
-      #     else @profileLandingView.setHeight 0
-      #   else
-      #     @profileLandingView.setClass 'profile-fading'
+
     @profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
@@ -328,12 +322,48 @@ class MainView extends KDView
         @profileLogoView.setClass 'top'
 
         @utils.wait 1000, => @profileLandingView.setClass 'profile-fading'
-        @utils.wait 2000, => @profileLandingView.setClass 'profile-hidden'
+        @utils.wait 1500, => @profileLandingView.setClass 'profile-hidden'
 
     @profileLogoView.$().css
       top: @profileLandingView.getHeight()-42
 
     @utils.wait => @profileLogoView.setClass 'animate'
+
+    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+      # account = user
+      if KD.whoami().getId() is user.getId()
+        @profileContentView.addSubView createBlogPostButton = new KDButtonView
+          title               : 'Post a new blog entry'
+          cssClass            : 'new-blogpost clean-gray'
+          callback            : =>
+            modal             = new KDModalView
+              cssClass        : 'new-blogpost-modal'
+              title           : 'Post new blog entry'
+              overlay         : yes
+              height          : "auto"
+              buttons         :
+                cancel        :
+                  style       : 'modal-cancel'
+                  callback    : -> modal.destroy()
+                post          :
+                  style       : 'modal-clean-gray'
+                  callback    : =>
+                    KD.remote.api.JBlogPost.create
+                      title   : @titleInput.getValue()
+                      content : @markdownInput.getValue()
+                    , =>
+                      modal.buttons.cancel.hideLoader()
+                      modal.destroy()
+            modal.addSubView formline = new KDView
+              cssClass : 'profile-modal formline'
+            formline.addSubView @titleInput = new KDInputView
+              cssClass : 'title-input'
+            formline.addSubView @markdownInput = new KDInputViewWithPreview
+              cssClass  : 'markdown-input'
+              type : 'textarea'
+              preview         :
+                showInitially : no
+
 
     # KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
     #   if user.skillTags
