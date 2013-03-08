@@ -49,7 +49,11 @@ class GroupsAppController extends AppController
 
   getCurrentGroupData:-> @currentGroupData
 
-  changeGroup:(groupName)->
+  getCurrentGroup:-> @currentGroupData.data
+
+  changeGroup:(groupName, callback=->)->
+    return callback()  if groupName is @currentGroup
+    @once 'GroupChanged', callback
     groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
@@ -63,7 +67,7 @@ class GroupsAppController extends AppController
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  # getGroup:-> @userArea?.group
+  getGroupSlug:-> @currentGroup
 
   setGroup:(groupName)->
     @currentGroup = groupName

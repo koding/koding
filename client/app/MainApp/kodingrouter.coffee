@@ -53,13 +53,13 @@ class KodingRouter extends KDRouter
     return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
-    @getSingleton('groupsController').changeGroup group
-    unless group?
-      KD.getSingleton("appManager").open app
-    else
-      # KD.getSingleton("appManager").tell app, 'setGroup', group
-      KD.getSingleton("appManager").open app
-    KD.getSingleton("appManager").tell app, 'handleQuery', query
+    @getSingleton('groupsController').changeGroup group, ->
+      unless group?
+        KD.getSingleton("appManager").open app
+      else
+        # KD.getSingleton("appManager").tell app, 'setGroup', group
+        KD.getSingleton("appManager").open app
+      KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor

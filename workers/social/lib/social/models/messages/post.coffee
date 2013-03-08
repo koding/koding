@@ -18,12 +18,15 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/likeable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/slugifiable'
+  @trait __dirname, '../../traits/restrictedquery'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
   {extend} = require 'underscore'
 
   {log} = console
+
+  {permit} = require '../group/permissionset'
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
@@ -98,86 +101,88 @@ module.exports = class JPost extends jraphical.Message
         kodingErr[prop] = err[prop]
     kodingErr
 
-  @create = secure (client, data, callback)->
-    constructor = @
-    {connection:{delegate}} = client
-    unless delegate instanceof constructor.getAuthorType() # TODO: rethink/improve
-      callback new Error 'Access denied!'
-    else
-      if data?.meta?.tags
-        {tags} = data.meta
-        delete data.meta.tags
+  @create = permit 'create content'
+    success: (client, data, callback)->
+      constructor = @
+      {connection:{delegate}} = client
+      unless delegate instanceof constructor.getAuthorType() # TODO: rethink/improve
+        callback new Error 'Access denied!'
+      else
+        if data?.meta?.tags
+          {tags} = data.meta
+          delete data.meta.tags
+        data.group = client.groupName
+        status = new constructor data
+        # TODO: emit an event, and move this (maybe)
+        activity = new (constructor.getActivityType())
 
-      status   = new constructor data
-      # TODO: emit an event, and move this (maybe)
-      activity = new (constructor.getActivityType())
+        if delegate.checkFlag 'exempt'
+          status.isLowQuality   = yes
+          activity.isLowQuality = yes
 
-      if delegate.checkFlag 'exempt'
-        status.isLowQuality   = yes
-        activity.isLowQuality = yes
+        activity.originId   = delegate.getId()
+        activity.originType = delegate.constructor.name
+        activity.group      = client.groupName
+        teaser              = null
 
-      activity.originId   = delegate.getId()
-      activity.originType = delegate.constructor.name
-      teaser              = null
-
-      daisy queue = [
-        ->
-          status.createSlug (err, slug)->
-            if err
-              callback err
-            else
-              status.slug   = slug
-              status.slug_  = slug
-              queue.next()
-        ->
-          status
-            .sign(delegate)
-            .save (err)->
+        daisy queue = [
+          ->
+            status.createSlug (err, slug)->
               if err
                 callback err
+              else
+                status.slug   = slug
+                status.slug_  = slug
+                queue.next()
+          ->
+            status
+              .sign(delegate)
+              .save (err)->
+                if err
+                  callback err
+                else queue.next()
+          ->
+            delegate.addContent status, (err)-> queue.next(err)
+          ->
+            activity.save (err)->
+              if err
+                callback createKodingError err
               else queue.next()
-        ->
-          delegate.addContent status, (err)-> queue.next(err)
-        ->
-          activity.save (err)->
-            if err
-              callback createKodingError err
-            else queue.next()
-        ->
-          activity.addSubject status, (err)->
-            if err
-              callback createKodingError err
-            else queue.next()
-        ->
-          delegate.addContent activity, (err)-> queue.next(err)
-        ->
-          tags or= []
-          status.addTags client, tags, (err)->
-            if err
-              log err
-              callback createKodingError err
-            else
+          ->
+            activity.addSubject status, (err)->
+              if err
+                callback createKodingError err
+              else queue.next()
+          ->
+            delegate.addContent activity, (err)-> queue.next(err)
+          ->
+            tags or= []
+            status.addTags client, tags, (err)->
+              if err
+                log err
+                callback createKodingError err
+              else
+                queue.next()
+          ->
+            status.fetchTeaser (err, teaser_)=>
+              if err
+                callback createKodingError err
+              else
+                teaser = teaser_
+                queue.next()
+          ->
+            activity.update
+              $set:
+                snapshot: JSON.stringify(teaser)
+              $addToSet:
+                snapshotIds: status.getId()
+            , ->
+              callback null, teaser
+              CActivity.emit "ActivityIsCreated", activity
               queue.next()
-        ->
-          status.fetchTeaser (err, teaser_)=>
-            if err
-              callback createKodingError err
-            else
-              teaser = teaser_
-              queue.next()
-        ->
-          activity.update
-            $set:
-              snapshot: JSON.stringify(teaser)
-            $addToSet:
-              snapshotIds: status.getId()
-          , ->
-            callback null, teaser
-            CActivity.emit "ActivityIsCreated", activity
-            queue.next()
-        ->
-          status.addParticipant delegate, 'author'
-      ]
+          ->
+            status.addParticipant delegate, 'author'
+        ]
 
   constructor:->
     super
@@ -284,12 +289,9 @@ module.exports = class JPost extends jraphical.Message
     activityId = null
     repliesCount = @getAt 'repliesCount'
     queue = [
-      ->
-        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
-      =>
-        @update $inc: repliesCount: -1, -> queue.next()
-      =>
-        @flushSnapshot rel.getAt('targetId'), -> queue.next()
+      -> rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      => @update $inc: repliesCount: -1, -> queue.next()
+      => @flushSnapshot rel.getAt('targetId'), -> queue.next()
       callback
     ]
     daisy queue

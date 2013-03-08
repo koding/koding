@@ -62,7 +62,7 @@ class ActivityAppController extends AppController
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
-  fetchCurrentGroup:(callback)-> callback @currentGroup
+  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   attachEvents:(controller)->
 
@@ -108,18 +108,17 @@ class ActivityAppController extends AppController
       isLoading = no
       @listController.hideLazyLoader()
       if err or teasers.length is 0
-        warn err
+        warn err  if err
         @listController.noActivityItem.show()
       else
         @listController.listActivities teasers
 
   fetchActivitiesFromCache:(options = {})->
-
     @fetchCachedActivity options, (err, cache)=>
       isLoading = no
       if err or cache.length is 0
-        warn err
-        @listController.hideLazyLoader()
+        warn err  if err
+        @listController.hideLazyLoader()  
         @listController.noActivityItem.show()
       else
         @sanitizeCache cache, (err, cache)=>
@@ -133,15 +132,19 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
 
-    console.log @getSingleton('groupsController').getCurrentGroupData()
+    currentGroup = @getSingleton('groupsController').getCurrentGroupData()
+    slug = currentGroup.getAt 'slug'
 
-    @isExempt (exempt)=>
+    unless slug is 'koding'
+      # options.group = slug
+      @fetchActivitiesDirectly options
 
-      if exempt or @getFilter() isnt activityTypes
-        @fetchActivitiesDirectly options
-
-      else
-        @fetchActivitiesFromCache options
+    else
+      @isExempt (exempt)=>
+        if exempt or @getFilter() isnt activityTypes
+          @fetchActivitiesDirectly options
+        else
+          @fetchActivitiesFromCache options
 
   sanitizeCache:(cache, callback)->
 
