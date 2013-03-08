@@ -173,7 +173,7 @@ task 'authWorker',({configFile}) ->
   for _, i in Array +numberOfWorkers
     processes.fork
       name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"  
+      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
       restart : yes
       restartInterval : 1000
 
@@ -184,7 +184,7 @@ task 'authWorker',({configFile}) ->
           folders   : ['./workers/auth']
           onChange  : (path) ->
             processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
-              
+
 
 task 'guestCleanup',({configFile})->
 
@@ -336,7 +336,7 @@ clientFileMiddleware  = (options, commandLineOptions, code, callback)->
     console.log "[PISTACHIO] compiler finished."
   else # if options.configFile is "dev"
     # we don't want pistachio compilation on dev mode
-    console.log "[CLIENT FILE MIDDLEWARE] Coffee-script is appended to kd.js. U should only see this on dev mode." 
+    console.log "[CLIENT FILE MIDDLEWARE] Coffee-script is appended to kd.js. U should only see this on dev mode."
     coffeescripT = fs.readFileSync "./client/libs/coffee-script.1.6.1.js",'utf8'
     libraries = coffeescripT+";"+libraries
     # console.log coffeescripT,libraries
@@ -397,7 +397,7 @@ buildClient =(options, callback=->)->
 
 task 'buildClient', (options)->
   buildClient options
-  
+
 
 
 
@@ -494,7 +494,7 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     stderr : process.stderr
     verbose : yes
     onExit : null
-      
+
 
 
 
@@ -542,8 +542,8 @@ task 'parseAnalyzedCss','',(options)->
     log.info stuff
 
 task 'analyzeCss','',(options)->
-  configFile = normalizeConfigPath options.configFile
-  config = require configFile
+
+  config = require('koding-config-manager').load("main.#{options.configFile}")
   compareArrays = (arrA, arrB) ->
     return false if arrA?.length isnt arrB?.length
     if arrA?.slice()?.sort?
