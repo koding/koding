@@ -1059,35 +1059,43 @@
           width 60px
 
     .form-generator
-      overflow scroll
+      overflow hidden
       .wrapper
-        width 880px
+        width auto
       .form-builder
         width 100%
       .add-header
-        bg color, #f5f5f5
+        // bg color, #f5f5f5
+        border-bottom 1px solid #f5f5f5
         rounded 5px 5px 0 0
         div
-          color #aaa
+          color #444
           borderBox()
           padding 5px 8px 4px 8px
           margin 0
-          width 200px
+          width 150px
           font-weight bold
           font-size 12px
           display inline-block
           vertical-align top
+          &:first-child
+            width 100px
       .add-inputs
         padding-top 10px
-        bg color, #f5f5f5
-        width 880px
+        border-top 1px solid #f5f5f5
+        // bg color, #f5f5f5
+        width auto
         rounded 0 0 5px 5px
         .add-input
-          width  200px
+          width  150px
           borderBox()
           display inline-block
           padding 4px 9px
           vertical-align top
+          &:first-child
+            width 100px
+            .kdselectbox
+              width 80px
 
           &.button
             padding 0
@@ -1097,21 +1105,21 @@
             display block
 
           .kdinput
-            width auto
+            width 140px
 
           .kdselectbox
-            width 180px
+            width 130px
         .select-fields
         .radio-fields
-          margin-left 600px
+          margin-left 450px
           padding 5px
-          width 255px
+          width 205px
           borderBox()
           > input.text
             display inline-block
           h3
-            bg color, #f5f5f5
-            color #444
+            // bg color, #f5f5f5
+            // color #444
             padding 5px 5px 5px 0
           .form-builder-select
           .form-builder-radio
@@ -1131,19 +1139,24 @@
               .remove-button
                 display inline-block
                 width auto
+                margin-left 5px
                 fr()
       .form-item
         borderBox()
         width auto
-        border-right 1px solid #f5f5f5
-        border-left 1px solid #f5f5f5
+        // border-left 1px solid #f5f5f5
+
+        &:hover
+          > div
+            bg color, #f5f5f5
         > div
           borderBox()
+          border-right 1px solid #f5f5f5
           overflow-x hidden
           overflow-y hidden
           text-overflow ellipsis
           white-space nowrap
-          width 200px
+          width 150px
           // min-width 200px
           display inline-block
           padding 3px 9px
@@ -1151,6 +1164,8 @@
           border none
           line-height 1.5
           vertical-align middle
+          &:first-child
+            width 100px
 
           &.title
             font-weight 500
@@ -1158,7 +1173,7 @@
           .kdselectbox
             margin-top -4px
             height 18px
-            width 180px
+            width 130px
             span.title
               height 18px
               line-height 18px
@@ -1187,17 +1202,21 @@
     span.add-button
       noTextDeco()
       cursor pointer
+      margin 0 0 0 5px
       span.title
         noTextDeco()
         color black
         line-height 2.5
         font-weight 600
 
+    button.save-button
+      margin-left 10px
+
     span.remove-button
       borderBox()
       noTextDeco()
       display inline-block
-      margin 0
+      margin 0 0 0 5px
       cursor pointer
       span.title
         noTextDeco()

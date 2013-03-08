@@ -52,11 +52,11 @@ class FormGeneratorView extends JView
       name          : 'type'
       cssClass      : 'type-select'
       selectOptions : [
-        {title:'Add Text Field'         ,value:'text'},
-        {title:'Add Select Box'         ,value:'select'},
-        {title:'Add On-Off Switch'      ,value:'checkbox'},
-        {title:'Add Textarea'           ,value:'textarea'},
-        {title:'Add Radio Button Field' ,value:'radio'}
+        {title:'Text Field'         ,value:'text'},
+        {title:'Select Box'         ,value:'select'},
+        {title:'On-Off Switch'      ,value:'checkbox'},
+        {title:'Textarea'           ,value:'textarea'},
+        {title:'Radio Button Field' ,value:'radio'}
       ]
       change        : =>
         switch @inputType.getValue()
@@ -112,7 +112,7 @@ class FormGeneratorView extends JView
 
     @saveButton = new KDButtonView
       title     : 'Save fields'
-      cssClass  : 'clean-gray'
+      cssClass  : 'clean-gray save-button'
       loader    :
         diameter: 12
         color   : '#444'
@@ -210,7 +210,7 @@ class FormGeneratorView extends JView
         <div class="add-type">Field type</div>
         <div class="add-title">Title</div>
         <div class="add-key">Key</div>
-        <div class="add-default">Default value / Preview</div>
+        <div class="add-default">Default</div>
       </div>
 
       {{> @listWrapper}}
