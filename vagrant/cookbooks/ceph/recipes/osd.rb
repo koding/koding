@@ -64,7 +64,7 @@ else
       mountpoint = "xvdf"
       block do
         do_trigger = false
-        node["ceph"]["config"]["OSDNum"].times do |i|
+        node["ceph"]["OSDNum"].times do |i|
           system 'ceph-disk-prepare', "/dev/#{mountpoint}", '--fs-type', 'ext4'
           raise 'ceph-disk-prepare failed!' unless [0, 1].include? $?.exitstatus
           # system 'mkdir', '/var/lib/ceph/osd/ceph-#{i}' if not File.directory.exists? "/var/lib/ceph/osd/ceph-#{i}"

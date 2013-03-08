@@ -82,7 +82,7 @@ buildTemplate = (callback) ->
                       apt-get -y install s3cmd chef --force-yes >> $LOGFILE
                       /usr/bin/s3cmd --config /root/.s3cfg get s3://koding-vagrant-Lti5bj61mVnfMkhX/chef-conf/chris-test-validator.pem /etc/chef/chris-test-validator.pem --force
                       /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-osd.rb /etc/chef/client.rb --force
-                      echo "{ \"run_list\": [ \"role[ceph-osd]\" ] }" > /etc/chef/client.json
+                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/ceph-osd.pem /etc/chef/ceph-osd.pem --force
 
                       service chef-client restart
                       """

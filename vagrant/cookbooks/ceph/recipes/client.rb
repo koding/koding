@@ -58,23 +58,31 @@ else
     EOH
   end
 
+  execute 'ceph-mon mkfs' do
+  command <<-EOH
+set -e
+# TODO chef creates doesn't seem to suppressing re-runs, do it manually
+if [ -e '/var/lib/ceph/mon/ceph-#{node["hostname"]}/done' ]; then
+  echo 'ceph-mon mkfs already done, skipping'
+  exit 0
+fi
+KR='/var/lib/ceph/bootstrap-client/ceph.keyring'
+# TODO don't put the key in "ps" output, stdout
+ceph-authtool "$KR" --create-keyring --name=mon. --add-key='#{node["ceph"]["monitor-secret"]}' --cap mon 'allow *'
+
+EOH
+  # TODO built-in done-ness flag for ceph-mon?
+end
+
 	ruby_block "create client.admin keyring" do
 		block do
 			if not ::File.exists?('/etc/ceph/ceph.client.admin.keyring') then
-				if not have_quorum? then
-					puts 'ceph-mon is not in quorum, skipping bootstrap-client key generation for this run'
-				else
 					# TODO --set-uid=0
 					key = %x[ ceph --name mon. --keyring '/var/lib/ceph/bootstrap-client/ceph.keyring' auth get-or-create-key client.admin mon 'allow *' osd 'allow *' mds allow ]
 					raise 'adding or getting admin key failed' unless $?.exitstatus == 0
 					# TODO don't put the key in "ps" output, stdout
-					system 'ceph-authtool', \
-					  '/etc/ceph/ceph.client.admin.keyring', \
-					  '--create-keyring', \
-					  '--name=client.admin', \
-					  "--add-key=#{key}"
+					system 'ceph-authtool', '/etc/ceph/ceph.client.admin.keyring', '--create-keyring', '--name=client.admin', "--add-key=#{key}"
 					raise 'creating admin keyring failed' unless $?.exitstatus == 0
-				end
 			end
 		end
 	end

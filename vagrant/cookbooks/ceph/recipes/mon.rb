@@ -105,5 +105,4 @@ ruby_block "save osd bootstrap key in node attributes" do
   end
 end
 
-execute "ceph-mon --cluster=ceph -i c" do
-  creates "/var/run/ceph"
+execute "initctl emit ceph-mon cluster=ceph id=$(hostname -s)"
