@@ -61,6 +61,7 @@ class OwnProfileView extends JView
 
   pistachio:->
     account      = @getData()
+    {nickname}   = account.profile
     userDomain   = "#{account.profile.nickname}.koding.com"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     """
@@ -76,7 +77,8 @@ class OwnProfileView extends JView
         {{> @profileName}}
         {{> @location}}
         <h5>
-          <a class="user-home-link right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          <a class="user-home-link no-right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Your Public Page</a>
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">
