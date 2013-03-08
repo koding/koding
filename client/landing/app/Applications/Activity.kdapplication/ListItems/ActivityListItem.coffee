@@ -1,16 +1,14 @@
 class ActivityListItemView extends KDListItemView
 
   getActivityChildConstructors = ->
-    # CStatusActivity     : StatusActivityItemView
     JStatusUpdate       : StatusActivityItemView
-    # CCodeSnipActivity   : CodesnipActivityItemView
     JCodeSnip           : CodesnipActivityItemView
     JQuestionActivity   : QuestionActivityItemView
     JDiscussion         : DiscussionActivityItemView
     JLink               : LinkActivityItemView
     JTutorial           : TutorialActivityItemView
-    # THIS WILL DISABLE CODE SHARES
-    JCodeShare            : CodeShareActivityItemView
+    JBlogPost           : BlogPostActivityItemView
+
     NewMemberBucketData   : NewMemberBucketView
 
   getActivityChildCssClass = ->

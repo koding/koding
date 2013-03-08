@@ -29,12 +29,12 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetName      : 'codeWidget'
         widgetType      : ActivityCodeSnippetWidget
       ,
-      #   name            : 'codeSharePane'
-      #   paneName        : 'codeshare'
-      #   constructorName : 'JCodeShare'
-      #   widgetName      : 'codeShareWidget'
-      #   widgetType      : ActivityCodeShareWidget
-      # ,
+        name            : 'blogPostPane'
+        paneName        : 'blogpost'
+        constructorName : 'JBlogPost'
+        widgetName      : 'blogPostWidget'
+        widgetType      : ActivityBlogPostWidget
+      ,
       #   name            : 'linkPane'
       #   paneName        : 'link'
       #   constructorName : 'JLink'
@@ -89,9 +89,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           @discussionWidget.switchToEditView data, fake
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          @codeShareWidget.switchToEditView data, fake
+        when "JBlogPost"
+          mainView.showPane "blogpost"
+          @blogPostWidget.switchToEditView data, fake
         when "JLink"
           mainView.showPane "link"
           @linkWidget.switchToEditView data, fake
