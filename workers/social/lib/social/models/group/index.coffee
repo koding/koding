@@ -180,12 +180,6 @@ module.exports = class JGroup extends Module
               else
                 console.log 'roles are added'
                 queue.next()
-# TODO: we used to do the below, but on second thought, it's not a very good idea:
-#          -> delegate.addGroup group, 'admin', (err)->
-#              if err then callback err
-#              else
-#                console.log 'group is added'
-#                queue.next()
         ]
         if 'private' is group.privacy
           queue.push -> group.createMembershipPolicy -> queue.next()
@@ -267,8 +261,8 @@ module.exports = class JGroup extends Module
   fetchMyRoles: secure (client, callback)->
     {delegate} = client.connection
     Relationship.someData {
-      sourceId: delegate.getId()
-      targetId: @getId()
+      targetId: delegate.getId()
+      sourceId: @getId()
     }, {as:1}, (err, cursor)->
       if err then callback err
       else
