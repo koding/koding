@@ -56,12 +56,56 @@ body
   vendor            transition, bottom .2s ease-in .2s
 
 @keyframes pulse
-   0%
-     opacity .5
-   50%
-     opacity 1
-   100%
-     opacity .5
+  0%
+    opacity .5
+  50%
+    opacity 1
+  100%
+    opacity .5
+
+// @keyframes fade-in-out
+//   0%
+//     opacity      0
+//   16%
+//     opacity      1
+//   84%
+//     opacity      1
+//   100%
+//     opacity      0
+
+// @keyframes crawl
+//   0%
+//     vendor       transform, rotateX(40deg) translateZ(100px) translateY(1100px)
+//     opacity      1
+//   40%
+//     vendor       transform, rotateX(40deg) translateZ(300px) translateY(0px)
+//     opacity      1
+//   80%
+//     vendor       transform, rotateX(40deg) translateZ(900px) translateY(-1100px)
+//     opacity      0
+//   100%
+//     vendor       transform, rotateX(40deg) translateZ(1800px) translateY(-1800px)
+//     opacity      0
+
+// #about-text
+//   abs()
+//   z-index        100000
+//   vendor         perspective, 800
+//   vendor         perspective-origin, center 300px
+//   top            0
+//   left           0
+//   >div
+//     height         auto
+//     color          #f2f2f2
+//     text-align     center
+//     font-size      36px
+//     line-height    72px
+//     vendor         animation, crawl 30s linear
+//     vendor         animation-iteration-count, 1
+//     // vendor         animation-delay, 1s
+//     vendor         transform-style, preserve-3d
+//   h2.sub-header
+//     display       none
 
 .main-loading
   vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
@@ -132,6 +176,9 @@ body
   > section
     overflow          visible
     display           block
+    vendor            transition, all .5s ease-in
+    &.scale
+      vendor          transform, scale(0)
 
 body.loggedIn
   #kdmaincontainer
