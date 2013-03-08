@@ -1,7 +1,6 @@
 class ActivityActionsView extends KDView
 
   constructor:->
-
     super
 
     activity = @getData()
@@ -24,7 +23,6 @@ class ActivityActionsView extends KDView
         placement : "above"
       click:(event)=>
         event.preventDefault()
-        super
 
     @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14

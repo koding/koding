@@ -150,7 +150,7 @@ class KDModalView extends KDView
     @setY (winHeight - @getHeight())/2
 
   putOverlay:->
-    @$overlay = $ "<div/>"
+    @$overlay = $("<div/>")
       class : "kdoverlay"
     @$overlay.hide()
     @$overlay.appendTo "body"

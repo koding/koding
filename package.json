@@ -19,7 +19,7 @@
   "dependencies": {
     "async"           : "0.2.5",
     "bitly"           : "1.2.4",
-    "coffee-script"   : "1.4.0",
+    "coffee-script"   : "1.6.1",
     "colors"          : "0.6.0-1",
     "commander"       : "1.0.4",
     "cron"            : "0.3.4",

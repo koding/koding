@@ -763,7 +763,7 @@ class ScreenshotDemoModalView extends KDModalView
     @onBeforeDestroy() if e.which is 27
 
   putOverlay:()->
-    @$overlay = $ "<div/>"
+    @$overlay = $("<div/>")
       class : "kdoverlay"
     @$overlay.hide()
     @$overlay.appendTo "body"

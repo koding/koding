@@ -199,7 +199,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
         "8": -> terminal.cursor.restorePosition()
         "=": -> terminal.inputHandler.useApplicationKeypad true
         ">": -> terminal.inputHandler.useApplicationKeypad false
-        "[": catchParameters /^(\??)(.*?)([a-zA-Z@`{|])/ # CSI
+        "[": catchParameters /^(\??)(.*?)([a-zA-Z@`{|])/, # CSI
           "@": (params) -> terminal.writeEmptyText (params[0] ? 1), insert: true
           "A": (params) -> terminal.cursor.move 0, -(params[0] ? 1)
           "B": (params) -> terminal.cursor.move 0, (params[0] ? 1)
@@ -208,7 +208,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "G": (params) -> terminal.cursor.moveTo (params[0] ? 1) - 1, terminal.cursor.y
           "H": (params) -> terminal.cursor.moveTo (params[1] ? 1) - 1, getOrigin() + (params[0] ? 1) - 1
           "I": (params) -> terminal.cursor.moveTo (Math.floor(terminal.cursor.x / 8) + (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
-          "J": switchParameter 0
+          "J": switchParameter 0,
             0: ->
               terminal.writeEmptyText terminal.sizeX - terminal.cursor.x
               terminal.writeEmptyText terminal.sizeX, x: 0, y: y for y in [(terminal.cursor.y + 1)...terminal.sizeY]
@@ -216,7 +216,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
               terminal.writeEmptyText terminal.sizeX, x: 0, y: y for y in [0...terminal.cursor.y]
               terminal.writeEmptyText terminal.cursor.x + 1, x: 0
             2: -> terminal.screenBuffer.clear()
-          "K": switchParameter 0
+          "K": switchParameter 0,
             0: -> terminal.writeEmptyText terminal.sizeX - terminal.cursor.x
             1: -> terminal.writeEmptyText terminal.cursor.x + 1, x: 0
             2: -> terminal.writeEmptyText terminal.sizeX, x: 0
@@ -227,7 +227,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "T": (params) -> terminal.screenBuffer.scroll -(params[0] ? 1)
           "X": (params) -> terminal.writeEmptyText params[0] ? 1
           "Z": (params) -> terminal.cursor.moveTo (Math.ceil(terminal.cursor.x / 8) - (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
-          "c": switchRawParameter 0
+          "c": switchRawParameter 0,
             0:   -> terminal.server.controlSequence "\x1B[>?1;2c"
             ">": -> terminal.server.controlSequence "\x1B[>0;261;0c"
             ">0": -> terminal.server.controlSequence "\x1B[>0;261;0c"
@@ -295,10 +295,10 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             22: -> terminal.setStyle "bold", false
             24: -> terminal.setStyle "underlined", false
             27: -> terminal.setStyle "inverse", false
-            38: switchParameter 1
+            38: switchParameter 1,
               5: (params) -> terminal.setStyle "textColor", params[2]; params.shift(); params.shift()
             39: -> terminal.setStyle "textColor", null
-            48: switchParameter 1
+            48: switchParameter 1,
               5: (params) -> terminal.setStyle "backgroundColor", params[2]; params.shift(); params.shift()
             49: -> terminal.setStyle "backgroundColor", null
           .addRange(30, 37, (params) -> terminal.setStyle "textColor", params[0] - 30)
@@ -307,14 +307,14 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           .addRange(100, 107, (params) -> terminal.setStyle "backgroundColor", params[0] - 100 + 8)
           "r": (params) -> terminal.screenBuffer.scrollingRegion = [(params[0] ? 1) - 1, (params[1] ? terminal.sizeY) - 1]
           "?r": ignored "restore mode values"
-          "p": switchRawParameter 0
+          "p": switchRawParameter 0,
             "!": -> # soft reset
               terminal.cursor.setVisibility true
               originMode = false
               terminal.changeScreenBuffer 0
               terminal.inputHandler.useApplicationKeypad false
           "?s": ignored "save mode values"
-        "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0 # OSC
+        "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0, # OSC
           0: (params) -> terminal.setTitleCallback? params.raw[1]
           1: ignored "icon name"
           2: (params) -> terminal.setTitleCallback? params.raw[1]
