@@ -76,7 +76,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
       </div>
       <div class="profile-content" id="profile-content">
         #{getBlogPosts(lastBlogPosts)}
-        </div>
       </div>
     </div>
 
@@ -140,12 +139,14 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
 getBlogPosts = (blogPosts=[])->
   posts = ""
   for blog in blogPosts
+    console.log 'adding post'
     posts+="""
       <div class="content-item">
         <div class="title">#{blog.title}</div>
         <div class="has-markdown">
           #{blog.html}
         </div>
+      </div>
     """
   posts
 

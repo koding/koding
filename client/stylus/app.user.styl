@@ -183,11 +183,44 @@
   vertical-align bottom
 
 .profile-content
+  overflow auto
   margin-left 125px
-  padding 20px
   borderBox()
   height 100%
   width auto
+
+  .new-blogpost
+    abs()
+    right 10px
+    top 10px
+
+  .content-item
+    border-bottom 1px solid #e8e8e8
+    .title
+      font-size 18px
+      font-weight 600
+      color #444
+
+      padding 20px 30px
+      border-bottom 1px solid #e8e8e8
+    .has-markdown
+      padding 30px
+      max-width 600px
+
+
+.new-blogpost-modal
+  .formline
+    borderBox()
+    width 100%
+    padding 20px
+  textarea.kdinput.markdown-input
+    margin-top 15px
+    borderBox()
+    height 200px
+    width 100%
+  input.kdinput.title-input
+    borderBox()
+    width 100%
 
 
 // .profile-landing

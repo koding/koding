@@ -156,7 +156,7 @@ class ProfileView extends JView
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
-          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">User Profile</a>
+          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Public Page</a>
 
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
