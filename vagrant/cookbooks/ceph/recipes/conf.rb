@@ -1,6 +1,6 @@
 raise "fsid must be set in config" if node["ceph"]["config"]['fsid'].nil?
 raise "mon_initial_members must be set in config" if node["ceph"]["config"]['mon_initial_members'].nil?
-raise "the number of OSD instances must be set in config" if node["ceph"]["config"]['OSDNum'].nil?
+raise "the number of OSD instances must be set in config" if node["ceph"]['OSDNum'].nil?
 
 mon_addresses = get_mon_addresses()
 

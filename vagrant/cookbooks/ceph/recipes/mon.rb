@@ -8,8 +8,12 @@ include_recipe "ceph::conf"
 if is_crowbar?
   ipaddress = Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, "admin").address
 else
-  ipaddress = node['ipaddress']
+  # This fetches the public DNS entry for the current machine, which will resolv to the internal address for all machines in reach and to the external address for every other machines
+  ipaddress = %x[curl http://169.254.169.254/latest/meta-data/public-hostname]
 end
+
+node.override['aws-fqdn'] = ipaddress
+node.save
 
 service "ceph-mon-all-starter" do
   provider Chef::Provider::Service::Upstart
@@ -41,9 +45,9 @@ EOH
   notifies :start, "service[ceph-mon-all-starter]", :immediately
 end
 
-execute "initctl emit ceph-mon cluster=\"#{cluster}\" id=\"#{node['hostname']}\"" do
-  creates "var/run/ceph/ceph-mon.#{node['hostname']}.asok"
-end
+# execute "initctl emit ceph-mon cluster=\"#{cluster}\" id=\"#{node['hostname']}\"" do
+#   creates "var/run/ceph/ceph-mon.#{node['hostname']}.asok"
+# end
 
 ruby_block "tell ceph-mon about its peers" do
   block do
@@ -100,3 +104,6 @@ ruby_block "save osd bootstrap key in node attributes" do
     end
   end
 end
+
+execute "ceph-mon --cluster=ceph -i c" do
+  creates "/var/run/ceph"

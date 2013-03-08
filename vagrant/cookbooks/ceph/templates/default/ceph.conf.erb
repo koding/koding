@@ -1,6 +1,7 @@
 [global]
 	auth supported = cephx
-	keyring = /etc/ceph/$cluster.$name.keyring
+	keyring = /etc/ceph/ceph.client.admin.keyring
+	#keyring = /etc/ceph/$cluster.$name.keyring
 	#keyring = /var/lib/ceph/mon/$cluster-$id/keyring
 
 	# this will be used by all clients to discover the mons to
@@ -30,6 +31,6 @@
 
 [<%= name %>]
 <% sect.each do |k, v| %>
-<%= k %> = <%= v %>
+  <%= k %> = <%= v %>
 <% end %>
 <% end %>

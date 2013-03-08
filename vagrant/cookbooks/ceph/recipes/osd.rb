@@ -58,7 +58,7 @@ else
     EOH
   end
 
-  if node["ceph"]["config"]["OSDNum"] > 0
+  if node["ceph"]["OSDNum"] > 0
     ruby_block "select new disks for ceph osd" do
       puts "setting up #{node["ceph"]["OSDNum"]} osd instances on this host"
       mountpoint = "xvdf"
