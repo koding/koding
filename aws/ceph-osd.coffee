@@ -11,7 +11,7 @@ buildTemplate = (callback) ->
       ami           : 'ami-de0d9eb7'
       keyName       : 'koding'
       securityGroups: []
-      subnet        : ''
+      subnet        : 'subnet-f5d0199'
       tags          : [
         Key         : 'Name'
         Value       : "ceph-osd-#{nextName}-test"

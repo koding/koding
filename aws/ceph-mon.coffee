@@ -10,8 +10,8 @@ buildTemplate = (callback) ->
       type          : 'm1.medium'
       ami           : 'ami-de0d9eb7'
       keyName       : 'koding'
-      securityGroups: []
-      subnet        : ''
+      securityGroups: ['dev-ceph']
+      subnet        : 'subnet-f5d0199'
       tags          : [
         Key         : 'Name'
         Value       : "ceph-mon-#{nextName}-test"
