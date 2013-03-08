@@ -5,14 +5,14 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
-ProgressBar = require './builders/node_modules/progress'
+ProgressBar = require 'progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
-log4js      = require "./builders/node_modules/log4js"
+log4js      = require "log4js"
 log         = log4js.getLogger("[Cakefile]")
-prompt      = require './builders/node_modules/prompt'
-hat         = require "./builders/node_modules/hat"
-mkdirp      = require './builders/node_modules/mkdirp'
+prompt      = require 'prompt'
+hat         = require "hat"
+mkdirp      = require 'mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = new (require "processes")
 {daisy}     = require 'sinkrow'

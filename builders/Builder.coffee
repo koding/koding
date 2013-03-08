@@ -2,10 +2,10 @@ fs                = require 'fs'
 path              = require 'path'
 sys               = require 'util'
 {spawn, exec}     = require 'child_process'
-sqwish            = require './node_modules/sqwish'
+sqwish            = require 'sqwish'
 stylus            = require 'stylus'
 # {parser, uglify}  = require "uglify-js"
-cs                = require './node_modules/coffee-script'
+cs                = require 'coffee-script'
 Watcher           = require './Watcher'
 ProcessMonitor    = require './ProcessMonitor'
 log =
@@ -14,7 +14,7 @@ log =
   debug : console.log
   warn  : console.log
   
-ProgressBar       = require './node_modules/progress'
+ProgressBar       = require 'progress'
 
 module.exports = class Builder
 

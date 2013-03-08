@@ -18,10 +18,10 @@ option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 #     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
 #     process.exit(0)
 
-ProgressBar = require './builders/node_modules/progress'
+ProgressBar = require 'progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
-# log4js      = require "./builders/node_modules/log4js"
+# log4js      = require "log4js"
 # log         = log4js.getLogger("[Main]")
 
 log =
@@ -30,10 +30,10 @@ log =
   debug : console.log
   warn  : console.log
 
-prompt    = require './builders/node_modules/prompt'
-hat       = require "./builders/node_modules/hat"
-mkdirp    = require './builders/node_modules/mkdirp'
-commander = require './builders/node_modules/commander'
+prompt    = require 'prompt'
+hat       = require "hat"
+mkdirp    = require 'mkdirp'
+commander = require 'commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes          = new (require "processes") main : true

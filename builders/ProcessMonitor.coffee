@@ -8,7 +8,7 @@ log =
   debug : console.log
   warn  : console.log
 util              = require 'util'
-_                 = require './node_modules/underscore'
+_                 = require 'underscore'
 
 
 class ProcessMonitor extends EventEmitter

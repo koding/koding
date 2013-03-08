@@ -1,7 +1,7 @@
 {EventEmitter}  = require 'events'
-cs              = require './node_modules/coffee-script'
-stylus          = require './node_modules/stylus'
-nib             = require './node_modules/nib'
+cs              = require 'coffee-script'
+stylus          = require 'stylus'
+nib             = require 'nib'
 fs              = require 'fs'
 log =
   info  : console.log
@@ -11,9 +11,9 @@ log =
 unrequire       = (module) -> delete require.cache[require.resolve module]
 nodePath        = require "path"
 {spawn, exec}   = require 'child_process'
-ProgressBar     = require './node_modules/progress'
+ProgressBar     = require 'progress'
 #{parser, uglify}  = require "uglify-js"
-hat             = require "./node_modules/hat"
+hat             = require "hat"
 async           = require "async"
 # {postProcess}   = require "pistachio-compiler"
 # qfunction      = require 'qfunction'
