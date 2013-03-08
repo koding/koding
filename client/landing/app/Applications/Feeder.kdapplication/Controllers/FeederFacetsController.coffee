@@ -16,11 +16,11 @@ class FeederFacetsController extends KDViewController
 
       controller = new CommonInnerNavigationListController {},
         title     : options["#{facet}Title"] or facet.toUpperCase()
-        items     : (
+        items     : ((
           title   : item.title
           type    : type
           action  : facet
-        )  for own type, item of options["#{facet}s"]
+        ) for own type, item of options["#{facet}s"])
 
       @["#{facet}Controller"] = controller
 
