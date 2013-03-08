@@ -9,14 +9,22 @@ buildTemplate = (callback) ->
     template =
       type          : 'm1.medium'
       ami           : 'ami-de0d9eb7'
-      key           : 'koding'
-      tags          :
-        Name        : "ceph-mon-#{nextName}-test"
-        ceph_type   : 'mon'
-        ceph_id     : nextName 
+      keyName       : 'koding'
+      securityGroups: []
+      subnet        : ''
+      tags          : [
+        Key         : 'Name'
+        Value       : "ceph-mon-#{nextName}-test"
+      ,
+        Key         : 'ceph_type'
+        Value       : 'mon'
+      ,
+        Key         : 'ceph_id'
+        Value       : nextName
+      ]
       userData      : """
                       #!/bin/bash
-                      /bin/hostname #{nextName}.beta.system.aws.koding.com
+                      /bin/hostname #{nextName}.ceph.system.aws.koding.com
                       echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
                       set -e -x
                       LOGFILE="/var/log/user-data-out.log"
@@ -63,11 +71,11 @@ buildTemplate = (callback) ->
                       apt-get -y --force-yes install opscode-keyring >> $LOGFILE
                       apt-get -y upgrade >> $LOGFILE
                       apt-get -y install s3cmd chef --force-yes >> $LOGFILE
-                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/ceph-mon.pem /etc/chef/ceph-mon.pem --force
                       /usr/bin/s3cmd --config /root/.s3cfg get s3://koding-vagrant-Lti5bj61mVnfMkhX/chef-conf/chris-test-validator.pem /etc/chef/chris-test-validator.pem --force
-                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-mon.rb /etc/chef/client.rb --force
-                      service chef-client restart
+                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-osd.rb /etc/chef/client.rb --force
+                      echo "{ \"run_list\": [ \"role[ceph-mon]\" ] }" > /etc/chef/client.json
 
+                      service chef-client restart
                       """
 
     callback no, template

@@ -9,11 +9,19 @@ buildTemplate = (callback) ->
     template =
       type          : 'm1.medium'
       ami           : 'ami-de0d9eb7'
-      key           : 'koding'
-      tags          :
-        Name        : "ceph-osd-#{nextName}-test"
-        ceph_type   : 'osd'
-        ceph_id     : nextName 
+      keyName       : 'koding'
+      securityGroups: []
+      subnet        : ''
+      tags          : [
+        Key         : 'Name'
+        Value       : "ceph-osd-#{nextName}-test"
+      ,
+        Key         : 'ceph_type'
+        Value       : 'osd'
+      ,
+        Key         : 'ceph_id'
+        Value       : nextName
+      ]
       userData      : """
                       #!/bin/bash
                       /bin/hostname #{nextName}.ceph.system.aws.koding.com
