@@ -7,6 +7,10 @@
 # All rights reserved - Do Not Redistribute
 #
 
+package "libshadow-ruby1.8" do
+  action :install
+end
+
 # bahadir  cthorn  dyasar  ec2-user  ggoksel  ri
 local_users_prod = {
                    "bahadir" => { "id" => 607, "pass" => "$1$lkG1zSHa$DkkXZsCYYX0i8jv2NhkJl.", "sshkey" => true},
