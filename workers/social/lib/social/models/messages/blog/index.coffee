@@ -1,22 +1,17 @@
-JMarkdownDoc = require '../../markdowndoc'
-JAccount = require '../../account'
-KodingError = require '../../../error'
-jraphical = require 'jraphical'
+JPost = require '../post'
 
-module.exports = class JBlogPost extends jraphical.Message
-  # {secure} = require 'bongo'
-  # {Relationship} = require 'jraphical'
+module.exports = class JBlogPost extends JPost
+  {secure} = require 'bongo'
+  {Relationship} = require 'jraphical'
 
-  {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
-  {extend} = require 'underscore'
+  {once, extend} = require 'underscore'
 
   @share()
 
-  schema = extend {}, jraphical.Message.schema, {
-    content   : String
-    html      : String
-    checksum  : String
-    }
+  schema = extend {}, JPost.schema, {
+    html    : String
+    checksum: String
+  }
 
   @generateHTML=(content)->
     require('marked') content
@@ -28,47 +23,38 @@ module.exports = class JBlogPost extends jraphical.Message
       .digest 'hex'
 
   @set
-    schema            : schema
+    slugifyFrom       : 'title'
     sharedMethods     :
-      static          : ['create','one']
-      # instance        : [
-      #   'reply','restComments','commentsByRange'
-      #   'like','fetchLikedByes','mark','unmark','fetchTags'
-      #   'delete','modify','fetchRelativeComments','checkIfLikedBefore'
-      # ]
+      static          : ['create','one','updateAllSlugs']
+      instance        : [
+        'reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
+      ]
+    schema            : schema
+    relationships     : JPost.relationships
 
-  @getAuthorType =-> JAccount
+  @getActivityType =-> require './blogpostactivity'
 
   @create = secure (client, data, callback)->
+    blogPost  =
+      meta        : data.meta
+      title       : data.title
+      body        : data.body
+      group       : data.group
+      html        : @generateHTML data.body
+      checksum    : @generateChecksum data.body
+    JPost.create.call @, client, blogPost, callback
 
-    constructor = @
-    {connection:{delegate}} = client
-    unless delegate instanceof constructor.getAuthorType()
-      callback new Error 'Access denied!'
-    else
+  modify: secure (client, data, callback)->
+    blogPost =
+      meta        : data.meta
+      title       : data.title
+      body        : data.body
+      html        : @generateHTML data.body
+      checksum    : @generateChecksum data.body
+    JPost::modify.call @, client, blogPost, callback
 
-      data.html = @generateHTML data.content
-      data.checksum = @generateChecksum data.content
-
-      blogpost   = new constructor data
-
-      if delegate.checkFlag 'exempt'
-        blogpost.isLowQuality   = yes
-
-      daisy queue = [
-        ->
-          blogpost
-            .sign(delegate)
-            .save (err)->
-              if err
-                callback err
-              else queue.next()
-        ->
-          delegate.addContent blogpost, (err)->
-            if err
-              callback err
-            else queue.next(err)
-        ->
-          callback blogpost
-          queue.next()
-      ]
+  reply: secure (client, comment, callback)->
+    JComment = require '../comment'
+    JPost::reply.call @, client, JComment, comment, callback

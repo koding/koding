@@ -13,10 +13,7 @@ class ActivityAppController extends AppController
       'CDiscussionActivity'
       'CTutorialActivity'
       'CInstallerBucketActivity'
-      # DISABLING NOT READY ITEM TYPES
-      # 'COpinionActivity'
-      # 'CLinkActivity'
-      # 'CCodeShareActivity'
+      'CBlogPostActivity'
     ]
 
   lastTo    = null
@@ -118,7 +115,7 @@ class ActivityAppController extends AppController
       isLoading = no
       if err or cache.length is 0
         warn err  if err
-        @listController.hideLazyLoader()  
+        @listController.hideLazyLoader()
         @listController.noActivityItem.show()
       else
         @sanitizeCache cache, (err, cache)=>
@@ -211,9 +208,8 @@ class ActivityAppController extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JBlogPost"     then @createBlogPostContentDisplay activity
       when "JTutorial"     then @createTutorialContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # when "JCodeShare"    then @createCodeShareContentDisplay activity
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -225,17 +221,17 @@ class ActivityAppController extends AppController
       type  : "status"
     ,activity
 
+  createBlogPostContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
+
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
       title : "Code Snippet"
       type  : "codesnip"
     ,activity
-
-  createCodeShareContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayCodeShare
-      title : "Code Share"
-      type  : "codeshare"
-    , activity
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion

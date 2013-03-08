@@ -88,13 +88,9 @@ module.exports = class JTag extends jraphical.Module
       content       :
         targetType  : [
           "JCodeSnip", "JApp", "JStatusUpdate", "JLink", "JTutorial"
-          "JAccount", "JOpinion", "JDiscussion", "JCodeShare"
-
+          "JAccount", "JOpinion", "JDiscussion", "JCodeShare", "JBlogPost"
         ]
         as          : 'post'
-      # content       :
-      #   targetType  : [JCodeSnip, JAccount]
-      #   as          : 'content'
 
   modify: permit
     advanced: [
