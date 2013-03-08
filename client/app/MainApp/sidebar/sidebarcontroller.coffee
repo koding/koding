@@ -31,12 +31,21 @@ class SidebarController extends KDViewController
   resetAdminNavItems:->
 
     return unless KD.isLoggedIn()
-
-    @utils.wait 5000, =>
-      KD.whoami().fetchRole? (err, role)=>
-        if role is "super-admin"
-          @getView().navController.addItem
-            title    : "Admin Panel"
-            type     : "admin"
-            loggedIn : yes
-            callback : -> new AdminModal
+    KD.whoami().fetchRole? (err, role)=>
+      if role is "super-admin"
+        @getView().navController.addItem
+          title    : "Admin Panel"
+          type     : "admin"
+          loggedIn : yes
+          callback : -> new AdminModal
+    
+    group = KD.getSingleton('groupsController').getCurrentGroup()
+    group.fetchMyRoles (err, roles)=>
+      if err
+        console.warn err
+      else if 'admin' in roles
+        @getView().navController.addItem
+          title     : 'Admin dashboard'
+          type      : 'admin'
+          loggedIn  : yes
+          callback  : -> KD.getSingleton('router').handleRoute "/#{group.slug}/Dashboard"
