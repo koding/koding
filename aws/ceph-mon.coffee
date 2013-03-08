@@ -1,35 +1,7 @@
-aws = (require 'koding-aws').aws
-
-findNextName = (callback) ->
-  params =
-    Filters: [
-      Name: 'tag:ceph-type'
-      Values: ['mon']
-    ]
-
-  ec2 = new aws.EC2.Client()
-  ec2.describeInstances params, (err, data) ->
-    if err
-      callback err, ''
-    cephMonitors = []
-    for res in data.Reservations
-      for ins in res.Instances
-        for tag in ins.Tags
-          if tag.Key == 'ceph-id'
-            cephMonitors.push tag.Value.charCodeAt(0)
-    cephMonitors.sort()
-    cephMonitors.reverse()
-
-    if cephMonitors.length == 0
-      nextName = 'a'
-    else
-      nextName = String.fromCharCode(cephMonitors[0] + 1)
-
-    callback no, nextName
-
+aws = require 'koding-aws'
 
 buildTemplate = (callback) ->
-  findNextName (err, nextName) ->
+  aws.getNextCephName 'mon', (err, nextName) ->
     if err
       callback err, ''
       return

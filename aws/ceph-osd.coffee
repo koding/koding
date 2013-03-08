@@ -1,35 +1,7 @@
-aws = (require 'koding-aws').aws
-
-findNextName = (callback) ->
-  params =
-    Filters: [
-      Name: 'tag:ceph-type'
-      Values: ['osd']
-    ]
-
-  ec2 = new aws.EC2.Client()
-  ec2.describeInstances params, (err, data) ->
-    if err
-      callback err, ''
-    cephOSDs = []
-    for res in data.Reservations
-      for ins in res.Instances
-        for tag in ins.Tags
-          if tag.Key == 'ceph-id'
-            cephOSDs.push parseInt tag.Value
-    cephOSDs.sort()
-    cephOSDs.reverse()
-
-    if cephOSDs.length == 0
-      nextName = 1
-    else
-      nextName = cephOSDs[0] + 1
-
-    callback no, nextName
-
+aws = require 'koding-aws'
 
 buildTemplate = (callback) ->
-  findNextName (err, nextName) ->
+  aws.getNextCephName 'osd', (err, nextName) ->
     if err
       callback err, ''
       return
