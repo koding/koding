@@ -15,7 +15,7 @@ projectRoot = nodePath.join __dirname, '..'
 #   catch e then ""
 # ).trim()
 
-socialQueueName = "koding-social-production"
+socialQueueName = "koding-social-prod"
 
 module.exports = deepFreeze
   aws           :
@@ -57,10 +57,10 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'prod-auth-worker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 6
+    numberOfWorkers: 1
     watch       : no
   social        :
     login       : 'prod-social'
@@ -81,7 +81,7 @@ module.exports = deepFreeze
   client        :
     pistachios  : no
     version     : version
-    minify      : yes
+    minify      : no
     watch       : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
@@ -104,7 +104,7 @@ module.exports = deepFreeze
     host        : 'web0.beta.system.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'djfjfhgh4455__5'
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
   broker        :
@@ -133,7 +133,7 @@ module.exports = deepFreeze
     mq              :
       host          : 'web0.beta.system.aws.koding.com'
       login         : 'PROD-k5it50s4676pO9O'
-      password      : 'djfjfhgh4455__5'
+      password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: yes
