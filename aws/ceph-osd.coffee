@@ -22,6 +22,13 @@ buildTemplate = (callback) ->
         Key         : 'ceph_id'
         Value       : nextName
       ]
+      devices       : [
+        DeviceName  : '/dev/xvdf'
+        Ebs         :
+          VolumeSize         : 50
+          DeleteOnTermination: yes
+          VolumeType         : 'standard'
+      ]
       userData      : """
                       #!/bin/bash
                       /bin/hostname #{nextName}.ceph.system.aws.koding.com
