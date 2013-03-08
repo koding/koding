@@ -62,12 +62,10 @@ else
 		block do
 			if not ::File.exists?('/etc/ceph/ceph.client.admin.keyring') then
 				if not have_quorum? then
-					puts 'ceph-mon is not in quorum, skipping bootstrap-osd key generation for this run'
+					puts 'ceph-mon is not in quorum, skipping bootstrap-client key generation for this run'
 				else
 					# TODO --set-uid=0
-					key = %x[
-					ceph --name mon. --keyring '/var/lib/ceph/bootstrap-client/ceph.keyring' auth get-or-create-key client.admin mon 'allow *' osd 'allow *' mds allow
-					]
+					key = %x[ ceph --name mon. --keyring '/var/lib/ceph/bootstrap-client/ceph.keyring' auth get-or-create-key client.admin mon 'allow *' osd 'allow *' mds allow ]
 					raise 'adding or getting admin key failed' unless $?.exitstatus == 0
 					# TODO don't put the key in "ps" output, stdout
 					system 'ceph-authtool', \
