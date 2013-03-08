@@ -142,7 +142,7 @@ class GroupView extends ActivityContentDisplay
 
   decorateUponRoles:(roles)->
 
-    if "admin" in roles
+    if "admin" in roles or KD.checkFlag 'super-admin'
       @tabView.showHandleContainer()
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
