@@ -7,7 +7,7 @@ buildTemplate = (callback) ->
       return
 
     template =
-      type          : 'm1.medium'
+      type          : 'm1.small'
       ami           : 'ami-de0d9eb7'
       keyName       : 'koding'
       securityGroups: ['sg-3942b156']
@@ -26,6 +26,8 @@ buildTemplate = (callback) ->
                       #!/bin/bash
                       /bin/hostname #{nextName}.ceph.system.aws.koding.com
                       echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
+                      route del default gw 10.0.0.1
+                      route add default gw 10.0.0.63
                       set -e -x
                       LOGFILE="/var/log/user-data-out.log"
                       mkdir -p /etc/chef
