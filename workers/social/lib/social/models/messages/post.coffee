@@ -101,7 +101,7 @@ module.exports = class JPost extends jraphical.Message
         kodingErr[prop] = err[prop]
     kodingErr
 
-  @create = permit 'create content'
+  @create = permit 'create posts'
     success: (client, data, callback)->
       constructor = @
       {connection:{delegate}} = client
