@@ -404,18 +404,23 @@ task 'aws', (options) ->
 
   # AWS Utils
   awsUtil = require 'koding-aws'
+  awsUtil.init aws
 
   # Machine template
   awsTemplate = require "./aws/#{type}"
 
-  # Load configuration
-  awsUtil.init aws
-
   # Build template
-  awsUtil.print awsTemplate
-  awsUtil.build awsTemplate
+  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
+    unless err
+      console.log "Template is ready:"
+      console.log templateData
+      console.log ""
 
-  # TODO: Push template to AWS
+      awsUtil.startEC2 templateData, (err, ecData) ->
+        unless err
+          console.log "EC2 instance is ready:"
+          console.log ecData
+          console.log ""
 
 
 task 'deploy', (options) ->

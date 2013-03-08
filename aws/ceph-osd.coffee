@@ -4,26 +4,26 @@ findNextName = (callback) ->
   params =
     Filters: [
       Name: 'tag:ceph-type'
-      Values: ['mon']
+      Values: ['osd']
     ]
 
   ec2 = new aws.EC2.Client()
   ec2.describeInstances params, (err, data) ->
     if err
       callback err, ''
-    cephMonitors = []
+    cephOSDs = []
     for res in data.Reservations
       for ins in res.Instances
         for tag in ins.Tags
           if tag.Key == 'ceph-id'
-            cephMonitors.push tag.Value.charCodeAt(0)
-    cephMonitors.sort()
-    cephMonitors.reverse()
+            cephOSDs.push parseInt tag.Value
+    cephOSDs.sort()
+    cephOSDs.reverse()
 
-    if cephMonitors.length == 0
-      nextName = 'a'
+    if cephOSDs.length == 0
+      nextName = 1
     else
-      nextName = String.fromCharCode(cephMonitors[0] + 1)
+      nextName = cephOSDs[0] + 1
 
     callback no, nextName
 
@@ -39,12 +39,12 @@ buildTemplate = (callback) ->
       ami           : 'ami-de0d9eb7'
       key           : 'koding'
       tags          :
-        Name        : "ceph-mon-#{nextName}-test"
-        ceph_type   : 'mon'
+        Name        : "ceph-osd-#{nextName}-test"
+        ceph_type   : 'osd'
         ceph_id     : nextName 
       userData      : """
                       #!/bin/bash
-                      /bin/hostname #{nextName}.beta.system.aws.koding.com
+                      /bin/hostname #{nextName}.ceph.system.aws.koding.com
                       echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
                       set -e -x
                       LOGFILE="/var/log/user-data-out.log"
@@ -91,11 +91,11 @@ buildTemplate = (callback) ->
                       apt-get -y --force-yes install opscode-keyring >> $LOGFILE
                       apt-get -y upgrade >> $LOGFILE
                       apt-get -y install s3cmd chef --force-yes >> $LOGFILE
-                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/ceph-mon.pem /etc/chef/ceph-mon.pem --force
                       /usr/bin/s3cmd --config /root/.s3cfg get s3://koding-vagrant-Lti5bj61mVnfMkhX/chef-conf/chris-test-validator.pem /etc/chef/chris-test-validator.pem --force
-                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-mon.rb /etc/chef/client.rb --force
-                      service chef-client restart
+                      /usr/bin/s3cmd --config /root/.s3cfg get s3://chef-conf/chrisTest-osd.rb /etc/chef/client.rb --force
+                      echo "{ \"run_list\": [ \"role[ceph-osd]\" ] }" > /etc/chef/client.json
 
+                      service chef-client restart
                       """
 
     callback no, template
