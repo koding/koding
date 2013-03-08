@@ -7,7 +7,6 @@ stylus            = require 'stylus'
 # {parser, uglify}  = require "uglify-js"
 cs                = require 'coffee-script'
 Watcher           = require './Watcher'
-ProcessMonitor    = require './ProcessMonitor'
 log =
   info  : console.log
   error : console.log
