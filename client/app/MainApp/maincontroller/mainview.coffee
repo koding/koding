@@ -230,6 +230,12 @@ class MainView extends KDView
   changeHomeLayout:(isLoggedIn)->
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
+  userEnteredFromProfile:-> KD.config.profileEntryPoint?
+
+  switchProfileState:(isLoggedIn)->
+    $('body').addClass "login"
+    @addProfileViews()
+    # @getSingleton('router').handleRoute "/Activity"
 
   switchGroupState:(isLoggedIn)->
 
@@ -287,15 +293,160 @@ class MainView extends KDView
     @mainTabView.showHandleContainer()
     $('.group-landing').css 'height', 0
 
+  closeProfileView:->
+    @mainTabView.showHandleContainer()
+    @profileLandingView._windowDidResize = noop
+    $('.profile-landing').css 'height', 0
+
+  addProfileViews:->
+
+
+    @profileLandingView = new KDView
+      lazyDomId : 'profile-landing'
+
+    @profileContentView = new KDView
+      lazyDomId : 'profile-content'
+
+    @profileContentWrapperView = new KDView
+      lazyDomId : 'profile-content-wrapper'
+      cssClass : 'slideable'
+    @profilePersonalWrapperView = new KDView
+      lazyDomId : 'profile-personal-wrapper'
+      cssClass : 'slideable'
+
+    @profileLogoView = new KDView
+      lazyDomId: 'profile-koding-logo'
+      click :=>
+        @profilePersonalWrapperView.setClass 'slide-down'
+        @profileContentWrapperView.setClass 'slide-down'
+        @profileLogoView.setClass 'top'
+
+        @utils.wait 1000, => @profileLandingView.setClass 'profile-fading'
+        @utils.wait 1500, => @profileLandingView.setClass 'profile-hidden'
+
+    @profileLogoView.$().css
+      top: @profileLandingView.getHeight()-42
+
+    @utils.wait => @profileLogoView.setClass 'animate'
+
+    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+      # account = user
+      if KD.whoami().getId() is user.getId()
+        @profileContentView.addSubView createBlogPostButton = new KDButtonView
+          title               : 'Post a new blog entry'
+          cssClass            : 'new-blogpost clean-gray'
+          callback            : =>
+            modal             = new KDModalView
+              cssClass        : 'new-blogpost-modal'
+              title           : 'Post new blog entry'
+              overlay         : yes
+              height          : "auto"
+              buttons         :
+                cancel        :
+                  style       : 'modal-cancel'
+                  callback    : -> modal.destroy()
+                post          :
+                  style       : 'modal-clean-gray'
+                  callback    : =>
+                    KD.remote.api.JBlogPost.create
+                      title   : @titleInput.getValue()
+                      content : @markdownInput.getValue()
+                    , =>
+                      modal.buttons.cancel.hideLoader()
+                      modal.destroy()
+            modal.addSubView formline = new KDView
+              cssClass : 'profile-modal formline'
+            formline.addSubView @titleInput = new KDInputView
+              cssClass : 'title-input'
+            formline.addSubView @markdownInput = new KDInputViewWithPreview
+              cssClass  : 'markdown-input'
+              type : 'textarea'
+              preview         :
+                showInitially : no
+
+
+    # KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+    #   if user.skillTags
+    #     @profileTagGroupView = new SkillTagGroup
+    #       lazyDomId :  'skill-tags'
+    #     , user
+    #     @profileTagGroupView.on 'TagWasClicked', =>
+    #       @closeProfileView()
+    #     @profileTagGroupView.viewAppended()
+
+    #   # selector =
+    #   #   originId  : user.getId()
+    #   #   type      : 'CStatusActivity'
+    #   # log selector
+
+    #   # @getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, {}
+    #   # , (data)->
+    #   #   log 'teasers?'
+    #   #   log data
+
+    #   # @getSingleton("appManager").tell 'Activity', 'fetchCachedActivity', {}
+    #   # , (err, data)->
+    #   #   log 'cache?'
+    #   #   log data
+
+    #   # statusUpdatesWrapper.addSubView  statusUpdatesList = new KDListView
+    #   #   itemClass : StatusActivityItemView
+
+    #   @profileContentView.addSubView statusUpdatesWrapper = new KDView
+    #     cssClass : 'status-updates profile-wrapper'
+
+    #   @profileContentView.addSubView otherWrapper = new KDView
+    #     cssClass : 'other profile-wrapper'
+
+    #   @profileContentView.addSubView footerWrapper = new KDView
+    #     cssClass : 'footer profile-wrapper'
+
+    #   statusUpdatesWrapper.addSubView statusUpdatesListHeader = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a Status Update list'
+
+
+    #   otherWrapper.addSubView otherList = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a list of other things'
+
+    #   footerWrapper.addSubView footerList = new KDView
+    #     cssClass : 'profile-list'
+    #     partial : 'I am a list of footer'
+
+
+    #   @profileContentView.setClass 'ready'
+    #   @profileContentView.render()
+
+
+
+
+
+
+
+    @profileLandingView.listenWindowResize()
+
+    @profileLandingView._windowDidResize = =>
+      @profileLandingView?.setHeight window.outerHeight
+
   decorateLoginState:(isLoggedIn = no)->
 
     groupLandingView = new KDView
       lazyDomId : 'group-landing'
 
+    groupLandingView.listenWindowResize()
+    groupLandingView._windowDidResize = =>
+      groupLandingView.setHeight window.innerHeight - 50
+
     if isLoggedIn
       if @userEnteredFromGroup() then @switchGroupState yes
 
-      $('body').addClass "loggedIn"
+      else if @userEnteredFromProfile()
+        @switchProfileState yes
+        log 'entered from profile'
+      else
+        $('body').addClass "loggedIn"
+        @mainTabView.showHandleContainer()
 
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
@@ -303,6 +454,7 @@ class MainView extends KDView
 
     else
       if @userEnteredFromGroup() then @switchGroupState no
+      else if @userEnteredFromProfile() then @switchProfileState no
       else $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"

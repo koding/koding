@@ -1,7 +1,19 @@
 
-module.exports = ({profile,skillTags,counts})->
+module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
+
+  firstName ?= 'Koding'
+  lastName  ?= 'User'
+  nickname  ?= ''
+  about     ?= ''
+
+  sortedTags = []
+  skillTags ?= {}
+  for i in [0...skillTags.length]
+    sortedTags.push skillTags[i]
+  sortedTags.sort()
+
   """
   <!DOCTYPE html>
   <html>
@@ -10,21 +22,78 @@ module.exports = ({profile,skillTags,counts})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div id="profile-landing" class='profile-landing'>
-    <div id="profile-landing-content" class="profile-landing-content">
+    <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
+
+    <div class="profile-header">
+    </div>
+
+    <div class="profile-personal-wrapper" id="profile-personal-wrapper">
+      <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
+
+      </div>
+      <div class="profile-buttons">
+                <div class="profile-nickname">@#{nickname}</div>
+
+      </div>
+      <div class="profile-links">
+        <ul class='main'>
+          <li class='blog'><a href=""><span class="icon"></span>Blog</a></li>
+          <li class='twitter'><a href=""><span class="icon"></span>Twitter</a></li>
+          <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
+        </ul>
+        <hr/>
+        <ul class='admin'>
+          <li class="login"><a href="/Login"><span class="icon"></span>Login</a></li>
+          <li class="register"><a href="/Register"><span class="icon"></span>Register</a></li>
+          <li class="share"><a href="/"><span class="icon"></span>Share</a></li>
+        </ul>
+
+      </div>
+      <div class="profile-koding-logo">
+        <div class="logo" id='profile-koding-logo'></div>
+      </div>
+
+    </div>
+
+    <div class="profile-content-wrapper" id="profile-content-wrapper">
+      <div class="profile-title">
+        <div class="profile-title-wrapper">
+        <div class="profile-name">#{firstName} #{lastName}</div>
+        <div class="profile-bio">#{about}</div>
+        </div>
+      </div>
+      <div class="profile-content-links">
+        <h4>Show me</h4>
+        <ul>
+          <li>Everything</li>
+          <li>Status Updates</li>
+          <li>Code Snippets</li>
+          <li>Discussions</li>
+          <li>Tutorials</li>
+          <li>Q&amp;A</li>
+          <li>Links</li>
+        </ul>
+      </div>
+      <div class="profile-content" id="profile-content">
+        #{getBlogPosts(lastBlogPosts)}
+      </div>
+    </div>
+
+
+    <!-- <div id="profile-landing-content" class="profile-landing-content">
       <div class="profile-wrapper">
+
 
         <span class="avatar">
           <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
         </span>
 
-
         <div class="content-title">
           <a class="betatag">beta</a>
-          #{firstName} #{lastName} <span class='nickname'>#{nickname}</span>
+          #{firstName} #{lastName} <span class='nickname'>@#{nickname}</span>
         </div>
 
-        <div class="content-body">
+        <div class="content-about">
           #{about}
         </div>
 
@@ -49,13 +118,43 @@ module.exports = ({profile,skillTags,counts})->
           </div>
         </div>
 
+        <div class="content-tags">
+          <div class='tag-label'>Skills</div>
+          <div class="tag-group" id="skill-tags">
+          #{ getTags(sortedTags) }
+          </div>
+        </div>
+
+
       </div>
     </div>
+    <div id='profile-content' class='profile-content'></div> -->
+    #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
     #{getScripts()}
     </div>
   </body>
   </html>
   """
+
+getBlogPosts = (blogPosts=[])->
+  posts = ""
+  for blog in blogPosts
+    console.log 'adding post'
+    posts+="""
+      <div class="content-item">
+        <div class="title">#{blog.title}</div>
+        <div class="has-markdown">
+          #{blog.html}
+        </div>
+      </div>
+    """
+  posts
+
+getTags = (tags)->
+  for value in tags
+    """
+    <div class='ttag' data-tag='#{value}'>#{value}</div>
+    """
 
 getStyles =->
   """

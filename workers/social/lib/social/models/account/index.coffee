@@ -3,7 +3,9 @@ jraphical = require 'jraphical'
 KodingError = require '../../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
-                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
+                      'JBlogPost'
+                     ]
 
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
@@ -156,7 +158,8 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'creator'
         targetType  : [
           "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
-          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
+          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
+          "JBlogPost"
         ]
 
   constructor:->
@@ -167,13 +170,25 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(callback)->
     console.log 'rendering hp'
-    console.log 'acc is',@
-    callback null, JAccount.renderHomepage {
-      profile : @profile
-      account : @
-      counts  : @counts
-      skillTags : @skillTags
-    }
+    console.log 'checking for blog posts'
+
+    JBlogPost = require './messages/blog'
+
+    JBlogPost.some originId:@getId() ,
+      sort :
+        'meta.createdAt' : -1
+      limit : 5
+    , (err, blogPost)=>
+
+      console.log 'found',blogPost.length,'blog posts' unless err
+
+      callback null, JAccount.renderHomepage {
+        profile       : @profile
+        account       : @
+        counts        : @counts
+        skillTags     : @skillTags
+        lastBlogPosts : blogPost or {}
+      }
 
 
   fetchGroups: secure (client, callback)->

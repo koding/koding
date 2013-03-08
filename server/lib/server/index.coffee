@@ -212,9 +212,7 @@ else
     JAccount.one { 'profile.nickname': userName }, (err, account)->
       if err or !account? then next err
       else
-        console.log 'displaying static account'
         account.fetchHomepageView (err, view)->
-          console.log 'homepage fetched'
           if err then next err
           else res.send view
 

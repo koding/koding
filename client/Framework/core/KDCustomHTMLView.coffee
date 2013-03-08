@@ -11,5 +11,8 @@ class KDCustomHTMLView extends KDView
 
   setDomElement:(cssClass)->
 
-    @domElement = $ "<#{@tagName}/>",
-      class : cssClass
+    if @getOptions().lazyDomId
+      KDView::setDomElement.call @, cssClass
+    else
+      @domElement = $ "<#{@tagName}/>",
+        class : cssClass
