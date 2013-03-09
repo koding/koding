@@ -12,6 +12,13 @@ class BlogPostActivityItemView extends ActivityItemChild
 
     super options,data
 
+    @readThisLink = new CustomLinkView
+      cssClass : 'read-this-link'
+      title : 'Read this Blog Post'
+      click : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
@@ -28,8 +35,8 @@ class BlogPostActivityItemView extends ActivityItemChild
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
-      <h3 class='hidden'></h3>
-      <p class="blog-post-body">{{@applyTextExpansions #(body)}}</p>
+      <h3 class='comment-title'>{{ @applyTextExpansions #(title)}}</h3>
+      <p class="blog-post-body">{{> @readThisLink}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}

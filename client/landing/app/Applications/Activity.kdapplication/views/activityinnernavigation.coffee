@@ -37,10 +37,10 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     items : [
         { title : "Everything" }
         { title : "Status Updates",   type : "CStatusActivity" }
+        { title : "Blog Posts",       type : "CBlogPostActivity" }
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
         { title : "Discussions",      type : "CDiscussionActivity" }
         { title : "Tutorials",        type : "CTutorialActivity" }
-        { title : "Q&A",              type : "qa",disabledForBeta : yes }
         { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }
