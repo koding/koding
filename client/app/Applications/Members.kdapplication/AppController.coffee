@@ -39,11 +39,11 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               if group?
-                targetSelector = selector
+                options = {
+                  options
+                  targetOptions: {selector}
+                }
                 selector = {}
-                options ?= {}
-                options.targetOptions ?= {}
-                options.targetOptions.selector = targetSelector
                 group.fetchMembers selector, options, callback
               else
                 JAccount.someWithRelationship selector, options, callback
@@ -202,8 +202,10 @@ class MembersAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   setCurrentViewNumber:(type)->
-    KD.whoami().count? type, (err, count)=>
-      @getView().$(".activityhead span.member-numbers-#{type}").html count
+    group = KD.getSingleton('groupsController').getCurrentGroup()
+    return unless group
+    count = group.counts.members
+    @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
