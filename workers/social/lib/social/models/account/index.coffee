@@ -169,9 +169,9 @@ module.exports = class JAccount extends jraphical.Module
     console.log 'rendering hp'
     console.log 'acc is',@
     callback null, JAccount.renderHomepage {
-      profile : @profile
-      account : @
-      counts  : @counts
+      profile   : @profile
+      account   : this
+      counts    : @counts
       skillTags : @skillTags
     }
 
