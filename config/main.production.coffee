@@ -104,7 +104,7 @@ module.exports = deepFreeze
     host        : 'web0.beta.system.aws.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'djfjfhgh4455__5'
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
   broker        :
