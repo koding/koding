@@ -854,18 +854,15 @@
       borderBox()
       border none
       .kdtabhandle
-        // border              1px solid transparent
         border-width        0
         height              27px
         line-height         27px
         color               #aaa
         font-size           13px
-        padding             0 10px
-        min-width           120px
+        padding             0 40px 0 10px
         width               auto!important
         borderBox()
         rounded(0)
-        // text-align center
         b
           margin-right      0
           font-weight normal
@@ -915,10 +912,12 @@
             .cancel-link
               fr()
 
+    .policy-view-wrapper
+      padding-top 20px
+
     .invitations
     .membership-policy
     .approval-requests
-      padding-top: 20px
 
       section.formline
         margin-left 100px
@@ -979,6 +978,8 @@
       a.edit-link
         margin-top 16px
         padding-left 17px
+
+
 
     .invitations
     .approval-requests
@@ -1349,6 +1350,13 @@
           color white
           .input-wrapper
             text-align left
+
+@media screen and (max-width:1000px)
+
+  .group-content-display .group-content
+    .kdtabhandlecontainer
+      .kdtabhandle
+        padding-right 20px
 
 // .kdview.jcontextmenu.kdbuttonmenu.groups-settings-context
 //   border-color          rgba(0,0,0,.2)
