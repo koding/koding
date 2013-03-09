@@ -196,10 +196,15 @@
 
   .content-item
     border-bottom 1px solid #e8e8e8
-    .title
+    > .title
+      span.text
+        max-width 600px
+        display block
+        margin-bottom 10px
       font-size 18px
       font-weight 600
       color #444
+      bg color, #fbfbfb
       span.create-date
         display block
         font-size 14px
@@ -209,8 +214,12 @@
       padding 20px 30px
       border-bottom 1px solid #e8e8e8
     .has-markdown
-      padding 30px
       max-width 600px
+      padding 30px
+      margin-bottom 30px
+      text-align justify
+      text-rendering geometricPrecision
+
 
 
 .new-blogpost-modal
