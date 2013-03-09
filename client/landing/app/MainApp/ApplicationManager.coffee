@@ -61,12 +61,13 @@ class ApplicationManager extends KDObject
 
       if appOptions.multiple
 
-        if options.forceNew
-          @create name, @bound "showInstance"
+        if options.forceNew or appOptions.openWith is "forceNew"
+          @create name, (appInstance)=> @showInstance appInstance, callback
           return
 
         switch appOptions.openWith
           when "lastActive" then do defaultCallback
+
           when "prompt"
             @createPromptModal appOptions, (appInstance)=>
               if appInstance
@@ -117,10 +118,12 @@ class ApplicationManager extends KDObject
     log "::: Telling #{command} to #{name}"
 
     app = @get name
-    cb  = (appInstance)-> appInstance?[command]? rest...
+    cb  = (appInstance)->
+      log command, rest
+      appInstance?[command]? rest...
 
     if app then cb app
-    else @create name, (appInstance)->  cb appInstance
+    else @create name, cb
 
   create:(name, callback)->
 
@@ -174,7 +177,7 @@ class ApplicationManager extends KDObject
     appInstance = null
     for name, apps of @appControllers
       apps.forEach (appController)=>
-        if view.getId() is appController.getView?().getId()
+        if view.getId() is appController.getView?()?.getId()
           appInstance = appController
 
     return appInstance
