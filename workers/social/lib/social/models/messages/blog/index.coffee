@@ -18,7 +18,14 @@ module.exports = class JBlogPost extends JPost
       gfm : yes
       sanitize : yes
       highlight : (code, lang)->
-        require('highlight.js').highlight(lang, code).value
+        hljs = require('highlight.js')
+        try
+          hljs.highlight(lang, code).value
+        catch e
+          try
+            hljs.highlightAuto(code).value
+          catch _e
+            code
       breaks : yes
       langPrefix : 'lang-'
     marked = require('marked')
