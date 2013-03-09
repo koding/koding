@@ -10,9 +10,9 @@ Includes =
 
     Client:
       Framework :
-        sockjs                      : "./client/libs/sockjs-0.3-patched.js"
-        broker                      : "./node_modules/koding-broker-client/browser/broker.js"
-        bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
+        sockjs              : "./client/libs/sockjs-0.3-patched.js"
+        broker              : "./node_modules/koding-broker-client/browser/broker.js"
+        bongojs             : "./node_modules/bongo-client/browser/bongo.js"
         # core
         __utils             : "./client/Framework/core/utils.coffee"
         KD                  : "./client/Framework/core/KD.coffee"
@@ -162,7 +162,9 @@ Includes =
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
         # viewer
-        Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
+        ViewerController      : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
+        ViewerView            : './client/app/Applications/Viewer.kdapplication/AppView.coffee'
+        ViewerTopBar          : './client/app/Applications/Viewer.kdapplication/topbar.coffee'
 
         # webterm
         WebTermAppView        : "./client/app/Applications/WebTerm.kdapplication/webtermappview.coffee"
