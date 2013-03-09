@@ -167,6 +167,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
+      html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0
         following : 0

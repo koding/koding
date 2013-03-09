@@ -59,7 +59,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='hidden'></h3>
-        <p class="blog-post-body">{{@applyTextExpansions #(body)}}</p>
+        <p class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}

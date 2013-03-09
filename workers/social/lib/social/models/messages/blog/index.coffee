@@ -51,8 +51,8 @@ module.exports = class JBlogPost extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
-      html        : @generateHTML data.body
-      checksum    : @generateChecksum data.body
+      html        : JBlogPost.generateHTML data.body
+      checksum    : JBlogPost.generateChecksum data.body
     JPost::modify.call @, client, blogPost, callback
 
   reply: secure (client, comment, callback)->

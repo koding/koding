@@ -239,6 +239,10 @@ h1.kdheaderview.notification-header
       .type-icon
         bg(position,-399px -376px)
 
+    &.blog-post
+      .type-icon
+        bg(position,-399px -376px)
+
     &.qanda
       .type-icon
         bg(position,-552px -376px)
@@ -730,6 +734,8 @@ form.status-widget
     blockMid()
     &.update
       bg            position,-80px 0
+    &.blogpost
+      bg            position,-80px 0
     &.discussion
       bg            position,-80px -20px
     &.question
@@ -774,6 +780,8 @@ button.activity-status-context
     size            20px,20px
     blockMid()
     &.update
+      bg(position,-140px -320px)
+    &.blogpost
       bg(position,-140px -320px)
     &.discussion
       bg(position,-140px -340px)
@@ -916,6 +924,8 @@ button.activity-status-context
 
   .update .icon
     bg                      position,-140px -320px
+  .blogpost .icon
+    bg                      position,-140px -320px
   .discussion .icon
     bg                      position,-140px -340px
   .question .icon
@@ -931,6 +941,8 @@ button.activity-status-context
 
   .selected
     .update .icon
+      bg                    position,-160px -320px
+    .blogpost .icon
       bg                    position,-160px -320px
     .discussion .icon
       bg                    position,-160px -340px
@@ -1784,6 +1796,7 @@ div.kdinputwithpreview.input_preview
       margin-left     2px
       vertical-align  baseline
       line-height     19px
+      display         inline-block
 
     button.fullscreen-button
       float           none
@@ -1792,6 +1805,7 @@ div.kdinputwithpreview.input_preview
       padding         0px 3px
       line-height     10px
       margin-right    10px
+      display         inline-block
 
       span
         font-size     9px
@@ -1805,6 +1819,7 @@ div.kdinputwithpreview.input_preview
 
 
     label.preview_switch_label
+      display         inline-block
       color           #ff9200
       width           auto
       min-width       auto
@@ -1827,6 +1842,8 @@ div.kdinputwithpreview.input_preview
 
     div.kdinput.on-off
       // margin-top            2px
+      line-height           1.5
+      display               inline-block
       float                 right
       font-family           sans
       width                 auto
@@ -1909,6 +1926,10 @@ div.kdinputwithpreview.input_preview
 
     > *:last-child
       margin-bottom   0
+
+.read-this-link
+  span.title
+  color #444
 
 .twipsy.link-expander
 
@@ -2066,6 +2087,7 @@ div.show-tutorial-embed
   margin-right 0px
   display inline-block
   z-index 10
+  fr()
 
 .no-scroll
   overflow-x hidden
@@ -2356,6 +2378,7 @@ div.activity-content-container
       background-color                  #ff0
       box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
       opacity                           1
+
 div.status-leds
   margin                                0px auto 0px auto
   text-align                            center
