@@ -26,6 +26,10 @@ package 'gdisk' do
   action :upgrade
 end
 
+execute "echo rbd | tee /etc/modules -a && touch /etc/modules.done" do
+  creates "/etc/modules.done"
+end
+
 mons = get_mon_nodes("ceph_bootstrap_osd_key:*")
 
 if mons.empty? then
