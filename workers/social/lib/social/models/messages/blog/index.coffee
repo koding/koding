@@ -14,7 +14,16 @@ module.exports = class JBlogPost extends JPost
   }
 
   @generateHTML=(content)->
-    require('marked') content
+    options =
+      gfm : yes
+      sanitize : yes
+      highlight : (code, lang)->
+        require('highlight.js').highlight(lang, code).value
+      breaks : yes
+      langPrefix : 'lang-'
+    marked = require('marked')
+    marked.setOptions options
+    marked content
 
   @generateChecksum=(content)->
     require('crypto')
