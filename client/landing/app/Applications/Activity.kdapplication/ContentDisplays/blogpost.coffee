@@ -58,7 +58,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
         <span class="author">AUTHOR</span>
       </span>
       <div class='activity-item-right-col'>
-        <h3 class='hidden'></h3>
+        <h3 class='blog-post-title'>{{ @applyTextExpansions #(title)}}</h3>
         <p class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
