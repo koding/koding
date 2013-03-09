@@ -137,15 +137,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   """
 
 getBlogPosts = (blogPosts=[])->
-
-
-
-
   posts = ""
   for blog in blogPosts
+    postDate = new Date(blog.meta.createdAt)
     posts+="""
       <div class="content-item">
-        <div class="title">#{blog.title} <span class="create-date">#{(new Date(blog.meta.createdAt)).toDateString()}</span> </div>
+        <div class="title">#{blog.title} <span class="create-date">#{postDate.toLocaleString()}</span> </div>
         <div class="has-markdown">
           #{blog.html}
         </div>

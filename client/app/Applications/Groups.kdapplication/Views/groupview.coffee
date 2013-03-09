@@ -78,7 +78,7 @@ class GroupView extends ActivityContentDisplay
 
   createLazyTab:(tabName, konstructor, options, initializer)->
     if 'function' is typeof options
-      initializer = options 
+      initializer = options
       options = {}
 
     pane = new KDTabPaneView name: tabName
@@ -136,6 +136,7 @@ class GroupView extends ActivityContentDisplay
       cssClass : 'group-content'
       hideHandleContainer : yes
       hideHandleCloseIcons : yes
+      maxHandleWidth : 200
       tabHandleView : GroupTabHandleView
     , data
     @utils.defer => @emit 'ReadmeSelected'
