@@ -159,6 +159,9 @@ Includes =
         GroupData                : "./client/app/Applications/Groups.kdapplication/groupdata.coffee"
         GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
 
+        # localStorage
+        LocalStorage                  : "./client/app/MainApp/localstorage.coffee"
+
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
