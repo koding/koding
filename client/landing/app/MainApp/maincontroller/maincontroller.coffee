@@ -20,6 +20,7 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
+    KD.registerSingleton "localStorageController", new LocalStorageController
 
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
