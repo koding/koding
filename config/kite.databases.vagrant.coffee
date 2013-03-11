@@ -4,7 +4,7 @@ module.exports =
   logFile           : "/var/log/node/Databases.log"
   port              : 4568
   amqp                  :
-    host                : 'rabbitmq.local'
+    host                : 'localhost'
     login               : 'prod-sharedhosting-kite'
     password            : 'djfjfhgh4455__5'
     heartbeat           : 10

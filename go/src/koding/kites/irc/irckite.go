@@ -4,12 +4,12 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/irc"
 	"koding/tools/kite"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
-	"koding/tools/utils"
 )
 
 func main() {
-	utils.Startup("kite.irc", false)
+	lifecycle.Startup("kite.irc", false)
 
 	k := kite.New("irc")
 	k.Handle("connect", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -18,7 +18,7 @@ func main() {
 			OnMessage dnode.Callback `json:"onMessage"`
 		}
 		if args.Unmarshal(&params) != nil || params.Host == "" || params.OnMessage == nil {
-			return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
+			return nil, &kite.ArgumentError{Expected: "{ host: [string], onMessage: [function] }"}
 		}
 
 		conn, err := irc.NewConn(params.Host, log.RecoverAndLog)

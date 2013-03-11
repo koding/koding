@@ -127,7 +127,7 @@ class AccountAppController extends AppController
     develop :
       title : "Develop"
       items : [
-        { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
+        # { title : "Database settings",    listHeader: "Database Settings",          listType: "databases",      id : 15,      parentId : null }
         { title : "Repository settings",  listHeader: "Repository Settings",        listType: "repos",          id : 20,      parentId : null }
         { title : "Manage mounts",        listHeader: "Registered Mounts",          listType: "mounts",         id : 30,      parentId : null }
         { title : "Editor settings",      listHeader: "Editor Settings",            listType: "editors",        id : 10,      parentId : null }

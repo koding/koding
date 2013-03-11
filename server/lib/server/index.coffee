@@ -21,11 +21,10 @@ else
       callback : ->
         console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
         process.exit()
-    # DISABLED TO TEST MEMORY LEAKS
-    # die :
-    #   after: "non-overlapping, random, 3 digits prime-number of minutes"
-    #   middleware : (name,callback) -> koding.disconnect callback
-    #   middlewareTimeout : 5000
+    die :
+      after: "non-overlapping, random, 3 digits prime-number of minutes"
+      middleware : (name,callback) -> koding.disconnect callback
+      middlewareTimeout : 5000
 
   # Services (order is important here)
   services =

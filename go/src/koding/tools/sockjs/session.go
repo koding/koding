@@ -18,10 +18,11 @@ type Session struct {
 	doConnCheck, connCheckResult chan bool
 	readSemaphore                chan bool
 	writeOpenFrame               bool
-	lastActivity                 time.Time
+	lastSendTime                 time.Time
 	closed                       bool
 	closeMutex                   sync.Mutex
 	cookie                       string
+	Tag                          string
 }
 
 func newSession(service *Service) *Session {
@@ -33,6 +34,7 @@ func newSession(service *Service) *Session {
 		connCheckResult: make(chan bool),
 		readSemaphore:   make(chan bool, 1),
 		writeOpenFrame:  true,
+		lastSendTime:    time.Now(),
 		cookie:          "JSESSIONID=dummy",
 	}
 }
@@ -51,18 +53,19 @@ func (s *Session) Send(data interface{}) bool {
 }
 
 func (s *Session) Close() {
-	s.closeMutex.Lock()
-	defer s.closeMutex.Unlock()
-	if !s.closed {
-		s.closed = true
-		close(s.ReceiveChan)
-	}
+	go func() {
+		s.closeMutex.Lock()
+		defer s.closeMutex.Unlock()
+		if !s.closed {
+			s.closed = true
+			close(s.ReceiveChan)
+		}
+	}()
 }
 
 func (s *Session) ReadMessages(data []byte) bool {
 	s.closeMutex.Lock()
 	defer s.closeMutex.Unlock()
-
 	if s.closed {
 		return true
 	}
@@ -72,13 +75,15 @@ func (s *Session) ReadMessages(data []byte) bool {
 	if err != nil {
 		return false
 	}
+
 	if messages, ok := obj.([]interface{}); ok {
 		for _, message := range messages {
 			s.ReceiveChan <- message
 		}
-	} else {
-		s.ReceiveChan <- obj
+		return true
 	}
+
+	s.ReceiveChan <- obj
 	return true
 }
 
@@ -88,11 +93,11 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 		// can read
 	default:
 		s.doConnCheck <- true
+		errMsg := `[1002,"Connection interrupted"]`
 		if <-s.connCheckResult {
-			w.Write(createFrame('c', `[2010,"Another connection still open"]`, frameStart, frameEnd, escape))
-		} else {
-			w.Write(createFrame('c', `[1002,"Connection interrupted"]`, frameStart, frameEnd, escape))
+			errMsg = `[2010,"Another connection still open"]`
 		}
+		w.Write(createFrame('c', errMsg, frameStart, frameEnd, escape))
 		return
 	}
 	defer func() {
@@ -106,14 +111,12 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 		defer conn.Close()
 		defer buf.Flush()
 
-		var frameWriter io.Writer
+		var frameWriter io.Writer = buf
 		if chunked {
 			defer buf.Write([]byte("\r\n"))
 			chunkedWriter := httputil.NewChunkedWriter(buf)
 			frameWriter = chunkedWriter
 			defer chunkedWriter.Close()
-		} else {
-			frameWriter = buf
 		}
 
 		for {
@@ -145,6 +148,7 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 		frame, closed = s.CreateNextFrame(frameStart, frameEnd, escape)
 		total += len(frame)
 		c <- frame
+		s.lastSendTime = time.Now()
 		if !streaming {
 			break
 		}
@@ -171,11 +175,11 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 	for moreMessages := true; moreMessages; {
 		select {
 		case message, ok := <-s.sendChan:
-			if ok {
-				messages = append(messages, message)
-			} else {
+			if !ok {
 				moreMessages = false
+				break
 			}
+			messages = append(messages, message)
 		default:
 			moreMessages = false
 		}
@@ -190,18 +194,15 @@ func createFrame(kind byte, data string, frameStart, frameEnd []byte, escape boo
 	frame.Write(frameStart)
 	frame.WriteByte(kind)
 	for _, r := range data {
-		if escape && r == '\\' {
-			frame.WriteString(`\\`)
-		} else if escape && r == '"' {
-			frame.WriteString(`\"`)
-		} else if (0x200c <= r && r <= 0x200f) || (0x2028 <= r && r <= 0x202f) || (0x2060 <= r && r <= 0x206f) || (0xfff0 <= r && r <= 0xffff) {
-			if escape {
-				frame.WriteByte('\\')
-			}
-			frame.WriteString(fmt.Sprintf(`\u%04x`, r))
-		} else {
-			frame.WriteRune(r)
+		special := (0x200c <= r && r <= 0x200f) || (0x2028 <= r && r <= 0x202f) || (0x2060 <= r && r <= 0x206f) || (0xfff0 <= r && r <= 0xffff)
+		if escape && (r == '\\' || r == '"' || special) {
+			frame.WriteByte('\\')
 		}
+		if special {
+			frame.WriteString(fmt.Sprintf(`\u%04x`, r))
+			continue
+		}
+		frame.WriteRune(r)
 	}
 	frame.Write(frameEnd)
 	return frame.Bytes()
