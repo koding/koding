@@ -172,7 +172,7 @@ module.exports = class JAccount extends jraphical.Module
     console.log 'rendering hp'
     console.log 'checking for blog posts'
 
-    JBlogPost = require './messages/blog'
+    JBlogPost = require '../messages/blog'
 
     JBlogPost.some originId:@getId() ,
       sort :

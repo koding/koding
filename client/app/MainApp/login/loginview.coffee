@@ -25,49 +25,31 @@ class LoginView extends KDScrollView
       cssClass    : "logo"
       partial     : "Koding"
       click       : homeHandler
-      # @animateToForm "home"
-      # click       : =>
-      #   @slideUp ->
-      #     KD.getSingleton("appManager").open "Home"
-
 
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "back-to-home"
       click       : homeHandler
-      # partial     : "<span></span> Koding Homepage <span></span>"
-      # click       : =>
-      #   @slideUp ->
-      #     KD.getSingleton("appManager").open "Home"
 
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "video-link"
       partial     : "video again?"
       click       : homeHandler
-      # click       : =>
-      #   @slideUp ->
-      #     KD.getSingleton("appManager").open "Home"
 
     @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"
-      # cssClass  : "back-to-login"
       partial   : "Go ahead and login"
-      # partial   : "« back to login"
       click     : loginHandler
-        # @animateToForm "login"
 
     @goToRequestLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an invite"
-      # partial     : "Want to get in? Request an invite"
       click       : joinHandler
-        # @animateToForm "lr"
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register an account"
-      # partial     : "Have an invite? Register an account"
       click       : registerHandler
 
     @bigLinkReg = new KDCustomHTMLView

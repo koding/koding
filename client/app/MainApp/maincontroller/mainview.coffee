@@ -2,6 +2,7 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @mc = @getSingleton 'mainController'
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -74,29 +75,6 @@ class MainView extends KDView
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
-
-    @addLoginButtons()
-
-  addLoginButtons:->
-
-    @header.addSubView @buttonHolder = new KDView
-      cssClass  : "button-holder hidden"
-
-    mainController = @getSingleton('mainController')
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Sign In"
-      style     : "koding-blue"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "login"
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Create an Account"
-      style     : "koding-orange"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "register"
 
   createMainTabView:->
 
@@ -249,18 +227,16 @@ class MainView extends KDView
     loginLink.on 'LoginLinkRedirect', ({section})=>
 
       route =  "/#{groupEntryPoint}/#{section}"
-      # KD.getSingleton('router').handleRoute route
-      mc = @getSingleton 'mainController'
 
       switch section
         when 'Join', 'Login'
-          mc.loginScreen.animateToForm 'login'
-          mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
+          @mc.loginScreen.animateToForm 'login'
+          @mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
           $('#group-landing').css 'height', 0
           # $('#group-landing').css 'opacity', 0
 
         when 'Activity'
-          mc.loginScreen.hide()
+          @mc.loginScreen.hide()
           KD.getSingleton('router').handleRoute route
           $('#group-landing').css 'height', 0
 
@@ -310,6 +286,7 @@ class MainView extends KDView
     @profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
+
     @profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass : 'slideable'
@@ -321,8 +298,8 @@ class MainView extends KDView
         @profileContentWrapperView.setClass 'slide-down'
         @profileLogoView.setClass 'top'
 
-        @utils.wait 1000, => @profileLandingView.setClass 'profile-fading'
-        @utils.wait 1500, => @profileLandingView.setClass 'profile-hidden'
+        @profileLandingView.setClass 'profile-fading'
+        @utils.wait 1100, => @profileLandingView.setClass 'profile-hidden'
 
     @profileLogoView.$().css
       top: @profileLandingView.getHeight()-42
@@ -418,12 +395,6 @@ class MainView extends KDView
     #   @profileContentView.setClass 'ready'
     #   @profileContentView.render()
 
-
-
-
-
-
-
     @profileLandingView.listenWindowResize()
 
     @profileLandingView._windowDidResize = =>
@@ -439,27 +410,35 @@ class MainView extends KDView
       groupLandingView.setHeight window.innerHeight - 50
 
     if isLoggedIn
-      if @userEnteredFromGroup() then @switchGroupState yes
-
+      if @userEnteredFromGroup()
+        @switchGroupState yes
       else if @userEnteredFromProfile()
         @switchProfileState yes
-        log 'entered from profile'
       else
         $('body').addClass "loggedIn"
         @mainTabView.showHandleContainer()
 
+      logoutLinkView = new LandingPageNavLink
+        title : 'Logout'
+
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      @buttonHolder.hide()
+      # @buttonHolder.hide()
 
     else
-      if @userEnteredFromGroup() then @switchGroupState no
-      else if @userEnteredFromProfile() then @switchProfileState no
-      else $('body').removeClass "loggedIn"
+      if @userEnteredFromGroup()
+        @switchGroupState no
+      else if @userEnteredFromProfile()
+        @switchProfileState no
+      else
+        $('body').removeClass "loggedIn"
+
+      loginLinkView = new LandingPageNavLink
+        title : 'Login'
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      @buttonHolder.show()
+      # @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()
