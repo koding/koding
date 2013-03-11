@@ -208,6 +208,7 @@ class MainView extends KDView
   changeHomeLayout:(isLoggedIn)->
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
+
   userEnteredFromProfile:-> KD.config.profileEntryPoint?
 
   switchProfileState:(isLoggedIn)->
@@ -307,71 +308,63 @@ class MainView extends KDView
 
   addProfileViews:->
 
-    @profileLandingView = new KDView
+    profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
-    @profileContentWrapperView = new KDView
+    profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
 
-    @profileTitleView = new KDView
+    profileTitleView = new KDView
       lazyDomId : 'profile-title'
 
-    @profileSplitView = new SplitViewWithOlderSiblings
+    profileSplitView = new SplitViewWithOlderSiblings
       lazyDomId : 'profile-splitview'
-      parent : @profileContentWrapperView
+      parent : profileContentWrapperView
 
-    @profilePersonalWrapperView = new KDView
+    profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass : 'slideable'
 
-    @profileLogoView = new KDView
+    profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
       click :=>
-        @profilePersonalWrapperView.setClass 'slide-down'
-        @profileContentWrapperView.setClass 'slide-down'
-        @profileLogoView.setClass 'top'
+        profilePersonalWrapperView.setClass 'slide-down'
+        profileContentWrapperView.setClass 'slide-down'
+        profileLogoView.setClass 'top'
 
-        @profileLandingView.setClass 'profile-fading'
-        @utils.wait 1100, => @profileLandingView.setClass 'profile-hidden'
+        profileLandingView.setClass 'profile-fading'
+        @utils.wait 1100, => profileLandingView.setClass 'profile-hidden'
 
-    @profileLogoView.$().css
-      top: @profileLandingView.getHeight()-42
+    profileLogoView.$().css
+      top: profileLandingView.getHeight()-42
 
-    @utils.wait => @profileLogoView.setClass 'animate'
+    @utils.wait => profileLogoView.setClass 'animate'
 
-    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+    KD.remote.cacheable profileLandingView.$().attr('data-profile'), (err, user, name)=>
       KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
 
         log err if err
-        @profileContentView = new KDListView
+        profileContentView = new KDListView
           lazyDomId : 'profile-content'
           itemClass : StaticBlogPostListItem
         , blogs
 
         profileContentListController = new KDListViewController
-          view : @profileContentView
+          view : profileContentView
         , blogs
 
         unless err
-          @profileContentView.$('.content-item').remove()
+          profileContentView.$('.content-item').remove()
 
-          @profileContentView.on 'ItemWasAdded', (instance, index)->
+          profileContentView.on 'ItemWasAdded', (instance, index)->
             instance.viewAppended()
 
           profileContentListController.instantiateListItems blogs
 
-          # @profileSplitView.listenWindowResize()
-          # @profileSplitView._windowDidResize= =>
-          #   log 'resizing'
-          #   log @profileSplitView.getHeight(), @profileContentWrapperView.getHeight(), @profileTitleView.getHeight()
-          #   @profileSplitView.setHeight @profileContentWrapperView.getHeight()-@profileTitleView.getHeight()-94
-          # @profileSplitView._windowDidResize()
-
-    @profileLandingView.listenWindowResize()
-
-    @profileLandingView._windowDidResize = =>
-      @profileLandingView?.setHeight window.outerHeight
+    profileLandingView.listenWindowResize()
+    profileLandingView._windowDidResize = =>
+      profileLandingView?.setHeight window.outerHeight
 
   decorateLoginState:(isLoggedIn = no)->
 
