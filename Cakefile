@@ -404,7 +404,7 @@ task 'release',(options)->
   dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
 
   # Starting ports
-  webPort = config.haproxy.webPort + (version % 100)
+  webPort = 3000 + (version % 100)
 
   newRelease = ->
     # Get previous dynamic config
