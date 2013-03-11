@@ -42,13 +42,34 @@ class GroupsLandingPageButton extends KDButtonView
     # FIXME GG
     $('.group-login-buttons').css 'opacity', 1
 
+class LandingPageNavLink extends KDCustomHTMLView
+
+  constructor:(options, data)->
+
+    options.lazyDomId = 'navigation-link-container'
+    options.partial   = \
+      """
+        <li class='#{options.cssClass or options.title}'>
+          <a href='#{options.link or "/#{options.title}"}'>
+            <span class='icon'></span>#{options.title}
+          </a>
+        </li>
+      """
+
+    super
+
+  click: ->
+    {loginScreen} = @getSingleton 'mainController'
+    loginScreen.animateToForm 'login'
+    loginScreen.setClass 'landed'
+
 class GroupsLandingPageLoginLink extends CustomLinkView
 
   constructor:(options, data)->
     {groupEntryPoint} = options
-    options.cssClass = 'bigLink'
-    options.baseHref = "/#{groupEntryPoint}"
-    options.title ?= ' '
+    options.cssClass  = 'bigLink'
+    options.baseHref  = "/#{groupEntryPoint}"
+    options.title    ?= ''
     super
 
   click:(event)->

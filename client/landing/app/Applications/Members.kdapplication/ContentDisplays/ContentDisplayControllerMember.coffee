@@ -9,7 +9,6 @@ class ContentDisplayControllerMember extends KDViewController
 
   loadView:(mainView)->
     member = @getData()
-    log "asdsd"
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView
       tagName : "a"
