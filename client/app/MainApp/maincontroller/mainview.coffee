@@ -268,43 +268,42 @@ class MainView extends KDView
     loginLink.appendToSelector '.group-login-buttons'
 
   addGroupViews:->
-    @groupLandingView = new KDView
+    groupLandingView = new KDView
       lazyDomId : 'group-landing'
 
-    @groupLandingView.listenWindowResize()
-    @groupLandingView._windowDidResize = =>
-      @groupLandingView.setHeight window.innerHeight
+    groupLandingView.listenWindowResize()
+    groupLandingView._windowDidResize = =>
+      groupLandingView.setHeight window.innerHeight
 
-    @groupContentWrapperView = new KDView
+    groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
-    @groupTitleView = new KDView
+    groupTitleView = new KDView
       lazyDomId : 'group-title'
 
-    @groupSplitView = new SplitViewWithOlderSiblings
+    groupSplitView = new SplitViewWithOlderSiblings
       lazyDomId : 'group-splitview'
-      parent : @groupContentWrapperView
+      parent : groupContentWrapperView
 
-    @groupPersonalWrapperView = new KDView
+    groupPersonalWrapperView = new KDView
       lazyDomId : 'group-personal-wrapper'
       cssClass : 'slideable'
 
-    @groupLogoView = new KDView
+    groupLogoView = new KDView
       lazyDomId: 'group-koding-logo'
       click :=>
-        @groupPersonalWrapperView.setClass 'slide-down'
-        @groupContentWrapperView.setClass 'slide-down'
-        @groupLogoView.setClass 'top'
+        groupPersonalWrapperView.setClass 'slide-down'
+        groupContentWrapperView.setClass 'slide-down'
+        groupLogoView.setClass 'top'
 
-        @groupLandingView.setClass 'group-fading'
-        @utils.wait 1100, => @groupLandingView.setClass 'group-hidden'
+        groupLandingView.setClass 'group-fading'
+        @utils.wait 1100, => groupLandingView.setClass 'group-hidden'
 
-    @groupLogoView.$().css
-      top: @groupLandingView.getHeight()-42
+    groupLogoView.$().css
+      top: groupLandingView.getHeight()-42
 
-    @utils.wait => @groupLogoView.setClass 'animate'
-
+    @utils.wait => groupLogoView.setClass 'animate'
 
   addProfileViews:->
 
