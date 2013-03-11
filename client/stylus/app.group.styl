@@ -14,204 +14,385 @@
   background-color        chartreuse !important
 
 #group-landing
-  height                  100%
-  overflow                auto
-  vendor transition,      height .2s linear
-
-.group-loader
-  width                   30px
-  height                  30px
-  size                    30px, 30px
-  margin                  auto
-  bg                      position,-240px -40px
-  sprite()
-
-#group-loader-container
-  top                     40px
-  width                   100%
+  height                100%
+  width                 100%
+  z-index               99
   abs()
+  bg image,             url("../images/koding-new-bg.png");
+  bg repeat,            repeat-x
+  vendor transition,    opacity 1s ease
 
-.landing-button
-  font-size               17px !important
+  shadow 0 0 50px 20px rgba(0,0,0,0.4)
+  &.group-leaving
+    rel()
+  &.group-shrinking
+    height 0
+  &.group-fading
+    opacity             0
+  &.group-hidden
+    z-index             1
+    display             none
 
-.group-landing-content
+
+.group-header
+  width                 100%
+  height                51px
+  display               none
+
+.group-personal-wrapper
+  height                100%
+  width                 160px
+  fl()
+
+.group-avatar
+  height                76px
+  width                 160px
+  background-position   center center
+  background-repeat     no-repeat
+  vendor background-size, 160px auto
+  shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+
+
+.group-buttons
+  min-height                27px
+  border-top            1px solid #403d37
+  width                 100%
+  bg color,             rgba(0,0,0,0.2)
+  padding 0 5px 5px 0
   borderBox()
-  rel()
-  overflow                visible
-  max-height              660px
-  max-width               980px
-  width                   90%
-  border                  1px solid rgba(255,255,255,0.16)
-  rounded                 8px
-  margin                  100px auto 30px auto
-  shadow                  0 0 150px rgba(0,0,0,0.32)
-  bg color,               rgba(255,255,255,0.05)
-  vendor transition,      height .2s linear
+.group-content-wrapper
+  margin-left           160px
+  height                100%
+  width                 auto
+  bg color,             white
+  borderBox()
 
-  .group-wrapper
-    // max-height            650px
-    overflow              auto
-
-  .avatar
+.group-title
+  borderBox()
+  height                77px
+  width                 auto
+  bg                    color, white
+  border-bottom         1px solid rgb(229,229,229)
+  shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
+  gradient              rgb(255,255,255),rgb(242,242,242)
+  padding 20px 23px
+  .group-title-wrapper
+    height auto
+    width auto
+  .group-name
     borderBox()
-    padding               30px 30px 10px 30px
-    fl()
-
-    img
-      padding             5px
-      border              1px solid rgba(255,255,255,0.2)
-      bg color,           rgba(0,0,0,0.2)
-      rounded             5px
-      vendor transition,  all 0.2s ease-in-out
-      width               150px
-      height              150px
-
-  .content-title
-    vendor transition,    margin-left 0.2s ease-in-out
-    font-weight           500
-    overflow              hidden
-    white-space           nowrap
-    text-overflow         ellipsis
-    font-size             24px
-    padding               30px 30px 20px 0
-    color                 #f5f5f5
-    vendor                font-smoothing antialiased
-    text-rendering        geometricPrecision
-    margin-left           215px
-
-    .betatag
-      text-indent         -9999px
-      abs()
-      top                 -3px
-      right               -3px
-      width               64px
-      height              38px
-      sprite()
-      bg position,        -400px -120px
-
-  .content-body
-    vendor transition,    margin-left 0.2s ease-in-out
-    color                 rgba(227, 227, 227, 0.5)
-    font-weight           300
-    margin-left           215px
-    padding-right         30px
-
-  .content-meta
-    fr()
+    color #ff9200
+    font-size 16px
+    width auto
+    display inline-block
+  .group-bio
     borderBox()
-    clear                 both
-    height                27px
-    rounded               4px
-    padding               5px 8px 5px 5px
-    margin                -25px 30px 15px 30px
-    shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+    color #888
+    font-size 12px
+    height 29px
+    overflow-y scroll
+    width auto
+    font-weight 300
 
-    bg color,             rgba(0,0,0,0.25)
-    div
-      vertical-align      top
-      color               rgba(227,227,227,0.5)
-      font-weight         300
-      display             inline-block
-      .count
-        color             #f5f5f5
-        vertical-align    top
-      .icon
+.group-nickname
+  borderBox()
+  font-size 14px
+  width auto
+  display inline-block
+  color #aaa
+  padding 5px 5px 0 13px
+
+.group-links
+  margin                24px 0 27px 15px
+  ul
+    li
+      a
+        color             #adadad!important
+        noTextDeco()
+        font-size         14px
+        font-weight       300
+      line-height       20px
+      margin-bottom     4px
+      span.icon
         sprite()
-        width             20px
-        height            20px
-        display           inline-block
-      .text
-        vertical-align    top
-      &.followers
-        .icon
-          bg position,    -201px -523px
-      &.posts
-        .icon
-          bg position,    -99px -523px
+        fl()
+        size            20px, 20px
+        margin-right    18px
+      &.blog
+        span.icon
+          bg position,  0 -80px
+      &.twitter
+        span.icon
+          bg position,  0 -100px
+      &.github
+        span.icon
+          bg position,  0 -280px
 
-  .group-content
-    clear                 both
-    borderBox()
-    height                394px
-    overflow              auto
-    margin                30px
-    bg color,             rgba(0, 0, 0, 0.25) //#282520
-    border                10px solid rgba(0, 0, 0, 0) //#282520
-    shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
-    rounded               5px
-    width                 auto
+  ul.admin
+    li
+      a
+        padding-top 3px
+        font-size         11px
+  hr
+    border-top          1px solid rgba(44,41,36,0.5)
+    border-bottom       1px solid rgba(255,255,255,0.07)
+    width               auto
+    height              0
+    margin              20px 20px 10px 6px
+    padding             0 11px
 
-  .content-markdown
-    overflow              auto
-    padding               10px
+.group-splitview
+  height 100%
+
+.group-content-links
+  margin-right          0px
+  width                 139px
+  height                100%
+  border-right          1px solid #e8e8e8
+  padding               19px 23px 19px 23px
+  fl()
+  borderBox()
+
+  h4
+    text-transform      uppercase
+    font-size           9px
+    color               #9f9d9a
+    font-weight         400
+    margin-bottom       9px
+
+  li
+    color               #7c603b
+    font-weight         normal
+    noTextDeco()
+    cursor              pointer
+    line-height         16px
+    font-size           12px
+    vertical-align      baseline
+    margin-bottom       6px
 
 .group-koding-logo
-  abs()
-  left                    0
-  bottom                  0
-  text-align              center
-  width                   auto
-  .text
-    margin                30px 30px 10px 30px
-    .logo
-      cursor              pointer
-      display             inline-block
-      width               140px
-      height              40px
-      sprite()
-      bg position,        -400px 0px
+  height 100%
+  .logo
+    cursor pointer
+    sprite()
+    width 120px
+    height 30px
+    bg position, -240px -40px
+    position fixed
+    bottom 12px
+    left 15px
+    &.animate
+      vendor transition, top 0.5s ease-in-out
+    &.top
+      top 12px!important
+      bottom none
 
-@media screen and (max-width: 500px)
-  .group-landing-content
-    margin-top            30px
-    .avatar
-      padding-right       10px
-      img
-        padding           2px
-        width             40px
-        height            40px
-    .content-title
-      margin-left         90px
-    .content-body
-      margin-left         90px
-    .content-meta
-      float               none
-      margin-top          20px
-      margin-bottom       0px
-    .content-markdown
-      img
-        max-width         100%
+  vertical-align bottom
 
-.group-navigation
-  width                   90%
-  max-width               980px
-  text-align              center
-  margin                  auto
-  margin-top              8px
+.kdlistview.kdview.group-loading-content
+.group-loading-content
+  overflow auto
+  margin-left 125px
+  borderBox()
+  height 100%
+  width auto
+  padding 30px
 
-  .group-login-buttons
-    // border                1px solid rgba(255,255,255,0.1)
-    // border-radius         7px
-    padding               3px
-    opacity               0
-    // background-color      rgba(255,255,255,0.1)
-    vendor transition,    opacity .3s linear
 
-    &.ready
-      opacity             1.0
-      height              25px
-      display             block
+// .group-loader
+//   width                   30px
+//   height                  30px
+//   size                    30px, 30px
+//   margin                  auto
+//   bg                      position,-240px -40px
+//   sprite()
 
-    .bigLink
-      text-shadow           0 -1px 0 rgba(0,0,0,0.8)
-      font-size             20px
-      color                 #ffb500
-      noTextDeco()
-      vertical-align        baseline
-      bg color,             transparent
-      &:hover
-        color               white
-      cursor                pointer
+// #group-loader-container
+//   top                     40px
+//   width                   100%
+//   abs()
+
+// .landing-button
+//   font-size               17px !important
+
+// .group-landing-content
+//   borderBox()
+//   rel()
+//   overflow                visible
+//   max-height              660px
+//   max-width               980px
+//   width                   90%
+//   border                  1px solid rgba(255,255,255,0.16)
+//   rounded                 8px
+//   margin                  100px auto 30px auto
+//   shadow                  0 0 150px rgba(0,0,0,0.32)
+//   bg color,               rgba(255,255,255,0.05)
+//   vendor transition,      height .2s linear
+
+//   .group-wrapper
+//     // max-height            650px
+//     overflow              auto
+
+//   .avatar
+//     borderBox()
+//     padding               30px 30px 10px 30px
+//     fl()
+
+//     img
+//       padding             5px
+//       border              1px solid rgba(255,255,255,0.2)
+//       bg color,           rgba(0,0,0,0.2)
+//       rounded             5px
+//       vendor transition,  all 0.2s ease-in-out
+//       width               150px
+//       height              150px
+
+//   .content-title
+//     vendor transition,    margin-left 0.2s ease-in-out
+//     font-weight           500
+//     overflow              hidden
+//     white-space           nowrap
+//     text-overflow         ellipsis
+//     font-size             24px
+//     padding               30px 30px 20px 0
+//     color                 #f5f5f5
+//     vendor                font-smoothing antialiased
+//     text-rendering        geometricPrecision
+//     margin-left           215px
+
+//     .betatag
+//       text-indent         -9999px
+//       abs()
+//       top                 -3px
+//       right               -3px
+//       width               64px
+//       height              38px
+//       sprite()
+//       bg position,        -400px -120px
+
+//   .content-body
+//     vendor transition,    margin-left 0.2s ease-in-out
+//     color                 rgba(227, 227, 227, 0.5)
+//     font-weight           300
+//     margin-left           215px
+//     padding-right         30px
+
+//   .content-meta
+//     fr()
+//     borderBox()
+//     clear                 both
+//     height                27px
+//     rounded               4px
+//     padding               5px 8px 5px 5px
+//     margin                -25px 30px 15px 30px
+//     shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+
+//     bg color,             rgba(0,0,0,0.25)
+//     div
+//       vertical-align      top
+//       color               rgba(227,227,227,0.5)
+//       font-weight         300
+//       display             inline-block
+//       .count
+//         color             #f5f5f5
+//         vertical-align    top
+//       .icon
+//         sprite()
+//         width             20px
+//         height            20px
+//         display           inline-block
+//       .text
+//         vertical-align    top
+//       &.followers
+//         .icon
+//           bg position,    -201px -523px
+//       &.posts
+//         .icon
+//           bg position,    -99px -523px
+
+//   .group-content
+//     clear                 both
+//     borderBox()
+//     height                394px
+//     overflow              auto
+//     margin                30px
+//     bg color,             rgba(0, 0, 0, 0.25) //#282520
+//     border                10px solid rgba(0, 0, 0, 0) //#282520
+//     shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
+//     rounded               5px
+//     width                 auto
+
+//   .content-markdown
+//     overflow              auto
+//     padding               10px
+
+// .group-koding-logo
+//   abs()
+//   left                    0
+//   bottom                  0
+//   text-align              center
+//   width                   auto
+//   .text
+//     margin                30px 30px 10px 30px
+//     .logo
+//       cursor              pointer
+//       display             inline-block
+//       width               140px
+//       height              40px
+//       sprite()
+//       bg position,        -400px 0px
+
+// @media screen and (max-width: 500px)
+//   .group-landing-content
+//     margin-top            30px
+//     .avatar
+//       padding-right       10px
+//       img
+//         padding           2px
+//         width             40px
+//         height            40px
+//     .content-title
+//       margin-left         90px
+//     .content-body
+//       margin-left         90px
+//     .content-meta
+//       float               none
+//       margin-top          20px
+//       margin-bottom       0px
+//     .content-markdown
+//       img
+//         max-width         100%
+
+// .group-navigation
+//   width                   90%
+//   max-width               980px
+//   text-align              center
+//   margin                  auto
+//   margin-top              8px
+
+//   .group-login-buttons
+//     // border                1px solid rgba(255,255,255,0.1)
+//     // border-radius         7px
+//     padding               3px
+//     opacity               0
+//     // background-color      rgba(255,255,255,0.1)
+//     vendor transition,    opacity .3s linear
+
+//     &.ready
+//       opacity             1.0
+//       height              25px
+//       display             block
+
+//     .bigLink
+//       text-shadow           0 -1px 0 rgba(0,0,0,0.8)
+//       font-size             20px
+//       color                 #ffb500
+//       noTextDeco()
+//       vertical-align        baseline
+//       bg color,             transparent
+//       &:hover
+//         color               white
+//       cursor                pointer
 
 #group-content
   height            100%

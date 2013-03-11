@@ -1,7 +1,8 @@
 
-module.exports = ({slug, title, content, body, avatar, counts, policy})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, description})->
   content ?= getDefaultGroupContents()
   """
+
   <!DOCTYPE html>
   <html>
   <head>
@@ -9,46 +10,61 @@ module.exports = ({slug, title, content, body, avatar, counts, policy})->
     #{getStyles()}
   </head>
   <body class="login" data-group="#{slug}">
-    <div id="group-landing" class='group-landing'>
-    <div id="group-loader-container"></div>
-    <div id="group-landing-content" class="group-landing-content">
-      <div class="group-wrapper">
+    <div id="group-landing" class='group-landing' data-group="#{slug}">
 
-        <span class="avatar">
-          <img src="#{avatar or "http://lorempixel.com/150/150/"}">
-        </span>
-
-        <div class="content-title">
-          <a class="betatag">beta</a>
-          #{title}
-        </div>
-
-        <div class="content-body">
-          #{body}
-        </div>
-
-        <div class="content-meta">
-          <div class="members"><span class="icon"></span>
-            <span class="count">#{counts?.members or '0'}</span>
-            <span class="text"> Members</span>
-          </div>
-        </div>
-
-        <div id="group-content-wrapper" class="group-content">
-          <div class="content-markdown has-markdown dark">
-            #{content}
-          </div>
-        </div>
+    <div class="group-personal-wrapper" id="group-personal-wrapper">
+      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)">
 
       </div>
+      <div class="group-buttons">
+        <div class="group-nickname">#{slug}</div>
+      </div>
+      <div class="group-links">
+        <ul class='main'>
+        </ul>
+        <hr/>
+
+        #{getNavigations()}
+
+      </div>
+      <div class="group-koding-logo">
+        <div class="logo" id='group-koding-logo'></div>
+      </div>
+
     </div>
 
-    <div class="group-navigation">
-      #{getNavigation policy}
-    </div>
+    <div class="group-content-wrapper" id="group-content-wrapper">
+      <div class="group-title" id="group-title">
+        <div class="group-title-wrapper" id="group-title-wrapper">
+        <div class="group-name">#{title}</div>
+        <div class="group-bio">#{body}</div>
+        </div>
+      </div>
+      <div class="group-splitview" id="group-splitview">
+        <div class="group-content-links">
+          <h4>Show me</h4>
+          <ul>
+            <li>Everything</li>
+            <li>Status Updates</li>
+            <li>Code Snippets</li>
+            <li>Discussions</li>
+            <li>Tutorials</li>
+            <li>Q&amp;A</li>
+            <li>Links</li>
+          </ul>
+        </div>
+        <div class="group-loading-content" id="group-loading-content">
+         <div class="content-item">
+           <div class="has-markdown">
+             <span class="data">#{content}</span>
+           </div>
+         </div>
+       </div>
+      </div>
     </div>
     #{KONFIG.getConfigScriptTag groupEntryPoint: slug}
     #{getScripts()}
+    </div>
   </body>
   </html>
   """
@@ -57,6 +73,12 @@ getInviteLink =(policy)->
   if policy.approvalEnabled
     '<p class="bigLink"><a href="./Join">Request an Invite</a></p>'
   else ''
+
+getNavigations = ->
+  """
+    <ul id='navigation-link-container' class='admin'></ul>
+  """
+
 
 getNavigation =(policy)->
   """

@@ -219,6 +219,7 @@ class MainView extends KDView
 
     $('.group-loader').removeClass 'pulsing'
     $('body').addClass "login"
+    @addGroupViews()
 
     {groupEntryPoint} = KD.config
 
@@ -265,14 +266,44 @@ class MainView extends KDView
 
     loginLink.appendToSelector '.group-login-buttons'
 
-  closeGroupView:->
-    @mainTabView.showHandleContainer()
-    $('.group-landing').css 'height', 0
+  addGroupViews:->
+    @groupLandingView = new KDView
+      lazyDomId : 'group-landing'
 
-  closeProfileView:->
-    @mainTabView.showHandleContainer()
-    @profileLandingView._windowDidResize = noop
-    $('.profile-landing').css 'height', 0
+    @groupLandingView.listenWindowResize()
+    @groupLandingView._windowDidResize = =>
+      @groupLandingView.setHeight window.innerHeight
+
+    @groupContentWrapperView = new KDView
+      lazyDomId : 'group-content-wrapper'
+      cssClass : 'slideable'
+
+    @groupTitleView = new KDView
+      lazyDomId : 'group-title'
+
+    @groupSplitView = new SplitViewWithOlderSiblings
+      lazyDomId : 'group-splitview'
+      parent : @groupContentWrapperView
+
+    @groupPersonalWrapperView = new KDView
+      lazyDomId : 'group-personal-wrapper'
+      cssClass : 'slideable'
+
+    @groupLogoView = new KDView
+      lazyDomId: 'group-koding-logo'
+      click :=>
+        @groupPersonalWrapperView.setClass 'slide-down'
+        @groupContentWrapperView.setClass 'slide-down'
+        @groupLogoView.setClass 'top'
+
+        @groupLandingView.setClass 'group-fading'
+        @utils.wait 1100, => @groupLandingView.setClass 'group-hidden'
+
+    @groupLogoView.$().css
+      top: @groupLandingView.getHeight()-42
+
+    @utils.wait => @groupLogoView.setClass 'animate'
+
 
   addProfileViews:->
 
@@ -337,106 +368,12 @@ class MainView extends KDView
           #   @profileSplitView.setHeight @profileContentWrapperView.getHeight()-@profileTitleView.getHeight()-94
           # @profileSplitView._windowDidResize()
 
-      # if KD.whoami().getId() is user.getId()
-      #   @profileContentView.addSubView createBlogPostButton = new KDButtonView
-      #     title               : 'Post a new blog entry'
-      #     cssClass            : 'new-blogpost clean-gray'
-      #     callback            : =>
-      #       modal             = new KDModalView
-      #         cssClass        : 'new-blogpost-modal'
-      #         title           : 'Post new blog entry'
-      #         overlay         : yes
-      #         height          : "auto"
-      #         buttons         :
-      #           cancel        :
-      #             style       : 'modal-cancel'
-      #             callback    : -> modal.destroy()
-      #           post          :
-      #             style       : 'modal-clean-gray'
-      #             callback    : =>
-      #               KD.remote.api.JBlogPost.create
-      #                 title   : @titleInput.getValue()
-      #                 content : @markdownInput.getValue()
-      #               , =>
-      #                 modal.buttons.cancel.hideLoader()
-      #                 modal.destroy()
-      #       modal.addSubView formline = new KDView
-      #         cssClass : 'profile-modal formline'
-      #       formline.addSubView @titleInput = new KDInputView
-      #         cssClass : 'title-input'
-      #       formline.addSubView @markdownInput = new KDInputViewWithPreview
-      #         cssClass  : 'markdown-input'
-      #         type : 'textarea'
-      #         preview         :
-      #           showInitially : no
-
-
-    # KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
-    #   if user.skillTags
-    #     @profileTagGroupView = new SkillTagGroup
-    #       lazyDomId :  'skill-tags'
-    #     , user
-    #     @profileTagGroupView.on 'TagWasClicked', =>
-    #       @closeProfileView()
-    #     @profileTagGroupView.viewAppended()
-
-    #   # selector =
-    #   #   originId  : user.getId()
-    #   #   type      : 'CStatusActivity'
-    #   # log selector
-
-    #   # @getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, {}
-    #   # , (data)->
-    #   #   log 'teasers?'
-    #   #   log data
-
-    #   # @getSingleton("appManager").tell 'Activity', 'fetchCachedActivity', {}
-    #   # , (err, data)->
-    #   #   log 'cache?'
-    #   #   log data
-
-    #   # statusUpdatesWrapper.addSubView  statusUpdatesList = new KDListView
-    #   #   itemClass : StatusActivityItemView
-
-    #   @profileContentView.addSubView statusUpdatesWrapper = new KDView
-    #     cssClass : 'status-updates profile-wrapper'
-
-    #   @profileContentView.addSubView otherWrapper = new KDView
-    #     cssClass : 'other profile-wrapper'
-
-    #   @profileContentView.addSubView footerWrapper = new KDView
-    #     cssClass : 'footer profile-wrapper'
-
-    #   statusUpdatesWrapper.addSubView statusUpdatesListHeader = new KDView
-    #     cssClass : 'profile-list'
-    #     partial : 'I am a Status Update list'
-
-
-    #   otherWrapper.addSubView otherList = new KDView
-    #     cssClass : 'profile-list'
-    #     partial : 'I am a list of other things'
-
-    #   footerWrapper.addSubView footerList = new KDView
-    #     cssClass : 'profile-list'
-    #     partial : 'I am a list of footer'
-
-
-    #   @profileContentView.setClass 'ready'
-    #   @profileContentView.render()
-
     @profileLandingView.listenWindowResize()
 
     @profileLandingView._windowDidResize = =>
       @profileLandingView?.setHeight window.outerHeight
 
   decorateLoginState:(isLoggedIn = no)->
-
-    groupLandingView = new KDView
-      lazyDomId : 'group-landing'
-
-    groupLandingView.listenWindowResize()
-    groupLandingView._windowDidResize = =>
-      groupLandingView.setHeight window.innerHeight - 50
 
     if isLoggedIn
       if @userEnteredFromGroup()

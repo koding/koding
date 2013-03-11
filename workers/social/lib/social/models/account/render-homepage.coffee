@@ -24,9 +24,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   <body class="login" data-profile="#{nickname}">
     <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
 
-    <div class="profile-header">
-    </div>
-
     <div class="profile-personal-wrapper" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
