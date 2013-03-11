@@ -14,6 +14,9 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
+    @on 'Params', ({params, query})=>
+      @utils.defer => @getSingleton('groupsController').changeGroup params.name
+
   listen:->
     super
     unless @userRoute
@@ -54,11 +57,7 @@ class KodingRouter extends KDRouter
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group, ->
-      unless group?
-        KD.getSingleton("appManager").open app
-      else
-        # KD.getSingleton("appManager").tell app, 'setGroup', group
-        KD.getSingleton("appManager").open app
+      KD.getSingleton("appManager").open app
       KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
@@ -145,7 +144,6 @@ class KodingRouter extends KDRouter
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
-      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
@@ -198,7 +196,6 @@ class KodingRouter extends KDRouter
         {name} = routeInfo.params
         KD.remote.cacheable name, (err, group, nameObj)=>
           @openContent name, 'Groups', group, route
-
 
       # content
       '/:name?/Topics/:topicSlug'       : content.Topics
