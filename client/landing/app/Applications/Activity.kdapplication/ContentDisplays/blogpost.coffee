@@ -72,3 +72,37 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       </div>
     </div>
     """
+
+class StaticBlogPostListItem extends KDListItemView
+  constructor:(options,data)->
+    super options,data
+    # getBlogPosts = (blogPosts=[])->
+    #   posts = ""
+    #   for blog in blogPosts
+    @postDate = @getData().meta.createdAt
+    # postDate = require('dateformat')(blog.meta.createdAt,"dddd, mmmm dS, yyyy at h:MM:ss TT")
+    #     posts+="""
+    #       <div class="content-item">
+    #         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">#{postDate}</span></div>
+    #         <div class="has-markdown">
+    #           <span class="data">#{blog.html}</span>
+    #         </div>
+    #       </div>
+    #     """
+    #   posts
+
+    @setClass 'content-item'
+
+  viewAppended:->
+    log 'viewAppended'
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <div class="title"><span class="text">#{@getData().title}</span><span class="create-date">#{@postDate}</span></div>
+    <div class="has-markdown">
+      <span class="data">#{Encoder.htmlDecode @getData().html}</span>
+    </div>
+    """
