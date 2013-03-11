@@ -300,16 +300,20 @@ class MainView extends KDView
 
   addProfileViews:->
 
-
     @profileLandingView = new KDView
       lazyDomId : 'profile-landing'
-
-    @profileContentView = new KDView
-      lazyDomId : 'profile-content'
 
     @profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
+
+    @profileTitleView = new KDView
+      lazyDomId : 'profile-title'
+
+    @profileSplitView = new SplitViewWithOlderSiblings
+      lazyDomId : 'profile-splitview'
+      parent : @profileContentWrapperView
+
     @profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass : 'slideable'
@@ -329,8 +333,34 @@ class MainView extends KDView
 
     @utils.wait => @profileLogoView.setClass 'animate'
 
-    # KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
-      # account = user
+    KD.remote.cacheable @profileLandingView.$().attr('data-profile'), (err, user, name)=>
+      KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
+
+        log err if err
+        @profileContentView = new KDListView
+          lazyDomId : 'profile-content'
+          itemClass : StaticBlogPostListItem
+        , blogs
+
+        profileContentListController = new KDListViewController
+          view : @profileContentView
+        , blogs
+
+        unless err
+          @profileContentView.$('.content-item').remove()
+
+          @profileContentView.on 'ItemWasAdded', (instance, index)->
+            instance.viewAppended()
+
+          profileContentListController.instantiateListItems blogs
+
+          # @profileSplitView.listenWindowResize()
+          # @profileSplitView._windowDidResize= =>
+          #   log 'resizing'
+          #   log @profileSplitView.getHeight(), @profileContentWrapperView.getHeight(), @profileTitleView.getHeight()
+          #   @profileSplitView.setHeight @profileContentWrapperView.getHeight()-@profileTitleView.getHeight()-94
+          # @profileSplitView._windowDidResize()
+
       # if KD.whoami().getId() is user.getId()
       #   @profileContentView.addSubView createBlogPostButton = new KDButtonView
       #     title               : 'Post a new blog entry'

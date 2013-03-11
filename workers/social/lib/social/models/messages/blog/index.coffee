@@ -41,7 +41,7 @@ module.exports = class JBlogPost extends JPost
   @set
     slugifyFrom       : 'title'
     sharedMethods     :
-      static          : ['create','one','updateAllSlugs']
+      static          : ['create','one','updateAllSlugs','some']
       instance        : [
         'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'

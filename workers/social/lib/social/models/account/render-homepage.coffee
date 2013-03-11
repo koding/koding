@@ -56,26 +56,28 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
     </div>
 
     <div class="profile-content-wrapper" id="profile-content-wrapper">
-      <div class="profile-title">
-        <div class="profile-title-wrapper">
+      <div class="profile-title" id="profile-title">
+        <div class="profile-title-wrapper" id="profile-title-wrapper">
         <div class="profile-name">#{firstName} #{lastName}</div>
         <div class="profile-bio">#{about}</div>
         </div>
       </div>
-      <div class="profile-content-links">
-        <h4>Show me</h4>
-        <ul>
-          <li>Everything</li>
-          <li>Status Updates</li>
-          <li>Code Snippets</li>
-          <li>Discussions</li>
-          <li>Tutorials</li>
-          <li>Q&amp;A</li>
-          <li>Links</li>
-        </ul>
-      </div>
-      <div class="profile-content" id="profile-content">
-        #{getBlogPosts(lastBlogPosts)}
+      <div class="profile-splitview" id="profile-splitview">
+        <div class="profile-content-links">
+          <h4>Show me</h4>
+          <ul>
+            <li>Everything</li>
+            <li>Status Updates</li>
+            <li>Code Snippets</li>
+            <li>Discussions</li>
+            <li>Tutorials</li>
+            <li>Q&amp;A</li>
+            <li>Links</li>
+          </ul>
+        </div>
+        <div class="profile-content" id="profile-content">
+          #{getBlogPosts(lastBlogPosts)}
+        </div>
       </div>
     </div>
 
