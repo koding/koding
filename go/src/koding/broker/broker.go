@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -37,6 +36,7 @@ func main() {
 		r := make([]byte, 128/8)
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
+		session.Tag = socketId
 
 		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
@@ -139,7 +139,7 @@ func main() {
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
 					if !strings.HasPrefix(routingKey, "client.") {
-						log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
+						log.Warn("Invalid routing key.", message, socketId)
 						return
 					}
 					for {
@@ -156,7 +156,7 @@ func main() {
 					}
 
 				default:
-					log.Warn(fmt.Sprintf("Invalid action: %v", message))
+					log.Warn("Invalid action.", message, socketId)
 
 				}
 			}()
@@ -239,7 +239,7 @@ func main() {
 			for _, routeSession := range routeSessions {
 				if !routeSession.Send(jsonMessage) {
 					routeSession.Close()
-					log.Warn("Dropped session because of broker to client buffer overflow.")
+					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
 				}
 			}
 			routeMapMutex.Unlock()

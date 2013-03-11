@@ -33,6 +33,10 @@ processMonitor = (require 'processes-monitor').start
     callback : (name,msg,details)->
       console.log "[SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
+  die :
+    after: "non-overlapping, random, 3 digits prime-number of minutes"
+    middleware : (name,callback) -> koding.disconnect callback
+    middlewareTimeout : 15000
   # WE'RE NOT SURE IF THIS SOFT LIMIT WAS A GOOD IDEA OR NOT
   # limit_soft:
   #   memory: 200
