@@ -79,12 +79,6 @@ getNavigations = ->
     <ul id='navigation-link-container' class='admin'></ul>
   """
 
-
-getNavigation =(policy)->
-  """
-  <div class="group-login-buttons"></div>
-  """
-
 getStyles =->
   """
   <meta charset="utf-8" />

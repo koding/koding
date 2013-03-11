@@ -96,13 +96,15 @@ class MainController extends KDController
     else
       $('body').removeClass 'super'
 
-    if @isUserLoggedIn() then @createLoggedInState account
-    else @createLoggedOutState account
+    if @isUserLoggedIn()
+      @createLoggedInState account
+    else
+      @createLoggedOutState account
 
   createLoggedOutState:(account)->
 
     if connectedState.wasLoggedIn
-      @loginScreen.slideDown =>
+      @loginScreen.showView =>
         KD.getSingleton("appManager").quitAll =>
           @mainViewController.sidebarController.accountChanged account
           # KD.getSingleton("appManager").open "Home"
@@ -111,7 +113,7 @@ class MainController extends KDController
       @mainViewController.sidebarController.accountChanged account
       # KD.getSingleton("appManager").open "Home"
       @mainViewController.getView().decorateLoginState no
-      @loginScreen.slideDown()
+      @loginScreen.showView()
 
 
   createLoggedInState:(account)->
@@ -154,7 +156,7 @@ class MainController extends KDController
   #   console.log 'go to page'
   #   path = pageInfo.appPath
   #   if path is "Login"
-  #     @loginScreen.slideDown()
+  #     @loginScreen.showView()
   #   else
   #     KD.getSingleton("appManager").open path, yes
 
