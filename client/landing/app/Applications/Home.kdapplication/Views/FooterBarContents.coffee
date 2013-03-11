@@ -44,7 +44,7 @@ class MainPageFooterView extends KDView
       attributes  :
         href        : '#'
       click     : =>
-        mainController.loginScreen.slideDown =>
+        mainController.loginScreen.showView =>
           mainController.loginScreen.animateToForm "login"
 
     @buttonHolder.addSubView new KDView
@@ -53,6 +53,6 @@ class MainPageFooterView extends KDView
       attributes  :
         href        : '#'
       click     : =>
-        mainController.loginScreen.slideDown =>
+        mainController.loginScreen.showView =>
           mainController.loginScreen.animateToForm "register"
 

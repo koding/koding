@@ -58,7 +58,7 @@ class MainView extends KDView
     @contentPanel.on "webkitTransitionEnd", (e) =>
       @emit "mainViewTransitionEnd", e
 
-  addHeader:()->
+  addHeader:->
 
     @addSubView @header = new KDView
       tagName : "header"

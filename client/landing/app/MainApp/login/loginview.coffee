@@ -339,17 +339,17 @@ class LoginView extends KDScrollView
       @headBanner.hide()
       @getSingleton('router').clear '/Register'
       $('body').removeClass 'recovery'
-      @slideDown =>
+      @showView =>
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
   prepare:(callback)->
     unless KD.config.groupEntryPoint?
-      @slideUp callback
+      @hideView callback
     else
       callback()
 
-  slideUp:(callback)->
+  hideView:(callback)->
     {winWidth,winHeight} = @getSingleton("windowController")
     @$().css marginTop : -winHeight
     @utils.wait 601,()=>
@@ -359,7 +359,7 @@ class LoginView extends KDScrollView
       @hide()
       callback?()
 
-  slideDown:(callback)->
+  showView:(callback)->
 
     $('body').addClass 'login'
     @show()
