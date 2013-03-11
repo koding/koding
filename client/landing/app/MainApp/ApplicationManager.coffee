@@ -148,6 +148,7 @@ class ApplicationManager extends KDObject
 
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+      @setLastActiveIndex appInstance
       callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
@@ -161,6 +162,7 @@ class ApplicationManager extends KDObject
 
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+      @setLastActiveIndex appInstance
       callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
@@ -170,37 +172,50 @@ class ApplicationManager extends KDObject
     @unregister appInstance
     callback()
 
-  get:(name)-> @appControllers[name]?.first or null
+  get:(name)->
+
+    if apps = @appControllers[name]
+      apps.instances[apps.lastActiveIndex] or apps.instances.first
+    else
+      null
 
   getByView: (view)->
 
     appInstance = null
     for name, apps of @appControllers
-      apps.forEach (appController)=>
+      for appController in apps.instances
         if view.getId() is appController.getView?()?.getId()
           appInstance = appController
+          break
+      break if appInstance
 
     return appInstance
 
   getFrontApp:-> @frontApp
 
-  setFrontApp:(@frontApp)->
+  setFrontApp:(appInstance)->
+
+    @setLastActiveIndex appInstance
+    @frontApp = appInstance
 
   register:(appInstance)->
 
     name = appInstance.getOption "name"
-    @appControllers[name] ?= []
-    @appControllers[name].push appInstance
+    @appControllers[name] ?=
+      instances       : []
+      lastActiveIndex : null
+
+    @appControllers[name].instances.push appInstance
     @setListeners appInstance
 
   unregister:(appInstance)->
 
     name  = appInstance.getOption "name"
-    index = @appControllers[name].indexOf appInstance
+    index = @appControllers[name].instances.indexOf appInstance
 
     if index >= 0
-      @appControllers[name].splice index, 1
-      if @appControllers[name].length is 0
+      @appControllers[name].instances.splice index, 1
+      if @appControllers[name].instances.length is 0
         delete @appControllers[name]
       appInstance.destroy()
 
@@ -214,6 +229,14 @@ class ApplicationManager extends KDObject
     appView?.once "KDObjectWillBeDestroyed", =>
       @unregister appInstance
 
+  setLastActiveIndex:(appInstance)->
+
+    return unless appInstance
+
+    if optionSet = @appControllers[appInstance.getOption "name"]
+      index = optionSet.instances.indexOf appInstance
+      if index is -1 then optionSet.lastActiveIndex = null
+      else optionSet.lastActiveIndex = index
 
 
 
