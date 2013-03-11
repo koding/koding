@@ -166,15 +166,12 @@ module.exports = class JAccount extends jraphical.Module
   @renderHomepage: require './render-homepage'
 
   fetchHomepageView:(callback)->
-    console.log 'rendering hp'
-    console.log 'acc is',@
     callback null, JAccount.renderHomepage {
-      profile   : @profile
-      account   : this
-      counts    : @counts
-      skillTags : @skillTags
+      account: this
+      @profile
+      @counts
+      @skillTags
     }
-
 
   fetchGroups: secure (client, callback)->
     JGroup        = require '../group'
