@@ -214,7 +214,6 @@ class MainView extends KDView
   switchProfileState:(isLoggedIn)->
     $('body').addClass "login"
     @addProfileViews()
-    # @getSingleton('router').handleRoute "/Activity"
 
   switchGroupState:(isLoggedIn)->
 
@@ -367,36 +366,29 @@ class MainView extends KDView
 
   decorateLoginState:(isLoggedIn = no)->
 
-    if isLoggedIn
-      if @userEnteredFromGroup()
-        @switchGroupState yes
-      else if @userEnteredFromProfile()
-        @switchProfileState yes
-      else
-        $('body').addClass "loggedIn"
-        @mainTabView.showHandleContainer()
+    if @userEnteredFromGroup()
+      @switchGroupState isLoggedIn
+    else if @userEnteredFromProfile()
+      @switchProfileState isLoggedIn
 
+    if isLoggedIn
+      $('body').addClass "loggedIn"
       logoutLinkView = new LandingPageNavLink
         title : 'Logout'
 
+      # Workarounf for Develop Tab
+      if "Develop" isnt @getSingleton("router")?.getCurrentPath()
+        @contentPanel.setClass "social"
+
       @mainTabView.showHandleContainer()
-      @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      # @buttonHolder.hide()
 
     else
-      if @userEnteredFromGroup()
-        @switchGroupState no
-      else if @userEnteredFromProfile()
-        @switchProfileState no
-      else
-        $('body').removeClass "loggedIn"
-
+      $('body').removeClass "loggedIn"
       loginLinkView = new LandingPageNavLink
         title : 'Login'
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      # @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()
