@@ -36,15 +36,15 @@ class ActivityStatusUpdateWidget extends KDFormView
       name          : 'body'
       style         : 'input-with-extras'
       autogrow      : yes
-      preserveValue :
-        name        : 'status-widget'
-        saveEvents  : ['keyup','blur']
-        # displayEvents: ['focus']
-        clearEvents : 'ValidationPassed'
-        setValue    : (value)=>
-          @largeInput.setValue value
-        getValue    : =>
-          @largeInput.getValue()
+      # preserveValue :
+      #   name        : 'status-widget'
+      #   saveEvents  : ['keyup','blur']
+      #   # displayEvents: ['focus']
+      #   clearEvents : 'ValidationPassed'
+      #   setValue    : (value)=>
+      #     @largeInput.setValue value
+      #   getValue    : =>
+      #     @largeInput.getValue()
       validate      :
         rules       :
           required  : yes
