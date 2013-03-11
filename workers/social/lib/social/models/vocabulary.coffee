@@ -28,9 +28,10 @@ module.exports = class JVocabulary extends Module
         type        : String
         validate    : require('./name').validateName
       collectionName:
-        get         : ->
+        type        : String
+        default     : ->
           {name} = require './tag'
-          "#{Inflector.pluralize name}_#{@group}"
+          "#{Inflector.pluralize name}__#{@group.replace /-/g, '_'}"
     relationships   :
       tag           :
         targetType  : 'JTag'

@@ -77,7 +77,7 @@ class GroupsAppController extends AppController
 
   resetUserArea:(account)->
     @setUserArea {
-      group: 'koding', user: account.profile.nickname
+      group: @currentGroup ? 'koding', user: account.profile.nickname
     }
 
   createFeed:(view)->
