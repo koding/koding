@@ -32,8 +32,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
 
       </div>
       <div class="profile-buttons">
-                <div class="profile-nickname">@#{nickname}</div>
-
+        <div class="profile-nickname">@#{nickname}</div>
       </div>
       <div class="profile-links">
         <ul class='main'>
@@ -42,11 +41,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
           <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
         </ul>
         <hr/>
-        <ul class='admin'>
-          <li class="login"><a href="/Login"><span class="icon"></span>Login</a></li>
-          <li class="register"><a href="/Register"><span class="icon"></span>Register</a></li>
-          <li class="share"><a href="/"><span class="icon"></span>Share</a></li>
-        </ul>
+
+        #{getNavigations()}
 
       </div>
       <div class="profile-koding-logo">
@@ -127,7 +123,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
           </div>
         </div>
 
-
       </div>
     </div>
     <div id='profile-content' class='profile-content'></div> -->
@@ -151,6 +146,11 @@ getBlogPosts = (blogPosts=[])->
       </div>
     """
   posts
+
+getNavigations = ->
+  """
+    <ul id='navigation-link-container' class='admin'></ul>
+  """
 
 getTags = (tags)->
   for value in tags
@@ -207,7 +207,6 @@ getScripts =->
     })();
   </script>
   """
-
 
 getDefaultuserContents =->
   """

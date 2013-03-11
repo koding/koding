@@ -15,12 +15,12 @@
 .profile-landing
   height                100%
   width                 100%
-  z-index               10000
+  z-index               99
   abs()
   bg image,             url("../images/koding-new-bg.png");
   bg repeat,            repeat-x
-  opacity               1
-  vendor transition,    opacity 1s linear\, height 1s linear \, margin-top 1s linear
+  vendor transition,    opacity 1s ease
+
   shadow 0 0 50px 20px rgba(0,0,0,0.4)
   &.profile-leaving
     rel()
@@ -31,6 +31,7 @@
   &.profile-hidden
     z-index             1
     display             none
+
 .profile-header
   width                 100%
   height                51px
