@@ -4,11 +4,13 @@ module.exports = class Groupable
 
   helpers = require 'bongo/lib/model/find-via-collection'
 
+  {Inflector} = require 'bongo'
+
   getCollection =(konstructor, client)->
     {name} = konstructor
     db = konstructor.getClient()
     {group} = client.context
-    return db.collection "#{name}__#{group.replace /-/g, '_'}"
+    return db.collection "#{Inflector.pluralize name}__#{group.replace /-/g, '_'}"
 
   @drop = permit 'drop collection'
     success:(client, callback)->
@@ -43,7 +45,7 @@ module.exports = class Groupable
   @some = permit 'query collection'
     success:(client, selector, options, callback)->
       collection = getCollection this, client
-      helpers.some.call this, collection, selector, callback
+      helpers.some.call this, collection, selector, options, callback
       return this
 
   @someData = permit 'query collection'
