@@ -892,9 +892,9 @@ class KDView extends KDObject
       @on preserveEvent, (event)=>
         @clearPreserveValue()
 
-    for displayEvent in preserveValue.displayEvents
+    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
       @on displayEvent, (event)=>
-        @applyPreserveValue storedValue if storedValue
+        @applyPreserveValue storedvalue if storedValue
 
     if storedValue
       @utils.defer => @applyPreserveValue storedValue
