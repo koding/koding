@@ -32,7 +32,7 @@ func main() {
 	routeMap := make(map[string]([]*sockjs.Session))
 	var routeMapMutex sync.Mutex
 
-	service := sockjs.NewService("http://localhost/sockjs.js", 10*time.Minute, func(session *sockjs.Session) {
+	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
 
 		r := make([]byte, 128/8)

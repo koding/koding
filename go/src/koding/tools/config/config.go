@@ -14,6 +14,9 @@ type Config struct {
 		HomePrefix string
 		UseLVE     bool
 	}
+	Client struct {
+		StaticFilesBaseUrl string
+	}
 	Mongo string
 	Mq    struct {
 		Host          string
