@@ -14,7 +14,7 @@ class MembersAppController extends AppController
 
     super options, data
 
-  setGroup:-> console.trace()
+#  setGroup:-> console.trace()
 
   createFeed:(view)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
@@ -32,12 +32,21 @@ class MembersAppController extends AppController
           title             : "All Members <span class='member-numbers-all'></span>"
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
+            {JAccount} = KD.remote.api
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              KD.remote.api.JAccount.byRelevance @_searchValue, options, callback
+              JAccount.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JAccount.someWithRelationship selector, options, callback
-              #{currentDelegate} = @getSingleton('mainController').getVisitor()
+              group = KD.getSingleton('groupsController').getCurrentGroup()
+              if group?
+                options = {
+                  options
+                  targetOptions: {selector}
+                }
+                selector = {}
+                group.fetchMembers selector, options, callback
+              else
+                JAccount.someWithRelationship selector, options, callback
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
@@ -193,8 +202,10 @@ class MembersAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   setCurrentViewNumber:(type)->
-    KD.whoami().count? type, (err, count)=>
-      @getView().$(".activityhead span.member-numbers-#{type}").html count
+    group = KD.getSingleton('groupsController').getCurrentGroup()
+    return unless group
+    count = group.counts.members
+    @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -217,17 +228,19 @@ class MembersAppController extends AppController
     selector = {}
     KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
-  fetchSomeMembers:(options = {}, callback)->
-
-    options.limit or= 6
-    options.skip  or= 0
-    options.sort  or= "meta.modifiedAt" : -1
-    selector        = options.selector or {}
-
-    delete options.selector if options.selector
-
-    KD.remote.api.JAccount.byRelevance selector, options, callback
-
+#  fetchSomeMembers:(options = {}, callback)->
+#
+#    options.limit or= 6
+#    options.skip  or= 0
+#    options.sort  or= "meta.modifiedAt" : -1
+#    selector        = options.selector or {}
+#
+#    console.log {selector}
+#
+#    delete options.selector if options.selector
+#
+#    KD.remote.api.JAccount.byRelevance selector, options, callback
+#
 
 class MembersListViewController extends KDListViewController
   _windowDidResize:()->

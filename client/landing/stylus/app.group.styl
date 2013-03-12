@@ -10,10 +10,29 @@
 
 */
 
-.group-landing
+.own-group
+  background-color        chartreuse !important
+
+#group-landing
   height                  100%
   overflow                auto
   vendor transition,      height .2s linear
+
+.group-loader
+  width                   30px
+  height                  30px
+  size                    30px, 30px
+  margin                  auto
+  bg                      position,-240px -40px
+  sprite()
+
+#group-loader-container
+  top                     40px
+  width                   100%
+  abs()
+
+.landing-button
+  font-size               17px !important
 
 .group-landing-content
   borderBox()
@@ -24,9 +43,10 @@
   width                   90%
   border                  1px solid rgba(255,255,255,0.16)
   rounded                 8px
-  margin                  60px auto 30px auto
+  margin                  100px auto 30px auto
   shadow                  0 0 150px rgba(0,0,0,0.32)
   bg color,               rgba(255,255,255,0.05)
+  vendor transition,      height .2s linear
 
   .group-wrapper
     // max-height            650px
@@ -163,22 +183,35 @@
         max-width         100%
 
 .group-navigation
-  width                   100%
-  height                  100px
+  width                   90%
+  max-width               980px
   text-align              center
-  .bigLink
-    display               inline-block
-    text-shadow           0 -1px 0 rgba(0,0,0,0.8)
-    font-size             20px
-    line-height           40px
-    margin-right          40px
-    color                 #ffb500
-    noTextDeco()
-    vertical-align        baseline
-    bg color,             transparent
-    &:hover
-      color               white
-    cursor                pointer
+  margin                  auto
+  margin-top              8px
+
+  .group-login-buttons
+    // border                1px solid rgba(255,255,255,0.1)
+    // border-radius         7px
+    padding               3px
+    opacity               0
+    // background-color      rgba(255,255,255,0.1)
+    vendor transition,    opacity .3s linear
+
+    &.ready
+      opacity             1.0
+      height              25px
+      display             block
+
+    .bigLink
+      text-shadow           0 -1px 0 rgba(0,0,0,0.8)
+      font-size             20px
+      color                 #ffb500
+      noTextDeco()
+      vertical-align        baseline
+      bg color,             transparent
+      &:hover
+        color               white
+      cursor                pointer
 
 #group-content
   height            100%

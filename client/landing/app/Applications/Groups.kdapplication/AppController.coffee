@@ -34,6 +34,52 @@ class GroupsAppController extends AppController
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
+    @utils.defer @bound 'init'
+
+  init:->
+    mainController = @getSingleton 'mainController'
+    mainController.on 'AccountChanged', @bound 'resetUserArea'
+    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
+      if pageInfo.path
+        {group} = @userArea
+        route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
+        KD.getSingleton('router').handleRoute route
+    @groups = {}
+    @currentGroupData = new GroupData
+
+  getCurrentGroupData:-> @currentGroupData
+
+  getCurrentGroup:-> @currentGroupData.data
+
+  changeGroup:(groupName, callback=->)->
+    return callback()  if groupName is @currentGroup
+    @once 'GroupChanged', callback
+    groupName ?= "koding"
+    unless @currentGroup is groupName
+      @setGroup groupName
+      KD.remote.cacheable groupName, (err, group)=>
+        @currentGroupData.setGroup group
+        @emit 'GroupChanged', groupName, group
+
+  getUserArea:-> @userArea
+
+  setUserArea:(userArea)->
+    @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
+    @userArea = userArea
+
+  getGroupSlug:-> @currentGroup
+
+  setGroup:(groupName)->
+    @currentGroup = groupName
+    @setUserArea {
+      group: groupName, user: KD.whoami().profile.nickname
+    }
+
+  resetUserArea:(account)->
+    @setUserArea {
+      group: @currentGroup ? 'koding', user: account.profile.nickname
+    }
+
   createFeed:(view)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
@@ -60,9 +106,8 @@ class GroupsAppController extends AppController
               if err then error err
               else
                 {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, ({joinButton,enterButton})->
-                  joinButton.setState 'Leave'
-                  joinButton.redecorateState()
+                everything.forEachItemByIndex groups, (view)->
+                  view.setClass 'own-group'
         following           :
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
@@ -415,7 +460,7 @@ class GroupsAppController extends AppController
       height          : "auto"
       overlay         : yes
       buttons         : 
-        'cancel'      :
+        cancel        :
           style       : 'modal-cancel'
           callback    : -> modal.destroy()
     modal.buttonHolder.addSubView new CustomLinkView
@@ -521,6 +566,19 @@ class GroupsAppController extends AppController
 
     return pane
 
+  prepareVocabularyTab:->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
+      (pane, vocabView)->
+        
+        group.fetchVocabulary (err, vocab)-> vocabView.setVocabulary vocab
+
+        vocabView.on 'VocabularyCreateRequested', ->
+          {JVocabulary} = KD.remote.api
+          JVocabulary.create {}, (err, vocab)->
+            vocabView.setVocabulary vocab
+
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
@@ -534,6 +592,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
+    @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()
@@ -543,4 +602,3 @@ class GroupsAppController extends AppController
     # console.log {contentDisplay}
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
-

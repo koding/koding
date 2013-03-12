@@ -180,7 +180,11 @@ class ApplicationManager extends KDObject
     @unregister appInstance
     callback()
 
-  get:(name)->
+  quitAll:->
+    for own name, apps of @appControllers
+      @quit app  for app in apps
+
+  get:(name)-> @appControllers[name]?.first or null
 
     if apps = @appControllers[name]
       apps.instances[apps.lastActiveIndex] or apps.instances.first

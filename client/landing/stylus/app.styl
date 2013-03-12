@@ -107,6 +107,10 @@ body
 //   h2.sub-header
 //     display       none
 
+.pulsing
+  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  vendor            animation, pulse 1.5s ease-in-out 100
+
 .main-loading
   vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
   ul
@@ -487,6 +491,7 @@ span.main-nav-icon
   &.demos
     bg(position,0 -100px)
   &.admin-panel
+  &.admin-dashboard
     bg(position,-80px -300px)
   &.invite-friends
     margin        1px 20px 1px 3px
