@@ -68,61 +68,17 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
             <li>Links</li>
           </ul>
         </div>
-        <div class="profile-content" id="profile-content">
-          #{getBlogPosts(lastBlogPosts)}
+        <div class="profile-content-list" id=class="profile-content-list">
+          <div class="profile-content" id="profile-content">
+            #{getBlogPosts(lastBlogPosts)}
+          <div id="profile-show-more-wrapper" class="profile-show-more-wrapper">
+            <button id="profile-show-more-button" class="profile-show-more-button">Show more
+            </button>
+          </div>
+          </div>
         </div>
       </div>
     </div>
-
-
-    <!-- <div id="profile-landing-content" class="profile-landing-content">
-      <div class="profile-wrapper">
-
-
-        <span class="avatar">
-          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
-        </span>
-
-        <div class="content-title">
-          <a class="betatag">beta</a>
-          #{firstName} #{lastName} <span class='nickname'>@#{nickname}</span>
-        </div>
-
-        <div class="content-about">
-          #{about}
-        </div>
-
-        <div class="content-meta">
-          <div class="followers"><span class="icon"></span>
-            <span class="count">#{counts?.followers or '0'}</span>
-            <span class="text"> Followers</span>
-          </div>
-
-          <div class="following"><span class="icon"></span>
-            <span class="count">#{counts?.following or '0'}</span>
-            <span class="text"> Following</span>
-          </div>
-
-          <div class="likes"><span class="icon"></span>
-            <span class="count">#{counts?.likes or '0'}</span>
-            <span class="text"> Likes</span>
-          </div>
-          <div class="topics"><span class="icon"></span>
-            <span class="count">#{counts?.topics or '0'}</span>
-            <span class="text"> Topics</span>
-          </div>
-        </div>
-
-        <div class="content-tags">
-          <div class='tag-label'>Skills</div>
-          <div class="tag-group" id="skill-tags">
-          #{ getTags(sortedTags) }
-          </div>
-        </div>
-
-      </div>
-    </div>
-    <div id='profile-content' class='profile-content'></div> -->
     #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
     #{getScripts()}
     </div>
