@@ -1,13 +1,14 @@
 module.exports = class Groupable
 
-  {permit} = require '../models/group/permissionset.coffee'
+  @inCollectionBySource = require './in-collection-by-source'
+
+  {permit} = require '../../models/group/permissionset.coffee'
 
   helpers = require 'bongo/lib/model/find-via-collection'
 
   {Inflector} = require 'bongo'
 
   getCollection =(konstructor, client)->
-    console.log {konstructor, client}
     {name} = konstructor
     db = konstructor.getClient()
     {group} = client.context
@@ -47,6 +48,7 @@ module.exports = class Groupable
   @some$ = permit 'query collection'
     success:(client, selector, options, callback)->
       collection = getCollection this, client
+      console.log {collection}
       helpers.some.call this, collection, selector, options, callback
       return this
 

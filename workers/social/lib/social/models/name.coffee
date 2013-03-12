@@ -17,6 +17,7 @@ module.exports = class JName extends Model
       name            : String
       constructorName : String
       usedAsPath      : String
+      shortName       : String
 
   @release =(name, callback=->)->
     @remove {name}, callback
@@ -33,20 +34,20 @@ module.exports = class JName extends Model
         {konstructor: require('./group'), usedAsPath: 'slug'}
       ], callback
 
-  @claim =(name, konstructor, usedAsPath, callback)->
+  @claim =(fullName, shortName, konstructor, usedAsPath, callback)->
     constructorName =\
       if 'string' is typeof konstructor then konstructor
-      else konstructor.name
-    nameDoc = new @ {name, constructorName, usedAsPath}
+      else konstructor.fullName
+    nameDoc = new this {name:fullName, shortName, constructorName, usedAsPath}
     nameDoc.save (err)->
       if err?.code is 11000
-        err = new KodingError "The name #{name} is not available."
+        err = new KodingError "The fullName #{fullName} is not available."
         err.code = 11000
         callback err
       else if err
         callback err
       else
-        callback null, name
+        callback null, fullName
 
   @claimAll = (sources, callback=->)->
     i = 0

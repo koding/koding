@@ -362,8 +362,6 @@ module.exports = class JPost extends jraphical.Message
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
   fetchTeaser:(callback)->
-    JTag = require '../tag'
-    console.log JTag
     @beginGraphlet()
       .edges
         query         :
@@ -424,8 +422,7 @@ module.exports = class JPost extends jraphical.Message
       'data.flags.isLowQuality': $ne: yes
     },
       skip: skipCount
-      sort:
-        timestamp: 1
+      sort: { timestamp: 1 }
     , (err, comments)->
       if err
         callback err

@@ -37,7 +37,7 @@ module.exports = class Slugifiable
           nextCount = getNextCount names
           nextName = "#{slug}#{nextCount}"
           nextNameFull = template.replace '#{slug}', nextName
-          JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
+          JName.claim nextNameFull, nextName, konstructor, 'slug', (err, nameDoc)->
             if err?.code is 11000
               console.log err
               # we lost the race; try again
@@ -78,7 +78,6 @@ module.exports = class Slugifiable
     konstructors = [konstructors]  unless Array.isArray konstructors
     konstructors.forEach (konstructor)->
       counter = 0
-      console.log konstructor.name
       konstructor.updateAllSlugs {batchSize}, (err,slug)->
         console.log slug
         if ++counter is batchSize
