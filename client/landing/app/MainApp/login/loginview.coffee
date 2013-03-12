@@ -286,9 +286,14 @@ class LoginView extends KDScrollView
           duration: 1000
         @loginForm.resetDecoration()
       else
+
+        $('#group-landing').css 'opacity', 0
+        @$().css 'height', 0
+
         $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
         @getSingleton('router').handleRoute null, replaceState: yes
+
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -398,6 +403,8 @@ class LoginView extends KDScrollView
           @headBanner.updatePartial @headBannerMsg
           @headBanner.show()
 
-    @unsetClass "register recover login reset home lr"
+    @unsetClass "register recover login reset home lr landed"
     @emit "LoginViewAnimated", name
     @setClass name
+
+    # if name and name isnt 'home' then @setClass 'landed'
