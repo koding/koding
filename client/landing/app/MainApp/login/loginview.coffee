@@ -287,7 +287,9 @@ class LoginView extends KDScrollView
         @loginForm.resetDecoration()
       else
 
+        # I will change all these ~ WIP
         $('#group-landing').css 'opacity', 0
+        $('#group-landing').css 'height', 0
         @$().css 'height', 0
 
         $.cookie 'clientId', replacementToken  if replacementToken
