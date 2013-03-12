@@ -23,6 +23,7 @@ module.exports = class Builder
     exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes."b[2]"="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
 
     @options              = builderOptions.config
+    @configScriptTag      = builderOptions.configScriptTag
     @commandLineOptions   = builderOptions.commandLine
 
     @watcher = new Watcher @options.includesFile
@@ -119,6 +120,7 @@ module.exports = class Builder
       index = data
       index = index.replace "js/kd.js","js/kd.#{@options.version}.js?"+Date.now()
       index = index.replace "css/kd.css","css/kd.#{@options.version}.css?"+Date.now()
+      index = index.replace '<!--KONFIG-->', @configScriptTag
       if @options.useStaticFileServer is no
         st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
         index = index.replace ///#{st}///g,""

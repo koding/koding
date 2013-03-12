@@ -84,9 +84,7 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        if @groupsEnabled()
-          @closeGroupView()
-          return
+        return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()
@@ -246,88 +244,85 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
-  groupsEnabled:->
-    return $('.group-landing').length > 0
+  userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
-  switchGroupState:(state)->
+  switchGroupState:(isLoggedIn)->
 
-    if $('.group-loader').length > 0
-      $('.group-loader')[0].remove?()
-
+    $('.group-loader').removeClass 'pulsing'
     $('body').addClass "login"
-    console.log "LOGGED IN WITH GROUPS"
 
-    groupLink = new KDCustomHTMLView
-      partial: "Login"
-      cssClass: "bigLink"
+    {groupEntryPoint} = KD.config
 
-    if state
-      KD.getSingleton('router').handleRoute "/#{@getSingleton("router")?.getCurrentPath()+'/Activity'}", state:{}
-      groupLink.click = =>
-        @closeGroupView()
+    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
 
-      groupLink.updatePartial 'Go to Group'
+    loginLink.on 'LoginLinkRedirect', ({section})=>
 
+      route =  "/#{groupEntryPoint}/#{section}"
+      # KD.getSingleton('router').handleRoute route
+      mc = @getSingleton 'mainController'
+
+      switch section
+        when 'Join', 'Login'
+          mc.loginScreen.animateToForm 'login'
+          mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
+          $('#group-landing').css 'height', 0
+          # $('#group-landing').css 'opacity', 0
+
+        when 'Activity'
+          mc.loginScreen.hide()
+          KD.getSingleton('router').handleRoute route
+          $('#group-landing').css 'height', 0
+
+    if isLoggedIn and groupEntryPoint?
+      KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
+        if err then console.warn err
+        else if roles.length
+          loginLink.setState { isMember: yes, roles }
+        else
+          {JMembershipPolicy} = KD.remote.api
+          JMembershipPolicy.byGroupSlug groupEntryPoint,
+            (err, policy)->
+              if err then console.warn err
+              else if policy?
+                loginLink.setState {
+                  isMember        : no
+                  approvalEnabled : policy.approvalEnabled
+                }
+              else
+                loginLink.setState {
+                  isMember        : no
+                  isPublic        : yes
+                }
     else
-      groupLink.click = =>
-        @groupLandingView._windowDidResize = =>
+      @utils.defer -> loginLink.setState { isLoggedIn: no }
 
-        @getSingleton('mainController').loginScreen.show()
-        @getSingleton('mainController').loginScreen.animateToForm 'login'
-        $('.group-landing').css 'height', 0
-
-    groupLink.appendToSelector '.group-login-buttons'
-
-    $('.group-landing').css 'height', window.innerHeight - 50
+    loginLink.appendToSelector '.group-login-buttons'
 
   closeGroupView:->
     @mainTabView.showHandleContainer()
-    @groupLandingView._windowDidResize = noop
     $('.group-landing').css 'height', 0
 
   decorateLoginState:(isLoggedIn = no)->
-    if @groupsEnabled()
 
-      @groupLandingView = new KDView
-        lazyDomId : 'group-landing'
-
-      groupLandingContentView = new KDView
-        lazyDomId : 'group-landing-content'
-
-      groupLandingGroupContentView = new KDView
-        lazyDomId : 'group-content-wrapper'
-
-      @groupLandingView.listenWindowResize()
-
-      @groupLandingView._windowDidResize = =>
-        @groupLandingView?.setHeight window.innerHeight - 50
-        groupLandingContentView?.$().css
-          maxHeight : window.innerHeight - (200)
-        groupLandingGroupContentView?.$().css
-          height : groupLandingContentView.getHeight() - (256)
+    groupLandingView = new KDView
+      lazyDomId : 'group-landing'
 
     if isLoggedIn
+      if @userEnteredFromGroup() then @switchGroupState yes
 
-      if @groupsEnabled()
-        @switchGroupState yes
-        @mainTabView.hideHandleContainer()
+      $('body').addClass "loggedIn"
 
-      else
-        $('body').addClass "loggedIn"
-        @mainTabView.showHandleContainer()
-
+      @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      # @logo.show()
-      # @buttonHolder.hide()
+      @buttonHolder.hide()
 
     else
-      if @groupsEnabled() then @switchGroupState no
+      if @userEnteredFromGroup() then @switchGroupState no
       else $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      # @buttonHolder.show()
-      # @logo.hide()
+      @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()

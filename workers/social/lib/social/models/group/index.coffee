@@ -48,7 +48,7 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups', 'fetchMyMemberships'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -57,7 +57,7 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingRequests'
+        'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
       ]
     schema          :
       title         :
@@ -115,6 +115,31 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @__importKodingMembers = secure (client, callback)->
+    JAccount = require '../account'
+    {delegate} = client.connection
+    count = 0
+    if delegate.can 'migrate-koding-users'
+      @one slug:'koding', (err, koding)->
+        if err then callback err
+        else
+          JAccount.each {}, {}, (err, account)->
+            if err
+              callback err
+            else unless account?
+              callback null
+            else
+              isMember =
+                sourceId  : koding.getId()
+                targetId  : account.getId()
+                as        : 'member'
+              Relationship.count isMember, (err, count)->
+                if err then callback err
+                else if count is 0
+                  process.nextTick ->
+                    koding.approveMember account, ->
+                      console.log "added member: #{account.profile.nickname}"
 
   @renderHomepage: require './render-homepage'
 
@@ -180,12 +205,6 @@ module.exports = class JGroup extends Module
               else
                 console.log 'roles are added'
                 queue.next()
-# TODO: we used to do the below, but on second thought, it's not a very good idea:
-#          -> delegate.addGroup group, 'admin', (err)->
-#              if err then callback err
-#              else
-#                console.log 'group is added'
-#                queue.next()
         ]
         if 'private' is group.privacy
           queue.push -> group.createMembershipPolicy -> queue.next()
@@ -267,8 +286,8 @@ module.exports = class JGroup extends Module
   fetchMyRoles: secure (client, callback)->
     {delegate} = client.connection
     Relationship.someData {
-      sourceId: delegate.getId()
-      targetId: @getId()
+      targetId: delegate.getId()
+      sourceId: @getId()
     }, {as:1}, (err, cursor)->
       if err then callback err
       else
@@ -295,6 +314,15 @@ module.exports = class JGroup extends Module
   fetchMembers$: permit 'list members'
     success:(client, rest...)->
       @fetchMembers rest...
+
+  # fetchMyFollowees: permit 'list members'
+  #   success:(client, options, callback)->
+  #     [callback, options] = [options, callback]  unless callback
+  #     options ?= 
+
+
+  # fetchMyFollowees: permit 'list members'
+  #   success:(client, options, callback)->
 
   fetchReadme$: permit 'view readme'
     success:(client, rest...)-> @fetchReadme rest...
@@ -578,3 +606,6 @@ module.exports = class JGroup extends Module
   each:(selector, rest...)->
     selector.visibility = 'visible'
     Module::each.call this, selector, rest...
+
+  fetchVocabulary$: permit 'administer vocabularies'
+    success:(client, rest...)-> @fetchVocabulary rest...

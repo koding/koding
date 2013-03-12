@@ -330,16 +330,16 @@ clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   {libraries,kdjs}      = code
   {minify, pistachios}  = options
 
-
-  kdjs =  "var KD = {};\n" +
-          "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
-          kdjs
-
   if commandLineOptions.pistachios or pistachios
     console.log "[PISTACHIO] compiler started."
     kdjs = compilePistachios kdjs
     console.log "[PISTACHIO] compiler finished."
-
+  else # if options.configFile is "dev"
+    # we don't want pistachio compilation on dev mode
+    console.log "[CLIENT FILE MIDDLEWARE] Coffee-script is appended to kd.js. U should only see this on dev mode." 
+    coffeescripT = fs.readFileSync "./client/libs/coffee-script.1.6.1.js",'utf8'
+    libraries = coffeescripT+";"+libraries
+    # console.log coffeescripT,libraries
   js = "#{libraries}#{kdjs}"
 
   if minify
@@ -357,8 +357,9 @@ buildClient =(options, callback=->)->
   config = require('koding-config-manager').load("main.#{options.configFile}")
 
   builderOptions =
-    config      : config.client
-    commandLine : options
+    config          : config.client
+    configScriptTag : config.getConfigScriptTag()
+    commandLine     : options
 
   builder = new Builder builderOptions,clientFileMiddleware,""
 

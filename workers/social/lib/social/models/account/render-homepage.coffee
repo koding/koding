@@ -1,66 +1,60 @@
 
-module.exports = ({slug, title, content, body, avatar, counts, policy})->
-  content ?= getDefaultGroupContents()
+module.exports = ({profile,skillTags,counts})->
+  content ?= getDefaultuserContents()
+  {nickname, firstName, lastName, hash, about} = profile
   """
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{title}</title>
+    <title>#{nickname}</title>
     #{getStyles()}
   </head>
-  <body class="login" data-group="#{slug}">
-    <div id="group-landing" class='group-landing'>
-    <div id="group-loader-container"></div>
-    <div id="group-landing-content" class="group-landing-content">
-      <div class="group-wrapper">
+  <body class="login" data-profile="#{nickname}">
+    <div id="profile-landing" class='profile-landing'>
+    <div id="profile-landing-content" class="profile-landing-content">
+      <div class="profile-wrapper">
 
         <span class="avatar">
-          <img src="#{avatar or "http://lorempixel.com/150/150/"}">
+          <img src="//gravatar.com/avatar/#{hash}?size=150&d=/images/defaultavatar/default.avatar.150.png}">
         </span>
+
 
         <div class="content-title">
           <a class="betatag">beta</a>
-          #{title}
+          #{firstName} #{lastName} <span class='nickname'>#{nickname}</span>
         </div>
 
         <div class="content-body">
-          #{body}
+          #{about}
         </div>
 
         <div class="content-meta">
-          <div class="members"><span class="icon"></span>
-            <span class="count">#{counts?.members or '0'}</span>
-            <span class="text"> Members</span>
+          <div class="followers"><span class="icon"></span>
+            <span class="count">#{counts?.followers or '0'}</span>
+            <span class="text"> Followers</span>
           </div>
-        </div>
 
-        <div id="group-content-wrapper" class="group-content">
-          <div class="content-markdown has-markdown dark">
-            #{content}
+          <div class="following"><span class="icon"></span>
+            <span class="count">#{counts?.following or '0'}</span>
+            <span class="text"> Following</span>
+          </div>
+
+          <div class="likes"><span class="icon"></span>
+            <span class="count">#{counts?.likes or '0'}</span>
+            <span class="text"> Likes</span>
+          </div>
+          <div class="topics"><span class="icon"></span>
+            <span class="count">#{counts?.topics or '0'}</span>
+            <span class="text"> Topics</span>
           </div>
         </div>
 
       </div>
     </div>
-
-    <div class="group-navigation">
-      #{getNavigation policy}
-    </div>
-    </div>
-    #{KONFIG.getConfigScriptTag groupEntryPoint: slug}
     #{getScripts()}
+    </div>
   </body>
   </html>
-  """
-
-getInviteLink =(policy)->
-  if policy.approvalEnabled
-    '<p class="bigLink"><a href="./Join">Request an Invite</a></p>'
-  else ''
-
-getNavigation =(policy)->
-  """
-  <div class="group-login-buttons"></div>
   """
 
 getStyles =->
@@ -114,11 +108,11 @@ getScripts =->
   """
 
 
-getDefaultGroupContents =->
+getDefaultuserContents =->
   """
   Hi —
 
-  This is a group on Koding.  It doesn't have a readme.  That's all we know.
+  This is a user on Koding.  It doesn't have a readme.  That's all we know.
 
   Sincerly,
   The Internet

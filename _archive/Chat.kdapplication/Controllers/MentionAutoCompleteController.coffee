@@ -3,7 +3,7 @@ class MentionAutoCompleteController extends KDAutoCompleteController
     inputValue = @getView().getValue()
     inputValue.split(/\s/).pop()
 
-  keyUpOnInputView:(inputView, event)=>
+  keyUpOnInputView:(event)=>
     return if event.keyCode in [9,38,40] #tab
     #if event.shiftKey and event.which is 50 # Shift+2 = @
 

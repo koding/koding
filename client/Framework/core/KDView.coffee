@@ -202,18 +202,20 @@ class KDView extends KDObject
 # DOM ELEMENT CREATION
 # #
 
-  setDomElement:(cssClass)->
-    cssClass = if cssClass then " #{cssClass}" else ""
+
+  setDomElement:(cssClass="")->
     {lazyDomId, tagName} = @getOptions()
-    if lazyDomId
-      @domElement = $("#{tagName}##{lazyDomId}")
-      @domElement.addClass "kdview#{cssClass}"
-      if @domElement?.length is 0
-        warn "No lazy DOM Element found with given id #{lazyDomId}."
 
-    @domElement ?= \
-      $ "<#{tagName} class='kdview#{cssClass}'></#{tagName} >"
+    el = document.getElementById lazyDomId  if lazyDomId
 
+    unless el?
+      warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
+      el = document.createElement tagName
+
+    for klass in "kdview #{cssClass}".split ' ' when klass.length
+      el.classList.add klass
+
+    @domElement = $ el
 
   setDomId:(id)->
     @domElement.attr "id",id
@@ -236,7 +238,7 @@ class KDView extends KDObject
 # TRAVERSE DOM ELEMENT
 # #
 
-  getDomElement:()-> @domElement
+  getDomElement:-> @domElement
 
   getElement:-> @getDomElement()[0]
 

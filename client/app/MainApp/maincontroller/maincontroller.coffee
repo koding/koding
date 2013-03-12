@@ -12,18 +12,22 @@ class MainController extends KDController
 
     # window.appManager is there for backwards compatibilty
     # will be deprecated soon.
-    window.appManager = new ApplicationManager
+    appManager = new ApplicationManager
+    window.appManager = appManager
+
     KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
 
-    KD.registerSingleton 'router', new KodingRouter location.pathname
-    KD.registerSingleton "groupsController", new GroupsController
+    router = new KodingRouter location.pathname
+    KD.registerSingleton 'router', router
 
+    KD.registerSingleton "groupsController", appManager.create 'Groups'
 
     @appReady =>
+      router.listen()
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
@@ -77,7 +81,6 @@ class MainController extends KDController
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
-      @loginScreen.hide() unless $('.group-landing').length is 0
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
@@ -109,7 +112,7 @@ class MainController extends KDController
   createLoggedInState:(account)->
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
-    @loginScreen.slideUp =>
+    @loginScreen.prepare =>
       @mainViewController.sidebarController.accountChanged account
       #KD.getSingleton("appManager").open @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes

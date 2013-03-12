@@ -1,6 +1,6 @@
 module.exports = class RestrictedQuery
   
-  {permit} = require '../models/group/permissionset.coffee'
+  {permit} = require '../models/group/permissionset'
 
   makeGroupSelector =(group)->
     if Array.isArray group then $in: group else group

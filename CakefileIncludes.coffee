@@ -155,8 +155,9 @@ Includes =
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
 
         # groups
+        # GroupsController      : "./client/app/Applications/Groups.kdapplication/groupscontroller.coffee"
+        GroupData                : "./client/app/Applications/Groups.kdapplication/groupdata.coffee"
         GroupsAppController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
-        GroupsController      : "./client/app/Applications/Groups.kdapplication/groupscontroller.coffee"
 
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
@@ -264,6 +265,8 @@ Includes =
         groupsmemberroleseditview     : "./client/app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee"
         groupsmembershippolicyview    : "./client/app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee"
         groupsformgeneratorview       : "./client/app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee"
+        groupslandingpageloginlink    : "./client/app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee"
+        groupsvocabulariesview        : "./client/app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee"
 
         groupTabHandleView            : "./client/app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee"
 
@@ -605,7 +608,6 @@ Includes =
         async             : "./client/libs/async.js"
         jMouseWheel       : "./client/libs/jquery.mousewheel.js"
         jMouseWheelIntent : "./client/libs/mwheelIntent.js"
-        # underscore        : "./client/libs/underscore.js"
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
 
@@ -624,15 +626,15 @@ Includes =
         # command_parser     : "./client/app/Helpers/CommandParser.coffee"
 
       Libraries :
+        jquery            : "./client/libs/jquery-1.8.2.js"
+        # jqueryUI          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
         #pusher            : "./client/libs/pusher.min.js"
+        underscore        : "./client/libs/underscore.1.4.4.js"
         sharedRoutes      : "./routes/index.coffee"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
         # highlightjs       : "./client/libs/highlight.pack.js"
-        # jquery            : "./client/libs/jquery-1.7.1.js"
-        # jquery            : "./client/libs/jquery-1.7.1.min.js"
-        # jqueryUi          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
         # threeJS           : "./client/libs/three.js" ==> added for testplay, please dont delete
         # jqueryEmit        : "./client/libs/jquery-emit.js"
 
@@ -685,6 +687,7 @@ Includes =
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
         groups              : "./client/stylus/app.group.styl"
+        user                : "./client/stylus/app.user.styl"
 
         temp             : "./client/stylus/temp.styl"
 

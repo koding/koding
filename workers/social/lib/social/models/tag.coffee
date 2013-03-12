@@ -18,6 +18,7 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/groupable'
 
   @share()
 
@@ -92,9 +93,10 @@ module.exports = class JTag extends jraphical.Module
 
         ]
         as          : 'post'
-      # content       :
-      #   targetType  : [JCodeSnip, JAccount]
-      #   as          : 'content'
+
+  @getCollectionName =(group="koding")->
+    mainCollectionName = Inflector(group).decapitalize().pluralize()
+    return "#{mainCollectionName}__#{group.replace /-/g, '_'}"
 
   modify: permit
     advanced: [
@@ -169,10 +171,9 @@ module.exports = class JTag extends jraphical.Module
 
   @create = permit 'create tags'
     success: (client, data, callback)->
-      console.log 'in here'
       {delegate} = client.connection
       tag = new this data
-      tag.save (err)->
+      tag.save client, (err)->
         if err
           callback err
         else

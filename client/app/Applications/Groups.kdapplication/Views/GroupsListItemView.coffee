@@ -193,17 +193,12 @@ class GroupsListItemView extends KDListItemView
       </div>
       <div class="topicmeta clearfix">
         <div class="topicstats">
-          <p class="posts">
+          <p class="members">
             <span class="icon"></span>
-            <a href="#">{{#(counts.post) or 0}}</a> Posts
-          </p>
-          <p class="followers">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.followers) or 0}}</a> Followers
+            <a href="#">{{#(counts.members) or 0}}</a> Members
           </p>
         </div>
       </div>
-      <div class="button-container"><div class="enter-button">{{>@enterLink}}</div>{{> @joinButton}}</div>
     </div>
     """
 
@@ -225,11 +220,8 @@ class ModalGroupsListItem extends TopicsListItemView
         <div class="button-container">{{> @joinButton}}</div>
         {{> @titleLink}}
         <div class="stats">
-          <p class="posts">
-            <span class="icon"></span>{{#(counts.post) or 0}} Posts
-          </p>
-          <p class="fers">
-            <span class="icon"></span>{{#(counts.followers) or 0}} Followers
+          <p class="members">
+            <span class="icon"></span>{{#(counts.members) or 0}} Members
           </p>
         </div>
       </div>

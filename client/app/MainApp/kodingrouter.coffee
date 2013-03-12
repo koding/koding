@@ -14,8 +14,13 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
+    @on 'Params', ({params, query})=>
+      @utils.defer => @getSingleton('groupsController').changeGroup params.name
+
+  listen:->
+    super
     unless @userRoute
-      @handleRoute defaultRoute,
+      @handleRoute @defaultRoute,
         shouldPushState: yes
         replaceState: yes
 
@@ -51,13 +56,9 @@ class KodingRouter extends KDRouter
     return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
-    @getSingleton('groupsController').changeGroup group
-    unless group?
+    @getSingleton('groupsController').changeGroup group, ->
       KD.getSingleton("appManager").open app
-    else
-      # KD.getSingleton("appManager").tell app, 'setGroup', group
-      KD.getSingleton("appManager").open app
-    KD.getSingleton("appManager").tell app, 'handleQuery', query
+      KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -123,12 +124,10 @@ class KodingRouter extends KDRouter
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
+      else if state?
+        @openContent name, section, state, route
       else
-        # KD.getSingleton("appManager").tell section, 'setGroup', name  if name? and not state?
-        if state?
-          @openContent name, section, state, route
-        else
-          @loadContent name, section, slug, route
+        @loadContent name, section, slug, route
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -145,7 +144,6 @@ class KodingRouter extends KDRouter
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
-      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
@@ -155,9 +153,6 @@ class KodingRouter extends KDRouter
     )
 
     clear = @bound 'clear'
-
-    openGroupAdminDashboard = =>
-      @getSingleton('groupsController').openAdminDashboard arguments...
 
     requireLogin =(fn)->
       mainController.accountReady ->
@@ -197,7 +192,10 @@ class KodingRouter extends KDRouter
       '/:name?/Account'                 : section.Account
 
       # group dashboard
-      '/:name?/Dashboard'               : content.Groups
+      '/:name?/Dashboard'               : (routeInfo, state, route)->
+        {name} = routeInfo.params
+        KD.remote.cacheable name, (err, group, nameObj)=>
+          @openContent name, 'Groups', group, route
 
       # content
       '/:name?/Topics/:topicSlug'       : content.Topics
@@ -214,7 +212,8 @@ class KodingRouter extends KDRouter
           mainController.loginScreen.hidden = no
 
           recoveryToken = decodeURIComponent recoveryToken
-          KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)=>
+          {JPasswordRecovery} = KD.remote.api
+          JPasswordRecovery.validate recoveryToken, (err, isValid)=>
             if err or !isValid
               new KDNotificationView
                 title   : 'Something went wrong.'
@@ -296,23 +295,17 @@ class KodingRouter extends KDRouter
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 
-          # console.log "GROUP", window._group_loaded
-
           if state?
             open routeInfo, state, status_404
 
           # Shows that we are in groups
-          else if $('.group-landing').length > 0
+          else if KD.config.groupEntryPoint?
 
+            # Its calling twice, weird. FIXME
             unless $('.group-loader').length > 0
-              waitress = new KDLoaderView
-                size          :
-                  width       : 30
-                loaderOptions :
-                  color       : "#ff9200"
-                cssClass      : 'group-loader'
-              waitress.appendToSelector '.group-login-buttons'
-              waitress.show()
+              groupLazyLoader = new KDView
+                cssClass : 'group-loader pulsing'
+              groupLazyLoader.appendToSelector '#group-loader-container'
 
           else
             KD.remote.cacheable params.name, (err, model, name)->
