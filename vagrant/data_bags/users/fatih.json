@@ -1,0 +1,12 @@
+{
+  "id": "fatih",
+  "password": "$1$fT5gn1/h$EfuakeQhF1rViZAOLbq60.",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5+eCrK8Rl5mIuEjqfsuOrUUUBo4t3afEGCZ2YqJZcodGXpYp+5RNHWRNh13+gqfi9n29kQp+iUzbtbC9oesf8kX8X67yIh7qmGJApI4EovTSW6KTyYnZzndA/8g6VBQfCXr124bifzjGDYLgBCSSStZ0UohrYEAdSdRUmUM3aJrtYvvmLQrd9NoiC+Ct2N3GHwqVNn+KLgPyg8Wy56nTGSb/F30slBRQ2aIRzAty9JBruaWuk8mJ23CPL2EoAoWCqkV275wrZvEKCBntQEtzDeli5k1gkbIFd+YJ+kX7gUTaR69reJrxq0qVPZrTormZglCHOUqYRHftMQnVg7t7/ fatih@koding.com"
+  ],
+  "groups": [ "developer" ],
+  "uid": 2007,
+  "shell": "\/bin\/bash",
+  "comment": "Fathi Arslan",
+  "email": "fatih@koding.com"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "arvid",
+  "password": "$1$HeP60cPu$tHXLXRH9nJo1phDBl3XtP.",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz/309h1szg/wCV2j0h9xzf1T6ZxaqHYOZr9C3WnauZRgnARbw+3EXnKFgJao0nfY1WH3okMzaMeAht1+YsmNEQryRfpC+nMyxlBofxiuLIkW2x+fb8GD2aFCfVofuehP6zHOy4NVSKBb8ZR+GBApVaT9gC46knKVsR5mvYtbN7LPliT9m8QTnz2qs+k6uNWSca9P85Ff9VPOTWeM6ThmlEwbVfGlSC/FA5c7AIIdXfFe76ke0vLyzt8JPHSx+kouAWFWN9giEVKnKQIYi5AtZfFzeQmMJvQ841tdIsvlnofNxPIICMnniTKMvLqwBjr8kBINpCfFsDVRfJ+GJ/8H5 arvidkahl@Arvids-MacBook-Pro.local"
+  ],
+  "groups": [ "developer" ],
+  "uid": 2011,
+  "shell": "\/bin\/bash",
+  "comment": "Arvid Kahl",
+  "email": "arvid@koding.com"
+}

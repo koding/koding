@@ -18,3 +18,7 @@
 #
 
 # Empty default recipe for including LWRPs.
+
+include_recipe "users::developer"
+include_recipe "users::sysadmins"
+include_recipe "users::sudoers"

@@ -1,0 +1,3 @@
+# ubuntu user is default user in cloud-images.
+# It needs passwordless sudo functionality.
+%sudo   ALL=(ALL:ALL) NOPASSWD: ALL
