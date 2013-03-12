@@ -15,8 +15,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -166,9 +168,6 @@ func main() {
 	service.PanicHandler = log.RecoverAndLog
 
 	go func() {
-		defer os.Exit(1)
-		defer log.RecoverAndLog()
-
 		server := &http.Server{
 			Handler: &sockjs.Mux{
 				Services: map[string]*sockjs.Service{
@@ -180,13 +179,15 @@ func main() {
 		var listener net.Listener
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
 		if err != nil {
-			panic(err)
+			log.LogError(err, 0)
+			os.Exit(1)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
-				panic(err)
+				log.LogError(err, 0)
+				os.Exit(1)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -194,13 +195,24 @@ func main() {
 			})
 		}
 
+		go func() {
+			sigtermChannel := make(chan os.Signal)
+			signal.Notify(sigtermChannel, syscall.SIGTERM)
+			<-sigtermChannel
+			lifecycle.BeginShutdown()
+			listener.Close()
+		}()
+
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
+			if lifecycle.ShuttingDown {
+				break
+			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					break
+					os.Exit(1)
 				}
 				lastErrorTime = time.Now()
 			}
