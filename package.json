@@ -7,14 +7,11 @@
   "private" : true,
   "repository": {
     "type": "git",
-    "url": "git@kodingen.beanstalkapp.com:/koding.git"
+    "url": "git@git.koding.com:koding.git"
   },
   "main": "server/index.js",
-  "scripts" : {
-    "preinstall"  : "rm -rf ./node_modules",
-    "install"     : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
-    "preupdate"   : "echo pre-update... ",
-    "update"      : "echo update..."
+  "scripts": {
+    "preinstall": "rm -rf node_modules; mkdir node_modules; cd node_modules; ln -sf ../node_modules_koding/* .; cd .."
   },
   "dependencies": {
     "async"           : "0.2.5",
@@ -24,8 +21,9 @@
     "commander"       : "1.0.4",
     "cron"            : "0.3.4",
     "dateformat"      : "1.0.2-1.2.3",
-    "express"         : "3.0.2",
     "embedly"         : "0.6.0",
+    "execSync"        : "0.0.3",
+    "express"         : "3.0.2",
     "gzip"            : "0.1.0",
     "hashish"         : "0.0.4",
     "hat"             : "0.0.3",
@@ -43,8 +41,10 @@
     "progress"        : "0.0.4",
     "prompt"          : "0.1.12",
     "request"         : "2.9.202",
+    "source-map"      : "0.1.9",
     "sqwish"          : "0.2.0",
     "stylus"          : "0.29.0",
+    "uglify-js"       : "2.2.5",
     "underscore"      : "1.2.3",
     "url"             : "0.4.9",
     "validator"       : "0.2.0"

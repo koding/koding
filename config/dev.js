@@ -72,7 +72,7 @@
       css: "./website/css/kd." + version + ".css",
       indexMaster: "./client/index-master.html",
       index: "./website/index.html",
-      includesFile: '../CakefileIncludes.coffee',
+      includesPath: './client',
       useStaticFileServer: false,
       staticFilesBaseUrl: 'http://localhost:3000',
       runtimeOptions: {

@@ -156,15 +156,14 @@ config =
     presence      :
       exchange    : 1
     client        :
-      pistachios  : 1
       version     : 1
-      minify      : 1
       watch       : 1
+      includesPath: 1
+      websitePath : 1
       js          : 1
       css         : 1
-      indexMaster: 1
+      indexMaster : 1
       index       : 1
-      includesFile: 1
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
@@ -176,6 +175,7 @@ config =
           sockJS  : 1
         apiUri    : 1
         appsUri   : 1
+        sourceUri : 1
     mq            :
       host        : 1
       login       : 1

@@ -3,6 +3,7 @@
 /.revision
 .DS_Store
 website/js/kd*.js
+website/js/kd*.js.map
 website/css/kd*.css
 website/index.html
 v8.log

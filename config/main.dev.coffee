@@ -94,15 +94,14 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
     watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
@@ -115,6 +114,7 @@ module.exports = deepFreeze
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'
