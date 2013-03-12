@@ -1,5 +1,5 @@
 include_recipe "nodejs"
 
-execute "cake -c vagrant run" do
+execute "screen -d -m cake -c vagrant run" do
 	cwd "/opt/koding"
 end
