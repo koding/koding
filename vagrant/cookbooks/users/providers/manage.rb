@@ -47,6 +47,10 @@ action :create do
     Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
   else
     search(new_resource.data_bag, "groups:#{new_resource.search_group} AND NOT action:remove") do |u|
+
+      if not node.chef_environment in u['allowedin']
+        next
+
       u['username'] ||= u['id']
       security_group << u['username']
 

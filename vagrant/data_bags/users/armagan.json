@@ -1,0 +1,12 @@
+{
+  "id": "armagan",
+  "password": "$1$EjZ9ftsd$k0FTHJF7WUPi3KSloQD0E1",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCwg75ayKqjw1Shxc65147ZtbAUzpcZiTHSSwIki3O05AvDb2NXu0qir0QwDaDKOacgxXuEsxY6jnvAlOxnUJ2iBEW3yj0SIvJbUgZ8afEMIpN4q4WHnNJ4aSJF/cUcDmt67Pw6Ns5VoEqJc0fMIJ4Rho7qIEnuH+zQ9L0qjVuACENmsQXpEZJuIBxK+nVzZIjt9f+vNoTud7zyFsBY4Z+B4yz0sLUI9i4uD2AmkjR225eImrguxqDEX1EAS5hTj2NI7Lfec60EfYbdqyHDQNsYo7gfOp96RAJajal1GD8EY2LQFCzwUwbyBOmdc0bR+vux5p9ovBKDAeZ/p5p/rGDz armagan@Terminals-Mac-mini.local"
+  ],
+  "groups": [ "developer" ],
+  "uid": 2002,
+  "shell": "\/bin\/bash",
+  "comment": "Armağan Kimyonoğlu",
+  "email": "armagan@koding.com"
+}

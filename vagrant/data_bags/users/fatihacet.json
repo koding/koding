@@ -1,0 +1,13 @@
+{
+  "id": "fatihacet",
+  "password": "$1$b1XXTBS0$1rQd4ulgBHh295MSSc0O11",
+  "ssh_keys": [
+    "ssh-rsa AAA123...xyz== foo",
+    "ssh-rsa AAA456...uvw== bar"
+  ],
+  "groups": [ "developer" ],
+  "uid": 2008,
+  "shell": "\/bin\/bash",
+  "comment": "Fatih Acet",
+  "email": "fatihacet@koding.com"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "senthil",
+  "password": "$1$9vYwk88R$VW/pxff3wwjQLYSEkD9sr.",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+4uTQBmO8GyixUhADqenxDpYTb1D/GmC5zPpHmlAPL6hTINGhcF6xGK1ncVbFJOBgN/iXSr+XwwU42lrYwMrzQ/2Qe4VBEuxiMQ6vFTiyMGNmdJHVEHswI8fYKo+iuJMPWEgap50Jl8xsYX6lhjDFCz8s31Lyo1U6skOSiFMfYmDAFo5PRUrTb4F8ERaV6KDWqpoSCsztbqLCBHiRcsOyXsrPMXbF6+0Wk913iejwcCpEkNawRfkyOxKVxbgV9r6wVTaEucDbRCI/KStsVG1AaDbuEvXH5g/Wsrh05m3kA6UkAbjzbLIlGQ5raN3NcTsZ/G2x2awlYhUFMCzdK++V senthil@senthils-MacBook-Pro.local"
+  ],
+  "groups": [ "developer" ],
+  "uid": 2011,
+  "shell": "\/bin\/bash",
+  "comment": "Senthil Arivudainambi",
+  "email": "senthil@koding.com"
+}
