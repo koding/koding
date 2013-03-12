@@ -94,6 +94,10 @@ module.exports = class JTag extends jraphical.Module
         ]
         as          : 'post'
 
+  @getCollectionName =(group="koding")->
+    mainCollectionName = Inflector(group).decapitalize().pluralize()
+    return "#{mainCollectionName}__#{group.replace /-/g, '_'}"
+
   modify: permit
     advanced: [
       { permission: 'edit own tags', validateWith: Validators.own }
@@ -167,10 +171,9 @@ module.exports = class JTag extends jraphical.Module
 
   @create = permit 'create tags'
     success: (client, data, callback)->
-      console.log 'in here'
       {delegate} = client.connection
       tag = new this data
-      tag.save (err)->
+      tag.save client, (err)->
         if err
           callback err
         else

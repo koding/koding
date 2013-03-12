@@ -7,10 +7,12 @@ module.exports = class Groupable
   {Inflector} = require 'bongo'
 
   getCollection =(konstructor, client)->
+    console.log {konstructor, client}
     {name} = konstructor
     db = konstructor.getClient()
     {group} = client.context
-    return db.collection "#{Inflector.pluralize name}__#{group.replace /-/g, '_'}"
+    mainCollectionName = Inflector(name).decapitalize().pluralize()
+    return db.collection "#{mainCollectionName}__#{group.replace /-/g, '_'}"
 
   @drop$ = permit 'drop collection'
     success:(client, callback)->
@@ -63,3 +65,17 @@ module.exports = class Groupable
     success:(client, selector, fields, options, callback)->
       collection = getCollection this, client
       helpers.each.call this, collection, selector, fields, options, callback
+
+  save: (client, callback)->
+    [callback, client] = [client, callback]  unless callback
+    {save_0_} = require 'bongo/lib/model/save'
+    model = this
+    model.applyDefaults(model.isRoot_)
+    collection =
+      if client then getCollection @constructor, client
+      else @constructor.getCollection()
+    model.validate save_0_.bind model, callback, collection
+    model
+
+  save$: permit 'create documents'
+    success:(client, callback)-> @save callback
