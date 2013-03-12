@@ -4,9 +4,13 @@ class LoginView extends KDScrollView
     event.preventDefault()
     event.stopPropagation()
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      options = cssClass : 'land-page'
+
+    super options, data
+
     @hidden = no
 
     handler =(route, event)=>
@@ -282,9 +286,16 @@ class LoginView extends KDScrollView
           duration: 1000
         @loginForm.resetDecoration()
       else
+
+        # I will change all these ~ WIP
+        $('#group-landing').css 'opacity', 0
+        $('#group-landing').css 'height', 0
+        @$().css 'height', 0
+
         $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
         @getSingleton('router').handleRoute null, replaceState: yes
+
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -394,6 +405,8 @@ class LoginView extends KDScrollView
           @headBanner.updatePartial @headBannerMsg
           @headBanner.show()
 
-    @unsetClass "register recover login reset home lr"
+    @unsetClass "register recover login reset home lr landed"
     @emit "LoginViewAnimated", name
     @setClass name
+
+    # if name and name isnt 'home' then @setClass 'landed'
