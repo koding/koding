@@ -70,7 +70,7 @@ class KodingRouter extends KDRouter
   handleNotFound:(route)->
 
     status_404 = =>
-      KDRouter::handleNotFound.call @, route
+      KDRouter::handleNotFound.call this, route
 
     status_301 = (redirectTarget)=>
       @handleRoute "/#{redirectTarget}", replaceState: yes
@@ -198,9 +198,9 @@ class KodingRouter extends KDRouter
           @openContent name, 'Groups', group, route
 
       # content
-      '/:name?/Topics/:topicSlug'       : content.Topics
-      '/:name?/Activity/:activitySlug'  : content.Activity
-      '/:name?/Apps/:appSlug'           : content.Apps
+      '/:name?/Topics/:slug'          : content.Topics
+      '/:name?/Activity/:slug'        : content.Activity
+      '/:name?/Apps/:slug'            : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'

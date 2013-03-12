@@ -27,14 +27,7 @@ class TopicsListItemView extends KDListItemView
 
     @followButton = new FollowButton {cssClass: 'topic'}, data
 
-  titleReceivedClick:(event)->
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
-    #tag = @getData()
-    #KD.getSingleton("appManager").tell "Topics", "createContentDisplay", tag
+  titleReceivedClick:(event)-> @emit 'TaggedContentRequested'
 
   viewAppended:->
     @setClass "topic-item"
