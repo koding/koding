@@ -86,6 +86,8 @@ class MainController extends KDController
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
+      @mainViewController.getView().hide()
+
       @appReady()
 
     if KD.checkFlag 'super-admin'
@@ -120,6 +122,7 @@ class MainController extends KDController
       @mainViewController.sidebarController.accountChanged account
       #KD.getSingleton("appManager").open @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
+      @mainViewController.getView().show()
 
   doJoin:->
     @loginScreen.animateToForm 'lr'
