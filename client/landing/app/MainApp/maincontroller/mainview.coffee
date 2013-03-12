@@ -3,6 +3,7 @@ class MainView extends KDView
   viewAppended:->
 
     @mc = @getSingleton 'mainController'
+
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -211,35 +212,11 @@ class MainView extends KDView
 
   userEnteredFromProfile:-> KD.config.profileEntryPoint?
 
-  switchProfileState:(isLoggedIn)->
-    $('body').addClass "login"
-    @addProfileViews()
-
   switchGroupState:(isLoggedIn)->
-
-    $('.group-loader').removeClass 'pulsing'
-    $('body').addClass "login"
-    @addGroupViews()
 
     {groupEntryPoint} = KD.config
 
-    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
-
-    loginLink.on 'LoginLinkRedirect', ({section})=>
-
-      route =  "/#{groupEntryPoint}/#{section}"
-
-      switch section
-        when 'Join', 'Login'
-          @mc.loginScreen.animateToForm 'login'
-          @mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
-          $('#group-landing').css 'height', 0
-          # $('#group-landing').css 'opacity', 0
-
-        when 'Activity'
-          @mc.loginScreen.hide()
-          KD.getSingleton('router').handleRoute route
-          $('#group-landing').css 'height', 0
+    # loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
 
     if isLoggedIn and groupEntryPoint?
       KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
@@ -267,6 +244,10 @@ class MainView extends KDView
     loginLink.appendToSelector '.group-login-buttons'
 
   addGroupViews:->
+
+    return if @groupViewsAdded
+    @groupViewsAdded = yes
+
     groupLandingView = new KDView
       lazyDomId : 'group-landing'
 
@@ -288,6 +269,9 @@ class MainView extends KDView
     groupPersonalWrapperView = new KDView
       lazyDomId : 'group-personal-wrapper'
       cssClass : 'slideable'
+      click :(event)=>
+        unless event.target.tagName is 'A'
+          @mc.loginScreen.unsetClass 'landed'
 
     groupLogoView = new KDView
       lazyDomId: 'group-koding-logo'
@@ -305,6 +289,9 @@ class MainView extends KDView
     @utils.wait => groupLogoView.setClass 'animate'
 
   addProfileViews:->
+
+    return if @profileViewsAdded
+    @profileViewsAdded = yes
 
     profileLandingView = new KDView
       lazyDomId : 'profile-landing'
@@ -367,24 +354,29 @@ class MainView extends KDView
   decorateLoginState:(isLoggedIn = no)->
 
     if @userEnteredFromGroup()
-      @switchGroupState isLoggedIn
+      @addGroupViews()
+      # @switchGroupState isLoggedIn
     else if @userEnteredFromProfile()
-      @switchProfileState isLoggedIn
+      @addProfileViews()
 
     if isLoggedIn
+      $('body').removeClass "login"
       $('body').addClass "loggedIn"
-      logoutLinkView = new LandingPageNavLink
+
+      new LandingPageNavLink
         title : 'Logout'
 
-      # Workarounf for Develop Tab
+      # Workaround for Develop Tab
       if "Develop" isnt @getSingleton("router")?.getCurrentPath()
         @contentPanel.setClass "social"
 
       @mainTabView.showHandleContainer()
 
     else
+      $('body').addClass "login"
       $('body').removeClass "loggedIn"
-      loginLinkView = new LandingPageNavLink
+
+      new LandingPageNavLink
         title : 'Login'
 
       @contentPanel.unsetClass "social"

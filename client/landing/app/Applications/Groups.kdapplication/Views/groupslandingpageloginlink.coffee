@@ -34,13 +34,28 @@ class GroupsLandingPageButton extends KDButtonView
       options.href = 'https://koding.com'
 
     @setCallback =>
-      @emit 'LoginLinkRedirect',
-        href              : options.href
-        groupEntryPoint   : options.groupEntryPoint
-        section           : options.section
 
-    # FIXME GG
-    $('.group-login-buttons').css 'opacity', 1
+      @mc = @getSingleton 'mainController'
+
+      section         = options.section
+      groupEntryPoint = options.groupEntryPoint
+
+      route =  "/#{groupEntryPoint}/#{section}"
+
+      switch section
+        when 'Join', 'Login'
+          @mc.loginScreen.animateToForm 'login'
+          @mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
+          $('#group-landing').css 'height', 0
+          # $('#group-landing').css 'opacity', 0
+
+        when 'Activity'
+          @mc.loginScreen.hide()
+          KD.getSingleton('router').handleRoute route
+          $('#group-landing').css 'height', 0
+
+    # # FIXME GG
+    # $('.group-login-buttons').css 'opacity', 1
 
 class LandingPageNavLink extends KDCustomHTMLView
 
