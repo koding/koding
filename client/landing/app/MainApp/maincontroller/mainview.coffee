@@ -273,6 +273,7 @@ class MainView extends KDView
     groupLandingView.listenWindowResize()
     groupLandingView._windowDidResize = =>
       groupLandingView.setHeight window.innerHeight
+      groupContentView.setHeight window.innerHeight - groupTitleView.getHeight()
 
     groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
@@ -280,6 +281,9 @@ class MainView extends KDView
 
     groupTitleView = new KDView
       lazyDomId : 'group-title'
+
+    groupContentView = new KDView
+      lazyDomId : 'group-loading-content'
 
     groupSplitView = new SplitViewWithOlderSiblings
       lazyDomId : 'group-splitview'
@@ -309,12 +313,34 @@ class MainView extends KDView
     profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
+    profileLandingView.listenWindowResize()
+    profileLandingView._windowDidResize = =>
+      profileLandingView.setHeight window.innerHeight
+      profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+
     profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
 
     profileTitleView = new KDView
       lazyDomId : 'profile-title'
+
+    profileShowMoreView = new KDView
+      lazyDomId : 'profile-show-more-wrapper'
+
+    profileShowMoreButton = new KDButtonView
+      lazyDomId : 'profile-show-more-button'
+      title :'Show more'
+      callback:=>
+        @emit 'ShowMoreButtonClicked'
+        profileShowMoreView.hide()
+        profileShowMoreView.setHeight 0
+        profileLandingView._windowDidResize()
+
+    profileContentView = new KDListView
+      lazyDomId : 'profile-content'
+      itemClass : StaticBlogPostListItem
+    , {}
 
     profileSplitView = new SplitViewWithOlderSiblings
       lazyDomId : 'profile-splitview'
@@ -339,30 +365,25 @@ class MainView extends KDView
 
     @utils.wait => profileLogoView.setClass 'animate'
 
-    KD.remote.cacheable profileLandingView.$().attr('data-profile'), (err, user, name)=>
-      KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
+    @on 'ShowMoreButtonClicked', =>
+      KD.remote.cacheable profileLandingView.$().attr('data-profile'), (err, user, name)=>
+        KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
 
-        log err if err
-        profileContentView = new KDListView
-          lazyDomId : 'profile-content'
-          itemClass : StaticBlogPostListItem
-        , blogs
+          if err
+            log err
 
-        profileContentListController = new KDListViewController
-          view : profileContentView
-        , blogs
+          else
+            profileContentListController = new KDListViewController
+              view : profileContentView
+              startWithLazyLoader : yes
+            , blogs
 
-        unless err
-          profileContentView.$('.content-item').remove()
+            profileContentView.$('.content-item').remove()
 
-          profileContentView.on 'ItemWasAdded', (instance, index)->
-            instance.viewAppended()
+            profileContentView.on 'ItemWasAdded', (instance, index)->
+              instance.viewAppended()
 
-          profileContentListController.instantiateListItems blogs
-
-    profileLandingView.listenWindowResize()
-    profileLandingView._windowDidResize = =>
-      profileLandingView?.setHeight window.outerHeight
+            profileContentListController.instantiateListItems blogs
 
   decorateLoginState:(isLoggedIn = no)->
 
