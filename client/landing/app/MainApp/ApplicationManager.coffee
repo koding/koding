@@ -50,6 +50,8 @@ class ApplicationManager extends KDObject
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
+      {multiple, openWith} = appOptions
+
       unless options.thirdParty
         # if there is no registered appController
         # we assume it should be a 3rd party app
@@ -67,14 +69,21 @@ class ApplicationManager extends KDObject
 
         switch appOptions.openWith
           when "lastActive" then do defaultCallback
-
           when "prompt"
-            @createPromptModal appOptions, (appInstance)=>
-              if appInstance
-                @show appInstance, callback
-              else
-                @create name, callback
-
+            log "prompting"
+            if @appControllers[name]?.instances.length > 1
+              log "more than one, namely", @appControllers[name].instances.length
+              @createPromptModal appOptions, (appInstanceIndex, openNew)=>
+                if typeof appInstanceIndex is "number"
+                  appInstance = @appControllers[name].instances[appInstanceIndex]
+                  # user selected appInstance to open
+                  @show appInstance, callback
+                else if openNew
+                  # user wants to open a fresh instance
+                  @create name, callback
+                else
+                  warn "user cancelled app to open"
+            else do defaultCallback
       else do defaultCallback
 
   fetchManifests:(callback)->
@@ -99,8 +108,7 @@ class ApplicationManager extends KDObject
     switch type
       when 'code','text','unknown'
         log "open with a text editor"
-        @open @defaultApps.text, (appController)->
-          appController.openFile file
+        @open @defaultApps.text, (appController)-> appController.openFile file
       when 'image'
         log "open with an image processing app"
       when 'video'
@@ -221,7 +229,45 @@ class ApplicationManager extends KDObject
 
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response
-    callback appInstance
+    {name} = appOptions
+    selectOptions = for instance, i in @appControllers[name].instances
+      title : "#{instance.getOption('name')} (#{i+1})"
+      value : i
+
+    modal = new KDModalViewWithForms
+      title                 : "Open with:"
+      tabs                  :
+        navigable           : no
+        forms               :
+          openWith          :
+            callback        : (formOutput)->
+              log formOutput, "openWith ::::::"
+              modal.destroy()
+              {index, openNew} = formOutput
+              callback index, openNew
+            fields          :
+              instance      : {
+                label       : "Instance:"
+                itemClass   : KDSelectBox
+                name        : "index"
+                type        : "select"
+                defaultValue: selectOptions.first.value
+                selectOptions
+              }
+              newOne        :
+                label       : "Open new app:"
+                itemClass   : KDOnOffSwitch
+                name        : "openNew"
+                defaultValue: no
+            buttons         :
+              Open          :
+                cssClass    : "modal-clean-green"
+                type        : "submit"
+              Cancel        :
+                cssClass    : "modal-cancel"
+                callback    : ->
+                  modal.cancel()
+                  callback null
 
   setListeners:(appInstance)->
 
