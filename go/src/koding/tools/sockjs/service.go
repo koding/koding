@@ -17,37 +17,48 @@ type Service struct {
 	Callback     func(*Session)
 	Websocket    bool
 	CookieNeeded bool
-	Timeout      time.Duration
 	StreamLimit  int
 	PanicHandler func()
 
-	iFrameContent      []byte
-	iFrameETag         string
-	sessions           map[string]*Session
-	sessionsMutex      sync.Mutex
-	lastSessionCleanup time.Time
+	iFrameContent []byte
+	iFrameETag    string
+	sessions      map[string]*Session
+	sessionsMutex sync.Mutex
 }
 
-func NewService(jsFileUrl string, callback func(*Session)) *Service {
+func NewService(jsFileUrl string, timeout time.Duration, callback func(*Session)) *Service {
 	iFrameContent := createIFrameContent(jsFileUrl)
 	hash := md5.New()
 	hash.Write(iFrameContent)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
-	return &Service{
+	s := Service{
 		Websocket:    true,
 		CookieNeeded: false,
-		Timeout:      10 * time.Minute,
 		StreamLimit:  128 * 1024,
 		Callback:     callback,
 		PanicHandler: func() {},
 
-		iFrameContent:      iFrameContent,
-		iFrameETag:         iFrameETag,
-		sessions:           make(map[string]*Session),
-		sessionsMutex:      sync.Mutex{},
-		lastSessionCleanup: time.Now(),
+		iFrameContent: iFrameContent,
+		iFrameETag:    iFrameETag,
+		sessions:      make(map[string]*Session),
+		sessionsMutex: sync.Mutex{},
 	}
+
+	go func() {
+		for {
+			s.sessionsMutex.Lock()
+			for key, session := range s.sessions {
+				if session.lastSendTime.Add(timeout).Before(time.Now()) {
+					session.Close()
+					delete(s.sessions, key)
+				}
+			}
+			s.sessionsMutex.Unlock()
+		}
+	}()
+
+	return &s
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -119,17 +130,8 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sessionsMutex.Lock()
-	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
-		for key, session := range s.sessions {
-			if session.lastSendTime.Add(s.Timeout).Before(time.Now()) {
-				session.Close()
-				delete(s.sessions, key)
-			}
-		}
-		s.lastSessionCleanup = time.Now()
-	}
-	session := s.sessions[parts[1]]
-	if session == nil {
+	session, found := s.sessions[parts[1]]
+	if !found {
 		if parts[2] == "xhr_send" || parts[2] == "jsonp_send" {
 			http.NotFound(w, r)
 			s.sessionsMutex.Unlock()
