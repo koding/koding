@@ -87,7 +87,7 @@ Vagrant::Config.run do |config|
           cephClient_config.vm.provision :chef_solo do |chef|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
-            chef.add_role("ceph-client")
+            chef.add_role("ceph-client_vagrant")
           end
     end
     # ----- end of Ceph client configuration -----
