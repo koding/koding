@@ -13,5 +13,5 @@ end
 
 execute "run_vagrant" do
 	cwd "/opt/koding"
-	command "PATH=$PATH:./node_modules/koding-cake/bin cake -c vagrant run"
+	command "screen -d -m cake -c vagrant run"
 end
