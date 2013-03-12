@@ -1,7 +1,7 @@
 name "web_server_vagrant"
 description "The  role for WEB vagrant servers"
 
-run_list ["recipe[nginx]", "recipe[kd_run::vagrant]","recipe[golang]"]
+run_list ["recipe[nginx]","recipe[golang]", "recipe[kd_run::vagrant]"]
 
 default_attributes({ "nginx" => {
                                 "worker_processes" => "1",

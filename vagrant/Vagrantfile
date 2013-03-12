@@ -96,8 +96,8 @@ Vagrant::Config.run do |config|
     # ---- Web server configuration -------
     config.vm.define :web do |web_config|
           
-          web_config.vm.box = "centos64"
-          web_config.vm.box_url = template_centos_url
+          web_config.vm.box = "ubuntu1210-64-3.0"
+          web_config.vm.box_url = template_ubuntu121064_url
           web_config.vm.network :hostonly, hosts["koding.local"]
           web_config.vm.host_name = "koding.local"
           web_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -121,8 +121,8 @@ Vagrant::Config.run do |config|
         # ---- Web0 server configuration -------
         config.vm.define :web0 do |web0_config|
               
-              web0_config.vm.box = "centos64"
-              web0_config.vm.box_url = template_centos_url
+              web0_config.vm.box = "ubuntu1210-64-3.0"
+              web0_config.vm.box_url = template_ubuntu121064_url
               web0_config.vm.network :hostonly, hosts["web0.local"]
               web0_config.vm.host_name = "web0.local"
               web0_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -147,8 +147,8 @@ Vagrant::Config.run do |config|
         # ---- Web1 server configuration -------
         config.vm.define :web1 do |web1_config|
               
-              web1_config.vm.box = "centos64"
-              web1_config.vm.box_url = template_centos_url
+              web1_config.vm.box = "ubuntu1210-64-3.0"
+              web1_config.vm.box_url = template_ubuntu121064_url
               web1_config.vm.network :hostonly, hosts["web1.local"]
               web1_config.vm.host_name = "web1.local"
               web1_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -173,8 +173,8 @@ Vagrant::Config.run do |config|
         # ---- Web2 server configuration -------
         config.vm.define :web2 do |web2_config|
               
-              web2_config.vm.box = "centos64"
-              web2_config.vm.box_url = template_centos_url
+              web2_config.vm.box = "ubuntu1210-64-3.0"
+              web2_config.vm.box_url = template_ubuntu121064_url
               web2_config.vm.network :hostonly, hosts["web2.local"]
               web2_config.vm.host_name = "web2.local"
               web2_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -199,8 +199,8 @@ Vagrant::Config.run do |config|
         # ---- Web3 server configuration -------
         config.vm.define :web3 do |web3_config|
               
-              web3_config.vm.box = "centos64"
-              web3_config.vm.box_url = template_centos_url
+              web3_config.vm.box = "ubuntu1210-64-3.0"
+              web3_config.vm.box_url = template_ubuntu121064_url
               web3_config.vm.network :hostonly, hosts["web3.local"]
               web3_config.vm.host_name = "web3.local"
               web3_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -225,8 +225,8 @@ Vagrant::Config.run do |config|
         # ---- Web4 server configuration -------
         config.vm.define :web4 do |web4_config|
               
-              web4_config.vm.box = "centos64"
-              web4_config.vm.box_url = template_centos_url
+              web4_config.vm.box = "ubuntu1210-64-3.0"
+              web4_config.vm.box_url = template_ubuntu121064_url
               web4_config.vm.network :hostonly, hosts["web4.local"]
               web4_config.vm.host_name = "web4.local"
               web4_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
@@ -253,8 +253,8 @@ Vagrant::Config.run do |config|
     # ---- RabbitMQ server configuration -------
     config.vm.define :rabbitmq do |rabbitmq_config|
 
-          rabbitmq_config.vm.box = "centos64"
-          rabbitmq_config.vm.box_url = template_centos_url
+          rabbitmq_config.vm.box = "ubuntu1210-64-3.0"
+          rabbitmq_config.vm.box_url = template_ubuntu121064_url
           rabbitmq_config.vm.host_name = "rabbitmq.local"
           rabbitmq_config.vm.forward_port 55672, 55672 # rabbitmq management console
           rabbitmq_config.vm.network :hostonly, hosts["rabbitmq.local"]

@@ -1,0 +1,1 @@
+default["coffee-script"]["version"] = "1.4.0"
