@@ -83,9 +83,6 @@ class MainController extends KDController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
 
-      if KD.config.profileEntryPoint?
-        @loginScreen.$().addClass 'land-page'
-
       @mainViewController = new MainViewController
         view    : mainView = new MainView
           domId : "kdmaincontainer"

@@ -4,9 +4,13 @@ class LoginView extends KDScrollView
     event.preventDefault()
     event.stopPropagation()
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      options = cssClass : 'land-page'
+
+    super options, data
+
     @hidden = no
 
     handler =(route, event)=>
