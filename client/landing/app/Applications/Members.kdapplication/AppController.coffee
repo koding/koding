@@ -183,11 +183,11 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView
 
-  showMemberContentDisplay:({content})=>
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerMember null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+  # showMemberContentDisplay:({content})->
+  #   contentDisplayController = @getSingleton "contentDisplayController"
+  #   controller = new ContentDisplayControllerMember null, content
+  #   contentDisplay = controller.getView()
+  #   contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createContentDisplay:(account, doShow = yes)->
     controller = new ContentDisplayControllerMember null, account
@@ -243,8 +243,8 @@ class MembersAppController extends AppController
 #
 
 class MembersListViewController extends KDListViewController
-  _windowDidResize:()->
-    @scrollView.setHeight @getView().getHeight() - 28
+  # _windowDidResize:()->
+  #   @scrollView.setHeight @getView().getHeight() - 28
 
   loadView:(mainView)->
     super
@@ -268,33 +268,33 @@ class MembersListViewController extends KDListViewController
 
     return @
 
-  reloadView:()->
-    {query, skip, limit, currentFilter} = @getOptions()
-    controller = @
+  # reloadView:()->
+  #   {query, skip, limit, currentFilter} = @getOptions()
+  #   controller = @
 
-    currentFilter query, {skip, limit}, (err, members)->
-      controller.removeAllItems()
-      controller.instantiateListItems members
-      if (myItem = controller.itemForId KD.whoami().getId())?
-        myItem.isMyItem()
+  #   currentFilter query, {skip, limit}, (err, members)->
+  #     controller.removeAllItems()
+  #     controller.instantiateListItems members
+  #     if (myItem = controller.itemForId KD.whoami().getId())?
+  #       myItem.isMyItem()
 
-        myItem.on "VisitorProfileWantsToBeShown", controller.getDelegate().showMemberContentDisplay.bind controller
-      controller._windowDidResize()
+  #       myItem.on "VisitorProfileWantsToBeShown", controller.getDelegate().bound
+  #     controller._windowDidResize()
 
-  pageDown:()->
-    listController = @
-    {query, skip, limit, currentFilter} = @getOptions()
-    skip += @getItemCount()
-    unless listController.isLoading
-      listController.isLoading = yes
-      currentFilter query, {skip, limit}, (err, members)->
-        listController.addItem member for member in members
-        if (myItem = listController.itemForId KD.whoami().getId())?
-          myItem.isMyItem()
-          myItem.on "VisitorProfileWantsToBeShown", listController.getDelegate().showMemberContentDisplay.bind listController
-        listController._windowDidResize()
-        listController.isLoading = no
-        listController.hideLazyLoader()
+  # pageDown:()->
+  #   listController = @
+  #   {query, skip, limit, currentFilter} = @getOptions()
+  #   skip += @getItemCount()
+  #   unless listController.isLoading
+  #     listController.isLoading = yes
+  #     currentFilter query, {skip, limit}, (err, members)->
+  #       listController.addItem member for member in members
+  #       if (myItem = listController.itemForId KD.whoami().getId())?
+  #         myItem.isMyItem()
+  #         myItem.on "VisitorProfileWantsToBeShown", listController.getDelegate().showMemberContentDisplay.bind listController
+  #       listController._windowDidResize()
+  #       listController.isLoading = no
+  #       listController.hideLazyLoader()
 
   getTotalMemberCount:(callback)=>
     KD.whoami().count? @getOptions().filterName, callback
