@@ -57,6 +57,15 @@ class OwnProfileView extends JView
       {callback,inputValue,blacklist} = event
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
+    @staticPageSwitch = new KDOnOffSwitch
+      size          : 'tiny'
+      title         : 'Show your Public Page'
+      cssClass      : 'static-page-switch'
+      defaultValue  : memberData.profile.staticPage.show
+      callback:(state)=>
+        memberData.setStaticPageVisibility state, =>
+          # log 'done', arguments
+
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
@@ -78,7 +87,7 @@ class OwnProfileView extends JView
         {{> @location}}
         <h5>
           <a class="user-home-link no-right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
-          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Your Public Page</a>
+          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">See your Public Page</a>{{> @staticPageSwitch}}
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">

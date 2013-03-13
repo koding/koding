@@ -188,9 +188,17 @@
   height 50px
   width auto
   button
+    text-shadow none
+    border none
+    bg image, none
     rounded 0
     bg color, white
     width 100%
+    &:hover
+     text-shadow none
+     border none
+     bg image, none
+     bg color #f5f5f5
 
 .profile-splitview
   height 100%
@@ -199,6 +207,15 @@
   overflow-y auto
   height 100%
   margin-left 125px
+
+.profile-admin-message
+  fr()
+  width auto
+  a
+    color #aaa
+    noTextDeco()
+    font-weight 300
+    text-shadow 2px 2px 3px rgba(0,0,0,0.05)
 
 .kdlistview.kdview.profile-content
 .profile-content
@@ -215,6 +232,9 @@
   .content-item
     border-bottom 1px solid #e8e8e8
     height auto
+    &.default-item
+      padding-top 35px
+      padding-left 35px
     > .title
       span.text
         max-width 600px
@@ -240,6 +260,11 @@
       text-rendering geometricPrecision
 
 
+.disable-static-page-modal
+.enable-static-page-modal
+  .modalformline p
+    line-height 1.5
+    margin-bottom 5px
 
 .new-blogpost-modal
   .formline
