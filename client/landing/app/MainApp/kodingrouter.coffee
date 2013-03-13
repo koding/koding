@@ -89,11 +89,12 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, state, route)->
+  openContent:(name, section, state, route, query)->
     @setPageTitle @getContentTitle state
     appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
+      contentDisplay.emit 'handleQuery', query
 
   loadContent:(name, section, slug, route)->
     KD.remote.api.JName.one {name: route}, (err, name)=>
@@ -115,15 +116,17 @@ class KodingRouter extends KDRouter
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
-    ({params:{name, slug}}, state, route)=>
+    ({params:{name, slug}, query}, state, route)=>
+      route = name unless route
       contentDisplay = @openRoutes[route]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
+        contentDisplay.emit 'handleQuery', query
       else
         # appManager.tell section, 'setGroup', name  if name?
         if state?
-          @openContent name, section, state, route
+          @openContent name, section, state, route, query
         else
           @loadContent name, section, slug, route
 
