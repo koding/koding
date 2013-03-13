@@ -131,6 +131,21 @@ func (d *DNode) ProcessMessage(data []byte) {
 		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
 	}
 
+	if m.Method == "methods" {
+		var args [](map[string]interface{})
+		err = m.Arguments.Unmarshal(&args)
+		if err != nil {
+			panic(err)
+		}
+		if d.OnRemote != nil {
+			d.OnRemote(args[0])
+		}
+		if d.OnReady != nil {
+			d.OnReady()
+		}
+		return
+	}
+
 	if index, err := strconv.Atoi(fmt.Sprint(m.Method)); err == nil {
 		args, err := m.Arguments.Array()
 		if err != nil {
@@ -144,24 +159,13 @@ func (d *DNode) ProcessMessage(data []byte) {
 			callArgs[i] = reflect.ValueOf(v)
 		}
 		d.callbacks[index].Call(callArgs)
-
-	} else if m.Method == "methods" {
-		var args [](map[string]interface{})
-		err = m.Arguments.Unmarshal(&args)
-		if err != nil {
-			panic(err)
-		}
-		if d.OnRemote != nil {
-			d.OnRemote(args[0])
-		}
-		if d.OnReady != nil {
-			d.OnReady()
-		}
-
-	} else if d.OnRootMethod != nil {
-		d.OnRootMethod(fmt.Sprint(m.Method), m.Arguments)
-
-	} else {
-		panic(fmt.Sprintf("Unknown method: %v.", m.Method))
+		return
 	}
+
+	if d.OnRootMethod != nil {
+		d.OnRootMethod(fmt.Sprint(m.Method), m.Arguments)
+		return
+	}
+
+	panic(fmt.Sprintf("Unknown method: %v.", m.Method))
 }

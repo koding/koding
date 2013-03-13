@@ -16,11 +16,10 @@ processMonitor = (require 'processes-monitor').start
     callback : ->
       console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
       process.exit()
-  # DISABLED TO TEST MEMORY LEAKS
-  # die :
-  #   after: "non-overlapping, random, 3 digits prime-number of minutes"
-  #   middleware : (name,callback) -> koding.disconnect callback
-  #   middlewareTimeout : 5000
+  die :
+    after: "non-overlapping, random, 3 digits prime-number of minutes"
+    middleware : (name,callback) -> koding.disconnect callback
+    middlewareTimeout : 5000
 
 # Services (order is important here)
 services =
@@ -83,9 +82,12 @@ if basicAuth
 
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
-  console.error err
-  stack = err?.stack
-  console.log stack  if stack?
+  console.log process.pid
+#    console.error err
+#    stack = err?.stack
+#    console.log stack  if stack?
+
+koding = require './bongo'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -114,34 +116,33 @@ if uploads?.enableStreamingUploads
   s3 = require('./s3') uploads.s3
 
   app.post '/Upload', s3..., (req, res)->
-    [protocol, path] = uploads.distribution.split '//'
     res.send(for own key, file of req.files
       filename  : file.filename
-      resource  : [protocol, nodePath.join path, file.path].join '//'
+      resource  : nodePath.join uploads.distribution, file.path
     )
 
-  # app.get '/Upload/test', (req, res)->
-  #   res.send \
-  #     """
-  #     <script>
-  #       function submitForm(form) {
-  #         var file, fld;
-  #         input = document.getElementById('image');
-  #         file = input.files[0];
-  #         fld = document.createElement('input');
-  #         fld.hidden = true;
-  #         fld.name = input.name + '-size';
-  #         fld.value = file.size;
-  #         form.appendChild(fld);
-  #         return true;
-  #       }
-  #     </script>
-  #     <form method="post" action="/Upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-  #       <p>Title: <input type="text" name="title" /></p>
-  #       <p>Image: <input type="file" name="image" id="image" /></p>
-  #       <p><input type="submit" value="Upload" /></p>
-  #     </form>
-  #     """
+  app.get '/Upload/test', (req, res)->
+    res.send \
+      """
+      <script>
+        function submitForm(form) {
+          var file, fld;
+          input = document.getElementById('image');
+          file = input.files[0];
+          fld = document.createElement('input');
+          fld.hidden = true;
+          fld.name = input.name + '-size';
+          fld.value = file.size;
+          form.appendChild(fld);
+          return true;
+        }
+      </script>
+      <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+        <p>Title: <input type="text" name="title" /></p>
+        <p>Image: <input type="file" name="image" id="image" /></p>
+        <p><input type="submit" value="Upload" /></p>
+      </form>
+      """
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
@@ -188,30 +189,6 @@ getAlias = do->
     if url in caseSensitiveAliases
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
-
-app.get '/:groupName', (req, res, next)->
-  {JGroup} = koding.models
-  {groupName} = req.params
-  JGroup.one { slug: groupName }, (err, group)->
-    if err or !group? then next err
-    else
-      group.fetchHomepageView (err, view)->
-        if err then next err
-        else res.send view
-
-app.get '/:userName', (req, res, next)->
-  {JAccount} = koding.models
-  {userName} = req.params
-  JAccount.one { 'profile.nickname': userName }, (err, account)->
-    if err or !account? then next err
-    else
-      console.log 'displaying static account'
-      account.fetchHomepageView (err, view)->
-        console.log 'homepage fetched'
-        if err then next err
-        else res.send view
-
-
 
 app.get '*', (req,res)->
   {url} = req

@@ -2,7 +2,7 @@
 class hosting_packages::tools {
     
     
-    $tools = ["htop","mc","bash-completion","gdb"]
+    $tools = ["htop","mc","bash-completion","gdb","icu","libicu-devel","pkgconfig"]
     
     package { $tools:
         ensure  => installed,

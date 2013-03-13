@@ -4,14 +4,13 @@ class KDBlockingModalView extends KDModalView
     $(window).off "keydown.modal"
     
   putOverlay:()->
-    @$overlay = $ "<div/>"
-      class : "kdoverlay"
+    @$overlay = $("<div/>", class : "kdoverlay")
     @$overlay.hide()
     @$overlay.appendTo "body"
     @$overlay.fadeIn 200
 
   setDomElement:(cssClass)->
-    @domElement = $ "
+    @domElement = $("
     <div class='kdmodal #{cssClass}'>
       <div class='kdmodal-shadow'>
         <div class='kdmodal-inner'>
@@ -19,6 +18,6 @@ class KDBlockingModalView extends KDModalView
           <div class='kdmodal-content'></div>
         </div>
       </div>
-    </div>"
+    </div>")
 
   click:(e)->
