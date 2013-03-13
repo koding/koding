@@ -5,6 +5,8 @@ module.exports = [
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
+  "libs/jquery-1.9.1.js",
+  "libs/underscore-min.1.3.js"
   # "libs/highlight.pack.js",
   # "libs/jquery-1.7.1.js",
   # "libs/jquery-1.7.1.min.js",
@@ -59,6 +61,7 @@ module.exports = [
   "Framework/components/tree/treeitemview.coffee",
 
   #tabs
+  "Framework/components/tabs/KDTabHandleView.coffee",
   "Framework/components/tabs/KDTabView.coffee",
   "Framework/components/tabs/KDTabPaneView.coffee",
   "Framework/components/tabs/KDTabViewWithForms.coffee",
@@ -136,7 +139,9 @@ module.exports = [
   "app/MainApp/notificationcontroller.coffee",
 
   # COMMON VIEWS
+
   "app/CommonViews/linkviews/linkview.coffee",
+  "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
   "app/CommonViews/linkviews/profilelinkview.coffee",
   "app/CommonViews/linkviews/profiletextview.coffee",
@@ -262,13 +267,13 @@ module.exports = [
   "app/MainApp/fs/fsbrokenlink.coffee",
 
   # avatararea
+  "app/MainApp/avatararea/avatarareapopup.coffee",
+  "app/MainApp/avatararea/avatarareapopuplist.coffee",
   "app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee",
   "app/MainApp/avatararea/avatarareaiconlink.coffee",
   "app/MainApp/avatararea/avatarareaiconmenu.coffee",
   "app/MainApp/avatararea/avatarareamessagespopup.coffee",
   "app/MainApp/avatararea/avatarareanotificationspopup.coffee",
-  "app/MainApp/avatararea/avatarareapopup.coffee",
-  "app/MainApp/avatararea/avatarareapopuplist.coffee",
   "app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee",
   "app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee",
   "app/MainApp/avatararea/avatarareasharestatuspopup.coffee",
@@ -302,7 +307,7 @@ module.exports = [
   # minifying jquery breaks the code.
 
 
-  "libs/jquery-hashchange.js",
+#  "libs/jquery-hashchange.js",
   "libs/jquery-timeago.js",
   "libs/date.format.js",
   "libs/jquery.cookie.js",
@@ -317,11 +322,11 @@ module.exports = [
   "libs/md5-min.js",
   # "libs/frogaloop.min.js",
 
-  "libs/bootstrap-twipsy.js",
-  "libs/jquery.tipsy.js",
+  # "libs/bootstrap-twipsy.js",
+  # "libs/jquery.tipsy.js",
   "libs/async.js",
   "libs/jquery.mousewheel.js",
-  "libs/mwheelIntent.js",
+  # "libs/mwheelIntent.js",
   # "libs/underscore.js",
   "libs/inflector.js",
   "libs/canvas-loader.js",
@@ -369,6 +374,7 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettings.coffee",
 
   # groups
+  "app/Applications/Groups.kdapplication/groupdata.coffee"
   "app/Applications/Groups.kdapplication/AppController.coffee",
 
   # termlib shell
@@ -463,6 +469,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
+  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
@@ -478,7 +485,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
@@ -614,7 +620,7 @@ module.exports = [
   # --- Styles ---
   "css/style.css",
   "css/highlight-styles/sunburst.css",
-  "css/tipsy.css",
+  # "css/tipsy.css",
 
   "Framework/themes/default/kdfn.styl",
   "stylus/appfn.styl",
