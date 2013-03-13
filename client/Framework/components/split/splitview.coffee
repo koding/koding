@@ -199,7 +199,7 @@ class KDSplitView extends KDView
 
   # EVENT HANDLING
 
-  _windowDidResize:(event)=>
+  _windowDidResize:(event)->
 
     @_setSize @_getParentSize()
     @_resizePanels()

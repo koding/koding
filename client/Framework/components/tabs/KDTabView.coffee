@@ -27,7 +27,7 @@ class KDTabView extends KDTabViewController
     #   tabHandle.$().animate({marginTop : 0},300)
 
   #SHOW/HIDE ELEMENTS
-  showPane:(pane)=>
+  showPane:(pane)->
     return unless pane
     @hideAllPanes()
     pane.show()
@@ -54,7 +54,8 @@ class KDTabView extends KDTabViewController
     @tabHandleContainer.show()
     @handlesHidden = no
 
-  toggleHandleContainer:(duration = 0)-> @tabHandleContainer.$().toggle duration
+  toggleHandleContainer:(duration = 0)->
+    @tabHandleContainer.$().toggle duration
 
   hideHandleCloseIcons:()->
     @tabHandleContainer.$().addClass "hide-close-icons"
