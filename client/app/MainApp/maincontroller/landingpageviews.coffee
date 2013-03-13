@@ -11,49 +11,46 @@ class LandingPageSideBar extends KDView
     log "here I am...."
 
     @navController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        itemClass    : NavigationLink
-      wrapper        : no
-      scrollView     : no
+      view         : new NavigationList
+        itemClass  : LandingPageNavigationLink
+        type       : "navigation"
+      scrollView   : no
+      wrapper      : no
     ,
       items : [
-        { title : "Activity",       path : "/Activity" }
-        { title : "Topics",         path : "/Topics" }
-        { title : "Members",        path : "/Members" }
-        { title : "Develop",        path : "/Develop", loggedIn: yes }
-        { title : "Apps",           path : "/Apps" }
+        { title : "Request To Join", action : "request" }
+        { title : "Register", loggedIn  : no,  action : "register" }
         { type  : "separator" }
-        { title : "Invite Friends", type : "account", loggedIn: yes }
-        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
-        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
+        { title : "Logout",   loggedIn  : yes, action : "logout" }
+        { title : "Login",    loggedOut : yes, action : "login" }
       ]
 
     @addSubView @nav = @navController.getView()
 
-class LandingPageNavLink extends KDCustomHTMLView
+class LandingPageNavigationLink extends KDListItemView
 
-  constructor:(options, data)->
+  constructor:(options = {},data)->
 
-    options.lazyDomId = 'landing-page-sidebar'
-    options.partial   = \
-      """
-        <li class='#{options.cssClass or options.title}'>
-          <a href='#{options.link or ""}'>
-            <span class='icon'></span>#{options.title}
-          </a>
-        </li>
-      """
+    data.type      or= ""
+    options.cssClass = KD.utils.curryCssClass "navigation-item clearfix account"#, data.type
 
-    super
+    super options,data
+
+    @name = data.title
 
   click:(event)->
-    {loginScreen} = @getSingleton 'mainController'
-    {action} = @getOptions()
+    {action, appPath, title, path, type} = @getData()
+    log "here", @getData()
 
-    action = 'login' unless KD.isLoggedIn()
+    {loginScreen} = @getSingleton 'mainController'
 
     switch action
       when 'login'
         loginScreen.animateToForm 'login'
+      when 'register'
+        loginScreen.animateToForm 'register'
+      when 'request'
+        loginScreen.animateToForm 'lr'
+
+  partial:(data)->
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
