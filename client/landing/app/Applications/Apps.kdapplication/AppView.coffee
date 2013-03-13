@@ -18,4 +18,7 @@ class AppsMainView extends KDView
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown",contentDisplay
 
-  _windowDidResize:()=>
+  _windowDidResize:()->
+    # @appsSplitView.setRightColumnClass()
+    # @appsSplitView.panels[1].$(".listview-wrapper").height @appsSplitView.getHeight() - 28
+

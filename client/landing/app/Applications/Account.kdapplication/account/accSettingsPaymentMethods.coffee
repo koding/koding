@@ -22,16 +22,16 @@ class AccountPaymentMethodsListController extends KDListViewController
     # ,data
     super options,data
 
-    loadView:->
-      super
-      # @getView().parent.addSubView addButton = new KDButtonView
-      #   style     : "clean-gray account-header-button"
-      #   title     : ""
-      #   icon      : yes
-      #   iconOnly  : yes
-      #   iconClass : "plus"
-      #   callback  : =>
-      #     @getListView().showModal()
+  loadView:->
+    super
+    # @getView().parent.addSubView addButton = new KDButtonView
+    #   style     : "clean-gray account-header-button"
+    #   title     : ""
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "plus"
+    #   callback  : =>
+    #     @getListView().showModal()
 
 
 class AccountPaymentMethodsList extends KDListView

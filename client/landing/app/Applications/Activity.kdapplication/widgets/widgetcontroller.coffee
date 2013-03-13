@@ -135,6 +135,7 @@ class ActivityUpdateWidgetController extends KDViewController
           @utils.killWait updateTimeout
           @emit 'OwnActivityHasArrived', activity
         else
+          warn err
           @emit 'OwnActivityHasFailed', data
           new KDNotificationView
             title : "There was an error, try again later!"
