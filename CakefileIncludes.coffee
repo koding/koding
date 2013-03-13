@@ -579,6 +579,9 @@ Includes =
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
+        LandingPageViews          : "./client/app/MainApp/maincontroller/landingpageviews.coffee"
+        LazyDomController         : "./client/app/MainApp/lazydomcontroller.coffee"
+
 
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.

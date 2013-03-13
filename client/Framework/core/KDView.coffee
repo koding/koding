@@ -223,6 +223,9 @@ class KDView extends KDObject
 
     @domElement = $ el
 
+    if lazyDomId
+      @utils.defer => @emit 'viewAppended'
+
   setDomId:(id)->
     @domElement.attr "id",id
 
