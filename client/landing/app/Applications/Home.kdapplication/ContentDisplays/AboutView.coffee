@@ -55,7 +55,7 @@ class AboutView extends JView
               <strong>Koding, Inc.</strong>
               <a href="http://goo.gl/maps/XGWr" target="_blank">
                 358 Brannan<br>
-                San Francisco, CA 94110
+                San Francisco, CA 94107
               </a>
             </p>
           </address>
