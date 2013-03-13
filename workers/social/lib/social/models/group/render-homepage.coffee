@@ -1,4 +1,3 @@
-
 module.exports = ({slug, title, content, body, avatar, counts, policy, description})->
   content ?= getDefaultGroupContents()
   """
@@ -19,14 +18,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
       <div class="group-buttons">
         <div class="group-nickname">#{slug}</div>
       </div>
-      <div class="group-links">
-        <ul class='main'>
-        </ul>
-        <hr/>
-
-        #{getNavigations()}
-
-      </div>
+      <div id="landing-page-sidebar"></div>
       <div class="group-koding-logo">
         <div class="logo" id='group-koding-logo'></div>
       </div>

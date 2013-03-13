@@ -38,9 +38,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
           <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
         </ul>
         <hr/>
-
-        #{getNavigations()}
-
+        <div id="landing-page-sidebar"></div>
       </div>
       <div class="profile-koding-logo">
         <div class="logo" id='profile-koding-logo'></div>
@@ -109,11 +107,6 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
       </div>
     """
 
-getNavigations = ->
-  """
-    <ul id='navigation-link-container' class='admin'></ul>
-  """
-
 getTags = (tags)->
   for value in tags
     """
@@ -150,7 +143,6 @@ getScripts =->
     require.config({baseUrl: "/js", waitSeconds:15});
     require([
       "order!/js/libs/jquery-1.8.2.min.js",
-      "order!/js/libs/jquery-ui-1.8.16.custom.min.js",
       "order!/js/underscore-min.1.3.js",
       "order!/js/libs/highlight.pack.js",
       "order!/js/kd.#{KONFIG.version}.js",

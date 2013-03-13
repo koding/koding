@@ -4,7 +4,7 @@ class SplitViewWithOlderSiblings extends SplitView
     siblings        = @parent.getSubViews()
     index           = siblings.indexOf @
     @_olderSiblings = siblings.slice 0,index
-    
+
   _windowDidResize:=>
     super
     offset        = 0

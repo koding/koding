@@ -1,5 +1,13 @@
 class SidebarController extends KDViewController
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+
+    mainController.on 'ManageRemotes', -> new ManageRemotesModal
+    mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+
   accountChanged:(account)->
 
     {profile} = account
@@ -38,7 +46,7 @@ class SidebarController extends KDViewController
           type     : "admin"
           loggedIn : yes
           callback : -> new AdminModal
-    
+
     group = KD.getSingleton('groupsController').getCurrentGroup()
     group.fetchMyRoles (err, roles)=>
       if err
