@@ -55,7 +55,7 @@ module.exports = class Builder
       bar.tick() if initial
     console.log "" if initial
 
-    if changed
+    if initial or changed
       @buildJS options
       @buildCSS options
       @buildHTML options
