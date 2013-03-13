@@ -48,18 +48,16 @@ func (c *CallbackSpec) Apply(value reflect.Value) error {
 			if i == len(c.Path) {
 				value.Set(reflect.ValueOf(c.Callback))
 				return nil
-			} else {
-				value = value.Elem()
 			}
+			value = value.Elem()
 		case reflect.Struct:
 			if innerPartial, ok := value.Addr().Interface().(*Partial); ok {
 				innerPartial.callbacks = append(innerPartial.callbacks, CallbackSpec{c.Path[i:], c.Callback})
 				return nil
-			} else {
-				name := c.Path[i]
-				value = value.FieldByName(strings.ToUpper(name[0:1]) + name[1:])
-				i++
 			}
+			name := c.Path[i]
+			value = value.FieldByName(strings.ToUpper(name[0:1]) + name[1:])
+			i++
 		case reflect.Func:
 			value.Set(reflect.ValueOf(c.Callback))
 			return nil

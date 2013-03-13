@@ -57,7 +57,7 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingRequests'
+        'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
       ]
     schema          :
       title         :
@@ -140,7 +140,6 @@ module.exports = class JGroup extends Module
                   process.nextTick ->
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
-
 
   @renderHomepage: require './render-homepage'
 
@@ -315,6 +314,15 @@ module.exports = class JGroup extends Module
   fetchMembers$: permit 'list members'
     success:(client, rest...)->
       @fetchMembers rest...
+
+  # fetchMyFollowees: permit 'list members'
+  #   success:(client, options, callback)->
+  #     [callback, options] = [options, callback]  unless callback
+  #     options ?= 
+
+
+  # fetchMyFollowees: permit 'list members'
+  #   success:(client, options, callback)->
 
   fetchReadme$: permit 'view readme'
     success:(client, rest...)-> @fetchReadme rest...
@@ -598,3 +606,6 @@ module.exports = class JGroup extends Module
   each:(selector, rest...)->
     selector.visibility = 'visible'
     Module::each.call this, selector, rest...
+
+  fetchVocabulary$: permit 'administer vocabularies'
+    success:(client, rest...)-> @fetchVocabulary rest...

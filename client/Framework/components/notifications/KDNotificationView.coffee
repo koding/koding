@@ -143,7 +143,7 @@ class KDNotificationView extends KDView
     clearInterval @notificationInterval
 
   notificationSetOverlay:()->
-    @notificationOverlay = $ "<div/>"
+    @notificationOverlay = $ "<div/>",
       class : "kdoverlay transparent"
     @notificationOverlay.hide()
     @notificationOverlay.appendTo "body"

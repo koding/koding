@@ -14,6 +14,9 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
+    @on 'Params', ({params, query})=>
+      @utils.defer => @getSingleton('groupsController').changeGroup params.name
+
   listen:->
     super
     unless @userRoute
@@ -54,11 +57,7 @@ class KodingRouter extends KDRouter
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group, ->
-      unless group?
-        KD.getSingleton("appManager").open app
-      else
-        # KD.getSingleton("appManager").tell app, 'setGroup', group
-        KD.getSingleton("appManager").open app
+      KD.getSingleton("appManager").open app
       KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
@@ -71,7 +70,7 @@ class KodingRouter extends KDRouter
   handleNotFound:(route)->
 
     status_404 = =>
-      KDRouter::handleNotFound.call @, route
+      KDRouter::handleNotFound.call this, route
 
     status_301 = (redirectTarget)=>
       @handleRoute "/#{redirectTarget}", replaceState: yes
@@ -145,7 +144,6 @@ class KodingRouter extends KDRouter
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
-      # 'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
@@ -199,11 +197,10 @@ class KodingRouter extends KDRouter
         KD.remote.cacheable name, (err, group, nameObj)=>
           @openContent name, 'Groups', group, route
 
-
       # content
-      '/:name?/Topics/:topicSlug'       : content.Topics
-      '/:name?/Activity/:activitySlug'  : content.Activity
-      '/:name?/Apps/:appSlug'           : content.Apps
+      '/:name?/Topics/:slug'          : content.Topics
+      '/:name?/Activity/:slug'        : content.Activity
+      '/:name?/Apps/:slug'            : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
