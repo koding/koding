@@ -280,6 +280,37 @@
     borderBox()
     width 100%
 
+.static-profile-tooltip
+  padding 0px
+  margin 0
+  borderBox()
+
+  .tooltip-formline
+    border-bottom 1px solid rgba(0,0,0,0.1)
+    padding 10px
+    borderBox()
+    &:last-child
+      border none
+  a.user-profile-link
+    font-size         14px
+    font-weight       300
+    line-height       25px
+    color  #ff9200 //#0A92BA
+    noTextDeco()
+    display block
+
+  .static-page-switch
+    width auto
+    span
+      font-size 12px
+      font-weight 300
+      color #a5a5a5
+  button.static-page-settings-button
+    > span.icon
+      size 15px 15px
+      sprite()
+      bg position, -20px -320px
+
 
 // .profile-landing
 //   height                  100%
