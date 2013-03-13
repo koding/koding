@@ -88,9 +88,9 @@ Vagrant::Config.run do |config|
           kodingServer_config.vm.provision :chef_solo do |chef|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
-            chef.add_role("ceph-client_vagrant")
             chef.add_role("base_server")
             chef.add_role("web_server_vagrant")
+            chef.add_role("ceph-client_vagrant")
             chef.add_role("rabbitmq_server")
           end
     end
