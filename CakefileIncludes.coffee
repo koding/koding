@@ -567,6 +567,9 @@ Includes =
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
+        # static profile views
+        staticprofilesettings       : "./client/app/MainApp/staticprofilesettings.coffee"
+
         # BOTTOM PANEL
         # bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
         # bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
