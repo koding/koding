@@ -51,8 +51,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
     <div class="profile-content-wrapper" id="profile-content-wrapper">
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
-        <div class="profile-name">#{firstName} #{lastName}</div>
-        <div class="profile-bio">#{about}</div>
+          <div class="profile-admin-message" id="profile-admin-message"></div>
+          <div class="profile-name">#{firstName} #{lastName}</div>
+          <div class="profile-bio">#{about}</div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
@@ -69,12 +70,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
           </ul>
         </div>
         <div class="profile-content-list" id=class="profile-content-list">
-          <div class="profile-content" id="profile-content">
-            #{getBlogPosts(lastBlogPosts)}
-          <div id="profile-show-more-wrapper" class="profile-show-more-wrapper">
-            <button id="profile-show-more-button" class="profile-show-more-button">Show more
-            </button>
-          </div>
+          <div class="profile-content" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
+            #{getBlogPosts(lastBlogPosts,firstName,lastName)}
+            <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
+             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more
+             </button>
+            </div>
           </div>
         </div>
       </div>
@@ -86,10 +87,10 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   </html>
   """
 
-getBlogPosts = (blogPosts=[])->
+getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
-  for blog in blogPosts
-    postDate = require('dateformat')(blog.meta.createdAt,"dddd, mmmm dS, yyyy at h:MM:ss TT")
+  for blog,i in blogPosts
+    postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" h:MM:ss TT')
     posts+="""
       <div class="content-item">
         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">#{postDate}</span></div>
@@ -98,7 +99,14 @@ getBlogPosts = (blogPosts=[])->
         </div>
       </div>
     """
-  posts
+  if i>0
+    posts
+  else
+    """
+      <div class="content-item default-item">
+        <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
+      </div>
+    """
 
 getNavigations = ->
   """

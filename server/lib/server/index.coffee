@@ -212,9 +212,13 @@ else
     JAccount.one { 'profile.nickname': userName }, (err, account)->
       if err or !account? then next err
       else
-        account.fetchHomepageView (err, view)->
-          if err then next err
-          else res.send view
+        if account.profile.staticPage?.show is yes
+          account.fetchHomepageView (err, view)->
+            if err then next err
+            else res.send view
+        else
+          res.header 'Location', '/Activity'
+          res.send 302
 
 
 
