@@ -294,8 +294,6 @@ class MainView extends KDView
 
   addProfileViews:->
 
-    log 'adding views'
-
     return if @profileViewsAdded
     @profileViewsAdded = yes
 
@@ -317,7 +315,6 @@ class MainView extends KDView
     profileShowMoreView = new KDView
       lazyDomId : 'profile-show-more-wrapper'
       cssClass : 'hidden'
-
 
     profileShowMoreButton = new KDButtonView
       lazyDomId : 'profile-show-more-button'
@@ -367,6 +364,17 @@ class MainView extends KDView
 
         if user.getId() is KD.whoami().getId()
 
+          profileAdminCustomizeView = new KDView
+            lazyDomId : 'profile-admin-customize'
+
+          profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
+            partial : 'Customize your Public Page'
+            cssClass : 'static-page-settings-button clean-gray'
+            click :=>
+              modal = new StaticProfileSettingsModalView
+
+          profileAdminCustomizeView.show()
+
           profileAdminMessageView = new KDView
             lazyDomId : 'profile-admin-message'
 
@@ -410,8 +418,7 @@ class MainView extends KDView
 
     @on 'ShowMoreButtonClicked', =>
       if profileUser
-        KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
-          log user
+        KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
           if err
             log err
 
