@@ -77,7 +77,7 @@ class GroupsAppController extends AppController
 
   resetUserArea:(account)->
     @setUserArea {
-      group: 'koding', user: account.profile.nickname
+      group: @currentGroup ? 'koding', user: account.profile.nickname
     }
 
   createFeed:(view)->
@@ -566,6 +566,19 @@ class GroupsAppController extends AppController
 
     return pane
 
+  prepareVocabularyTab:->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
+      (pane, vocabView)->
+        
+        group.fetchVocabulary (err, vocab)-> vocabView.setVocabulary vocab
+
+        vocabView.on 'VocabularyCreateRequested', ->
+          {JVocabulary} = KD.remote.api
+          JVocabulary.create {}, (err, vocab)->
+            vocabView.setVocabulary vocab
+
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     # controller = new ContentDisplayControllerGroups null, content
@@ -579,6 +592,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
+    @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()
