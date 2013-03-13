@@ -104,14 +104,40 @@ class LazyDomController extends KDController
     profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
+    profileLandingView.listenWindowResize()
+    profileLandingView._windowDidResize = =>
+      profileLandingView.setHeight window.innerHeight
+      profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+
     profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass : 'slideable'
 
-    new KDView
+    profileTitleView = new KDView
       lazyDomId : 'profile-title'
 
-    # new SplitViewWithOlderSiblings
+    profileShowMoreView = new KDView
+      lazyDomId : 'profile-show-more-wrapper'
+      cssClass : 'hidden'
+
+    profileShowMoreButton = new KDButtonView
+      lazyDomId : 'profile-show-more-button'
+      title :'Show more'
+      callback:=>
+        @emit 'ShowMoreButtonClicked'
+        profileShowMoreView.hide()
+        profileShowMoreView.setHeight 0
+        profileLandingView._windowDidResize()
+
+    profileContentView = new KDListView
+      lazyDomId : 'profile-content'
+      itemClass : StaticBlogPostListItem
+    , {}
+
+    if profileContentView.$().attr('data-count') > 0
+      profileShowMoreView.show()
+
+    # profileSplitView = new SplitViewWithOlderSiblings
     #   lazyDomId : 'profile-splitview'
     #   parent : profileContentWrapperView
 
@@ -129,31 +155,86 @@ class LazyDomController extends KDController
         profileLandingView.setClass 'profile-fading'
         @utils.wait 1100, => profileLandingView.setClass 'profile-hidden'
 
-    profileLogoView.setY profileLandingView.getHeight()-42
+    profileLogoView.$().css
+      top: profileLandingView.getHeight()-42
 
+    profileUser = null
     @utils.wait => profileLogoView.setClass 'animate'
 
-    KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
-      KD.remote.api.JBlogPost.some {originId : user.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
+    KD.remote.cacheable profileLandingView.$().attr('data-profile'), (err, user, name)=>
 
-        log err if err
-        profileContentView = new KDListView
-          lazyDomId : 'profile-content'
-          itemClass : StaticBlogPostListItem
-        , blogs
+      unless err
+        profileUser = user
 
-        profileContentListController = new KDListViewController
-          view : profileContentView
-        , blogs
+        if user.getId() is KD.whoami().getId()
 
-        unless err
-          profileContentView.$('.content-item').remove()
+          profileAdminCustomizeView = new KDView
+            lazyDomId : 'profile-admin-customize'
 
-          profileContentView.on 'ItemWasAdded', (instance, index)->
-            instance.viewAppended()
+          profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
+            title : 'Customize your Public Page'
+            cssClass : 'static-page-settings-button clean-gray'
+            click :=>
+              modal = new StaticProfileSettingsModalView
 
-          profileContentListController.instantiateListItems blogs
+          profileAdminCustomizeView.show()
 
-    profileLandingView.listenWindowResize()
-    profileLandingView._windowDidResize = =>
-      profileLandingView?.setHeight window.outerHeight
+          profileAdminMessageView = new KDView
+            lazyDomId : 'profile-admin-message'
+
+          showPage = user.profile.staticPage?.show
+
+          profileAdminMessageView.addSubView disableLink = new CustomLinkView
+            title : "#{if showPage is yes then 'Disable' else 'Enable'} this Public Page"
+            cssClass : 'message-disable'
+            click : (event)=>
+              event?.stopPropagation()
+              event?.preventDefault()
+
+              if user.profile.staticPage?.show is yes
+                modal =  new KDModalView
+                  cssClass : 'disable-static-page-modal'
+                  title : 'Do you really want to disable your Public Page?'
+                  content : """
+                    <div class="modalformline">
+                      <p>Disabling this feature will disable other people
+                      from publicly viewing your profile. You will still be
+                      able to access the page yourself.</p>
+                      <p>Do you want to continue?</p>
+                    </div>
+                    """
+                  buttons :
+                    "Disable the Public Page" :
+                      cssClass : 'modal-clean-red'
+                      callback :=>
+                        modal.destroy()
+                        user.setStaticPageVisibility no, (err,res)=>
+                          if err then log err
+                          disableLink.updatePartial 'Enable this Public Page'
+                    Cancel :
+                      cssClass : 'modal-cancel'
+                      callback :=>
+                        modal.destroy()
+              else
+                user.setStaticPageVisibility yes, (err,res)=>
+                  if err then log err
+                  disableLink.updatePartial 'Disable this Public Page'
+
+    @on 'ShowMoreButtonClicked', =>
+      if profileUser
+        KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
+          if err
+            log err
+
+          else
+            profileContentListController = new KDListViewController
+              view : profileContentView
+              startWithLazyLoader : yes
+            , blogs
+
+            profileContentView.$('.content-item').remove()
+
+            profileContentView.on 'ItemWasAdded', (instance, index)->
+              instance.viewAppended()
+
+            profileContentListController.instantiateListItems blogs
