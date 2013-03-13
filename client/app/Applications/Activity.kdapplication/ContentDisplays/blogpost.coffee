@@ -76,20 +76,9 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
 class StaticBlogPostListItem extends KDListItemView
   constructor:(options,data)->
     super options,data
-    # getBlogPosts = (blogPosts=[])->
-    #   posts = ""
-    #   for blog in blogPosts
-    @postDate = @getData().meta.createdAt
+    @postDate = new Date @getData().meta.createdAt
+    @postDate = @postDate.toLocaleString() # "dddd, mmmm dS, yyyy at h:MM:ss TT"
     # postDate = require('dateformat')(blog.meta.createdAt,"dddd, mmmm dS, yyyy at h:MM:ss TT")
-    #     posts+="""
-    #       <div class="content-item">
-    #         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">#{postDate}</span></div>
-    #         <div class="has-markdown">
-    #           <span class="data">#{blog.html}</span>
-    #         </div>
-    #       </div>
-    #     """
-    #   posts
 
     @setClass 'content-item'
 
