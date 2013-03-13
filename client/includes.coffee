@@ -54,21 +54,14 @@ module.exports = [
   "Framework/components/list/KDListItemView.coffee",
 
   #tree
-  "Framework/components/tree/KDTreeViewController.coffee",
-  "Framework/components/tree/KDTreeView.coffee",
-  "Framework/components/tree/KDTreeItemView.coffee",
   "Framework/components/tree/treeviewcontroller.coffee",
   "Framework/components/tree/treeview.coffee",
   "Framework/components/tree/treeitemview.coffee",
 
   #tabs
-  "Framework/components/tabs/KDTabViewController.coffee",
   "Framework/components/tabs/KDTabView.coffee",
   "Framework/components/tabs/KDTabPaneView.coffee",
   "Framework/components/tabs/KDTabViewWithForms.coffee",
-
-  # menus
-  "Framework/components/menus/KDContextMenu.coffee",
 
   # menus
   "Framework/components/contextmenu/contextmenu.coffee",
@@ -172,7 +165,6 @@ module.exports = [
   "app/CommonViews/ContentPageSplitBelowHeader.coffee",
   "app/CommonViews/CommonListHeader.coffee",
   "app/CommonViews/CommonInnerNavigation.coffee",
-  "app/CommonViews/CommonFeedMessage.coffee",
   "app/CommonViews/headers.coffee",
   # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
@@ -269,7 +261,18 @@ module.exports = [
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
 
-  "app/MainApp/avatararea.coffee",
+  # avatararea
+  "app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee",
+  "app/MainApp/avatararea/avatarareaiconlink.coffee",
+  "app/MainApp/avatararea/avatarareaiconmenu.coffee",
+  "app/MainApp/avatararea/avatarareamessagespopup.coffee",
+  "app/MainApp/avatararea/avatarareanotificationspopup.coffee",
+  "app/MainApp/avatararea/avatarareapopup.coffee",
+  "app/MainApp/avatararea/avatarareapopuplist.coffee",
+  "app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee",
+  "app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee",
+  "app/MainApp/avatararea/avatarareasharestatuspopup.coffee",
+
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
@@ -341,7 +344,6 @@ module.exports = [
   "app/MainApp/channels/kitechannel.coffee",
   "app/MainApp/ApplicationManager.coffee",
   "app/MainApp/AppController.coffee",
-  "app/MainApp/DocumentManager.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
 
@@ -368,7 +370,6 @@ module.exports = [
 
   # groups
   "app/Applications/Groups.kdapplication/AppController.coffee",
-  "app/Applications/Groups.kdapplication/groupscontroller.coffee",
 
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
@@ -456,13 +457,40 @@ module.exports = [
   "app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
-  # GROUPS VIEWS
-  "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
-  "app/Applications/Groups.kdapplication/AppView.coffee",
+  # GROUPS
+
+  # groups controllers
+  "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
+
+  # groups views
+  "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
-  "app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
+  "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupview.coffee",
+  "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
+  "app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee",
+  "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
+  "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
+  "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
+
+  # app 
+  "app/Applications/Groups.kdapplication/AppView.coffee",
   "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
 
   # APPS VIEWS
@@ -507,7 +535,6 @@ module.exports = [
   "app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxReplyForm.coffee",
-  "app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxReplyView.coffee",
 
   # FEED CONTROLLERS
@@ -523,7 +550,6 @@ module.exports = [
   # HOME VIEWS
   "app/Applications/Home.kdapplication/AppView.coffee",
 
-  "app/Applications/Home.kdapplication/ContentDisplays/AboutContentDisplayController.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
 
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
@@ -562,7 +588,7 @@ module.exports = [
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
   # "app/MainApp/oldPages/pageRegister.coffee",
-  "app/MainApp/oldPages/pageEnvironment.coffee",
+  # "app/MainApp/oldPages/pageEnvironment.coffee",
 
   # ENVIRONMENT SETTINGS
   # "app/MainApp/oldPages/environment/envSideBar.coffee",

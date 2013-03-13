@@ -118,7 +118,12 @@ module.exports = class Builder
           js = source
           jsSourceMap = null
 
-        ast = UglifyJS.parse js
+        try ast = UglifyJS.parse js
+        catch e
+          console.error """
+            JS parse error occurred during minification: #{file.sourcePath}
+            """
+          throw e
         ast.figure_out_scope()
         ast = ast.transform UglifyJS.Compressor(warnings: no)
         
@@ -142,7 +147,7 @@ module.exports = class Builder
     return true
 
   buildJS: (options)->
-    js = "var KD = {}; KD.config = " + JSON.stringify(@config.client.runtimeOptions) + "; (function(){ "
+    js = "(function(){ "
     lineOffset = 0
     sourceMap = new SourceMap.SourceMapGenerator file: @config.client.js, sourceRoot: @config.client.runtimeOptions.sourceUri
     for file in @scripts
@@ -173,6 +178,7 @@ module.exports = class Builder
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
+    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag()
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""
