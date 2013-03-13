@@ -25,12 +25,12 @@ if node["vagrant"]
 	file "/etc/apt/sources.list" do
 		mode "0644"
 		content <<-EOH
-		deb http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
-		deb http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
-		deb http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
-		deb-src http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
-		deb-src http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
-		deb-src http://ftp.halifax.rwth-aachen.de/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
 		EOH
 	end
 end
