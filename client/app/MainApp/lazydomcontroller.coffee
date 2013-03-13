@@ -63,17 +63,17 @@ class LazyDomController extends KDController
     groupLandingView.listenWindowResize()
     groupLandingView._windowDidResize = =>
       groupLandingView.setHeight window.innerHeight
+      groupContentView.setHeight window.innerHeight-groupTitleView.getHeight()
 
     groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
-    new KDView
+    groupTitleView = new KDView
       lazyDomId : 'group-title'
 
-    # new SplitViewWithOlderSiblings
-    #   lazyDomId : 'group-splitview'
-    #   parent : groupContentWrapperView
+    groupContentView = new KDView
+      lazyDomId : 'group-loading-content'
 
     groupPersonalWrapperView = new KDView
       lazyDomId : 'group-personal-wrapper'
@@ -94,7 +94,10 @@ class LazyDomController extends KDController
 
     groupLogoView.setY groupLandingView.getHeight()-42
 
-    @utils.wait => groupLogoView.setClass 'animate'
+    @utils.wait =>
+      groupLogoView.setClass 'animate'
+      groupLandingView._windowDidResize()
+
 
   addProfileViews:->
 
