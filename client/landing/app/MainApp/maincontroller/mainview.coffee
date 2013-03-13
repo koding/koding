@@ -219,10 +219,6 @@ class MainView extends KDView
       $('body').removeClass "login"
       $('body').addClass "loggedIn"
 
-      # new LandingPageNavLink
-      #   title : 'Logout'
-      #   link  : '/Logout'
-
       # Workaround for Develop Tab
       if "Develop" isnt @getSingleton("router")?.getCurrentPath()
         @contentPanel.setClass "social"
@@ -232,10 +228,6 @@ class MainView extends KDView
     else
       $('body').addClass "login"
       $('body').removeClass "loggedIn"
-
-      # new LandingPageNavLink
-      #   title  : 'Login'
-      #   action : 'login'
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()

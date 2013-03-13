@@ -738,6 +738,7 @@ class __LoginView extends KDScrollView
           else
             @registerForm.$('section').hide()
             @registerForm.$('div').show()
+
       when "home"
         parent.notification?.destroy()
         if @headBannerMsg?
