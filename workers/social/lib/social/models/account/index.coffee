@@ -62,7 +62,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility'
+        'setStaticPageVisibility','addStaticPageType','removeStaticPageType'
       ]
     schema                  :
       skillTags             : [String]
@@ -107,6 +107,7 @@ module.exports = class JAccount extends jraphical.Module
           show              :
             type            : Boolean
             default         : yes
+          showTypes         : [String]
         avatar              : String
         status              : String
         experience          : String
@@ -194,6 +195,26 @@ module.exports = class JAccount extends jraphical.Module
         skillTags     : @skillTags
         lastBlogPosts : blogPost or {}
       }
+
+  addStaticPageType: secure (client, type, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      types = @profile.staticPage.showTypes or []
+      # @update ($set: 'profile.staticPage.showTypes': types), callback
+    else
+      callback? new KodingError 'Access denied!'
+
+  removeStaticPageType: secure (client, type, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+
+      types = @profile.staticPage.showTypes or []
+      # @update ($set: 'profile.staticPage.showTypes': types), callback
+    else
+      callback? new KodingError 'Access denied!'
+
 
   setStaticPageVisibility: secure (client, visible=yes, callback)->
     {delegate}    = client.connection

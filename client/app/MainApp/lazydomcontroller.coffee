@@ -101,6 +101,8 @@ class LazyDomController extends KDController
     return if @profileViewsAdded
     @profileViewsAdded = yes
 
+    # reviving landing page as a whole
+
     profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
@@ -137,9 +139,24 @@ class LazyDomController extends KDController
     if profileContentView.$().attr('data-count') > 0
       profileShowMoreView.show()
 
-    # profileSplitView = new SplitViewWithOlderSiblings
-    #   lazyDomId : 'profile-splitview'
-    #   parent : profileContentWrapperView
+    # reviving content type selectors
+
+    profileStatusActivityItem = new KDView
+      lazyDomId : 'CStatusActivity'
+
+    profileBlogPostActivityItem = new KDView
+      lazyDomId : 'CBlogPostActivity'
+
+    profileCodeSnipActivityItem = new KDView
+      lazyDomId : 'CCodeSnipActivity'
+
+    profileDiscussionActivityItem = new KDView
+      lazyDomId : 'CDiscussionActivity'
+
+    profileTutorialActivityItem = new KDView
+      lazyDomId : 'CTutorialActivity'
+
+    # reviving logo
 
     profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
@@ -161,12 +178,14 @@ class LazyDomController extends KDController
     profileUser = null
     @utils.wait => profileLogoView.setClass 'animate'
 
-    KD.remote.cacheable profileLandingView.$().attr('data-profile'), (err, user, name)=>
+    KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
 
       unless err
         profileUser = user
 
         if user.getId() is KD.whoami().getId()
+
+          # reviving admin stuff
 
           profileAdminCustomizeView = new KDView
             lazyDomId : 'profile-admin-customize'
@@ -175,8 +194,8 @@ class LazyDomController extends KDController
             title : 'Customize your Public Page'
             cssClass : 'static-page-settings-button clean-gray'
             click :=>
-              modal = new StaticProfileSettingsModalView
-
+              # modal = new StaticProfileSettingsModalView
+              @emit 'CustomizeLinkClicked'
           profileAdminCustomizeView.show()
 
           profileAdminMessageView = new KDView
@@ -220,8 +239,34 @@ class LazyDomController extends KDController
                   if err then log err
                   disableLink.updatePartial 'Disable this Public Page'
 
+
+    @on 'CustomizeLinkClicked',=>
+          # reviving customization
+
+          types = profileUser.profile.staticPage.showTypes or []
+
+          profileStatusActivityItem.addSubView statusSwitch = new KDOnOffSwitch
+            cssClass : 'profile-stream-switch'
+            size : 'tiny'
+            title     : 'Show'
+            defaultValue : 'CStatusActivity' in types
+            callback  : (state)=>
+              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CStatusActivity', =>
+                log 'changed type',arguments
+
+          profileBlogPostActivityItem.addSubView blogPostSwitch = new KDOnOffSwitch
+            cssClass : 'profile-stream-switch'
+            size : 'tiny'
+            title     : 'Show'
+            defaultValue : 'CBlogPostActivity' in types
+            callback  : (state)=>
+              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CBlogPostActivity', =>
+                log 'changed type',arguments
+
+
     @on 'ShowMoreButtonClicked', =>
       if profileUser
+        log profileUser
         KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
           if err
             log err

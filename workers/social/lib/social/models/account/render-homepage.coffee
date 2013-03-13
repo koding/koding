@@ -60,10 +60,11 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
           <h4>Show me</h4>
           <ul>
             <li>Everything</li>
-            <li>Status Updates</li>
-            <li>Code Snippets</li>
-            <li>Discussions</li>
-            <li>Tutorials</li>
+            <li id="CStatusActivity">Status Updates</li>
+            <li id="CBlogPostActivity">Blog Posts</li>
+            <li id="CCodeSnipActivity">Code Snippets</li>
+            <li id="CDiscussionActivity">Discussions</li>
+            <li id="CTutorialActivity">Tutorials</li>
             <li>Q&amp;A</li>
             <li>Links</li>
           </ul>
