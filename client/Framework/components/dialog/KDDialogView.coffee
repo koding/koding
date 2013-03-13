@@ -49,7 +49,7 @@ class KDDialogView extends KDView
 
   putOverlay:()->
     {topOffset} = @getOptions()
-    @$overlay = $("<div/>")
+    @$overlay = $ "<div/>",
       class : "kdoverlay"
       css   :
         height : @$().parent().height() - topOffset
