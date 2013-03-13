@@ -1,6 +1,5 @@
 {spawn, exec}     = require 'child_process'
 CoffeeScript      = require 'coffee-script'
-ExecSync          = require 'execSync'
 fs                = require 'fs'
 nib               = require 'nib'
 path              = require 'path'
@@ -46,7 +45,6 @@ module.exports = class Builder
         else
           throw "Unrecognized file extension."
 
-    ExecSync.code """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes."b[2]"="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
     @compileChanged options, true
 
   compileChanged: (options, initial)->
@@ -80,59 +78,66 @@ module.exports = class Builder
         file.sourceMap = fs.readFileSync file.sourceMapPath, "utf-8" if fs.existsSync file.sourceMapPath
       return false
 
-    content = fs.readFileSync file.sourcePath, "utf-8"
-    sourceMap = null
-    if file.extension == ".coffee"
-      try
-        result = CoffeeScript.compile content,
-          filename: file.includePath
-          bare: yes
-          sourceMap: yes
-        content = result.js
-        sourceMap = result.v3SourceMap
-      catch error
-        log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
-        spawn.apply null, ["say", ["coffee script error"]]
-        file.cacheTime = sourceTime # avoid repeated error
-        return
+    source = fs.readFileSync file.sourcePath, "utf-8"
+    switch file.extension
+      when ".coffee", ".js"
+        if file.extension == ".coffee"
+          try
+            result = CoffeeScript.compile source,
+              filename: file.includePath
+              bare: yes
+              sourceMap: yes
+            js = if result.js.indexOf("pistachio") != -1 
+              compilePistachios(result.js).toString()
+            else
+              result.js
 
-    if file.extension == ".coffee" || file.extension == ".js"
-      content = compilePistachios(content).toString() if content.indexOf("pistachio") != -1
+            fixedSourceMap = new SourceMap.SourceMapGenerator file: ""
+            new SourceMap.SourceMapConsumer(result.v3SourceMap).eachMapping (mapping)->
+              if mapping.generatedLine > 1 && mapping.originalLine > 0
+                fixedSourceMap.addMapping
+                  generated:
+                    line: mapping.generatedLine - 1
+                    column: mapping.generatedColumn
+                  original:
+                    line: mapping.originalLine
+                    column: mapping.originalColumn
+                  source: file.includePath
+            jsSourceMap = fixedSourceMap.toJSON()
 
-      if sourceMap?
-        fixedSourceMap = new SourceMap.SourceMapGenerator file: ""
-        new SourceMap.SourceMapConsumer(sourceMap).eachMapping (mapping)->
-          if mapping.generatedLine > 1 && mapping.originalLine > 0
-            fixedSourceMap.addMapping
-              generated:
-                line: mapping.generatedLine - 1
-                column: mapping.generatedColumn
-              original:
-                line: mapping.originalLine
-                column: mapping.originalColumn
-              source: file.includePath
-        sourceMap = fixedSourceMap.toJSON()
+            if file.includePath.indexOf("Framework") == 0
+              r = /^class (\w+)/g
+              while match = r.exec source
+                js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
+          catch error
+            log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
+            spawn.apply null, ["say", ["coffee script error"]]
+            file.cacheTime = sourceTime # avoid repeated error
+            return
+        else
+          js = source
+          jsSourceMap = null
 
-      ast = UglifyJS.parse content
-      ast.figure_out_scope()
-      ast = ast.transform UglifyJS.Compressor(warnings: no)
-      
-      sourceMap = UglifyJS.SourceMap(orig: sourceMap)
-      stream = UglifyJS.OutputStream source_map: sourceMap
-      ast.print stream
-      content = stream.toString()
-      sourceMap = sourceMap.toString()
-    
-    if file.extension == ".styl"
-        Stylus(content).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
+        ast = UglifyJS.parse js
+        ast.figure_out_scope()
+        ast = ast.transform UglifyJS.Compressor(warnings: no)
+        
+        uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
+        stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
+        ast.print stream
+        file.content = stream.toString()
+        file.sourceMap = uglifiedSourceMap.toString()
+        fs.writeFileSync file.sourceMapPath, file.sourceMap, "utf8"
+      when ".styl"
+        Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
           log.error "error with styl file at #{file.includePath}" if err
-          content = css
+          file.content = css
+      when ".css"
+        file.content = source
+      else
+        throw "Illegal file extension: " + file.extension
 
-    fs.writeFileSync file.cachePath, content, "utf8"
-    fs.writeFileSync file.sourceMapPath, sourceMap, "utf8" if sourceMap?
-
-    file.content = content
-    file.sourceMap = sourceMap
+    fs.writeFileSync file.cachePath, file.content, "utf8"
     file.cacheTime = sourceTime
     return true
 
