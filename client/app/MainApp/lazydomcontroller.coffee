@@ -255,7 +255,6 @@ class LazyDomController extends KDController
             defaultValue : 'CStatusActivity' in types
             callback  : (state)=>
               profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CStatusActivity', =>
-                log 'changed type',arguments
 
           profileBlogPostActivityItem.addSubView blogPostSwitch = new KDOnOffSwitch
             cssClass : 'profile-stream-switch'
@@ -264,7 +263,31 @@ class LazyDomController extends KDController
             defaultValue : 'CBlogPostActivity' in types
             callback  : (state)=>
               profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CBlogPostActivity', =>
-                log 'changed type',arguments
+
+          profileCodeSnipActivityItem.addSubView codeSnipSwitch = new KDOnOffSwitch
+            cssClass : 'profile-stream-switch'
+            size : 'tiny'
+            title     : 'Show'
+            defaultValue : 'CCodeSnipActivity' in types
+            callback  : (state)=>
+              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CCodeSnipActivity', =>
+
+          profileDiscussionActivityItem.addSubView discussionSwitch = new KDOnOffSwitch
+            cssClass : 'profile-stream-switch'
+            size : 'tiny'
+            title     : 'Show'
+            defaultValue : 'CDiscussionActivity' in types
+            callback  : (state)=>
+              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CDiscussionActivity', =>
+
+          profileTutorialActivityItem.addSubView tutorialSwitch = new KDOnOffSwitch
+            cssClass : 'profile-stream-switch'
+            size : 'tiny'
+            title     : 'Show'
+            defaultValue : 'CTutorialActivity' in types
+            callback  : (state)=>
+              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CTutorialActivity', =>
+
 
 
     @on 'ShowMoreButtonClicked', =>

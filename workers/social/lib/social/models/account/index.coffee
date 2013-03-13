@@ -200,8 +200,7 @@ module.exports = class JAccount extends jraphical.Module
     {delegate}    = client.connection
     isMine        = this.equals delegate
     if isMine
-      types = @profile.staticPage.showTypes or []
-      # @update ($set: 'profile.staticPage.showTypes': types), callback
+      @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
     else
       callback? new KodingError 'Access denied!'
 
@@ -209,9 +208,7 @@ module.exports = class JAccount extends jraphical.Module
     {delegate}    = client.connection
     isMine        = this.equals delegate
     if isMine
-
-      types = @profile.staticPage.showTypes or []
-      # @update ($set: 'profile.staticPage.showTypes': types), callback
+      @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
     else
       callback? new KodingError 'Access denied!'
 
