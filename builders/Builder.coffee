@@ -18,10 +18,42 @@ log =
 module.exports = class Builder
   buildClient: (options)->
     @config = require('koding-config-manager').load("main.#{options.configFile}")
+    @incluesFileTime = 0
+    @compileChanged options, true
+
+  compileChanged: (options, initial)->
+    changed = @readIncludesFile()
+
+    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @files.length, width:50, incomplete:" "} if initial
+    for file in @files
+      changed |= @compileFile file
+      bar.tick() if initial
+    console.log "" if initial
+
+    if initial or changed
+      @buildJS options
+      @buildCSS options
+      @buildHTML options
+      log.info "Done building client."
+      if require("os").platform() is 'linux'
+        exec "notify-send \"Koding instance updated\""
+
+    if @config.client.watch is yes
+      log.info "Watching for changes..." if initial
+      setTimeout =>
+        @compileChanged options, false
+      , 1000
+
+  readIncludesFile: ->
+    includesFile = @config.client.includesPath + "/includes.coffee"
+    time = Date.parse(fs.statSync(includesFile).mtime)
+    return false if @incluesFileTime == time
+    @incluesFileTime = time
+
     @files = []
     @scripts = []
     @styles = []
-    for includePath in require("../" + @config.client.includesPath + "/includes.coffee")
+    for includePath in CoffeeScript.eval(fs.readFileSync(includesFile, "utf-8"))
       cachePath = ".build/" + includePath.replace(/\//g,"_")
       file = {
         includePath: includePath
@@ -45,29 +77,7 @@ module.exports = class Builder
         else
           throw "Unrecognized file extension."
 
-    @compileChanged options, true
-
-  compileChanged: (options, initial)->
-    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @files.length, width:50, incomplete:" "} if initial
-    changed = false
-    for file in @files
-      changed |= @compileFile file
-      bar.tick() if initial
-    console.log "" if initial
-
-    if initial or changed
-      @buildJS options
-      @buildCSS options
-      @buildHTML options
-      log.info "Done building client."
-      if require("os").platform() is 'linux'
-        exec "notify-send \"Koding instance updated\""
-
-    if @config.client.watch is yes
-      log.info "Watching for changes..." if initial
-      setTimeout =>
-        @compileChanged options, false
-      , 1000
+    return true
 
   compileFile: (file)->
     sourceTime = Date.parse fs.statSync(file.sourcePath).mtime

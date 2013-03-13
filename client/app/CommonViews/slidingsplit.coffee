@@ -136,7 +136,7 @@ class SlidingSplit extends KDSplitView
     @getOptions().sizes = @sizes.slice()
     super
 
-  _windowDidResize:(event)=>
+  _windowDidResize:(event)->
 
     @utils.wait 300, =>
       @_resizePanels()
