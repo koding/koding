@@ -9,7 +9,7 @@
 
 packages = %w( make gcc patch screen telnet git lvm2 sysstat mc )
 rpm_diff = %w( vim-enhanced man )
-deb_diff = %w( vim mailutils)
+deb_diff = %w( vim mailutils software-properties-common )
 
 case node['platform_family']
 when "rhel", "cloudlinux"

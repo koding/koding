@@ -11,6 +11,10 @@ execute "build_modules" do
                 })
 end
 
+execute "kill_vagrant" do
+    command "ps auxf | grep 'SCREEN -d -m cake -c vagrant run' | grep -v grep | awk '{system(\"sudo kill -9 \" $2)}'"
+end
+
 execute "run_vagrant" do
 	cwd "/opt/koding"
 	command "screen -d -m cake -c vagrant run"

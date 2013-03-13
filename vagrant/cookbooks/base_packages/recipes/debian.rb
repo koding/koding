@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make vim screen mercurial golang-go htop bzr ruby-dev git )
+packages = %w( make vim screen mercurial htop bzr ruby-dev git )
 
 file "/etc/apt/sources.list" do
 		mode "0644"

@@ -17,7 +17,10 @@ when "rhel", "cloudlinux"
     end
 when "debian"
     include_recipe "apt::golang"
-    apt_package "golang-#{node['go']['dpkg_version']}"
+    apt_package "golang-stable" do
+    	version "#{node["go"]["dpkg_version"]}"
+    	action :install
+    end
 end
 
 
