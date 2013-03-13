@@ -181,6 +181,30 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+app.get '/:groupName', (req, res, next)->
+  {JGroup} = koding.models
+  {groupName} = req.params
+  JGroup.one { slug: groupName }, (err, group)->
+    if err or !group? then next err
+    else
+      group.fetchHomepageView (err, view)->
+        if err then next err
+        else res.send view
+
+app.get '/:userName', (req, res, next)->
+  {JAccount} = koding.models
+  {userName} = req.params
+  JAccount.one { 'profile.nickname': userName }, (err, account)->
+    if err or !account? then next err
+    else
+      if account.profile.staticPage?.show is yes
+        account.fetchHomepageView (err, view)->
+          if err then next err
+          else res.send view
+      else
+        res.header 'Location', '/Activity'
+        res.send 302
+
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->
