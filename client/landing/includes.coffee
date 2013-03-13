@@ -131,7 +131,6 @@ module.exports = [
   "Framework/components/autocomplete/multipleinputview.coffee",
   "Framework/components/autocomplete/autocompletemisc.coffee",
   "Framework/components/autocomplete/autocompleteditems.coffee",
-  "Framework/classregistry.coffee",
 
   # --- Application ---
   "routes.coffee",
