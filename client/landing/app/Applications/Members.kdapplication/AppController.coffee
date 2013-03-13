@@ -187,7 +187,7 @@ class MembersAppController extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     callback contentDisplay
-    contentDisplay
+    return contentDisplay
 
   setCurrentViewNumber:(type)->
     KD.whoami().count? type, (err, count)=>
