@@ -35,13 +35,6 @@ class StaticProfileTooltip extends KDView
       callback:(state)=>
         @getData().setStaticPageVisibility state, =>
           # log 'done', arguments
-    @staticPageSettingsButton = new KDButtonView
-      title : 'Customize your Public Page'
-      cssClass : 'static-page-settings-button clean-gray'
-      icon : yes
-      iconClass : 'settings'
-      callback :=>
-        modal = new StaticProfileSettingsModalView
 
   viewAppended:->
     super
@@ -56,8 +49,5 @@ class StaticProfileTooltip extends KDView
     </div>
     <div class="tooltip-formline">
     <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Visit your Public Page</a>
-    </div>
-    <div class="tooltip-formline">
-    {{> @staticPageSettingsButton}}
     </div>
     """

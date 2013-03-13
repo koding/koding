@@ -51,6 +51,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
     <div class="profile-content-wrapper" id="profile-content-wrapper">
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
+          <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
           <div class="profile-name">#{firstName} #{lastName}</div>
           <div class="profile-bio">#{about}</div>
