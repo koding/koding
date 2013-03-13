@@ -44,6 +44,10 @@ end
 
 execute "service lxc-net stop"
 
+package "cgroup-lite" do
+  action :install 
+end
+
 template "/etc/default/lxc" do
   source "lxc.erb"
   mode 0644

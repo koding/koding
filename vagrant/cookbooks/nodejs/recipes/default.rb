@@ -8,5 +8,5 @@
 #
 
 include_recipe "nodejs::nodejs"
-include_recipe "nodejs::coffee-script"
+# include_recipe "nodejs::coffee-script"
 

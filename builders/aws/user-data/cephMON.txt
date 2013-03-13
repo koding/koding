@@ -1,6 +1,8 @@
 #!/bin/bash
 /bin/hostname a.ceph.system.aws.koding.com
 echo "127.0.0.1 $(hostname)" | tee /etc/hosts -a
+route add default gw 10.0.0.63
+route del default gw 10.0.0.1
 set -e -x
 LOGFILE="/var/log/user-data-out.log"
 mkdir -p /etc/chef

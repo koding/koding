@@ -1,0 +1,12 @@
+{
+  "id": "bekir",
+  "password": "$1$il/mnqEr$E9PyVcd3O69VDzrhA145D0",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+WBkhCryZ7A8v40/mLoi7bpp5k4BWlxafmR9Lj8q3M6AF3t5ezy/7PTqKHnxQHCOTS9i/U91/2O/gEElh8bgcnnKu0d3w4xLVDKEU0DrELdmZ4oxKT0RajeeywGP2WVMsQVOpWPcHmACe15ZdPIuuIQHBc8CeitEWTVCnteokc6QvIzx8FEBi1Kue9UsUIf7b5OMsSw95OwIBIjkKNFocoR4g6VjFRe4YfHwh6DOGCcTu7UldlSpPjcG4l9258VtZ4+W2Dtun1kAVgvad7AGBKx/o4X9B53+P5Q8aPDixkmOzpg5b9268EGGdi9eIU5pqXShIImkQEFZw7S10pUTd bekir@hede"
+  ],
+  "groups": [ "developer", "sysadmin" ],
+  "uid": 2015,
+  "shell": "\/bin\/bash",
+  "comment": "Bekir Dogan",
+  "email": "bekir@koding.com"
+}
