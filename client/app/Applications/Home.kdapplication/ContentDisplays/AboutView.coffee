@@ -54,8 +54,8 @@ class AboutView extends JView
             <p class='right-overflow'>
               <strong>Koding, Inc.</strong>
               <a href="http://goo.gl/maps/XGWr" target="_blank">
-                153 Townsend, Suite 9072<br>
-                San Francisco, CA 94107
+                358 Brannan<br>
+                San Francisco, CA 94110
               </a>
             </p>
           </address>
