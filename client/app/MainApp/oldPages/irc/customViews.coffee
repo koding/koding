@@ -15,7 +15,7 @@
 #
 # class Chat_IrcConsoleView extends Chat_ViewStructure
 #
-#   _windowDidResize:()=>
+#   _windowDidResize:->
 #     @doResize()
 #
 #   viewAppended:->
@@ -45,7 +45,7 @@
 #
 # class Chat_FriendsView extends Chat_ViewStructure
 #
-#   _windowDidResize:()=>
+#   _windowDidResize:->
 #     @doResize()
 #
 #   viewAppended:->
@@ -136,7 +136,7 @@
 #
 # class Chat_RoomsView extends Chat_ViewStructure
 #
-#   _windowDidResize:()=>
+#   _windowDidResize:->
 #     @doResize()
 #
 #   viewAppended:->
@@ -382,7 +382,7 @@
 #
 # class Chat_IrcChatWindow extends Chat_GenericChatWindow
 #
-#   _windowDidResize:()=>
+#   _windowDidResize:->
 #     @doResize()
 #
 #   viewAppended:->
