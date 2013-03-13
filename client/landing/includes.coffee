@@ -664,7 +664,7 @@ module.exports = [
   "stylus/app.viewer.styl",
   "stylus/app.book.styl",
   "stylus/app.codeshare.styl",
-
+  "stylus/app.group.styl",
   "stylus/temp.styl",
 
   # mediaqueries should stay at the bottom
