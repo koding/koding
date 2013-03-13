@@ -3,6 +3,7 @@
 /.revision
 .DS_Store
 website/js/kd*.js
+website/js/kd*.js.map
 website/css/kd*.css
 website/index.html
 v8.log
@@ -26,8 +27,6 @@ ebin
 /kites/os
 .project
 /kites/terminal/.tmp
-
-/client/Framework/classregistry.coffee
 
 /node_modules/*
 

@@ -5,7 +5,7 @@ module.exports =
   pidPath           : "/var/run/node/Applications.pid"
   logFile           : "/var/log/node/Applications.log"
   amqp                  :
-    host                : 'rabbitmq.local'
+    host                : 'localhost'
     login               : 'prod-sharedhosting-kite'
     password            : 'djfjfhgh4455__5'
     heartbeat           : 10

@@ -115,6 +115,8 @@ func (conn *Conn) receiveLoop() {
 		if len(firstComponent) == 0 {
 			firstComponent = readUntil(reader, ' ')
 		}
+
+		message.Command = firstComponent
 		if firstComponent[0] == ':' {
 			prefix := firstComponent[1:]
 
@@ -133,9 +135,8 @@ func (conn *Conn) receiveLoop() {
 			message.Source.Name = prefix
 
 			message.Command = readUntil(reader, ' ')
-		} else {
-			message.Command = firstComponent
 		}
+
 		firstComponent = ""
 
 		for {
@@ -143,14 +144,13 @@ func (conn *Conn) receiveLoop() {
 				message.Params = append(message.Params, readUntil(reader, '\r'))
 				reader.ReadByte() // \n
 				break
-			} else {
-				reader.UnreadByte()
-				param := strings.Split(readUntil(reader, ' '), "\r\n")
-				message.Params = append(message.Params, param[0])
-				if len(param) > 1 { // workaround for missing trailing space (not RFC conform)
-					firstComponent = param[1]
-					break
-				}
+			}
+			reader.UnreadByte()
+			param := strings.Split(readUntil(reader, ' '), "\r\n")
+			message.Params = append(message.Params, param[0])
+			if len(param) > 1 { // workaround for missing trailing space (not RFC conform)
+				firstComponent = param[1]
+				break
 			}
 		}
 

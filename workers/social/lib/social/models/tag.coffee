@@ -1,7 +1,6 @@
 
 jraphical = require 'jraphical'
 CActivity = require './activity'
-JAccount  = require './account'
 KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
@@ -172,6 +171,7 @@ module.exports = class JTag extends jraphical.Module
   @create = permit 'create tags'
     success: (client, data, callback)->
       {delegate} = client.connection
+      {group} = client.context
       tag = new this data
       tag.save client, (err)->
         if err

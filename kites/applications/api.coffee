@@ -95,7 +95,7 @@ checkFlag = (username, flag, callback)->
     console.error "Timeout reached, does Internet too bad?"
     callback no
 
-module.exports = new Kite 'applications'
+module.exports = new Kite 'applications',
 
   pink: (options, callback)->
     callback null, "Ponk #{options.username}"

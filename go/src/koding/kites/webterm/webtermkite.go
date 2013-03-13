@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"koding/tools/dnode"
 	"koding/tools/kite"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/tools/pty"
 	"koding/tools/utils"
@@ -31,7 +32,7 @@ type WebtermRemote struct {
 }
 
 func main() {
-	utils.Startup("kite.webterm", true)
+	lifecycle.Startup("kite.webterm", true)
 
 	k := kite.New("webterm")
 
@@ -87,7 +88,7 @@ func main() {
 func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
 	server := &WebtermServer{
 		remote: remote,
-		pty:    pty.New(),
+		pty:    pty.New(pty.DefaultPtsPath),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 	session.CloseOnDisconnect(server)
@@ -95,7 +96,11 @@ func newWebtermServer(session *kite.Session, remote WebtermRemote, args []string
 	command := []string{"/bin/bash", "-l"}
 	// command = append(command, args...)
 	cmd := session.CreateCommand(command...)
-	server.pty.AdaptCommand(cmd)
+	server.pty.Slave.Chown(int(cmd.SysProcAttr.Credential.Uid), -1)
+	cmd.Stdin = server.pty.Slave
+	cmd.Stdout = server.pty.Slave
+	cmd.Stderr = server.pty.Slave
+	cmd.SysProcAttr.Setsid = true
 	err := cmd.Start()
 	if err != nil {
 		panic(err)
