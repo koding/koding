@@ -8,5 +8,6 @@
   "uid": 2006,
   "shell": "\/bin\/bash",
   "comment": "Devrim Yasar",
-  "email": "devrim@koding.com"
+  "email": "devrim@koding.com",
+  "allowedin": ["_default", "ceph"]
 }

@@ -9,5 +9,6 @@
   "uid": 2008,
   "shell": "\/bin\/bash",
   "comment": "Fatih Acet",
-  "email": "fatihacet@koding.com"
+  "email": "fatihacet@koding.com",
+  "allowedin": ["_default", "ceph"]
 }

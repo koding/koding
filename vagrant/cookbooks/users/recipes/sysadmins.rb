@@ -20,8 +20,18 @@
 
 # Searches data bag "users" for groups attribute "sysadmin".
 # Places returned users in Unix group "sudo" with GID 27.
-users_manage "sysadmin" do
-  group_name "sudo"
-  group_id 27
-  action [ :remove, :create ]
+
+case node['platform_family']
+when "rhel", "cloudlinux"
+	users_manage "sysadmin" do
+	  group_name "wheel"
+	  group_id 10
+	  action [ :remove, :create ]
+	end
+when "debian"
+	users_manage "sysadmin" do
+	  group_name "sudo"
+	  group_id 27
+	  action [ :remove, :create ]
+	end
 end
