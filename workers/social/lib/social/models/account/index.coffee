@@ -254,7 +254,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
-  @findSuggestions = (seed, options, callback)->
+  @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
     @some {
       $or : [

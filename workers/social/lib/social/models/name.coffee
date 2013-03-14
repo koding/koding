@@ -71,7 +71,7 @@ module.exports = class JName extends Model
                 if err then callback err
                 else if doc?
                   name = getAt doc, usedAsPath
-                  @claim name, konstructor, usedAsPath, (err)->
+                  @claim name, [name], konstructor, usedAsPath, (err)->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err
