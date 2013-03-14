@@ -22,21 +22,25 @@ module.exports = class Builder
     @compileChanged options, true
 
   compileChanged: (options, initial)->
-    changed = @readIncludesFile()
+    includesChanged = @readIncludesFile()
 
-    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @files.length, width:50, incomplete:" "} if initial
-    for file in @files
-      changed |= @compileFile file
+    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @scripts.length + @styles.length, width:50, incomplete:" "} if initial
+
+    scriptsChanged = false
+    for file in @scripts
+      scriptsChanged |= @compileFile file
       bar.tick() if initial
+
+    stylesChanged = false
+    for file in @styles
+      stylesChanged |= @compileFile file
+      bar.tick() if initial
+
     console.log "" if initial
 
-    if initial or changed
-      @buildJS options
-      @buildCSS options
-      @buildHTML options
-      log.info "Done building client."
-      if require("os").platform() is 'linux'
-        exec "notify-send \"Koding instance updated\""
+    @buildJS options if initial or includesChanged or scriptsChanged
+    @buildCSS options if initial or includesChanged or stylesChanged
+    @buildHTML options if initial
 
     if @config.client.watch is yes
       log.info "Watching for changes..." if initial
@@ -50,7 +54,6 @@ module.exports = class Builder
     return false if @incluesFileTime == time
     @incluesFileTime = time
 
-    @files = []
     @scripts = []
     @styles = []
     for includePath in CoffeeScript.eval(fs.readFileSync(includesFile, "utf-8"))
@@ -68,7 +71,6 @@ module.exports = class Builder
         log.error "File name case is wrong: " + includePath
         process.exit 1
 
-      @files.push file
       switch file.extension
         when ".coffee", ".js"
           @scripts.push file
@@ -104,15 +106,14 @@ module.exports = class Builder
 
             fixedSourceMap = new SourceMap.SourceMapGenerator file: ""
             new SourceMap.SourceMapConsumer(result.v3SourceMap).eachMapping (mapping)->
-              if mapping.generatedLine > 1 && mapping.originalLine > 0
-                fixedSourceMap.addMapping
-                  generated:
-                    line: mapping.generatedLine - 1
-                    column: mapping.generatedColumn
-                  original:
-                    line: mapping.originalLine
-                    column: mapping.originalColumn
-                  source: file.includePath
+              fixedSourceMap.addMapping
+                generated:
+                  line: mapping.generatedLine - 1
+                  column: mapping.generatedColumn
+                original:
+                  line: mapping.originalLine
+                  column: mapping.originalColumn
+                source: file.includePath
             jsSourceMap = fixedSourceMap.toJSON()
 
             if file.includePath.indexOf("Framework") == 0
@@ -152,7 +153,7 @@ module.exports = class Builder
     return true
 
   buildJS: (options)->
-    js = "var KD = {}; KD.config = " + JSON.stringify(@config.client.runtimeOptions) + "; (function(){ "
+    js = "var KD = {}; KD.config = #{JSON.stringify(@config.client.runtimeOptions)}; (function(){ "
     lineOffset = 0
     sourceMap = new SourceMap.SourceMapGenerator file: @config.client.js, sourceRoot: @config.client.runtimeOptions.sourceUri
     for file in @scripts
@@ -168,16 +169,18 @@ module.exports = class Builder
           source: file.includePath
       js += file.content + "\n"
       lineOffset += contentLineCount
-    js += "}).call(this);\n//@ sourceMappingURL=/" + @config.client.js + ".map"
+    js += "}).call(this);\n//@ sourceMappingURL=/#{@config.client.js}.map"
 
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.js, js
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", sourceMap.toString()
+    log.info "Build complete: #{@config.client.js}"
 
   buildCSS: (options)->
     code = ""
     for file in @styles
       code += file.content+"\n"
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.css, code
+    log.info "Build complete: #{@config.client.css}"
 
   buildHTML: (options)->
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
@@ -188,3 +191,4 @@ module.exports = class Builder
       index = index.replace ///#{st}///g,""
       # log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.index, index
+    log.info "Build complete: #{@config.client.index}"
