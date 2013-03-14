@@ -157,15 +157,19 @@ class ActivityAppController extends AppController
 
   fetchActivity:(options = {}, callback)->
 
+    # fetchFacets1 is temporary
+    methodName = if options.bypass then "fetchFacets1" else "fetchFacets"
+
     options       =
-      limit       : options.limit  or 20
-      to          : options.to     or Date.now()
-      facets      : options.facets or @getFilter()
-      lowQuality  : options.exempt or no
+      limit       : options.limit    or 20
+      to          : options.to       or Date.now()
+      facets      : options.facets   or @getFilter()
+      lowQuality  : options.exempt   or no
+      originId    : options.originId or null
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
+    KD.remote.api.CActivity[methodName] options, (err, activities)=>
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
