@@ -353,6 +353,9 @@ class PopupNotificationListItem extends NotificationListItem
 
   click:(event)->
 
+    appManager.openApplication 'Inbox'
+    appManager.tell "Inbox", "goToNotifications", @
+
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
 
