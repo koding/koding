@@ -141,14 +141,6 @@ class MainController extends KDController
       # tightly related to application manager refactoring
       @utils.wait 2000, -> location.reload yes
 
-  # goToPage:(pageInfo)=>
-  #   console.log 'go to page'
-  #   path = pageInfo.appPath
-  #   if path is "Login"
-  #     @loginScreen.showView()
-  #   else
-  #     KD.getSingleton("appManager").open path, yes
-
   putGlobalEventListeners:->
 
     @on 'UserIsJustLoggedOut', (account, connectedState)=>
@@ -160,7 +152,6 @@ class MainController extends KDController
       else
         @mainViewController.sidebarController.accountChanged account
         @mainViewController.getView().decorateLoginState no
-        @showView()
 
     @on 'UserIsJustLoggedIn', (account, connectedState)=>
       @mainViewController.getView().decorateLoginState yes
