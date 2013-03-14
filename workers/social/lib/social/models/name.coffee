@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{Model, Base} = require 'bongo'
 
 module.exports = class JName extends Model
 
@@ -15,9 +15,14 @@ module.exports = class JName extends Model
       name            : ['unique']
     schema            :
       name            : String
+      slugs           : Array # [collectionName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
-      slugs           : [String]
+      # slugs           : [String]
+
+  # migrateOldName:->
+  #   return  unless 'constructorName' of this
+  #   Base.constructors[@constructorName].
 
   @release =(name, callback=->)->
     @remove {name}, callback

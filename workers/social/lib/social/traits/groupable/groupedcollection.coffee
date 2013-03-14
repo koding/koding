@@ -4,13 +4,7 @@ helpers = require 'bongo/lib/model/find-via-collection'
 
 module.exports = class GroupedCollection
   
-  getCollection =(konstructor, groupName)->
-    {name} = konstructor
-    db = konstructor.getClient()
-    collectionBaseName = Inflector(name).decapitalize().pluralize()
-    collectionGroupName = groupName.replace /-/g, '_'
-    groupedCollectionName = "#{collectionBaseName}__#{collectionGroupName}"
-    db.collection groupedCollectionName
+  getCollection = require './get-collection'
 
   constructor:(@source, @konstructor)->
 
