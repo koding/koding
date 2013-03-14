@@ -409,7 +409,7 @@ class PopupMessageListItem extends KDListItemView
     """
     <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
-      <a href='#'>{{#(subject) or '(No title)'}}</a><br/>
+      <a>{{#(subject) or '(No title)'}}</a><br/>
       {{@teaser #(body)}}
       <footer>
         <time>{{> @participants}} {{$.timeago #(meta.createdAt)}}</time>
