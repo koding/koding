@@ -44,6 +44,6 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
           {{> @actionLinks}}
         </div>
       </div>
-      <div class="blog-post-body has-markdown"><span class='data'>{{Encoder.htmlDecode #(html)}}</span></div>
+      <div class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</div>
     </div>
     """
