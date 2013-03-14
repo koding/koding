@@ -118,14 +118,18 @@ task 'webserver', ({configFile}) ->
     processes.fork
       name            : 'server'
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
-      restart         : yes
+      restart         : no
       restartInterval : 100
 
-  webPort = webserver.port
-  webPort = [webPort] unless Array.isArray webPort
+  if webserver.clusterSize > 1
+    webPortStart = webserver.port
+    webPortEnd   = webserver.port + webserver.clusterSize
+    webPort = [webPortStart..webPortEnd]
+  else
+    webPort = [webserver.port]
+
   webPort.forEach (port) ->
     runServer configFile, port
-    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -328,11 +332,10 @@ task 'release',(options)->
   version         = parseInt config.version
 
   buildDir        = "#{releaseDir}/#{version}"
-  proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
   dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
 
   # Starting ports
-  webPort = 3000 + (version % 100)
+  webPort = config.haproxy.webPort + (version % 10) * 100 + 1
 
   newRelease = ->
     # Get previous dynamic config
@@ -342,11 +345,12 @@ task 'release',(options)->
       conf = JSON.parse fs.readFileSync __dirname+"/config/.dynamic-config.json"
 
     # Build dynamic config
-    conf.webInternalPort = webPort
+    conf.webInternalPort   = webPort
+    conf.webClusterSize    = config.webserver.clusterSize
+    conf.webPort           = config.haproxy.webPort
     unless conf.releaseDir == buildDir
       conf.oldReleaseDir   = conf.releaseDir
-    conf.webPort         = config.haproxy.webPort
-    conf.releaseDir      = buildDir
+    conf.releaseDir        = buildDir
 
     # Install new release
     bash = """
@@ -370,33 +374,6 @@ task 'release',(options)->
       console.log "Release Folder : " + buildDir
       console.log "Web Port       : " + webPort
 
-      haproxyCfg = """
-        global
-            daemon
-            maxconn 512
-
-        defaults
-            mode http
-            timeout connect 5000ms
-            timeout client 50000ms
-            timeout server 50000ms
-
-        listen http-in
-            bind *:#{config.haproxy.webPort}
-            server server1 127.0.0.1:#{webPort} maxconn 128
-
-        # listen stats :1936
-        #     mode http
-        #     stats enable
-        #     stats hide-version
-        #     stats realm 'Koding'
-        #     stats uri /
-        #     stats auth admin:admin
-      """
-
-      # Save proxy configuration to release directory
-      fs.writeFileSync proxyCfgPath, haproxyCfg
-
   # Deploy new release if necessary
   if fs.existsSync dynCfgPath
     oldConf = JSON.parse fs.readFileSync dynCfgPath
@@ -406,9 +383,9 @@ task 'release',(options)->
         version++
         fs.writeFileSync 'VERSION', version
         buildDir        = "#{releaseDir}/#{version}"
-        proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
+        # proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
         dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
-        webPort         = config.haproxy.webPort + (version % 100)
+        webPort = config.haproxy.webPort + (version % 10) * 100 + 1
       newRelease()
   else
     newRelease()
@@ -417,8 +394,8 @@ task 'switchProxy', (options) ->
   releaseDir      = nodePath.join __dirname, "../koding-release"
   dataDir         = nodePath.join __dirname, "../koding-data"
 
-  proxyCfgPath    = "#{dataDir}/haproxy.cfg"
   dynCfgPath      = "#{dataDir}/dynamic-config.json"
+  proxyCfgPath    = "#{dataDir}/haproxy.cfg"
   haPidFile       = "#{dataDir}/haproxy.pid"
 
   unless options.version
@@ -430,10 +407,9 @@ task 'switchProxy', (options) ->
     console.log "Use cake -v [VERSION] switchProxy"
     process.exit()
 
-  newProxyCfg = "#{releaseDir}/#{options.version}/config/.haproxy.cfg"
   newDynCfg   = "#{releaseDir}/#{options.version}/config/.dynamic-config.json"
 
-  unless fs.existsSync newProxyCfg
+  unless fs.existsSync newDynCfg
     console.log "No such version."
     console.log "Drop -v argument to see deployed versions."
     process.exit()
@@ -441,9 +417,37 @@ task 'switchProxy', (options) ->
   conf        = JSON.parse fs.readFileSync newDynCfg
 
   updateProxy = ->
-    if fs.existsSync proxyCfgPath
-      fs.unlinkSync proxyCfgPath
-    fs.symlinkSync newProxyCfg, proxyCfgPath
+    haproxyCfg = """
+      global
+          daemon
+          maxconn 512
+
+      defaults
+          mode http
+          timeout connect 5000ms
+          timeout client 50000ms
+          timeout server 50000ms
+
+      listen stats :1234
+          mode http
+          stats enable
+          stats hide-version
+          stats realm 'Koding'
+          stats uri /
+          stats auth admin:admin
+
+      listen http-in
+          bind *:#{conf.webPort}
+          option httpchk GET / HTTP/1.0
+      
+    """
+
+    ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize]
+    for port, i in ports
+      haproxyCfg += "    server server#{i} 127.0.0.1:#{port} maxconn 128 check port #{port}\n"
+
+    # Save proxy configuration to release directory
+    fs.writeFileSync proxyCfgPath, haproxyCfg
 
     if fs.existsSync dynCfgPath
       fs.unlinkSync dynCfgPath
@@ -456,11 +460,7 @@ task 'switchProxy', (options) ->
 
       processes.exec haProxyBash, ()->
         console.log ""
-        console.log "Done. Proxying:"
-        console.log "  #{conf.webPort} -> #{conf.webInternalPort}"
-
-  printWarning = ->
-    
+        console.log "Done."
 
   # Update proxy configuration
   tries = 10

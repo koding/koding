@@ -5,7 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
-mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
+# PROD
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -15,10 +16,10 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-#{rabbitPrefix}"
+socialQueueName = "koding-social-prod"
 
-webPort         = 80
-brokerPort      = 8000 + (version % 100)
+webPort         = 3040
+brokerPort      = 8040 + (version % 10)
 dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports = deepFreeze
@@ -28,15 +29,15 @@ module.exports = deepFreeze
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://new.koding.com"
+    address     : "https://koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'webserver'
+    login       : 'prod-webserver'
     port        : dynConfig.webInternalPort
-    clusterSize : 4
+    clusterSize : 10
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
@@ -54,37 +55,33 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
-  librato :
-    push      : no
-    email     : ""
-    token     : ""
-    interval  : 60000
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
+    # httpRedirect:
+    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
   authWorker    :
-    login       : 'authWorker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
-    watch       : yes
-  social        :
-    login       : 'social'
-    numberOfWorkers: 4
-    watch       : yes
-    queueName   : socialQueueName
+    watch       : no
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
-    run         : no
+    run         : yes
+  social        :
+    login       : 'prod-social'
+    numberOfWorkers: 10
+    watch       : no
+    queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -92,49 +89,49 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : yes
     version     : version
-    minify      : yes
-    watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster : "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    watch       : no
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "http://new.koding.com/"
+    staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
-      mainUri   : "http://new.koding.com"
+      mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : "http://new.koding.com:#{brokerPort}/subscribe"
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS  : 'https://mq.koding.com:#{brokerPort}/subscribe'
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://app.koding.com'
+      sourceUri : 'http://koding.com:1337'
   mq            :
-    host        : 'web0.dev.system.aws.koding.com'
-    login       : 'guest'
-    componentUser: "<component>"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    host        : 'localhost'
+    login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
   broker        :
-    port        : brokerPort
+    port        : 8008
     certFile    : ""
     keyFile     : ""
   kites:
     disconnectTimeout: 3e3
-    vhost       : 'kite'
+    vhost       : '/'
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
-    run         : no
+    run         : yes
     defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
@@ -144,7 +141,17 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'web0.dev.system.aws.koding.com'
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
+      host          : 'localhost'
+      login         : 'PROD-k5it50s4676pO9O'
+      password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
+  loggr:
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
+  librato:
+    push: yes
+    email: "devrim@koding.com"
+    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
+    interval: 60000
+
