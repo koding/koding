@@ -33,7 +33,7 @@ module.exports = class Builder
     if initial or changed
       @buildJS options
       @buildCSS options
-      @buildHTML options
+      # @buildHTML options
       log.info "Done building client."
       if require("os").platform() is 'linux'
         exec "notify-send \"Koding instance updated\""
@@ -184,11 +184,12 @@ module.exports = class Builder
       code += file.content+"\n"
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.css, code
 
+  # Deprecated. Look at render-homepage for groups and profileviews
   buildHTML: (options)->
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
-    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag()
+    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag groupEntryPoint: 'koding'
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""
