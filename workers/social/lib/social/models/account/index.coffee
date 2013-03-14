@@ -62,7 +62,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType'
+        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
+        'setHandle'
       ]
     schema                  :
       skillTags             : [String]
@@ -103,6 +104,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : ''
         description         : String
+        handles             :
+          twitter           : String
+          github            : String
         staticPage          :
           show              :
             type            : Boolean
@@ -206,6 +210,20 @@ module.exports = class JAccount extends jraphical.Module
         skillTags     : @skillTags
         lastBlogPosts : posts or {}
       }
+
+  setHandle: secure (client, data, callback)->
+    {delegate}    = client.connection
+    {service,value} = data
+    selector = "profile.handles."+service
+    console.log 'setting handle',service, value, "profile.handles."+service
+    isMine        = this.equals delegate
+    if isMine and service in ['twitter','github']
+      operation = $set: {}
+      operation.$set[selector] = value
+      @update operation, callback
+    else
+      callback? new KodingError 'Access denied!'
+
 
   addStaticPageType: secure (client, type, callback)->
     {delegate}    = client.connection
