@@ -34,7 +34,7 @@ class AvatarPopup extends KDView
   setPopupListener:->
     @avatarPopupTab.on 'click', (event)=> @hide()
 
-  _windowDidResize:=>
+  _windowDidResize:->
     if @listController
       {scrollView}    = @listController
       windowHeight    = $(window).height()

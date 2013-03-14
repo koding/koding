@@ -35,7 +35,7 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
     <div class='content-item'>
       <div class='title'>
         <span class="text">
-        {{ @applyTextExpansions #(title)}}
+          {{ @applyTextExpansions #(title)}}
         </span>
         <div class='create-date'>
           <span class='type-icon'></span>
