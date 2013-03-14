@@ -79,7 +79,7 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-
+    return unless cache.overview?
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1
         @addItem new NewMemberBucketData

@@ -8,52 +8,86 @@ class LandingPageSideBar extends KDView
 
     super options
 
-    log "here I am...."
-
-    @navController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        itemClass    : NavigationLink
-      wrapper        : no
-      scrollView     : no
+    @navController = new LandingPageNavigationController
+      view         : new NavigationList
+        itemClass  : LandingPageNavigationLink
+        type       : "navigation"
+      scrollView   : no
+      wrapper      : no
     ,
       items : [
-        { title : "Activity",       path : "/Activity" }
-        { title : "Topics",         path : "/Topics" }
-        { title : "Members",        path : "/Members" }
-        { title : "Develop",        path : "/Develop", loggedIn: yes }
-        { title : "Apps",           path : "/Apps" }
+        { title : "Register", action : "register", loggedOut : yes }
         { type  : "separator" }
-        { title : "Invite Friends", type : "account", loggedIn: yes }
-        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
-        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
+        { title : "Logout",   action : "logout",   loggedIn  : yes }
+        { title : "Login",    action : "login",    loggedOut : yes }
       ]
 
     @addSubView @nav = @navController.getView()
 
-class LandingPageNavLink extends KDCustomHTMLView
+class LandingPageNavigationController extends NavigationController
 
-  constructor:(options, data)->
-
-    options.lazyDomId = 'landing-page-sidebar'
-    options.partial   = \
-      """
-        <li class='#{options.cssClass or options.title}'>
-          <a href='#{options.link or ""}'>
-            <span class='icon'></span>#{options.title}
-          </a>
-        </li>
-      """
-
+  constructor: ->
     super
 
-  click:(event)->
-    {loginScreen} = @getSingleton 'mainController'
-    {action} = @getOptions()
+    @lc = @getSingleton 'lazyDomController'
 
-    action = 'login' unless KD.isLoggedIn()
+  instantiateListItems:(items)->
+
+    # Build groups menu
+    if @lc.userEnteredFromGroup
+
+      {groupEntryPoint} = KD.config
+
+      if KD.isLoggedIn()
+        KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
+          if err then console.warn err
+          else if roles.length
+            items.unshift \
+              { title: 'Open Group', path: "/#{groupEntryPoint}/Activity"}
+            @_instantiateListItems items
+          else
+            KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
+              (err, policy)=>
+                if err then console.warn err
+                else if policy?.approvalEnabled
+                  items.unshift \
+                    { title: 'Request to Join', action: 'request'}
+                else
+                  items.unshift \
+                    { title: 'Join Group', action: 'join-group'}
+                @_instantiateListItems items
+
+      else
+        items.unshift { title: 'Request to Join', action: 'request'}
+        @_instantiateListItems items
+
+    else
+      @_instantiateListItems items
+
+  _instantiateListItems:(items)->
+    newItems = for itemData in items
+      if KD.isLoggedIn()
+        continue if itemData.loggedOut
+      else
+        continue if itemData.loggedIn
+      @getListView().addItem itemData
+
+class LandingPageNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+    data.type or= "account"
+    super options, data
+
+  click:(event)->
+    {action, appPath, title, path, type} = @getData()
+    log "here", @getData()
+
+    {loginScreen} = @getSingleton 'mainController'
 
     switch action
       when 'login'
         loginScreen.animateToForm 'login'
+      when 'register'
+        loginScreen.animateToForm 'register'
+      when 'request'
+        loginScreen.animateToForm 'lr'
