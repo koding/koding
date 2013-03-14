@@ -62,7 +62,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility'
+        'setStaticPageVisibility','addStaticPageType','removeStaticPageType'
       ]
     schema                  :
       skillTags             : [String]
@@ -107,6 +107,7 @@ module.exports = class JAccount extends jraphical.Module
           show              :
             type            : Boolean
             default         : yes
+          showTypes         : [String]
         avatar              : String
         status              : String
         experience          : String
@@ -178,22 +179,51 @@ module.exports = class JAccount extends jraphical.Module
     console.log 'checking for blog posts'
 
     JBlogPost = require '../messages/blog'
+    CActivity = require '../activity'
 
-    JBlogPost.some originId:@getId() ,
-      sort :
-        'meta.createdAt' : -1
+    CActivity.some
+      originId: @getId()
+      type : 'CBlogPostActivity'
+        # $in : @profile.staticPage?.showTypes or [
+        #   'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+        #   'CDiscussionActivity', 'CTutorialActivity'
+        # ]
+
+    ,
+      to : Date.now()
       limit : 5
-    , (err, blogPost)=>
-
-      console.log 'found',blogPost.length,'blog posts' unless err
+      sort :
+        createdAt : -1
+    , (err, activities)=>
+      console.log activities.length
+      posts = []
+      for i in activities
+        posts.push JSON.parse(i.snapshot)
 
       callback null, JAccount.renderHomepage {
         profile       : @profile
         account       : @
         counts        : @counts
         skillTags     : @skillTags
-        lastBlogPosts : blogPost or {}
+        lastBlogPosts : posts or {}
       }
+
+  addStaticPageType: secure (client, type, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
+    else
+      callback? new KodingError 'Access denied!'
+
+  removeStaticPageType: secure (client, type, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
+    else
+      callback? new KodingError 'Access denied!'
+
 
   setStaticPageVisibility: secure (client, visible=yes, callback)->
     {delegate}    = client.connection
@@ -285,7 +315,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
-  @findSuggestions = (seed, options, callback)->
+  @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
     @some {
       $or : [

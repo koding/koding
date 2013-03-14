@@ -169,7 +169,7 @@ module.exports = class JGroup extends Module
     JMembershipPolicy = require './membershippolicy'
     JName = require '../name'
     {delegate} = client.connection
-    JName.claim formData.slug, 'JGroup', 'slug', (err)=>
+    JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
       if err then callback err
       else
         group             = new @ formData
@@ -212,7 +212,7 @@ module.exports = class JGroup extends Module
 
         daisy queue
 
-  @findSuggestions = (seed, options, callback)->
+  @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
     @some {

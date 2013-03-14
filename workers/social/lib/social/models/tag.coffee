@@ -183,18 +183,19 @@ module.exports = class JTag extends jraphical.Module
             else
               callback null, tag
 
-  @findSuggestions = (seed, options, callback)->
+  @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
-    @some {
-      title   : seed
-      _id     :
-        $nin  : blacklist
-    },{
-      skip
-      limit
-      sort    : 'title' : 1
-    }, callback
+    @inCollectionBySource(client.context)
+      .some {
+        title   : seed
+        _id     :
+          $nin  : blacklist
+      },{
+        skip
+        limit
+        sort    : 'title' : 1
+      }, callback
 
   delete: permit
     advanced: [
