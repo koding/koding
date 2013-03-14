@@ -7,10 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-package "cgroup-lite" do
-	action :install	
-end
-
 execute "mkdir -p /var/lib/lxc/vmroot"
 template "/var/lib/lxc/vmroot/config" do
   source "vmroot-config.erb"

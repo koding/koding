@@ -88,11 +88,34 @@ Vagrant::Config.run do |config|
           kodingServer_config.vm.provision :chef_solo do |chef|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
-            chef.add_role("base_server")
-            chef.add_role("web_server_vagrant")
             chef.add_role("ceph-client_vagrant")
             chef.add_role("rabbitmq_server")
           end
+    end
+    # ----- end of All-in-one kodingServer configuration -----
+
+        # ---- All-in-one kodingServer configuration -------
+    config.vm.define :kodingServer do |kodingWebServer_config|
+
+          kodingWebServer_config.vm.box = "ubuntu1210-64-3.0"
+          kodingWebServer_config.vm.box_url = template_ubuntu121064_url
+          kodingWebServer_config.vm.network :hostonly, hosts["kodingServer.local"]
+          kodingWebServer_config.vm.host_name = "koding.local"
+          kodingWebServer_config.vm.share_folder "koding", "/opt/koding", koding_git_dir , :create => true, :map_uid => 'root', :map_gid => 'root'
+          kodingWebServer_config.vm.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1" ]
+          kodingWebServer_config.vm.customize [
+                                    "modifyvm", :id,
+                                    "--memory", 512,
+                                    "--cpus", 2,
+                                    "--name", "koding_VM"
+                                  ]
+
+          kodingWebServer_config.vm.provision :chef_solo do |chef|
+            chef.cookbooks_path = cookbooks_dir
+            chef.roles_path = roles_dir
+            chef.add_role("base_server")
+            chef.add_role("web_server_vagrant")
+        end
     end
     # ----- end of All-in-one kodingServer configuration -----
 

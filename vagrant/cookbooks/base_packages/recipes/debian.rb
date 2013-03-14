@@ -7,43 +7,46 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( make vim screen mercurial htop bzr ruby-dev git )
+packages = %w( make vim screen mercurial htop bzr ruby-dev git libshadow-ruby1.8 )
 
-file "/etc/apt/sources.list" do
-		mode "0644"
-		content <<-EOH
-		deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
-		deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
-		deb http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
-		deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename} main restricted universe multiverse
-		deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-updates main restricted universe multiverse
-		deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ #{node["lsb"].codename}-security main restricted universe multiverse
-		EOH
-end
+if node['platform_family'] == "debian"
 
-if node["vagrant"]
 	file "/etc/apt/sources.list" do
-		mode "0644"
-		content <<-EOH
-deb mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
-deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
-deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
-deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
-		EOH
+			mode "0644"
+			content <<-EOH
+			deb http://us-east-1.archive.ubuntu.com/ubuntu/ quantal main restricted universe multiverse
+			deb http://us-east-1.archive.ubuntu.com/ubuntu/ quantal-updates main restricted universe multiverse
+			deb http://us-east-1.archive.ubuntu.com/ubuntu/ quantal-security main restricted universe multiverse
+			deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ quantal main restricted universe multiverse
+			deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ quantal-updates main restricted universe multiverse
+			deb-src http://us-east-1.archive.ubuntu.com/ubuntu/ quantal-security main restricted universe multiverse
+			EOH
 	end
-end
 
-execute "apt-get update"
+	# if node["vagrant"]
+	# 	file "/etc/apt/sources.list" do
+	# 		mode "0644"
+	# 		content <<-EOH
+	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
+	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
+	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
+	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
+	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
+	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
+	# 		EOH
+	# 	end
+	# end
 
-packages.each do |pkg|
-    package "#{pkg}" do
-        action :install
-    end
-end
+	execute "apt-get update"
+
+	packages.each do |pkg|
+	    package "#{pkg}" do
+	        action :install
+	    end
+	end
 
 
-gem_package "ruby-shadow" do
-    action :install
+	gem_package "ruby-shadow" do
+	    action :install
+	end
 end
