@@ -437,7 +437,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee",
-  "app/Applications/Activity.kdapplication/ContentDisplays/BlogPost.coffee",
+  "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee",
 
