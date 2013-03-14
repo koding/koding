@@ -190,6 +190,11 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
+        @hideView()
+
+        if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+          $('#group-landing').css 'opacity', 0
+
   doRequest:(formData)->
 
     KD.remote.api.JInvitationRequest.create formData, (err, result)=>
