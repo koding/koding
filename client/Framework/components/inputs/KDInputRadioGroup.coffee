@@ -5,17 +5,17 @@ class KDInputRadioGroup extends KDInputView
 
   setDomElement:()->
     options = @getOptions()
-    @domElement = $("<fieldset class='radiogroup kdinput'></fieldset>")
+    @domElement = $ "<fieldset class='radiogroup kdinput'></fieldset>"
     for radio, i in options.radios
-      div = $("<div/>")
+      div = $ "<div/>",
         class : "kd-radio-holder"
-      radio = $("<input/>")
+      radio = $ "<input/>",
         type  : "radio"
         name  : options.name
         value : radio.value
         class : "no-kdinput"
         id    : "#{@getId()}_radio_#{i}"
-      label = $("<label/>")
+      label = $ "<label/>",
         for   : "#{@getId()}_radio_#{i}"
         html  : radio.title
       div.append radio
