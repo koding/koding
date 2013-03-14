@@ -37,9 +37,9 @@ class SidebarController extends KDViewController
           type     : "admin"
           loggedIn : yes
           callback : -> new AdminModal
-    
+
+    console.trace()    
     do =>
-      dashboardLink = null
       {navController} = @getView()
       groupsController = @getSingleton 'groupsController'
       groupsController.on 'GroupChanged', ->
@@ -48,8 +48,8 @@ class SidebarController extends KDViewController
           if err
             console.warn err
           else if 'admin' in roles
-            navController.removeItem dashboardLink  if dashboardLink?
-            dashboardLink = navController.addItem
+            navController.removeItem dashboardLink  if @dashboardLink?
+            @dashboardLink = navController.addItem
               title     : 'Admin dashboard'
               type      : 'admin'
               loggedIn  : yes

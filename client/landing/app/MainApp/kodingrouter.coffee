@@ -288,7 +288,7 @@ class KodingRouter extends KDRouter
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
             when 'JGroup'   then content.Groups  routeInfo, model
-            when 'JTopic'   then content.Topics  routeInfo, model
+            # when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
