@@ -50,23 +50,20 @@ class StaticDiscussionActivityItemView extends StaticActivityItemChild
 
   pistachio:->
     """
-    <div class="activity-discussion-container">
-      <span class="avatar">{{> @avatar}}</span>
-      <div class='activity-item-right-col'>
-        <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
-        <div class="activity-content-container discussion">
-          <p class="body no-scroll has-markdown force-small-markdown">
-            {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
-          </p>
-        </div>
-        <footer class='clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
-            {{> @tags}}
-          </div>
+    <div class="content-item">
+      <div class='title'>
+        <span class="text">
+          {{ @applyTextExpansions #(title)}}
+        </span>
+        <div class='create-date'>
+          <span class='type-icon'></span>
+          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @tags}}
           {{> @actionLinks}}
-        </footer>
+        </div>
+      </div>
+      <div class="body has-markdown">
+        {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
       </div>
     </div>
     """
