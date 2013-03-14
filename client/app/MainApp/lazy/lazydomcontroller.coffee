@@ -11,7 +11,6 @@ class LazyDomController extends KDController
     @mainController.on 'AppIsReady', =>
       if @userEnteredFromGroup()
         @addGroupViews()
-        # @switchGroupState isLoggedIn
       else if @userEnteredFromProfile()
         @addProfileViews()
 
@@ -20,37 +19,6 @@ class LazyDomController extends KDController
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
   userEnteredFromProfile:-> KD.config.profileEntryPoint?
-
-  switchGroupState:(isLoggedIn)->
-
-    {groupEntryPoint} = KD.config
-
-    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
-
-    if isLoggedIn and groupEntryPoint?
-      KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
-        if err then console.warn err
-        else if roles.length
-          loginLink.setState { isMember: yes, roles }
-        else
-          {JMembershipPolicy} = KD.remote.api
-          JMembershipPolicy.byGroupSlug groupEntryPoint,
-            (err, policy)->
-              if err then console.warn err
-              else if policy?
-                loginLink.setState {
-                  isMember        : no
-                  approvalEnabled : policy.approvalEnabled
-                }
-              else
-                loginLink.setState {
-                  isMember        : no
-                  isPublic        : yes
-                }
-    else
-      @utils.defer -> loginLink.setState { isLoggedIn: no }
-
-    loginLink.appendToSelector '.group-login-buttons'
 
   addGroupViews:->
 
