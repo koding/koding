@@ -246,7 +246,7 @@ class AvatarPopupNotifications extends AvatarPopup
     @listenTo
       KDEventTypes        : "click"
       listenedToInstance  : redirectLink
-      callback            : ()=>
+      callback            : ->
         appManager.openApplication('Inbox')
         appManager.tell 'Inbox', "goToNotifications"
         @hide()
