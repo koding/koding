@@ -26,18 +26,8 @@ module.exports = class CActivity extends jraphical.Capsule
       modifiedAt            : 'sparse'
       group                 : 'sparse'
 
-    permissions     :
-      'read activity'                 : ['member','moderator']
-      # 'open group'                        : ['member','moderator']
-      # 'list members'                      : ['member','moderator']
-      # 'create groups'                     : ['moderator']
-      # 'edit groups'                       : ['moderator']
-      # 'edit own groups'                   : ['member','moderator']
-      # 'query collection'                  : ['member','moderator']
-      # 'update collection'                 : ['moderator']
-      # 'assure collection'                 : ['moderator']
-      # 'remove documents from collection'  : ['moderator']
-      # 'view readme'                       : ['guest','member','moderator']
+    permissions             :
+      'read activity'       : ['member','moderator']
 
     sharedMethods     :
       static          : [

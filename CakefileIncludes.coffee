@@ -239,6 +239,15 @@ Includes =
         SelActListItem              : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee"
         SelActListItemTutorial      : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee"
 
+        # Static Profile List Items
+        StaticActivityItemChild       : "./client/app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee"
+        StaticActListItem             : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee"
+        StaticActListItemStatusUpdate : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee"
+        StaticActListItemBlogPost     : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee"
+        StaticActListItemCodeSnip     : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee"
+        StaticActListItemDiscussion   : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee"
+        StaticActListItemTutorial     : "./client/app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee"
+
         # TOPICS VIEWS
         topicsAppView                 : "./client/app/Applications/Topics.kdapplication/AppView.coffee"
         topicContentDisplay           : "./client/app/Applications/Topics.kdapplication/ContentDisplays/Topic.coffee"

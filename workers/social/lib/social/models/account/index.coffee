@@ -188,10 +188,12 @@ module.exports = class JAccount extends jraphical.Module
         #   'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
         #   'CDiscussionActivity', 'CTutorialActivity'
         # ]
+
     ,
-      sort :
-        'meta.createdAt' : -1
+      to : Date.now()
       limit : 5
+      sort :
+        createdAt : -1
     , (err, activities)=>
       console.log activities.length
       posts = []
