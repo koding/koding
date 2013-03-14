@@ -2,24 +2,47 @@ class StaticProfileController extends KDController
   constructor:(options,data)->
     super options,data
 
-    # reviving landing page as a whole
+    appManager = @getSingleton 'appManager'
 
-    profileLandingView = new KDView
+    @controller = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
+    # reviving the content view. this encapsulates the listitem feed after
+    # user input (type selection, more-button)
+    @profileContentView = new KDListView
+      lazyDomId : 'profile-content'
+      itemClass : StaticBlogPostListItem
+    , {}
+
+    @listWrapper = @controller.getView()
+    @listWrapper.hide()
+    @profileContentView.addSubView @listWrapper
+
+    # this is the JAccount object of the static profile
+    profileUser = null
+    allowedTypes = ['CBlogPostActivity']
+    blockedTypes = []
+
+    # reviving the landing page. this is needed to handle window
+    # resize events for the view and subviews
+    @profileLandingView = new KDView
       lazyDomId : 'profile-landing'
 
-    profileLandingView.listenWindowResize()
-    profileLandingView._windowDidResize = =>
-      profileLandingView.setHeight window.innerHeight
+    @profileLandingView.listenWindowResize()
+    @profileLandingView._windowDidResize = =>
+      @profileLandingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
-
-    profileContentWrapperView = new KDView
-      lazyDomId : 'profile-content-wrapper'
-      cssClass : 'slideable'
+      @repositionLogoView()
 
     profileTitleView = new KDView
       lazyDomId : 'profile-title'
 
-    profileShowMoreView = new KDView
+    @profileShowMoreView = new KDView
       lazyDomId : 'profile-show-more-wrapper'
       cssClass : 'hidden'
 
@@ -28,22 +51,24 @@ class StaticProfileController extends KDController
       title :'Show more'
       callback:=>
         @emit 'ShowMoreButtonClicked'
-        profileShowMoreView.hide()
-        profileShowMoreView.setHeight 0
-        profileLandingView._windowDidResize()
-
-    @profileContentView = new KDListView
-      lazyDomId : 'profile-content'
-      itemClass : StaticBlogPostListItem
-    , {}
+        @profileShowMoreView.hide()
+        @profileShowMoreView.setHeight 0
+        @profileLandingView._windowDidResize()
 
     if @profileContentView.$().attr('data-count') > 0
-      profileShowMoreView.show()
+      @profileShowMoreView.show()
 
-    # reviving content type selectors
+    # reviving wrapper views for resize/slide animations as well as
+    # adding administrative views
+    profileContentWrapperView = new KDView
+      lazyDomId : 'profile-content-wrapper'
+      cssClass : 'slideable'
 
-    appManager = @getSingleton 'appManager'
+    profilePersonalWrapperView = new KDView
+      lazyDomId : 'profile-personal-wrapper'
+      cssClass : 'slideable'
 
+    # reviving feed type selectors that will activate feed facets
     profileStatusActivityItem = new StaticNavLink
       delegate : @
       lazyDomId : 'CStatusActivity'
@@ -64,32 +89,28 @@ class StaticProfileController extends KDController
       delegate : @
       lazyDomId : 'CTutorialActivity'
 
-    # reviving logo
+    @emit 'DecorateStaticNavLinks', allowedTypes
 
-    profilePersonalWrapperView = new KDView
-      lazyDomId : 'profile-personal-wrapper'
-      cssClass : 'slideable'
-
-    profileLogoView = new KDView
+    # reviving logo for the slideup animation
+    @profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
       click :=>
         profilePersonalWrapperView.setClass 'slide-down'
         profileContentWrapperView.setClass 'slide-down'
-        profileLogoView.setClass 'top'
+        @profileLogoView.setClass 'top'
 
-        profileLandingView.setClass 'profile-fading'
-        @utils.wait 1100, => profileLandingView.setClass 'profile-hidden'
+        @profileLandingView.setClass 'profile-fading'
+        @utils.wait 1100, => @profileLandingView.setClass 'profile-hidden'
 
-    profileLogoView.$().css
-      top: profileLandingView.getHeight()-42
+    @repositionLogoView()
 
-    profileUser = null
-    @utils.wait => profileLogoView.setClass 'animate'
+    @utils.wait => @profileLogoView.setClass 'animate'
 
     KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
 
       unless err
         profileUser = user
+        @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
         if user.getId() is KD.whoami().getId()
 
@@ -149,99 +170,111 @@ class StaticProfileController extends KDController
 
 
     @on 'CustomizeLinkClicked',=>
-          # reviving customization
+      # reviving customization
 
-          types = profileUser.profile.staticPage.showTypes or []
+      types = @getAllowedTypes profileUser
 
-          profileStatusActivityItem.addSubView statusSwitch = new KDOnOffSwitch
-            cssClass : 'profile-stream-switch'
-            size : 'tiny'
-            title     : 'Show'
-            defaultValue : 'CStatusActivity' in types
-            callback  : (state)=>
-              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CStatusActivity', =>
+      profileStatusActivityItem.addSubView statusSwitch = new KDOnOffSwitch
+        cssClass : 'profile-stream-switch'
+        size : 'tiny'
+        title     : 'Show'
+        defaultValue : 'CStatusActivity' in types
+        callback  : (state)=>
+          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CStatusActivity', =>
+            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
-          profileBlogPostActivityItem.addSubView blogPostSwitch = new KDOnOffSwitch
-            cssClass : 'profile-stream-switch'
-            size : 'tiny'
-            title     : 'Show'
-            defaultValue : 'CBlogPostActivity' in types
-            callback  : (state)=>
-              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CBlogPostActivity', =>
+      profileBlogPostActivityItem.addSubView blogPostSwitch = new KDOnOffSwitch
+        cssClass : 'profile-stream-switch'
+        size : 'tiny'
+        title     : 'Show'
+        defaultValue : 'CBlogPostActivity' in types
+        callback  : (state)=>
+          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CBlogPostActivity', =>
+            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
-          profileCodeSnipActivityItem.addSubView codeSnipSwitch = new KDOnOffSwitch
-            cssClass : 'profile-stream-switch'
-            size : 'tiny'
-            title     : 'Show'
-            defaultValue : 'CCodeSnipActivity' in types
-            callback  : (state)=>
-              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CCodeSnipActivity', =>
+      profileCodeSnipActivityItem.addSubView codeSnipSwitch = new KDOnOffSwitch
+        cssClass : 'profile-stream-switch'
+        size : 'tiny'
+        title     : 'Show'
+        defaultValue : 'CCodeSnipActivity' in types
+        callback  : (state)=>
+          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CCodeSnipActivity', =>
+            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
-          profileDiscussionActivityItem.addSubView discussionSwitch = new KDOnOffSwitch
-            cssClass : 'profile-stream-switch'
-            size : 'tiny'
-            title     : 'Show'
-            defaultValue : 'CDiscussionActivity' in types
-            callback  : (state)=>
-              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CDiscussionActivity', =>
+      profileDiscussionActivityItem.addSubView discussionSwitch = new KDOnOffSwitch
+        cssClass : 'profile-stream-switch'
+        size : 'tiny'
+        title     : 'Show'
+        defaultValue : 'CDiscussionActivity' in types
+        callback  : (state)=>
+          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CDiscussionActivity', =>
+            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
-          profileTutorialActivityItem.addSubView tutorialSwitch = new KDOnOffSwitch
-            cssClass : 'profile-stream-switch'
-            size : 'tiny'
-            title     : 'Show'
-            defaultValue : 'CTutorialActivity' in types
-            callback  : (state)=>
-              profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CTutorialActivity', =>
+      profileTutorialActivityItem.addSubView tutorialSwitch = new KDOnOffSwitch
+        cssClass : 'profile-stream-switch'
+        size : 'tiny'
+        title     : 'Show'
+        defaultValue : 'CTutorialActivity' in types
+        callback  : (state)=>
+          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CTutorialActivity', =>
+            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
-      # if profileUser
-      #   log profileUser
-      #   KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
-      #     if err
-      #       log err
-      #     else
-      #       profileContentListController = new KDListViewController
-      #         view : @profileContentView
-      #         startWithLazyLoader : yes
-      #       , blogs
-
-      #       @profileContentView.$('.content-item').remove()
-
-      #       @profileContentView.on 'ItemWasAdded', (instance, index)->
-      #         instance.viewAppended()
-
-      #       profileContentListController.instantiateListItems blogs
-
-    @controller = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : ActivityListItemView
-
-    @listWrapper = @controller.getView()
-    @listWrapper.hide()
-    @profileContentView.addSubView @listWrapper
 
     @on 'StaticProfileNavLinkClicked', (facets)=>
-      if profileUser
-        appManager.tell 'Activity', 'fetchActivity',
-          originId : profileUser.getId()
-          facets : [facets]
-          bypass : yes
-        , @bound "refreshActivities"
+      facets = [facets] if 'string' is typeof facets
 
+      if profileUser
+        allowedTypes = @getAllowedTypes profileUser
+
+        blockedTypes = facets.reduce (acc, facet)->
+          acc.push facet unless facet in allowedTypes
+          return acc
+        , []
+
+        @emit 'DecorateStaticNavLinks', allowedTypes
+
+        if blockedTypes.length is 0
+          appManager.tell 'Activity', 'fetchActivity',
+            originId : profileUser.getId()
+            facets : facets
+            bypass : yes
+          , @bound "refreshActivities"
+        else @emit 'BlockedTypesRequested', blockedTypes
+
+  repositionLogoView:->
+    @profileLogoView.$().css
+      top: @profileLandingView.getHeight()-42
 
   refreshActivities:(err,activities)->
     @profileContentView.$('.content-item').remove()
+    @profileShowMoreView.hide()
     @listWrapper.show()
 
     @controller.removeAllItems()
     @controller.listActivities activities
 
+  getAllowedTypes:(profileUser)->
+      allowedTypes = profileUser.profile.staticPage?.showTypes or [
+        'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+        'CDiscussionActivity', 'CTutorialActivity'
+      ]
+
+
 class StaticNavLink extends KDView
   constructor:(options,data)->
     super options,data
     @unsetClass 'disabled'
+
+    @getDelegate().on 'DecorateStaticNavLinks',(allowedTypes)=>
+      @decorate allowedTypes
+
+  decorate:(allowedTypes)->
+      if @getDomId() in allowedTypes
+        @unsetClass 'blocked'
+      else
+        @setClass 'blocked'
 
   click :->
     @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId()
