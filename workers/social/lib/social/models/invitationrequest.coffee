@@ -95,7 +95,7 @@ module.exports = class JInvitationRequest extends Model
         daisy queue
       csv.on 'error', (err)-> errors.push err
 
-  declineInvitation: permit 'send invitations'
+  declineInvitation: permit 'send invitations',
     success: (client, callback=->)->
       @update $set:{ status: 'declined' }, callback
 
@@ -108,7 +108,7 @@ module.exports = class JInvitationRequest extends Model
         Unimplemented: we can't fetch an account from this type of invitation
         """
 
-  approveInvitation: permit 'send invitations'
+  approveInvitation: permit 'send invitations',
     success: (client, callback=->)->
       console.trace()
       JGroup = require './group'
@@ -131,7 +131,7 @@ module.exports = class JInvitationRequest extends Model
               else
                 @update $set:{ status: 'sent' }, callback
 
-  deleteInvitation: permit 'send invitations'
+  deleteInvitation: permit 'send invitations',
     success:(client, rest...)-> @remove rest...
 
   sendInvitation:(callback=->)->
@@ -147,5 +147,5 @@ module.exports = class JInvitationRequest extends Model
           else
             JInvitation.sendBetaInvite obj, callback
 
-  sendInvitation$: permit 'send invitations'
+  sendInvitation$: permit 'send invitations',
     success: (client, callback)-> @sendInvitation callback

@@ -202,7 +202,7 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
-  @fetchFacets = permit 'read activity'
+  @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
       {to, limit, facets, lowQuality} = options
 
