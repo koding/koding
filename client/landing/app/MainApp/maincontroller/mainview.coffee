@@ -1,5 +1,12 @@
 class MainView extends KDView
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+    mainController.on 'AppIsReady', =>
+      @removeLoader()
+
   viewAppended:->
 
     @addHeader()
@@ -72,7 +79,7 @@ class MainView extends KDView
     @contentPanel.on "webkitTransitionEnd", (e) =>
       @emit "mainViewTransitionEnd", e
 
-  addHeader:()->
+  addHeader:->
 
     @addSubView @header = new KDView
       tagName : "header"
@@ -89,29 +96,6 @@ class MainView extends KDView
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
-
-    @addLoginButtons()
-
-  addLoginButtons:->
-
-    @header.addSubView @buttonHolder = new KDView
-      cssClass  : "button-holder hidden"
-
-    mainController = @getSingleton('mainController')
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Sign In"
-      style     : "koding-blue"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "login"
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Create an Account"
-      style     : "koding-orange"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "register"
 
   createMainTabView:->
 
@@ -244,85 +228,24 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
-  userEnteredFromGroup:-> KD.config.groupEntryPoint?
-
-  switchGroupState:(isLoggedIn)->
-
-    $('.group-loader').removeClass 'pulsing'
-    $('body').addClass "login"
-
-    {groupEntryPoint} = KD.config
-
-    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
-
-    loginLink.on 'LoginLinkRedirect', ({section})=>
-
-      route =  "/#{groupEntryPoint}/#{section}"
-      # KD.getSingleton('router').handleRoute route
-      mc = @getSingleton 'mainController'
-
-      switch section
-        when 'Join', 'Login'
-          mc.loginScreen.animateToForm 'login'
-          mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
-          $('#group-landing').css 'height', 0
-          # $('#group-landing').css 'opacity', 0
-
-        when 'Activity'
-          mc.loginScreen.hide()
-          KD.getSingleton('router').handleRoute route
-          $('#group-landing').css 'height', 0
-
-    if isLoggedIn and groupEntryPoint?
-      KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
-        if err then console.warn err
-        else if roles.length
-          loginLink.setState { isMember: yes, roles }
-        else
-          {JMembershipPolicy} = KD.remote.api
-          JMembershipPolicy.byGroupSlug groupEntryPoint,
-            (err, policy)->
-              if err then console.warn err
-              else if policy?
-                loginLink.setState {
-                  isMember        : no
-                  approvalEnabled : policy.approvalEnabled
-                }
-              else
-                loginLink.setState {
-                  isMember        : no
-                  isPublic        : yes
-                }
-    else
-      @utils.defer -> loginLink.setState { isLoggedIn: no }
-
-    loginLink.appendToSelector '.group-login-buttons'
-
-  closeGroupView:->
-    @mainTabView.showHandleContainer()
-    $('.group-landing').css 'height', 0
-
   decorateLoginState:(isLoggedIn = no)->
 
-    groupLandingView = new KDView
-      lazyDomId : 'group-landing'
-
     if isLoggedIn
-      if @userEnteredFromGroup() then @switchGroupState yes
+      # $('body').removeClass "login"
+      # $('body').addClass "loggedIn"
 
-      $('body').addClass "loggedIn"
+      # Workaround for Develop Tab
+      if "Develop" isnt @getSingleton("router")?.getCurrentPath()
+        @contentPanel.setClass "social"
 
       @mainTabView.showHandleContainer()
-      @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      @buttonHolder.hide()
 
     else
-      if @userEnteredFromGroup() then @switchGroupState no
-      else $('body').removeClass "loggedIn"
+      # $('body').addClass "login"
+      # $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()

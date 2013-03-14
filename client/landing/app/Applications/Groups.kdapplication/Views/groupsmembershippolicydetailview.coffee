@@ -5,6 +5,8 @@ class GroupsMembershipPolicyDetailView extends JView
     super
     policy = @getData()
 
+    @setClass 'policy-view-wrapper'
+
     {webhookEndpoint, approvalEnabled, dataCollectionEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
 
