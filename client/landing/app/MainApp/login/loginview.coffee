@@ -15,27 +15,6 @@ class LoginView extends KDScrollView
 
     @hidden = no
 
-    # FIXME GG ~ Remove mainviewcontroller dependency
-    mainController = @getSingleton 'mainController'
-    {mainViewController} = mainController
-
-    mainController.on 'UserIsJustLoggedOut', (account, connectedState)=>
-      if connectedState.wasLoggedIn
-        @showView =>
-          KD.getSingleton("appManager").quitAll =>
-            mainViewController.sidebarController.accountChanged account
-            mainViewController.getView().decorateLoginState no
-      else
-        mainViewController.sidebarController.accountChanged account
-        mainViewController.getView().decorateLoginState no
-        @showView()
-
-    mainController.on 'UserIsJustLoggedIn', (account, connectedState)=>
-      mainViewController.getView().decorateLoginState yes
-      mainViewController.sidebarController.accountChanged account
-
-    # ---
-
     handler =(route, event)=>
       route = "/#{entryPoint}#{route}" if entryPoint
       stop event

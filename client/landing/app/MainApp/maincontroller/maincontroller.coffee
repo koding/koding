@@ -89,13 +89,13 @@ class MainController extends KDController
     @emit "AccountChanged", account
 
     unless @mainViewController
+      @loginScreen = new LoginView
+      KDView.appendToDOMBody @loginScreen
+
       @mainViewController = new MainViewController
         view       : mainView = new MainView
           domId    : "kdmaincontainer"
           cssClass : "hidden"
-
-      @loginScreen = new LoginView
-      KDView.appendToDOMBody @loginScreen
 
       @appReady()
 
@@ -149,7 +149,22 @@ class MainController extends KDController
   #   else
   #     KD.getSingleton("appManager").open path, yes
 
-  putGlobalEventListeners:()->
+  putGlobalEventListeners:->
+
+    @on 'UserIsJustLoggedOut', (account, connectedState)=>
+      if connectedState.wasLoggedIn
+        @loginScreen.showView =>
+          KD.getSingleton("appManager").quitAll =>
+            @mainViewController.sidebarController.accountChanged account
+            @mainViewController.getView().decorateLoginState no
+      else
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
+        @showView()
+
+    @on 'UserIsJustLoggedIn', (account, connectedState)=>
+      @mainViewController.getView().decorateLoginState yes
+      @mainViewController.sidebarController.accountChanged account
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.isWebTerm
