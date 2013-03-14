@@ -13,7 +13,9 @@ projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
+  catch e
+    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
+    throw e
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
@@ -29,7 +31,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'webserver'
     port        : 3000
-    clusterSize : 4
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   mongo         : mongo
@@ -74,7 +76,7 @@ module.exports = deepFreeze
     watch       : yes
   social        :
     login       : 'social'
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -89,15 +91,14 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
     watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
@@ -106,10 +107,11 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
+        sockJS  : 'https://dmq.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web0.dev.system.aws.koding.com'
     login       : 'guest'

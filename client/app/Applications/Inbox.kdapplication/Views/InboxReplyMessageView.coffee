@@ -3,7 +3,7 @@ class InboxReplyMessageView extends KDView
     super
     @listenWindowResize()
 
-  _windowDidResize:()=>
+  _windowDidResize:->
     @resize()
 
   formSubmit:(formData)=>

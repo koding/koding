@@ -1,132 +1,194 @@
-fs                = require 'fs'
-path              = require 'path'
-sys               = require 'util'
 {spawn, exec}     = require 'child_process'
-sqwish            = require './node_modules/sqwish'
-stylus            = require 'stylus'
-# {parser, uglify}  = require "uglify-js"
-cs                = require './node_modules/coffee-script'
-Watcher           = require './Watcher'
-ProcessMonitor    = require './ProcessMonitor'
+CoffeeScript      = require 'coffee-script'
+fs                = require 'fs'
+nib               = require 'nib'
+path              = require 'path'
+compilePistachios = require 'pistachio-compiler'
+ProgressBar       = require 'progress'
+SourceMap         = require 'source-map'
+Stylus            = require 'stylus'
+UglifyJS          = require 'uglify-js'
+
 log =
   info  : console.log
   error : console.log
   debug : console.log
   warn  : console.log
-  
-ProgressBar       = require './node_modules/progress'
 
 module.exports = class Builder
+  buildClient: (options)->
+    @config = require('koding-config-manager').load("main.#{options.configFile}")
+    @incluesFileTime = 0
+    @compileChanged options, true
 
-  constructor:(builderOptions,@middleware,fileList="deprecated")->
-    # exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes[\\""b[2]"\\"]="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
-    exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes."b[2]"="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
+  compileChanged: (options, initial)->
+    includesChanged = @readIncludesFile()
 
-    @options              = builderOptions.config
-    @commandLineOptions   = builderOptions.commandLine
+    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @scripts.length + @styles.length, width:50, incomplete:" "} if initial
 
-    @watcher = new Watcher @options.includesFile
+    scriptsChanged = false
+    for file in @scripts
+      scriptsChanged |= @compileFile file
+      bar.tick() if initial
 
-    @attachListeners()
+    stylesChanged = false
+    for file in @styles
+      stylesChanged |= @compileFile file
+      bar.tick() if initial
 
-  attachListeners:()->
+    console.log "" if initial
 
-      # rebuild changes,options
+    @buildJS options if initial or includesChanged or scriptsChanged
+    @buildCSS options if initial or includesChanged or stylesChanged
+    @buildHTML options if initial
 
-  build:(options)->
+    if @config.client.watch is yes
+      log.info "Watching for changes..." if initial
+      setTimeout =>
+        @compileChanged options, false
+      , 1000
 
-  # uglify:(options,callback)->
-  #   ast         = parser.parse(options.js)
-  #   ast         = uglify.ast_mangle(ast,{no_functions : options.noMangleFunctions}) if options.mangle
-  #   ast         = uglify.ast_squeeze(ast) if options.squeeze
-  #   final_code  = uglify.gen_code ast,beautify:options.beautify
-  #   return final_code
+  readIncludesFile: ->
+    includesFile = @config.client.includesPath + "/includes.coffee"
+    time = Date.parse(fs.statSync(includesFile).mtime)
+    return false if @incluesFileTime == time
+    @incluesFileTime = time
 
-  resetWatcher:()->
-    @watcher = new Watcher @options.includesFile
+    @scripts = []
+    @styles = []
+    for includePath in CoffeeScript.eval(fs.readFileSync(includesFile, "utf-8"))
+      cachePath = ".build/" + includePath.replace(/\//g,"_")
+      file = {
+        includePath: includePath
+        sourcePath: @config.client.includesPath + "/" + includePath
+        cachePath: cachePath
+        sourceMapPath: cachePath + ".map"
+        cacheTime: if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
+        extension: path.extname(includePath)
+      }
 
-  # buildApplications:(installedAppsPath, builtJsPath)->
-  #   buildPath = fs.realpathSync builtJsPath
-  #
-  #   installedApps = require installedAppsPath
-  #   for appName, appPath of installedApps
-  #     do (buildPath, appName, appPath)->
-  #       path.exists "#{buildPath}/#{appName}", (exists)->
-  #         unless exists
-  #           fs.mkdirSync "#{buildPath}/#{appName}", 511
-  #         exec "cd #{appPath} && cake -p #{buildPath}/#{appName} build", (err)->
-  #           log.info "Application #{appName} built, with result", arguments
+      if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
+        log.error "File name case is wrong: " + includePath
+        process.exit 1
 
-  buildClient:(options,callback)->
+      switch file.extension
+        when ".coffee", ".js"
+          @scripts.push file
+        when ".styl", ".css"
+          @styles.push file
+        else
+          throw "Unrecognized file extension."
 
-    moduleDeclaration = @watcher.createModuleDeclarations "Client","Framework"
+    return true
 
-    clibraries  = @watcher.getSubSectionConcatenated "Client","Libraries"
+  compileFile: (file)->
+    sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
 
-    cclient = ''
-    cclient += if options.pistachios then 'PISTACHIO_MODE = "production";' else ''
+    if sourceTime <= file.cacheTime
+      if not file.content?
+        file.content = fs.readFileSync file.cachePath, "utf-8"
+        file.sourceMap = fs.readFileSync file.sourceMapPath, "utf-8" if fs.existsSync file.sourceMapPath
+      return false
 
-    cclient += @watcher.getSubSectionConcatenated "Client","Framework"
-    cclient += @watcher.getSubSectionConcatenated "Client","Application"
-    cclient += @watcher.getSubSectionConcatenated "Client","Applications"
-    cclient += @watcher.getSubSectionConcatenated "Client","ApplicationPageViews"
-    cclient = kdjs = @wrapWithJSClosure cclient
+    source = fs.readFileSync file.sourcePath, "utf-8"
+    switch file.extension
+      when ".coffee", ".js"
+        if file.extension == ".coffee"
+          try
+            result = CoffeeScript.compile source,
+              filename: file.includePath
+              bare: yes
+              sourceMap: yes
+            js = if result.js.indexOf("pistachio") != -1 
+              compilePistachios(result.js).toString()
+            else
+              result.js
 
-    libraries  = clibraries
+            fixedSourceMap = new SourceMap.SourceMapGenerator file: ""
+            new SourceMap.SourceMapConsumer(result.v3SourceMap).eachMapping (mapping)->
+              fixedSourceMap.addMapping
+                generated:
+                  line: mapping.generatedLine - 1
+                  column: mapping.generatedColumn
+                original:
+                  line: mapping.originalLine
+                  column: mapping.originalColumn
+                source: file.includePath
+            jsSourceMap = fixedSourceMap.toJSON()
 
-    @middleware @options, @commandLineOptions, {libraries, kdjs}, (err,finalCode)=>
-      fs.writeFile @options.js, finalCode, (err) =>
-        log.info "Client code is re-compiled and saved."
-        callback? null
+            if file.includePath.indexOf("Framework") == 0
+              r = /^class (\w+)/g
+              while match = r.exec source
+                js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
+          catch error
+            log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
+            spawn.apply null, ["say", ["coffee script error"]]
+            file.cacheTime = sourceTime # avoid repeated error
+            return
+        else
+          js = source
+          jsSourceMap = null
 
-  # buildServer:(options,callback)->
-  #   cserver  = @watcher.getSubSectionConcatenated "Server","Stuff"
-  #   cserver += @watcher.getSubSectionConcatenated "Server","Models"
-  #   cserver += @watcher.getSubSectionConcatenated "Server","OtherStuff"
-  #   cserver  = @wrapWithJSClosure cserver
-  #   fs.writeFile @targetPaths.server,cserver,(err) ->
-  #     log.info "Server code is re-compiled."
-  #     callback? null
-
-  #   if @options.dontStart
-  #     fs.writeFile @targetPaths.serverProd,cserver,(err)=>
-  #       unless err
-  #         log.info "Server code is copied to #{@targetPaths.serverProd}"
-  #       else
-  #         log.error "couldn't copy kd-server.js to #{@targetPaths.serverProd}, monit will not work."
-
-  buildCss:(options,callback)->
-    cstylus = @watcher.getSubSectionConcatenated "Client","StylusFiles"
-    ccssx   = @watcher.getSubSectionConcatenated "Client","CssFiles"
-    ccss    = "#{ccssx}\n /* - */ \n#{cstylus}"
-    # stylus.render cstylus,(err,css)->
-    #   ccss     = @watcher.getSubSectionConcatenated "Client",CssFiles
-    #   ccss    += "\n /* next file in line */ \n"+css
-    #   ccss     = sqwish.minify ccss if options.uglify
-    fs.writeFile @options.css, ccss, (err) ->
-      unless err
-        log.info "Css files are recompiled and saved."
-        callback? null
+        ast = UglifyJS.parse js
+        ast.figure_out_scope()
+        ast = ast.transform UglifyJS.Compressor(warnings: no)
+        
+        uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
+        stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
+        ast.print stream
+        file.content = stream.toString()
+        file.sourceMap = uglifiedSourceMap.toString()
+        fs.writeFileSync file.sourceMapPath, file.sourceMap, "utf8"
+      when ".styl"
+        Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
+          log.error "error with styl file at #{file.includePath}" if err
+          file.content = css
+      when ".css"
+        file.content = source
       else
-        log.error "Couldn't build css.."
-        callback? yes
+        throw "Illegal file extension: " + file.extension
 
-  wrapWithJSClosure : (js)-> "(function(){#{js}}).call(this);"
+    fs.writeFileSync file.cachePath, file.content, "utf8"
+    file.cacheTime = sourceTime
+    return true
 
-  buildIndex : (options,callback)->
-    fs.readFile @options.indexMaster, 'utf-8',(err,data)=>
+  buildJS: (options)->
+    js = "var KD = {}; KD.config = #{JSON.stringify(@config.client.runtimeOptions)}; (function(){ "
+    lineOffset = 0
+    sourceMap = new SourceMap.SourceMapGenerator file: @config.client.js, sourceRoot: @config.client.runtimeOptions.sourceUri
+    for file in @scripts
+      contentLineCount = file.content.split("\n").length
+      new SourceMap.SourceMapConsumer(file.sourceMap).eachMapping (mapping)->
+        sourceMap.addMapping
+          generated:
+            line: lineOffset + mapping.generatedLine
+            column: mapping.generatedColumn
+          original:
+            line: mapping.originalLine
+            column: mapping.originalColumn
+          source: file.includePath
+      js += file.content + "\n"
+      lineOffset += contentLineCount
+    js += "}).call(this);\n//@ sourceMappingURL=/#{@config.client.js}.map"
 
-      index = data
-      index = index.replace "js/kd.js","js/kd.#{@options.version}.js?"+Date.now()
-      index = index.replace "css/kd.css","css/kd.#{@options.version}.css?"+Date.now()
-      if @options.useStaticFileServer is no
-        st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
-        index = index.replace ///#{st}///g,""
-        # log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
-      fs.writeFile @options.index,index,(err) ->
-        throw err if err
-        unless err
-          log.info "Index.html is ready."
-          if require("os").platform() is 'linux'
-            exec "notify-send \"Koding instance updated\""
-          callback? null
+    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js, js
+    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", sourceMap.toString()
+    log.info "Build complete: #{@config.client.js}"
+
+  buildCSS: (options)->
+    code = ""
+    for file in @styles
+      code += file.content+"\n"
+    fs.writeFileSync @config.client.websitePath + "/" + @config.client.css, code
+    log.info "Build complete: #{@config.client.css}"
+
+  buildHTML: (options)->
+    index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
+    index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
+    index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
+    if @config.client.useStaticFileServer is no
+      st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
+      index = index.replace ///#{st}///g,""
+      # log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
+    fs.writeFileSync @config.client.websitePath + "/" + @config.client.index, index
+    log.info "Build complete: #{@config.client.index}"

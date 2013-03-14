@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -16,8 +15,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -31,12 +32,13 @@ func main() {
 	routeMap := make(map[string]([]*sockjs.Session))
 	var routeMapMutex sync.Mutex
 
-	service := sockjs.NewService("http://localhost/sockjs.js", func(session *sockjs.Session) {
+	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
 
 		r := make([]byte, 128/8)
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
+		session.Tag = socketId
 
 		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
@@ -139,7 +141,7 @@ func main() {
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
 					if !strings.HasPrefix(routingKey, "client.") {
-						log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
+						log.Warn("Invalid routing key.", message, socketId)
 						return
 					}
 					for {
@@ -156,7 +158,7 @@ func main() {
 					}
 
 				default:
-					log.Warn(fmt.Sprintf("Invalid action: %v", message))
+					log.Warn("Invalid action.", message, socketId)
 
 				}
 			}()
@@ -166,9 +168,6 @@ func main() {
 	service.PanicHandler = log.RecoverAndLog
 
 	go func() {
-		defer os.Exit(1)
-		defer log.RecoverAndLog()
-
 		server := &http.Server{
 			Handler: &sockjs.Mux{
 				Services: map[string]*sockjs.Service{
@@ -180,13 +179,15 @@ func main() {
 		var listener net.Listener
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
 		if err != nil {
-			panic(err)
+			log.LogError(err, 0)
+			os.Exit(1)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
-				panic(err)
+				log.LogError(err, 0)
+				os.Exit(1)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -194,13 +195,24 @@ func main() {
 			})
 		}
 
+		go func() {
+			sigtermChannel := make(chan os.Signal)
+			signal.Notify(sigtermChannel, syscall.SIGTERM)
+			<-sigtermChannel
+			lifecycle.BeginShutdown()
+			listener.Close()
+		}()
+
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
+			if lifecycle.ShuttingDown {
+				break
+			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					break
+					os.Exit(1)
 				}
 				lastErrorTime = time.Now()
 			}
@@ -239,7 +251,7 @@ func main() {
 			for _, routeSession := range routeSessions {
 				if !routeSession.Send(jsonMessage) {
 					routeSession.Close()
-					log.Warn("Dropped session because of broker to client buffer overflow.")
+					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
 				}
 			}
 			routeMapMutex.Unlock()

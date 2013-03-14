@@ -10,8 +10,15 @@ import (
 
 type Config struct {
 	ProjectRoot string
-	Mongo       string
-	Mq          struct {
+	GoConfig    struct {
+		HomePrefix string
+		UseLVE     bool
+	}
+	Client struct {
+		StaticFilesBaseUrl string
+	}
+	Mongo string
+	Mq    struct {
 		Host          string
 		ComponentUser string
 		Password      string
