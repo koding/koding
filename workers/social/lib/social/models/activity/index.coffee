@@ -196,11 +196,24 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
+  defaultFacets = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+      'CBlogPostActivity'
+    ]
+
   @fetchFacets = permit 'read activity'
-    failure: ->
-      console.log 'fail'
     success:(client, options, callback)->
       {to, limit, facets, lowQuality, originId} = options
+
+      lowQuality  ?= yes
+      facets      ?= defaultFacets
+      to          ?= Date.now()
 
       selector =
         type         : { $in : facets }
