@@ -20,6 +20,10 @@
 
 # Searches data bag "users" for groups attribute "sysadmin".
 # Places returned users in Unix group "sudo" with GID 27.
+package "libshadow-ruby1.8" do
+    action :install
+end
+
 users_manage "developer" do
   group_name "developer"
   group_id 2000

@@ -21,6 +21,10 @@
 # Searches data bag "users" for groups attribute "sysadmin".
 # Places returned users in Unix group "sudo" with GID 27.
 
+package "libshadow-ruby1.8" do
+    action :install
+end
+
 case node['platform_family']
 when "rhel", "cloudlinux"
 	users_manage "sysadmin" do
