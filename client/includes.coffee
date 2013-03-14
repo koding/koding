@@ -429,6 +429,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee",
+  "app/Applications/Activity.kdapplication/widgets/blogpostwidget.coffee",
 
   # Activity content displays
   "app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee",
@@ -458,6 +459,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
