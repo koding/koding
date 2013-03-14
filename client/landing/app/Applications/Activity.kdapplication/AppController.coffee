@@ -227,8 +227,8 @@ class ActivityAppController extends AppController
 
   createBlogPostContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayBlogPost
-      title : "Status Update"
-      type  : "status"
+      title : "Blog Post"
+      type  : "blogpost"
     ,activity
 
   createCodeSnippetContentDisplay:(activity)->
