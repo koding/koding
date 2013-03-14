@@ -105,7 +105,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : 'https://mq.koding.com:#{brokerPort}/subscribe'
+        sockJS  : "http://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
@@ -118,7 +118,7 @@ module.exports = deepFreeze
     heartbeat   : 10
     vhost       : '/'
   broker        :
-    port        : 8008
+    port        : brokerPort
     certFile    : ""
     keyFile     : ""
   kites:

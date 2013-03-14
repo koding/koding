@@ -438,7 +438,7 @@ task 'switchProxy', (options) ->
 
       listen http-in
           bind *:#{conf.webPort}
-          option httpchk GET / HTTP/1.0
+          option httpchk GET /index.html HTTP/1.0
       
     """
 
