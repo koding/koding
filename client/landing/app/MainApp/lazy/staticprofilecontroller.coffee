@@ -35,6 +35,7 @@ class StaticProfileController extends KDController
     profileUser = null
     allowedTypes = ['CBlogPostActivity']
     blockedTypes = []
+    currentFacets = []
 
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
@@ -192,6 +193,7 @@ class StaticProfileController extends KDController
         @emit 'DecorateStaticNavLinks', allowedTypes
 
         if blockedTypes.length is 0
+          currentFacets = facets
           appManager.tell 'Activity', 'fetchActivity',
             originId : profileUser.getId()
             facets : facets
@@ -199,9 +201,22 @@ class StaticProfileController extends KDController
           , @bound "refreshActivities"
         else @emit 'BlockedTypesRequested', blockedTypes
 
+    @controller.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId : profileUser.getId()
+        facets : currentFacets
+        to     : @controller.itemsOrdered.last.getData().meta.createdAt
+        bypass : yes
+      , @bound "appendActivities"
+
   repositionLogoView:->
     @profileLogoView.$().css
       top: @profileLandingView.getHeight()-42
+
+  appendActivities:(err,activities)->
+    @controller.listActivities activities
+    @controller.hideLazyLoader()
+
 
   refreshActivities:(err,activities)->
     @profileContentView.$('.content-item').remove()
