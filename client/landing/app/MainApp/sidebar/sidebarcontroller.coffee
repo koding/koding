@@ -46,7 +46,6 @@ class SidebarController extends KDViewController
           loggedIn : yes
           callback : -> new AdminModal
 
-    console.trace()    
     do =>
       {navController} = @getView()
       groupsController = @getSingleton 'groupsController'
