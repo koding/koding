@@ -77,7 +77,9 @@ class KDView extends KDObject
     o.attributes  or= null      # an Object holding attribute key/value pairs e.g. {href:'#',title:'my picture'}
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
-    o.tooltip     or= null      # an Object of twipsy options
+    o.tooltip     or= null      # an Object of kdtooltip options
+    o.preserveValue or= null
+
     # TO BE IMPLEMENTED
     o.resizable   or= null      # TBDL
     super o,data
@@ -177,6 +179,10 @@ class KDView extends KDObject
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
     @setPartial options.partial           if options.partial
+    if options.preserveValue
+      log 'preserving', options.preserveValue
+      @setPreserveValue options.preserveValue
+
     @addEventHandlers options
 
     if options.pistachio
@@ -216,6 +222,9 @@ class KDView extends KDObject
       el.classList.add klass
 
     @domElement = $ el
+
+    if lazyDomId
+      @utils.defer => @emit 'viewAppended'
 
   setDomId:(id)->
     @domElement.attr "id",id
@@ -867,3 +876,41 @@ class KDView extends KDObject
   setKeyView:->
 
     @getSingleton("windowController").setKeyView @
+
+  setPreserveValue:(preserveValue={})->
+    storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+
+    if "string" is typeof preserveValue.saveEvents
+      preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
+    if "string" is typeof preserveValue.clearEvents
+      preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
+
+    for preserveEvent in preserveValue.saveEvents
+      @on preserveEvent, (event)=>
+        value = @getOptions().preserveValue.getValue?() ? @getValue?()
+        @savePreserveValue preserveValue.name, value
+
+    for preserveEvent in preserveValue.clearEvents
+      @on preserveEvent, (event)=>
+        @clearPreserveValue()
+
+    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
+      @on displayEvent, (event)=>
+        @applyPreserveValue storedvalue if storedValue
+
+    if storedValue
+      @utils.defer => @applyPreserveValue storedValue
+
+
+  applyPreserveValue:(value)->
+    if @getOptions().preserveValue.setValue
+      @getOptions().preserveValue.setValue value
+    else @setValue? value
+
+  savePreserveValue:(id,value)->
+    @getSingleton('localStorageController').setValueById id, value
+
+  clearPreserveValue:->
+    if @getOptions().preserveValue
+      @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+

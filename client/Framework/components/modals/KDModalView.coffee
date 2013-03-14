@@ -68,17 +68,18 @@ class KDModalView extends KDView
     else
       helpButton = ''
 
-    @domElement = $ "
-    <div class='kdmodal #{cssClass}'>
-      <div class='kdmodal-shadow'>
-        <div class='kdmodal-inner'>
-          #{helpButton}
-          <span class='close-icon closeModal'></span>
-          <div class='kdmodal-title hidden'></div>
-          <div class='kdmodal-content'></div>
+    @domElement = $ """
+      <div class='kdmodal #{cssClass}'>
+        <div class='kdmodal-shadow'>
+          <div class='kdmodal-inner'>
+            #{helpButton}
+            <span class='close-icon closeModal'></span>
+            <div class='kdmodal-title hidden'></div>
+            <div class='kdmodal-content'></div>
+          </div>
         </div>
       </div>
-    </div>"
+    """
 
   addSubView:(view, selector = ".kdmodal-content")->
 

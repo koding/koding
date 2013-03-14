@@ -1,5 +1,15 @@
 class MainController extends KDController
 
+  ###
+
+  * EMITTED EVENTS
+    - AppIsReady
+    - AccountChanged          [account]
+    - UserIsJustLoggedIn      [account, connectedState]
+    - UserIsJustLoggedOut     [account, connectedState]
+  ###
+
+
   connectedState =
     connected   : no
     wasLoggedIn : no
@@ -20,6 +30,8 @@ class MainController extends KDController
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
+    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "lazyDomController", new LazyDomController
 
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
@@ -32,9 +44,6 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
-    @on 'ManageRemotes', -> new ManageRemotesModal
-    @on 'ManageDatabases', -> new ManageDatabasesModal
-
     @setFailTimer()
     @putGlobalEventListeners()
 
@@ -42,6 +51,7 @@ class MainController extends KDController
 
     @appStorages = {}
 
+  # FIXME GG
   getAppStorageSingleton:(appName, version)->
     if @appStorages[appName]?
       storage = @appStorages[appName]
@@ -61,8 +71,9 @@ class MainController extends KDController
       else
         applicationIsReady = yes
         listener() for listener in queue
-        @getSingleton('mainView').removeLoader()
         queue.length = 0
+
+        @emit 'AppIsReady'
 
   accountReady:(fn)->
     if @accountReadyState > 0 then fn()
@@ -75,47 +86,32 @@ class MainController extends KDController
 
     connectedState.connected = yes
 
-    @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
+
       @mainViewController = new MainViewController
-        view    : mainView = new MainView
-          domId : "kdmaincontainer"
+        view       : mainView = new MainView
+          domId    : "kdmaincontainer"
+          # cssClass : "hidden"
+
       @appReady()
 
+    @decorateBodyTag()
+
+    if @isUserLoggedIn()
+      connectedState.wasLoggedIn = yes
+      @emit 'UserIsJustLoggedIn', account, connectedState
+    else
+      @emit 'UserIsJustLoggedOut', account, connectedState
+
+  decorateBodyTag:->
     if KD.checkFlag 'super-admin'
       $('body').addClass 'super'
     else
       $('body').removeClass 'super'
-
-    if @isUserLoggedIn() then @createLoggedInState account
-    else @createLoggedOutState account
-
-  createLoggedOutState:(account)->
-
-    if connectedState.wasLoggedIn
-      @loginScreen.slideDown =>
-        KD.getSingleton("appManager").quitAll =>
-          @mainViewController.sidebarController.accountChanged account
-          # KD.getSingleton("appManager").open "Home"
-          @mainViewController.getView().decorateLoginState no
-    else
-      @mainViewController.sidebarController.accountChanged account
-      # KD.getSingleton("appManager").open "Home"
-      @mainViewController.getView().decorateLoginState no
-      @loginScreen.slideDown()
-
-
-  createLoggedInState:(account)->
-    connectedState.wasLoggedIn = yes
-    mainView = @mainViewController.getView()
-    @loginScreen.prepare =>
-      @mainViewController.sidebarController.accountChanged account
-      #KD.getSingleton("appManager").open @getOptions().startPage, yes
-      @mainViewController.getView().decorateLoginState yes
 
   doJoin:->
     @loginScreen.animateToForm 'lr'
@@ -149,11 +145,26 @@ class MainController extends KDController
   #   console.log 'go to page'
   #   path = pageInfo.appPath
   #   if path is "Login"
-  #     @loginScreen.slideDown()
+  #     @loginScreen.showView()
   #   else
   #     KD.getSingleton("appManager").open path, yes
 
-  putGlobalEventListeners:()->
+  putGlobalEventListeners:->
+
+    @on 'UserIsJustLoggedOut', (account, connectedState)=>
+      if connectedState.wasLoggedIn
+        @loginScreen.showView =>
+          KD.getSingleton("appManager").quitAll =>
+            @mainViewController.sidebarController.accountChanged account
+            @mainViewController.getView().decorateLoginState no
+      else
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
+        @showView()
+
+    @on 'UserIsJustLoggedIn', (account, connectedState)=>
+      @mainViewController.getView().decorateLoginState yes
+      @mainViewController.sidebarController.accountChanged account
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.isWebTerm
@@ -162,7 +173,6 @@ class MainController extends KDController
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
       book.fillPage index
-
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
@@ -246,7 +256,7 @@ class MainController extends KDController
       fail() unless connectedState.connected
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
-      @on "RemoveFailModal", =>
+      @on "AccountChanged", =>
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

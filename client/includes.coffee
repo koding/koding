@@ -18,7 +18,7 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
-  
+
   # core
   "Framework/core/utils.coffee",
   "Framework/core/KD.coffee",
@@ -302,6 +302,9 @@ module.exports = [
   "app/MainApp/maincontroller/mainview.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
+  "app/MainApp/maincontroller/landingpageviews.coffee",
+  "app/MainApp/localstorage.coffee",
+  "app/MainApp/lazydomcontroller.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
@@ -426,6 +429,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee",
+  "app/Applications/Activity.kdapplication/widgets/blogpostwidget.coffee",
 
   # Activity content displays
   "app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee",
@@ -455,6 +459,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -495,7 +500,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
 
-  # app 
+  # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
   "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
 
