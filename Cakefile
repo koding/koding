@@ -307,57 +307,12 @@ task 'run', (options)->
   daisy queue
 
 task 'buildClient', (options)->
-<<<<<<< HEAD
-  buildClient options
-=======
   (new Builder).buildClient options
->>>>>>> master
 
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
-<<<<<<< HEAD
-task 'aws', (options) ->
-  {configFile,type} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
-
-  # List available machines
-  unless type
-    console.log "Machine types:"
-    for filename in fs.readdirSync './aws'
-      if filename.match /\.coffee$/
-        console.log "  #{filename.slice(0, -7)}"
-    console.log ""
-    console.log "Run: cake -c #{configFile} -t <type> aws"
-    process.exit()
-
-  console.log "Using ./aws/#{type}.coffee file as template"
-  console.log ""
-
-  # AWS Utils
-  awsUtil = require 'koding-aws'
-  awsUtil.init aws
-
-  # Machine template
-  awsTemplate = require "./aws/#{type}"
-
-  # Build template
-  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
-    unless err
-      console.log "Template is ready:"
-      console.log templateData
-      console.log ""
-
-      awsUtil.startEC2 templateData, (err, ecData) ->
-        unless err
-          console.log "EC2 instance is ready:"
-          console.log ecData
-          console.log ""
-
-
-=======
->>>>>>> master
 task 'deploy', (options) ->
   {configFile,username} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
