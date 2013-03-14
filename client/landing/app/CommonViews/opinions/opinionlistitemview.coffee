@@ -260,20 +260,8 @@ class OpinionListItemView extends KDListItemView
     </div>
     """
 
-class OpinionBodyView extends KDView
-  constructor:(options,data)->
-    super options, data
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  render:(force=no)->
-    if force
-      super
-    else
-      no
-
+class OpinionBodyView extends JView
+  
   pistachio:->
     """
       {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
