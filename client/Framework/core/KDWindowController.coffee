@@ -95,7 +95,8 @@ class KDWindowController extends KDController
     # also so that we don't redirect the browser
     document.body.addEventListener 'click', (e)->
       isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\   # html nodenames are uppercase, so lowercase this.
-                       e.target.target isnt '_blank'                  # target _blank links should work as normal.
+                       e.target.target?.length is 0                      # targeted links should work as normal.
+                       # e.target.target isnt '_blank'                  # target _blank links should work as normal.
       if isInternalLink
         e.preventDefault()
         href = $(e.target).attr 'href'

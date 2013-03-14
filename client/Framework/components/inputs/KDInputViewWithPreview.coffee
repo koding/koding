@@ -1,8 +1,8 @@
 class KDInputViewWithPreview extends KDInputView
 
-  constructor:(options,data)->
+  constructor:(options={},data)->
 
-    options.preview               or= {}
+    options.preview               ?= {}
     options.preview.autoUpdate    ?= yes
     options.preview.language      or= "markdown"
     options.preview.showInitially ?= yes

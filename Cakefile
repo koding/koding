@@ -415,7 +415,7 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     stderr : process.stderr
     verbose : yes
     onExit : null
-      
+
 
 
 
@@ -463,8 +463,8 @@ task 'parseAnalyzedCss','',(options)->
     log.info stuff
 
 task 'analyzeCss','',(options)->
-  configFile = normalizeConfigPath options.configFile
-  config = require configFile
+
+  config = require('koding-config-manager').load("main.#{options.configFile}")
   compareArrays = (arrA, arrB) ->
     return false if arrA?.length isnt arrB?.length
     if arrA?.slice()?.sort?

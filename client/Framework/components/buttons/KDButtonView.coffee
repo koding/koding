@@ -34,12 +34,25 @@ class KDButtonView extends KDView
   setFocus:-> @$().trigger 'focus'
 
   setDomElement:(cssClass)->
-    @domElement = $ """
+    {lazyDomId, tagName} = @getOptions()
+
+    if lazyDomId
+      el = document.getElementById lazyDomId
+      for klass in "kdview #{cssClass}".split ' ' when klass.length
+        el.classList.add klass
+
+    unless el?
+      warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
+      el =
+      """
       <button type='#{@getOptions().type}' class='kdbutton #{cssClass}' id='#{@getId()}'>
         <span class='icon hidden'></span>
         <span class='button-title'>Title</span>
       </button>
       """
+
+    @domElement = $ el
+
 
   setTitle:(title)->
     @$('.button-title').html title

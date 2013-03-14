@@ -3,7 +3,9 @@ jraphical = require 'jraphical'
 KodingError = require '../../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
-                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
+                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
+                      'JBlogPost'
+                     ]
 
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
@@ -59,7 +61,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles'
+        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
+        'setStaticPageVisibility'
       ]
     schema                  :
       skillTags             : [String]
@@ -100,6 +103,10 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : ''
         description         : String
+        staticPage          :
+          show              :
+            type            : Boolean
+            default         : yes
         avatar              : String
         status              : String
         experience          : String
@@ -156,7 +163,8 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'creator'
         targetType  : [
           "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
-          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
+          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
+          "JBlogPost"
         ]
 
   constructor:->
@@ -166,12 +174,35 @@ module.exports = class JAccount extends jraphical.Module
   @renderHomepage: require './render-homepage'
 
   fetchHomepageView:(callback)->
-    callback null, JAccount.renderHomepage {
-      account: this
-      @profile
-      @counts
-      @skillTags
-    }
+    console.log 'rendering hp'
+    console.log 'checking for blog posts'
+
+    JBlogPost = require '../messages/blog'
+
+    JBlogPost.some originId:@getId() ,
+      sort :
+        'meta.createdAt' : -1
+      limit : 5
+    , (err, blogPost)=>
+
+      console.log 'found',blogPost.length,'blog posts' unless err
+
+      callback null, JAccount.renderHomepage {
+        profile       : @profile
+        account       : @
+        counts        : @counts
+        skillTags     : @skillTags
+        lastBlogPosts : blogPost or {}
+      }
+
+  setStaticPageVisibility: secure (client, visible=yes, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @update ($set: 'profile.staticPage.show': visible), callback
+    else
+      callback? new KodingError 'Access denied!'
+
 
   fetchGroups: secure (client, callback)->
     JGroup        = require '../group'
@@ -397,7 +428,8 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl", "testdude"]
+  dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
+                  "arvidkahl", "testdude", "blum", "neelance"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

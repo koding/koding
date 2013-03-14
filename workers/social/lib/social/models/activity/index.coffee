@@ -118,7 +118,8 @@ module.exports = class CActivity extends jraphical.Capsule
     selector = {
       type: {$in: ['CStatusActivity','CLinkActivity','CCodeSnipActivity',
                    'CDiscussionActivity','COpinionActivity',
-                   'CCodeShareActivity','CTutorialActivity']}
+                   'CCodeShareActivity','CTutorialActivity',
+                   'CBlogPostActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}

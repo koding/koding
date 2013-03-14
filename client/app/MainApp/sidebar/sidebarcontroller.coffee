@@ -1,5 +1,13 @@
 class SidebarController extends KDViewController
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+
+    mainController.on 'ManageRemotes', -> new ManageRemotesModal
+    mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+
   accountChanged:(account)->
 
     {profile} = account

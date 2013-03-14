@@ -30,6 +30,7 @@ do ->
       'CNewMemberBucketActivity'
       'CDiscussionActivity'
       'CTutorialActivity'
+      'CBlogPostActivity'
       'CInstallerBucketActivity'
     ]
 
