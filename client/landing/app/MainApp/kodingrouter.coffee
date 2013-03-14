@@ -96,29 +96,29 @@ class KodingRouter extends KDRouter
       @openRoutesById[contentDisplay.id] = route
       contentDisplay.emit 'handleQuery', query
 
-  loadContent:(name, section, slug, route)->
-    KD.remote.api.JName.one {name: route}, (err, name)=>
+  loadContent:(name, section, slug, route, query)->
+    routeWithoutParams = route.split('?')[0]
+    KD.remote.api.JName.one {name: routeWithoutParams}, (err, name)=>
       if err
         new KDNotificationView title: err?.message or 'An unknown error has occured.'
       else if name?
         {constructorName, usedAsPath} = name
         selector = {}
         konstructor = KD.remote.api[constructorName]
-        slug = stripTemplate route, konstructor
         selector[usedAsPath] = slug
         konstructor?.one selector, (err, model)=>
           error err if err?
           unless model
             @handleNotFound route
           else
-            @openContent name, section, model, route
+            @openContent name, section, model, routeWithoutParams, query
       else
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
     ({params:{name, slug}, query}, state, route)=>
       route = name unless route
-      contentDisplay = @openRoutes[route]
+      contentDisplay = @openRoutes[route.split('?')[0]]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
@@ -128,7 +128,7 @@ class KodingRouter extends KDRouter
         if state?
           @openContent name, section, state, route, query
         else
-          @loadContent name, section, slug, route
+          @loadContent name, section, slug, route, query
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -196,9 +196,9 @@ class KodingRouter extends KDRouter
       '/:name?/Account'                 : section.Account
 
       # content
-      '/:name?/Topics/:topicSlug'       : content.Topics
-      '/:name?/Activity/:activitySlug'  : content.Activity
-      '/:name?/Apps/:appSlug'           : content.Apps
+      '/:name?/Topics/:slug'            : content.Topics
+      '/:name?/Activity/:slug'          : content.Activity
+      '/:name?/Apps/:slug'              : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
