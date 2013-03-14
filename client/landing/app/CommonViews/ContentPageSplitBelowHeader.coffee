@@ -31,7 +31,7 @@ class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
         $panel.addClass "collapsed"
     e.stopPropagation()
 
-  _windowDidResize:=>
+  _windowDidResize:->
     super
     @setRightColumnClass()
 
