@@ -123,7 +123,7 @@ task 'webserver', ({configFile}) ->
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
-    webPortEnd   = webserver.port + webserver.clusterSize
+    webPortEnd   = webserver.port + webserver.clusterSize - 1
     webPort = [webPortStart..webPortEnd]
   else
     webPort = [webserver.port]
@@ -442,7 +442,7 @@ task 'switchProxy', (options) ->
       
     """
 
-    ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize]
+    ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize-1]
     for port, i in ports
       haproxyCfg += "    server server#{i} 127.0.0.1:#{port} maxconn 128 check port #{port}\n"
 
