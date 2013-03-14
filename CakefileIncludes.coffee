@@ -568,7 +568,7 @@ Includes =
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         # static profile views
-        staticprofilesettings       : "./client/app/MainApp/staticprofilesettings.coffee"
+        staticprofilesettings       : "./client/app/Applications/Members.kdapplication/ContentDisplays/staticprofilesettings.coffee"
 
         # BOTTOM PANEL
         # bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
@@ -583,7 +583,8 @@ Includes =
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
         LandingPageViews          : "./client/app/MainApp/maincontroller/landingpageviews.coffee"
-        LazyDomController         : "./client/app/MainApp/lazydomcontroller.coffee"
+        LazyDomController         : "./client/app/MainApp/lazy/lazydomcontroller.coffee"
+        StaticProfileController   : "./client/app/MainApp/lazy/staticprofilecontroller.coffee"
 
 
         # these are libraries, but adding it here so they are minified properly

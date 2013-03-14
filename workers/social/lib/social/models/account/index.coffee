@@ -179,21 +179,31 @@ module.exports = class JAccount extends jraphical.Module
     console.log 'checking for blog posts'
 
     JBlogPost = require '../messages/blog'
+    CActivity = require '../activity'
 
-    JBlogPost.some originId:@getId() ,
+    CActivity.some
+      originId: @getId()
+      type : 'CBlogPostActivity'
+        # $in : @profile.staticPage?.showTypes or [
+        #   'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+        #   'CDiscussionActivity', 'CTutorialActivity'
+        # ]
+    ,
       sort :
         'meta.createdAt' : -1
       limit : 5
-    , (err, blogPost)=>
-
-      console.log 'found',blogPost.length,'blog posts' unless err
+    , (err, activities)=>
+      console.log activities.length
+      posts = []
+      for i in activities
+        posts.push JSON.parse(i.snapshot)
 
       callback null, JAccount.renderHomepage {
         profile       : @profile
         account       : @
         counts        : @counts
         skillTags     : @skillTags
-        lastBlogPosts : blogPost or {}
+        lastBlogPosts : posts or {}
       }
 
   addStaticPageType: secure (client, type, callback)->

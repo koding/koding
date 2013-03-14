@@ -25,10 +25,25 @@ module.exports = class CActivity extends jraphical.Capsule
       createdAt             : 'sparse'
       modifiedAt            : 'sparse'
       group                 : 'sparse'
+
+    permissions     :
+      'read activity'                 : ['member','moderator']
+      # 'open group'                        : ['member','moderator']
+      # 'list members'                      : ['member','moderator']
+      # 'create groups'                     : ['moderator']
+      # 'edit groups'                       : ['moderator']
+      # 'edit own groups'                   : ['member','moderator']
+      # 'query collection'                  : ['member','moderator']
+      # 'update collection'                 : ['moderator']
+      # 'assure collection'                 : ['moderator']
+      # 'remove documents from collection'  : ['moderator']
+      # 'view readme'                       : ['guest','member','moderator']
+
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
+        'fetchFacets1'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -192,8 +207,10 @@ module.exports = class CActivity extends jraphical.Capsule
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
   @fetchFacets = permit 'read activity'
+    failure: ->
+      console.log 'fail'
     success:(client, options, callback)->
-      {to, limit, facets, lowQuality} = options
+      {to, limit, facets, lowQuality, originId} = options
 
       selector =
         type         : { $in : facets }
@@ -201,7 +218,28 @@ module.exports = class CActivity extends jraphical.Capsule
         isLowQuality : { $ne : lowQuality }
         group        : client.groupName ? 'koding'
 
-      console.log {selector}
+      selector.originId = originId if originId
+
+      options =
+        limit : limit or 20
+        sort  : createdAt : -1
+
+      @some selector, options, (err, activities)->
+        if err then callback err
+        else
+          callback null, activities
+
+  @fetchFacets1 = secure (client, options, callback)->
+      console.log 'this is temporary'
+      {to, limit, facets, lowQuality, originId} = options
+
+      selector =
+        type         : { $in : facets }
+        createdAt    : { $lt : new Date to }
+        isLowQuality : { $ne : lowQuality }
+        group        : client.groupName ? 'koding'
+
+      selector.originId = originId if originId
 
       options =
         limit : limit or 20

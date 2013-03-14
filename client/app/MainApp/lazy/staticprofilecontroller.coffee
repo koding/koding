@@ -1,108 +1,6 @@
-class LazyDomController extends KDController
-
-  constructor:->
-    super
-
-    @groupViewsAdded   = no
-    @profileViewsAdded = no
-
-    @mainController = @getSingleton 'mainController'
-
-    @mainController.on 'AppIsReady', =>
-      if @userEnteredFromGroup()
-        @addGroupViews()
-        # @switchGroupState isLoggedIn
-      else if @userEnteredFromProfile()
-        @addProfileViews()
-
-      landingPageSideBar = new LandingPageSideBar
-
-  userEnteredFromGroup:-> KD.config.groupEntryPoint?
-
-  userEnteredFromProfile:-> KD.config.profileEntryPoint?
-
-  switchGroupState:(isLoggedIn)->
-
-    {groupEntryPoint} = KD.config
-
-    loginLink = new GroupsLandingPageButton {groupEntryPoint}, {}
-
-    if isLoggedIn and groupEntryPoint?
-      KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)->
-        if err then console.warn err
-        else if roles.length
-          loginLink.setState { isMember: yes, roles }
-        else
-          {JMembershipPolicy} = KD.remote.api
-          JMembershipPolicy.byGroupSlug groupEntryPoint,
-            (err, policy)->
-              if err then console.warn err
-              else if policy?
-                loginLink.setState {
-                  isMember        : no
-                  approvalEnabled : policy.approvalEnabled
-                }
-              else
-                loginLink.setState {
-                  isMember        : no
-                  isPublic        : yes
-                }
-    else
-      @utils.defer -> loginLink.setState { isLoggedIn: no }
-
-    loginLink.appendToSelector '.group-login-buttons'
-
-  addGroupViews:->
-
-    return if @groupViewsAdded
-    @groupViewsAdded = yes
-
-    groupLandingView = new KDView
-      lazyDomId : 'group-landing'
-
-    groupLandingView.listenWindowResize()
-    groupLandingView._windowDidResize = =>
-      groupLandingView.setHeight window.innerHeight
-      groupContentView.setHeight window.innerHeight-groupTitleView.getHeight()
-
-    groupContentWrapperView = new KDView
-      lazyDomId : 'group-content-wrapper'
-      cssClass : 'slideable'
-
-    groupTitleView = new KDView
-      lazyDomId : 'group-title'
-
-    groupContentView = new KDView
-      lazyDomId : 'group-loading-content'
-
-    groupPersonalWrapperView = new KDView
-      lazyDomId : 'group-personal-wrapper'
-      cssClass  : 'slideable'
-      click :(event)=>
-        unless event.target.tagName is 'A'
-          @mainController.loginScreen.unsetClass 'landed'
-
-    groupLogoView = new KDView
-      lazyDomId: 'group-koding-logo'
-      click :=>
-        groupPersonalWrapperView.setClass 'slide-down'
-        groupContentWrapperView.setClass 'slide-down'
-        groupLogoView.setClass 'top'
-
-        groupLandingView.setClass 'group-fading'
-        @utils.wait 1100, => groupLandingView.setClass 'group-hidden'
-
-    groupLogoView.setY groupLandingView.getHeight()-42
-
-    @utils.wait =>
-      groupLogoView.setClass 'animate'
-      groupLandingView._windowDidResize()
-
-
-  addProfileViews:->
-
-    return if @profileViewsAdded
-    @profileViewsAdded = yes
+class StaticProfileController extends KDController
+  constructor:(options,data)->
+    super options,data
 
     # reviving landing page as a whole
 
@@ -112,7 +10,7 @@ class LazyDomController extends KDController
     profileLandingView.listenWindowResize()
     profileLandingView._windowDidResize = =>
       profileLandingView.setHeight window.innerHeight
-      profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+      @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
 
     profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
@@ -134,29 +32,36 @@ class LazyDomController extends KDController
         profileShowMoreView.setHeight 0
         profileLandingView._windowDidResize()
 
-    profileContentView = new KDListView
+    @profileContentView = new KDListView
       lazyDomId : 'profile-content'
       itemClass : StaticBlogPostListItem
     , {}
 
-    if profileContentView.$().attr('data-count') > 0
+    if @profileContentView.$().attr('data-count') > 0
       profileShowMoreView.show()
 
     # reviving content type selectors
 
-    profileStatusActivityItem = new KDView
+    appManager = @getSingleton 'appManager'
+
+    profileStatusActivityItem = new StaticNavLink
+      delegate : @
       lazyDomId : 'CStatusActivity'
 
-    profileBlogPostActivityItem = new KDView
+    profileBlogPostActivityItem = new StaticNavLink
+      delegate : @
       lazyDomId : 'CBlogPostActivity'
 
-    profileCodeSnipActivityItem = new KDView
+    profileCodeSnipActivityItem = new StaticNavLink
+      delegate : @
       lazyDomId : 'CCodeSnipActivity'
 
-    profileDiscussionActivityItem = new KDView
+    profileDiscussionActivityItem = new StaticNavLink
+      delegate : @
       lazyDomId : 'CDiscussionActivity'
 
-    profileTutorialActivityItem = new KDView
+    profileTutorialActivityItem = new StaticNavLink
+      delegate : @
       lazyDomId : 'CTutorialActivity'
 
     # reviving logo
@@ -288,24 +193,55 @@ class LazyDomController extends KDController
             callback  : (state)=>
               profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CTutorialActivity', =>
 
-
-
     @on 'ShowMoreButtonClicked', =>
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+      # if profileUser
+      #   log profileUser
+      #   KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
+      #     if err
+      #       log err
+      #     else
+      #       profileContentListController = new KDListViewController
+      #         view : @profileContentView
+      #         startWithLazyLoader : yes
+      #       , blogs
+
+      #       @profileContentView.$('.content-item').remove()
+
+      #       @profileContentView.on 'ItemWasAdded', (instance, index)->
+      #         instance.viewAppended()
+
+      #       profileContentListController.instantiateListItems blogs
+
+    @controller = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : ActivityListItemView
+
+    @listWrapper = @controller.getView()
+    @listWrapper.hide()
+    @profileContentView.addSubView @listWrapper
+
+    @on 'StaticProfileNavLinkClicked', (facets)=>
       if profileUser
-        log profileUser
-        KD.remote.api.JBlogPost.some {originId : profileUser.getId()}, {limit:5,sort:{'meta.createdAt':-1}}, (err,blogs)=>
-          if err
-            log err
+        appManager.tell 'Activity', 'fetchActivity',
+          originId : profileUser.getId()
+          facets : [facets]
+          bypass : yes
+        , @bound "refreshActivities"
 
-          else
-            profileContentListController = new KDListViewController
-              view : profileContentView
-              startWithLazyLoader : yes
-            , blogs
 
-            profileContentView.$('.content-item').remove()
+  refreshActivities:(err,activities)->
+    @profileContentView.$('.content-item').remove()
+    @listWrapper.show()
 
-            profileContentView.on 'ItemWasAdded', (instance, index)->
-              instance.viewAppended()
+    @controller.removeAllItems()
+    @controller.listActivities activities
 
-            profileContentListController.instantiateListItems blogs
+class StaticNavLink extends KDView
+  constructor:(options,data)->
+    super options,data
+    @unsetClass 'disabled'
+
+  click :->
+    @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId()
