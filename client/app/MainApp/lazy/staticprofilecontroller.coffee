@@ -1,4 +1,10 @@
 class StaticProfileController extends KDController
+
+  CONTENT_TYPES = [
+    'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+    'CDiscussionActivity', 'CTutorialActivity'
+  ]
+
   constructor:(options,data)->
     super options,data
 
@@ -11,6 +17,8 @@ class StaticProfileController extends KDController
       viewOptions       :
         cssClass        : 'static-content'
       showHeader        : no
+
+    @navLinks = {}
 
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
@@ -27,6 +35,7 @@ class StaticProfileController extends KDController
     profileUser = null
     allowedTypes = ['CBlogPostActivity']
     blockedTypes = []
+    currentFacets = []
 
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
@@ -69,25 +78,11 @@ class StaticProfileController extends KDController
       cssClass : 'slideable'
 
     # reviving feed type selectors that will activate feed facets
-    profileStatusActivityItem = new StaticNavLink
-      delegate : @
-      lazyDomId : 'CStatusActivity'
 
-    profileBlogPostActivityItem = new StaticNavLink
-      delegate : @
-      lazyDomId : 'CBlogPostActivity'
-
-    profileCodeSnipActivityItem = new StaticNavLink
-      delegate : @
-      lazyDomId : 'CCodeSnipActivity'
-
-    profileDiscussionActivityItem = new StaticNavLink
-      delegate : @
-      lazyDomId : 'CDiscussionActivity'
-
-    profileTutorialActivityItem = new StaticNavLink
-      delegate : @
-      lazyDomId : 'CTutorialActivity'
+    for type in CONTENT_TYPES
+      @navLinks[type] = new StaticNavLink
+        delegate : @
+        lazyDomId : type
 
     @emit 'DecorateStaticNavLinks', allowedTypes
 
@@ -174,50 +169,12 @@ class StaticProfileController extends KDController
 
       types = @getAllowedTypes profileUser
 
-      profileStatusActivityItem.addSubView statusSwitch = new KDOnOffSwitch
-        cssClass : 'profile-stream-switch'
-        size : 'tiny'
-        title     : 'Show'
-        defaultValue : 'CStatusActivity' in types
-        callback  : (state)=>
-          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CStatusActivity', =>
-            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
-
-      profileBlogPostActivityItem.addSubView blogPostSwitch = new KDOnOffSwitch
-        cssClass : 'profile-stream-switch'
-        size : 'tiny'
-        title     : 'Show'
-        defaultValue : 'CBlogPostActivity' in types
-        callback  : (state)=>
-          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CBlogPostActivity', =>
-            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
-
-      profileCodeSnipActivityItem.addSubView codeSnipSwitch = new KDOnOffSwitch
-        cssClass : 'profile-stream-switch'
-        size : 'tiny'
-        title     : 'Show'
-        defaultValue : 'CCodeSnipActivity' in types
-        callback  : (state)=>
-          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CCodeSnipActivity', =>
-            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
-
-      profileDiscussionActivityItem.addSubView discussionSwitch = new KDOnOffSwitch
-        cssClass : 'profile-stream-switch'
-        size : 'tiny'
-        title     : 'Show'
-        defaultValue : 'CDiscussionActivity' in types
-        callback  : (state)=>
-          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CDiscussionActivity', =>
-            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
-
-      profileTutorialActivityItem.addSubView tutorialSwitch = new KDOnOffSwitch
-        cssClass : 'profile-stream-switch'
-        size : 'tiny'
-        title     : 'Show'
-        defaultValue : 'CTutorialActivity' in types
-        callback  : (state)=>
-          profileUser["#{if state then 'add' else 'remove'}StaticPageType"] 'CTutorialActivity', =>
-            @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
+      for type in CONTENT_TYPES
+        @navLinks[type].addSubView new StaticNavCheckBox
+          activityType : type
+          defaultValue : type in types
+          delegate     : @
+        , profileUser
 
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
@@ -236,6 +193,7 @@ class StaticProfileController extends KDController
         @emit 'DecorateStaticNavLinks', allowedTypes
 
         if blockedTypes.length is 0
+          currentFacets = facets
           appManager.tell 'Activity', 'fetchActivity',
             originId : profileUser.getId()
             facets : facets
@@ -243,9 +201,22 @@ class StaticProfileController extends KDController
           , @bound "refreshActivities"
         else @emit 'BlockedTypesRequested', blockedTypes
 
+    @controller.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId : profileUser.getId()
+        facets : currentFacets
+        to     : @controller.itemsOrdered.last.getData().meta.createdAt
+        bypass : yes
+      , @bound "appendActivities"
+
   repositionLogoView:->
     @profileLogoView.$().css
       top: @profileLandingView.getHeight()-42
+
+  appendActivities:(err,activities)->
+    @controller.listActivities activities
+    @controller.hideLazyLoader()
+
 
   refreshActivities:(err,activities)->
     @profileContentView.$('.content-item').remove()
@@ -255,11 +226,10 @@ class StaticProfileController extends KDController
     @controller.removeAllItems()
     @controller.listActivities activities
 
+    @controller.hideLazyLoader()
+
   getAllowedTypes:(profileUser)->
-      allowedTypes = profileUser.profile.staticPage?.showTypes or [
-        'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
-        'CDiscussionActivity', 'CTutorialActivity'
-      ]
+      allowedTypes = profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
 
 
 class StaticNavLink extends KDView
@@ -278,3 +248,29 @@ class StaticNavLink extends KDView
 
   click :->
     @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId()
+
+
+class StaticNavCheckBox extends KDInputView
+
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
+
+  constructor:(options,data)->
+    options.type      = "checkbox"
+    options.cssClass  = 'profile-facet-customize-switch'
+    options.tooltip   =
+      title           : "Check this box to display your #{constructorToPluralNameMap[options.activityType]} on this page"
+
+    super options,data
+
+
+  click:(event)->
+    event.stopPropagation()
+    state = @getValue()
+    @getData()["#{if state then 'add' else 'remove'}StaticPageType"] @getOption('activityType'), =>
+      @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes @getData()

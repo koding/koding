@@ -148,13 +148,14 @@
   fl()
   borderBox()
   li
-    vendor transition, opacity .1s linear
+    overflow            visible
+    vendor              transition, opacity .1s linear
     &.disabled
-      opacity               0.5
-      cursor                default
+      opacity           0.5
+      cursor            default
     &.blocked
-      opacity               0.5
-      cursor                default
+      opacity           0.5
+      cursor            default
 
 
 
@@ -280,9 +281,11 @@
       text-rendering geometricPrecision
 
 
-.profile-stream-switch
-  span
-    font-size 10px
+.profile-facet-customize-switch
+  abs()
+  top 3px
+  left 0
+  margin-left -17px
 
 .disable-static-page-modal
 .enable-static-page-modal
