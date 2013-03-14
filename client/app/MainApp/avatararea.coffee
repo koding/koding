@@ -364,8 +364,7 @@ class PopupNotificationListItem extends NotificationListItem
     # {_id} = @getData()
     # KD.whoami().glanceActivities _id, (err)=>
     #   if err then log "Error: ", err
-
-    super
+    
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->
