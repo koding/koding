@@ -97,7 +97,7 @@ module.exports = class Builder
               filename: file.includePath
               bare: yes
               sourceMap: yes
-            js = if result.js.indexOf("pistachio") != -1 
+            js = if result.js.indexOf("pistachio") != -1
               compilePistachios(result.js).toString()
             else
               result.js
@@ -136,7 +136,7 @@ module.exports = class Builder
           throw e
         ast.figure_out_scope()
         ast = ast.transform UglifyJS.Compressor(warnings: no)
-        
+
         uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
         stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
         ast.print stream
