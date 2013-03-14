@@ -269,7 +269,7 @@ class NFinderTreeController extends JTreeViewController
       if @nodes["#{nodeData.parentPath}/#{newValue}"]
         caretPos = nodeView.renameView.input.getCaretPosition()
         @notify "#{nodeData.type.capitalize()} exist!", "error"
-        return KD.utils.defer => 
+        return KD.utils.defer =>
           @showRenameDialog nodeView
           nodeView.renameView.input.setCaretPosition caretPos
 
@@ -501,6 +501,15 @@ class NFinderTreeController extends JTreeViewController
             if count == files.length
               @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
+  openTerminalFromHere: (nodeView) ->
+    appManager.openApplication "WebTerm", yes, (appInstance) =>
+      path        = nodeView.getData().path
+      webTermView = KD.getSingleton('mainView').mainTabView.getActivePane().mainView
+      #TODO: webTermView != appInstance.getView() so should simplify the line above
+
+      webTermView.on "WebTermConnected", (server) =>
+        server.input "cd #{path}\n"
+
   ###
   CONTEXT MENU OPERATIONS
   ###
@@ -528,6 +537,7 @@ class NFinderTreeController extends JTreeViewController
   cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
+  cmOpenTerminal: (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 
