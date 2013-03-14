@@ -192,9 +192,11 @@ class TopicsAppController extends AppController
     @getView().$(".activityhead").html title
 
   showContentDisplay:(content, callback=->)->
-    contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
+    contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     callback contentDisplay
 

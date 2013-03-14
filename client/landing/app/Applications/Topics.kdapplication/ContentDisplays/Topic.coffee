@@ -63,8 +63,10 @@ class ContentDisplayControllerTopic extends KDViewController
         'timestamp|old'   :
           title           : 'Most activity'
           direction       : 1
-    }, (controller)->
+    }, (controller)=>
+      @feedController = controller
       mainView.addSubView controller.getView()
+      @emit 'ready'
 
   addTopicView:(topic)->
     topicContentDisplay = @getView()
