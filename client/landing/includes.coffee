@@ -304,7 +304,8 @@ module.exports = [
   "app/MainApp/maincontroller/maincontroller.coffee",
   "app/MainApp/maincontroller/landingpageviews.coffee",
   "app/MainApp/localstorage.coffee",
-  "app/MainApp/lazydomcontroller.coffee",
+  "app/MainApp/lazy/lazydomcontroller.coffee",
+  "app/MainApp/lazy/staticprofilecontroller.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
@@ -436,6 +437,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee",
+  "app/Applications/Activity.kdapplication/ContentDisplays/BlogPost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee",
 
@@ -451,6 +453,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee",
@@ -460,6 +463,15 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
+
+ # Static Profile List Items
+  "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -670,6 +682,8 @@ module.exports = [
   "stylus/app.book.styl",
   "stylus/app.codeshare.styl",
   "stylus/app.group.styl",
+  "stylus/app.user.styl",
+  "stylus/app.markdown.styl",
   "stylus/temp.styl",
 
   # mediaqueries should stay at the bottom

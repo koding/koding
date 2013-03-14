@@ -16,7 +16,7 @@ class StaticProfileController extends KDController
     # user input (type selection, more-button)
     @profileContentView = new KDListView
       lazyDomId : 'profile-content'
-      itemClass : StaticBlogPostListItem
+      itemClass : StaticActivityListItemView
     , {}
 
     @listWrapper = @controller.getView()
