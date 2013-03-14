@@ -31,8 +31,8 @@ class LoginView extends KDScrollView
         @showView()
 
     mainController.on 'UserIsJustLoggedIn', (account, connectedState)=>
-      @mainViewController.getView().decorateLoginState yes
-      @mainViewController.sidebarController.accountChanged account
+      mainViewController.getView().decorateLoginState yes
+      mainViewController.sidebarController.accountChanged account
 
     # ---
 
@@ -306,6 +306,8 @@ class LoginView extends KDScrollView
     #   $('#group-landing').css 'opacity', 0
     #   $('#group-landing').css 'height', 0
     #   @$().css 'height', 0
+
+    log 'animateForm called.', arguments
 
     switch name
       when "register"
