@@ -216,8 +216,8 @@ class MainView extends KDView
   decorateLoginState:(isLoggedIn = no)->
 
     if isLoggedIn
-      $('body').removeClass "login"
-      $('body').addClass "loggedIn"
+      # $('body').removeClass "login"
+      # $('body').addClass "loggedIn"
 
       # Workaround for Develop Tab
       if "Develop" isnt @getSingleton("router")?.getCurrentPath()
@@ -226,8 +226,8 @@ class MainView extends KDView
       @mainTabView.showHandleContainer()
 
     else
-      $('body').addClass "login"
-      $('body').removeClass "loggedIn"
+      # $('body').addClass "login"
+      # $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
