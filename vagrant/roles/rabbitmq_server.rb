@@ -7,3 +7,9 @@ run_list [
             "recipe[rabbitmq::vhosts]",
             "recipe[rabbitmq::users]",
         ]
+default_attributes({
+                     "rabbitmq" => {
+                                "admin_password" => "dslkdscmckfjf55",
+                                "user_password" => "djfjfhgh4455__5"
+                     },
+})

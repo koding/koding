@@ -422,25 +422,13 @@ module.exports = class JPost extends jraphical.Message
       'data.flags.isLowQuality': $ne: yes
     },
       skip: skipCount
-      sort:
-        timestamp: 1
+      sort: { timestamp: 1 }
     , (err, comments)->
       if err
         callback err
       else
         # comments.reverse()
         callback null, comments
-
-  fetchEntireMessage:(callback)->
-    @beginGraphlet()
-      .edges
-        query         :
-          targetName  :'JComment'
-        sort          :
-          timestamp   : 1
-      .nodes()
-    .endGraphlet()
-    .fetchRoot callback
 
   save:->
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.

@@ -344,7 +344,7 @@ class KDAutoCompleteController extends KDViewController
         @refreshDropDown data
         @showDropdown()
 
-  keyUpOnInputView:(inputView, event)=>
+  keyUpOnInputView:(event)=>
     return if event.keyCode in [9,38,40] #tab
     @updateDropdownContents()
     # else

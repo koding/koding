@@ -79,15 +79,14 @@ module.exports =
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
-    watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    watch       : no
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
@@ -100,8 +99,9 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://koding.local:1337'
   mq            :
-    host        : 'rabbitmq.local'
+    host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'

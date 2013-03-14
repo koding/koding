@@ -5,41 +5,45 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/amqputil"
 	"koding/tools/config"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/tools/sockjs"
 	"koding/tools/utils"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
 func main() {
-	utils.Startup("broker", false)
-	utils.RunStatusLogger()
+	lifecycle.Startup("broker", false)
+	lifecycle.RunStatusLogger()
 
-	publishConn := utils.CreateAmqpConnection("broker")
+	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
 	var routeMapMutex sync.Mutex
 
-	service := sockjs.NewService("http://localhost/sockjs.js", func(session *sockjs.Session) {
+	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
 
 		r := make([]byte, 128/8)
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
+		session.Tag = socketId
 
-		utils.ChangeNumClients <- 1
+		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
 		defer func() {
-			utils.ChangeNumClients <- -1
+			lifecycle.ChangeNumClients <- -1
 			log.Debug("Client disconnected: " + socketId)
 		}()
 
@@ -103,14 +107,13 @@ func main() {
 			}
 			for {
 				err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-				amqpError, isAmqpError := err.(*amqp.Error)
 				if err == nil {
 					break
-				} else if isAmqpError && amqpError.Code == 504 {
-					resetControlChannel()
-				} else {
+				}
+				if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
 					panic(err)
 				}
+				resetControlChannel()
 			}
 		}()
 
@@ -137,26 +140,25 @@ func main() {
 				case "publish":
 					exchange := message["exchange"].(string)
 					routingKey := message["routingKey"].(string)
-					if strings.HasPrefix(routingKey, "client.") {
-						for {
-							lastPayload = ""
-							err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
-							amqpError, isAmqpError := err.(*amqp.Error)
-							if err == nil {
-								lastPayload = message["payload"].(string)
-								break
-							} else if isAmqpError && amqpError.Code == 504 {
-								resetControlChannel()
-							} else {
-								panic(err)
-							}
+					if !strings.HasPrefix(routingKey, "client.") {
+						log.Warn("Invalid routing key.", message, socketId)
+						return
+					}
+					for {
+						lastPayload = ""
+						err := controlChannel.Publish(exchange, routingKey, false, false, amqp.Publishing{CorrelationId: socketId, Body: []byte(message["payload"].(string))})
+						if err == nil {
+							lastPayload = message["payload"].(string)
+							break
 						}
-					} else {
-						log.Warn(fmt.Sprintf("Invalid routing key: %v", message))
+						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
+							panic(err)
+						}
+						resetControlChannel()
 					}
 
 				default:
-					log.Warn(fmt.Sprintf("Invalid action: %v", message))
+					log.Warn("Invalid action.", message, socketId)
 
 				}
 			}()
@@ -166,9 +168,6 @@ func main() {
 	service.PanicHandler = log.RecoverAndLog
 
 	go func() {
-		defer os.Exit(1)
-		defer log.RecoverAndLog()
-
 		server := &http.Server{
 			Handler: &sockjs.Mux{
 				Services: map[string]*sockjs.Service{
@@ -180,13 +179,15 @@ func main() {
 		var listener net.Listener
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
 		if err != nil {
-			panic(err)
+			log.LogError(err, 0)
+			os.Exit(1)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
-				panic(err)
+				log.LogError(err, 0)
+				os.Exit(1)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -194,26 +195,37 @@ func main() {
 			})
 		}
 
+		go func() {
+			sigtermChannel := make(chan os.Signal)
+			signal.Notify(sigtermChannel, syscall.SIGTERM)
+			<-sigtermChannel
+			lifecycle.BeginShutdown()
+			listener.Close()
+		}()
+
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
+			if lifecycle.ShuttingDown {
+				break
+			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					break
+					os.Exit(1)
 				}
 				lastErrorTime = time.Now()
 			}
 		}
 	}()
 
-	consumeConn := utils.CreateAmqpConnection("broker")
+	consumeConn := amqputil.CreateConnection("broker")
 	defer consumeConn.Close()
 
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
+	consumeChannel := amqputil.CreateChannel(consumeConn)
 	defer consumeChannel.Close()
 
-	stream := utils.DeclareBindConsumeAmqpQueueNoDelete(consumeChannel, "topic", "broker", "#")
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", "broker", "#", false)
 	if err := consumeChannel.ExchangeDeclare("updateInstances", "fanout", false, false, false, false, nil); err != nil {
 		panic(err)
 	}
@@ -229,10 +241,9 @@ func main() {
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 		for pos != -1 && pos < len(routingKey) {
 			index := strings.IndexRune(routingKey[pos+1:], '.')
+			pos += index + 1
 			if index == -1 {
 				pos = len(routingKey)
-			} else {
-				pos += 1 + index
 			}
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()
@@ -240,7 +251,7 @@ func main() {
 			for _, routeSession := range routeSessions {
 				if !routeSession.Send(jsonMessage) {
 					routeSession.Close()
-					log.Warn("Dropped session because of broker to client buffer overflow.")
+					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
 				}
 			}
 			routeMapMutex.Unlock()

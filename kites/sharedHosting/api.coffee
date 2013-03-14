@@ -17,7 +17,7 @@ mounter   = require './mounter'
 
 createTmpDir = require './createtmpdir'
 
-module.exports = new Kite 'sharedHosting'
+module.exports = new Kite 'sharedHosting',
 
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout

@@ -18,10 +18,14 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
       <div class="group-buttons">
         <div class="group-nickname">#{slug}</div>
       </div>
+
       <div id="landing-page-sidebar"></div>
-      <div class="group-koding-logo">
-        <div class="logo" id='group-koding-logo'></div>
-      </div>
+
+      <!--
+        <div class="group-koding-logo">
+          <div class="logo" id='group-koding-logo'></div>
+        </div>
+      -->
 
     </div>
 

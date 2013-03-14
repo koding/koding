@@ -17,37 +17,48 @@ type Service struct {
 	Callback     func(*Session)
 	Websocket    bool
 	CookieNeeded bool
-	Timeout      time.Duration
 	StreamLimit  int
 	PanicHandler func()
 
-	iFrameContent      []byte
-	iFrameETag         string
-	sessions           map[string]*Session
-	sessionsMutex      sync.Mutex
-	lastSessionCleanup time.Time
+	iFrameContent []byte
+	iFrameETag    string
+	sessions      map[string]*Session
+	sessionsMutex sync.Mutex
 }
 
-func NewService(jsFileUrl string, callback func(*Session)) *Service {
+func NewService(jsFileUrl string, timeout time.Duration, callback func(*Session)) *Service {
 	iFrameContent := createIFrameContent(jsFileUrl)
 	hash := md5.New()
 	hash.Write(iFrameContent)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
-	return &Service{
+	s := Service{
 		Websocket:    true,
 		CookieNeeded: false,
-		Timeout:      10 * time.Minute,
 		StreamLimit:  128 * 1024,
 		Callback:     callback,
 		PanicHandler: func() {},
 
-		iFrameContent:      iFrameContent,
-		iFrameETag:         iFrameETag,
-		sessions:           make(map[string]*Session),
-		sessionsMutex:      sync.Mutex{},
-		lastSessionCleanup: time.Now(),
+		iFrameContent: iFrameContent,
+		iFrameETag:    iFrameETag,
+		sessions:      make(map[string]*Session),
+		sessionsMutex: sync.Mutex{},
 	}
+
+	go func() {
+		for {
+			s.sessionsMutex.Lock()
+			for key, session := range s.sessions {
+				if session.lastSendTime.Add(timeout).Before(time.Now()) {
+					session.Close()
+					delete(s.sessions, key)
+				}
+			}
+			s.sessionsMutex.Unlock()
+		}
+	}()
+
+	return &s
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -55,10 +66,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	path := r.URL.Path
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Header.Get("Origin") != "" && r.Header.Get("Origin") != "null" {
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-	} else {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 	}
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	h := r.Header.Get("Access-Control-Request-Headers")
@@ -77,13 +87,15 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.Write(s.iFrameContent)
 		return
+	}
 
-	} else if path == "" || path == "/" {
+	if path == "" || path == "/" {
 		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		w.Write([]byte("Welcome to SockJS!\n"))
 		return
+	}
 
-	} else if path == "/info" {
+	if path == "/info" {
 		if r.Method == "OPTIONS" {
 			answerOptions(w, "OPTIONS, GET")
 			return
@@ -99,8 +111,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		info["entropy"] = rand.Int31()
 		enc.Encode(info)
 		return
+	}
 
-	} else if path == "/websocket" {
+	if path == "/websocket" {
 		s.serveRawWebsocket(w, r)
 		return
 	}
@@ -117,17 +130,8 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sessionsMutex.Lock()
-	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
-		for key, session := range s.sessions {
-			if session.closed || session.lastActivity.Add(s.Timeout).Before(time.Now()) {
-				session.Close()
-				delete(s.sessions, key)
-			}
-		}
-		s.lastSessionCleanup = time.Now()
-	}
-	session := s.sessions[parts[1]]
-	if session == nil {
+	session, found := s.sessions[parts[1]]
+	if !found {
 		if parts[2] == "xhr_send" || parts[2] == "jsonp_send" {
 			http.NotFound(w, r)
 			s.sessionsMutex.Unlock()
@@ -136,7 +140,6 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session = s.newSession()
 		s.sessions[parts[1]] = session
 	}
-	session.lastActivity = time.Now()
 	s.sessionsMutex.Unlock()
 
 	if s.CookieNeeded {
@@ -162,33 +165,36 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := make([]byte, r.ContentLength)
 		io.ReadFull(r.Body, data)
-		if session.ReadMessages(data) {
-			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-			w.WriteHeader(http.StatusNoContent)
-		} else {
+		if !session.ReadMessages(data) {
 			http.Error(w, "Broken JSON encoding.", http.StatusInternalServerError)
+			return
 		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		w.WriteHeader(http.StatusNoContent)
 
 	case "jsonp_send":
 		var data []byte
-		if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+		switch r.Header.Get("Content-Type") {
+		case "application/x-www-form-urlencoded":
 			data = []byte(r.FormValue("d"))
-		} else {
+		default:
 			data = make([]byte, r.ContentLength)
 			io.ReadFull(r.Body, data)
 		}
+
 		if len(data) == 0 {
 			http.Error(w, "Payload expected.", http.StatusInternalServerError)
 			return
 		}
-
-		if session.ReadMessages(data) {
-			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ok"))
-		} else {
+		if !session.ReadMessages(data) {
 			http.Error(w, "Broken JSON encoding.", http.StatusInternalServerError)
+			return
 		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 
 	case "xhr":
 		if r.Method == "OPTIONS" {

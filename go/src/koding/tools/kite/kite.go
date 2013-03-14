@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io"
+	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/dnode"
+	"koding/tools/lifecycle"
 	"koding/tools/log"
-	"koding/tools/utils"
 	"os"
 	"os/exec"
 	"os/signal"
 	"os/user"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 type Kite struct {
@@ -39,16 +41,7 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	utils.RunStatusLogger()
-
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGTERM)
-
-	consumeConn := utils.CreateAmqpConnection("kite-" + k.Name)
-	defer consumeConn.Close()
-
-	publishConn := utils.CreateAmqpConnection("kite-" + k.Name)
-	defer publishConn.Close()
+	lifecycle.RunStatusLogger()
 
 	routeMap := make(map[string](chan<- []byte))
 	defer func() {
@@ -57,12 +50,23 @@ func (k *Kite) Run() {
 		}
 	}()
 
-	publishChannel := utils.CreateAmqpChannel(publishConn)
+	timeoutChannel := make(chan string)
+
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGTERM)
+
+	consumeConn := amqputil.CreateConnection("kite-" + k.Name)
+	defer consumeConn.Close()
+
+	publishConn := amqputil.CreateConnection("kite-" + k.Name)
+	defer publishConn.Close()
+
+	publishChannel := amqputil.CreateChannel(publishConn)
 	defer publishChannel.Close()
 
-	consumeChannel := utils.CreateAmqpChannel(consumeConn)
-	utils.DeclareAmqpPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
-	stream := utils.DeclareBindConsumeAmqpQueue(consumeChannel, "fanout", "kite-"+k.Name, "")
+	consumeChannel := amqputil.CreateChannel(consumeConn)
+	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
 	for {
 		select {
@@ -84,7 +88,8 @@ func (k *Kite) Run() {
 				}
 
 				if _, found := routeMap[client.RoutingKey]; found {
-					continue // duplicate key
+					log.Warn("Duplicate auth.join for same routing key.")
+					continue
 				}
 				channel := make(chan []byte, 1024)
 				routeMap[client.RoutingKey] = channel
@@ -92,10 +97,10 @@ func (k *Kite) Run() {
 				go func() {
 					defer log.RecoverAndLog()
 
-					utils.ChangeNumClients <- 1
+					lifecycle.ChangeNumClients <- 1
 					log.Debug("Client connected: " + client.Username)
 					defer func() {
-						utils.ChangeNumClients <- -1
+						lifecycle.ChangeNumClients <- -1
 						log.Debug("Client disconnected: " + client.Username)
 					}()
 
@@ -168,9 +173,17 @@ func (k *Kite) Run() {
 
 					d.Send("ready", "kite-"+k.Name)
 
-					for message := range channel {
-						log.Debug("Read", client.RoutingKey, message)
-						d.ProcessMessage(message)
+					for {
+						select {
+						case message, ok := <-channel:
+							if !ok {
+								return
+							}
+							log.Debug("Read", client.RoutingKey, message)
+							d.ProcessMessage(message)
+						case <-time.After(24 * time.Hour):
+							timeoutChannel <- client.RoutingKey
+						}
 					}
 				}()
 
@@ -204,9 +217,17 @@ func (k *Kite) Run() {
 				}
 			}
 
+		case routingKey := <-timeoutChannel:
+			channel, found := routeMap[routingKey]
+			if found {
+				close(channel)
+				delete(routeMap, routingKey)
+				log.Warn("Dropped client because of fallback session timeout.")
+			}
+
 		case <-sigtermChannel:
 			log.Info("Received TERM signal. Beginning shutdown...")
-			utils.BeginShutdown()
+			lifecycle.BeginShutdown()
 			consumeChannel.Close()
 		}
 	}

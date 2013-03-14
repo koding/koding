@@ -136,7 +136,7 @@ class KDTabView extends KDScrollView
 
 
   #SHOW/HIDE ELEMENTS
-  showPane:(pane)=>
+  showPane:(pane)->
     return unless pane
     @hideAllPanes()
     pane.show()
@@ -162,7 +162,13 @@ class KDTabView extends KDScrollView
     @tabHandleContainer.hide()
     @handlesHidden = yes
 
-  toggleHandleContainer:(duration = 0)-> @tabHandleContainer.$().toggle duration
+  showHandleContainer:()->
+
+    @tabHandleContainer.show()
+    @handlesHidden = no
+
+  toggleHandleContainer:(duration = 0)->
+    @tabHandleContainer.$().toggle duration
 
   hideHandleCloseIcons:()->
     @tabHandleContainer.$().addClass "hide-close-icons"

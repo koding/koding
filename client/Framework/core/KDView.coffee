@@ -851,7 +851,6 @@ class KDView extends KDObject
 
   hideTooltip:(o = {})->
     o.selector or= null
-    @$(o.selector).tipsy "hide"
     @tooltip?.hide()
 
   removeTooltip:(instance)->

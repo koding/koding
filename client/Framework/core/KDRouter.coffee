@@ -137,6 +137,7 @@ class KDRouter extends KDObject
         else @handleNotFound frag.join '/'
 
     routeInfo = {params, query}
+    @emit 'Params', {params, query}
 
     unless suppressListeners
       listeners = node[listenerKey]

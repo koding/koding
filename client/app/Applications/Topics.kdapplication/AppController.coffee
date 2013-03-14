@@ -75,6 +75,8 @@ class TopicsAppController extends AppController
           direction         : -1
     }, (controller)=>
       @feedController = controller
+      controller.resultsController.on 'ItemWasAdded', (item)=>
+        item.on 'TaggedContentRequested', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
@@ -99,6 +101,12 @@ class TopicsAppController extends AppController
 
     @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
+
+  openTopic:(topic)->
+    group = KD.getSingleton('groupsController').getCurrentGroup()
+    KD.getSingleton('router').handleRoute """
+      #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
+      """
 
   updateTopic:(topicItem)->
     topic = topicItem.data
