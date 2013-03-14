@@ -92,7 +92,7 @@ class MainController extends KDController
       @mainViewController = new MainViewController
         view       : mainView = new MainView
           domId    : "kdmaincontainer"
-          cssClass : "hidden"
+          # cssClass : "hidden"
 
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen

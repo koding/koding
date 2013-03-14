@@ -8,8 +8,6 @@ class LandingPageSideBar extends KDView
 
     super options
 
-    log "here I am...."
-
     @navController = new LandingPageNavigationController
       view         : new NavigationList
         itemClass  : LandingPageNavigationLink
