@@ -58,19 +58,19 @@ class OwnProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
     @staticPageView = new KDView
-      tooltip :
-        placement : 'bottom'
-        direction : 'right'
-        delayIn : 50
-        delayOut : 1000
-        view :
-          constructorName : StaticProfileTooltip
-          options : {}
-          data : @getData()
+      # tooltip :
+      #   placement : 'bottom'
+      #   direction : 'right'
+      #   delayIn : 50
+      #   delayOut : 1000
+      #   view :
+      #     constructorName : StaticProfileTooltip
+      #     options : {}
+      #     data : @getData()
       partial : 'Your Public Page'
       cssClass : 'static-page-view'
-      callback :=>
-        modal = new StaticProfileSettingsModalView
+      # callback :=>
+      #   modal = new StaticProfileSettingsModalView
 
   putNick:(nick)-> "@#{nick}"
 

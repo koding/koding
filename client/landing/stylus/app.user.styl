@@ -147,6 +147,16 @@
   padding               19px 23px 19px 23px
   fl()
   borderBox()
+  li
+    vendor transition, opacity .1s linear
+    &.disabled
+      opacity               0.5
+      cursor                default
+    &.blocked
+      opacity               0.5
+      cursor                default
+
+
 
   h4
     text-transform      uppercase
@@ -236,6 +246,7 @@
   .content-item
     border-bottom 1px solid #e8e8e8
     height auto
+
     &.default-item
       padding-top 35px
       padding-left 35px
@@ -248,11 +259,16 @@
       font-weight 600
       color #444
       bg color, #fbfbfb
-      span.create-date
-        display block
+      .create-date
+        display inline
         font-size 14px
         font-weight 300
         color #aaa
+        width auto
+      .static-action-links
+         fr()
+         width auto
+         display inline-block
 
       padding 20px 30px
       border-bottom 1px solid #e8e8e8
@@ -263,6 +279,10 @@
       text-align justify
       text-rendering geometricPrecision
 
+
+.profile-stream-switch
+  span
+    font-size 10px
 
 .disable-static-page-modal
 .enable-static-page-modal
