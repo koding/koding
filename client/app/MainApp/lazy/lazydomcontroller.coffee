@@ -14,7 +14,11 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
-      landingPageSideBar = new LandingPageSideBar
+      if KD.isLoggedIn() and KD.config.groupEntryPoint is 'koding'
+        $('#group-landing').css 'opacity', 0
+        @utils.wait 600, -> $('#group-landing').hide()
+      else
+        landingPageSideBar = new LandingPageSideBar
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
