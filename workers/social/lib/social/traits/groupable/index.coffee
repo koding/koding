@@ -8,64 +8,80 @@ module.exports = class Groupable
 
   {Inflector} = require 'bongo'
 
-  getCollection =(konstructor, client)->
-    {name} = konstructor
+  getCollection =(konstructor, group)->
     db = konstructor.getClient()
-    {group} = client.context
-    mainCollectionName = Inflector(name).decapitalize().pluralize()
-    return db.collection "#{mainCollectionName}__#{group.replace /-/g, '_'}"
+    return db.collection getCollectionName konstructor, group
 
-  @drop$ = permit 'drop collection'
+  getCollectionName =(konstructor, group)->
+    {name} = konstructor
+    mainCollectionName = Inflector(name).decapitalize().pluralize()
+    collectionName = "#{mainCollectionName}"
+    collectionName += "__#{group.replace /-/g, '_'}"  if group?
+    return collectionName
+
+  getCollectionByClient =(konstructor, client)->
+    {group} = client.context
+    getCollection konstructor, group
+
+  getCollection:(group)->
+    getCollection @constructor, group ? @group
+
+  @getCollectionName =(group)->
+    getCollectionName this, group
+    # mainCollectionName = Inflector(@name).decapitalize().pluralize()
+    # return "#{mainCollectionName}__#{group.replace /-/g, '_'}"
+
+  @drop$ = permit 'drop collection',
     success:(client, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.drop.call this, collection, callback
       return this
 
-  @one$ = permit 'query collection'
+  @one$ = permit 'query collection',
     success:(client, uniqueSelector, options, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.one.call this, collection, uniqueSelector, options, callback
       return this
 
-  @all$ = permit 'query collection'
+  @all$ = permit 'query collection',
     success:(client, selector, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.all.call this, collection, selector, callback
       return this
 
-  @remove$ = permit 'query collection'
+  @remove$ = permit 'query collection',
     success:(client, selector, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.remove.call this, collection, selector, callback
       return this
 
-  @count$ = permit 'query collection'
+  @count$ = permit 'query collection',
     success:(client, selector, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.count.call this, collection, selector, callback
       return this
 
-  @some$ = permit 'query collection'
+  @some$ = permit 'query collection',
     success:(client, selector, options, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       console.log {collection}
       helpers.some.call this, collection, selector, options, callback
       return this
 
-  @someData$ = permit 'query collection'
+  @someData$ = permit 'query collection',
     success:(client, selector, fields, options, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.someData.call this, collection, selector, fields, options, callback
       return this
 
-  @cursor$ = permit 'query collection'
+  @cursor$ = permit 'query collection',
     success:(client, selector, options, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.cursor.call this, collection, selector, options, callback
 
-  @each$ = permit 'query collection'
+  @each$ = permit 'query collection',
     success:(client, selector, fields, options, callback)->
-      collection = getCollection this, client
+      collection = getCollectionByClient this, client
       helpers.each.call this, collection, selector, fields, options, callback
 
   save: (client, callback)->
@@ -74,10 +90,10 @@ module.exports = class Groupable
     model = this
     model.applyDefaults(model.isRoot_)
     collection =
-      if client then getCollection @constructor, client
-      else @constructor.getCollection()
+      if client then getCollectionByClient @constructor, client
+      else @constructor.getCollectionByClient()
     model.validate save_0_.bind model, callback, collection
     model
 
-  save$: permit 'create documents'
+  save$: permit 'create documents',
     success:(client, callback)-> @save callback

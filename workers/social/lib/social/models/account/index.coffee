@@ -303,7 +303,7 @@ module.exports = class JAccount extends jraphical.Module
           if err then callback err
           else if account?
             {nickname} = account.profile
-            JName.claim nickname, 'JUser', 'profile.nickname', (err, name)=>
+            JName.claim nickname, 'JUser', 'username', (err, name)=>
               count++
               if err then callback err
               else
