@@ -139,8 +139,11 @@ module.exports = class Builder
             """
           throw e
         ast.figure_out_scope()
-        ast = ast.transform UglifyJS.Compressor(warnings: no)
-
+        ast = ast.transform UglifyJS.Compressor
+          warnings: no
+          sequences: no
+          drop_debugger: no
+        
         uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
         stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
         ast.print stream

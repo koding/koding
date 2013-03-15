@@ -34,7 +34,7 @@ class LandingPageNavigationController extends NavigationController
   instantiateListItems:(items)->
 
     # Build groups menu
-    if @lc.userEnteredFromGroup
+    if @lc.userEnteredFromGroup()
 
       {groupEntryPoint} = KD.config
 
