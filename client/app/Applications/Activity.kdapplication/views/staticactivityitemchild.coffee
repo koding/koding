@@ -43,3 +43,6 @@ class StaticActivityItemChild extends KDView
 
     KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
+
+  formatCreateDate:(date = new Date())->
+    dateFormat(date, 'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
