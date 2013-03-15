@@ -128,6 +128,9 @@ module.exports = [
   "Framework/components/autocomplete/autocompletemisc.coffee",
   "Framework/components/autocomplete/autocompleteditems.coffee",
 
+  #time
+  "Framework/components/time/timeagoview.coffee",
+
   # --- Application ---
   "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
