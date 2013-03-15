@@ -181,10 +181,11 @@ class ApplicationManager extends KDObject
     callback()
 
   quitAll:->
-    for own name, apps of @appControllers
-      @quit app  for app in apps
 
-  get:(name)-> @appControllers[name]?.first or null
+    for own name, apps of @appControllers
+      @quit app  for app in apps.instances
+
+  get:(name)->
 
     if apps = @appControllers[name]
       apps.instances[apps.lastActiveIndex] or apps.instances.first
