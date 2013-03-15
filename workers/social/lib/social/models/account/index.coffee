@@ -191,7 +191,6 @@ module.exports = class JAccount extends jraphical.Module
         #   'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
         #   'CDiscussionActivity', 'CTutorialActivity'
         # ]
-
     ,
       to : Date.now()
       limit : 5
@@ -215,9 +214,9 @@ module.exports = class JAccount extends jraphical.Module
     {delegate}    = client.connection
     {service,value} = data
     selector = "profile.handles."+service
-    console.log 'setting handle',service, value, "profile.handles."+service
     isMine        = this.equals delegate
     if isMine and service in ['twitter','github']
+      value = null if value is ''
       operation = $set: {}
       operation.$set[selector] = value
       @update operation, callback

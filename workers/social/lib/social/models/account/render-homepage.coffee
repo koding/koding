@@ -1,7 +1,7 @@
 
 module.exports = ({profile,skillTags,counts,lastBlogPosts})->
   content ?= getDefaultuserContents()
-  {nickname, firstName, lastName, hash, about} = profile
+  {nickname, firstName, lastName, hash, about, handles} = profile
 
   firstName ?= 'Koding'
   lastName  ?= 'User'
@@ -34,8 +34,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts})->
       <div class="profile-links">
         <ul class='main'>
           <li class='blog'><a href=""><span class="icon"></span>Blog</a></li>
-          <li class='twitter'><a href=""><span class="icon"></span>Twitter</a></li>
-          <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
+          <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
+          <li class='github'>#{getHandleLink 'github', handles}</li>
         </ul>
         <hr/>
         <div id="landing-page-sidebar"></div>
@@ -103,6 +103,33 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
       <div class="content-item default-item">
         <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
       </div>
+    """
+
+getHandleLink = (handle,handles)->
+
+  handleMap =
+    twitter :
+      baseUrl : 'https://www.twitter.com/'
+      text : 'Twitter'
+      prefix : '@'
+
+    github :
+      baseUrl : 'https://www.github.com/'
+      text : 'GitHub'
+
+  if handles?[handle]
+    """
+      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}'>
+      <span class="icon"></span>
+      #{handleMap[handle].prefix or ''}#{handles[handle]}
+      </a>
+    """
+  else
+    """
+      <a href='#' id='profile-handle-#{handle}'>
+      <span class="icon"></span>
+      #{handleMap[handle].text}
+      </a>
     """
 
 getTags = (tags)->

@@ -5,6 +5,22 @@ class StaticProfileController extends KDController
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
+  HANDLE_TYPES = [
+    'twitter'
+    'github'
+  ]
+
+  handleMap =
+    twitter :
+      baseUrl : 'https://www.twitter.com/'
+      text : 'Twitter'
+      prefix : '@'
+
+    github :
+      baseUrl : 'https://www.github.com/'
+      text : 'GitHub'
+
+
   constructor:(options,data)->
     super options,data
 
@@ -19,6 +35,7 @@ class StaticProfileController extends KDController
       showHeader        : no
 
     @navLinks = {}
+    @handleLinks = {}
 
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
@@ -107,6 +124,20 @@ class StaticProfileController extends KDController
         profileUser = user
         @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
+       # revive handle links
+
+        for type in HANDLE_TYPES
+          handle = profileUser.profile.handles[type]
+          @handleLinks[type]  = new StaticHandleLink
+            delegate          : @
+            attributes        :
+              href            : "#{handleMap[type].baseUrl}#{handle or ''}"
+              target          : '_blank'
+            icon              :
+              cssClass        : type
+            title             : "#{handleMap[type].prefix or ''}#{handle or handleMap[type].text}"
+            lazyDomId         : "profile-handle-#{type}"
+
         if user.getId() is KD.whoami().getId()
 
           # reviving admin stuff
@@ -117,9 +148,11 @@ class StaticProfileController extends KDController
           profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
             title : 'Customize your Public Page'
             cssClass : 'static-page-settings-button clean-gray'
-            click :=>
-              # modal = new StaticProfileSettingsModalView
+            click :(event)=>
               @emit 'CustomizeLinkClicked'
+              event.stopPropagation()
+              event.preventDefault()
+
           profileAdminCustomizeView.show()
 
           profileAdminMessageView = new KDView
@@ -165,6 +198,9 @@ class StaticProfileController extends KDController
 
 
     @on 'CustomizeLinkClicked',=>
+      return if @customizeViewsAttached or KD.whoami().getId() isnt profileUser.getId()
+      @customizeViewsAttached = yes
+
       # reviving customization
 
       types = @getAllowedTypes profileUser
@@ -175,6 +211,20 @@ class StaticProfileController extends KDController
           defaultValue : type in types
           delegate     : @
         , profileUser
+
+      for type in HANDLE_TYPES
+        @handleLinks[type].setClass 'edit'
+        @handleLinks[type].addSubView new StaticHandleInput
+          service     : type
+          delegate    : @
+          attributes  :
+            spellcheck: no
+          callback    :(value)->
+            profileUser.setHandle
+              service : @getOptions().service
+              value   : value
+        , profileUser
+
 
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
@@ -259,18 +309,33 @@ class StaticNavCheckBox extends KDInputView
     'CDiscussionActivity' : 'Discussions'
     'CTutorialActivity'   : 'Tutorials'
 
-
   constructor:(options,data)->
     options.type      = "checkbox"
     options.cssClass  = 'profile-facet-customize-switch'
     options.tooltip   =
       title           : "Check this box to display your #{constructorToPluralNameMap[options.activityType]} on this page"
-
     super options,data
-
 
   click:(event)->
     event.stopPropagation()
     state = @getValue()
     @getData()["#{if state then 'add' else 'remove'}StaticPageType"] @getOption('activityType'), =>
       @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes @getData()
+
+
+class StaticHandleLink extends CustomLinkView
+  constructor:(options,data)->
+    options.cssClass = 'static-handle-link'
+    super options,data
+
+  click:(event)->
+    if @$().hasClass 'edit'
+      event.stopPropagation()
+      event.preventDefault()
+
+
+class StaticHandleInput extends KDHitEnterInputView
+  constructor:(options,data)->
+    options.cssClass = 'profile-handle-customize'
+    options.defaultValue = data.profile.handles[options.service]
+    super options,data
