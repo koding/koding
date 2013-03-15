@@ -42,6 +42,8 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   attachTooltipAndEmbedInteractivity: CommentListItemView::applyTooltips
 
   viewAppended:()->
@@ -151,7 +153,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

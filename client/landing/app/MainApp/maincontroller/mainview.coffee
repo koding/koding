@@ -73,6 +73,8 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
+    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
