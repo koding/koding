@@ -30,8 +30,7 @@ class KodingRouter extends KDRouter
     StartTab  : 'Develop'
   }
 
-  getSectionName =([model])->
-    debugger
+  getSectionName =(model)->
     sectionName = nicenames[model.bongo_.constructorName]
     if sectionName? then " - #{sectionName}" else ''
 
@@ -84,7 +83,7 @@ class KodingRouter extends KDRouter
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
-  getContentTitle:(model)->
+  getContentTitle:([model])->
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
