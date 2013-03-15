@@ -98,7 +98,7 @@ class TutorialOpinionViewHeader extends JView
     @setClass "in"
     super
 
-  viewAppended:=>
+  viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
@@ -110,7 +110,7 @@ class TutorialOpinionViewHeader extends JView
     if @parent?.constructor is OpinionView
       @hide() if @getData().repliesCount is 0
 
-  updateRemainingText:=>
+  updateRemainingText:->
     if not @parent? or  @parent.constructor is TutorialActivityOpinionView
       if @getData().repliesCount > 1
         @allItemsLink.updatePartial "View all Answers"

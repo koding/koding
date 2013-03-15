@@ -121,7 +121,7 @@ class TutorialFormView extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-  submit:=>
+  submit:->
     # @once "FormValidationPassed", => @reset()
     @removeCustomData "link"
 

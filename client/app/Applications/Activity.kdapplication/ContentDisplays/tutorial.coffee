@@ -175,15 +175,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-  opinionHeaderCountString:(count)=>
-    if count is 0
-      countString = "No Opinions yet"
-    else if count is 1
-      countString = "One Opinion"
-    else
-      countString = count+ " Opinions"
+  opinionHeaderCountString:(count)->
 
-    '<span class="opinion-count">'+countString+'</span>'
+    countString = if count is 0 then "No Answers yet"
+    else if count is 1 then          "One Answer"
+    else                             "#{count} Answers"
+
+    return '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteTutorial:(data)->
 
@@ -212,7 +210,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  highlightCode:=>
+  highlightCode:->
     # @$("pre").addClass "prettyprint"
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
