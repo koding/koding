@@ -152,6 +152,9 @@ class NFinderContextMenuController extends KDController
         children                  :
           customView              : new NCopyUrlView {}, fileData
         separator                 : yes
+      'Open Terminal from here'   :
+        action                    : 'openTerminal'
+        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
       #   separator                 : yes

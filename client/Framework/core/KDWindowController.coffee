@@ -72,8 +72,8 @@ class KDWindowController extends KDController
     @layers = layers = []
 
     document.body.addEventListener 'mousedown', (e)=>
-      $('.twipsy').remove() # temporary for beta
-      lastLayer = layers[layers.length-1]
+      # $('.twipsy').remove() # temporary for beta
+      lastLayer = layers.last
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
         # log lastLayer, "ReceivedClickElsewhere"

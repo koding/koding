@@ -42,6 +42,8 @@ class OpinionCommentListItemView extends KDListItemView
         @deleteLink.unsetClass "hidden"
         @deleteLink.on "click", => @confirmDeleteComment data
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   render:->
     if @getData().getAt 'deletedAt'
       @emit 'CommentIsDeleted'
@@ -101,7 +103,7 @@ class OpinionCommentListItemView extends KDListItemView
           <p class='comment-body'>
             {{@utils.applyTextExpansions #(body)}}
           </p>
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
         </div>
       </div>
       """
