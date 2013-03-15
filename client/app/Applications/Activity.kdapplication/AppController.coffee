@@ -38,14 +38,15 @@ class ActivityAppController extends AppController
 
     @currentFilter     = activityTypes
     @appStorage        = new AppStorage 'Activity', '1.0'
-    activityController = @getSingleton('activityController')
-    activityController.on "ActivityListControllerReady", @attachEvents.bind @
+
+    @mainController = @getSingleton 'mainController'
+    @mainController.on 'AppIsReady', =>
+      activityController = @getSingleton('activityController')
+      activityController.on   "ActivityListControllerReady", @attachEvents.bind @
+      activityController.once "ActivityListControllerReady", @bound "populateActivity"
 
   loadView:->
-    if @listController then @populateActivity()
-    else
-      ac = @getSingleton('activityController')
-      ac.once "ActivityListControllerReady", @bound "populateActivity"
+    @populateActivity() if @listController
 
   resetList:->
 
