@@ -46,12 +46,15 @@ class SidebarController extends KDViewController
           loggedIn : yes
           callback : -> new AdminModal
 
-    console.trace()    
     do =>
       {navController} = @getView()
       groupsController = @getSingleton 'groupsController'
       groupsController.on 'GroupChanged', ->
         group = groupsController.getCurrentGroup()
+
+        # We need to fix that, it happens when you logged-in from groupEntryPoint
+        return unless group
+
         group.fetchMyRoles (err, roles)=>
           if err
             console.warn err

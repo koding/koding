@@ -22,6 +22,7 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
+    options.showHeader        ?= yes
 
     super
 
@@ -45,10 +46,11 @@ class ActivityListController extends KDListViewController
 
     @noActivityItem.hide()
 
-
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
+
+    @activityHeader.hide() unless @getOptions().showHeader
 
     @scrollView.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 10
