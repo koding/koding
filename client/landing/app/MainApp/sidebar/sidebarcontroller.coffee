@@ -1,5 +1,13 @@
 class SidebarController extends KDViewController
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+
+    mainController.on 'ManageRemotes', -> new ManageRemotesModal
+    mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+
   accountChanged:(account)->
 
     {profile} = account
@@ -29,14 +37,29 @@ class SidebarController extends KDViewController
     finderController.reset()
 
   resetAdminNavItems:->
-
     return unless KD.isLoggedIn()
+    KD.whoami().fetchRole? (err, role)=>
+      if role is "super-admin"
+        @getView().navController.addItem
+          title    : "Admin Panel"
+          type     : "admin"
+          loggedIn : yes
+          callback : -> new AdminModal
 
-    @utils.wait 5000, =>
-      KD.whoami().fetchRole? (err, role)=>
-        if role is "super-admin"
-          @getView().navController.addItem
-            title    : "Admin Panel"
-            type     : "admin"
-            loggedIn : yes
-            callback : -> new AdminModal
+    console.trace()    
+    do =>
+      {navController} = @getView()
+      groupsController = @getSingleton 'groupsController'
+      groupsController.on 'GroupChanged', ->
+        group = groupsController.getCurrentGroup()
+        group.fetchMyRoles (err, roles)=>
+          if err
+            console.warn err
+          else if 'admin' in roles
+            navController.removeItem dashboardLink  if @dashboardLink?
+            @dashboardLink = navController.addItem
+              title     : 'Admin dashboard'
+              type      : 'admin'
+              loggedIn  : yes
+              callback  : ->
+                KD.getSingleton('router').handleRoute "/#{group.slug}/Dashboard"

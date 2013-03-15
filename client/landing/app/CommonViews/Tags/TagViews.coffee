@@ -42,6 +42,10 @@ class SkillTagGroup extends TagGroup
       view            : new KDListView
         itemClass     : TagCloudListItemView
         cssClass      : "skilltag-cloud"
+        delegate        : @
+
+    controller.listView.on 'TagWasClicked', =>
+      @emit 'TagWasClicked'
 
     @listViewWrapper = controller.getView()
 
@@ -81,6 +85,7 @@ class TagCloudListItemView extends KDListItemView
   click:(event)->
     event?.stopPropagation()
     event?.preventDefault()
+    @getDelegate().emit 'TagWasClicked'
     tag = @getData()
     KD.getSingleton('router').handleRoute(
       "/Topics/#{tag.slug}"

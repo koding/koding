@@ -13,10 +13,7 @@ class ActivityAppController extends AppController
       'CDiscussionActivity'
       'CTutorialActivity'
       'CInstallerBucketActivity'
-      # DISABLING NOT READY ITEM TYPES
-      # 'COpinionActivity'
-      # 'CLinkActivity'
-      # 'CCodeShareActivity'
+      'CBlogPostActivity'
     ]
 
   lastTo    = null
@@ -62,7 +59,7 @@ class ActivityAppController extends AppController
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
-  fetchCurrentGroup:(callback)-> callback @currentGroup
+  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   attachEvents:(controller)->
 
@@ -97,9 +94,33 @@ class ActivityAppController extends AppController
     @appStorage.fetchStorage (storage) =>
       flags  = KD.whoami().globalFlags
       exempt = flags?.indexOf 'exempt'
-      exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+      exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
       callback exempt
 
+  fetchActivitiesDirectly:(options = {})->
+
+    options = to : options.to or Date.now()
+
+    @fetchActivity options, (err, teasers)=>
+      isLoading = no
+      @listController.hideLazyLoader()
+      if err or teasers.length is 0
+        warn err  if err
+        @listController.noActivityItem.show()
+      else
+        @listController.listActivities teasers
+
+  fetchActivitiesFromCache:(options = {})->
+    @fetchCachedActivity options, (err, cache)=>
+      isLoading = no
+      if err or cache.length is 0
+        warn err  if err
+        @listController.hideLazyLoader()
+        @listController.noActivityItem.show()
+      else
+        @sanitizeCache cache, (err, cache)=>
+          @listController.hideLazyLoader()
+          @listController.listActivitiesFromCache cache
 
   populateActivity:(options = {})->
 
@@ -108,32 +129,19 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
 
-    @isExempt (exempt)=>
+    currentGroup = @getSingleton('groupsController').getCurrentGroupData()
+    slug = currentGroup.getAt 'slug'
 
-      if exempt or @getFilter() isnt activityTypes
+    unless slug is 'koding'
+      # options.group = slug
+      @fetchActivitiesDirectly options
 
-        options = to : options.to or Date.now()
-
-        @fetchActivity options, (err, teasers)=>
-          isLoading = no
-          @listController.hideLazyLoader()
-          if err or teasers.length is 0
-            warn err
-            @listController.noActivityItem.show()
-          else
-            @listController.listActivities teasers
-
-      else
-        @fetchCachedActivity options, (err, cache)=>
-          isLoading = no
-          if err or cache.length is 0
-            warn err
-            @listController.hideLazyLoader()
-            @listController.noActivityItem.show()
-          else
-            @sanitizeCache cache, (err, cache)=>
-              @listController.hideLazyLoader()
-              @listController.listActivitiesFromCache cache
+    else
+      @isExempt (exempt)=>
+        if exempt or @getFilter() isnt activityTypes
+          @fetchActivitiesDirectly options
+        else
+          @fetchActivitiesFromCache options
 
   sanitizeCache:(cache, callback)->
 
@@ -200,9 +208,8 @@ class ActivityAppController extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JBlogPost"     then @createBlogPostContentDisplay activity
       when "JTutorial"     then @createTutorialContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # when "JCodeShare"    then @createCodeShareContentDisplay activity
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -214,17 +221,17 @@ class ActivityAppController extends AppController
       type  : "status"
     ,activity
 
+  createBlogPostContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayBlogPost
+      title : "Status Update"
+      type  : "status"
+    ,activity
+
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
       title : "Code Snippet"
       type  : "codesnip"
     ,activity
-
-  createCodeShareContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayCodeShare
-      title : "Code Share"
-      type  : "codeshare"
-    , activity
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion

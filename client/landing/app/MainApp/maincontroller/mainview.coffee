@@ -1,5 +1,12 @@
 class MainView extends KDView
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+    mainController.on 'AppIsReady', =>
+      @removeLoader()
+
   viewAppended:->
 
     @addHeader()
@@ -7,6 +14,20 @@ class MainView extends KDView
     @createMainTabView()
     @createSideBar()
     @listenWindowResize()
+
+  # putAbout:->
+  #   @putOverlay
+  #     color   : "rgba(0,0,0,0.9)"
+  #     animated: yes
+  #   @$('section').addClass "scale"
+
+  #   @utils.wait 500, =>
+  #     @addSubView about = new AboutView
+  #       domId   : "about-text"
+  #       click   : @bound "removeOverlay"
+
+  #     @once "OverlayWillBeRemoved", about.bound "destroy"
+  #     @once "OverlayWillBeRemoved", => @$('section').removeClass "scale"
 
   addBook:-> @addSubView new BookView
 
@@ -27,7 +48,7 @@ class MainView extends KDView
         @sidebar.hideFinderPanel()
 
   removeLoader:->
-    console.trace()
+
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
@@ -58,7 +79,7 @@ class MainView extends KDView
     @contentPanel.on "webkitTransitionEnd", (e) =>
       @emit "mainViewTransitionEnd", e
 
-  addHeader:()->
+  addHeader:->
 
     @addSubView @header = new KDView
       tagName : "header"
@@ -70,36 +91,11 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        if @groupsEnabled()
-          @closeGroupView()
-          return
+        return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
-
-    @addLoginButtons()
-
-  addLoginButtons:->
-
-    @header.addSubView @buttonHolder = new KDView
-      cssClass  : "button-holder hidden"
-
-    mainController = @getSingleton('mainController')
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Sign In"
-      style     : "koding-blue"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "login"
-
-    @buttonHolder.addSubView new KDButtonView
-      title     : "Create an Account"
-      style     : "koding-orange"
-      callback  : =>
-        mainController.loginScreen.slideDown =>
-          mainController.loginScreen.animateToForm "register"
 
   createMainTabView:->
 
@@ -232,88 +228,24 @@ class MainView extends KDView
 
   changeHomeLayout:(isLoggedIn)->
 
-  groupsEnabled:->
-    return $('.group-landing').length > 0
-
-  switchGroupState:(state)->
-
-    if $('.group-loader').length > 0
-      $('.group-loader')[0].remove?()
-
-    $('body').addClass "login"
-    console.log "LOGGED IN WITH GROUPS"
-
-    groupLink = new KDCustomHTMLView
-      partial: "Login"
-      cssClass: "bigLink"
-
-    if state
-      KD.getSingleton('router').handleRoute "/#{@getSingleton("router")?.getCurrentPath()+'/Activity'}", state:{}
-      groupLink.click = =>
-        @closeGroupView()
-
-      groupLink.updatePartial 'Go to Group'
-
-    else
-      groupLink.click = =>
-        @groupLandingView._windowDidResize = =>
-
-        @getSingleton('mainController').loginScreen.show()
-        @getSingleton('mainController').loginScreen.animateToForm 'login'
-        $('.group-landing').css 'height', 0
-
-    groupLink.appendToSelector '.group-login-buttons'
-
-    $('.group-landing').css 'height', window.innerHeight - 50
-
-  closeGroupView:->
-    @mainTabView.showHandleContainer()
-    @groupLandingView._windowDidResize = noop
-    $('.group-landing').css 'height', 0
-
   decorateLoginState:(isLoggedIn = no)->
-    if @groupsEnabled()
-
-      @groupLandingView = new KDView
-        lazyDomId : 'group-landing'
-
-      groupLandingContentView = new KDView
-        lazyDomId : 'group-landing-content'
-
-      groupLandingGroupContentView = new KDView
-        lazyDomId : 'group-content-wrapper'
-
-      @groupLandingView.listenWindowResize()
-
-      @groupLandingView._windowDidResize = =>
-        @groupLandingView?.setHeight window.innerHeight - 50
-        groupLandingContentView?.$().css
-          maxHeight : window.innerHeight - (200)
-        groupLandingGroupContentView?.$().css
-          height : groupLandingContentView.getHeight() - (256)
 
     if isLoggedIn
+      # $('body').removeClass "login"
+      # $('body').addClass "loggedIn"
 
-      if @groupsEnabled()
-        @switchGroupState yes
-        @mainTabView.hideHandleContainer()
+      # Workaround for Develop Tab
+      if "Develop" isnt @getSingleton("router")?.getCurrentPath()
+        @contentPanel.setClass "social"
 
-      else
-        $('body').addClass "loggedIn"
-        @mainTabView.showHandleContainer()
-
-      @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-      # @logo.show()
-      # @buttonHolder.hide()
+      @mainTabView.showHandleContainer()
 
     else
-      if @groupsEnabled() then @switchGroupState no
-      else $('body').removeClass "loggedIn"
+      # $('body').addClass "login"
+      # $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      # @buttonHolder.show()
-      # @logo.hide()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()

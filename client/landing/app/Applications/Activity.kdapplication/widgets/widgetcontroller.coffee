@@ -29,12 +29,12 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetName      : 'codeWidget'
         widgetType      : ActivityCodeSnippetWidget
       ,
-      #   name            : 'codeSharePane'
-      #   paneName        : 'codeshare'
-      #   constructorName : 'JCodeShare'
-      #   widgetName      : 'codeShareWidget'
-      #   widgetType      : ActivityCodeShareWidget
-      # ,
+        name            : 'blogPostPane'
+        paneName        : 'blogpost'
+        constructorName : 'JBlogPost'
+        widgetName      : 'blogPostWidget'
+        widgetType      : ActivityBlogPostWidget
+      ,
       #   name            : 'linkPane'
       #   paneName        : 'link'
       #   constructorName : 'JLink'
@@ -89,9 +89,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           @discussionWidget.switchToEditView data, fake
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          @codeShareWidget.switchToEditView data, fake
+        when "JBlogPost"
+          mainView.showPane "blogpost"
+          @blogPostWidget.switchToEditView data, fake
         when "JLink"
           mainView.showPane "link"
           @linkWidget.switchToEditView data, fake
@@ -128,17 +128,17 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
-      KD.getSingleton("appManager").tell 'Activity', 'fetchCurrentGroup', (currentGroup)=>
-        data.group = currentGroup
-        KD.remote.api[constructorName].create data, (err, activity)=>
-          callback? err, activity
-          unless err
-            @utils.killWait updateTimeout
-            @emit 'OwnActivityHasArrived', activity
-          else
-            @emit 'OwnActivityHasFailed', data
-            new KDNotificationView
-              title : "There was an error, try again later!"
+      data.group = KD.getSingleton('groupsController').getGroupSlug()
+      KD.remote.api[constructorName].create data, (err, activity)=>
+        callback? err, activity
+        unless err
+          @utils.killWait updateTimeout
+          @emit 'OwnActivityHasArrived', activity
+        else
+          warn err
+          @emit 'OwnActivityHasFailed', data
+          new KDNotificationView
+            title : "There was an error, try again later!"
 
   createFakeTags = (originalTags)->
 
@@ -168,6 +168,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
+      html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0
         following : 0

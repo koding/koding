@@ -49,7 +49,6 @@ class ActivityAppView extends JView
 class ActivityListContainer extends JView
 
   constructor:(options = {}, data)->
-
     options.cssClass = "activity-content feeder-tabs"
 
     super options, data

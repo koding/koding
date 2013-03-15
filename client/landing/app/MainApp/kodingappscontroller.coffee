@@ -4,48 +4,8 @@ class KodingAppsController extends KDController
     name       : "KodingAppsController"
     background : yes
 
-  escapeFilePath = FSHelper.escapeFilePath
-
-  defaultManifest = (type, name)->
-    {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
-    raw =
-      devMode       : yes
-      version       : "0.1"
-      name          : "#{name or type.capitalize()}"
-      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
-      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
-      author        : "#{fullName}"
-      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
-      description   : "#{name or type} : a Koding application created with the #{type} template."
-      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
-      source        :
-        blocks      :
-          app       :
-            # pre     : ""
-            files   : [ "./index.coffee" ]
-            # post    : ""
-        stylesheets : [ "./resources/style.css" ]
-      options       :
-        type        : "tab"
-      icns          :
-        "128"       : "./resources/icon.128.png"
-
-    json = JSON.stringify raw, null, 2
-
   @manifests = {}
 
-  # #
-  # HELPERS
-  # #
-
-  getAppPath:(manifest)->
-
-    {profile} = KD.whoami()
-    path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
-    return path.replace /(\/+)$/, ""
 
   @getManifestFromPath = getManifestFromPath = (path)->
 
@@ -66,6 +26,13 @@ class KodingAppsController extends KDController
 
     @kiteController = @getSingleton('kiteController')
     @manifests = KodingAppsController.manifests
+
+  getAppPath:(manifest)->
+
+    {profile} = KD.whoami()
+    path = if 'string' is typeof manifest then manifest else manifest.path
+    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
+    return path.replace /(\/+)$/, ""
 
   # #
   # FETCHERS
@@ -184,41 +151,8 @@ class KodingAppsController extends KDController
 
   putDefaultShortcutsBack:(callback)->
 
-    shortcuts       =
-      Ace           :
-        name        : 'Ace'
-        type        : 'koding-app'
-        icon        : 'icn-ace.png'
-        description : 'Code Editor'
-        author      : 'Mozilla'
-      Terminal      :
-        name        : 'Terminal'
-        type        : 'koding-app'
-        icon        : 'icn-terminal.png'
-        description : 'Koding Terminal'
-        author      : 'Koding'
-        path        : 'WebTerm'
-      CodeMirror    :
-        name        : 'CodeMirror'
-        type        : 'comingsoon'
-        icon        : 'icn-codemirror.png'
-        description : 'Code Editor'
-        author      : 'Marijn Haverbeke'
-      yMacs         :
-        name        : 'yMacs'
-        type        : 'comingsoon'
-        icon        : 'icn-ymacs.png'
-        description : 'Code Editor'
-        author      : 'Mihai Bazon'
-      Pixlr         :
-        name        : 'Pixlr'
-        type        : 'comingsoon'
-        icon        : 'icn-pixlr.png'
-        description : 'Image Editor'
-        author      : 'Autodesk'
-
     @appStorage.reset()
-    @appStorage.setValue 'shortcuts', shortcuts, callback
+    @appStorage.setValue 'shortcuts', defaultShortcuts, callback
 
   putAppsToAppStorage:(apps)->
 
@@ -249,44 +183,9 @@ class KodingAppsController extends KDController
 
   runApp:(manifest, callback)->
 
-    {options, name, devMode} = manifest
-    {stylesheets} = manifest.source if manifest.source
+    {options, name} = manifest
 
-    proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
-
-    if stylesheets
-      $("head .app-#{__utils.slugify name}").remove()
-      stylesheets.forEach (sheet)->
-        if devMode
-          urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
-          $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
-        else
-          if /(http)|(:\/\/)/.test sheet
-            warn "external sheets cannot be used"
-          else
-            sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
-
-    showError = (error)->
-      new KDModalView
-        title   : "An error occured while running the App!"
-        width   : 500
-        overlay : yes
-        content : """
-                  <div class='modalformline'>
-                    <h3>#{error.constructor.name}</h3><br/>
-                    <pre>#{error.message}</pre>
-                  </div>
-                  <p class='modalformline'>
-                    <cite>Check Console for more details.</cite>
-                  </p>
-                  """
-                  # We may after put a full stck to the output
-                  # It looks weird for now.
-                  # <pre>#{error.stack}</pre>
-
-      console.warn error.message, error
+    putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
@@ -685,3 +584,110 @@ class KodingAppsController extends KDController
   #           else
   #             log response, "App cloned!"
   #           callback? err, response
+
+  # #
+  # HELPERS
+  # #
+
+  proxifyUrl = (url)-> "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+
+  escapeFilePath = FSHelper.escapeFilePath
+
+  putStyleSheets = (manifest)->
+    {name, devMode} = manifest
+    {stylesheets} = manifest.source if manifest.source
+
+    return unless stylesheets
+
+    $("head .app-#{__utils.slugify name}").remove()
+    stylesheets.forEach (sheet)->
+      if devMode
+        urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
+        $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
+      else
+        if /(http)|(:\/\/)/.test sheet
+          warn "external sheets cannot be used"
+        else
+          sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
+          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+
+  showError = (error)->
+    new KDModalView
+      title   : "An error occured while running the App!"
+      width   : 500
+      overlay : yes
+      content : """
+                <div class='modalformline'>
+                  <h3>#{error.constructor.name}</h3><br/>
+                  <pre>#{error.message}</pre>
+                </div>
+                <p class='modalformline'>
+                  <cite>Check Console for more details.</cite>
+                </p>
+                """
+                # We may after put a full stck to the output
+                # It looks weird for now.
+                # <pre>#{error.stack}</pre>
+
+    console.warn error.message, error
+
+  defaultManifest = (type, name)->
+    {profile} = KD.whoami()
+    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    raw =
+      devMode       : yes
+      version       : "0.1"
+      name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
+      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
+      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
+      author        : "#{fullName}"
+      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
+      description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
+      source        :
+        blocks      :
+          app       :
+            # pre     : ""
+            files   : [ "./index.coffee" ]
+            # post    : ""
+        stylesheets : [ "./resources/style.css" ]
+      options       :
+        type        : "tab"
+      icns          :
+        "128"       : "./resources/icon.128.png"
+
+    json = JSON.stringify raw, null, 2
+
+  defaultShortcuts =
+    Ace           :
+      name        : 'Ace'
+      type        : 'koding-app'
+      icon        : 'icn-ace.png'
+      description : 'Code Editor'
+      author      : 'Mozilla'
+    Terminal      :
+      name        : 'Terminal'
+      type        : 'koding-app'
+      icon        : 'icn-terminal.png'
+      description : 'Koding Terminal'
+      author      : 'Koding'
+      path        : 'WebTerm'
+    CodeMirror    :
+      name        : 'CodeMirror'
+      type        : 'comingsoon'
+      icon        : 'icn-codemirror.png'
+      description : 'Code Editor'
+      author      : 'Marijn Haverbeke'
+    yMacs         :
+      name        : 'yMacs'
+      type        : 'comingsoon'
+      icon        : 'icn-ymacs.png'
+      description : 'Code Editor'
+      author      : 'Mihai Bazon'
+    Pixlr         :
+      name        : 'Pixlr'
+      type        : 'comingsoon'
+      icon        : 'icn-pixlr.png'
+      description : 'Image Editor'
+      author      : 'Autodesk'
