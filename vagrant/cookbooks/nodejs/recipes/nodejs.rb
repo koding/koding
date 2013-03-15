@@ -17,9 +17,9 @@ when "rhel", "cloudlinux"
     end
 when "debian"
     include_recipe "apt::nodejs"
-    apt_package "python-software-properties"
     apt_package "nodejs"
     apt_package "nodejs-dev"
     apt_package "npm"
+    execute "chown -R vagrant: /usr/local"
 end
 

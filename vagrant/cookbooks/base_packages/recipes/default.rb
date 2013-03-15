@@ -21,7 +21,6 @@ when "rhel", "cloudlinux"
         end
     end
 when "debian"
-    execute "apt-get update"
     packages.concat(deb_diff)
     packages.each do |pkg|
         package "#{pkg}" do

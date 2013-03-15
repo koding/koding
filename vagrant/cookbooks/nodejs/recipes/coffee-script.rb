@@ -11,5 +11,8 @@
 
 execute "install coffee-script" do
     command "/usr/bin/npm -g install coffee-script@#{node["coffee-script"]["version"]}"
+    user "vagrant"
+    group "vagrant"
+    environment ({'NODE_PATH' => '/usr/lib/nodejs:/usr/share/javascript', 'USER' => 'vagrant', 'HOME' => '/home/vagrant'})
     creates "/usr/bin/coffee"
 end

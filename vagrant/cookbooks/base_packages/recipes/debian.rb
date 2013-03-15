@@ -23,19 +23,19 @@ if node['platform_family'] == "debian"
 			EOH
 	end
 
-	# if node["vagrant"]
-	# 	file "/etc/apt/sources.list" do
-	# 		mode "0644"
-	# 		content <<-EOH
-	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
-	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
-	# deb mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
-	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal main restricted universe multiverse
-	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-updates main restricted universe multiverse
-	# deb-src mirror://mirrors.ubuntu.com/mirrors.txt quantal-security main restricted universe multiverse
-	# 		EOH
-	# 	end
-	# end
+	if node["vagrant"]
+		file "/etc/apt/sources.list" do
+			mode "0644"
+			content <<-EOH
+	deb http://mirror.pnl.gov/ubuntu/ quantal main restricted universe multiverse
+	deb http://mirror.pnl.gov/ubuntu/ quantal-updates main restricted universe multiverse
+	deb http://mirror.pnl.gov/ubuntu/ quantal-security main restricted universe multiverse
+	deb-src http://mirror.pnl.gov/ubuntu/ quantal main restricted universe multiverse
+	deb-src http://mirror.pnl.gov/ubuntu/ quantal-updates main restricted universe multiverse
+	deb-src http://mirror.pnl.gov/ubuntu/ quantal-security main restricted universe multiverse
+			EOH
+		end
+	end
 
 	execute "apt-get update"
 

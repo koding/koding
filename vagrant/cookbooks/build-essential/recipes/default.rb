@@ -22,7 +22,7 @@ require 'chef/shell_out'
 compiletime = node['build_essential']['compiletime']
 
 case node['platform']
-when "centos", "redhat", "suse", "fedora", "scientific", "amazon", "ubuntu","debian"
+when "centos", "redhat", "suse", "fedora", "scientific", "amazon", "ubuntu", "debian"
 
   # on apt-based platforms when first provisioning we need to force
   # apt-get update at compiletime if we are going to try to install at compiletime
