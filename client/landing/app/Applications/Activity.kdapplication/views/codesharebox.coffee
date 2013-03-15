@@ -149,7 +149,7 @@ class CodeShareBox extends KDView
       @on "addCodeSharePaneSet",(setName="")=>
         if setName is "hcj" then @emit "addCodeSharePanes", ["html","css","javascript"]
 
-  addCodeSharePane:(addItem)=>
+  addCodeSharePane:(addItem)->
 
     # addItem is something like "php" or "html"
     if 'string' is typeof addItem
@@ -218,7 +218,7 @@ class CodeShareBox extends KDView
       "Enter your Code here"
 
 
-  resetTabs:=>
+  resetTabs:->
     # log "resetting tabs", @codeShareView.panes
     deleteTab = =>
       if @codeShareView?.panes?.length>0 then setTimeout =>
