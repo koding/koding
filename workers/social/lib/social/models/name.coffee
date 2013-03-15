@@ -61,7 +61,6 @@ module.exports = class JName extends Model
         newName = {
           slug, collectionName, @usedAsPath, @constructorName
         }
-        console.log 'here'
         kallback =do -> i = 0; (err)->
           console.log {arguments}
           if err then callback err

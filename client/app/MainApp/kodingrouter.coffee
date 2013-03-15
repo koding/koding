@@ -30,7 +30,8 @@ class KodingRouter extends KDRouter
     StartTab  : 'Develop'
   }
 
-  getSectionName =(model)->
+  getSectionName =([model])->
+    debugger
     sectionName = nicenames[model.bongo_.constructorName]
     if sectionName? then " - #{sectionName}" else ''
 
