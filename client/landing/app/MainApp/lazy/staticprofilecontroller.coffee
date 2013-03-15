@@ -218,6 +218,13 @@ class StaticProfileController extends KDController
         @handleLinks[type].addSubView new StaticHandleInput
           service     : type
           delegate    : @
+          tooltip     :
+            title     : "Enter your #{handleMap[type].text} handle and hit enter to save."
+            placement : 'right'
+            direction : 'center'
+            offset    :
+              left    : 5
+              top     : 2
           attributes  :
             spellcheck: no
           callback    :(value)->
