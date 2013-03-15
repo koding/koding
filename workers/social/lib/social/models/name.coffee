@@ -10,7 +10,7 @@ module.exports = class JName extends Model
 
   @set
     sharedMethods     :
-      static          : ['one','claimNames']
+      static          : ['one','claimNames','migrateAllOldNames']
       instance        : ['migrateOldName']
     indexes           :
       name            : ['unique']
@@ -20,13 +20,25 @@ module.exports = class JName extends Model
       constructorName : String
       usedAsPath      : String
 
-  @migrateAllOldNames =(client, callback)->
-    @each { constructorName: $exists: yes }, (err, name)->
+  slowEach_ =(cursor, callback=->)->
+    cursor.nextModel (err, name)->
       if err then callback err
       else unless name? then callback null
-      else name.migrateOldName()
+      else
+        console.log 'migrating', name
+        name.migrateOldName (err)->
+          callback err  if err?
+          console.log 'done'
+          slowEach_ cursor
 
-  stripTemplate:()->
+  @migrateAllOldNames = secure (client, callback)->
+    @cursor { constructorName: $exists: yes }, {}, (err, cursor)->
+      if err then callback err
+      else slowEach_ cursor, console.error
+
+  stripTemplate:->
+    konstructor = Base.constructors[@constructorName]
+    unless konstructor? then console.log this
     {slugTemplate} = Base.constructors[@constructorName]
     return @name  unless slugTemplate
     slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
@@ -35,19 +47,25 @@ module.exports = class JName extends Model
     @name.match(re)?[1]
 
   migrateOldName:(callback=->)->
-    return  unless constructorName?
+    return  unless @constructorName?
     slug = @stripTemplate()
     selector = {}
     selector[@usedAsPath] = slug
     konstructor = Base.constructors[@constructorName]
     konstructor.one selector, (err, model)=>
       if err then callback err
-      else if model?
+      else unless model?
+        @remove callback
+      else
         {collectionName} = model.getCollection()
         newName = {
           slug, collectionName, @usedAsPath, @constructorName
         }
-        kallback =do -> i = 0; -> callback null   if ++i is 2
+        console.log 'here'
+        kallback =do -> i = 0; (err)->
+          console.log {arguments}
+          if err then callback err
+          else if ++i is 2 then callback null
         @update {$set: slugs: [newName]}, kallback
         @update {$unset: {constructorName:1, usedAsPath:1}}, kallback
 

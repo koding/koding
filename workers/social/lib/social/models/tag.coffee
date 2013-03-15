@@ -17,7 +17,7 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
-  @trait __dirname, '../traits/groupable'
+  # @trait __dirname, '../traits/groupable'
 
   @share()
 
@@ -55,7 +55,7 @@ module.exports = class JTag extends jraphical.Module
         required    : yes
       slug          :
         type        : String
-        default     : (value)-> Inflector.slugify @title.trim().toLowerCase()
+        default     : (value)-> Inflector.slugify @title.toLowerCase()
         validate    : [
           'invalid tag name'
           (value)->
@@ -169,6 +169,7 @@ module.exports = class JTag extends jraphical.Module
       {delegate} = client.connection
       {group} = client.context
       tag = new this data
+      tag.group = group
       tag.save client, (err)->
         if err
           callback err
