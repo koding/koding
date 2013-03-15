@@ -167,5 +167,5 @@ class NotificationListItem extends KDListItemView
       KD.getSingleton("appManager").tell 'Inbox', "goToMessages"
     else if @snapshot.anchor.constructorName in ["JComment", "JReview", "JOpinion"]
       KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
-    else
+    else unless @snapshot.anchor.constructorName is "JAccount"
       KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
