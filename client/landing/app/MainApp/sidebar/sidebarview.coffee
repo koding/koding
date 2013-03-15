@@ -174,9 +174,8 @@ class Sidebar extends JView
       @finderResizeHandle._dragged = yes
       newFpWidth = @_fpWidth + x
       return if newFpWidth < 13
-      cpWidth = cp._width + x
-      cp.$().css left : cp._left - x, width : cpWidth
-      cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
+      cp.$().css left : cp._left + x, width : cp._width - x
+      @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
 
     KD.utils.wait 8000, =>
