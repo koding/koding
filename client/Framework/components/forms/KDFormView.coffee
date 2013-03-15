@@ -82,9 +82,9 @@ class KDFormView extends KDView
 
   getCallback:()-> @formCallback
 
-  reset:=> @$()[0].reset()
+  reset:-> @$()[0].reset()
 
-  submit:(event)=>
+  submit:(event)->
 
     if event
       event.stopPropagation()

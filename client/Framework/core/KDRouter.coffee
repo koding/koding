@@ -29,7 +29,7 @@ class KDRouter extends KDObject
         replaceState      : yes
     @startListening()
 
-  popState:(event)=> # fat-arrow binding makes this handler easier to remove.
+  popState:(event)->
     revive event.state, (err, state)=>
       if err?
         new KDNotificationView title: 'An unknown error has occurred.'
@@ -46,14 +46,14 @@ class KDRouter extends KDObject
     return no  if @isListening # make this action idempotent
     @isListening = yes
     # we need to add a listener to the window's popstate event:
-    window.addEventListener 'popstate', @popState
+    window.addEventListener 'popstate', @bound "popState"
     return yes
 
   stopListening:->
     return no  unless @isListening # make this action idempotent
     @isListening = no
     # we need to remove the listener from the window's popstate event:
-    window.removeEventListener 'popstate', @popState
+    window.removeEventListener 'popstate', @bound "popState"
     return yes
 
   @handleNotFound =(route)-> log "The route #{route} was not found!"

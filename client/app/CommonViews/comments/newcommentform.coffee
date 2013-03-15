@@ -33,7 +33,7 @@ class NewCommentForm extends KDView
           maxLength : 2000
         messages    :
           required  : "Please type a #{itemTypeString}..."
-      callback      : @commentInputReceivedEnter
+      callback      : @bound "commentInputReceivedEnter"
 
     @attachListeners()
 
@@ -74,7 +74,7 @@ class NewCommentForm extends KDView
   commentInputReceivedBlur:()->
     @resetCommentField()  if @commentInput.getValue() is ""
 
-  commentInputReceivedEnter:(instance,event)=>
+  commentInputReceivedEnter:(instance,event)->
     if KD.isLoggedIn()
       reply = @commentInput.getValue()
       @commentInput.setValue ''

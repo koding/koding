@@ -19,7 +19,7 @@ class KDTabViewWithForms extends KDTabView
       option.title = key
       option
 
-  handleClicked:(index,event)=>
+  handleClicked:(index,event)->
     if @getOptions().navigable
       super
 

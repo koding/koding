@@ -127,7 +127,7 @@ class InboxAppController extends AppController
     # log "I just send a new message: ", messageDetails
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
-  prepareMessage:(formOutput, callback, newMessageBar)=>
+  prepareMessage:(formOutput, callback, newMessageBar)->
     {body, subject, recipients} = formOutput
 
     to = recipients.join ' '

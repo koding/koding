@@ -53,7 +53,7 @@ class AccountRepoList extends KDListView
   setDomElement:(cssClass)->
     @domElement = $ "<ul class='kdview #{cssClass}'></ul>"
 
-  showAddEditModal:(data,listItem)=>
+  showAddEditModal:(data,listItem)->
 
     @_listItemToBeUpdated = listItem
 
@@ -120,19 +120,18 @@ class AccountRepoList extends KDListView
 
     if data
       form.addCustomData "operation","update"
-      modal.createButton "Update", style : "modal-clean-gray", callback : form.submit
+      modal.createButton "Update", style : "modal-clean-gray", callback : form.bound("submit")
       modal.createButton "Delete", style : "modal-clean-red", callback : (event)=>
         form.addCustomData "operation","delete"
         form.submit(event)
     else
       form.addCustomData "operation","add"
-      modal.createButton "Add", style : "modal-clean-gray", callback : form.submit
+      modal.createButton "Add", style : "modal-clean-gray", callback : form.bound("submit")
 
-    modal.createButton "cancel",style : "modal-cancel", callback : @destroyModal
+    modal.createButton "cancel",style : "modal-cancel", callback : @bound "destroyModal"
     modal.addSubView helpBox = new HelpBox, ".kdmodal-buttons"
 
-  destroyModal:=>
-    @modal.destroy()
+  destroyModal:-> @modal.destroy()
 
   # API METHODS
 
@@ -148,7 +147,7 @@ class AccountRepoList extends KDListView
   #
   #   @destroyModal()
 
-  updateRepo:(listItem,formData)=>
+  updateRepo:(listItem,formData)->
 
     f = formData
 
