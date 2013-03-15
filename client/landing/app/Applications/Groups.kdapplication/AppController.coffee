@@ -57,7 +57,7 @@ class GroupsAppController extends AppController
     groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
-      KD.remote.cacheable groupName, (err, group)=>
+      KD.remote.cacheable groupName, (err, [group])=>
         @currentGroupData.setGroup group
         @emit 'GroupChanged', groupName, group
 

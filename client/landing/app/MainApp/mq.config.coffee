@@ -28,20 +28,21 @@ KD.remote = new Bongo
             usedAsPath      : 'profile.nickname'
           }
         models = []
+        err = null
         queue = name.slugs.map (slug)=>=>
           selector = {}
           selector[slug.usedAsPath] = name.name
           @api[slug.constructorName].one? selector, (err, model)->
             if err then callback err
             else unless model?
-              callback new Error(
+              err = new Error \
                 "Unable to find model: #{nameStr} of type #{name.constructorName}"
-              )
+              queue.fin()
             else
               models.push model
               queue.fin()
 
-        dash queue, -> callback {name, models}
+        dash queue, -> callback err, models, name
 
   mq: do->
     {broker} = KD.config

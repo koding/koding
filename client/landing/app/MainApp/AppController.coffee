@@ -1,9 +1,9 @@
 class AppController extends KDViewController
 
-  createContentDisplay:(tag, doShow, callback)->
+  createContentDisplay:(models, doShow, callback)->
 
     [callback, doShow] = [doShow, callback] unless callback
-    @showContentDisplay tag, callback
+    @showContentDisplay models[0], callback
 
   handleQuery:(query)->
 
