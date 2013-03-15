@@ -136,12 +136,7 @@ class HomeMainView extends KDScrollView
   viewAppended:->
     @listenWindowResize()
     # mainController = @getSingleton("mainController")
-    @registerListener
-      KDEventTypes : "AboutButtonClicked"
-      listener     : @
-      callback     : (pubInst,event)=>
-        @showAboutDisplay()
-
+    @on "AboutButtonClicked", (event)=> @showAboutDisplay()
 
   putSlideShow:->
 
@@ -239,7 +234,7 @@ class IntroView extends KDView
 
   click:(event)->
     if $(event.target).is('.reg')
-      @getSingleton('mainController').loginScreen.slideDown =>
+      @getSingleton('mainController').loginScreen.showView =>
         @getSingleton('mainController').loginScreen.animateToForm "register"
     else if $(event.target).is('.learn')
       homeView = @getDelegate()
@@ -570,7 +565,7 @@ class ScreenshotDemoView extends KDView
       partial     : 'Screenshots are cool, but the real app is cooler.'
       click       :(pubInst, event)=>
         if $(event.target).is '.screenshot-login'
-          mainController.loginScreen.slideDown =>
+          mainController.loginScreen.showView =>
             mainController.loginScreen.animateToForm "register"
 
     for screenshot in @screenshots
@@ -579,11 +574,8 @@ class ScreenshotDemoView extends KDView
       , screenshot
       screenshotArray.push screenshotItem
 
-    @registerListener
-      KDEventTypes  : "SetScreenshotModal"
-      listener      : @
-      callback      : (pubInst, {screenshot, itemCalling})=>
-        @createScreenshotModal itemCalling, screenshot, screenshotArray
+    @on "SetScreenshotModal", ({screenshot, itemCalling})=>
+      @createScreenshotModal itemCalling, screenshot, screenshotArray
 
   screenshots:
     [
@@ -648,7 +640,7 @@ class ScreenshotItemLinkView extends KDView
     """
 
   click:(event)=>
-    @parent.parent.propagateEvent {KDEventType : 'SetScreenshotModal'}, {screenshot : @getData(), itemCalling : @}
+    @parent.parent.emit 'SetScreenshotModal', {screenshot : @getData(), itemCalling : @}
 
 
 class ScreenshotDemoModalView extends KDModalView
@@ -763,7 +755,7 @@ class ScreenshotDemoModalView extends KDModalView
     @onBeforeDestroy() if e.which is 27
 
   putOverlay:()->
-    @$overlay = $ "<div/>"
+    @$overlay = $ "<div/>",
       class : "kdoverlay"
     @$overlay.hide()
     @$overlay.appendTo "body"

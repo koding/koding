@@ -77,7 +77,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 
@@ -130,17 +130,22 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   reset:=>
     @submitBtn.setTitle "Share your Code Snippet"
+
     @removeCustomData "activity"
+
     @title.setValue ''
     @description.setValue ''
-    @utils.wait =>
-      @ace.setContents "//your code snippet goes here..."
-      @ace.setSyntax 'javascript'
     @syntaxSelect.setValue 'javascript'
-    @tagController.reset()
+
     @updateSyntaxTag 'javascript'
     @hiddenAceInputClone.setValue ''
     @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'
+
+    # deferred resets
+    @utils.wait =>
+      @tagController.reset()
+      @ace.setContents "//your code snippet goes here..."
+      @ace.setSyntax 'javascript'
 
   switchToEditView:(activity,fake=no)->
     unless fake

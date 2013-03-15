@@ -49,7 +49,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @on "DiscussionActivityCommentLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-        # appManager.tell "Activity", "createContentDisplay", @getData()
+        # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "CommentLinkReceivedClick"
 
@@ -103,7 +103,7 @@ class OpinionActivityActionsView extends ActivityActionsView
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-        # appManager.tell "Activity", "createContentDisplay", @getData()
+        # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 

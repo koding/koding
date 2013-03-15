@@ -53,19 +53,14 @@ class AccountSshKeyForm extends KDFormView
       cssClass : "actions-wrapper"
 
     actionsWrapper.addSubView cancel = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "cancel"
-      cssClass     : "cancel-link"
+      tagName  : "a"
+      partial  : "cancel"
+      cssClass : "cancel-link"
+      click    : => @emit "FormCancelled"
 
     # @addSubView deleteLink   = new KDCustomHTMLView
     #   tagName      : "a"
     #   cssClass     : "delete-icon"
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : cancel
-      callback:() =>
-        @handleEvent type : "FormCancelled"
 
 
 
@@ -86,9 +81,10 @@ class AccountSshKeyListItem extends KDListItemView
   #     cssClass : "posstatic"
   #
   #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName      : "a"
-  #     partial      : "Edit"
-  #     cssClass     : "action-link"
+  #     tagName  : "a"
+  #     partial  : "Edit"
+  #     cssClass : "action-link"
+  #     click    : @bound "swapSwappable"
   #
   #   @swappable = swappable = new AccountsSwappable
   #     views : [form,info]
@@ -96,8 +92,7 @@ class AccountSshKeyListItem extends KDListItemView
   #
   #   @addSubView swappable,".swappable-wrapper"
   #
-  #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
-  #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
+  #   form.on "FormCancelled", @bound "swapSwappable"
 
   swapSwappable:()=>
     @swappable.swapViews()

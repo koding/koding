@@ -36,12 +36,8 @@ class AccountEditorExtensionTagger extends KDFormView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
+      click        : => @emit "FormCancelled"
 
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : cancel
-      callback:() =>
-        @handleEvent type : "FormCancelled"
 
 
 class AccountEditorTags extends KDView
@@ -60,31 +56,31 @@ class AccountEditorListItem extends KDListItemView
     options = tagName : "li"
     super options,data
 
-  # viewAppended:()->
-  #   super
-  #   @form = form = new AccountEditorExtensionTagger
-  #     delegate : @
-  #     cssClass : "posstatic"
-  #   ,@data.extensions
-  #
-  #   @info = info = new AccountEditorTags
-  #     cssClass : "posstatic"
-  #     delegate : @
-  #   ,@data.extensions
-  #
-  #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName      : "a"
-  #     partial      : "Edit"
-  #     cssClass     : "action-link"
-  #
-  #   @swappable = swappable = new AccountsSwappable
-  #     views : [form,info]
-  #     cssClass : "posstatic"
-  #
-  #   @addSubView swappable,".swappable-wrapper"
-  #
-  #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
-  #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
+  viewAppended:()->
+    super
+    @form = form = new AccountEditorExtensionTagger
+      delegate : @
+      cssClass : "posstatic"
+    ,@data.extensions
+
+    @info = info = new AccountEditorTags
+      cssClass : "posstatic"
+      delegate : @
+    ,@data.extensions
+
+    info.addSubView editLink = new KDCustomHTMLView
+      tagName  : "a"
+      partial  : "Edit"
+      cssClass : "action-link"
+      click    : @bound "swapSwappable"
+
+    @swappable = swappable = new AccountsSwappable
+      views : [form,info]
+      cssClass : "posstatic"
+
+    @addSubView swappable,".swappable-wrapper"
+
+    form.on "FormCancelled", @bound "swapSwappable"
 
   swapSwappable:()=>
     @swappable.swapViews()

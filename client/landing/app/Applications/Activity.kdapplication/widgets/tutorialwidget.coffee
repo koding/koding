@@ -124,7 +124,7 @@ class ActivityTutorialWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 
@@ -170,13 +170,16 @@ class ActivityTutorialWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
-    @tagController.reset()
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
     @inputTutorialEmbedShowLink.setValue off
     @embedBox.resetEmbedAndHide()
+
+    # deferred resets
+    @utils.wait 2000, => @tagController.reset()
+
     super
 
   viewAppended:()->

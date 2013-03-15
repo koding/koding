@@ -3,12 +3,12 @@ class LoginOptions extends KDView
     @addSubView new KDHeaderView
       type      : "small"
       title     : "SIGN IN WITH:"
-    
-    @addSubView optionsHolder = new KDCustomHTMLView 
+
+    @addSubView optionsHolder = new KDCustomHTMLView
       tagName   : "ul"
       cssClass  : "login-options"
 
-    optionsHolder.addSubView new KDCustomHTMLView 
+    optionsHolder.addSubView new KDCustomHTMLView
       tagName   : "li"
       cssClass  : "koding active"
       partial   : "koding"

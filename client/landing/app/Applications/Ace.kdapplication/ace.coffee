@@ -31,6 +31,7 @@ class Ace extends KDView
           @utils.wait => @emit "ace.ready"
           @setContents contents if contents
           @editor.gotoLine 0
+          @focus()
           @show()
 
   prepareEditor:->
@@ -175,7 +176,7 @@ class Ace extends KDView
     mode or= file.syntax
 
     unless mode
-      ext  = @utils.getFileExtension file.path
+      ext  = FSItem.getFileExtension file.path
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
@@ -241,6 +242,8 @@ class Ace extends KDView
     @setUseWordWrap no if value is "off"
 
     @appStorage.setValue 'softWrap', value
+
+  focus: -> @editor?.focus()
 
   ###
   HELPERS

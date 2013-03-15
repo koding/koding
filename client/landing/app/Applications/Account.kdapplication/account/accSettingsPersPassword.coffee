@@ -40,10 +40,12 @@ class AccountEditSecurity extends KDView
       title         : "Save"
       type          : 'submit'
 
+
     inputActions.addSubView passwordCancel = new KDCustomHTMLView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
+      click        : -> passwordSwappable.swapViews()
 
     # password STATIC PART
     nonPasswordInputs = new KDView cssClass : "initialval clearfix"
@@ -55,14 +57,13 @@ class AccountEditSecurity extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      click        : -> passwordSwappable.swapViews()
 
-    # SET EMAIL SWAPPABLE
-    passwordForm.addSubView @passwordSwappable = passwordSwappable = new AccountsSwappable
-      views    : [passwordInputs,nonPasswordInputs]
+    @passwordSwappable = passwordSwappable = new AccountsSwappable
+      views    : [passwordInputs, nonPasswordInputs]
       cssClass : "clearfix"
 
-    @listenTo KDEventTypes : "click", listenedToInstance : passwordCancel, callback : passwordSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : passwordEdit,   callback : passwordSwappable.swapViews
+    passwordForm.addSubView @passwordSwappable
 
   passwordDidUpdate:->
     @passwordSwappable.swapViews()
@@ -70,8 +71,8 @@ class AccountEditSecurity extends KDView
       type : "growl"
       title : "Password Updated!"
       duration : 1000
-  
-  saveNewPassword:(formData)->    
+
+  saveNewPassword:(formData)->
     KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
 

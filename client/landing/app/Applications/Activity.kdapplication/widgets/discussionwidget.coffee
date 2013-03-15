@@ -77,7 +77,7 @@ class ActivityDiscussionWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 
@@ -88,11 +88,14 @@ class ActivityDiscussionWidget extends KDFormView
     @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
-    @tagController.reset()
     @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
+
+    # deferred resets
+    @utils.wait => @tagController.reset()
+
     super
 
   viewAppended:()->

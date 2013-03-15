@@ -1,5 +1,13 @@
 class MainTabHandleHolder extends KDView
 
+  constructor: (options = {}, data) ->
+
+    options.bind = "mouseenter mouseleave"
+
+    super options, data
+
+    @userApps = []
+
   viewAppended:->
 
     mainView = @getDelegate()
@@ -8,59 +16,77 @@ class MainTabHandleHolder extends KDView
     mainView.mainTabView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
     mainView.mainTabView.on "PaneRemoved", => @_repositionPlusHandle()
 
-    @listenWindowResize()
+    mainView.mainTabView.on "PaneAdded", (pane) =>
+      tabHandle = pane.tabHandle
 
-  click:(event)->
-    @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
+      tabHandle.on "DragStarted", =>
+        tabHandle.dragIsAllowed = if @subViews.length <= 2 then no else yes
+      tabHandle.on "DragInAction", =>
+        @plusHandle.hide() if tabHandle.dragIsAllowed
+      tabHandle.on "DragFinished", =>
+        @plusHandle.show()
+
+    @listenWindowResize()
 
   _windowDidResize:->
     mainView = @getDelegate()
-    @setWidth mainView.mainTabView.getWidth() - 100
+    @setWidth mainView.mainTabView.getWidth()
 
-  addPlusHandle:()->
+  addPlusHandle:->
 
     @addSubView @plusHandle = new KDCustomHTMLView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
-      click    : =>
-        unless @plusHandle.$().hasClass('first')
-          contextMenu = new JContextMenu
-            event    : event
-            delegate : @plusHandle
-          ,
-            'New Tab'              :
-              callback             : (source, event)=>
-                appManager.tell "StartTab", 'openFreshTab'
-                contextMenu.destroy()
-              separator            : yes
-            'Ace Editor'           :
-              callback             : (source, event)=>
-                appManager.newFileWithApplication "Ace"
-                contextMenu.destroy()
-            'CodeMirror'           :
-              callback             : (source, event)=> appManager.notify()
-            'yMacs'                :
-              callback             : (source, event)=> appManager.notify()
-            'Pixlr'                :
-              callback             : (source, event)=> appManager.notify()
-              separator            : yes
-            'Search the App Store' :
-              callback             : (source, event)=> appManager.notify()
-            'Contribute An Editor' :
-              callback             : (source, event)=> appManager.notify()
+      click    : @bound "createPlusHandleDropDown"
 
+  createPlusHandleDropDown:(event)->
+
+    appsController = @getSingleton "kodingAppsController"
+    appManager     = @getSingleton "appManager"
+
+    if @plusHandle.$().hasClass('first')
+      KD.getSingleton("appManager").open "StartTab"
+    else
+      offset = @plusHandle.$().offset()
+      contextMenu = new JContextMenu
+        event       : event
+        delegate    : @plusHandle
+        x           : offset.left - 133
+        y           : offset.top + 22
+        arrow       :
+          placement : "top"
+          margin    : -20
+      ,
+        'Your Apps'            :
+          callback             : (source, event)=>
+            appManager.open "StartTab", forceNew : yes
+            contextMenu.destroy()
+          separator            : yes
+        'Ace Editor'           :
+          callback             : (source, event)=>
+            appManager.open "Ace", forceNew : yes
+            contextMenu.destroy()
+        'Terminal'             :
+          callback             : (source, event)=>
+            appManager.open "WebTerm", forceNew : yes
+            contextMenu.destroy()
+          separator            : yes
+        'Search the App Store' :
+          callback             : (source, event)=> appManager.open "Apps"
+        'Make your own app...' :
+          callback             : (source, event)=> appsController.makeNewApp()
+
+      index = 4
+      appsController.fetchApps (err, apps)=>
+        for name, app of apps
+          app.callback = appManager.open.bind appManager, name, {forceNew : yes}, contextMenu.bound("destroy")
+          app.title    = name
+          contextMenu.treeController.addNode app, index
+          index++
 
   removePlusHandle:()->
     @plusHandle.destroy()
-
-  _plusHandleClicked: () ->
-    if @plusHandle?.__shouldAdd
-      @plusHandle.delegate.propagateEvent KDEventType : 'AddEditorClick', @plusHandle
-      # appManager.newFileWithApplication "Ace"
-    else
-      appManager.openApplication "StartTab"
-      # @getSingleton('router').handleRoute "/Develop"
 
   _repositionPlusHandle:(event)->
 
@@ -76,11 +102,9 @@ class MainTabHandleHolder extends KDView
     if appTabCount is 0
       @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"
-      @plusHandle.__shouldAdd = no
     else
       visibleTabs[0].tabHandle.setClass "first"
       @removePlusHandle()
       @addPlusHandle()
       @plusHandle.unsetClass "first"
       @plusHandle.setClass "last"
-      @plusHandle.__shouldAdd = yes

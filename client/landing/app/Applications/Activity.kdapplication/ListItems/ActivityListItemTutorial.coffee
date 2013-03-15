@@ -81,7 +81,7 @@ class TutorialActivityItemView extends ActivityItemChild
     #         @scrollAreaOverlay.hide()
     #     "View the full Tutorial":
     #       callback:=>
-    #         appManager.tell "Activity", "createContentDisplay", @getData()
+    #         KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
@@ -187,7 +187,7 @@ class TutorialActivityItemView extends ActivityItemChild
   click:(event)->
     if $(event.target).is("[data-paths~=title]") # or\
       KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-         # appManager.tell "Activity", "createContentDisplay", @getData()
+         # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
     if $(event.target).is("[data-paths~=preview]")
 
       @videoPopup = new VideoPopup

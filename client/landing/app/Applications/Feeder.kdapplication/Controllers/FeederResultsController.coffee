@@ -37,8 +37,12 @@ class FeederResultsController extends KDViewController
       noItemFoundText     : filter.noItemFoundText or null
       viewOptions         :
         cssClass          : listCssClass
-        itemClass      : itemClass
+        itemClass         : itemClass
         type              : name
+
+    forwardItemWasAdded = @emit.bind this, 'ItemWasAdded'
+
+    listController.getListView().on 'ItemWasAdded', forwardItemWasAdded
 
     listController.on 'LazyLoadThresholdReached', =>
       @emit "LazyLoadThresholdReached"
