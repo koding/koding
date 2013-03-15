@@ -47,15 +47,13 @@ class GroupsLandingPageButton extends KDButtonView
           @mc.loginScreen.animateToForm 'login'
           @mc.loginScreen.addClass 'landed'
           @mc.loginScreen.headBannerShowGoBackGroup 'Pet Shop Boys'
-          $('#group-landing').css 'height', 0
+          # $('#group-landing').css 'height', 0
           # $('#group-landing').css 'opacity', 0
 
         when 'Activity'
           @mc.loginScreen.hide()
           KD.getSingleton('router').handleRoute route
-
-    # # FIXME GG
-    # $('.group-login-buttons').css 'opacity', 1
+          KD.getSingleton('lazyDomController').hideLandingPage()
 
 class GroupsLandingPageLoginLink extends CustomLinkView
 
