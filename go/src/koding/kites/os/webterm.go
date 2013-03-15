@@ -7,7 +7,6 @@ import (
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"
-	"os"
 	"strconv"
 	"syscall"
 	"time"
@@ -17,7 +16,6 @@ import (
 type WebtermServer struct {
 	remote           WebtermRemote
 	pty              *pty.PTY
-	process          *os.Process
 	currentSecond    int64
 	messageCounter   int
 	byteCounter      int
@@ -43,7 +41,6 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args [
 	if err != nil {
 		panic(err)
 	}
-	server.process = cmd.Process
 
 	go func() {
 		defer log.RecoverAndLog()
@@ -106,6 +103,6 @@ func (server *WebtermServer) SetSize(x, y float64) {
 }
 
 func (server *WebtermServer) Close() error {
-	server.process.Signal(syscall.SIGHUP)
+	server.pty.Signal(syscall.SIGHUP)
 	return nil
 }
