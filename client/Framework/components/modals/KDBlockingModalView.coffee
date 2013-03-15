@@ -12,13 +12,14 @@ class KDBlockingModalView extends KDModalView
 
   setDomElement:(cssClass)->
     @domElement = $ """
-    <div class='kdmodal #{cssClass}'>
-      <div class='kdmodal-shadow'>
-        <div class='kdmodal-inner'>
-          <div class='kdmodal-title'></div>
-          <div class='kdmodal-content'></div>
+        <div class='kdmodal #{cssClass}'>
+          <div class='kdmodal-shadow'>
+            <div class='kdmodal-inner'>
+              <div class='kdmodal-title'></div>
+              <div class='kdmodal-content'></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>"""
+      """
 
   click:(e)->

@@ -215,7 +215,6 @@ class LoginView extends KDScrollView
   showHeadBanner:(message, callback)->
     @$('.login-footer').hide()
     @$('.footer-links').hide()
-
     $('body').addClass 'recovery'
 
     @headBannerMsg = message

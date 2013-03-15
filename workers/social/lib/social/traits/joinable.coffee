@@ -42,9 +42,9 @@ module.exports = class Joinable
   removeFromGroup_ =(client, {as}, callback)->
     as ?= 'member'
     {delegate} = client.connection
-    @removeMember delegate, as, (err)=>
-      if err then callback err
-      else delegate.removeGroup this, as, callback
+    @removeMember delegate, as, callback
+      # if err then callback err
+      # else delegate.removeGroup this, as, callback
 
   leave: secure (client, options, callback)->
     {delegate} = client.connection
