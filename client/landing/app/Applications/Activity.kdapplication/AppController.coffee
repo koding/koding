@@ -40,10 +40,15 @@ class ActivityAppController extends AppController
     @appStorage        = new AppStorage 'Activity', '1.0'
 
     @mainController = @getSingleton 'mainController'
-    @mainController.on 'AppIsReady', =>
-      activityController = @getSingleton('activityController')
-      activityController.on   "ActivityListControllerReady", @attachEvents.bind @
-      activityController.once "ActivityListControllerReady", @bound "populateActivity"
+
+    if @mainController.appIsReady then @putListeners()
+    else @mainController.on 'AppIsReady', => @putListeners()
+
+  putListeners:->
+    activityController = @getSingleton('activityController')
+    activityController.on   "ActivityListControllerReady", @attachEvents.bind @
+    activityController.once "ActivityListControllerReady", @bound "populateActivity"
+
 
   loadView:->
     @populateActivity() if @listController
