@@ -74,6 +74,7 @@ class MainController extends KDController
         queue.length = 0
 
         @emit 'AppIsReady'
+        @appIsReady = yes
 
   accountReady:(fn)->
     if @accountReadyState > 0 then fn()
