@@ -45,4 +45,4 @@ class StaticActivityItemChild extends KDView
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   formatCreateDate:(date = new Date())->
-    dateFormat(date, 'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
+    "written on #{dateFormat(date, 'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')}"

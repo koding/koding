@@ -29,9 +29,9 @@ class StaticProfileController extends KDController
     @controller = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .99
-      itemClass         : StaticActivityListItemView
+      itemClass         : ActivityListItemView
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content activity-related'
       showHeader        : no
 
     @navLinks     = {}
