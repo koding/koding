@@ -111,7 +111,7 @@ class OpinionViewHeader extends JView
     @setClass "in"
     super
 
-  viewAppended:=>
+  viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
@@ -123,7 +123,7 @@ class OpinionViewHeader extends JView
     if @parent?.constructor is OpinionView
       @hide() if @getData().opinionCount is 0
 
-  render:=>
+  render:->
     @updateRemainingText()
 
     # This will hide the bar in the CD when there is nothing there yet. Once
@@ -133,7 +133,7 @@ class OpinionViewHeader extends JView
       @hide() if @getData().opinionCount is 0
 
 
-  updateRemainingText:=>
+  updateRemainingText:->
     {opinionCount,repliesCount} = @getData()
 
     commentText =

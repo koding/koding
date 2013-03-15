@@ -44,7 +44,7 @@ class KDWindowController extends KDController
 
   bindEvents:()->
 
-    $(window).bind @keyEventsToBeListened.join(' '), @key
+    $(window).bind @keyEventsToBeListened.join(' '), @bound "key"
 
     $(window).bind "resize",(event)=>
       @setWindowProperties event
@@ -241,7 +241,7 @@ class KDWindowController extends KDController
   getKeyView:()->
     @keyView
 
-  key:(event)=>
+  key:(event)->
     # log event.type, @keyView.constructor.name, @keyView.getOptions().name
     # if Object.keys(@currentCombos).length > 0
     #   return yes

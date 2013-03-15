@@ -18,7 +18,7 @@ class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
 
     panel1.on "PanelDidResize", => @setRightColumnClass()
 
-  toggleFirstPanel:(event)=>
+  toggleFirstPanel:(event)->
     $panel = @panels[0].$()
     if $panel.hasClass "collapsed"
       $panel.removeClass "collapsed"
@@ -32,7 +32,7 @@ class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
     super
     @setRightColumnClass()
 
-  setRightColumnClass:=>
+  setRightColumnClass:->
     rightCol = @panels[1]
     rightColSize = rightCol.size
     rightCol.unsetClass "extra-wide wide medium narrow extra-narrow"

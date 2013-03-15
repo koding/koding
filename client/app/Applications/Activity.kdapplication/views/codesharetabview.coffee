@@ -20,7 +20,7 @@ class CodeShareTabView extends KDTabView
 
     @resizeTabHandles()
 
-  resizeTabs:=>
+  resizeTabs:->
     views = @panes
 
     maxHeight=40
@@ -114,11 +114,7 @@ class CodeShareTabHandleView extends KDView
         callback      : (value) =>
           @applyNewSyntax value
 
-
-
-
-
-  applyNewSyntax:(value)=>
+  applyNewSyntax:(value)->
     @parent.emit "codeShare.changeSyntax", value
 
   viewAppended:->

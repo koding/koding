@@ -172,7 +172,7 @@ class KDScrollThumb extends KDView
 
     @_setSize @_thumbSize
 
-  _calculatePosition:=>
+  _calculatePosition:->
     viewScrollTop = @_view.$().scrollTop()
     thumbTopOffset = viewScrollTop * @_thumbRatio + @_thumbMargin
     @_setOffset thumbTopOffset

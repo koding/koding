@@ -85,7 +85,7 @@ class TutorialActivityItemView extends ActivityItemChild
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
