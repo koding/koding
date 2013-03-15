@@ -19,51 +19,106 @@ class NewMemberBucketView extends JView
 
     @group = new NewMemberLinkGroup (totalCount : @getData().count), @getData().anchors
 
-    lastFetchedDate = null
+    @lastFetchedDate      = null
+    @lastFetchedItemCount = 0
+    @isUserViewCreated    = no
+    @listViews            = []
+    @isLoading            = no
 
     @group.on "moreLinkClicked", =>
-      # TBDL an accordion view
-      return
-      log "expand the view to show more users"
+      return if @isLoading or @getData().count <= @lastFetchedItemCount and @showMore
+      @isLoading = yes
+      @groupLoader = new KDLoaderView
+        cssClass : "new-members-loader"
+        size     :
+          width  : 24
+
+      @addSubView @groupLoader
+      @groupLoader.show()
+      @showMore?.hide()
+
+      count = 10
+
+      if not @isUserViewCreated
+        @createCloseButton()
+        @isUserViewCreated = yes
+
       selector    =
-        type      : { $in : ['CNewMemberBucketActivity'] }
+        type      : { $in : [options.type or= 'CNewMemberBucketActivity'] }
         createdAt :
-          $lt     : lastFetchedDate or @getData().createdAt[0]
-          $gt     : @getData().createdAt[1]
+          $gt     : @lastFetchedDate or @getData().createdAtTimestamps[0]
+          $lt     : @getData().createdAtTimestamps[1]
 
       options     =
-        limit     : 20
+        limit     : count
 
-      @group.loader.show()
-      KD.remote.api.CActivity.some selector, options, (err, activities)=>
-        if err then warn err
-        else
-          activities = ActivityAppController.clearQuotes activities
-          lastFetchedDate = activities.last.createdAt
-          KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-            if err then warn err
-            else
-              @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
-              @group.setData @getData().anchors
-              @group.visibleCount += 20
-              @group.render()
-              @group.loader.hide()
+      appManager.tell "Activity", "fetch", selector, options, (teasers, activities) =>
+        @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
+        @group.setData @getData().anchors
+
+        items = @getData().anchors.slice @lastFetchedItemCount, @lastFetchedItemCount + count
+
+        newMembersList = new KDListViewController
+          view        : new NewMemberList
+          wrapper     : no
+          scrollView  : no
+        , items: items
+
+        @listViews.push newMembersList
+        @addSubView newMembersList.getView()
+        @lastFetchedItemCount = @lastFetchedItemCount + count
+        @showMore.hide() if @getData().count <= @lastFetchedItemCount and @showMore
+        @lastFetchedDate = activities.last.createdAt
+        @groupLoader.destroy()
+        @createShowMore count
+        @isLoading = no
+
+  createCloseButton: ->
+    @addSubView @closeButton = new KDView
+      cssClass : "close-button"
+      partial  : "Close"
+      click    : =>
+        list.getView().destroy() for list in @listViews
+        @closeButton.destroy()
+        @showMore?.destroy()
+        @groupLoader?.destroy()
+        @lastFetchedItemCount = 0
+        @isUserViewCreated    = no
+        @isLoading            = no
+        @lastFetchedDate      = null
+        @listViews            = []
+
+  createShowMore: (count) ->
+    return if @getData().count < @lastFetchedItemCount
+    @addSubView @showMore = new KDView
+      cssClass : "show-more"
+      partial  : "Show More"
+      click    : =>
+        @group.emit "moreLinkClicked"
+        @showMore.hide() if @getData().count <= @lastFetchedItemCount + count
 
   pistachio:->
-
     """
     <span class='icon fx out'></span>
     <span class='icon'></span>
     {{> @group}}
     """
 
+
+class NewMemberList extends KDListView
+  constructor: (options = {}, data) ->
+    options.tagName   = "ul"
+    options.cssClass  = "activity-new-members"
+    options.itemClass = NewMemberListItem
+
+    super options, data
+
+
 class NewMemberLinkGroup extends LinkGroup
 
   constructor:->
 
     super
-
-    # @loader = new KDLoaderView
 
   createMoreLink:->
 

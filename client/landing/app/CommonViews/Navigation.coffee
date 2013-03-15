@@ -27,7 +27,11 @@ class NavigationList extends KDListView
 
   customizeItemOptions:(options, data)->
 
-    if data.title is "Invite Friends"
+    if data.title is "Activity"
+      options.childClass = NavigationActivityLink
+      return options
+
+    else if data.title is "Invite Friends"
       options.childClass = NavigationInviteLink
       return options
 
@@ -58,7 +62,7 @@ class NavigationLink extends KDListItemView
 
     # This check is for Invite Friends link which has no app at all
     # or if the item is a separator
-    return if @child? or type is "separator"
+    return if title is "Invite Friends" or type is "separator"
 
     mc = @getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",

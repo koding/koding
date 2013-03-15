@@ -122,6 +122,7 @@ class WebTermView extends KDView
     , (err, remote) =>
       @terminal.server = remote
       @setKeyView()
+      @emit "WebTermConnected", remote
 
   destroy: ->
     super
