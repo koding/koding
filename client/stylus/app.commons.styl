@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -10,29 +11,8 @@ app.commons.styl
 */
 }
 
-button.joined
-  background            pink !important
-
-table.permissions-grid
-  width                 100%
-  border-width          1px
-  border-spacing        0px
-  border-style          solid
-  border-color          gray
-  border-collapse       collapse
-  background-color      white
-  th
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
-  td
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
+// button.joined
+//   background            pink !important
 
 span.collapsedtext
   borderBox()
@@ -216,6 +196,8 @@ button.kdbutton.icon-only
       bg            position,-100px -560px
     &.refresh
       bg            position,-120px -580px
+    &.dot
+      bg            position,0 -140px
 
 /* editor-button
 *******************************************************************************/
@@ -358,7 +340,7 @@ button.editor-button
   noTextDeco()
 
   &.expandable
-    vendor            transition, max-width .4s linear
+    vendor            transition, max-width .4s linear .4s
     &:hover
       max-width       300px
       > span
@@ -836,18 +818,6 @@ button.cancel-edit-button
 
 
 
-
-.small-loader
-  opacity         .5
-  display         inline-block
-  padding         0!important
-  bg(image,url("../images/small-loader.gif"))
-  bg(color,transparent)
-  bg(repeat,no-repeat)
-  bg(position,0 0)
-  size(10px!important,10px!important)
-  &.white
-    bg(image,url("../images/small-loader-white.gif"))
 
 .right-overflow
   width           auto
@@ -1426,6 +1396,32 @@ figure.code-container
       display           inline-block
       margin-top        7px
       color             #aaa
+
+
+.custom-link-view
+  display               inline-block
+  line-height           20px
+  clearfix()
+  noTextDeco()
+  span.icon
+    size                20px, 20px
+    display             inline-block
+    vertical-align      top
+    sprite()
+  span.title
+    // text-decoration     underline
+    color               linkColor1
+
+
+.application-tab-handle-holder
+  .plus
+    padding     0 5px 0 5px
+  .icon
+    size        20px,20px
+    sprite()
+    bg          position,-60px -260px
+    display     block
+
 
 // /*
 //   Animation tests

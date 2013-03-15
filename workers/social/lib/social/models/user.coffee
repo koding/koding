@@ -73,8 +73,7 @@ module.exports = class JUser extends jraphical.Module
     schema          :
       username      :
         type        : String
-        validate    : (value)->
-          3 < value.length < 26 and /^[^-][a-z0-9-]+$/.test value
+        validate    : require('./name').validateName
         set         : (value)-> value.toLowerCase()
       email         :
         type        : String
@@ -127,8 +126,8 @@ module.exports = class JUser extends jraphical.Module
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
-  @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+  @authenticateClient =(clientId, context, callback)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
@@ -181,10 +180,10 @@ module.exports = class JUser extends jraphical.Module
                     snapshot    : JSON.stringify(bucket)
                   $addToSet     :
                     snapshotIds : bucket.getId()
-                , ->
+                , (err)->
                   CActivity = require "./activity"
                   CActivity.emit "ActivityIsCreated", activity
-                  callback()
+                  callback err
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
@@ -245,7 +244,7 @@ module.exports = class JUser extends jraphical.Module
                     callback null, account, replacementToken
 
   @logout = secure (client, callback)->
-    if 'string' is typeof clientId
+    if 'string' is typeof client
       sessionToken = client
     else
       {sessionToken} = client
@@ -339,7 +338,7 @@ module.exports = class JUser extends jraphical.Module
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    JName.claim username, 'JUser', 'username', (err)->
+                    JName.claim username, [username], 'JUser', 'username', (err)->
                       if err then callback err
                       else
                         salt = createSalt()

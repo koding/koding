@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
@@ -16,7 +14,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-vagrant"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -81,15 +79,14 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
     watch       : no
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
@@ -102,6 +99,7 @@ module.exports = deepFreeze
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://koding.local:1337'
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
@@ -125,6 +123,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

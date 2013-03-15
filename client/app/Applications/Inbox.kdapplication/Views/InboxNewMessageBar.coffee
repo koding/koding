@@ -30,7 +30,7 @@ class InboxNewMessageBar extends KDView
         title     : "Mark as Unread"
         placement : "left"
       callback    : =>
-        @propagateEvent KDEventType: 'MessageShouldBeMarkedAsUnread'
+        @emit 'MessageShouldBeMarkedAsUnread'
 
     @addSubView @deleteMessageButton = new KDButtonView
       style       : "clean-gray"
@@ -55,7 +55,7 @@ class InboxNewMessageBar extends KDView
             diameter : 16
           style      : "modal-clean-red"
           callback   : =>
-            @propagateEvent KDEventType: 'MessageShouldBeDisowned', modal
+            @emit 'MessageShouldBeDisowned', modal
 
   createNewMessageModal:->
     modal = new KDModalViewWithForms
@@ -69,7 +69,7 @@ class InboxNewMessageBar extends KDView
         navigable             : yes
         callback              : (formOutput)=>
           callback = modal.destroy.bind modal
-          @propagateEvent KDEventType : "MessageShouldBeSent", {formOutput,callback}
+          @emit "MessageShouldBeSent", {formOutput,callback}
         forms                 :
           sendForm            :
             fields            :
@@ -113,12 +113,10 @@ class InboxNewMessageBar extends KDView
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in recipient.getSelectedItemData())
-        @propagateEvent KDEventType : "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
+        @emit "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
-
-    @propagateEvent KDEventType: "NewMessageModalShouldOpen"
 
   disableMessageActionButtons:->
     @deleteMessageButton.hideTooltip()

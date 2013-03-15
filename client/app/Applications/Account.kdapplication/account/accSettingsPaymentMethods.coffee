@@ -22,16 +22,16 @@ class AccountPaymentMethodsListController extends KDListViewController
     # ,data
     super options,data
 
-    loadView:->
-      super
-      # @getView().parent.addSubView addButton = new KDButtonView
-      #   style     : "clean-gray account-header-button"
-      #   title     : ""
-      #   icon      : yes
-      #   iconOnly  : yes
-      #   iconClass : "plus"
-      #   callback  : =>
-      #     @getListView().showModal()
+  loadView:->
+    super
+    # @getView().parent.addSubView addButton = new KDButtonView
+    #   style     : "clean-gray account-header-button"
+    #   title     : ""
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "plus"
+    #   callback  : =>
+    #     @getListView().showModal()
 
 
 class AccountPaymentMethodsList extends KDListView
@@ -152,16 +152,11 @@ class AccountCreditCardForm extends KDFormView
       cssClass : "actions-wrapper"
 
     actionsWrapper.addSubView cancelLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Cancel"
+      tagName  : "a"
+      partial  : "Cancel"
+      click    : => @emit "FormCancelled"
 
     buttons.addSubView okButton = new KDButtonView title: 'Change payment method', style: 'cupid-green'
-
-    @listenTo
-      KDEventTypes : "click"
-      listenedToInstance : cancelLink
-      callback:()=>
-        @handleEvent type : "FormCancelled"
 
 
 class AccountCreditCardInput extends KDView
@@ -224,9 +219,10 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #   ,@data
   #
   #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName      : "a"
-  #     partial      : "Edit"
-  #     cssClass     : "action-link"
+  #     tagName  : "a"
+  #     partial  : "Edit"
+  #     cssClass : "action-link"
+  #     click    : @bound "swapSwappable"
   #
   #   @swappable = swappable = new AccountsSwappable
   #     views : [form,info]
@@ -235,16 +231,14 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #   @addSubView swappable,".swappable-wrapper"
   #   form.putEditButtons()
   #
-  #
-  #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
-  #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
+  #   form.on "FormCancelled", @bound "swapSwappable"
 
   swapSwappable:()=>
     @swappable.swapViews()
 
   click:(event)->
     if $(event.target).is "a.delete-icon"
-      @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
+      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
 
   partial:(data)->
     """

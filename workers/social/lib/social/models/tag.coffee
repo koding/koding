@@ -1,7 +1,6 @@
 
 jraphical = require 'jraphical'
 CActivity = require './activity'
-JAccount  = require './account'
 KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
@@ -10,27 +9,34 @@ module.exports = class JTag extends jraphical.Module
 
   {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
 
+  Validators  = require './group/validators'
+  {permit}    = require './group/permissionset'
+
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/groupable'
 
   @share()
 
   @set
     slugifyFrom     : 'title'
     slugTemplate    : 'Topics/#{slug}'
-    permissions     : [
-      'create tags'
-      'edit tags'
-      'delete tags'
-      'edit own tags'
-      'delete own tags'
-    ]
+    permissions     :
+      'create tags'           : ['member', 'moderator']
+      'freetag content'       : ['member', 'moderator']
+      'browse content by tag' : ['member', 'moderator']
+      'edit tags'             : ['moderator']
+      'delete tags'           : ['moderator']
+      'edit own tags'         : ['moderator']
+      'delete own tags'       : ['moderator']
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
+      title         : 'sparse'
+      group         : 'sparse'
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -67,6 +73,7 @@ module.exports = class JTag extends jraphical.Module
           type      : Number
           default   : 0
       synonyms      : [String]
+      group         : String
       # owner         : ObjectId
     relationships   :->
       JAccount = require './account'
@@ -85,21 +92,27 @@ module.exports = class JTag extends jraphical.Module
 
         ]
         as          : 'post'
-      # content       :
-      #   targetType  : [JCodeSnip, JAccount]
-      #   as          : 'content'
 
-  modify: secure (client, formData, callback)->
-    {delegate} = client.connection
-    if delegate.checkFlag ['super-admin', 'editor']
-      modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
-      JTag.one modifiedTag, (err, tag)=>
-        if tag
-          callback new KodingError "Slug already exists!"
-        else
-          @update $set: formData, callback
-    else
-      callback new KodingError "Access denied"
+  @getCollectionName =(group="koding")->
+    mainCollectionName = Inflector(group).decapitalize().pluralize()
+    return "#{mainCollectionName}__#{group.replace /-/g, '_'}"
+
+  modify: permit
+    advanced: [
+      { permission: 'edit own tags', validateWith: Validators.own }
+      { permission: 'edit groups' }
+    ]
+    success: (client, formData, callback)->
+      {delegate} = client.connection
+      if delegate.checkFlag ['super-admin', 'editor']
+        modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
+        JTag.one modifiedTag, (err, tag)=>
+          if tag
+            callback new KodingError "Slug already exists!"
+          else
+            @update $set: formData, callback
+      else
+        callback new KodingError "Access denied"
 
   fetchContentTeasers:(options, selector, callback)->
     [callback, selector] = [selector, callback] unless callback
@@ -121,99 +134,108 @@ module.exports = class JTag extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
-    existingTagIds = []
-    daisy queue = [
-      ->
-        fin =(i)-> if i is tagRefs.length-1 then queue.next()
-        tagRefs.forEach (tagRef, i)->
-          if tagRef?.$suggest?
-            newTag = {title: tagRef.$suggest.trim()}
-            JTag.one newTag, (err, tag)->
-              if err
-                callbackForEach err
-              else if tag?
-                callbackForEach null, tag
-                fin i
-              else
-                JTag.create client, newTag, (err, tag)->
-                  if err
-                    callbackForEach err
-                  else
-                    tagRefs[i] = ObjectRef(tag).data
-                    callbackForEach null, tag
-                    fin i
-          else
-            existingTagIds.push ObjectId tagRef.id
-            fin i
-      ->
-        JTag.all (_id: $in: existingTagIds), (err, existingTags)->
-          if err
-            callbackForEach err
-          else
-            callbackForEach null, tag for tag in existingTags
-    ]
+  @handleFreetags = permit 'freetag content'
+    success: (client, tagRefs, callbackForEach=->)->
+      existingTagIds = []
+      daisy queue = [
+        ->
+          fin =(i)-> if i is tagRefs.length-1 then queue.next()
+          tagRefs.forEach (tagRef, i)->
+            if tagRef?.$suggest?
+              newTag = {title: tagRef.$suggest.trim()}
+              JTag.one newTag, (err, tag)->
+                if err
+                  callbackForEach err
+                else if tag?
+                  callbackForEach null, tag
+                  fin i
+                else
+                  JTag.create client, newTag, (err, tag)->
+                    if err
+                      callbackForEach err
+                    else
+                      tagRefs[i] = ObjectRef(tag).data
+                      callbackForEach null, tag
+                      fin i
+            else
+              existingTagIds.push ObjectId tagRef.id
+              fin i
+        ->
+          JTag.all (_id: $in: existingTagIds), (err, existingTags)->
+            if err
+              callbackForEach err
+            else
+              callbackForEach null, tag for tag in existingTags
+      ]
 
-  @create = secure (client, data, callback)->
-    {delegate} = client.connection
-    tag = new @ data
-    tag.save (err)->
-      if err
-        callback err
-      else
-        tag.addCreator delegate, (err)->
-          if err
-            callback err
-          else
-            callback null, tag
+  @create = permit 'create tags'
+    success: (client, data, callback)->
+      {delegate} = client.connection
+      {group} = client.context
+      tag = new this data
+      tag.save client, (err)->
+        if err
+          callback err
+        else
+          tag.addCreator delegate, (err)->
+            if err
+              callback err
+            else
+              callback null, tag
 
-  @findSuggestions = (seed, options, callback)->
+  @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
-    @some {
-      title   : seed
-      _id     :
-        $nin  : blacklist
-    },{
-      skip
-      limit
-      sort    : 'title' : 1
-    }, callback
+    @inCollectionBySource(client.context)
+      .some {
+        title   : seed
+        _id     :
+          $nin  : blacklist
+      },{
+        skip
+        limit
+        sort    : 'title' : 1
+      }, callback
 
-  delete: secure (client, callback)->
-    {delegate} = client.connection
-    delegate.fetchRole client, (err, role)=>
-      if err
-        callback err
-      else unless role is 'super-admin'
-        callback new KodingError 'Access denied!'
-      else
-        tagId = @getId()
-        @fetchContents (err, contents)=>
-          if err
-            callback err
-          else
-            Relationship.remove {
-              $or: [{
-                targetId  : tagId
-                as        : 'tag'
-              },{
-                sourceId  : tagId
-                as        : 'post'
-              }]
-            }, (err)=>
-              if err
-                callback err
-              else
-                @remove (err)=>
-                  if err
-                    callback err
-                  else
-                    @emit 'TagIsDeleted', yes
-                    callback null
-                    contents.forEach (content)->
-                      content.flushSnapshot tagId, (err)->
-                        if err then console.log err
+  delete: permit
+    advanced: [
+      { permission: 'delete own tags', validateWith: Validators.own }
+      { permission: 'delete tags' }
+    ]
+    success: (client, callback)->
+      {delegate} = client.connection
+      delegate.fetchRole client, (err, role)=>
+        if err
+          callback err
+        else unless role is 'super-admin'
+          callback new KodingError 'Access denied!'
+        else
+          tagId = @getId()
+          @fetchContents (err, contents)=>
+            if err
+              callback err
+            else
+              Relationship.remove {
+                $or: [{
+                  targetId  : tagId
+                  as        : 'tag'
+                },{
+                  sourceId  : tagId
+                  as        : 'post'
+                }]
+              }, (err)=>
+                if err
+                  callback err
+                else
+                  @remove (err)=>
+                    if err
+                      callback err
+                    else
+                      @emit 'TagIsDeleted', yes
+                      callback null
+                      contents.forEach (content)->
+                        content.flushSnapshot tagId, (err)->
+                          if err then console.log err
 
 #
 # class JLicense extends JTag

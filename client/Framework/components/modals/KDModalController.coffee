@@ -1,5 +1,7 @@
+# we don't use this deprecate 02/2013 sinan
+
 class KDModalController extends KDViewController
-  modalViewTypes = 
+  modalViewTypes =
     blocking      : KDBlockingModalView
     loading       : KDModalViewLoad
 
@@ -27,12 +29,11 @@ class KDModalController extends KDViewController
 
     modalView = (new type? options) or (new modalViewTypes[type]? options) or new KDModalView options
 
-    modalView.registerListener KDEventTypes: 'KDModalViewDestroyed', listener : @, callback: (modalView)=> delete systemModals[modalView.getId()]
+    modalView.on 'KDModalViewDestroyed', (modalView)=> delete systemModals[modalView.getId()]
     systemModals[id = modalView.getId()] = modalView
 
-    (view or modalView).registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:do (modalView)->
-      ->
-        modalView.destroy()
+    (view or modalView).on 'KDModalShouldClose', do (modalView)->
+      -> modalView.destroy()
 
     return id
 

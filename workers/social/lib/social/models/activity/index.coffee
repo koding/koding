@@ -4,23 +4,30 @@ module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
 
+  {permit} = require '../group/permissionset'
+
   @getFlagRole =-> 'activity'
 
-  jraphical.Snapshot.watchConstructor @
+  jraphical.Snapshot.watchConstructor this
 
   @share()
 
   @trait __dirname, '../../traits/followable', override: no
+  @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/restrictedquery'
 
   @set
     feedable          : yes
-    # indexes           :
-    #   'sorts.repliesCount'  : 'sparse'
-    #   'sorts.likesCount'    : 'sparse'
-    #   'sorts.followerCount' : 'sparse'
+    indexes           :
+      'sorts.repliesCount'  : 'sparse'
+      'sorts.likesCount'    : 'sparse'
+      'sorts.followerCount' : 'sparse'
+      createdAt             : 'sparse'
+      modifiedAt            : 'sparse'
+      group                 : 'sparse'
     sharedMethods     :
       static          : [
-        'one','some','all','someData','each','cursor','teasers'
+        'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
       ]
       instance        : ['fetchTeaser']
@@ -47,6 +54,7 @@ module.exports = class CActivity extends jraphical.Capsule
         get           : -> new Date
       originType      : String
       originId        : ObjectId
+      group           : String
 
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->
@@ -75,6 +83,7 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
+      # group        : 'koding'
       createdAt    :
         $lt        : new Date to
         $gt        : new Date from
@@ -109,7 +118,8 @@ module.exports = class CActivity extends jraphical.Capsule
     selector = {
       type: {$in: ['CStatusActivity','CLinkActivity','CCodeSnipActivity',
                    'CDiscussionActivity','COpinionActivity',
-                   'CCodeShareActivity','CTutorialActivity']}
+                   'CCodeShareActivity','CTutorialActivity',
+                   'CBlogPostActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}
@@ -144,8 +154,8 @@ module.exports = class CActivity extends jraphical.Capsule
                   cursor.nextObject (err, doc1)->
                     if err
                       queue.fin(err)
-                    # else unless doc1?
-                    #   console.log _id, JSON.stringify selector2
+                    else unless doc1?
+                      console.log _id, JSON.stringify selector2
                     else
                       {targetName, targetId} = doc1
                       Base.constructors[targetName].someData {
@@ -181,25 +191,40 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
-  @fetchFacets = (options, callback)->
+  defaultFacets = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+      'CBlogPostActivity'
+    ]
 
-    {to, limit, facets, lowQuality} = options
+  @fetchFacets = permit 'read activity'
+    success:(client, options, callback)->
+      {to, limit, facets, lowQuality} = options
 
-    selector =
-      type         : { $in : facets }
-      createdAt    : { $lt : new Date to }
-      isLowQuality : { $ne : lowQuality }
+      lowQuality  ?= yes
+      facets      ?= defaultFacets
+      to          ?= Date.now()
 
-    options =
-      limit : limit or 20
-      sort  : createdAt : -1
+      selector =
+        type         : { $in : facets }
+        createdAt    : { $lt : new Date to }
+        isLowQuality : { $ne : lowQuality }
+        group        : client.groupName ? 'koding'
 
-    # console.log JSON.stringify selector
+      options =
+        limit : limit or 20
+        sort  : createdAt : -1
 
-    @some selector, options, (err, activities)->
-      if err then callback err
-      else
-        callback null, activities
+      @some selector, options, (err, activities)->
+        if err then callback err
+        else
+          callback null, activities
+
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

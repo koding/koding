@@ -53,8 +53,8 @@ class AboutView extends JView
             <span class='icon fl'></span>
             <p class='right-overflow'>
               <strong>Koding, Inc.</strong>
-              <a href="http://goo.gl/maps/XGWr" target="_blank">
-                153 Townsend, Suite 9072<br>
+              <a href="https://maps.google.com/maps?q=358+Brannan+Street,+San+Francisco,+CA&hl=en&sll=37.779643,-122.391765&sspn=0.020538,0.014269&oq=358+brann,+San+Francisco,+CA&hnear=358+Brannan+St,+San+Francisco,+California+94107&t=m&z=17" target="_blank">
+                358 Brannan Street<br>
                 San Francisco, CA 94107
               </a>
             </p>

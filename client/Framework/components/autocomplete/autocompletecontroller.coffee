@@ -21,11 +21,7 @@ class KDAutoCompleteController extends KDViewController
 
     super options, data
 
-    mainView.registerListener
-      KDEventTypes: 'focus'
-      listener: @
-      callback:(event)=>
-        @updateDropdownContents()
+    mainView.on 'focus', @bound "updateDropdownContents"
 
     @lastPrefix          = null
     @selectedItemData    = []
@@ -43,9 +39,8 @@ class KDAutoCompleteController extends KDViewController
     @getAutoCompletedItemParent()
     @setDefaultValue()
 
-    mainView.registerListener KDEventTypes : 'keyup', callback : __utils.throttle(@keyUpOnInputView,300), listener : @
-    mainView.on 'keydown', (event)=>
-      @keyDownOnInputView event
+    mainView.on 'keyup', @utils.throttle(@bound "keyUpOnInputView"), 300
+    mainView.on 'keydown', (event)=> @keyDownOnInputView event
 
   setDefaultValue:(defaultItems)->
     {defaultValue, itemDataPath} = @getOptions()
@@ -102,18 +97,11 @@ class KDAutoCompleteController extends KDViewController
     },{
       items : data
     }
-    dropdownListView.registerListener
-      KDEventTypes  : 'ItemsDeselected'
-      listener      : @
-      callback      : =>
-        view = @getView()
-        view.$input().trigger('focus')
+    dropdownListView.on 'ItemsDeselected', =>
+      view = @getView()
+      view.$input().trigger('focus')
 
-    dropdownListView.on 'ItemWasAdded', (view, index)=>
-      view.registerListener
-        KDEventTypes  : 'KDAutoCompleteSubmit'
-        listener      : @
-        callback      : @submitAutoComplete
+    dropdownListView.on 'KDAutoCompleteSubmit', @bound "submitAutoComplete"
 
     windowController = @getSingleton('windowController')
 
@@ -186,25 +174,8 @@ class KDAutoCompleteController extends KDViewController
     data = exactMatches.concat inexactMatches
     @dropdown.instantiateListItems data
     @dropdown.getListView().goDown()
-  #
-  # instantiateDropdownListItems:(items)->
-  #   itemClass = @getOptions().itemClass
-  #   dropdownListView = @dropdown.getListView()
-  #
-  #   if not itemClass
-  #     log 'there is no item class for autocomplete item, will use default one'
-  #     itemClass = KDAutoCompleteListItemView
-  #
-  #   for listItem in items
-  #     itemInstance = new itemClass {delegate : dropdownListView},listItem
-  #     dropdownListView.items.push itemInstance
-  #     dropdownListView.appendItem itemInstance
-  #
-  #     itemInstance.registerListener KDEventTypes : 'KDAutoCompleteSubmit', listener : @, callback : @submitAutoComplete
-  #
-  #   dropdownListView.items[0]?.makeItemActive()
-  #
-  submitAutoComplete:(publishingInstance, data)->
+
+  submitAutoComplete:(item, data)->
     inputView = @getView()
     # log @getOptions().selectedItemsLimit, @selectedItemCounter
     if @getOptions().selectedItemsLimit is null or @getOptions().selectedItemsLimit > @selectedItemCounter
@@ -373,7 +344,7 @@ class KDAutoCompleteController extends KDViewController
         @refreshDropDown data
         @showDropdown()
 
-  keyUpOnInputView:(inputView, event)=>
+  keyUpOnInputView:(event)=>
     return if event.keyCode in [9,38,40] #tab
     @updateDropdownContents()
     # else

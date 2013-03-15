@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.9.11" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
@@ -20,7 +18,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-production"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -85,15 +83,14 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : yes
     watch       : no
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
@@ -106,6 +103,7 @@ module.exports = deepFreeze
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
+      sourceUri : 'http://koding.com:1337'
   mq            :
     host        : rabbit_host
     login       : 'PROD-k5it50s4676pO9O'

@@ -19,11 +19,8 @@ class AccountMountListController extends KDListViewController
     @account = KD.whoami()
     list = @getListView()
 
-    list.registerListener
-      KDEventTypes  : "UpdateFormSubmitted"
-      listener      : @
-      callback      : (pubInst,{listItem, formData})=>
-        @updateMount listItem, formData
+    list.on "UpdateFormSubmitted", ({listItem, formData})=>
+      @updateMount listItem, formData
 
   loadView:->
     super
@@ -278,7 +275,7 @@ class AccountMountList extends KDListView
       form = new KDFormView
         cssClass : "clearfix"
         callback : (formData)=>
-          @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formData}
+          @emit "UpdateFormSubmitted", {listItem, formData}
 
       height =  items.length*75
 

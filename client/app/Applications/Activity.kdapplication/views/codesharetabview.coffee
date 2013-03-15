@@ -14,7 +14,7 @@ class CodeShareTabView extends KDTabView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
         file.syntax   = data.CodeShareItemType.syntax
-        appManager.openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
 
     super
 
@@ -138,12 +138,6 @@ class CodeShareTabHandleView extends KDView
     # if disabled, this should intercept the click event. however, overriding
     # the kdview listener is not working
 
-    # @syntaxSelect.listenTo
-    #     KDEventTypes        : 'click'
-    #     listenedToInstance  : @
-    #     callback            : (publishingInstance, event)=>
-    #       log "Do something unless this is not an edit tab"
-
   pistachio:->
     """
     {{> @syntaxSelect}}
@@ -169,9 +163,6 @@ class CodeShareTabHandleContainerView extends KDView
     #     log $(event.target).parent()
     #     $(event.target).closest(".kdtabhandle").click()
     # , noop
-
-  click:(event)->
-    @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
 
   _windowDidResize:->
     mainView = @getDelegate()
@@ -261,14 +252,11 @@ class CodeShareTabHandleContainerView extends KDView
                     contextMenu.destroy()
 
             'Contribute A Language' :
-              callback             : (source, event)=> appManager.notify()
+              callback             : (source, event)=> KD.getSingleton("appManager").notify()
 
 
   removePlusHandle:()->
     @plusHandle.destroy()
-
-  _plusHandleClicked: () ->
-    @plusHandle.delegate.emit 'AddEditorClick', @plusHandle
 
   _repositionPlusHandle:(event)->
 

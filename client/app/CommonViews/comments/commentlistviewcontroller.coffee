@@ -54,20 +54,17 @@ class CommentListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeComments 10, meta.createdAt
 
-    listView.registerListener
-      KDEventTypes  : "CommentSubmitted"
-      listener      : @
-      callback      : (pubInst, reply)->
-        model = listView.getData()
-        listView.emit "BackgroundActivityStarted"
-        model.reply reply, (err, reply)=>
-          # listView.emit "AllCommentsLinkWasClicked"
-          if not @getSingleton('activityController').flags?.liveUpdates
-            listView.addItem reply
-            listView.emit "OwnCommentHasArrived"
-          else
-            listView.emit "OwnCommentWasSubmitted"
-          listView.emit "BackgroundActivityFinished"
+    listView.on "CommentSubmitted", (reply)->
+      model = listView.getData()
+      listView.emit "BackgroundActivityStarted"
+      model.reply reply, (err, reply)=>
+        # listView.emit "AllCommentsLinkWasClicked"
+        if not @getSingleton('activityController').flags?.liveUpdates
+          listView.addItem reply
+          listView.emit "OwnCommentHasArrived"
+        else
+          listView.emit "OwnCommentWasSubmitted"
+        listView.emit "BackgroundActivityFinished"
 
   fetchCommentsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback

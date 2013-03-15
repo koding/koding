@@ -32,16 +32,19 @@ class KDDialogView extends KDView
 
   setButtons:()->
     {buttons} = @getOptions()
+    @buttons = {}
     @buttonHolder = new KDView {cssClass : "kddialog-buttons clearfix"}
     @addSubView @buttonHolder
     for own buttonTitle,buttonOptions of buttons
       @createButton buttonTitle,buttonOptions
       
   createButton:(title,buttonOptions)->
-    @buttonHolder.addSubView new KDButtonView
+    @buttonHolder.addSubView button = new KDButtonView
       title       : title
+      loader      : buttonOptions.loader    if buttonOptions.loader?
       style       : buttonOptions.style     if buttonOptions.style?
       callback    : buttonOptions.callback  if buttonOptions.callback?
+    @buttons[title] = button
 
   setTopOffset:()->
     {topOffset} = @getOptions()
@@ -49,7 +52,7 @@ class KDDialogView extends KDView
 
   putOverlay:()->
     {topOffset} = @getOptions()
-    @$overlay = $ "<div/>"
+    @$overlay = $ "<div/>",
       class : "kdoverlay"
       css   :
         height : @$().parent().height() - topOffset

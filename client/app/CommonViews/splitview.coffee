@@ -1,6 +1,6 @@
 class SplitView extends KDSplitView
 
-  _windowDidResize:(event)=>
+  _windowDidResize:(event)->
 
     # because we have css animations on main contentpanel
     # resize lasts in 300ms

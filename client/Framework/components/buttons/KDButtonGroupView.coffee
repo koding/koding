@@ -18,11 +18,8 @@ class KDButtonGroupView extends KDView
       buttonOptions.title = buttonTitle
       buttonOptions.style = ""
       @addSubView @buttons[buttonTitle] = new buttonClass buttonOptions
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @buttons[buttonTitle]
-        callback           : (pubInst, event)=>
-          @buttonReceivedClick pubInst, event
+      @buttons[buttonTitle].on "click", (event)=>
+        @buttonReceivedClick @buttons[buttonTitle], event
 
   buttonReceivedClick:(button, event)->
     for title, otherButton of @buttons

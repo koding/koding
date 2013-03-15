@@ -38,6 +38,9 @@ span.hint
   fl()
 .fr
   fr()
+.ib
+  display           inline-block
+
 .lowercase
   text-transform    lowercase
 /*
@@ -126,15 +129,20 @@ h4.kdheaderview
   left      -10000px!important
 
 .kdtabhandlecontainer
-  padding-top 10px
-  border-bottom 1px solid #ddd
-  background-color browser-bg
-  overflow visible
-  height 30px
+  padding-top       10px
+  border-bottom     1px solid #ddd
+  background-color  browser-bg
+  overflow          visible
+  height            30px
+  vendor            transition, width .3s linear
+  
+  &.resize-in-action 
+    overflow hidden !important
 
   .kdtabhandle
     rel()
     color           k-orange
+    overflow        hidden
     line-height     30px
     padding         0 25px 0 15px
     cursor          pointer
@@ -175,6 +183,7 @@ h4.kdheaderview
     z-index 1
 
     span.close-tab
+      bg          color #FFF
       bg          position,-80px -220px
       &:hover
         bg        position,-80px -240px
@@ -546,3 +555,5 @@ span.close-btn-x
 /**/
 /* GENERIC STYLES */
 /**/
+.kddraggable
+  position: relative

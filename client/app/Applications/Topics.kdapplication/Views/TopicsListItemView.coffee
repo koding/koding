@@ -27,14 +27,7 @@ class TopicsListItemView extends KDListItemView
 
     @followButton = new FollowButton {cssClass: 'topic'}, data
 
-  titleReceivedClick:(event)->
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
-    #tag = @getData()
-    #appManager.tell "Topics", "createContentDisplay", tag
+  titleReceivedClick:(event)-> @emit 'TaggedContentRequested'
 
   viewAppended:->
     @setClass "topic-item"
@@ -88,37 +81,16 @@ class TopicsListItemView extends KDListItemView
     </div>
     """
 
-  refreshPartial: ->
-
-    @skillList?.destroy()
-    @locationList?.destroy()
-    super
-    @_addSkillList()
-    @_addLocationsList()
-
-  _addSkillList: ->
-
-    @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
-    @addSubView @skillList, '.profile-meta'
-
-  _addLocationsList: ->
-
-    @locationList = new TopicsLocationView {}, @getData().locations
-    @addSubView @locationList, '.personal'
-
 class ModalTopicsListItem extends TopicsListItemView
 
   constructor:(options,data)->
 
     super options,data
 
-    @titleLink = new TagLinkView {expandable: no}, data
-
-    @titleLink.registerListener
-      KDEventTypes  : 'click'
-      listener      : @
-      callback      : (pubInst, event)=>
-        @getDelegate().emit "CloseTopicsModal"
+    @titleLink = new TagLinkView
+      expandable : no
+      click      : => @getDelegate().emit "CloseTopicsModal"
+    , data
 
   pistachio:->
     """

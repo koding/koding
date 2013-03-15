@@ -1,18 +1,14 @@
-#####
-# KDSelectBox
-#####
-
 class KDSelectBox extends KDInputView
-  constructor:(options)->
-    options = $.extend
-      type     : "select"       # mandatory
-      cssClass : ""
-    ,options  
+
+  constructor:(options = {})->
+
+    options.type = "select"
+
     super options
 
   setDomElement:(cssClass)->
-    @inputName = @options.name
-    name = "name='#{@options.name}'"
+    @inputName  = @getOption "name"
+    name        = "name='#{@options.name}'"
     @domElement = $ """
         <div class='kdselectbox #{cssClass}'>
           <select #{name}></select>
@@ -20,8 +16,8 @@ class KDSelectBox extends KDInputView
           <span class='arrows'></span>
         </div>"
       """
-    @_$select = @$().find("select").eq(0)
-    @_$title  = @$().find("span.title").eq(0)
+    @_$select = @$("select").eq(0)
+    @_$title  = @$("span.title").eq(0)
     @domElement
 
   bindEvents:()->
@@ -32,7 +28,7 @@ class KDSelectBox extends KDInputView
       @handleEvent event
     super
 
-  setDefaultValue:(value)-> 
+  setDefaultValue:(value)->
     @getDomElement().val value if value isnt ""
     @_$select.val value
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
@@ -40,7 +36,7 @@ class KDSelectBox extends KDInputView
   getDefaultValue:()-> @inputDefaultValue
 
   getValue:()-> @_$select.val()
-  setValue:(value)-> 
+  setValue:(value)->
     @_$select.val value
     @change()
 
@@ -64,18 +60,18 @@ class KDSelectBox extends KDInputView
         @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
     else
       warn "no valid options specified for the input:", @
-    
+
     @_$select.val @getDefaultValue()
 
     value = @getDefaultValue() + "" # casting number to string
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
 
+  removeSelectOptions:-> @_$select.find("option").remove()
+
   change:->
     @_$title.text @_$select.find("option[value=\"#{@getValue()}\"]").text()
 
-  focus:->
-    @setClass 'focus'
+  focus:-> @setClass 'focus'
 
-  blur:->
-    @unsetClass 'focus'
+  blur:-> @unsetClass 'focus'

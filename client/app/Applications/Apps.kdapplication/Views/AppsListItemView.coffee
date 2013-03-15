@@ -25,7 +25,7 @@ class AppsListItemView extends KDListItemView
     event.preventDefault()
     list = @getDelegate()
     app  = @getData()
-    list.propagateEvent KDEventType : "AppWantsToExpand", app
+    list.emit "AppWantsToExpand", app
 
   viewAppended:->
 

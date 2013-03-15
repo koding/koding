@@ -2,7 +2,7 @@ KD.remote = new Bongo
 
   resourceName: KD.config.resourceName ? 'koding-social'
 
-  getUserArea:-> KD.getSingleton('mainController').getUserArea()
+  getUserArea:-> KD.getSingleton('groupsController').getUserArea()
 
   getSessionToken:-> $.cookie('clientId')
 

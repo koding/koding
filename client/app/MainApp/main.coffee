@@ -43,7 +43,7 @@ do ->
         <div class='modalformline'>
           Your internet connection may be down, or our server is.<br/><br/>
           If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-          <span class='small-loader fade in'></span> Trying to reconnect...
+          Trying to reconnect...
         </div>
         """
       height  : "auto"

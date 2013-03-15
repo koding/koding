@@ -123,7 +123,7 @@ class ActivityStatusUpdateWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
 
     @inputLinkInfoBox = new InfoBox
@@ -282,7 +282,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     super
 
     @submitBtn.disable()
-    @utils.wait 8000, => @submitBtn.enable()
+    @utils.wait 5000, => @submitBtn.enable()
 
   reset: (isHardReset) ->
     @lastestStatusMessage = @largeInput.getValue()

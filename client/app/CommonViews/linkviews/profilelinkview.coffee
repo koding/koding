@@ -39,7 +39,7 @@ class ProfileLinkView extends LinkView
 
   click:(event)->
 
-    #appManager.tell "Members", "createContentDisplay", @getData()
+    #KD.getSingleton("appManager").tell "Members", "createContentDisplay", @getData()
     KD.getSingleton('router')?.handleRoute "/#{@getData().profile.nickname}"
     event.preventDefault()
     event.stopPropagation()

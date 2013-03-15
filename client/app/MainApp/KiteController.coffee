@@ -121,7 +121,6 @@ class KiteController extends KDController
       @resetKiteIds kiteName, (err, res)=>
         unless err
           @status = yes
-          @propagateEvent KDEventType : "SharedHostingIsReady"
     else
       @status = no
 
@@ -210,7 +209,6 @@ class KiteController extends KDController
       unless err
         @status = yes
         clearInterval @pinger if @pinger
-        # @propagateEvent KDEventType : "SharedHostingIsWorking"
         notify _notifications.alive
 
       else

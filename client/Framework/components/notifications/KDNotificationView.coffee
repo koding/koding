@@ -80,6 +80,10 @@ class KDNotificationView extends KDView
         styles =
           top   : 0
           left  : winWidth/2 - @getDomElement().width()/2
+      when "sticky"
+        styles =
+          top   : 0
+          left  : winWidth/2 - @getDomElement().width()/2
       else
         styles =
           top   : winHeight/2 - @getDomElement().height()/2
@@ -139,7 +143,7 @@ class KDNotificationView extends KDView
     clearInterval @notificationInterval
 
   notificationSetOverlay:()->
-    @notificationOverlay = $ "<div/>"
+    @notificationOverlay = $ "<div/>",
       class : "kdoverlay transparent"
     @notificationOverlay.hide()
     @notificationOverlay.appendTo "body"

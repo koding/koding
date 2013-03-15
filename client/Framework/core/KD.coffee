@@ -13,15 +13,17 @@ Function::swiss = (parent, names...)->
   @
 
 # Cross-Browser DOM dependencies
-window.URL                   = window.URL                   ? window.webkitURL                   ? null
-window.BlobBuilder           = window.BlobBuilder           ? window.WebKitBlobBuilder           ? window.MozBlobBuilder           ? null
-window.requestFileSystem     = window.requestFileSystem     ? window.webkitRequestFileSystem     ? null
-window.requestAnimationFrame = window.requestAnimationFrame ? window.webkitRequestAnimationFrame ? window.mozRequestAnimationFrame ? null
+window.URL                   ?= window.webkitURL                   ? null
+window.BlobBuilder           ?= window.WebKitBlobBuilder           ? window.MozBlobBuilder           ? null
+window.requestFileSystem     ?= window.webkitRequestFileSystem     ? null
+window.requestAnimationFrame ?= window.webkitRequestAnimationFrame ? window.mozRequestAnimationFrame ? null
 
 # FIXME: add to utils.coffee
 String.prototype.capitalize   = ()-> this.charAt(0).toUpperCase() + this.slice(1)
 String.prototype.decapitalize = ()-> this.charAt(0).toLowerCase() + this.slice(1)
 String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
+
+# Dict = Object.create.bind null, null, Object.create null
 
 unless Array.prototype.last
   Object.defineProperty Array.prototype, "last", get : -> this[this.length-1]
@@ -67,6 +69,8 @@ KD.error = error = noop
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
   utils           : __utils
+  appClasses      : {}
+  appScripts      : {}
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -93,7 +97,6 @@ KD.error = error = noop
     [callback, errMsg] = [errMsg, callback] unless callback
 
     if KD.whoami() instanceof KD.remote.api.JGuest
-      # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'
         title    : 'Access denied!'
@@ -106,27 +109,7 @@ KD.error = error = noop
     @backendIsConnected = yes
     KDObject.emit "KDBackendConnectedEvent"
 
-  setApplicationPartials:(partials)->
-
-    @appPartials = partials
-
-  subscribe : (subscription)->
-    # unless subscription.KDEventType.toLowerCase() is "resize"
-    @subscriptions.push subscription
-
-  # FIXME: very wasteful way to remove subscriptions, vs. splice ??
-  removeSubscriptions : (aKDViewInstance) ->
-    newSubscriptions = for subscription,i in @subscriptions
-      subscription if subscription.subscribingInstance isnt aKDViewInstance
-    @recreateSubscriptions newSubscriptions
-
-  recreateSubscriptions:(newSubscriptions)->
-    @subscriptions = []
-    for subscription in newSubscriptions
-      @subscriptions.push subscription if subscription?
-
-  getAllSubscriptions: ->
-    @subscriptions
+  setApplicationPartials:(@appPartials)->
 
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
@@ -162,15 +145,51 @@ KD.error = error = noop
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
 
-  getAllKDInstances:()-> KD.instances
+  registerAppClass:(fn, options = {})->
+
+    {name} = options
+
+    unless name
+      return error "AppClass is missing a name!"
+
+    if KD.appClasses[name]
+      return warn "AppClass #{name} is already registered or the name is already taken!"
+
+    options.multiple      ?= no           # a Boolean
+    options.background    ?= no           # a Boolean
+    options.hiddenHandle  ?= no           # a Boolean
+    options.route        or= ""           # a String
+    options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
+    options.behavior     or= ""           # a String "application", "hideTabs", or ""
+    options.thirdParty    ?= no           # a Boolean
+
+    Object.defineProperty KD.appClasses, options.name,
+      configurable  : yes
+      enumerable    : yes
+      writable      : no
+      value         : {
+        fn
+        options
+      }
+
+  unregisterAppClass :(name)-> delete KD.appClasses[name]
+
+  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
+
+  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+
+  getAppScript       :(name)-> @appScripts[name] or null
+
+  registerAppScript  :(name, script)-> @appScripts[name] = script
+
+  unregisterAppScript:(name)-> delete @appScripts[name]
+
+  resetAppScripts    :-> @appScripts = {}
+
+  getAllKDInstances  :-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
-
-  propagateEvent: (KDEventType, publishingInstance, value)->
-    for subscription in @subscriptions
-      if (!KDEventType? or !subscription.KDEventType? or !!KDEventType.match(subscription.KDEventType.capitalize()))
-        subscription.callback.call subscription.subscribingInstance, publishingInstance, value, {subscription}
 
   # Get next highest Z-index
   getNextHighestZIndex:(context)->

@@ -31,6 +31,7 @@ module.exports = class Emailer
           # console.log "sent:",mailOptions.to
           callback null, "Message sent: " + response.message
     ,1000/20
+
   @simulate : (options,callback)->
 
     setTimeout ->

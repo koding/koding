@@ -1,7 +1,6 @@
 class ActivityActionsView extends KDView
 
   constructor:->
-
     super
 
     activity = @getData()
@@ -24,7 +23,6 @@ class ActivityActionsView extends KDView
         placement : "above"
       click:(event)=>
         event.preventDefault()
-        super
 
     @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
@@ -56,11 +54,8 @@ class ActivityActionsView extends KDView
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
 
-    @commentLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : (pubInst, event) ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
+    @commentLink.on "click", (event)->
+      commentList.emit "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->

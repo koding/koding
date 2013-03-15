@@ -24,10 +24,15 @@ class ContentDisplayControllerGroups extends KDViewController
 
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
 
-    mainView.addSubView appView = new GroupView
+    groupView = new GroupView
       cssClass : "profilearea clearfix"
       delegate : mainView
     , group
+    
+    groupView.on 'PrivateGroupIsOpened', console.log.bind(console, 'private gorup is opened')
+    
+    mainView.addSubView appView = groupView
+    
 
     # mainView.addSubView appView = new AppDetailsView
     #   cssClass : "info-wrapper"

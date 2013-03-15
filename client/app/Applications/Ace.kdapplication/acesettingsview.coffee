@@ -1,4 +1,4 @@
-class AceSettingsView extends KDTreeItemView
+class AceSettingsView extends JView
 
   constructor:->
     super
@@ -52,13 +52,11 @@ class AceSettingsView extends KDTreeItemView
 
   viewAppended:->
 
-    @setTemplate @pistachio()
-    @template.update()
+    super
 
     aceView = @getDelegate()
     if aceView
       @setDefaultValues aceView.getSettings()
-
 
   click:(event)->
 

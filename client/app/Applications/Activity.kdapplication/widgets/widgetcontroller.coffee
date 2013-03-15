@@ -29,12 +29,12 @@ class ActivityUpdateWidgetController extends KDViewController
         widgetName      : 'codeWidget'
         widgetType      : ActivityCodeSnippetWidget
       ,
-      #   name            : 'codeSharePane'
-      #   paneName        : 'codeshare'
-      #   constructorName : 'JCodeShare'
-      #   widgetName      : 'codeShareWidget'
-      #   widgetType      : ActivityCodeShareWidget
-      # ,
+        name            : 'blogPostPane'
+        paneName        : 'blogpost'
+        constructorName : 'JBlogPost'
+        widgetName      : 'blogPostWidget'
+        widgetType      : ActivityBlogPostWidget
+      ,
       #   name            : 'linkPane'
       #   paneName        : 'link'
       #   constructorName : 'JLink'
@@ -56,7 +56,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
     widgetController = @
-    paneMap.forEach (pane)=> 
+    paneMap.forEach (pane)=>
       @[pane.name] = mainView.addWidgetPane
         paneName : pane.paneName
         mainContent : @[pane.widgetName] = new pane.widgetType
@@ -89,9 +89,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           @discussionWidget.switchToEditView data, fake
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          @codeShareWidget.switchToEditView data, fake
+        when "JBlogPost"
+          mainView.showPane "blogpost"
+          @blogPostWidget.switchToEditView data, fake
         when "JLink"
           mainView.showPane "link"
           @linkWidget.switchToEditView data, fake
@@ -101,10 +101,9 @@ class ActivityUpdateWidgetController extends KDViewController
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
-      appManager.openApplication "Activity"
+      KD.getSingleton("appManager").open "Activity"
       mainView.setClass "edit-mode"
       switchForEditView activity.bongo_.constructorName, activity
-
 
   emitFakeData:(type, data)->
 
@@ -115,7 +114,6 @@ class ActivityUpdateWidgetController extends KDViewController
   widgetSubmit:(data,constructorName,callback)->
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
-
     if data.activity
       {activity} = data
       delete data.activity
@@ -130,12 +128,14 @@ class ActivityUpdateWidgetController extends KDViewController
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
+      data.group = KD.getSingleton('groupsController').getGroupSlug()
       KD.remote.api[constructorName].create data, (err, activity)=>
         callback? err, activity
         unless err
           @utils.killWait updateTimeout
           @emit 'OwnActivityHasArrived', activity
         else
+          warn err
           @emit 'OwnActivityHasFailed', data
           new KDNotificationView
             title : "There was an error, try again later!"
@@ -168,6 +168,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
+      html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0
         following : 0

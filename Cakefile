@@ -18,10 +18,9 @@ option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 #     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
 #     process.exit(0)
 
-ProgressBar = require './builders/node_modules/progress'
+ProgressBar = require 'progress'
 Builder     = require './builders/Builder'
-S3          = require './builders/s3'
-# log4js      = require "./builders/node_modules/log4js"
+# log4js      = require "log4js"
 # log         = log4js.getLogger("[Main]")
 
 log =
@@ -30,14 +29,12 @@ log =
   debug : console.log
   warn  : console.log
 
-prompt    = require './builders/node_modules/prompt'
-hat       = require "./builders/node_modules/hat"
-mkdirp    = require './builders/node_modules/mkdirp'
-commander = require './builders/node_modules/commander'
+prompt    = require 'prompt'
+hat       = require "hat"
+mkdirp    = require 'mkdirp'
+commander = require 'commander'
 
-sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes          = new (require "processes") main : true
-closureCompile     = require 'koding-closure-compiler'
 {daisy}            = require 'sinkrow'
 fs                 = require "fs"
 http               = require 'http'
@@ -47,7 +44,7 @@ Watcher            = require "koding-watcher"
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
-mkdirp.sync "./.build/.cache"
+mkdirp.sync "./.build"
 
 compilePistachios = require 'pistachio-compiler'
 
@@ -208,6 +205,21 @@ task 'emailWorker',({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
+task 'emailSender',({configFile})->
+
+  processes.fork
+    name            : 'emailSender'
+    cmd             : "./workers/emailsender/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailsender']
+        onChange  : (path) ->
+          processes.kill "emailSender"
+
 task 'goBroker',({configFile})->
 
   processes.spawn
@@ -290,6 +302,7 @@ run =({configFile})->
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
+    invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
 
 
@@ -302,91 +315,18 @@ task 'run', (options)->
 
   queue = []
   if config.buildClient is yes
-    queue.push -> buildClient options, -> queue.next()
+    queue.push ->
+      (new Builder).buildClient options
+      queue.next()
   queue.push -> run options
   daisy queue
 
-clientFileMiddleware  = (options, commandLineOptions, code, callback)->
-  # console.log 'args', options
-  # here you can change the content of kd.js before it's written to it's final file.
-  # options is the cakefile options, opt is where file is passed in.
-  {libraries,kdjs}      = code
-  {minify, pistachios}  = options
-
-
-  kdjs =  "var KD = {};\n" +
-          "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
-          kdjs
-
-  if commandLineOptions.pistachios or pistachios
-    console.log "[PISTACHIO] compiler started."
-    kdjs = compilePistachios kdjs
-    console.log "[PISTACHIO] compiler finished."
-
-  js = "#{libraries}#{kdjs}"
-
-  if minify
-    closureCompile js,(err,data)->
-      unless err
-        callback null, data
-      else
-        # if error just provide the original file. so site isn't down until this is fixed.
-        callback null, js
-  else
-    callback null, js
-
-buildClient =(options, callback=->)->
-
-  config = require('koding-config-manager').load("main.#{options.configFile}")
-
-  builderOptions =
-    config      : config.client
-    commandLine : options
-
-  builder = new Builder builderOptions,clientFileMiddleware,""
-
-
-  builder.watcher.initialize()
-
-  builder.watcher.on "initDidComplete",(changes)->
-    builder.buildClient options,()->
-      builder.buildCss {},()->
-        builder.buildIndex {},()->
-          if config.client.watch is yes
-            log.info "started watching for changes.."
-            builder.watcher.start 1000
-          else
-            log.info "Done building client"
-          callback null
-
-  builder.watcher.on "changeDidHappen",(changes)->
-    # log.info changes
-    if changes.Client? and not changes.StylusFiles
-      builder.buildClient options,()->
-        builder.buildIndex {},()->
-          # log.debug "client build is complete"
-
-    if changes.Client?.StylusFiles?
-      builder.buildCss {}, ->
-        builder.buildIndex {}, ->
-    if changes.Cake
-      log.debug "Cakefile changed.."
-      builder.watcher.reInitialize()
-
-  builder.watcher.on "CoffeeScript Compile Error",(filePath,error)->
-    log.error "CoffeeScript ERROR, last good known version of #{filePath} is compiled. Please fix this error and recompile. #{error}"
-    spawn.apply null, ["say",["coffee script error"]]
-
 task 'buildClient', (options)->
-  buildClient options
-
-
-
+  (new Builder).buildClient options
 
 task 'deleteCache',(options)->
-  exec "rm -rf #{__dirname}/.build/.cache",->
+  exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
-
 
 task 'deploy', (options) ->
   {configFile,username} = options
@@ -475,7 +415,7 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     stderr : process.stderr
     verbose : yes
     onExit : null
-      
+
 
 
 
@@ -523,8 +463,8 @@ task 'parseAnalyzedCss','',(options)->
     log.info stuff
 
 task 'analyzeCss','',(options)->
-  configFile = normalizeConfigPath options.configFile
-  config = require configFile
+
+  config = require('koding-config-manager').load("main.#{options.configFile}")
   compareArrays = (arrA, arrB) ->
     return false if arrA?.length isnt arrB?.length
     if arrA?.slice()?.sort?
@@ -574,14 +514,3 @@ task 'analyzeCss','',(options)->
     log.info "#{counter.fns} selectors contain identical CSS properties"
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
-
-task 'uploadToS3','',(options)->
-  S3 = new require("./build/s3")
-  s3 = new S3
-    key     : "AKIAJO74E23N33AFRGAQ"
-    secret  : "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"
-    bucket  : "koding"
-
-  s3.putFile targetPaths.client,"js/kd.js",()->
-  s3.putFile targetPaths.css,"css/kd.css",()->
-  s3.putFile targetPaths.index,"index.html",()->

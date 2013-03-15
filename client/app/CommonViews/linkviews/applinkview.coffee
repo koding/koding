@@ -26,4 +26,4 @@ class AppLinkView extends LinkView
   click:->
 
     app = @getData()
-    appManager.tell "Apps", "createContentDisplay", app
+    KD.getSingleton("appManager").tell "Apps", "createContentDisplay", app

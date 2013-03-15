@@ -164,8 +164,9 @@ class JTreeViewController extends KDViewController
     return if @nodes[@getNodeId nodeData]
     nodeData = @repairIds nodeData
     return unless nodeData
+
     @getData().push nodeData
-    @addIndexedNode nodeData
+    @addIndexedNode nodeData, index
     @registerListData nodeData
     parentId = @getNodePId nodeData
 
@@ -242,14 +243,18 @@ class JTreeViewController extends KDViewController
         children.push {node, index}
     if children.length then children else no
 
-  addIndexedNode:(nodeData)->
+  addIndexedNode:(nodeData, index)->
+
+    if index
+      @indexedNodes.splice index + 1, 0, nodeData
+      return
 
     neighbor = null
     getPreviousNeighbor = (aParentNode)=>
       neighbor = aParentNode
       children = @getChildNodes aParentNode
       if children
-        lastChild = children[children.length-1]
+        lastChild = children.last
         # @selectNode @nodes[@getNodeId lastChild.node]
         neighbor = getPreviousNeighbor lastChild.node
 
@@ -337,20 +342,14 @@ class JTreeViewController extends KDViewController
     @listControllers[listId].getView().on 'ItemWasAdded', (view, index)=>
       @setItemListeners view, index
 
-    @listenTo
-      KDEventTypes       : ["ItemSelectionPerformed","ItemDeselectionPerformed"]
-      listenedToInstance : @listControllers[listId]
-      callback           : (listController, {event, items}, {subscription})=>
-        switch subscription.KDEventType
-          when "ItemSelectionPerformed"
-            @organizeSelectedNodes listController, items, event
-          when "ItemDeselectionPerformed"
-            @deselectNodes listController, items, event
+    @listControllers[listId].on "ItemSelectionPerformed", (listController, {event, items})=>
+      @organizeSelectedNodes listController, items, event
 
-    @listenTo
-      KDEventTypes        : 'KeyDownOnTreeView'
-      listenedToInstance  : @listControllers[listId].getListView()
-      callback            : (treeview, event)=> @keyEventHappened event
+    @listControllers[listId].on "ItemDeselectionPerformed", (listController, {event, items})=>
+      @deselectNodes listController, items, event
+
+
+    @listControllers[listId].getListView().on 'KeyDownOnTreeView', (event)=> @keyEventHappened event
 
   setItemListeners:(view, index)->
 
@@ -364,10 +363,7 @@ class JTreeViewController extends KDViewController
     if @getOptions().dragdrop
       mouseEvents = mouseEvents.concat ["dragstart", "dragenter", "dragleave", "dragend", "dragover", "drop"]
 
-    @listenTo
-      KDEventTypes       : mouseEvents
-      listenedToInstance : view
-      callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
+    view.on mouseEvents, (event)=> @mouseEventHappened view, event
 
 
   ###
@@ -648,19 +644,16 @@ class JTreeViewController extends KDViewController
     return unless nodeView
 
     switch key
-      when "down"      then @performDownKey nodeView, event
-      when "up"        then @performUpKey nodeView, event
+      when "down","up"
+        event.preventDefault()
+        nextNode = @["perform#{key.capitalize()}Key"] nodeView, event
+        @getView().scrollToSubView?(nextNode) if nextNode
       when "left"      then @performLeftKey nodeView, event
       when "right"     then @performRightKey nodeView, event
       when "backspace" then @performBackspaceKey nodeView, event
       when "enter"     then @performEnterKey nodeView, event
       when "escape"    then @performEscapeKey nodeView, event
       when "tab"       then return no
-
-    switch key
-      when "down", "up"
-        event.preventDefault()
-        @getView().scrollToSubView? nodeView
 
   performDownKey:(nodeView, event)->
 

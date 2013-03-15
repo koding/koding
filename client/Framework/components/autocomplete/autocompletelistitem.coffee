@@ -1,25 +1,19 @@
 class KDAutoCompleteListItemView extends KDListItemView
-  constructor:(options,data)->
+
+  constructor:(options = {}, data)->
+
+    options.cssClass = KD.utils.curryCssClass "kdautocompletelistitem", options.cssClass
+    options.bind     = "mouseenter mouseleave"
+
     super options,data
-    @setClass "kdautocompletelistitem"
+
     @active = no
 
-  viewAppended:()->
-    @$().append @partial @data
+  viewAppended:()-> @updatePartial @partial @data
 
-  bindEvents:()->
-    @getDomElement().bind "mouseenter mouseleave",(event)=>
-      @handleEvent event
-    super
+  mouseEnter:()-> @makeItemActive()
 
-  mouseEnter:()->
-    @makeItemActive()
-
-  destroy: ->
-    super no
-
-  mouseLeave:()->
-    @makeItemInactive()
+  mouseLeave:()-> @makeItemInactive()
 
   makeItemActive:()->
     item.makeItemInactive() for item in @getDelegate().items
@@ -31,8 +25,8 @@ class KDAutoCompleteListItemView extends KDListItemView
     @unsetClass "active"
 
   click:()->
-    @propagateEvent KDEventType: 'KDAutoCompleteSubmit', globalEvent : yes, @data
+    list = @getDelegate()
+    list.emit 'KDAutoCompleteSubmit', @, @data
     no
 
-  partial:()->
-    "<div class='autocomplete-item clearfix'>Default item</div>"
+  partial:()-> "<div class='autocomplete-item clearfix'>Default item</div>"

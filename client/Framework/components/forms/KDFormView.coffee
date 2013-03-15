@@ -15,26 +15,23 @@ class KDFormView extends KDView
   ###
   INSTANCE LEVEL
   ###
-  constructor:(options,data)->
-    options = $.extend
-      callback    : noop       # a Function
-      customData  : {}         # an Object of key/value pairs
-    ,options
+  constructor:(options = {}, data)->
+
+    options.callback   or= noop     # a Function
+    options.customData or= {}       # an Object of key/value pairs
+    options.bind       or= "submit" # a String of space separated event names
+
     super options,data
+
     @valid = null
     @setCallback options.callback
     @customData = {}
 
   childAppended:(child)->
     child.associateForm? @
-    if child instanceof KDInputView
-      @propagateEvent KDEventType: 'inputWasAdded', child
-    super
+    @emit 'inputWasAdded', child  if child instanceof KDInputView
 
-  bindEvents:()->
-    @getDomElement().bind "submit",(event)=>
-      @handleEvent event
-    super()
+    super
 
   setDomElement:()->
     cssClass = @getOptions().cssClass ? ""

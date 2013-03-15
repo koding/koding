@@ -36,6 +36,7 @@ module.exports = class JCodeShare extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
+      group       : data.group
 
       CodeShareItems : data.CodeShareItems or {}
       CodeShareOptions : data.CodeShareOptions or {}

@@ -94,7 +94,7 @@ class OpinionViewHeader extends JView
     list.on "NewOpinionHasArrived",=>
       @newAnswers++
       @updateRemainingText()
-      @newItemsLink.updatePartial "#{if @newAnswers is 0 then "No" else @newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
+      @newItemsLink?.updatePartial "#{if @newAnswers is 0 then "No" else @newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
 
       @setClass "has-new-items"
       @show()
@@ -139,26 +139,26 @@ class OpinionViewHeader extends JView
     commentText =
       if repliesCount > 0 then " and #{repliesCount} Comments"
       else ''
-
-    if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
-      if @getData().opinionCount > 1
-        @allItemsLink?.updatePartial "View #{@getData().opinionCount} Answers"+commentText
-      else if @getData().opinionCount is 1
-        @allItemsLink?.updatePartial "View one Answer"+commentText
+    if @allItemsLink?
+      if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
+        if @getData().opinionCount > 1
+          @allItemsLink.updatePartial "View #{@getData().opinionCount} Answers"+commentText
+        else if @getData().opinionCount is 1
+          @allItemsLink.updatePartial "View one Answer"+commentText
+        else
+          @allItemsLink.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
       else
-        @allItemsLink?.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
-    else
-      remainingOpinions = @getData().opinionCount-@getDelegate().items.length
-      if (remainingOpinions)<@maxCommentToShow
-          if remainingOpinions is 1
-            @allItemsLink?.updatePartial "View remaining answer"
-          else if remainingOpinions > 1
-            @allItemsLink?.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
-          else
-            if @newAnswers is 0
-              @allItemsLink?.updatePartial ""
+        remainingOpinions = @getData().opinionCount-@getDelegate().items.length
+        if (remainingOpinions)<@maxCommentToShow
+            if remainingOpinions is 1
+              @allItemsLink.updatePartial "View remaining answer"
+            else if remainingOpinions > 1
+              @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
             else
-              @allItemsLink?.updatePartial "View new answers"
+              if @newAnswers is 0
+                @allItemsLink.updatePartial ""
+              else
+                @allItemsLink.updatePartial "View new answers"
 
   pistachio:->
     """

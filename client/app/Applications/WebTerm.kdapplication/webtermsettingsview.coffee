@@ -1,4 +1,4 @@
-class WebtermSettingsView extends KDTreeItemView
+class WebtermSettingsView extends JView
 
   constructor:->
     super
@@ -35,8 +35,7 @@ class WebtermSettingsView extends KDTreeItemView
 
   viewAppended:->
 
-    @setTemplate @pistachio()
-    @template.update()
+    super
 
     webtermView = @getDelegate().terminal
     if webtermView

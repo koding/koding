@@ -15,7 +15,7 @@ class ActivitySplitView extends SplitView
 
   setRightColumnClass: ContentPageSplitBelowHeader::setRightColumnClass
 
-  _windowDidResize:()=>
+  _windowDidResize:->
     super
 
     {header, widget} = @getDelegate()

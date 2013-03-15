@@ -52,20 +52,20 @@ class KDWindowController extends KDController
 
     document.body.addEventListener "dragenter", (event)=>
       unless @dragInAction
-        @propagateEvent (KDEventType: 'DragEnterOnWindow'), event
+        @emit 'DragEnterOnWindow', event
         @setDragInAction yes
     , yes
 
     document.body.addEventListener "dragleave", (event)=>
       unless 0 < event.clientX < @winWidth and
              0 < event.clientY < @winHeight
-        @propagateEvent (KDEventType: 'DragExitOnWindow'), event
+        @emit 'DragExitOnWindow', event
         @setDragInAction no
     , yes
 
     document.body.addEventListener "drop", (event)=>
-      @propagateEvent (KDEventType: 'DragExitOnWindow'), event
-      @propagateEvent (KDEventType: 'DropOnWindow'), event
+      @emit 'DragExitOnWindow', event
+      @emit 'DropOnWindow', event
       @setDragInAction no
     , yes
 
@@ -95,7 +95,8 @@ class KDWindowController extends KDController
     # also so that we don't redirect the browser
     document.body.addEventListener 'click', (e)->
       isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\   # html nodenames are uppercase, so lowercase this.
-                       e.target.target isnt '_blank'                  # target _blank links should work as normal.
+                       e.target.target?.length is 0                      # targeted links should work as normal.
+                       # e.target.target isnt '_blank'                  # target _blank links should work as normal.
       if isInternalLink
         e.preventDefault()
         href = $(e.target).attr 'href'
@@ -109,30 +110,30 @@ class KDWindowController extends KDController
   beforeUnload:(event)->
     # fixme: fix this with appmanager
 
-    if @getSingleton('mainView')?.mainTabView?.panes
-      for pane in @getSingleton('mainView').mainTabView.panes
-        msg = no
+    # if @getSingleton('mainView')?.mainTabView?.panes
+    #   for pane in @getSingleton('mainView').mainTabView.panes
+    #     msg = no
 
-        # For open Tabs (apps, editors)
-        if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
-          msg = "Please make sure that you saved all your work."
+    #     # For open Tabs (apps, editors)
+    #     if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
+    #       msg = "Please make sure that you saved all your work."
 
-        # This cssClass needs to be added to the KDInputView OR
-        # a shadow KDInputView
-        pane.data.$(".warn-on-unsaved-data").each (i,element) =>
-
-
-          # If the View is a KDInputview, we don"t need to look
-          # further than the .val(). For ACE and others, we have
-          # to implement content shadowing in the widgets/inputs
-          if $(element).hasClass("kdinput") and $(element).val()
-            msg = "You may lose some input that you filled in."
+    #     # This cssClass needs to be added to the KDInputView OR
+    #     # a shadow KDInputView
+    #     pane.data.$(".warn-on-unsaved-data").each (i,element) =>
 
 
-    if msg # has to be created in the above checks
-      event or= window.event
-      event.returnValue = msg if event # For IE and Firefox prior to version 4
-      return msg
+    #       # If the View is a KDInputview, we don"t need to look
+    #       # further than the .val(). For ACE and others, we have
+    #       # to implement content shadowing in the widgets/inputs
+    #       if $(element).hasClass("kdinput") and $(element).val()
+    #         msg = "You may lose some input that you filled in."
+
+
+    # if msg # has to be created in the above checks
+    #   event or= window.event
+    #   event.returnValue = msg if event # For IE and Firefox prior to version 4
+    #   return msg
 
 
 
@@ -218,7 +219,7 @@ class KDWindowController extends KDController
   unsetDragView:(e)->
 
     @setDragInAction no
-    @dragView.emit "DragFinished", e, @dragState
+    @dragView.emit "DragFinished", e
     @dragView = null
 
 
@@ -227,11 +228,13 @@ class KDWindowController extends KDController
     view = @dragView
 
     {pageX, pageY}   = event
-    {startX, startY} = view.dragState
+    {initial}        = view.dragState.position
+    initialX         = initial.x
+    initialY         = initial.y
 
     delta =
-      x : pageX - startX
-      y : pageY - startY
+      x : pageX - initialX
+      y : pageY - initialY
 
     view.drag event, delta
 

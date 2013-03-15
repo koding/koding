@@ -105,19 +105,15 @@ class PersonalFormNameView extends AbstractPersonalFormView
     @lastName.setValue Encoder.htmlDecode profile.lastName
 
   attachListeners:->
-    @listenTo
-      KDEventTypes        : 'keyup'
-      listenedToInstance  : @firstName
-      callback:(pubInst, events)->
-        newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
-        pubInst.setDomAttributes {size: newWidth}
+    @firstName.on 'keyup', (event)=>
+      pubInst = @firstName
+      newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
+      pubInst.setDomAttributes {size: newWidth}
 
-    @listenTo
-      KDEventTypes        : 'keyup'
-      listenedToInstance  : @lastName
-      callback:(pubInst, events)->
-        newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
-        pubInst.setDomAttributes {size: newWidth}
+    @lastName.on 'keyup', (events)->
+      pubInst = @lastName
+      newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
+      pubInst.setDomAttributes {size: newWidth}
 
   formCallback:(formData)->
     {profile} = @memberData
@@ -349,7 +345,7 @@ class PersonalFormSkillTagView extends AbstractPersonalFormView
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        @propagateEvent KDEventType : "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
+        @emit "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
 
     @tagController.on 'ItemListChanged', =>
       {skillTags}  = @getData()

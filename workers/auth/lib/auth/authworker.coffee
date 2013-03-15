@@ -16,21 +16,8 @@ module.exports = class AuthWorker extends EventEmitter
       byRoutingKey  : {}
     }
     @counts   = {}
-    # @monitorServices()
 
   bound: require 'koding-bound'
-
-  # monitorServices: do ->
-  #   pingAll =(services)->
-  #     # for own servicesOfType of services
-  #     #   servicesOfType.forEach (service)->
-  #     # TODO: implement pingA       
-  #   monitorServicesHelper =->
-  #     console.log {@services, @clients}
-  #     pingAll @services
-  #   monitorServices =->
-  #     handler = monitorServicesHelper.bind this
-  #     setInterval handler, 10000
 
   authenticate:(messageData, routingKey, callback)->
     {clientId, channel, event} = messageData

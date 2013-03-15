@@ -63,7 +63,7 @@ class ActivityCodeShareWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 
