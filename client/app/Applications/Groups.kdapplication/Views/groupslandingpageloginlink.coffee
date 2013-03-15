@@ -53,7 +53,6 @@ class GroupsLandingPageButton extends KDButtonView
         when 'Activity'
           @mc.loginScreen.hide()
           KD.getSingleton('router').handleRoute route
-          $('#group-landing').css 'height', 0
 
     # # FIXME GG
     # $('.group-login-buttons').css 'opacity', 1

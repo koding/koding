@@ -80,8 +80,7 @@ class LandingPageNavigationLink extends NavigationLink
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
-    $('#group-landing').css 'opacity', 0
-    @utils.wait 600, -> $('#group-landing').hide()
+    @getSingleton('lazyDomController').hideLandingPage()
 
   click:(event)->
     {action, appPath, title, path, type} = @getData()
