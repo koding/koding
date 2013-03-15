@@ -1413,14 +1413,50 @@ figure.code-container
     color               linkColor1
 
 
-.application-tab-handle-holder
+.application-tab-handle-holder.kdtabhandlecontainer
+  padding               0
+  border                1px solid #e2e2e2
+  border-bottom         0
+  height                21px
+  overflow              hidden
+  gradient              #bbb, #d5d5d5
+
+  .kdtabhandle
+    color               #444
+    font-size           11px
+    line-height         21px
+    height              21px
+    border-width        0 1px 0 0
+    border-color        rgba(0,0,0,.1)
+    rounded             0
+    &:first-child
+      margin            0
+    &.active
+      height            21px
+      color             normal-text
+      bg                color, #f9f9f9
+    &:hover
+      span.close-tab
+        opacity         1
+    &:last-child
+      border-right      none
+
+    span.close-tab
+      bg                color, transparent
+      line-height       23px
+      height            20px
+      top               0px
+      right             0px
+      opacity           0
+      vendor            transition, opacity .1s linear
   .plus
-    padding     0 5px 0 5px
+    padding             0 3px 0 3px
   .icon
-    size        20px,20px
+    margin              1px 0 0 0
+    size                20px, 20px
+    display             block
+    bg                  position, -120px -460px
     sprite()
-    bg          position,-60px -260px
-    display     block
 
 
 // /*

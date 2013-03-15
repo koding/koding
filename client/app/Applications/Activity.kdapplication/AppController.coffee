@@ -38,14 +38,20 @@ class ActivityAppController extends AppController
 
     @currentFilter     = activityTypes
     @appStorage        = new AppStorage 'Activity', '1.0'
+
+    @mainController = @getSingleton 'mainController'
+
+    if @mainController.appIsReady then @putListeners()
+    else @mainController.on 'AppIsReady', => @putListeners()
+
+  putListeners:->
     activityController = @getSingleton('activityController')
-    activityController.on "ActivityListControllerReady", @attachEvents.bind @
+    activityController.on   "ActivityListControllerReady", @attachEvents.bind @
+    activityController.once "ActivityListControllerReady", @bound "populateActivity"
+
 
   loadView:->
-    if @listController then @populateActivity()
-    else
-      ac = @getSingleton('activityController')
-      ac.once "ActivityListControllerReady", @bound "populateActivity"
+    @populateActivity() if @listController
 
   resetList:->
 
@@ -157,15 +163,19 @@ class ActivityAppController extends AppController
 
   fetchActivity:(options = {}, callback)->
 
+    # fetchFacets1 is temporary
+    methodName = if options.bypass then "fetchFacets1" else "fetchFacets"
+
     options       =
-      limit       : options.limit  or 20
-      to          : options.to     or Date.now()
-      facets      : options.facets or @getFilter()
-      lowQuality  : options.exempt or no
+      limit       : options.limit    or 20
+      to          : options.to       or Date.now()
+      facets      : options.facets   or @getFilter()
+      lowQuality  : options.exempt   or no
+      originId    : options.originId or null
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
+    KD.remote.api.CActivity[methodName] options, (err, activities)=>
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
@@ -180,6 +190,16 @@ class ActivityAppController extends AppController
       success : (cache)->
         cache.overview.reverse()  if cache?.overview
         callback null, cache
+
+  fetch: (selector = {}, options = {}, callback) ->
+    KD.remote.api.CActivity.some selector, options, (err, activities)=>
+      return if err or activities.length is 0
+
+      activities = clearQuotes activities
+      KD.remote.reviveFromSnapshots activities, (err, teasers)=>
+        return warn err if err
+
+        callback? teasers, activities
 
   continueLoadingTeasers:->
 
@@ -223,8 +243,8 @@ class ActivityAppController extends AppController
 
   createBlogPostContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayBlogPost
-      title : "Status Update"
-      type  : "status"
+      title : "Blog Post"
+      type  : "blogpost"
     ,activity
 
   createCodeSnippetContentDisplay:(activity)->
@@ -267,3 +287,8 @@ class ActivityAppController extends AppController
           else
             callback instances
 
+  unhideNewItems: ->
+    @listController?.activityHeader.updateShowNewItemsLink yes
+
+  getNewItemsCount: (callback) ->
+    callback? @listController?.activityHeader?.getNewItemsCount() or 0

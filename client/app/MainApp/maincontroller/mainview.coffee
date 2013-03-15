@@ -15,6 +15,20 @@ class MainView extends KDView
     @createSideBar()
     @listenWindowResize()
 
+  # putAbout:->
+  #   @putOverlay
+  #     color   : "rgba(0,0,0,0.9)"
+  #     animated: yes
+  #   @$('section').addClass "scale"
+
+  #   @utils.wait 500, =>
+  #     @addSubView about = new AboutView
+  #       domId   : "about-text"
+  #       click   : @bound "removeOverlay"
+
+  #     @once "OverlayWillBeRemoved", about.bound "destroy"
+  #     @once "OverlayWillBeRemoved", => @$('section').removeClass "scale"
+
   addBook:-> @addSubView new BookView
 
   setViewState:(state)->
@@ -34,6 +48,7 @@ class MainView extends KDView
         @sidebar.hideFinderPanel()
 
   removeLoader:->
+
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @getSingleton "windowController"
     $loadingScreen.css
@@ -58,6 +73,8 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
+    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
@@ -76,7 +93,7 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        return if @userEnteredFromGroup()
+        # return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()

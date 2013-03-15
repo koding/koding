@@ -11,6 +11,8 @@ class ContentDisplayCodeSnippet extends ContentDisplayStatusUpdate
 
     @codeSnippetView = new CodeSnippetView {}, @getData().attachments[0]
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   pistachio:->
 
     """
@@ -28,7 +30,7 @@ class ContentDisplayCodeSnippet extends ContentDisplayStatusUpdate
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

@@ -52,6 +52,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
@@ -272,7 +273,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <footer class='tutorial-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
-                <time>{{$.timeago #(meta.createdAt)}}</time>
+                {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}
               </div>

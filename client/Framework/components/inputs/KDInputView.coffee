@@ -7,7 +7,7 @@ class KDInputView extends KDView
     o.label                   or= null          # a KDLabelView instance
     o.cssClass                or= ""            # a String
     o.callback                or= null          # a Function
-    o.defaultValue            or= ""            # a String or a Boolean value depending on type
+    o.defaultValue             ?= ""            # a String or a Boolean value depending on type
     o.placeholder             or= ""            # a String
     o.disabled                 ?= no            # a Boolean value
     # o.readonly               ?= no            # a Boolean value
@@ -113,7 +113,11 @@ class KDInputView extends KDView
     @$().val @getDefaultValue()
 
   setDefaultValue:(value) ->
-    @getDomElement().val value if value isnt ""
+    if @getOption("type") is "checkbox"
+      @getDomElement().attr checked : value
+    else
+      @getDomElement().val value if value isnt ""
+
     @inputDefaultValue = value
 
   getDefaultValue:()->
@@ -131,18 +135,23 @@ class KDInputView extends KDView
     @getDomElement().removeAttr "disabled"
 
   getValue:()->
-    value = @getDomElement().val()
-    {forceCase} = @getOptions()
-    if forceCase
-      value = if /uppercase/i.test forceCase
-        value.toUpperCase()
-      else
-        value.toLowerCase()
+    if @getOption("type") is "checkbox"
+      value = @$().is ':checked'
+    else
+      value = @getDomElement().val()
+      {forceCase} = @getOptions()
+      if forceCase
+        value = if /uppercase/i.test forceCase
+          value.toUpperCase()
+        else
+          value.toLowerCase()
 
     return value
 
   setValue:(value)->
-    @getDomElement().val(value) if value?
+    if @getOption("type") is "checkbox"
+      @getDomElement().attr checked : value
+    else @getDomElement().val(value) if value?
 
   _prevVal = null
 
@@ -352,7 +361,7 @@ class KDInputView extends KDView
     @getSingleton("windowController").revertKeyView @
     yes
 
-  mouseDown:=>
+  mouseDown:->
 
     @setFocus()
     #WHY NO?

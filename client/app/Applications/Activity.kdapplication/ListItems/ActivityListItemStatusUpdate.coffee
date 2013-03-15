@@ -21,6 +21,8 @@ class StatusActivityItemView extends ActivityItemChild
     else
       @embedBox = new KDView
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   attachTooltipAndEmbedInteractivity:->
     @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
@@ -139,7 +141,7 @@ class StatusActivityItemView extends ActivityItemChild
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
           {{> @tags}}
         </div>
         {{> @actionLinks}}
