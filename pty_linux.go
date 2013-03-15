@@ -26,33 +26,43 @@ func New(ptsPath string) *PTY {
 		panic(err)
 	}
 
+	pty := &PTY{Master: master}
+
 	// unlock slave
 	var unlock int32
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock)))
-	if errno != 0 {
+	if err := pty.Ioctl(syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock))); err != nil {
 		panic("Failed to unlock pty")
 	}
 
 	// find out slave name
 	var ptyno uint32
-	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, master.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno)))
-	if errno != 0 {
+	if err := pty.Ioctl(syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno))); err != nil {
 		panic("Failed to get ptyno")
 	}
+	pty.No = int(ptyno)
 
 	// open slave
-	slave, err := os.OpenFile(ptsPath+"/"+strconv.Itoa(int(ptyno)), os.O_RDWR|syscall.O_NOCTTY, 0)
+	slave, err := os.OpenFile(ptsPath+"/"+strconv.Itoa(pty.No), os.O_RDWR|syscall.O_NOCTTY, 0)
 	if err != nil {
 		panic(err)
 	}
+	pty.Slave = slave
 
 	// apply proper encoding
-	encodedMaster, err := charset.NewWriter("ISO-8859-1", master)
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", master)
 	if err != nil {
 		panic(err)
 	}
+	pty.MasterEncoded = masterEncoded
 
-	return &PTY{master, encodedMaster, int(ptyno), slave}
+	return pty
+}
+
+func (pty *PTY) Ioctl(a2, a3 uintptr) error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, pty.Master.Fd(), a2, a3); errno != 0 {
+		return errno
+	}
+	return nil
 }
 
 type winsize struct {
@@ -61,5 +71,21 @@ type winsize struct {
 
 func (pty *PTY) SetSize(x, y uint16) {
 	winsize := winsize{ws_col: x, ws_row: y}
-	syscall.Syscall(syscall.SYS_IOCTL, pty.Slave.Fd(), syscall.TIOCSWINSZ, uintptr(unsafe.Pointer(&winsize)))
+	if err := pty.Ioctl(syscall.TIOCSWINSZ, uintptr(unsafe.Pointer(&winsize))); err != nil {
+		panic(err)
+	}
+}
+
+func (pty *PTY) Signal(sig syscall.Signal) {
+	var pgid int
+	if err := pty.Ioctl(syscall.TIOCGPGRP, uintptr(unsafe.Pointer(&pgid))); err != nil {
+		panic("Failed to get process group")
+	}
+	process, err := os.FindProcess(pgid)
+	if err != nil {
+		panic(err)
+	}
+	if err := process.Signal(sig); err != nil {
+		panic("Failed to send signal")
+	}
 }
