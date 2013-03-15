@@ -84,7 +84,7 @@ Templates =
                  padding-right:10px;"></td>
       <td style="padding-left: 10px;" colspan="2">
         #{turnOffLink} <br/>
-        #{link "https://koding.com", "Koding"}, Inc. 153 Townsend, Suite 9072 San Francisco, CA 94107
+        #{link "https://koding.com", "Koding"}, Inc. 358 Brannan, San Francisco, CA 94107
       </td>
     </tr>
     """
