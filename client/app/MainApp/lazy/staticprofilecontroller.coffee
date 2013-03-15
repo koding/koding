@@ -118,8 +118,14 @@ class StaticProfileController extends KDController
 
     @utils.wait => @profileLogoView.setClass 'animate'
 
-    KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
 
+    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+
+
+    KD.remote.api.JAccount.one
+      "profile.nickname" : KD.config.profileEntryPoint
+    , (err, user, name)=>
+      if err then log err,user,name
       unless err
         profileUser = user
         @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
