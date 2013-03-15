@@ -8,22 +8,6 @@ class MembersMainView extends KDView
 
     header.setSearchInput()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MembersListItemView extends KDListItemView
   constructor:(options, data)->
 
