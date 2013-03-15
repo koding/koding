@@ -33,11 +33,15 @@ class InboxMessagesListItem extends KDListItemView
       origin  : group[0]
     }
 
+    @participants.hide() if group.length is 0
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
         href      : '#'
       cssClass    : 'delete-link'
+
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
   viewAppended:->
     super()
@@ -59,7 +63,7 @@ class InboxMessagesListItem extends KDListItemView
         <h3>{{#(subject) or '(No title)'}}</h3>
         <p>{{@teaser #(body)}}</p>
         <footer>
-          {{> @participants}} <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @participants}} {{> @timeAgoView}}
         </footer>
       </div>
     """
