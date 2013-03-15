@@ -78,11 +78,19 @@ class LandingPageNavigationLink extends NavigationLink
     data.type or= "account"
     super options, data
 
+  openPath:(path)->
+    @getSingleton('router').handleRoute path
+    @getSingleton('lazyDomController').hideLandingPage()
+
   click:(event)->
     {action, appPath, title, path, type} = @getData()
     log "here", @getData()
 
     {loginScreen} = @getSingleton 'mainController'
+
+    if path
+      @openPath path
+      return
 
     switch action
       when 'login'
@@ -91,3 +99,20 @@ class LandingPageNavigationLink extends NavigationLink
         loginScreen.animateToForm 'register'
       when 'request'
         loginScreen.animateToForm 'lr'
+      when 'join-group'
+        {groupEntryPoint} = KD.config
+        KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+          error err if err
+          if err then new KDNotificationView
+            title : "An error occured, please try again"
+          else unless group?
+            new KDNotificationView title : "No such group!"
+          else group.join (err, response)=>
+            error err if err
+            if err
+              new KDNotificationView
+                title : "An error occured, please try again"
+            else
+              new KDNotificationView
+                title : "You successfully joined to group!"
+              @openPath "/#{groupEntryPoint}/Activity"

@@ -93,7 +93,7 @@ class MainView extends KDView
       attributes:
         href    : "#"
       click     : (event)=>
-        return if @userEnteredFromGroup()
+        # return if @userEnteredFromGroup()
 
         event.stopPropagation()
         event.preventDefault()

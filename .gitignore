@@ -47,3 +47,5 @@ sftp-config.json
 .pyc
 
 .cake_task_cache
+
+*.sublime-*

@@ -242,11 +242,11 @@ class KDInputViewWithPreview extends KDInputView
      scrollTop : ((s[0].scrollHeight - s.height())*percentage/100)
     , 50, "linear"
 
-  setDomElement:(CssClass="")->
-    super CssClass
-
-    @$().after """
-      <div class='input_preview preview-#{@options.preview.language}'>
+  setDomElement:(cssClass="")->
+    @inputName = @getOptions().name
+    name = "name='#{@inputName}'"
+    @domElement = $ """<textarea #{name} class='kdinput text #{cssClass}'></textarea>
+      <div class='input_preview kdinputwithpreview preview-#{@options.preview.language}'>
         <div class="preview_content"><span class="data"></span></div>
       </div>"""
 

@@ -25,10 +25,15 @@ module.exports = class CActivity extends jraphical.Capsule
       createdAt             : 'sparse'
       modifiedAt            : 'sparse'
       group                 : 'sparse'
+
+    permissions             :
+      'read activity'       : ['member','moderator']
+
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
+        'fetchFacets1'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -204,7 +209,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchFacets = permit 'read activity'
     success:(client, options, callback)->
-      {to, limit, facets, lowQuality} = options
+      {to, limit, facets, lowQuality, originId} = options
 
       lowQuality  ?= yes
       facets      ?= defaultFacets
@@ -215,6 +220,29 @@ module.exports = class CActivity extends jraphical.Capsule
         createdAt    : { $lt : new Date to }
         isLowQuality : { $ne : lowQuality }
         group        : client.groupName ? 'koding'
+
+      selector.originId = originId if originId
+
+      options =
+        limit : limit or 20
+        sort  : createdAt : -1
+
+      @some selector, options, (err, activities)->
+        if err then callback err
+        else
+          callback null, activities
+
+  @fetchFacets1 = secure (client, options, callback)->
+      console.log 'this is temporary'
+      {to, limit, facets, lowQuality, originId} = options
+
+      selector =
+        type         : { $in : facets }
+        createdAt    : { $lt : new Date to }
+        isLowQuality : { $ne : lowQuality }
+        group        : client.groupName ? 'koding'
+
+      selector.originId = originId if originId
 
       options =
         limit : limit or 20
