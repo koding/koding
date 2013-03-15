@@ -233,7 +233,7 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #
   #   form.on "FormCancelled", @bound "swapSwappable"
 
-  swapSwappable:()=>
+  swapSwappable:->
     @swappable.swapViews()
 
   click:(event)->
