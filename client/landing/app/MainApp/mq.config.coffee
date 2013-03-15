@@ -11,6 +11,7 @@ KD.remote = new Bongo
 
   fetchName:do->
     cache = {}
+    {dash} = Bongo
     (nameStr, callback)->
       if cache[nameStr]?
         {model, name} = cache[nameStr]
@@ -26,17 +27,21 @@ KD.remote = new Bongo
             constructorName : 'JAccount'
             usedAsPath      : 'profile.nickname'
           }
-        selector = {}
-        selector[name.usedAsPath] = name.name
-        @api[name.constructorName].one? selector, (err, model)->
-          if err then callback err
-          else unless model?
-            callback new Error(
-              "Unable to find model: #{nameStr} of type #{name.constructorName}"
-            )
-          else
-            cache[nameStr] = {model, name}
-            callback null, model, name
+        models = []
+        queue = name.slugs.map (slug)=>=>
+          selector = {}
+          selector[slug.usedAsPath] = name.name
+          @api[slug.constructorName].one? selector, (err, model)->
+            if err then callback err
+            else unless model?
+              callback new Error(
+                "Unable to find model: #{nameStr} of type #{name.constructorName}"
+              )
+            else
+              models.push model
+              queue.fin()
+
+        dash queue, -> callback {name, models}
 
   mq: do->
     {broker} = KD.config
