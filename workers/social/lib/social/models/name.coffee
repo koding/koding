@@ -48,8 +48,8 @@ module.exports = class JName extends Model
           slug, collectionName, @usedAsPath, @constructorName
         }
         kallback =do -> i = 0; -> callback null   if ++i is 2
-        @update $set: slugs: [newName], kallback
-        @update $unset: {constructorName:1, usedAsPath:1}, kallback
+        @update {$set: slugs: [newName]}, kallback
+        @update {$unset: {constructorName:1, usedAsPath:1}}, kallback
 
   @release =(name, callback=->)->
     @remove {name}, callback

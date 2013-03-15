@@ -122,13 +122,13 @@ module.exports = class Followable
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
             action = "follow"
-            @emit 'FollowCountChanged'
+            @emit 'FollowCountChanged',
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
               follower        : follower
               action          : action
 
-            @emit 'FollowHappened'
+            @emit 'FollowHappened',
               origin    : @
               actorType : 'follower'
               follower  : ObjectRef(follower).data
@@ -157,7 +157,7 @@ module.exports = class Followable
           throw err if err
         callback err, count
         action = "unfollow"
-        @emit 'FollowCountChanged'
+        @emit 'FollowCountChanged',
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
           follower        : follower
@@ -222,7 +222,7 @@ module.exports = class Followable
       Relationship.count targetId:@_id, as:'follower', (error, count)=>
         Model::update.call @, $set: 'counts.following': count, (err)->
           throw err if err
-        @emit 'FollowCountChanged'
+        @emit 'FollowCountChanged',
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
           followee        : followee

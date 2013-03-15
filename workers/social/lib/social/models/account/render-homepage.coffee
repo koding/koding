@@ -1,5 +1,5 @@
 
-module.exports = ({profile,skillTags,counts,lastBlogPosts})->
+module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about} = profile
 

@@ -28,4 +28,4 @@ module.exports = class CBucketActivity extends CActivity
       as          : 'content'
 
   @create =({constructor:{name}})->
-    new (require('bongo').Base.constructors[name+'Activity'] or @)
+    new (require('bongo').Base.constructors[name+'Activity'] or this)
