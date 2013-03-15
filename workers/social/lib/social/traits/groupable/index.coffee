@@ -31,55 +31,55 @@ module.exports = class Groupable
     # mainCollectionName = Inflector(@name).decapitalize().pluralize()
     # return "#{mainCollectionName}__#{group.replace /-/g, '_'}"
 
-  @drop$ = permit 'drop collection',
+  @drop$ = permit 'drop collection'
     success:(client, callback)->
       collection = getCollectionByClient this, client
       helpers.drop.call this, collection, callback
       return this
 
-  @one$ = permit 'query collection',
+  @one$ = permit 'query collection'
     success:(client, uniqueSelector, options, callback)->
       collection = getCollectionByClient this, client
       helpers.one.call this, collection, uniqueSelector, options, callback
       return this
 
-  @all$ = permit 'query collection',
+  @all$ = permit 'query collection'
     success:(client, selector, callback)->
       collection = getCollectionByClient this, client
       helpers.all.call this, collection, selector, callback
       return this
 
-  @remove$ = permit 'query collection',
+  @remove$ = permit 'query collection'
     success:(client, selector, callback)->
       collection = getCollectionByClient this, client
       helpers.remove.call this, collection, selector, callback
       return this
 
-  @count$ = permit 'query collection',
+  @count$ = permit 'query collection'
     success:(client, selector, callback)->
       collection = getCollectionByClient this, client
       helpers.count.call this, collection, selector, callback
       return this
 
-  @some$ = permit 'query collection',
+  @some$ = permit 'query collection'
     success:(client, selector, options, callback)->
       collection = getCollectionByClient this, client
       console.log {collection}
       helpers.some.call this, collection, selector, options, callback
       return this
 
-  @someData$ = permit 'query collection',
+  @someData$ = permit 'query collection'
     success:(client, selector, fields, options, callback)->
       collection = getCollectionByClient this, client
       helpers.someData.call this, collection, selector, fields, options, callback
       return this
 
-  @cursor$ = permit 'query collection',
+  @cursor$ = permit 'query collection'
     success:(client, selector, options, callback)->
       collection = getCollectionByClient this, client
       helpers.cursor.call this, collection, selector, options, callback
 
-  @each$ = permit 'query collection',
+  @each$ = permit 'query collection'
     success:(client, selector, fields, options, callback)->
       collection = getCollectionByClient this, client
       helpers.each.call this, collection, selector, fields, options, callback
@@ -95,5 +95,5 @@ module.exports = class Groupable
     model.validate save_0_.bind model, callback, collection
     model
 
-  save$: permit 'create documents',
+  save$: permit 'create documents'
     success:(client, callback)-> @save callback

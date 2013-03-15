@@ -130,7 +130,7 @@ module.exports = class JTag extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  @handleFreetags = permit 'freetag content',
+  @handleFreetags = permit 'freetag content'
     success: (client, tagRefs, callbackForEach=->)->
       existingTagIds = []
       daisy queue = [
@@ -164,7 +164,7 @@ module.exports = class JTag extends jraphical.Module
               callbackForEach null, tag for tag in existingTags
       ]
 
-  @create = permit 'create tags',
+  @create = permit 'create tags'
     success: (client, data, callback)->
       {delegate} = client.connection
       {group} = client.context
