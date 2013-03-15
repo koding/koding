@@ -6,6 +6,7 @@ run_list [
             "recipe[rabbitmq::third_party_plugins]",
             "recipe[rabbitmq::vhosts]",
             "recipe[rabbitmq::users]",
+            "recipe[kd_run::vagrant]",
         ]
 default_attributes({
                      "rabbitmq" => {
