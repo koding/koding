@@ -84,7 +84,7 @@ class StaticTutorialActivityItemView extends StaticActivityItemChild
         </span>
         <div class='create-date'>
           <span class='type-icon'></span>
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {time{@formatCreateDate #(meta.createdAt)}}
           {{> @tags}}
           {{> @actionLinks}}
         </div>

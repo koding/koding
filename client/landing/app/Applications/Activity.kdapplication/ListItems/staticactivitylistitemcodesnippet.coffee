@@ -53,7 +53,7 @@ class StaticCodesnipActivityItemView extends StaticActivityItemChild
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          {time{$.timeago #(meta.createdAt)}}
+          {time{ @formatCreateDate #(meta.createdAt)}}
           {{> @tags}}
         </div>
         {{> @actionLinks}}
