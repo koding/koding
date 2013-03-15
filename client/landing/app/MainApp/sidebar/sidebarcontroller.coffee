@@ -51,6 +51,10 @@ class SidebarController extends KDViewController
       groupsController = @getSingleton 'groupsController'
       groupsController.on 'GroupChanged', ->
         group = groupsController.getCurrentGroup()
+
+        # We need to fix that, it happens when you logged-in from groupEntryPoint
+        return unless group
+
         group.fetchMyRoles (err, roles)=>
           if err
             console.warn err
