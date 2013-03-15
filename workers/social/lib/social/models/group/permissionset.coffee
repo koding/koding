@@ -65,9 +65,11 @@ module.exports = class JPermissionSet extends Module
       else
         module = target.constructor.name
         target.group
+    client.groupName = groupName
     JGroup.one {slug: groupName}, (err, group)->
       if err then callback err, no
       else unless group?
+        callback new KodingError "Unknown group! #{groupName}"
       else
         group.fetchPermissionSet (err, permissionSet)->
           if err then callback err, no
@@ -93,10 +95,8 @@ module.exports = class JPermissionSet extends Module
     promise ?= {}
     # convert simple rules to complex rules:
     advanced =
-      if promise.advanced
-        promise.advanced
-      else
-        [{permission, validateWith: require('./validators').any}]
+      if promise.advanced then promise.advanced
+      else [{permission, validateWith: require('./validators').any}]
     # Support a "stub" form of permit that simply calls back with yes if the
     # permission is supported:
     promise.success ?= (client, callback)-> callback null, yes
@@ -114,7 +114,7 @@ module.exports = class JPermissionSet extends Module
       JPermissionSet.checkPermission client, advanced, this,
         (err, hasPermission)->
           args = [client, rest..., callback]
-          if err then failure err
+          if err then callback err
           else if hasPermission
             success.apply null, args
           else if failure?

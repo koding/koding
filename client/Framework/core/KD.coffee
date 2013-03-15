@@ -159,7 +159,7 @@ KD.error = error = noop
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
     options.route        or= ""           # a String
-    options.openWith     or= "lastActive" # a String "lastActive" or "prompt"
+    options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
 

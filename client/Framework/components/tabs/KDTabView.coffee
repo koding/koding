@@ -45,7 +45,7 @@ class KDTabView extends KDScrollView
       @addPane pane = new @tabConstructor title : title,null
       pane.setTitle title
 
-  addPane:(paneInstance)->
+  addPane:(paneInstance, shouldShow=yes)->
     if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
@@ -59,7 +59,7 @@ class KDTabView extends KDScrollView
 
       paneInstance.tabHandle = newTabHandle
       @appendPane paneInstance
-      @showPane paneInstance
+      @showPane paneInstance  if shouldShow
       @emit "PaneAdded", paneInstance
 
       newTabHandle.$().css maxWidth: @getOptions().maxHandleWidth
@@ -136,7 +136,7 @@ class KDTabView extends KDScrollView
 
 
   #SHOW/HIDE ELEMENTS
-  showPane:(pane)=>
+  showPane:(pane)->
     return unless pane
     @hideAllPanes()
     pane.show()
@@ -162,7 +162,13 @@ class KDTabView extends KDScrollView
     @tabHandleContainer.hide()
     @handlesHidden = yes
 
-  toggleHandleContainer:(duration = 0)-> @tabHandleContainer.$().toggle duration
+  showHandleContainer:()->
+
+    @tabHandleContainer.show()
+    @handlesHidden = no
+
+  toggleHandleContainer:(duration = 0)->
+    @tabHandleContainer.$().toggle duration
 
   hideHandleCloseIcons:()->
     @tabHandleContainer.$().addClass "hide-close-icons"

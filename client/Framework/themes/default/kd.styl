@@ -135,8 +135,8 @@ h4.kdheaderview
   overflow          visible
   height            30px
   vendor            transition, width .3s linear
-  
-  &.resize-in-action 
+
+  &.resize-in-action
     overflow hidden !important
 
   .kdtabhandle
@@ -183,7 +183,7 @@ h4.kdheaderview
     z-index 1
 
     span.close-tab
-      bg          color #FFF
+      bg          color, #FFF
       bg          position,-80px -220px
       &:hover
         bg        position,-80px -240px
@@ -203,17 +203,20 @@ h4.kdheaderview
     overflow visible
     height 20px
     .kdtabhandle
+      color             k-orange
+      line-height       20px
+      padding           0 25px 0 15px
+      cursor            pointer
+      border            none
+      size              auto, 20px
+      vendor            transition, opacity .1s linear
       rel()
-      color k-orange
-      line-height 20px
-      padding 0 25px 0 15px
-      cursor pointer
-      border none
       fl()
-      size(auto,20px)
       &:hover
         size(auto,20px)
         background-color white
+        span.close-tab
+          opacity       1
       &:first-child
         margin-left 15px
 
@@ -519,17 +522,17 @@ h4.kdheaderview
   Global styles
 */
 span.close-tab,.close-icon
-  abs()
   display       block
   right         0
   top           2px
   overflow      hidden
-  size          20px,20px
+  size          20px, 20px
   cursor        pointer
+  bg            position,-60px -220px
   sprite()
-  bg          position,-60px -220px
+  abs()
   &:hover
-    bg        position,-60px -240px
+    bg          position,-60px -240px
 
 span.close-btn-x
   abs()
@@ -539,10 +542,10 @@ span.close-btn-x
   overflow      hidden
   size          20px,20px
   sprite()
-  bg          position,-60px -220px
+  bg            position,-60px -220px
   &:hover
-    cursor    pointer
-    bg        position,-60px -240px
+    cursor      pointer
+    bg          position,-60px -240px
 
 
 .kdview.kdloader

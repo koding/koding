@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{Model, Base} = require 'bongo'
 
 module.exports = class JName extends Model
 
@@ -15,8 +15,14 @@ module.exports = class JName extends Model
       name            : ['unique']
     schema            :
       name            : String
+      slugs           : Array # [collectionName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
+      # slugs           : [String]
+
+  # migrateOldName:->
+  #   return  unless 'constructorName' of this
+  #   Base.constructors[@constructorName].
 
   @release =(name, callback=->)->
     @remove {name}, callback
@@ -33,20 +39,25 @@ module.exports = class JName extends Model
         {konstructor: require('./group'), usedAsPath: 'slug'}
       ], callback
 
-  @claim =(name, konstructor, usedAsPath, callback)->
+  @claim =(fullName, slugs, konstructor, usedAsPath, callback)->
     constructorName =\
       if 'string' is typeof konstructor then konstructor
-      else konstructor.name
-    nameDoc = new @ {name, constructorName, usedAsPath}
+      else konstructor.fullName
+    nameDoc = new this {
+      name: fullName
+      slugs
+      constructorName
+      usedAsPath
+    }
     nameDoc.save (err)->
       if err?.code is 11000
-        err = new KodingError "The name #{name} is not available."
+        err = new KodingError "The fullName #{fullName} is not available."
         err.code = 11000
         callback err
       else if err
         callback err
       else
-        callback null, name
+        callback null, fullName
 
   @claimAll = (sources, callback=->)->
     i = 0
@@ -65,7 +76,7 @@ module.exports = class JName extends Model
                 if err then callback err
                 else if doc?
                   name = getAt doc, usedAsPath
-                  @claim name, konstructor, usedAsPath, (err)->
+                  @claim name, [name], konstructor, usedAsPath, (err)->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err

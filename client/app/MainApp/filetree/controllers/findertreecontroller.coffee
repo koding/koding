@@ -129,13 +129,15 @@ class NFinderTreeController extends JTreeViewController
 
   previewFile:(nodeView, event)->
 
-    file = nodeView.getData()
+    file       = nodeView.getData()
+    appManager = KD.getSingleton("appManager")
     publicPath = file.path.replace /.*\/(.*\.koding.com)\/website\/(.*)/, 'http://$1/$2'
+
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      KD.getSingleton("appManager").notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
+      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
-      KD.getSingleton("appManager").openFileWithApplication publicPath, "Viewer"
+      appManager.openFile publicPath, "Viewer"
 
   refreshFolder:(nodeView, callback)->
 

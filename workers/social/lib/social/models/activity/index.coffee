@@ -8,7 +8,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @getFlagRole =-> 'activity'
 
-  jraphical.Snapshot.watchConstructor @
+  jraphical.Snapshot.watchConstructor this
 
   @share()
 
@@ -118,7 +118,8 @@ module.exports = class CActivity extends jraphical.Capsule
     selector = {
       type: {$in: ['CStatusActivity','CLinkActivity','CCodeSnipActivity',
                    'CDiscussionActivity','COpinionActivity',
-                   'CCodeShareActivity','CTutorialActivity']}
+                   'CCodeShareActivity','CTutorialActivity',
+                   'CBlogPostActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}
@@ -190,15 +191,30 @@ module.exports = class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
+  defaultFacets = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+      'CBlogPostActivity'
+    ]
+
   @fetchFacets = permit 'read activity'
     success:(client, options, callback)->
       {to, limit, facets, lowQuality} = options
+
+      lowQuality  ?= yes
+      facets      ?= defaultFacets
+      to          ?= Date.now()
 
       selector =
         type         : { $in : facets }
         createdAt    : { $lt : new Date to }
         isLowQuality : { $ne : lowQuality }
-        group        : options.group ? 'koding'
+        group        : client.groupName ? 'koding'
 
       options =
         limit : limit or 20

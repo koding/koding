@@ -3,10 +3,13 @@
 
 module.exports = class JMembershipPolicy extends Module
 
+  KodingError = require '../../error'
 
   @share()
 
   @set
+    sharedMethods         :
+      static              : ['byGroupSlug']
     schema                :
       approvalEnabled     :
         type              : Boolean
@@ -20,6 +23,14 @@ module.exports = class JMembershipPolicy extends Module
       #   default           : no
       webhookEndpoint     : String
       explanation         : String
+
+  @byGroupSlug =(slug, callback)->
+    JGroup = require '../group'
+    JGroup.one {slug}, (err, group)->
+      if err then callback err
+      else unless group?
+        callback new KodingError "Unknown slug: #{slug}"
+      else group.fetchMembershipPolicy callback
 
   explain:->
     return @explanation  if @explanation?

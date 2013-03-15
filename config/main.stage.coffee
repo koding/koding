@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 domainName = "stage.aws.koding.com"
@@ -18,7 +16,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-autoscale"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -83,15 +81,14 @@ module.exports = deepFreeze
   presence      :
     exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
     watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: "https://www.#{domainName}/"
     runtimeOptions:

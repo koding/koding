@@ -186,5 +186,5 @@ class KDTabViewController extends KDScrollView
     #   for handle in visibleHandles
     #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15
 
-  _windowDidResize:(event)=> @resizeTabHandles event
+  _windowDidResize:(event)-> @resizeTabHandles event
 

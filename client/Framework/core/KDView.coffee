@@ -77,7 +77,9 @@ class KDView extends KDObject
     o.attributes  or= null      # an Object holding attribute key/value pairs e.g. {href:'#',title:'my picture'}
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
-    o.tooltip     or= null      # an Object of twipsy options
+    o.tooltip     or= null      # an Object of kdtooltip options
+    o.preserveValue or= null
+
     # TO BE IMPLEMENTED
     o.resizable   or= null      # TBDL
     super o,data
@@ -177,6 +179,10 @@ class KDView extends KDObject
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
     @setPartial options.partial           if options.partial
+    if options.preserveValue
+      log 'preserving', options.preserveValue
+      @setPreserveValue options.preserveValue
+
     @addEventHandlers options
 
     if options.pistachio
@@ -202,18 +208,23 @@ class KDView extends KDObject
 # DOM ELEMENT CREATION
 # #
 
-  setDomElement:(cssClass)->
-    cssClass = if cssClass then " #{cssClass}" else ""
+
+  setDomElement:(cssClass="")->
     {lazyDomId, tagName} = @getOptions()
+
+    el = document.getElementById lazyDomId  if lazyDomId
+
+    unless el?
+      warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
+      el = document.createElement tagName
+
+    for klass in "kdview #{cssClass}".split ' ' when klass.length
+      el.classList.add klass
+
+    @domElement = $ el
+
     if lazyDomId
-      @domElement = $("#{tagName}##{lazyDomId}")
-      @domElement.addClass "kdview#{cssClass}"
-      if @domElement?.length is 0
-        warn "No lazy DOM Element found with given id #{lazyDomId}."
-
-    @domElement ?= \
-      $ "<#{tagName} class='kdview#{cssClass}'></#{tagName} >"
-
+      @utils.defer => @emit 'viewAppended'
 
   setDomId:(id)->
     @domElement.attr "id",id
@@ -236,7 +247,7 @@ class KDView extends KDObject
 # TRAVERSE DOM ELEMENT
 # #
 
-  getDomElement:()-> @domElement
+  getDomElement:-> @domElement
 
   getElement:-> @getDomElement()[0]
 
@@ -840,7 +851,6 @@ class KDView extends KDObject
 
   hideTooltip:(o = {})->
     o.selector or= null
-    @$(o.selector).tipsy "hide"
     @tooltip?.hide()
 
   removeTooltip:(instance)->
@@ -866,3 +876,41 @@ class KDView extends KDObject
   setKeyView:->
 
     @getSingleton("windowController").setKeyView @
+
+  setPreserveValue:(preserveValue={})->
+    storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+
+    if "string" is typeof preserveValue.saveEvents
+      preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
+    if "string" is typeof preserveValue.clearEvents
+      preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
+
+    for preserveEvent in preserveValue.saveEvents
+      @on preserveEvent, (event)=>
+        value = @getOptions().preserveValue.getValue?() ? @getValue?()
+        @savePreserveValue preserveValue.name, value
+
+    for preserveEvent in preserveValue.clearEvents
+      @on preserveEvent, (event)=>
+        @clearPreserveValue()
+
+    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
+      @on displayEvent, (event)=>
+        @applyPreserveValue storedvalue if storedValue
+
+    if storedValue
+      @utils.defer => @applyPreserveValue storedValue
+
+
+  applyPreserveValue:(value)->
+    if @getOptions().preserveValue.setValue
+      @getOptions().preserveValue.setValue value
+    else @setValue? value
+
+  savePreserveValue:(id,value)->
+    @getSingleton('localStorageController').setValueById id, value
+
+  clearPreserveValue:->
+    if @getOptions().preserveValue
+      @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+

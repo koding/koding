@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
@@ -13,13 +11,12 @@ mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_co
 projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
+  fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
-module.exports = deepFreeze
+module.exports =
   uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
