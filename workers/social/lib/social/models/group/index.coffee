@@ -2,6 +2,7 @@
 
 module.exports = class JGroup extends Module
 
+
   [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
   {Relationship} = require 'jraphical'
@@ -226,7 +227,7 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
-  changeMemberRoles: permit 'grant permissions'
+  changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
       group = this
       groupId = @getId()
@@ -259,7 +260,7 @@ module.exports = class JGroup extends Module
           group.addRole role, queue.fin.bind queue
         dash queue, callback
 
-  updatePermissions: permit 'grant permissions'
+  updatePermissions: permit 'grant permissions',
     success:(client, permissions, callback=->)->
       @fetchPermissionSet (err, permissionSet)=>
         if err
@@ -270,7 +271,7 @@ module.exports = class JGroup extends Module
           permissionSet = new JPermissionSet {permissions}
           permissionSet.save callback
 
-  fetchPermissions: permit 'grant permissions'
+  fetchPermissions: permit 'grant permissions',
     success:(client, callback)->
       {permissionsByModule} = require '../../traits/protected'
       {delegate} = client.connection
@@ -295,7 +296,7 @@ module.exports = class JGroup extends Module
           if err then callback err
           else callback null, (doc.as for doc in arr)
 
-  fetchUserRoles: permit 'grant permissions'
+  fetchUserRoles: permit 'grant permissions',
     success:(client, callback)->
       @fetchRoles (err, roles)=>
         roleTitles = (role.title for role in roles)
@@ -311,7 +312,7 @@ module.exports = class JGroup extends Module
               if err then callback err
               else callback null, arr
 
-  fetchMembers$: permit 'list members'
+  fetchMembers$: permit 'list members',
     success:(client, rest...)->
       @fetchMembers rest...
 
@@ -324,7 +325,7 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchReadme$: permit 'view readme'
+  fetchReadme$: permit 'view readme',
     success:(client, rest...)-> @fetchReadme rest...
 
   setReadme$: permit
@@ -332,7 +333,7 @@ module.exports = class JGroup extends Module
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
-          JMarkdownDoc = require '../markdowndoc'
+          JMarkdownDoc = require '../markdowndoc',
           readme = new JMarkdownDoc content: text
 
           daisy queue = [
@@ -373,7 +374,7 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
           }
 
-  createRole: permit 'grant permissions'
+  createRole: permit 'grant permissions',
     success:(client, formData, callback)->
       JGroupRole = require './role'
       JGroupRole.create
@@ -381,7 +382,7 @@ module.exports = class JGroup extends Module
         isConfigureable : formData.isConfigureable or no
       , callback
 
-  addCustomRole: permit 'grant permissions'
+  addCustomRole: permit 'grant permissions',
     success:(client,formData,callback)->
       @createRole client,formData, (err,role)=>
         console.log err,role
@@ -446,7 +447,7 @@ module.exports = class JGroup extends Module
 
   canEditGroup: permit 'grant permissions'
 
-  canOpenGroup: permit 'open group'
+  canOpenGroup: permit 'open group',
     failure:(client, callback)->
       @fetchMembershipPolicy (err, policy)->
         explanation = policy?.explain() ?
@@ -459,14 +460,14 @@ module.exports = class JGroup extends Module
           else ERROR_NO_POLICY
         callback clientError, no
 
-  countPendingInvitationRequests: permit 'send invitations'
+  countPendingInvitationRequests: permit 'send invitations',
     success: (client, callback)->
       @countInvitationRequests {}, {status: 'pending'}, callback
 
-  countInvitationRequests$: permit 'send invitations'
+  countInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @countInvitationRequests rest...
 
-  fetchInvitationRequestCounts: permit 'send invitations'
+  fetchInvitationRequestCounts: permit 'send invitations',
     success: ->
       switch arguments.length
         when 2
@@ -483,7 +484,7 @@ module.exports = class JGroup extends Module
             queue.fin()
       dash queue, callback.bind null, null, counts
 
-  resolvePendingRequests: permit 'send invitations'
+  resolvePendingRequests: permit 'send invitations',
     success: (client, isApproved, callback)->
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
@@ -512,7 +513,7 @@ module.exports = class JGroup extends Module
               console.error err  if err
             else callback null
 
-  inviteMember: permit 'send invitations'
+  inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
       invitationRequest = new JInvitationRequest {email}
@@ -520,10 +521,10 @@ module.exports = class JGroup extends Module
         if err then callback err
         else invitationRequest.sendInvitation client, callback
 
-  fetchInvitationRequests$: permit 'send invitations'
+  fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
-  sendSomeInvitations: permit 'send invitations'
+  sendSomeInvitations: permit 'send invitations',
     success: (client, count, callback)->
       @fetchInvitationRequests {}, {
         targetOptions :
@@ -607,5 +608,5 @@ module.exports = class JGroup extends Module
     selector.visibility = 'visible'
     Module::each.call this, selector, rest...
 
-  fetchVocabulary$: permit 'administer vocabularies'
+  fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...

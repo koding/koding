@@ -4,4 +4,5 @@ module.exports = (konstructor, groupName)->
   collectionBaseName = Inflector(name).decapitalize().pluralize()
   collectionGroupName = groupName.replace /-/g, '_'
   groupedCollectionName = "#{collectionBaseName}__#{collectionGroupName}"
+  console.log {groupedCollectionName}
   db.collection groupedCollectionName

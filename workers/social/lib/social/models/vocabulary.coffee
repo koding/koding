@@ -43,7 +43,7 @@ module.exports = class JVocabulary extends Module
       'edit own vocabularies'   : ['moderator']
       'delete own vocabularies' : ['moderator']
 
-  @create$ = permit 'create vocabularies'
+  @create$ = permit 'create vocabularies',
     success:(client, formData, callback)->
       formData.group = client.context.group
       @create formData, callback

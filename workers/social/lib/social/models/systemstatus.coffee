@@ -51,20 +51,17 @@ module.exports = class JSystemStatus extends Model
         callback err,status
       else
         status.update {
-          $set:
-            status :'stopped'
-          },(err)=>
+          $set: status: 'stopped'
+        },(err)=>
           status.emit 'restartCanceled', {}
           callback err
 
   @getCurrentSystemStatus = (callback=->)->
     JSystemStatus.one {
-      status : 'active'
-      }, {
-      sort:
-        'meta.createdAt' : -1
-      }
-    ,(err,status)->
+      status: 'active'
+    }, {
+      sort: 'meta.createdAt': -1
+    }, (err,status)->
       log err,status if err
 
       if status and status.scheduledAt > new Date()
