@@ -10,15 +10,15 @@ class StaticProfileController extends KDController
     'github'
   ]
 
-  handleMap =
-    twitter :
+  handleMap   =
+    twitter   :
       baseUrl : 'https://www.twitter.com/'
-      text : 'Twitter'
-      prefix : '@'
+      text    : 'Twitter'
+      prefix  : '@'
 
-    github :
+    github    :
       baseUrl : 'https://www.github.com/'
-      text : 'GitHub'
+      text    : 'GitHub'
 
 
   constructor:(options,data)->
@@ -34,8 +34,8 @@ class StaticProfileController extends KDController
         cssClass        : 'static-content'
       showHeader        : no
 
-    @navLinks = {}
-    @handleLinks = {}
+    @navLinks     = {}
+    @handleLinks  = {}
 
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
@@ -49,9 +49,9 @@ class StaticProfileController extends KDController
     @profileContentView.addSubView @listWrapper
 
     # this is the JAccount object of the static profile
-    profileUser = null
-    allowedTypes = ['CBlogPostActivity']
-    blockedTypes = []
+    profileUser   = null
+    allowedTypes  = ['CBlogPostActivity']
+    blockedTypes  = []
     currentFacets = []
 
     # reviving the landing page. this is needed to handle window
@@ -70,12 +70,12 @@ class StaticProfileController extends KDController
 
     @profileShowMoreView = new KDView
       lazyDomId : 'profile-show-more-wrapper'
-      cssClass : 'hidden'
+      cssClass  : 'hidden'
 
     profileShowMoreButton = new KDButtonView
       lazyDomId : 'profile-show-more-button'
-      title :'Show more'
-      callback:=>
+      title     : 'Show more'
+      callback  : =>
         @emit 'ShowMoreButtonClicked'
         @profileShowMoreView.hide()
         @profileShowMoreView.setHeight 0
@@ -88,17 +88,17 @@ class StaticProfileController extends KDController
     # adding administrative views
     profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
-      cssClass : 'slideable'
+      cssClass  : 'slideable'
 
     profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
-      cssClass : 'slideable'
+      cssClass  : 'slideable'
 
     # reviving feed type selectors that will activate feed facets
 
     for type in CONTENT_TYPES
       @navLinks[type] = new StaticNavLink
-        delegate : @
+        delegate  : @
         lazyDomId : type
 
     @emit 'DecorateStaticNavLinks', allowedTypes
@@ -127,7 +127,8 @@ class StaticProfileController extends KDController
        # revive handle links
 
         for type in HANDLE_TYPES
-          handle = profileUser.profile.handles[type]
+          handle = profileUser.profile.handles?[type]
+          log handle
           @handleLinks[type]  = new StaticHandleLink
             delegate          : @
             attributes        :
@@ -135,7 +136,7 @@ class StaticProfileController extends KDController
               target          : '_blank'
             icon              :
               cssClass        : type
-            title             : "#{handleMap[type].prefix or ''}#{handle or handleMap[type].text}"
+            title             : "#{if handle then handleMap[type].prefix or '' else ''}#{handle or handleMap[type].text}"
             lazyDomId         : "profile-handle-#{type}"
 
         if user.getId() is KD.whoami().getId()
@@ -161,17 +162,17 @@ class StaticProfileController extends KDController
           showPage = user.profile.staticPage?.show
 
           profileAdminMessageView.addSubView disableLink = new CustomLinkView
-            title : "#{if showPage is yes then 'Disable' else 'Enable'} this Public Page"
-            cssClass : 'message-disable'
-            click : (event)=>
+            title     : "#{if showPage is yes then 'Disable' else 'Enable'} this Public Page"
+            cssClass  : 'message-disable'
+            click     : (event)=>
               event?.stopPropagation()
               event?.preventDefault()
 
               if user.profile.staticPage?.show is yes
-                modal =  new KDModalView
-                  cssClass : 'disable-static-page-modal'
-                  title : 'Do you really want to disable your Public Page?'
-                  content : """
+                modal           = new KDModalView
+                  cssClass      : 'disable-static-page-modal'
+                  title         : 'Do you really want to disable your Public Page?'
+                  content       : """
                     <div class="modalformline">
                       <p>Disabling this feature will disable other people
                       from publicly viewing your profile. You will still be
@@ -179,17 +180,17 @@ class StaticProfileController extends KDController
                       <p>Do you want to continue?</p>
                     </div>
                     """
-                  buttons :
+                  buttons       :
                     "Disable the Public Page" :
-                      cssClass : 'modal-clean-red'
-                      callback :=>
+                      cssClass  : 'modal-clean-red'
+                      callback  : =>
                         modal.destroy()
                         user.setStaticPageVisibility no, (err,res)=>
                           if err then log err
                           disableLink.updatePartial 'Enable this Public Page'
-                    Cancel :
-                      cssClass : 'modal-cancel'
-                      callback :=>
+                    Cancel      :
+                      cssClass  : 'modal-cancel'
+                      callback  : =>
                         modal.destroy()
               else
                 user.setStaticPageVisibility yes, (err,res)=>
@@ -253,10 +254,10 @@ class StaticProfileController extends KDController
 
     @controller.on 'LazyLoadThresholdReached', =>
       appManager.tell 'Activity', 'fetchActivity',
-        originId : profileUser.getId()
-        facets : currentFacets
-        to     : @controller.itemsOrdered.last.getData().meta.createdAt
-        bypass : yes
+        originId  : profileUser.getId()
+        facets    : currentFacets
+        to        : @controller.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
       , @bound "appendActivities"
 
   repositionLogoView:->
@@ -337,5 +338,5 @@ class StaticHandleLink extends CustomLinkView
 class StaticHandleInput extends KDHitEnterInputView
   constructor:(options,data)->
     options.cssClass = 'profile-handle-customize'
-    options.defaultValue = data.profile.handles[options.service]
+    options.defaultValue = data.profile.handles?[options.service] or ''
     super options,data
