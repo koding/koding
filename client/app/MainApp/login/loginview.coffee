@@ -181,7 +181,16 @@ class LoginView extends KDScrollView
       else
         $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
-        @getSingleton('router').handleRoute null, replaceState: yes
+
+        {groupEntryPoint} = KD.config
+
+
+        if groupEntryPoint and groupEntryPoint isnt 'koding'
+          route = "/#{groupEntryPoint}/Activity"
+        else
+          route = "/Activity"
+
+        @getSingleton('router').handleRoute route, replaceState: yes
 
         new KDNotificationView
           cssClass  : "login"
@@ -193,7 +202,7 @@ class LoginView extends KDScrollView
         @hideView()
 
         if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-          $('#group-landing').css 'opacity', 0
+          @getSingleton('lazyDomController').hideLandingPage()
 
   doRequest:(formData)->
 
@@ -226,6 +235,7 @@ class LoginView extends KDScrollView
   headBannerShowGoBackGroup:(groupTitle)->
     @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
       @headBanner.hide()
+
       $('#group-landing').css 'height', '100%'
       $('#group-landing').css 'opacity', 1
 
@@ -246,12 +256,6 @@ class LoginView extends KDScrollView
       @showView =>
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
-
-  # prepare:(callback)->
-  #   unless KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
-  #     @hideView callback
-  #   else
-  #     callback()
 
   hideView:(callback)->
 
@@ -281,19 +285,7 @@ class LoginView extends KDScrollView
       @hidden = no
       callback?()
 
-  # _windowDidResize:(event)->
-
-  #   {winWidth,winHeight} = @getSingleton("windowController")
-  #   @$().css marginTop : -winHeight if @hidden
-
   animateToForm: (name)->
-
-    # if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-    #   # 'land-page'
-    #   # I will change all these ~ WIP
-    #   $('#group-landing').css 'opacity', 0
-    #   $('#group-landing').css 'height', 0
-    #   @$().css 'height', 0
 
     log 'animateForm called.', arguments
 
