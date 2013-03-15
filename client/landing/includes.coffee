@@ -440,7 +440,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee",
-
+  "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
   # Activity content displays commons

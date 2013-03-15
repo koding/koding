@@ -35,6 +35,7 @@ class LinkGroup extends KDCustomHTMLView
   createParticipantSubviews:->
     {itemClass, itemOptions} = @getOptions()
     participants = @getData()
+    return if null in participants
     for participant, index in participants
       if participant.bongo_.constructorName is "ObjectRef"
         itemOptions.origin = participant
