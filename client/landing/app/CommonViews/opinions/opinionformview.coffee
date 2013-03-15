@@ -76,11 +76,11 @@ class OpinionFormView extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-  reset:=>
+  reset:->
     @opinionBody.setValue ""
     super
 
-  submit:=>
+  submit:->
     # @once "FormValidationPassed", =>
     #   @reset()
     @on 'FormValidationFailed', (err)=>

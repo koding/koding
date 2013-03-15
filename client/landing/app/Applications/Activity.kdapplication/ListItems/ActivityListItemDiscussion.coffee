@@ -85,7 +85,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @prepareExternalLinks()
     @prepareScrollOverlay()
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.discussion-body-container span.data pre").each (i,element)=>
       hljs.highlightBlock element
 

@@ -21,6 +21,6 @@ class InboxReplyForm extends NewCommentForm
     @addSubView @sendButton = new KDButtonView
       title     : "Send"
       style     : "clean-gray inside-button"
-      callback  : @commentInputReceivedEnter
+      callback  : @bound "commentInputReceivedEnter"
 
     @attachListeners()

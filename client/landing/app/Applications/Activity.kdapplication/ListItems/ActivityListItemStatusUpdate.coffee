@@ -73,7 +73,7 @@ class StatusActivityItemView extends ActivityItemChild
 
       @attachTooltipAndEmbedInteractivity()
 
-  render:=>
+  render:->
     super
 
     {link} = @getData()

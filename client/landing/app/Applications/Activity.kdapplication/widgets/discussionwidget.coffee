@@ -81,13 +81,13 @@ class ActivityDiscussionWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-  submit:=>
+  submit:->
     @once "FormValidationPassed", => @reset()
     super
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
-  reset:=>
+  reset:->
     @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
