@@ -8,32 +8,22 @@ class MembersMainView extends KDView
 
     header.setSearchInput()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MembersListItemView extends KDListItemView
-  constructor:(options,data)->
+  constructor:(options, data)->
+
     options = options ? {}
     options.type = "members"
+    options.avatarSizes or= [60, 60] # [width, height]
+
     super options,data
+
     memberData = @getData()
+    options    = @getOptions()
+
     @avatar = new AvatarView
       size:
-        width: 60
-        height: 60
+        width: options.avatarSizes[0]
+        height: options.avatarSizes[1]
     , memberData
 
     defaultState  = if memberData.followee then "Unfollow" else "Follow"

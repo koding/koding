@@ -18,6 +18,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       constructorName  : data.originType
       id               : data.originId
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     @avatar = new AvatarStaticView
       tagName : "span"
       size    : {width: 50, height: 50}
@@ -279,7 +281,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
-                <time>{{$.timeago #(meta.createdAt)}}</time>
+                {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}
               </div>

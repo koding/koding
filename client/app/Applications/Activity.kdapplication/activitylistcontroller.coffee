@@ -38,7 +38,7 @@ class ActivityListController extends KDListViewController
       else
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
-        
+
     @noActivityItem.hide()
 
   loadView:(mainView)->

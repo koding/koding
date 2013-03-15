@@ -128,6 +128,9 @@ module.exports = [
   "Framework/components/autocomplete/autocompletemisc.coffee",
   "Framework/components/autocomplete/autocompleteditems.coffee",
 
+  #time
+  "Framework/components/time/timeagoview.coffee",
+
   # --- Application ---
   "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
@@ -177,6 +180,7 @@ module.exports = [
   # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
+  "app/CommonViews/mainnavigation/navigationactivitylink.coffee",
   "app/CommonViews/Navigation.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
 
@@ -378,6 +382,7 @@ module.exports = [
   "app/Applications/Ace.kdapplication/ace.coffee",
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",
   "app/Applications/Ace.kdapplication/acesettings.coffee",
+  "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
   # groups
   "app/Applications/Groups.kdapplication/groupdata.coffee"
@@ -530,6 +535,7 @@ module.exports = [
   "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
+  "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
 
   # START TAB VIEWS
   "app/Applications/StartTab.kdapplication/AppView.coffee",
