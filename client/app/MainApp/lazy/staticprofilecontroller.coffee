@@ -127,8 +127,15 @@ class StaticProfileController extends KDController
     , (err, user, name)=>
       if err then log err,user,name
       unless err
+
         profileUser = user
         @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
+
+        avatarAreaIconMenu = new AvatarAreaIconMenu
+          lazyDomId    : 'profile-buttons'
+          delegate     : @
+
+        avatarAreaIconMenu.$('.static-profile-button').remove()
 
        # revive handle links
 

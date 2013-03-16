@@ -14,6 +14,7 @@ class LandingPageSideBar extends KDView
         type       : "navigation"
       scrollView   : no
       wrapper      : no
+      delegate     : @
     ,
       items : [
         { title : "Register", action : "register", loggedOut : yes }
@@ -22,7 +23,11 @@ class LandingPageSideBar extends KDView
         { title : "Login",    action : "login",    loggedOut : yes }
       ]
 
+    @on 'ListItemsInstantiated' , =>
+      $("#profile-static-nav").remove()
+
     @addSubView @nav = @navController.getView()
+
 
 class LandingPageNavigationController extends NavigationController
 
@@ -64,11 +69,12 @@ class LandingPageNavigationController extends NavigationController
     else if @lc.userEnteredFromProfile
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities',action : 'activity', type : 'selected'}
-        { title : 'My Topics', action : 'topics', type : 'main' }
-        { title : 'My People', action : 'members', type : 'main'}
-        { title : 'My Groups', action : 'groups', type : 'main'}
-        { title : 'My Apps', action : 'apps', type : 'main'}
+        { title : 'My Activities',action : 'activity', type : 'user'}
+        { title : 'My Topics', action : 'topics', type : 'user' }
+        { title : 'My People', action : 'members', type : 'user'}
+        { title : 'My Groups', action : 'groups', type : 'user'}
+        { title : 'My Apps', action : 'apps', type : 'user'}
+        { type  : "separator" }
       ]
       items = profileItems.concat items
       @_instantiateListItems items
@@ -76,6 +82,7 @@ class LandingPageNavigationController extends NavigationController
       @_instantiateListItems items
 
   _instantiateListItems:(items)->
+    @getDelegate().emit 'ListItemsInstantiated'
     newItems = for itemData in items
       if KD.isLoggedIn()
         continue if itemData.loggedOut
@@ -83,11 +90,13 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       @getListView().addItem itemData
 
+
 class LandingPageNavigationLink extends NavigationLink
 
   constructor:(options = {}, data)->
     data.type or= "account"
     super options, data
+    @lc = @getSingleton 'lazyDomController'
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
@@ -102,6 +111,8 @@ class LandingPageNavigationLink extends NavigationLink
     if path
       @openPath path
       return
+
+    {groupEntryPoint, profileEntryPoint} = KD.config
 
     switch action
       when 'login'
@@ -129,13 +140,24 @@ class LandingPageNavigationLink extends NavigationLink
               @openPath "/#{groupEntryPoint}/Activity"
 
       when 'activity'
+        @openPath "/#{profileEntryPoint}/Activity"
+        @lc.hideLandingPage()
         log 'Activity'
       when 'topics'
+        @openPath "/#{profileEntryPoint}/Topics"
+        @lc.hideLandingPage()
+
         log 'Topics'
       when 'members'
+        @openPath "/#{profileEntryPoint}/Members"
+        @lc.hideLandingPage()
         log 'Members'
       when 'groups'
+        @openPath "/#{profileEntryPoint}/Groups"
+        @lc.hideLandingPage()
         log 'Groups'
       when 'apps'
+        @openPath "/#{profileEntryPoint}/Apps"
+        @lc.hideLandingPage()
         log 'Apps'
 
