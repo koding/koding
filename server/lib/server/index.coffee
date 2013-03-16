@@ -190,7 +190,7 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get '/:groupName', (req, res, next)->
+app.get '/:groupName/*?', (req, res, next)->
   {JGroup} = koding.models
   {groupName} = req.params
   JGroup.one { slug: groupName }, (err, group)->
