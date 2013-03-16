@@ -71,7 +71,7 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
 
       @attachTooltipAndEmbedInteractivity()
 
-  render:=>
+  render:->
     super
 
     {link} = @getData()

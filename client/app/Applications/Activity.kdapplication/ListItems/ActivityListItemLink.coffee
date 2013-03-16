@@ -17,6 +17,8 @@ class LinkActivityItemView extends ActivityItemChild
 
     @embedBox = new EmbedBox embedOptions,data
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CLinkActivity
     super()
@@ -50,7 +52,7 @@ class LinkActivityItemView extends ActivityItemChild
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
           {{> @tags}}
         </div>
         {{> @actionLinks}}

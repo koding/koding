@@ -94,7 +94,7 @@ class AccountSshKeyListItem extends KDListItemView
   #
   #   form.on "FormCancelled", @bound "swapSwappable"
 
-  swapSwappable:()=>
+  swapSwappable:->
     @swappable.swapViews()
 
   partial:(data)->

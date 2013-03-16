@@ -25,7 +25,7 @@ class ActivityUpdateWidget extends KDView
     @on "WidgetTabChanged", (tabName)=>
       @windowController.addLayer @mainInputTabs
 
-    @mainInputTabs.on "ResetWidgets", => @resetWidgets()
+    @mainInputTabs.on "ResetWidgets", (isHardReset) => @resetWidgets isHardReset
 
     @mainInputTabs.on 'ReceivedClickElsewhere', (event)=>
       unless $(event.target).closest('.activity-status-context').length > 0
@@ -35,12 +35,12 @@ class ActivityUpdateWidget extends KDView
         unless $(event.target).closest('.kdmodal').length > 0
           @resetWidgets()
 
-  resetWidgets:->
-
+  resetWidgets: (isHardReset) ->
     @windowController.removeLayer @mainInputTabs
     @unsetClass "edit-mode"
     @changeTab "update", "Status Update"
-    @mainInputTabs.emit "MainInputTabsReset"
+    @mainInputTabs.emit "MainInputTabsReset", isHardReset
+    
     @_windowDidResize()
 
   addWidgetPane:(options)->

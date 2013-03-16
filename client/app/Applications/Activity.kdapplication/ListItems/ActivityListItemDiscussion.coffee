@@ -54,6 +54,8 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     # @scrollAreaHint = new KDView
     #   cssClass : "enable-scroll-hint"
     #   partial : "Don't move your mouse to scroll"
@@ -83,7 +85,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @prepareExternalLinks()
     @prepareScrollOverlay()
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.discussion-body-container span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
@@ -200,7 +202,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

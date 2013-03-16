@@ -47,6 +47,8 @@ class TutorialActivityOpinionListItemView extends KDListItemView
       size    : {width: 20, height: 20}
       origin  : origin
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -65,8 +67,8 @@ class TutorialActivityOpinionListItemView extends KDListItemView
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
         <footer class="activity-opinion-item-footer">
-           {{> @author}} posted an answer
-         <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @author}} posted an answer
+          {{> @timeAgoView}}
         </footer>
     </div>
     """

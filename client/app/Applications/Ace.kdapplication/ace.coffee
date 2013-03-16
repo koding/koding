@@ -56,18 +56,32 @@ class Ace extends KDView
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
     @editor.commands.addCommand
-        name    : 'save'
-        bindKey :
-          win   : 'Ctrl-S'
-          mac   : 'Command-S'
-        exec    : => @requestSave()
+      name    : 'find'
+      bindKey :
+        win   : 'Ctrl-F'
+        mac   : 'Command-F'
+      exec    : => @showFindReplaceView no
 
     @editor.commands.addCommand
-        name    : 'save as'
-        bindKey :
-          win   : 'Ctrl-Shift-S'
-          mac   : 'Command-Shift-S'
-        exec    : => @requestSaveAs()
+      name    : 'replace'
+      bindKey :
+        win   : 'Ctrl-Shift-F'
+        mac   : 'Command-Shift-F'
+      exec    : => @showFindReplaceView yes
+
+    @editor.commands.addCommand
+      name    : 'save'
+      bindKey :
+        win   : 'Ctrl-S'
+        mac   : 'Command-S'
+      exec    : => @requestSave()
+
+    @editor.commands.addCommand
+      name    : 'save as'
+      bindKey :
+        win   : 'Ctrl-Shift-S'
+        mac   : 'Command-Shift-S'
+      exec    : => @requestSaveAs()
 
     file = @getData()
 
@@ -78,6 +92,12 @@ class Ace extends KDView
 
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
+
+  showFindReplaceView: (openReplaceView) ->
+    {findAndReplaceView} = @getDelegate()
+    selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
+    findAndReplaceView.setViewHeight openReplaceView
+    findAndReplaceView.setTextIntoFindInput selectedText
 
   ###
   FS REQUESTS

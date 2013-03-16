@@ -69,6 +69,8 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     # @scrollAreaList = new KDButtonGroupView
     #   buttons:
     #     "Allow Scrolling here":
@@ -83,7 +85,7 @@ class TutorialActivityItemView extends ActivityItemChild
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
@@ -225,7 +227,7 @@ class TutorialActivityItemView extends ActivityItemChild
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

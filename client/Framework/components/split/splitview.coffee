@@ -223,11 +223,11 @@ class KDSplitView extends KDView
     @panels[panelIndex].emit "PanelReachedMaximum"
     @emit "PanelReachedMaximum", panel : @panels[panelIndex]
 
-  _resizeDidStart:(event)=>
+  _resizeDidStart:(event)->
     $('body').addClass "resize-in-action"
     @emit "ResizeDidStart", orgEvent : event
 
-  _resizeDidStop:(event)=>
+  _resizeDidStop:(event)->
     @emit "ResizeDidStop", orgEvent : event
     @utils.wait 300, ->
       $('body').removeClass "resize-in-action"
@@ -242,14 +242,14 @@ class KDSplitView extends KDView
       if p.getId() is panel.getId()
         return i
 
-  hidePanel:(panelIndex,callback = noop)=>
+  hidePanel:(panelIndex,callback = noop)->
 
     panel = @panels[panelIndex]
     panel._lastSize = panel._getSize()
     @resizePanel 0,panelIndex,()=>
       callback.call @,(panel : panel, index : panelIndex )
 
-  showPanel:(panelIndex,callback = noop)=>
+  showPanel:(panelIndex,callback = noop)->
 
     panel = @panels[panelIndex]
     newSize = panel._lastSize or @getOptions().sizes[panelIndex] or 200
@@ -257,7 +257,7 @@ class KDSplitView extends KDView
     @resizePanel newSize,panelIndex,()->
       callback.call @,(panel : panel, index : panelIndex )
 
-  resizePanel:(value = 0,panelIndex = 0,callback = noop)=>
+  resizePanel:(value = 0,panelIndex = 0,callback = noop)->
 
     @_resizeDidStart()
 

@@ -128,6 +128,9 @@ module.exports = [
   "Framework/components/autocomplete/autocompletemisc.coffee",
   "Framework/components/autocomplete/autocompleteditems.coffee",
 
+  #time
+  "Framework/components/time/timeagoview.coffee",
+
   # --- Application ---
   "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
@@ -139,6 +142,8 @@ module.exports = [
   "app/MainApp/notificationcontroller.coffee",
 
   # COMMON VIEWS
+  "app/CommonViews/applicationview/applicationtabview.coffee",
+  "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
 
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
@@ -163,6 +168,7 @@ module.exports = [
 
   "app/CommonViews/LikeView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
+  "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/FormViews.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
@@ -174,8 +180,8 @@ module.exports = [
   # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
+  "app/CommonViews/mainnavigation/navigationactivitylink.coffee",
   "app/CommonViews/Navigation.coffee",
-  "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
 
   "app/CommonViews/followbutton.coffee",
@@ -373,9 +379,11 @@ module.exports = [
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
+  "app/Applications/Ace.kdapplication/aceappview.coffee",
   "app/Applications/Ace.kdapplication/ace.coffee",
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",
   "app/Applications/Ace.kdapplication/acesettings.coffee",
+  "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
   # groups
   "app/Applications/Groups.kdapplication/groupdata.coffee"
@@ -390,6 +398,7 @@ module.exports = [
   # webterm
   "app/Applications/WebTerm.kdapplication/AppController.coffee",
   "app/Applications/WebTerm.kdapplication/AppView.coffee",
+  "app/Applications/WebTerm.kdapplication/webtermappview.coffee",
   "app/Applications/WebTerm.kdapplication/webtermsettingsview.coffee",
   "app/Applications/WebTerm.kdapplication/webtermsettings.coffee",
   "app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee",
@@ -538,6 +547,7 @@ module.exports = [
   "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
+  "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
 
   # START TAB VIEWS
   "app/Applications/StartTab.kdapplication/AppView.coffee",

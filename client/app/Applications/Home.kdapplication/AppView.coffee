@@ -639,7 +639,7 @@ class ScreenshotItemLinkView extends KDView
       <img src="#{thumb}" />
     """
 
-  click:(event)=>
+  click:(event)->
     @parent.parent.emit 'SetScreenshotModal', {screenshot : @getData(), itemCalling : @}
 
 

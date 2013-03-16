@@ -44,7 +44,7 @@ class KDWindowController extends KDController
 
   bindEvents:()->
 
-    $(window).bind @keyEventsToBeListened.join(' '), @key
+    $(window).bind @keyEventsToBeListened.join(' '), @bound "key"
 
     $(window).bind "resize",(event)=>
       @setWindowProperties event
@@ -72,8 +72,8 @@ class KDWindowController extends KDController
     @layers = layers = []
 
     document.body.addEventListener 'mousedown', (e)=>
-      $('.twipsy').remove() # temporary for beta
-      lastLayer = layers[layers.length-1]
+      # $('.twipsy').remove() # temporary for beta
+      lastLayer = layers.last
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
         # log lastLayer, "ReceivedClickElsewhere"
@@ -241,7 +241,7 @@ class KDWindowController extends KDController
   getKeyView:()->
     @keyView
 
-  key:(event)=>
+  key:(event)->
     # log event.type, @keyView.constructor.name, @keyView.getOptions().name
     # if Object.keys(@currentCombos).length > 0
     #   return yes

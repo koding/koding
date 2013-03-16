@@ -26,7 +26,7 @@ class StaticDiscussionActivityItemView extends StaticActivityItemChild
 
     @highlightCode()
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.discussion-body-container span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
