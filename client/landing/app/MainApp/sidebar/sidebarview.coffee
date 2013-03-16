@@ -192,7 +192,6 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
-
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
