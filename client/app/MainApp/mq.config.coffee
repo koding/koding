@@ -20,12 +20,16 @@ KD.remote = new Bongo
         if err then return callback err
         else unless name?
           return callback new Error "Unknown name: #{nameStr}"
-        else if name.constructorName is 'JUser'
+        else if name.slugs[0].constructorName is 'JUser'
           # SPECIAL CASE: map JUser over to JAccount...
           name = new @api.JName {
-            name            : name.name
-            constructorName : 'JAccount'
-            usedAsPath      : 'profile.nickname'
+            name              : name.name
+            slugs             : [{
+              constructorName : 'JAccount'
+              collectionName  : 'jAccounts'
+              slug            : name.name
+              usedAsPath      : 'profile.nickname'
+            }]
           }
         models = []
         err = null

@@ -17,6 +17,7 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/restrictedquery'
   # @trait __dirname, '../traits/groupable'
 
   @share()
