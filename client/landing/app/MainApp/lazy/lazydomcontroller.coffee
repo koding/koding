@@ -20,8 +20,14 @@ class LazyDomController extends KDController
         landingPageSideBar = new LandingPageSideBar
 
   hideLandingPage:->
-    $('#group-landing').css 'opacity', 0
-    @utils.wait 600, -> $('#group-landing').hide()
+
+    if $('#group-landing').length
+      $('#group-landing').css 'opacity', 0
+      @utils.wait 600, -> $('#group-landing').hide()
+
+    else if $('#profile-landing').length
+      $('#profile-landing').css 'opacity', 0
+      @utils.wait 600, -> $('#profile-landing').hide()
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
