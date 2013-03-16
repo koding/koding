@@ -16,7 +16,9 @@ class AceAppView extends JView
 
     @on 'ViewClosed', => @emit 'AceAppViewWantsToClose'
 
-    @on 'AllViewsClosed', => @emit 'AceAppViewWantsToClose'
+    @on 'AllViewsClosed', =>
+      appManager = KD.getSingleton('appManager')
+      appManager.quit appManager.frontApp
 
     @on 'UpdateSessionData', (openPanes, data = {}) =>
       paths = []
