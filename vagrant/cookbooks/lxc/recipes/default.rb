@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-packages = %w( libapparmor1 libseccomp0 bridge-utils dnsmasq-base python3 debootstrap libcap2 )
+packages = %w( libapparmor1 libseccomp0 bridge-utils dnsmasq-base python3 debootstrap libcap2 ebtables )
 
 packages.each do |pkg|
     package pkg do
@@ -59,3 +59,11 @@ template "/etc/init/lxc-net.conf" do
 end
 
 execute "service lxc-net start"
+
+execute "ebtables --delete INPUT --protocol IPv4 --in-interface veth-+ --jump VMS || :"
+execute "ebtables --flush VMS || :"
+execute "ebtables --delete-chain VMS || :"
+
+execute "ebtables --new-chain VMS"
+execute "ebtables --policy VMS DROP"
+execute "ebtables --append INPUT --protocol IPv4 --in-interface veth-+ --jump VMS"

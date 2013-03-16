@@ -169,6 +169,10 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 	}
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
 	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
+
+	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+		panic(commandError("ebtables rule addition failed.", err, out))
+	}
 }
 
 func (vm *VM) Unprepare() error {
@@ -196,6 +200,9 @@ func (vm *VM) Unprepare() error {
 	}
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("rbd unmap failed.", err, out)
+	}
+	if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+		firstError = commandError("ebtables rule deletion failed.", err, out)
 	}
 
 	// remove VM directory
