@@ -6,11 +6,4 @@ run_list [
             "recipe[rabbitmq::third_party_plugins]",
             "recipe[rabbitmq::vhosts]",
             "recipe[rabbitmq::users]",
-            "recipe[kd_run::vagrant]",
         ]
-default_attributes({
-                     "rabbitmq" => {
-                                "admin_password" => "dslkdscmckfjf55",
-                                "user_password" => "djfjfhgh4455__5"
-                     },
-})

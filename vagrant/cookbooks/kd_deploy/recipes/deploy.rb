@@ -23,12 +23,20 @@ end
 
 
 deploy_revision node['kd_deploy']['deploy_dir'] do
+   # check if deployment enabled only for production webstack A
+   if node.chef_environment == "prod-webstack-a"
+      only_if           { node['kd_deploy']['enabled'] }
+   end
+
    user              "koding"
    group             "koding"
    deploy_to         node['kd_deploy']['deploy_dir']
-   repo              'git@kodingen.beanstalkapp.com:/koding.git'
-   revision          node['kd_deploy']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
-   branch            node['kd_deploy']['git_branch']
+   repo              'git@107.23.204.254:koding.git' # gitlab server
+   if node['kd_deploy']['git_branch']
+      branch            node['kd_deploy']['git_branch']
+   else
+      revision          node['kd_deploy']['revision_tag'] # or "HEAD" or "TAG_for_1.0" 
+   end
    action            node['kd_deploy']['release_action']
    shallow_clone     true
    enable_submodules false
@@ -45,9 +53,11 @@ end
 
 node['launch']['programs'].each do |kd_name|
     prog_name = kd_name.gsub(/\s+/,"_")
+
     service "#{prog_name}" do
         action :nothing
-        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :delayed
+        subscribes :restart, resources(:deploy_revision => node['kd_deploy']['deploy_dir'] ), :immediately
         provider Chef::Provider::Service::Upstart
     end
+
 end

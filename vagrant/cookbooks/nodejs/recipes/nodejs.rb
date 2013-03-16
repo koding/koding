@@ -16,10 +16,31 @@ when "rhel", "cloudlinux"
         version "#{node["nodejs"]["version"]}"
     end
 when "debian"
-    include_recipe "apt::nodejs"
-    apt_package "nodejs"
-    apt_package "nodejs-dev"
-    apt_package "npm"
-    execute "chown -R vagrant: /usr/local"
+
+  directory "/tmp/nodejs" do
+    action :create
+  end
+
+  apt_package "rlwrap"
+
+	files = [
+    "nodejs_0.8.22-1chl1~quantal1_amd64.deb",
+    "nodejs-dev_0.8.22-1chl1~quantal1_amd64.deb"
+  ]
+
+  files.each do |file|
+    cookbook_file "/tmp/nodejs/#{file}" do
+      source file
+      mode "0644"
+    end
+
+    dpkg_package file do
+      source "/tmp/nodejs/#{file}"
+      action :install
+    end
+  end
+
+  apt_package "npm"
+  execute "chown -R vagrant: /usr/local"
 end
 

@@ -2,7 +2,8 @@ name "prod-sys-a"
 description "The Sys A environment"
 
 cookbook_versions({
-    "local_users"   => "0.1.3",
+    "sudo"          => "2.0.4",
+    "local_users"   => "0.1.4",
     "apt"           => "1.7.0",
     "base_packages" => "0.1.0",
     "erlang"        => "1.1.2",
@@ -24,5 +25,6 @@ default_attributes({
                     :rabbitmq => {
                                 :admin_password => "dslkdscmckfjf55",
                                 :user_password => "djfjfhgh4455__5"
-                     }
+                     },
+                     "admins" => ["amykhailov","bkandemir","cblum","cthorn","dyasar"],
 })

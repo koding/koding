@@ -3,10 +3,6 @@
 
 hosts = {
         "koding.local"   => "10.5.5.2",
-        "rabbitmq.local" => "10.5.5.2",
-        "cl.local"       => "10.5.5.2",
-        "ldap.local"     => "10.5.5.2",
-        "cephClient.local" => "10.5.5.2",
 }
 
 workers = {
@@ -15,15 +11,6 @@ workers = {
         "web3.local"     => "10.5.5.8",
         "web4.local"     => "10.5.5.9",
 }
-
-if ENV["WEB_WORKERS"]
-    hosts.update(workers)
-else
-    puts "**** NOTE *****"
-    puts "if you want to start additional NodeJS servers ( #{workers.keys.join(', ')} )"
-    puts "set env variable with 'export WEB_WORKERS=true'"
-    puts "*******"
-end
 
 count=0
 File.open('/etc/hosts').each_line do |s|
@@ -87,10 +74,9 @@ Vagrant::Config.run do |config|
           kodingServer_config.vm.provision :chef_solo do |chef|
             chef.cookbooks_path = cookbooks_dir
             chef.roles_path = roles_dir
-            chef.add_role("base_server")
+            chef.add_role("rabbitmq_server")
             chef.add_role("web_server_vagrant")
             chef.add_role("ceph-client_vagrant")
-            chef.add_role("rabbitmq_server")
           end
     end
     # ----- end of All-in-one kodingServer configuration -----

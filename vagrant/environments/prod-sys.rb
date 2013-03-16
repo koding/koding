@@ -2,7 +2,8 @@ name "prod-sys"
 description "The Sys environment"
 
 cookbook_versions({
-    "local_users"   => "0.1.3",
+    "sudo"          => "2.0.4",
+    "local_users"   => "0.1.4",
     "apt"           => "1.7.0",
     "base_packages" => "0.1.0",
     "erlang"        => "1.1.2",
@@ -28,5 +29,6 @@ default_attributes({
                      },
                      "mongodb" => {
                                 "source" => "db-m0.prod.aws.koding.com",
-                     }
+                     },
+                     "admins" => ["amykhailov","bkandemir","cblum","dyasar"],
 })

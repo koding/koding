@@ -12,15 +12,12 @@ case node['platform_family']
 when "rhel", "cloudlinux"
     include_recipe "yum::golang"
     yum_package "go" do
-#        version "#{node["go"]["rpm_version"]}"
+        version "#{node["go"]["rpm_version"]}"
         action :install
     end
 when "debian"
     include_recipe "apt::golang"
-    apt_package "golang-stable" do
-    	version "#{node["go"]["dpkg_version"]}"
-    	action :install
-    end
+    apt_package "golang-#{node['go']['dpkg_version']}"
 end
 
 

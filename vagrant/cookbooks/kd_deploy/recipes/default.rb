@@ -8,12 +8,15 @@
 #
 
 
+
+include_recipe "kd_deploy::hostname"
 include_recipe "kd_deploy::run_user"
 include_recipe "kd_deploy::packages"
 include_recipe "kd_deploy::rabbit_host"
+include_recipe "kd_deploy::services_conf"
 include_recipe "kd_deploy::deploy"
 include_recipe "kd_deploy::build_modules"
 include_recipe "kd_deploy::build_client"
 include_recipe "kd_deploy::build_gosrc"
-include_recipe "kd_deploy::start_services"
 include_recipe "kd_deploy::logs"
+include_recipe "kd_deploy::ohai_plugin"

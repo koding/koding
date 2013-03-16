@@ -21,17 +21,13 @@
 
 case node['platform_family']
 when "debian"
-
   package "erlang-nox"
 
-
 when "rhel"
-
   include_recipe "yum::esl-erlang"
   package "esl-erlang"
 
 else
-
   package "erlang"
 
 end

@@ -1,4 +1,3 @@
-remote_syslog do
-    enable true
-    log_file node["log"]["files"]
+papertrail_log "start remote_syslog" do
+    action :start
 end

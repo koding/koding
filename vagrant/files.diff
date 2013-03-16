@@ -1,0 +1,16 @@
+Files ./README.md and ../../chef-repo/README.md differ
+Files ./Vagrantfile and ../../chef-repo/Vagrantfile differ
+Files ./cookbooks/build-essential/recipes/default.rb and ../../chef-repo/cookbooks/build-essential/recipes/default.rb differ
+Files ./cookbooks/dev-ldap/templates/default/dev-ldap.inf.erb and ../../chef-repo/cookbooks/dev-ldap/templates/default/dev-ldap.inf.erb differ
+Files ./cookbooks/hosts/files/default/vagrant.hosts and ../../chef-repo/cookbooks/hosts/files/default/vagrant.hosts differ
+Files ./cookbooks/nodejs/attributes/default.rb and ../../chef-repo/cookbooks/nodejs/attributes/default.rb differ
+Files ./cookbooks/nodejs/recipes/nodejs.rb and ../../chef-repo/cookbooks/nodejs/recipes/nodejs.rb differ
+Files ./roles/ceph-client_vagrant.rb and ../../chef-repo/roles/ceph-client_vagrant.rb differ
+Files ./roles/web_server_vagrant.rb and ../../chef-repo/roles/web_server_vagrant.rb differ
+Only in ../../chef-repo/: .git
+Only in ../../chef-repo/: AWS
+Only in ../../chef-repo/: Vagrantfile.backup
+Only in ../../chef-repo/cookbooks: sudo
+Only in ./cookbooks/nodejs: files
+Only in .: chefCred.json
+Only in .: files.diff

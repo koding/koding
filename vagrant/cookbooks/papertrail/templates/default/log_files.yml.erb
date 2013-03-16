@@ -1,0 +1,7 @@
+files: 
+<% @log_file.each do |log| -%>
+  - <%= log %>
+<% end -%>
+destination:
+  host: logs.papertrailapp.com
+  port: <%= @port %>   # Papertrail dest port (default: 514)

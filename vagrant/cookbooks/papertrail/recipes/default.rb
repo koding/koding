@@ -6,4 +6,8 @@
 #
 # All rights reserved - Do Not Redistribute
 #
-include_recipe "papertrail::install"
+
+papertrail_log "install papertrail" do
+  action :install
+end
+include_recipe "papertrail::config"
