@@ -1,9 +1,0 @@
-description  "ssh tunnel"
-
-start on runlevel [2]
-stop on runlevel [!2345]
-
-respawn
-respawn limit 10 5
-
-exec ssh -v -o "StrictHostKeyChecking=no" -i <%= @private_key %> <%= @remote_user %>@<%= @remote_host  %> -R <%= @remote_listen %>:127.0.0.1:<%= @local_port %> -N
