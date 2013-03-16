@@ -79,7 +79,7 @@ module.exports = deepFreeze
     exchange    : 'services-presence'
   client        :
     version     : version
-    watch       : no
+    watch       : yes
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
