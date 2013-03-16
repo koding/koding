@@ -35,9 +35,9 @@ module.exports = class JTag extends jraphical.Module
       'delete own tags'       : ['moderator']
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
-      slug          : 'unique'
+      # slug          : 'unique'
       title         : 'sparse'
-      group         : 'sparse'
+      # group         : 'sparse'
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -171,7 +171,7 @@ module.exports = class JTag extends jraphical.Module
       {group} = client.context
       tag = new this data
       tag.group = group
-      tag.save client, (err)->
+      tag.save (err)->
         if err
           callback err
         else
@@ -182,10 +182,10 @@ module.exports = class JTag extends jraphical.Module
               callback null, tag
 
   @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip}  = options
-
-    @inCollectionBySource(client.context)
-      .some {
+    {limit, blacklist, skip} = options
+    {group} = client.context
+    @some {
+        group
         title   : seed
         _id     :
           $nin  : blacklist

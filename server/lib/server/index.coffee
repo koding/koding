@@ -224,7 +224,6 @@ getAlias = do->
     if alias and rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
-  console.trace()
   {url} = req
   queryIndex = url.indexOf '?'
   [urlOnly, query] =\
