@@ -81,13 +81,13 @@ class ActivityBlogPostWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-  submit:=>
+  submit:->
     @once "FormValidationPassed", => @reset()
     super
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
-  reset:=>
+  reset:->
     @submitBtn.setTitle "Start your Blog Post"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''

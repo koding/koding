@@ -100,7 +100,7 @@ class GroupReadmeView extends JView
     @loader.show()
 
 
-  highlightCode:=>
+  highlightCode:->
     @$(".has-markdown pre").each (i,element)=>
       hljs.highlightBlock element
 

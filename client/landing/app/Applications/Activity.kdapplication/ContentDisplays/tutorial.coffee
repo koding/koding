@@ -52,6 +52,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
@@ -174,15 +175,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-  opinionHeaderCountString:(count)=>
-    if count is 0
-      countString = "No Opinions yet"
-    else if count is 1
-      countString = "One Opinion"
-    else
-      countString = count+ " Opinions"
+  opinionHeaderCountString:(count)->
 
-    '<span class="opinion-count">'+countString+'</span>'
+    countString = if count is 0 then "No Answers yet"
+    else if count is 1 then          "One Answer"
+    else                             "#{count} Answers"
+
+    return '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteTutorial:(data)->
 
@@ -211,7 +210,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  highlightCode:=>
+  highlightCode:->
     # @$("pre").addClass "prettyprint"
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
@@ -272,7 +271,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <footer class='tutorial-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
-                <time>{{$.timeago #(meta.createdAt)}}</time>
+                {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}
               </div>

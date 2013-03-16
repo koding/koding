@@ -34,7 +34,7 @@ class StaticTutorialActivityItemView extends StaticActivityItemChild
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
-  highlightCode:=>
+  highlightCode:->
     @$("div.body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 

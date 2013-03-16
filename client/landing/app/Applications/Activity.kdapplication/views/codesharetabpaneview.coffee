@@ -28,12 +28,12 @@ class CodeShareTabPaneView extends KDTabPaneView
     @codeViewLoader.hide()
 
 
-  createCodeViewer:(data)=>
+  createCodeViewer:(data)->
     @codeView = new CodeShareView
       delegate: @getDelegate()
     ,data
 
-  createCodeEditor:(data, callback=noop)=>
+  createCodeEditor:(data, callback=noop)->
 
     @setClass "has-editor"
 
@@ -142,7 +142,7 @@ class CodeShareTabPaneView extends KDTabPaneView
   becameInactive: noop
   aboutToBeDestroyed: noop
 
-  viewAppended:=>
+  viewAppended:->
 
     if @hasEditor
       @createCodeEditor @getData()
@@ -286,7 +286,7 @@ class CodeShareView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
-  setSyntax:(syntax = "text")=>
+  setSyntax:(syntax = "text")->
 
     @syntaxMode.updatePartial __aceSettings.syntaxAssociations[syntax]?[0] or syntax ? "text"
 
@@ -311,7 +311,7 @@ class CodeShareView extends KDCustomHTMLView
     @codeView.render()
     @applySyntaxColoring()
 
-  applySyntaxColoring:( syntax = @getData().CodeShareItemType.syntax)=>
+  applySyntaxColoring:( syntax = @getData().CodeShareItemType.syntax)->
 
     snipView  = @
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
