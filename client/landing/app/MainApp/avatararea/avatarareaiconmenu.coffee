@@ -101,14 +101,15 @@ class AvatarAreaIconMenu extends JView
 
       # do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
-        notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
-          notificationsPopup.listController.instantiateListItems teasers
+        if KD.isLoggedIn()
+          notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
+            notificationsPopup.listController.instantiateListItems teasers
 
       messagesPopup.loaderTimeout = @utils.wait 5000, =>
-        messagesPopup.listController.fetchMessages()
+        messagesPopup.listController.fetchMessages() if KD.isLoggedIn()
 
       groupSwitcherPopup.loaderTimeout = @utils.wait 5000, =>
-        groupSwitcherPopup.populateGroups()
+        groupSwitcherPopup.populateGroups() if KD.isLoggedIn()
 
     else
       @setClass "invisible"
