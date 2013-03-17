@@ -10,10 +10,10 @@
   color                                           #5F5F5F
 
   h1,h2,h3,h4,h5,h6
-    font-size                                     14px
+    font-size                                     16px
     line-height                                   140%
-    color                                         #FF9200
-    font-weight                                   500
+    color                                         #666
+    font-weight                                   600
     border                                        none
     height                                        auto
     width                                         auto
@@ -23,10 +23,22 @@
     vendor margin-start                           0px
     vendor margin-end                             0px
     display                                       block
-    margin-bottom                                 5px
+    margin-bottom                                 15px
 
   b,strong
     word-break break-all
+
+  blockquote
+    white-space pre
+    border-left 3px solid  #ff9200
+    display inline-block
+    margin-bottom 15px
+    max-width 575px
+
+    p
+      padding-left 15px
+      &:last-child
+        margin-bottom 0
 
   p
     white-space normal
@@ -40,6 +52,10 @@
 
   code
     font-size                                     12px
+    border 1px solid #e3e3e3
+    rounded 3px
+    padding 2px 4px
+    margin-right 2px
 
   ul,ol
     margin-bottom                                 15px
@@ -70,7 +86,12 @@
     font-size                                     14px
     font-weight                                   300
     noTextDeco()
-
+    font-weight                                   400
+    color                                         #444
+    border-bottom 1px solid #e3e3e3
+    &:hover
+      border-bottom 1px solid #aaa
+    //   // text-decoration underline
   img
     max-width                                     600px
     width                                         auto
@@ -169,7 +190,7 @@
     > pre
       padding                                     5px
       rounded                                     4px
-      border                                      1px solid #ccc
+      border                                      1px solid #e3e3e3
       background-color                            transparent
       // vendor box-shadow, inset 0px 0px 5px rgba(0,0,0,0.15)
 
@@ -212,3 +233,4 @@
     font-family                                   Menlo, Monaco, Consolas, monospace
     line-height                                   1.5
     padding                                       10px
+    border none
