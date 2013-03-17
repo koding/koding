@@ -5,22 +5,6 @@ class StaticProfileController extends KDController
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
-  HANDLE_TYPES = [
-    'twitter'
-    'github'
-  ]
-
-  handleMap   =
-    twitter   :
-      baseUrl : 'https://www.twitter.com/'
-      text    : 'Twitter'
-      prefix  : '@'
-
-    github    :
-      baseUrl : 'https://www.github.com/'
-      text    : 'GitHub'
-
-
   constructor:(options,data)->
     super options,data
 
@@ -35,7 +19,6 @@ class StaticProfileController extends KDController
       showHeader        : no
 
     @navLinks     = {}
-    @handleLinks  = {}
 
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
@@ -131,26 +114,12 @@ class StaticProfileController extends KDController
         profileUser = user
         @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
 
-        avatarAreaIconMenu = new AvatarAreaIconMenu
+        @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
           lazyDomId    : 'profile-buttons'
           delegate     : @
+        , profileUser
 
-        avatarAreaIconMenu.$('.static-profile-button').remove()
-
-       # revive handle links
-
-        for type in HANDLE_TYPES
-          handle = profileUser.profile.handles?[type]
-          log handle
-          @handleLinks[type]  = new StaticHandleLink
-            delegate          : @
-            attributes        :
-              href            : "#{handleMap[type].baseUrl}#{handle or ''}"
-              target          : '_blank'
-            icon              :
-              cssClass        : type
-            title             : "#{if handle then handleMap[type].prefix or '' else ''}#{handle or handleMap[type].text}"
-            lazyDomId         : "profile-handle-#{type}"
+        @avatarAreaIconMenu.$('.static-profile-button').remove()
 
         if user.getId() is KD.whoami().getId()
 
@@ -215,6 +184,8 @@ class StaticProfileController extends KDController
       return if @customizeViewsAttached or KD.whoami().getId() isnt profileUser.getId()
       @customizeViewsAttached = yes
 
+      @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
+
       # reviving customization
 
       types = @getAllowedTypes profileUser
@@ -225,27 +196,6 @@ class StaticProfileController extends KDController
           defaultValue : type in types
           delegate     : @
         , profileUser
-
-      for type in HANDLE_TYPES
-        @handleLinks[type].setClass 'edit'
-        @handleLinks[type].addSubView new StaticHandleInput
-          service     : type
-          delegate    : @
-          tooltip     :
-            title     : "Enter your #{handleMap[type].text} handle and hit enter to save."
-            placement : 'right'
-            direction : 'center'
-            offset    :
-              left    : 5
-              top     : 2
-          attributes  :
-            spellcheck: no
-          callback    :(value)->
-            profileUser.setHandle
-              service : @getOptions().service
-              value   : value
-        , profileUser
-
 
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
@@ -354,6 +304,19 @@ class StaticHandleLink extends CustomLinkView
       event.stopPropagation()
       event.preventDefault()
 
+  pistachio:->
+    options = @getOptions()
+    data    = @getData()
+
+    data.title ?= options.attributes.href
+    options.handle ?= ""
+
+    tmpl = "{{> @icon}}"
+    tmpl += "<span class='text'>not </span>" if options.handle is ""
+    tmpl += "<span class='text'>on </span>{span.title{ #(title)}}"
+    tmpl += "<span class='text'> as </span><span class='handle'>#{options.handle}</span>" if options.handle isnt ""
+
+    return tmpl
 
 class StaticHandleInput extends KDHitEnterInputView
   constructor:(options,data)->
