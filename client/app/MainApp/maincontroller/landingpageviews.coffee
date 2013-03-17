@@ -69,11 +69,11 @@ class LandingPageNavigationController extends NavigationController
     else if @lc.userEnteredFromProfile
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities',action : 'activity', type : 'user'}
-        { title : 'My Topics', action : 'topics', type : 'user' }
-        { title : 'My People', action : 'members', type : 'user'}
-        { title : 'My Groups', action : 'groups', type : 'user'}
-        { title : 'My Apps', action : 'apps', type : 'user'}
+        { title : 'My Activities', action : 'activity', type : 'user'}
+        { title : 'My Topics',     action : 'topics',   type : 'user' }
+        { title : 'My People',     action : 'members',  type : 'user'}
+        { title : 'My Groups',     action : 'groups',   type : 'user'}
+        { title : 'My Apps',       action : 'apps',     type : 'user'}
         { type  : "separator" }
       ]
       items = profileItems.concat items
