@@ -40,7 +40,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
     # @faviconImage.show() if @favicon isnt ""
 
-  changeEmbed:=>
+  changeEmbed:->
     @makeActive()
 
     # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
@@ -231,7 +231,7 @@ class EmbedBoxLinkViewImageSwitch extends KDView
   setEmbedImageIndex:(i=0)->
     @embedImageIndex = i
 
-  click:(event)=>
+  click:(event)->
     if  $(event.target).hasClass "preview_link_switch"
 
       event.preventDefault()

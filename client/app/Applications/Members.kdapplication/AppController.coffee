@@ -296,5 +296,5 @@ class MembersListViewController extends KDListViewController
   #       listController.isLoading = no
   #       listController.hideLazyLoader()
 
-  getTotalMemberCount:(callback)=>
+  getTotalMemberCount:(callback)->
     KD.whoami().count? @getOptions().filterName, callback
