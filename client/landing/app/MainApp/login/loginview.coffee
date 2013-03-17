@@ -180,7 +180,11 @@ class LoginView extends KDScrollView
         @loginForm.resetDecoration()
       else
         $.cookie 'clientId', replacementToken  if replacementToken
-        @getSingleton('mainController').accountChanged account
+        mainController = @getSingleton('mainController')
+        mainView       = mainController.mainViewController.getView()
+        mainController.accountChanged account
+        mainView.show()
+        mainView.$().css "opacity", 1
 
         {groupEntryPoint} = KD.config
 

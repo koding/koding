@@ -63,8 +63,9 @@ do ->
 
   KD.remote.on 'loggedInStateChanged', (account)->
     KD.socketConnected()
-    mainController.accountChanged account
+    mainController.accountChanged account, firstLoad
     AccountMixin.init(KD.remote.api)
+    firstLoad = no
 
   KD.remote.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
 
@@ -72,7 +73,6 @@ do ->
     manuallyClosed = no
     if firstLoad
       log 'kd remote connected'
-      firstLoad = no
     else
       log 'kd remote re-connected'
       destroyModal yes

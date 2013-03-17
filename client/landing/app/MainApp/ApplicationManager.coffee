@@ -5,6 +5,8 @@ class ApplicationManager extends KDObject
 
   manifestsFetched = no
 
+  log = noop
+
   ###
 
   * EMITTED EVENTS
