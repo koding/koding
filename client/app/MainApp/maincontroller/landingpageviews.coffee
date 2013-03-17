@@ -69,11 +69,13 @@ class LandingPageNavigationController extends NavigationController
     else if @lc.userEnteredFromProfile
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities',action : 'activity', type : 'user'}
-        { title : 'My Topics', action : 'topics', type : 'user' }
-        { title : 'My People', action : 'members', type : 'user'}
-        { title : 'My Groups', action : 'groups', type : 'user'}
-        { title : 'My Apps', action : 'apps', type : 'user'}
+        { title : 'Home',action : 'home', type : 'user'}
+        { title : 'Activity',action : 'activity', type : 'user'}
+        { title : 'Topics', action : 'topics', type : 'user' }
+        { title : 'People', action : 'members', type : 'user'}
+        { title : 'Groups', action : 'groups', type : 'user'}
+        { title : 'About', action : 'about', type : 'user'}
+        { title : 'Apps', action : 'apps', type : 'user'}
         { type  : "separator" }
       ]
 
@@ -142,9 +144,14 @@ class LandingPageNavigationLink extends NavigationLink
               @openPath "/#{groupEntryPoint}/Activity"
 
       when 'activity'
-        @openPath "/#{profileEntryPoint}/Activity"
-        @lc.hideLandingPage()
+        # @openPath "/#{profileEntryPoint}/Activity"
+        # @lc.hideLandingPage()
         log 'Activity'
+        contentDisplayController = @getSingleton "contentDisplayController"
+        contentDisplayController.emit "ContentDisplayWantsToBeShown", new ActivityContentDisplay
+          partial : 'SUP'
+          title : 'hi!'
+
       when 'topics'
         @openPath "/#{profileEntryPoint}/Topics"
         @lc.hideLandingPage()
