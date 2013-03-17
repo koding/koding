@@ -115,7 +115,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     str = @utils.applyTextExpansions str, yes
 
-  render:=>
+  render:->
     super
 
     {link} = @getData()

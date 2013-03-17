@@ -204,15 +204,13 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             @commentBox.commentList.addItem comment
 
 
-  opinionHeaderCountString:(count)=>
-    if count is 0
-      countString = "No Answers yet"
-    else if count is 1
-      countString = "One Answer"
-    else
-      countString = count+ " Answers"
+  opinionHeaderCountString:(count)->
 
-    '<span class="opinion-count">'+countString+'</span>'
+    countString = if count is 0 then "No Answers yet"
+    else if count is 1 then          "One Answer"
+    else                             "#{count} Answers"
+
+    return '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteDiscussion:(data)->
 
@@ -241,7 +239,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  highlightCode:=>
+  highlightCode:->
     # @$("pre").addClass "prettyprint"
     @$("p.discussion-body span.data pre").each (i,element)=>
       hljs.highlightBlock element

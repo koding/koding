@@ -211,7 +211,7 @@ class ProfileView extends JView
       callback accounts
 
   # FIXME: this should be taken to inbox app controller using KD.getSingleton("appManager").tell
-  prepareMessage:(formOutput, callback)=>
+  prepareMessage:(formOutput, callback)->
     {body, subject, recipients} = formOutput
     to = recipients.join ' '
 
