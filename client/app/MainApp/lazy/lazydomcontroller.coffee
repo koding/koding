@@ -14,20 +14,22 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
-      if KD.isLoggedIn() and KD.config.groupEntryPoint is 'koding'
-        @hideLandingPage()
-      else
-        landingPageSideBar = new LandingPageSideBar
+      landingPageSideBar = new LandingPageSideBar
 
   hideLandingPage:->
 
-    if $('#group-landing').length
-      $('#group-landing').css 'opacity', 0
-      @utils.wait 600, -> $('#group-landing').hide()
+    if @landingView
+      @landingView.setClass "out"
+      # FIXME: GG
+      # @landingView.on "transtionEnd", @landingView.bound "hide"
+      @utils.wait 600, @landingView.bound "hide"
 
-    else if $('#profile-landing').length
-      $('#profile-landing').css 'opacity', 0
-      @utils.wait 600, -> $('#profile-landing').hide()
+  showLandingPage:(callback = noop)->
+
+    if @landingView
+      @landingView.show()
+      @landingView.unsetClass "out"
+      @utils.wait 600, callback
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
@@ -38,12 +40,12 @@ class LazyDomController extends KDController
     return if @groupViewsAdded
     @groupViewsAdded = yes
 
-    groupLandingView = new KDView
-      lazyDomId : 'group-landing'
+    @landingView = new KDView
+      lazyDomId : 'static-landing-page'
 
-    groupLandingView.listenWindowResize()
-    groupLandingView._windowDidResize = =>
-      groupLandingView.setHeight window.innerHeight
+    @landingView.listenWindowResize()
+    @landingView._windowDidResize = =>
+      @landingView.setHeight window.innerHeight
       groupContentView.setHeight window.innerHeight-groupTitleView.getHeight()
 
     groupContentWrapperView = new KDView
@@ -70,19 +72,19 @@ class LazyDomController extends KDController
         groupContentWrapperView.setClass 'slide-down'
         groupLogoView.setClass 'top'
 
-        groupLandingView.setClass 'group-fading'
-        @utils.wait 1100, => groupLandingView.setClass 'group-hidden'
+        @landingView.setClass 'group-fading'
+        @utils.wait 1100, => @landingView.setClass 'group-hidden'
 
-    groupLogoView.setY groupLandingView.getHeight()-42
+    groupLogoView.setY @landingView.getHeight()-42
 
     @utils.wait =>
       groupLogoView.setClass 'animate'
-      groupLandingView._windowDidResize()
+      @landingView._windowDidResize()
 
 
   addProfileViews:->
 
     return if @profileViewsAdded
-    @profileViewsAdded = yes
-
-    new StaticProfileController
+    @profileViewsAdded      = yes
+    staticProfileController = new StaticProfileController
+    @landingView            = staticProfileController.profileLandingView

@@ -319,8 +319,8 @@ class Sidebar extends JView
           { type  : "separator" }
           { title : "Invite Friends", type : "account", loggedIn: yes }
           { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
         ]
       else
         id    : "navigation"
@@ -335,15 +335,15 @@ class Sidebar extends JView
           { type  : "separator" }
           { title : "Invite Friends", type : "account", loggedIn: yes }
           { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes, action : "logout" }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes, action : "login" }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
         ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
-      { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
+      { title : "Launch Terminal",    icon : "terminal",  appPath: 'WebTerm' }
+      { title : "Manage Remotes",     icon : "remotes",   action: 'manageRemotes'}
       { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }

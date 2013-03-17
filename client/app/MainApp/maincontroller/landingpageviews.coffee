@@ -48,7 +48,7 @@ class LandingPageNavigationController extends NavigationController
           if err then console.warn err
           else if roles.length
             items.unshift \
-              { title: 'Open Group', path: "/#{groupEntryPoint}/Activity"}
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
             @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
@@ -142,7 +142,8 @@ class LandingPageNavigationLink extends NavigationLink
               @openPath "/#{groupEntryPoint}/Activity"
 
       when 'logout'
-        $('#kdmaincontainer').addClass 'hidden'
+        mainController = @getSingleton('mainController')
+        mainController.mainViewController.getView().hide()
         @openPath '/Logout'
 
       when 'activity'

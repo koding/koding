@@ -57,7 +57,7 @@ class StaticProfileController extends KDController
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
     @profileLandingView = new KDView
-      lazyDomId : 'profile-landing'
+      lazyDomId : 'static-landing-page'
 
     @profileLandingView.listenWindowResize()
     @profileLandingView._windowDidResize = =>
