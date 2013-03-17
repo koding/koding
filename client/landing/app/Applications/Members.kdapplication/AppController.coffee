@@ -204,7 +204,7 @@ class MembersAppController extends AppController
   setCurrentViewNumber:(type)->
     group = KD.getSingleton('groupsController').getCurrentGroup()
     return unless group
-    count = group.counts.members
+    count = group.counts?.members or 0
     @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   setCurrentViewHeader:(count)->

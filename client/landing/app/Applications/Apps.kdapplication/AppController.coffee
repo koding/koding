@@ -103,7 +103,7 @@ class AppsAppController extends AppController
       unless err
         callback? tags
       else
-        log "there was an error fetching topics"
+        log "there was an error fetching topics #{err.message}"
 
   updateApps:->
     @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"

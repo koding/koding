@@ -214,4 +214,4 @@ class TopicsAppController extends AppController
       unless err
         callback? tags
       else
-        warn "there was an error fetching topics"
+        warn "there was an error fetching topics #{err.message}"
