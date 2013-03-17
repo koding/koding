@@ -190,29 +190,49 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get '/:groupName/*?', (req, res, next)->
-  {JGroup} = koding.models
-  {groupName} = req.params
-  JGroup.one { slug: groupName }, (err, group)->
-    if err or !group? then next err
-    else
-      group.fetchHomepageView (err, view)->
+error_404 =->
+  """
+  <title>404</title>
+  <h1>404</h1>
+  <p>This page exists, but it just an error.</p>
+  <p>- FAYAMF</p>
+  """
+
+app.get '/:name/:section?', (req, res, next)->
+  {JGroup, JName} = koding.models
+  {name} = req.params
+  [firstLetter] = name
+  if firstLetter.toUpperCase() is firstLetter
+    next()
+  else
+    JName.fetchModels name, (err, models)->
+      if err then next err
+      else unless models? then res.send 404, error_404()
+      else res.send models[0].fetchHomepageView (err, view)->
         if err then next err
         else res.send view
 
-app.get '/:userName', (req, res, next)->
-  {JAccount} = koding.models
-  {userName} = req.params
-  JAccount.one { 'profile.nickname': userName }, (err, account)->
-    if err or !account? then next err
-    else
-      if account.profile.staticPage?.show is yes
-        account.fetchHomepageView (err, view)->
-          if err then next err
-          else res.send view
-      else
-        res.header 'Location', '/Activity'
-        res.send 302
+  # groupName = name
+  # JGroup.one { slug: groupName }, (err, group)->
+  #   if err or !group? then next err
+  #   else
+  #     group.fetchHomepageView (err, view)->
+  #       if err then next err
+  #       else res.send view
+
+# app.get '/:userName', (req, res, next)->
+#   {JAccount} = koding.models
+#   {userName} = req.params
+#   JAccount.one { 'profile.nickname': userName }, (err, account)->
+#     if err or !account? then next err
+#     else
+#       if account.profile.staticPage?.show is yes
+#         account.fetchHomepageView (err, view)->
+#           if err then next err
+#           else res.send view
+#       else
+#         res.header 'Location', '/Activity'
+#         res.send 302
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

@@ -68,6 +68,29 @@ module.exports = class JName extends Model
         @update {$set: slugs: [newName]}, kallback
         @update {$unset: {constructorName:1, usedAsPath:1}}, kallback
 
+  @fetchModels =do->
+    fetchByNameObject =(nameObj, callback)->
+      models = []
+      queue = nameObj.slugs.map (slug, i)->->
+        konstructor = Base.constructors[slug.constructorName]
+        selector = {}
+        selector[slug.usedAsPath] = slug.slug
+        konstructor.one selector, (err, model)->
+          models[i] = model
+          queue.fin()
+      dash queue, -> callback null, models, nameObj
+
+    fetchModels = (name, callback)->
+      if 'string' is typeof name
+        @one {name}, (err, nameObj)->
+          if err then next err
+          else unless nameObj? then callback null
+          else fetchByNameObject nameObj, callback
+      else
+        fetchByNameObject name, callback
+
+  fetchModels:(callback)-> @fetchModels this, callback
+
   @release =(name, callback=->)->
     @remove {name}, callback
 

@@ -53,12 +53,16 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
+    console.trace()
     return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
-    @getSingleton('groupsController').changeGroup group, ->
-      KD.getSingleton("appManager").open app
-      KD.getSingleton("appManager").tell app, 'handleQuery', query
+    @getSingleton('groupsController').changeGroup group, (err)->
+      console.log {arguments}
+      if err then new KDNotificationView title: err.message
+      else
+        KD.getSingleton("appManager").open app
+        KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -104,17 +108,22 @@ class KodingRouter extends KDRouter
       if err
         new KDNotificationView title: err?.message or 'An unknown error has occured.'
       else if name?
-        {constructorName, usedAsPath} = name
-        selector = {}
-        konstructor = KD.remote.api[constructorName]
-        slug = stripTemplate route, konstructor
-        selector[usedAsPath] = slug
-        konstructor?.one selector, (err, model)=>
-          error err if err?
-          unless model
-            @handleNotFound route
-          else
-            @openContent name, section, model, route
+        models = []
+        name.slugs.forEach (slug, i)=>
+          {constructorName, usedAsPath} = slug
+          selector = {}
+          konstructor = KD.remote.api[constructorName]
+          slug = stripTemplate route, konstructor
+          selector[usedAsPath] = slug
+          konstructor?.one selector, (err, model)=>
+            error err if err?
+            unless model
+              @handleNotFound route
+            else
+              models[i] = model
+              if models.length is name.slugs.length
+                console.trace()
+                @openContent name, section, models, route
       else
         @handleNotFound route
 
@@ -183,6 +192,7 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.doRecover name
 
       # section
+      # TODO: nested groups are disabled.
       '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity
       '/:name?/Members'                 : section.Members
@@ -194,7 +204,9 @@ class KodingRouter extends KDRouter
       # group dashboard
       '/:name?/Dashboard'               : (routeInfo, state, route)->
         {name} = routeInfo.params
-        KD.remote.cacheable name, (err, group, nameObj)=>
+        n = name ? 'koding'
+        console.log {n}
+        KD.remote.cacheable n, (err, group, nameObj)=>
           @openContent name, 'Groups', group, route
 
       # content
@@ -256,30 +268,30 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      '/:name?/Unsubscribe/:unsubscribeToken/:opt?': \
-      ({params:{unsubscribeToken, opt}})->
-        opt              = decodeURIComponent opt
-        unsubscribeToken = decodeURIComponent unsubscribeToken
-        KD.remote.api.JMailNotification.unsubscribeWithId \
-        unsubscribeToken, opt, (err, content)=>
-          if err or not content
-            title   = 'An error occured'
-            content = 'Invalid unsubscribe token provided.'
-            log err
-          else
-            title   = 'E-mail settings updated'
+      '/:name?/Unsubscribe/:unsubscribeToken/:opt?':
+        ({params:{unsubscribeToken, opt}})->
+          opt              = decodeURIComponent opt
+          unsubscribeToken = decodeURIComponent unsubscribeToken
+          KD.remote.api.JMailNotification.unsubscribeWithId \
+          unsubscribeToken, opt, (err, content)=>
+            if err or not content
+              title   = 'An error occured'
+              content = 'Invalid unsubscribe token provided.'
+              log err
+            else
+              title   = 'E-mail settings updated'
 
-          modal = new KDModalView
-            title        : title
-            overlay      : yes
-            cssClass     : "new-kdmodal"
-            content      : "<div class='modalformline'>#{content}</div>"
-            buttons      :
-              "Close"    :
-                style    : "modal-clean-gray"
-                callback : (event)->
-                  modal.destroy()
-          @clear()
+            modal = new KDModalView
+              title        : title
+              overlay      : yes
+              cssClass     : "new-kdmodal"
+              content      : "<div class='modalformline'>#{content}</div>"
+              buttons      :
+                "Close"    :
+                  style    : "modal-clean-gray"
+                  callback : (event)->
+                    modal.destroy()
+            @clear()
 
       # top level names
       '/:name':do->
@@ -297,15 +309,6 @@ class KodingRouter extends KDRouter
 
           if state?
             open routeInfo, state, status_404
-
-          # Shows that we are in groups
-          else if KD.config.groupEntryPoint?
-
-            # Its calling twice, weird. FIXME
-            unless $('.group-loader').length > 0
-              groupLazyLoader = new KDView
-                cssClass : 'group-loader pulsing'
-              groupLazyLoader.appendToSelector '#group-loader-container'
 
           else
             KD.remote.cacheable params.name, (err, model, name)->

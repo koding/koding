@@ -50,6 +50,7 @@ class SidebarController extends KDViewController
       {navController} = @getView()
       groupsController = @getSingleton 'groupsController'
       groupsController.on 'GroupChanged', ->
+        console.trace()
         group = groupsController.getCurrentGroup()
 
         # We need to fix that, it happens when you logged-in from groupEntryPoint

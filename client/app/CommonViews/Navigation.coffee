@@ -58,7 +58,7 @@ class NavigationLink extends KDListItemView
     @name = data.title
 
   click:(event)->
-    {appPath, title, path, type} = @getData()
+    {appPath, title, path, type, topLevel} = @getData()
 
     # This check is for Invite Friends link which has no app at all
     # or if the item is a separator
@@ -70,6 +70,7 @@ class NavigationLink extends KDListItemView
       pageName  : title
       appPath   : appPath or title
       path      : path
+      topLevel  : topLevel
       navItem   : @
 
   partial:(data)->
