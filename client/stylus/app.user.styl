@@ -144,24 +144,48 @@
 
 textarea.profile-handle-customize.kdinput
   display inline-block
-  width 90px
-  height 15px
+  width 228px
+  height 25px
   font-size 12px
-  line-height 1
-  background-position 70px -2px
+  // line-height 1
+  // background-position 70px -2px
   margin-top 3px
   background-color rgba(255,255,255,0.1)
-  color #a5a5a5
-  border-color #666
+  // color #a5a5a5
+  // border-color #666
   box-shadow none
   // &.active
   //   width auto
-.static-handle-link
-  span.title
-    color #a5a5a5
-  &.edit
+.static-link-container
+  a.static-handle-link
+    line-height 2.5
+    display block
+    color #888
     span.title
-      hidden()
+      color #888
+    span.handle
+      color #444
+
+    &:hover
+      span.handle
+        color #ff9200
+
+    &.edit
+      span.handle
+      span.title
+      span.text
+        hidden()
+
+    > span.icon
+      fl()
+      rel()
+      opacity 1
+      size 26px 26px
+      &.twitter
+        bg position, -68px -340px
+      &.github
+        bg position, -39px -340px
+
 
 .profile-content-links
   margin-right          0px
@@ -334,6 +358,18 @@ textarea.profile-handle-customize.kdinput
   input.kdinput.title-input
     borderBox()
     width 100%
+
+.static-profile-send-message-input-wrapper
+  width 100%
+  min-height 100px
+  borderBox()
+  padding 5px
+  textarea.kdinput.static-profile-send-message-input
+    width 100%
+    min-height 100px
+
+.static-profile-popup
+  top 102px
 
 .static-profile-tooltip
   padding 0px

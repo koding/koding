@@ -76,7 +76,9 @@ class LandingPageNavigationController extends NavigationController
         { title : 'My Apps', action : 'apps', type : 'user'}
         { type  : "separator" }
       ]
-      items = profileItems.concat items
+
+      items = [].concat.apply profileItems, items
+
       @_instantiateListItems items
     else
       @_instantiateListItems items

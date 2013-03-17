@@ -35,12 +35,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
         <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a></div>
 
-      <div class="profile-links">
+      <!--<div class="profile-links">
         <ul class='main'>
           <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
           <li class='github'>#{getHandleLink 'github', handles}</li>
         </ul>
-      </div>
+      </div>-->
 
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
