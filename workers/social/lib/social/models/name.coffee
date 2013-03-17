@@ -36,15 +36,16 @@ module.exports = class JName extends Model
       if err then callback err
       else slowEach_ cursor, console.error
 
-  stripTemplate:->
-    konstructor = Base.constructors[@constructorName]
-    unless konstructor? then console.log this
-    {slugTemplate} = Base.constructors[@constructorName]
-    return @name  unless slugTemplate
+  stripTemplate =(konstructor, nameStr)->
+    {slugTemplate} = konstructor#Base.constructors[@constructorName]
+    return nameStr  unless slugTemplate
     slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
     re = RegExp slugTemplate.replace slugStripPattern,
       (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
-    @name.match(re)?[1]
+    nameStr.match(re)?[1]
+
+  stripTemplate:->
+    stripTemplate Base.constructors[@constructorName], @name
 
   migrateOldName:(callback=->)->
     return  unless @constructorName?
@@ -83,14 +84,10 @@ module.exports = class JName extends Model
       ], callback
 
   @claim =(fullName, slugs, konstructor, usedAsPath, callback)->
-    constructorName =\
-      if 'string' is typeof konstructor then konstructor
-      else konstructor.fullName
+    [callback, usedAsPath] = [usedAsPath, callback]  unless callback
     nameDoc = new this {
       name: fullName
       slugs
-      constructorName
-      usedAsPath
     }
     nameDoc.save (err)->
       if err?.code is 11000
@@ -118,11 +115,17 @@ module.exports = class JName extends Model
               cursor.each (err, doc)=>
                 if err then callback err
                 else if doc?
+                  {collectionName} = konstructor.getCollection()
                   name = getAt doc, usedAsPath
-                  @claim name, [name], konstructor, usedAsPath, (err)->
+                  slug = {
+                    collectionName
+                    usedAsPath
+                    constructorName   : konstructor.name
+                    slug              : stripTemplate konstructor, name
+                  }
+                  @claim name, [slug], konstructor, (err)->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err
                     else if ++j is docCount and ++i is konstructorCount
                       callback null
-
