@@ -76,6 +76,20 @@ class StaticProfileController extends KDController
     profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass  : 'slideable'
+      bind : 'mouseenter mouseleave'
+
+    #
+    # allow for sidebar lock here!
+    # resize avatar to center or something
+    #
+
+    profilePersonalWrapperView.on 'mouseenter',=>
+      profilePersonalWrapperView.setWidth 160
+      profileContentWrapperView.$().css marginLeft : "160px"
+
+    profilePersonalWrapperView.on 'mouseleave',=>
+      profilePersonalWrapperView.setWidth 50
+      profileContentWrapperView.$().css marginLeft : "50px"
 
     # reviving feed type selectors that will activate feed facets
 
@@ -129,7 +143,7 @@ class StaticProfileController extends KDController
             lazyDomId : 'profile-admin-customize'
 
           profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
-            title : 'Customize your Public Page'
+            title : 'Customize'
             cssClass : 'static-page-settings-button clean-gray'
             click :(event)=>
               @emit 'CustomizeLinkClicked'
@@ -144,7 +158,7 @@ class StaticProfileController extends KDController
           showPage = user.profile.staticPage?.show
 
           profileAdminMessageView.addSubView disableLink = new CustomLinkView
-            title     : "#{if showPage is yes then 'Disable' else 'Enable'} this Public Page"
+            title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
             cssClass  : 'message-disable'
             click     : (event)=>
               event?.stopPropagation()
