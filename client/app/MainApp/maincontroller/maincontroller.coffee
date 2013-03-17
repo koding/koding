@@ -134,6 +134,9 @@ class MainController extends KDController
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
+
+      $('#kdmaincontainer').css 'opacity', 0
+
       new KDNotificationView
         cssClass  : "login"
         title     : "<span></span>Come back soon!"
@@ -145,14 +148,14 @@ class MainController extends KDController
   putGlobalEventListeners:->
 
     @on 'UserIsJustLoggedOut', (account, connectedState)=>
-      if connectedState.wasLoggedIn
-        @loginScreen.showView =>
-          KD.getSingleton("appManager").quitAll =>
-            @mainViewController.sidebarController.accountChanged account
-            @mainViewController.getView().decorateLoginState no
-      else
-        @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
+      # if connectedState.wasLoggedIn
+      #   @loginScreen.showView =>
+      #     KD.getSingleton("appManager").quitAll =>
+      #       @mainViewController.sidebarController.accountChanged account
+      #       @mainViewController.getView().decorateLoginState no
+      # else
+      @mainViewController.sidebarController.accountChanged account
+      @mainViewController.getView().decorateLoginState no
 
     @on 'UserIsJustLoggedIn', (account, connectedState)=>
       @mainViewController.getView().decorateLoginState yes

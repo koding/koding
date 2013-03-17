@@ -1,7 +1,7 @@
 
 module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   content ?= getDefaultuserContents()
-  {nickname, firstName, lastName, hash, about} = profile
+  {nickname, firstName, lastName, hash, about, handles} = profile
 
   firstName ?= 'Koding'
   lastName  ?= 'User'
@@ -31,15 +31,16 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
       <div class="profile-buttons">
         <div class="profile-nickname">@#{nickname}</div>
       </div>
+      <div id="landing-page-sidebar"></div>
       <div class="profile-links">
         <ul class='main'>
           <li class='blog'><a href=""><span class="icon"></span>Blog</a></li>
-          <li class='twitter'><a href=""><span class="icon"></span>Twitter</a></li>
-          <li class='github'><a href=""><span class="icon"></span>GitHub</a></li>
+          <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
+          <li class='github'>#{getHandleLink 'github', handles}</li>
         </ul>
         <hr/>
-        <div id="landing-page-sidebar"></div>
       </div>
+
       <div class="profile-koding-logo">
         <div class="logo" id='profile-koding-logo'></div>
       </div>
@@ -87,10 +88,10 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
-    postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" h:MM:ss TT')
+    postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
     posts+="""
       <div class="content-item">
-        <div class="title"><span class="text">#{blog.title}</span><span class="create-date">#{postDate}</span></div>
+        <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
         <div class="has-markdown">
           <span class="data">#{blog.html}</span>
         </div>
@@ -103,6 +104,33 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
       <div class="content-item default-item">
         <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
       </div>
+    """
+
+getHandleLink = (handle,handles)->
+
+  handleMap =
+    twitter :
+      baseUrl : 'https://www.twitter.com/'
+      text : 'Twitter'
+      prefix : '@'
+
+    github :
+      baseUrl : 'https://www.github.com/'
+      text : 'GitHub'
+
+  if handles?[handle]
+    """
+      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}'>
+      <span class="icon"></span>
+      #{handleMap[handle].prefix or ''}#{handles[handle]}
+      </a>
+    """
+  else
+    """
+      <a href='#' id='profile-handle-#{handle}'>
+      <span class="icon"></span>
+      #{handleMap[handle].text}
+      </a>
     """
 
 getTags = (tags)->

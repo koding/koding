@@ -61,6 +61,18 @@ class LandingPageNavigationController extends NavigationController
         items.unshift { title: 'Request to Join', action: 'request'}
         @_instantiateListItems items
 
+    else if @lc.userEnteredFromProfile()
+
+      log 'entered from profile!'
+      profileItems = [
+        { title : 'My Activities',action : 'activity', type : 'selected'}
+        { title : 'My Topics', action : 'topics', type : 'main' }
+        { title : 'My People', action : 'members', type : 'main'}
+        { title : 'My Groups', action : 'groups', type : 'main'}
+        { title : 'My Apps', action : 'apps', type : 'main'}
+      ]
+      items = profileItems.concat items
+      @_instantiateListItems items
     else
       @_instantiateListItems items
 
@@ -86,7 +98,8 @@ class LandingPageNavigationLink extends NavigationLink
     {action, appPath, title, path, type} = @getData()
     log "here", @getData()
 
-    {loginScreen} = @getSingleton 'mainController'
+    mc = @getSingleton 'mainController'
+    {loginScreen} = mc
 
     if path
       @openPath path
@@ -116,3 +129,19 @@ class LandingPageNavigationLink extends NavigationLink
               new KDNotificationView
                 title : "You successfully joined to group!"
               @openPath "/#{groupEntryPoint}/Activity"
+
+      when 'logout'
+        $('#kdmaincontainer').addClass 'hidden'
+        @openPath '/Logout'
+
+      when 'activity'
+        log 'Activity'
+      when 'topics'
+        log 'Topics'
+      when 'members'
+        log 'Members'
+      when 'groups'
+        log 'Groups'
+      when 'apps'
+        log 'Apps'
+
