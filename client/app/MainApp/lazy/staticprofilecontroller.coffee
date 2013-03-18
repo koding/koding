@@ -10,6 +10,14 @@ class StaticProfileController extends KDController
 
     appManager = @getSingleton 'appManager'
 
+    @staticController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
     @controller = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .99
@@ -20,6 +28,8 @@ class StaticProfileController extends KDController
 
     @navLinks     = {}
 
+    @registerSingleton 'staticProfileController', @, no
+
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
     @profileContentView = new KDListView
@@ -28,8 +38,11 @@ class StaticProfileController extends KDController
     , {}
 
     @listWrapper = @controller.getView()
+    @staticListWrapper = @staticController.getView()
     @listWrapper.hide()
+    @staticListWrapper.hide()
     @profileContentView.addSubView @listWrapper
+    @profileContentView.addSubView @staticListWrapper
 
     # this is the JAccount object of the static profile
     profileUser   = null
@@ -78,20 +91,52 @@ class StaticProfileController extends KDController
       cssClass  : 'slideable'
       bind : 'mouseenter mouseleave'
 
+    @lockSidebar = no
+
+    @on 'SidebarLockRequested', (state = yes)=>
+      @lockSidebar = state
+
+    @on 'HomeLinkClicked', =>
+      # @listWrapper.hide()
+      # @staticListWrapper.show()
+      @lockSidebar = no
+      profileContentLinks.setClass 'links-hidden'
+      profileContentList.unsetClass 'has-links'
+
+      # HERE is the place to implement custom profile splash screens, reveal.js and such
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes
+
+    @on 'ActivityLinkClicked', (path)=>
+      # @staticListWrapper.hide()
+      # @listWrapper.show()
+      @lockSidebar = yes
+      profileContentList.setClass 'has-links'
+      profileContentLinks.unsetClass 'links-hidden'
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+
+
     #
     # allow for sidebar lock here!
     # resize avatar to center or something
     #
 
-    profilePersonalWrapperView.on 'mouseenter',=>
-      profilePersonalWrapperView.setWidth 160
-      profileContentWrapperView.$().css marginLeft : "160px"
+    profilePersonalWrapperView.on 'mouseenter',(event)=>
+        profilePersonalWrapperView.setWidth 160
+        profileContentWrapperView.$().css marginLeft : "160px"
 
-    profilePersonalWrapperView.on 'mouseleave',=>
-      profilePersonalWrapperView.setWidth 50
-      profileContentWrapperView.$().css marginLeft : "50px"
+    profilePersonalWrapperView.on 'mouseleave',(event)=>
+      log @lockSidebar
+      unless @lockSidebar
+        profilePersonalWrapperView.setWidth 50
+        profileContentWrapperView.$().css marginLeft : "50px"
 
     # reviving feed type selectors that will activate feed facets
+
+    profileContentLinks = new KDView
+      lazyDomId : 'profile-content-links'
+
+    profileContentList = new KDView
+      lazyDomId : 'profile-content-list'
 
     for type in CONTENT_TYPES
       @navLinks[type] = new StaticNavLink
@@ -99,6 +144,17 @@ class StaticProfileController extends KDController
         lazyDomId : type
 
     @emit 'DecorateStaticNavLinks', allowedTypes
+
+    # reviving loading bar
+    @profileLoadingBar = new KDView
+      lazyDomId : 'profile-loading-bar'
+    @profileLoadingBar.addSubView @profileLoaderView = new KDLoaderView
+      size          :
+        width       : 32
+        height      : 32
+      loaderOptions :
+        color       : '#ff9200'
+    @profileLoaderView.hide()
 
     # reviving logo for the slideup animation
     @profileLogoView = new KDView
@@ -214,7 +270,9 @@ class StaticProfileController extends KDController
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
 
-    @on 'StaticProfileNavLinkClicked', (facets)=>
+    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no)=>
+      @profileLoadingBar.setClass 'active'
+      @profileLoaderView.show()
       facets = [facets] if 'string' is typeof facets
 
       if profileUser
@@ -233,7 +291,8 @@ class StaticProfileController extends KDController
             originId : profileUser.getId()
             facets : facets
             bypass : yes
-          , @bound "refreshActivities"
+          , (err, activities)=>
+            @refreshActivities err, activities, isStatic
         else @emit 'BlockedTypesRequested', blockedTypes
 
     @controller.on 'LazyLoadThresholdReached', =>
@@ -253,15 +312,25 @@ class StaticProfileController extends KDController
     @controller.hideLazyLoader()
 
 
-  refreshActivities:(err,activities)->
+  refreshActivities:(err,activities,isStatic)->
     @profileContentView.$('.content-item').remove()
     @profileShowMoreView.hide()
-    @listWrapper.show()
 
-    @controller.removeAllItems()
-    @controller.listActivities activities
+    listWrapper = if isStatic then @staticListWrapper else @listWrapper
+    otherListWrapper = if isStatic then @listWrapper else @staticListWrapper
+    controller = if isStatic then @staticController else @controller
+    otherController = if isStatic then @controller else @staticController
 
-    @controller.hideLazyLoader()
+    listWrapper.show()
+    otherListWrapper.hide()
+
+    controller.removeAllItems()
+    controller.listActivities activities
+
+    controller.hideLazyLoader()
+    otherController.showLazyLoader()
+    @profileLoadingBar.unsetClass 'active'
+    @profileLoaderView.hide()
 
   getAllowedTypes:(profileUser)->
       allowedTypes = profileUser.profile.staticPage?.showTypes or CONTENT_TYPES

@@ -196,35 +196,48 @@ textarea.profile-handle-customize.kdinput
       &.github
         bg position, -39px -340px
 
+// @keyframes pulsatingBar
+//   0%
+//     bg color, #ff9200
+//   50%
+//     bg color, lighten(#ff9200, 50%)
+
+
+.profile-loading-bar
+  borderBox()
+  height 0
+  width auto
+  bg color, #fbfbfb
+  border none
+  vendor transition, height 0.2s linear
+  text-align center
+
+  &.active
+    height 42px
+    border-bottom 1px solid rgba(0,0,0,0.075)
+  .kdloader
+    margin 5px
+
+
 
 .profile-content-links
-  margin-right          0px
-  width                 139px
-  height                100%
-  border-right          1px solid #e8e8e8
-  padding               19px 23px 19px 23px
-  fl()
   borderBox()
+  fl()
+  vendor transition, width 0.2s linear //\, padding-left 0.2s linear
+  width                 139px
+  overflow              hidden
+  height                100%
+  margin-right          0px
+  border-right          1px solid #e8e8e8
+
+
+  &.links-hidden
+    width 0
+
   li
-    overflow            visible
+    borderBox()
+    overflow            hidden
     vendor              transition, opacity .1s linear
-    &.disabled
-      opacity           0.5
-      cursor            default
-    &.blocked
-      opacity           0.5
-      cursor            default
-
-
-
-  h4
-    text-transform      uppercase
-    font-size           9px
-    color               #9f9d9a
-    font-weight         400
-    margin-bottom       9px
-
-  li
     color               #7c603b
     font-weight         normal
     noTextDeco()
@@ -233,6 +246,26 @@ textarea.profile-handle-customize.kdinput
     font-size           12px
     vertical-align      baseline
     margin-bottom       6px
+    white-space         nowrap
+    width               125px
+    &.disabled
+      opacity           0.5
+      cursor            default
+    &.blocked
+      opacity           0.5
+      cursor            default
+  ul
+    margin-left 23px
+  h4
+    margin-left 23px
+    margin-top          19px
+    borderBox()
+    text-transform      uppercase
+    font-size           9px
+    color               #9f9d9a
+    font-weight         400
+    margin-bottom       9px
+    width 125px
 
 .profile-koding-logo
   height 100%
@@ -275,7 +308,12 @@ textarea.profile-handle-customize.kdinput
 .profile-content-list
   overflow-y auto
   height 100%
-  margin-left 125px
+  width auto
+  margin-left 0px
+  vendor transition, margin-left 0.2s linear
+  vendor transition, margin-left 0.2s linear
+  &.has-links
+    margin-left 125px
 
 .profile-admin-customize
 .profile-admin-message
@@ -331,11 +369,11 @@ textarea.profile-handle-customize.kdinput
          width auto
          display inline-block
 
-      padding 20px 30px
+      padding 30px 40px
       border-bottom 1px solid #e8e8e8
     .has-markdown
       max-width 600px
-      padding 30px
+      padding 30px 40px
       margin-bottom 30px
       text-align justify
       text-rendering geometricPrecision

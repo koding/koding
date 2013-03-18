@@ -26,19 +26,19 @@ class StaticAvatarAreaIconMenu extends JView
 
 
     @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications'
+      cssClass   : 'static-profile-iconlink notifications'
       attributes :
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
     @quickNavIcon = new AvatarAreaIconLink
-      cssClass   : 'group-switcher'
+      cssClass   : 'static-profile-iconlink group-switcher'
       attributes :
         title    : 'Quick Navigation'
       delegate   : @quickNavPopup
 
     @messageUserIcon = new AvatarAreaIconLink
-      cssClass   : 'messages'
+      cssClass   : 'static-profile-iconlink messages'
       attributes :
         title    : 'Send a message'
       delegate   : @messageUserPopup
