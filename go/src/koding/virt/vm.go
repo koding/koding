@@ -217,6 +217,7 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
 	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
 
+	// add ebtables entry to restrict IP and MAC
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
@@ -235,6 +236,13 @@ func (vm *VM) Unprepare() error {
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
 	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
 
+	// remove ebtables entry
+	if vm.IP != nil {
+		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
+			firstError = commandError("ebtables rule deletion failed.", err, out)
+		}
+	}
+
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
@@ -247,9 +255,6 @@ func (vm *VM) Unprepare() error {
 	}
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("rbd unmap failed.", err, out)
-	}
-	if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
-		firstError = commandError("ebtables rule deletion failed.", err, out)
 	}
 
 	// remove VM directory
