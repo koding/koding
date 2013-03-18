@@ -122,6 +122,7 @@ class FSItem extends KDObject
       @[key] = value
     super
 
+    @treeController = @getSingleton('finderController').treeController
     @kiteController = @getSingleton('kiteController')
 
   remove:(callback)->

@@ -30,6 +30,10 @@ class WebtermSettingsView extends KDTreeItemView
         webtermView.container.setClass value
         webtermView.terminal.setTheme value
 
+    @bell           = new KDOnOffSwitch
+      callback      : (state) =>
+        webtermView.terminal.setBell state
+
   setDefaultValues:(settings)->
     @[key]?.setDefaultValue value for key,value of settings
 
@@ -54,5 +58,5 @@ class WebtermSettingsView extends KDTreeItemView
     <p>Font                     {{> @font}}</p>
     <p>Font Size                {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
-
+    <p>Use Visual Bell          {{> @bell}}</p>
     """

@@ -237,17 +237,20 @@ class WebTerm.Terminal
   getTheme:->
     @appStorage.getValue('theme') or 'black-on-white'
 
+  getBell:->
+    @appStorage.getValue('useBell') ? no
+
   getSettings:->
-    theme               : @getTheme()
-    fontSize            : @getFontSize()
-    font                : @getFont()
+    theme    : @getTheme()
+    fontSize : @getFontSize()
+    font     : @getFont()
+    bell     : @getBell()
 
   setTheme:(themeName)->
-    @appStorage.setValue 'theme', themeName, =>
-        noop
+    @appStorage.setValue 'theme', themeName
   setFontSize:(fontSize)->
-    @appStorage.setValue 'fontSize', fontSize, =>
-        noop
+    @appStorage.setValue 'fontSize', fontSize
   setFont:(font)->
-    @appStorage.setValue 'font', font, =>
-        noop
+    @appStorage.setValue 'font', font
+  setBell:(state)->
+    @appStorage.setValue 'useBell', state

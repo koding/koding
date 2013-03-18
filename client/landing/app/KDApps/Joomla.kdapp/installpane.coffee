@@ -101,7 +101,7 @@ class InstallPane extends Pane
 
     @form.on "FormValidationFailed", => @form.buttons["Install Wordpress"].hideLoader()
 
-    domainsPath = "/Users/#{nickname}/Sites"
+    domainsPath = "/home/#{nickname}/Sites"
 
     kc.run
       withArgs  :

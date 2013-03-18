@@ -133,7 +133,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @getSingleton("kiteController").run "rm -r #{path}"
     , (err, res)=>
       unless err
-        finder.refreshFolder finder.nodes["/Users/#{KD.whoami().profile.nickname}/Applications"]
+        finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
         apps.refreshApps =>
           @deleteModal.destroy()
       else

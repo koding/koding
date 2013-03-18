@@ -63,9 +63,9 @@ class WpApp extends JView
       dashboard.putNewItem formData
       __utils.wait 200, ->
         # timed out because we give some time to server to cleanup the temp files until it filetree refreshes
-        tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"], ->
+        tc.refreshFolder tc.nodes["/home/#{nickname}/Sites/#{domain}/website"], ->
           __utils.wait 200, ->
-            tc.selectNode tc.nodes["/Users/#{nickname}/Sites/#{domain}/website/#{path}"]
+            tc.selectNode tc.nodes["/home/#{nickname}/Sites/#{domain}/website/#{path}"]
 
     @_windowDidResize()
 
