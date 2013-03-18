@@ -24,7 +24,8 @@ import (
 
 func main() {
 	lifecycle.Startup("broker", false)
-	lifecycle.RunStatusLogger()
+	changeClientsGauge := lifecycle.CreateClientsGauge()
+	log.RunGaugesLoop()
 
 	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
@@ -40,10 +41,10 @@ func main() {
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
 
-		lifecycle.ChangeNumClients <- 1
+		changeClientsGauge(1)
 		log.Debug("Client connected: " + socketId)
 		defer func() {
-			lifecycle.ChangeNumClients <- -1
+			changeClientsGauge(-1)
 			log.Debug("Client disconnected: " + socketId)
 		}()
 
