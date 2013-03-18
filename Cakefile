@@ -441,7 +441,7 @@ task 'switchProxy', (options) ->
           stats hide-version
           stats realm 'Koding'
           stats uri /
-          stats auth admin:admin
+          stats auth koding:vv8ogdHLaFA2MQA
 
       listen http-in
           bind *:#{conf.webPort}

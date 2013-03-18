@@ -19,7 +19,7 @@ rabbitPrefix = rabbitPrefix.split('.').join('-')
 socialQueueName = "koding-social-prod"
 
 webPort         = 3040
-brokerPort      = 8040 + (version % 10)
+brokerPort      = 8010 + (version % 10)
 dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports = deepFreeze
@@ -38,6 +38,9 @@ module.exports = deepFreeze
     clusterSize : 10
     queueName   : socialQueueName+'web'
     watch       : no
+  sourceServer  :
+    enabled     : no
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
@@ -105,7 +108,7 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : "http://mq.koding.com:#{brokerPort}/subscribe"
+        sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
@@ -119,8 +122,8 @@ module.exports = deepFreeze
     vhost       : '/'
   broker        :
     port        : brokerPort
-    certFile    : ""
-    keyFile     : ""
+    certFile    : "/etc/nginx/ssl/server_new.crt"
+    keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'
