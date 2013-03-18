@@ -27,7 +27,7 @@ class TopicsListItemView extends KDListItemView
 
     @followButton = new FollowButton {cssClass: 'topic'}, data
 
-  titleReceivedClick:(event)-> @emit 'TaggedContentRequested'
+  titleReceivedClick:(event)-> @emit 'LinkClicked'
 
   viewAppended:->
     @setClass "topic-item"

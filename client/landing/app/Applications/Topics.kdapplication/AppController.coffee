@@ -76,7 +76,7 @@ class TopicsAppController extends AppController
     }, (controller)=>
       @feedController = controller
       controller.resultsController.on 'ItemWasAdded', (item)=>
-        item.on 'TaggedContentRequested', => @openTopic item.getData()
+        item.on 'LinkClicked', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
@@ -214,4 +214,4 @@ class TopicsAppController extends AppController
       unless err
         callback? tags
       else
-        warn "there was an error fetching topics"
+        warn "there was an error fetching topics #{err.message}"

@@ -40,26 +40,33 @@ class GroupsAppController extends AppController
     mainController = @getSingleton 'mainController'
     mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      if pageInfo.path
-        {group} = @userArea
-        route = "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
-        KD.getSingleton('router').handleRoute route
+      KD.getSingleton('router').handleRoute if pageInfo.path
+        if pageInfo.topLevel then pageInfo.path
+        else
+          {group} = @userArea
+          "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
     @groups = {}
     @currentGroupData = new GroupData
 
   getCurrentGroupData:-> @currentGroupData
 
-  getCurrentGroup:-> @currentGroupData.data
+  getCurrentGroup:->
+    if Array.isArray @currentGroupData.data
+      return @currentGroupData.data.first
+    return @currentGroupData.data
 
   changeGroup:(groupName, callback=->)->
     return callback()  if groupName is @currentGroup
-    @once 'GroupChanged', callback
+    @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
     groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
-      KD.remote.cacheable groupName, (err, group)=>
-        @currentGroupData.setGroup group
-        @emit 'GroupChanged', groupName, group
+      KD.remote.cacheable groupName, (err, models)=>
+        if err then callback err
+        else if models?
+          [group] = models
+          @currentGroupData.setGroup group
+          @emit 'GroupChanged', groupName, group
 
   getUserArea:-> @userArea
 
@@ -459,7 +466,7 @@ class GroupsAppController extends AppController
       content         : "<div class='modalformline'>You are about to open a third-party group.</div>"
       height          : "auto"
       overlay         : yes
-      buttons         : 
+      buttons         :
         cancel        :
           style       : 'modal-cancel'
           callback    : -> modal.destroy()
@@ -571,7 +578,7 @@ class GroupsAppController extends AppController
     group = groupView.getData()
     pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
       (pane, vocabView)->
-        
+
         group.fetchVocabulary (err, vocab)-> vocabView.setVocabulary vocab
 
         vocabView.on 'VocabularyCreateRequested', ->

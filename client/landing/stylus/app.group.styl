@@ -13,26 +13,16 @@
 .own-group
   background-color        chartreuse !important
 
-#group-landing
-  height                100%
-  width                 100%
-  z-index               99
-  abs()
-  bg image,             url("../images/koding-new-bg.png");
-  bg repeat,            repeat-x
-  vendor transition,    opacity 1s ease
-
-  shadow 0 0 50px 20px rgba(0,0,0,0.4)
+#static-landing-page
   &.group-leaving
     rel()
   &.group-shrinking
-    height 0
+    height              0
   &.group-fading
     opacity             0
   &.group-hidden
     z-index             1
     display             none
-
 
 .group-header
   width                 100%
@@ -87,12 +77,16 @@
     display inline-block
   .group-bio
     borderBox()
-    color #888
-    font-size 12px
-    height 29px
-    overflow-y scroll
-    width auto
-    font-weight 300
+    color               #888
+    font-size           12px
+    height              29px
+    overflow-y          scroll
+    width               auto
+    font-weight         300
+  button.kdbutton
+    abs()
+    right               20px
+    top                 10px
 
 .group-nickname
   borderBox()

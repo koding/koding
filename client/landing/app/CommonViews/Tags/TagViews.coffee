@@ -17,7 +17,7 @@ class TagGroup extends KDCustomHTMLView
           $in     : stringTags
       ,
         sort      :
-          'title' : 1
+          title   : 1
       , (err,tags)=>
         unless err and not tags
           callback null, tags
@@ -86,8 +86,4 @@ class TagCloudListItemView extends KDListItemView
     event?.stopPropagation()
     event?.preventDefault()
     @getDelegate().emit 'TagWasClicked'
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
+    @emit 'LinkClicked'

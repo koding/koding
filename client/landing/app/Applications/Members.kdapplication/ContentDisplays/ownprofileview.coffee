@@ -125,4 +125,4 @@ class OwnProfileView extends JView
       unless err
         callback? tags
       else
-        log "there was an error fetching topics"
+        log "there was an error fetching topics #{err.message}"

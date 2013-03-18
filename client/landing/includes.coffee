@@ -312,6 +312,7 @@ module.exports = [
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
+  "app/MainApp/lazy/staticgroupcontroller.coffee",
   "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
@@ -666,6 +667,7 @@ module.exports = [
   # "stylus/kd.tiptip.styl" => discarded,
 
   "stylus/app.styl",
+  "stylus/app.landing.styl",
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",

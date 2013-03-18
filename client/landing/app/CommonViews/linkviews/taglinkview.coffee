@@ -23,8 +23,4 @@ class TagLinkView extends LinkView
     event?.stopPropagation()
     event?.preventDefault()
     return unless @getOptions().clickable
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
+    @emit 'LinkClicked'
