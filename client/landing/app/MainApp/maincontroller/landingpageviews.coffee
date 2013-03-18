@@ -55,14 +55,17 @@ class LandingPageNavigationController extends NavigationController
                 if err then console.warn err
                 else if policy?.approvalEnabled
                   items.unshift \
-                    { title: 'Request to Join', action: 'request'}
+                    { title: 'Request access', action: 'request'}
                 else
                   items.unshift \
                     { title: 'Join Group', action: 'join-group'}
                 @_instantiateListItems items
 
       else
-        items.unshift { title: 'Request to Join', action: 'request'}
+        items.unshift { title: 'Request access', action: 'request'}
+
+        if groupEntryPoint is "koding" then items.first.title = "Request Invite"
+
         @_instantiateListItems items
 
     else if @lc.userEnteredFromProfile()
