@@ -24,7 +24,10 @@ module.exports = class JTag extends jraphical.Module
 
   @set
     slugifyFrom     : 'title'
-    slugTemplate    : 'Topics/#{slug}'
+    slugTemplate    : ->
+      """
+      #{if @group is 'koding' then '' else @group}/Topics/\#{slug}
+      """
     permissions     :
       'create tags'           : ['member', 'moderator']
       'freetag content'       : ['member', 'moderator']
@@ -175,6 +178,7 @@ module.exports = class JTag extends jraphical.Module
         if err
           callback err
         else
+          tag.createSlug console.log.bind console, 'slkhflsh'
           tag.addCreator delegate, (err)->
             if err
               callback err

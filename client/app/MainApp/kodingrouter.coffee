@@ -15,7 +15,7 @@ class KodingRouter extends KDRouter
       new KDNotificationView title: "You're already here!"
 
     @on 'Params', ({params, query})=>
-      @utils.defer => @getSingleton('groupsController').changeGroup params.name
+      #@utils.defer => @getSingleton('groupsController').changeGroup params.name
 
   listen:->
     super
@@ -53,12 +53,10 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
-    console.trace()
     return @once 'ready', @go.bind this, arguments...  unless @ready
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group, (err)->
-      console.log {arguments}
       if err then new KDNotificationView title: err.message
       else
         KD.getSingleton("appManager").open app
@@ -113,8 +111,7 @@ class KodingRouter extends KDRouter
           {constructorName, usedAsPath} = slug
           selector = {}
           konstructor = KD.remote.api[constructorName]
-          slug = stripTemplate route, konstructor
-          selector[usedAsPath] = slug
+          selector[usedAsPath] = slug.slug
           konstructor?.one selector, (err, model)=>
             error err if err?
             unless model
@@ -122,7 +119,6 @@ class KodingRouter extends KDRouter
             else
               models[i] = model
               if models.length is name.slugs.length
-                console.trace()
                 @openContent name, section, models, route
       else
         @handleNotFound route
@@ -165,7 +161,6 @@ class KodingRouter extends KDRouter
 
     requireLogin =(fn)->
       mainController.accountReady ->
-        # console.log 'faafafaf'
         if KD.isLoggedIn() then __utils.defer fn
         else clear()
 
@@ -205,7 +200,6 @@ class KodingRouter extends KDRouter
       '/:name?/Dashboard'               : (routeInfo, state, route)->
         {name} = routeInfo.params
         n = name ? 'koding'
-        console.log {n}
         KD.remote.cacheable n, (err, group, nameObj)=>
           @openContent name, 'Groups', group, route
 
