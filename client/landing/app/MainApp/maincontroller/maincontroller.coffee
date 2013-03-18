@@ -90,7 +90,12 @@ class MainController extends KDController
     @emit "AccountChanged", account, firstLoad
 
     unless @mainViewController
-      @loginScreen = new LoginView
+
+      if KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
+        @loginScreen = new LoginView
+      else
+        @loginScreen = new OldLoginView
+
       KDView.appendToDOMBody @loginScreen
 
       @mainViewController = new MainViewController
