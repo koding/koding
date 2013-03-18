@@ -28,7 +28,6 @@ class LandingPageSideBar extends KDView
 
     @addSubView @nav = @navController.getView()
 
-
 class LandingPageNavigationController extends NavigationController
 
   constructor: ->
@@ -91,6 +90,15 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       @getListView().addItem itemData
 
+fetchGroupFirst = (callback)->
+  {groupEntryPoint} = KD.config
+  KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+    error err if err
+    if err then new KDNotificationView
+      title : "An error occured, please try again"
+    else unless group?
+      new KDNotificationView title : "No such group!"
+    else callback group
 
 class LandingPageNavigationLink extends NavigationLink
 
@@ -122,20 +130,17 @@ class LandingPageNavigationLink extends NavigationLink
       when 'register'
         loginScreen.animateToForm 'register'
       when 'request'
-        loginScreen.animateToForm 'lr'
+        if KD.isLoggedIn()
+          fetchGroupFirst (group)=>
+            @getSingleton('groupsController').openPrivateGroup group
+        else
+          loginScreen.animateToForm 'lr'
       when 'join-group'
-        {groupEntryPoint} = KD.config
-        KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
-          error err if err
-          if err then new KDNotificationView
-            title : "An error occured, please try again"
-          else unless group?
-            new KDNotificationView title : "No such group!"
-          else group.join (err, response)=>
+        fetchGroupFirst (group)=>
+          group.join (err, response)=>
             error err if err
-            if err
-              new KDNotificationView
-                title : "An error occured, please try again"
+            if err then new KDNotificationView
+              title : "An error occured, please try again"
             else
               new KDNotificationView
                 title : "You successfully joined to group!"
