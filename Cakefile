@@ -110,12 +110,19 @@ task 'applicationsKite',({configFile})->
 
 task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {webserver} = KONFIG
+  {webserver,sourceServer} = KONFIG
 
   runServer = (config, port) ->
     processes.fork
       name            : 'server'
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
+      restart         : yes
+      restartInterval : 100
+
+  if sourceServer?.enabled
+    processes.fork
+      name            : 'sourceserver'
+      cmd             : __dirname + "/server/sourceserver -c #{configFile} -p #{sourceServer.port}"
       restart         : yes
       restartInterval : 100
 
