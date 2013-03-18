@@ -28,18 +28,41 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
-      <div class="profile-buttons">
-        <div class="profile-nickname">@#{nickname}</div>
-      </div>
-      <div id="landing-page-sidebar"></div>
+
+      <div class="profile-buttons kdview actions" id="profile-buttons">
+
+        <a class="static-profile-button notifications" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+        <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+        <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a></div>
+
       <div class="profile-links">
         <ul class='main'>
-          <li class='blog'><a href=""><span class="icon"></span>Blog</a></li>
           <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
           <li class='github'>#{getHandleLink 'github', handles}</li>
         </ul>
-        <hr/>
       </div>
+
+      <div id="landing-page-sidebar" class=" profile-sidebar kdview">
+        <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon my-activities"></span>My Activities</a>
+          </div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon my-topics"></span>My Topics</a>
+          </div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon my-people"></span>My People</a>
+          </div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon my-groups"></span>My Groups</a></div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon my-apps"></span>My Apps</a></div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
+            <hr class="">
+          </div>
+        </div>
+       </div>
+
 
       <div class="profile-koding-logo">
         <div class="logo" id='profile-koding-logo'></div>

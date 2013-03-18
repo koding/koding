@@ -50,7 +50,10 @@ class GroupsAppController extends AppController
 
   getCurrentGroupData:-> @currentGroupData
 
-  getCurrentGroup:-> @currentGroupData.data
+  getCurrentGroup:->
+    if Array.isArray @currentGroupData.data
+      return @currentGroupData.data.first
+    return @currentGroupData.data
 
   changeGroup:(groupName, callback=->)->
     return callback()  if groupName is @currentGroup
@@ -463,7 +466,7 @@ class GroupsAppController extends AppController
       content         : "<div class='modalformline'>You are about to open a third-party group.</div>"
       height          : "auto"
       overlay         : yes
-      buttons         : 
+      buttons         :
         cancel        :
           style       : 'modal-cancel'
           callback    : -> modal.destroy()
@@ -575,7 +578,7 @@ class GroupsAppController extends AppController
     group = groupView.getData()
     pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
       (pane, vocabView)->
-        
+
         group.fetchVocabulary (err, vocab)-> vocabView.setVocabulary vocab
 
         vocabView.on 'VocabularyCreateRequested', ->

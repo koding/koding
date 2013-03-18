@@ -665,6 +665,7 @@ module.exports = [
   # "stylus/kd.tiptip.styl" => discarded,
 
   "stylus/app.styl",
+  "stylus/app.landing.styl",
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",

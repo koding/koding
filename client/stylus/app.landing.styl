@@ -1,0 +1,18 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib"
+@import "nib/gradients"
+@import "nib/vendor"
+
+#static-landing-page
+  z-index               99
+  size                  100%, 100%
+  top                   0
+  abs()
+  bg image,             url("../images/koding-new-bg.png");
+  bg repeat,            repeat-x
+  vendor transition,    opacity .6s ease-in\, top .6s ease-in
+  shadow                0 0 50px 20px rgba(0,0,0,0.4)
+  &.out
+    // top                 52px
+    opacity             0

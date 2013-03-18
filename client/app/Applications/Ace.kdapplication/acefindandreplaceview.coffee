@@ -11,12 +11,16 @@ class AceFindAndReplaceView extends JView
     super options, data
 
     @findInput = new KDHitEnterInputView
-      type         : "text"
-      cssClass     : "ace-find-replace-input"
-      validate     :
-        rules      :
-          required : yes
-      callback     : => @findNext()
+      type              : "text"
+      cssClass          : "ace-find-replace-input"
+      validate          :
+        rules           :
+          required      : yes
+      callback          : => @findNext()
+      keyup             :
+        "super+shift+f" : (e) =>
+          e.preventDefault()
+          @setViewHeight yes
 
     @findNextButton = new KDButtonView
       title        : "Find Next"
