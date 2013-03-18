@@ -22,6 +22,8 @@ class FollowBucketItemView extends KDView
       group         : data.group
       itemClass     : options.subItemLinkClass
       separator     : if data.sourceName in ['JApp', 'JTag'] then ' ' else ', '
+    
+    @group.on 'ItemClicked', (item)-> console.log {item}
 
   pistachio:->
     """
