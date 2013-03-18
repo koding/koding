@@ -118,6 +118,8 @@ class LandingPageNavigationLink extends NavigationLink
 
     {groupEntryPoint, profileEntryPoint} = KD.config
 
+
+
     switch action
       when 'login'
         loginScreen.animateToForm 'login'
@@ -146,6 +148,9 @@ class LandingPageNavigationLink extends NavigationLink
       when 'activity'
         # @openPath "/#{profileEntryPoint}/Activity"
         # @lc.hideLandingPage()
+
+        @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
+
         log 'Activity'
         contentDisplayController = @getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeShown", new ActivityContentDisplay
@@ -169,4 +174,5 @@ class LandingPageNavigationLink extends NavigationLink
         @openPath "/#{profileEntryPoint}/Apps"
         @lc.hideLandingPage()
         log 'Apps'
-
+      when 'home'
+        @getSingleton('staticProfileController').emit 'HomeLinkClicked'
