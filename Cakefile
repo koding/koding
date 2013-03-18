@@ -118,7 +118,7 @@ task 'webserver', ({configFile}) ->
     processes.fork
       name            : 'server'
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
-      restart         : no
+      restart         : yes
       restartInterval : 100
 
   if webserver.clusterSize > 1
