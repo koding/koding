@@ -26,10 +26,105 @@ class StaticProfileController extends KDController
         cssClass        : 'static-content activity-related'
       showHeader        : no
 
+    # this is the JAccount object of the static profile
+    @profileUser  = null
+
     @navLinks     = {}
+    @lockSidebar  = no
 
     @registerSingleton 'staticProfileController', @, no
 
+    @reviveViewsOnPageLoad()
+    @addEventListeners()
+
+    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+    # FIXME - we want to use cacheable, not a JAccount call
+    KD.remote.api.JAccount.one
+      "profile.nickname" : KD.config.profileEntryPoint
+    , (err, user, name)=>
+      if err then log err,user,name
+      unless err
+        @reviveViewsOnUserLoad user
+
+  addEventListeners:->
+
+    @on 'HomeLinkClicked', =>
+      @lockSidebar = no
+      @utils.wait 250, =>
+        @profileContentLinks.setClass 'links-hidden'
+        @profileContentList.unsetClass 'has-links'
+
+      # HERE is the place to implement custom profile splash screens, reveal.js and such
+
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes
+
+    @on 'ActivityLinkClicked', (path)=>
+      @lockSidebar = yes
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+      @utils.wait 250, =>
+        @profileContentList.setClass 'has-links'
+        @profileContentLinks.unsetClass 'links-hidden'
+
+    @on 'CustomizeLinkClicked',=>
+      return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
+      @customizeViewsAttached = yes
+
+      @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
+
+      # reviving customization
+
+      types = @getAllowedTypes @profileUser
+
+      for type in CONTENT_TYPES
+        @navLinks[type].addSubView new StaticNavCheckBox
+          activityType : type
+          defaultValue : type in types
+          delegate     : @
+        , @profileUser
+
+    @on 'ShowMoreButtonClicked', =>
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+
+    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no)=>
+      @profileLoadingBar.setClass 'active'
+      @profileLoaderView.show()
+      facets = [facets] if 'string' is typeof facets
+
+      if @profileUser
+        allowedTypes = @getAllowedTypes @profileUser
+
+        blockedTypes = facets.reduce (acc, facet)->
+          acc.push facet unless facet in allowedTypes
+          return acc
+        , []
+
+        @emit 'DecorateStaticNavLinks', allowedTypes
+
+        if blockedTypes.length is 0
+          @currentFacets = facets
+          appManager.tell 'Activity', 'fetchActivity',
+            originId : @profileUser.getId()
+            facets : facets
+            bypass : yes
+          , (err, activities)=>
+            @refreshActivities err, activities, isStatic
+        else @emit 'BlockedTypesRequested', blockedTypes
+
+    @controller.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId  : @profileUser.getId()
+        facets    : @currentFacets
+        to        : @controller.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , @bound "appendActivities"
+
+  reviveViewsOnPageLoad:->
+
+    console.time 'reviving page elements on pageload.'
+
+    allowedTypes  = ['CBlogPostActivity']
+    blockedTypes  = []
+    @currentFacets = []
     # reviving the content view. this encapsulates the listitem feed after
     # user input (type selection, more-button)
     @profileContentView = new KDListView
@@ -44,12 +139,6 @@ class StaticProfileController extends KDController
     @profileContentView.addSubView @listWrapper
     @profileContentView.addSubView @staticListWrapper
 
-    # this is the JAccount object of the static profile
-    profileUser   = null
-    allowedTypes  = ['CBlogPostActivity']
-    blockedTypes  = []
-    currentFacets = []
-
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
     @profileLandingView = new KDView
@@ -58,10 +147,10 @@ class StaticProfileController extends KDController
     @profileLandingView.listenWindowResize()
     @profileLandingView._windowDidResize = =>
       @profileLandingView.setHeight window.innerHeight
-      @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+      @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
       @repositionLogoView()
 
-    profileTitleView = new KDView
+    @profileTitleView = new KDView
       lazyDomId : 'profile-title'
 
     @profileShowMoreView = new KDView
@@ -82,60 +171,35 @@ class StaticProfileController extends KDController
 
     # reviving wrapper views for resize/slide animations as well as
     # adding administrative views
-    profileContentWrapperView = new KDView
+    @profileContentWrapperView = new KDView
       lazyDomId : 'profile-content-wrapper'
       cssClass  : 'slideable'
 
-    profilePersonalWrapperView = new KDView
+    @profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass  : 'slideable'
       bind : 'mouseenter mouseleave'
-
-    @lockSidebar = no
-
-    @on 'SidebarLockRequested', (state = yes)=>
-      @lockSidebar = state
-
-    @on 'HomeLinkClicked', =>
-      # @listWrapper.hide()
-      # @staticListWrapper.show()
-      @lockSidebar = no
-      profileContentLinks.setClass 'links-hidden'
-      profileContentList.unsetClass 'has-links'
-
-      # HERE is the place to implement custom profile splash screens, reveal.js and such
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes
-
-    @on 'ActivityLinkClicked', (path)=>
-      # @staticListWrapper.hide()
-      # @listWrapper.show()
-      @lockSidebar = yes
-      profileContentList.setClass 'has-links'
-      profileContentLinks.unsetClass 'links-hidden'
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
-
 
     #
     # allow for sidebar lock here!
     # resize avatar to center or something
     #
 
-    profilePersonalWrapperView.on 'mouseenter',(event)=>
-        profilePersonalWrapperView.setWidth 160
-        profileContentWrapperView.$().css marginLeft : "160px"
+    @profilePersonalWrapperView.on 'mouseenter',(event)=>
+        @profilePersonalWrapperView.setWidth 160
+        @profileContentWrapperView.$().css marginLeft : "160px"
 
-    profilePersonalWrapperView.on 'mouseleave',(event)=>
-      log @lockSidebar
+    @profilePersonalWrapperView.on 'mouseleave',(event)=>
       unless @lockSidebar
-        profilePersonalWrapperView.setWidth 50
-        profileContentWrapperView.$().css marginLeft : "50px"
+        @profilePersonalWrapperView.setWidth 50
+        @profileContentWrapperView.$().css marginLeft : "50px"
 
     # reviving feed type selectors that will activate feed facets
 
-    profileContentLinks = new KDView
+    @profileContentLinks = new KDView
       lazyDomId : 'profile-content-links'
 
-    profileContentList = new KDView
+    @profileContentList = new KDView
       lazyDomId : 'profile-content-list'
 
     for type in CONTENT_TYPES
@@ -160,8 +224,8 @@ class StaticProfileController extends KDController
     @profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
       click :=>
-        profilePersonalWrapperView.setClass 'slide-down'
-        profileContentWrapperView.setClass 'slide-down'
+        @profilePersonalWrapperView.setClass 'slide-down'
+        @profileContentWrapperView.setClass 'slide-down'
         @profileLogoView.setClass 'top'
 
         @profileLandingView.setClass 'profile-fading'
@@ -171,137 +235,81 @@ class StaticProfileController extends KDController
 
     @utils.wait => @profileLogoView.setClass 'animate'
 
+    console.timeEnd 'reviving page elements on pageload.'
 
-    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+  reviveViewsOnUserLoad:(user)->
 
+    console.time 'reviving page elements on userload.'
 
-    KD.remote.api.JAccount.one
-      "profile.nickname" : KD.config.profileEntryPoint
-    , (err, user, name)=>
-      if err then log err,user,name
-      unless err
+    @profileUser = user
+    @emit 'DecorateStaticNavLinks', @getAllowedTypes @profileUser
 
-        profileUser = user
-        @emit 'DecorateStaticNavLinks', @getAllowedTypes profileUser
+    @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
+      lazyDomId    : 'profile-buttons'
+      delegate     : @
+    , @profileUser
 
-        @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
-          lazyDomId    : 'profile-buttons'
-          delegate     : @
-        , profileUser
+    @avatarAreaIconMenu.$('.static-profile-button').remove()
 
-        @avatarAreaIconMenu.$('.static-profile-button').remove()
+    if user.getId() is KD.whoami().getId()
 
-        if user.getId() is KD.whoami().getId()
+      # reviving admin stuff
 
-          # reviving admin stuff
+      profileAdminCustomizeView = new KDView
+        lazyDomId : 'profile-admin-customize'
 
-          profileAdminCustomizeView = new KDView
-            lazyDomId : 'profile-admin-customize'
+      profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
+        title : 'Customize'
+        cssClass : 'static-page-settings-button clean-gray'
+        click :(event)=>
+          @emit 'CustomizeLinkClicked'
+          event.stopPropagation()
+          event.preventDefault()
 
-          profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
-            title : 'Customize'
-            cssClass : 'static-page-settings-button clean-gray'
-            click :(event)=>
-              @emit 'CustomizeLinkClicked'
-              event.stopPropagation()
-              event.preventDefault()
+      profileAdminCustomizeView.show()
 
-          profileAdminCustomizeView.show()
+      profileAdminMessageView = new KDView
+        lazyDomId : 'profile-admin-message'
 
-          profileAdminMessageView = new KDView
-            lazyDomId : 'profile-admin-message'
+      showPage = user.profile.staticPage?.show
 
-          showPage = user.profile.staticPage?.show
+      profileAdminMessageView.addSubView disableLink = new CustomLinkView
+        title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
+        cssClass  : 'message-disable'
+        click     : (event)=>
+          event?.stopPropagation()
+          event?.preventDefault()
 
-          profileAdminMessageView.addSubView disableLink = new CustomLinkView
-            title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
-            cssClass  : 'message-disable'
-            click     : (event)=>
-              event?.stopPropagation()
-              event?.preventDefault()
+          if user.profile.staticPage?.show is yes
+            modal           = new KDModalView
+              cssClass      : 'disable-static-page-modal'
+              title         : 'Do you really want to disable your Public Page?'
+              content       : """
+                <div class="modalformline">
+                  <p>Disabling this feature will disable other people
+                  from publicly viewing your profile. You will still be
+                  able to access the page yourself.</p>
+                  <p>Do you want to continue?</p>
+                </div>
+                """
+              buttons       :
+                "Disable the Public Page" :
+                  cssClass  : 'modal-clean-red'
+                  callback  : =>
+                    modal.destroy()
+                    user.setStaticPageVisibility no, (err,res)=>
+                      if err then log err
+                      disableLink.updatePartial 'Enable this Public Page'
+                Cancel      :
+                  cssClass  : 'modal-cancel'
+                  callback  : =>
+                    modal.destroy()
+          else
+            user.setStaticPageVisibility yes, (err,res)=>
+              if err then log err
+              disableLink.updatePartial 'Disable this Public Page'
 
-              if user.profile.staticPage?.show is yes
-                modal           = new KDModalView
-                  cssClass      : 'disable-static-page-modal'
-                  title         : 'Do you really want to disable your Public Page?'
-                  content       : """
-                    <div class="modalformline">
-                      <p>Disabling this feature will disable other people
-                      from publicly viewing your profile. You will still be
-                      able to access the page yourself.</p>
-                      <p>Do you want to continue?</p>
-                    </div>
-                    """
-                  buttons       :
-                    "Disable the Public Page" :
-                      cssClass  : 'modal-clean-red'
-                      callback  : =>
-                        modal.destroy()
-                        user.setStaticPageVisibility no, (err,res)=>
-                          if err then log err
-                          disableLink.updatePartial 'Enable this Public Page'
-                    Cancel      :
-                      cssClass  : 'modal-cancel'
-                      callback  : =>
-                        modal.destroy()
-              else
-                user.setStaticPageVisibility yes, (err,res)=>
-                  if err then log err
-                  disableLink.updatePartial 'Disable this Public Page'
-
-
-    @on 'CustomizeLinkClicked',=>
-      return if @customizeViewsAttached or KD.whoami().getId() isnt profileUser.getId()
-      @customizeViewsAttached = yes
-
-      @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
-
-      # reviving customization
-
-      types = @getAllowedTypes profileUser
-
-      for type in CONTENT_TYPES
-        @navLinks[type].addSubView new StaticNavCheckBox
-          activityType : type
-          defaultValue : type in types
-          delegate     : @
-        , profileUser
-
-    @on 'ShowMoreButtonClicked', =>
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
-
-    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no)=>
-      @profileLoadingBar.setClass 'active'
-      @profileLoaderView.show()
-      facets = [facets] if 'string' is typeof facets
-
-      if profileUser
-        allowedTypes = @getAllowedTypes profileUser
-
-        blockedTypes = facets.reduce (acc, facet)->
-          acc.push facet unless facet in allowedTypes
-          return acc
-        , []
-
-        @emit 'DecorateStaticNavLinks', allowedTypes
-
-        if blockedTypes.length is 0
-          currentFacets = facets
-          appManager.tell 'Activity', 'fetchActivity',
-            originId : profileUser.getId()
-            facets : facets
-            bypass : yes
-          , (err, activities)=>
-            @refreshActivities err, activities, isStatic
-        else @emit 'BlockedTypesRequested', blockedTypes
-
-    @controller.on 'LazyLoadThresholdReached', =>
-      appManager.tell 'Activity', 'fetchActivity',
-        originId  : profileUser.getId()
-        facets    : currentFacets
-        to        : @controller.itemsOrdered.last.getData().meta.createdAt
-        bypass    : yes
-      , @bound "appendActivities"
+    console.timeEnd 'reviving page elements on userload.'
 
   repositionLogoView:->
     @profileLogoView.$().css
@@ -310,7 +318,6 @@ class StaticProfileController extends KDController
   appendActivities:(err,activities)->
     @controller.listActivities activities
     @controller.hideLazyLoader()
-
 
   refreshActivities:(err,activities,isStatic)->
     @profileContentView.$('.content-item').remove()
@@ -332,8 +339,8 @@ class StaticProfileController extends KDController
     @profileLoadingBar.unsetClass 'active'
     @profileLoaderView.hide()
 
-  getAllowedTypes:(profileUser)->
-      allowedTypes = profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
+  getAllowedTypes:(@profileUser)->
+    allowedTypes = @profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
 
 
 class StaticNavLink extends KDView
