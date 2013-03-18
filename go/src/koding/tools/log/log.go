@@ -144,9 +144,15 @@ func CreateGauge(name string, input func() float64) {
 	gauges = append(gauges, Gauge{name, 0, libratoSource, input})
 }
 
-func CreateCounterGauge(name string) func(int) {
+func CreateCounterGauge(name string, resetOnReport bool) func(int) {
 	value := new(int)
-	CreateGauge(name, func() float64 { return float64(*value) })
+	CreateGauge(name, func() float64 {
+		v := *value
+		if resetOnReport {
+			*value = 0
+		}
+		return float64(v)
+	})
 	return func(diff int) {
 		GaugeChanges <- func() {
 			*value += diff

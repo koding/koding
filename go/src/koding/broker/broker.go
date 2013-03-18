@@ -25,7 +25,8 @@ import (
 func main() {
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients")
+	changeNewClientsGauge := log.CreateCounterGauge("newClients", true)
+	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients", false)
 	log.RunGaugesLoop()
 
 	publishConn := amqputil.CreateConnection("broker")
@@ -44,6 +45,7 @@ func main() {
 
 		log.Debug("Client connected: " + socketId)
 		changeClientsGauge(1)
+		changeNewClientsGauge(1)
 		if session.IsWebsocket {
 			changeWebsocketClientsGauge(1)
 		}
