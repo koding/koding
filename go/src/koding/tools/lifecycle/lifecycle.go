@@ -38,7 +38,7 @@ func CreateClientsGauge() func(int) {
 	changeClientsGauge = func(diff int) {
 		log.GaugeChanges <- func() {
 			*value += diff
-			if *value == 0 {
+			if ShuttingDown && *value == 0 {
 				log.Info("Shutdown complete. Terminating.")
 				os.Exit(0)
 			}
