@@ -173,9 +173,7 @@ class Sidebar extends JView
     @finderResizeHandle.on "DragInAction", (x, y)=>
       @finderResizeHandle._dragged = yes
       newFpWidth = @_fpWidth + x
-      if newFpWidth < 13
-        @finderResizeHandle.dragIsAllowed = no
-        return no
+      return @finderResizeHandle.$().css left: '' if newFpWidth < 13
       cp.$().css left : cp._left + x, width : cp._width - x
       @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
