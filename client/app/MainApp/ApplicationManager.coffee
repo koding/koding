@@ -179,7 +179,8 @@ class ApplicationManager extends KDObject
 
   quit:(appInstance, callback = noop)->
 
-    appInstance.getView().destroy()
+    destroyer = if view = appInstance.getView?() then view else appInstance
+    destroyer.destroy()
     callback()
 
   quitAll:->
@@ -277,8 +278,8 @@ class ApplicationManager extends KDObject
 
   setListeners:(appInstance)->
 
-    appView = appInstance.getView?()
-    appView?.once "KDObjectWillBeDestroyed", =>
+    destroyer = if view = appInstance.getView?() then view else appInstance
+    destroyer.once "KDObjectWillBeDestroyed", =>
       @unregister appInstance
       appInstance.emit "AppDidQuit"
       KD.getSingleton('appManager').emit  "AppDidQuit", appInstance

@@ -4,15 +4,16 @@ class MainController extends KDController
 
   * EMITTED EVENTS
     - AppIsReady
-    - AccountChanged           [account, firstLoad]
-    - UserHasJustLoggedIn      [account, connectedState]
-    - UserHasJustLoggedOut     [account, connectedState]
+    - AccountChanged                [account, firstLoad]
+    - pageLoaded.as.loggedIn        [account, connectedState, firstLoad]
+    - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
+    - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
+    - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
   ###
 
 
   connectedState =
     connected   : no
-    wasLoggedIn : no
 
   constructor:(options = {}, data)->
 
@@ -102,11 +103,16 @@ class MainController extends KDController
 
     @decorateBodyTag()
 
-    if @isUserLoggedIn()
-      connectedState.wasLoggedIn = yes
-      @emit 'UserHasJustLoggedIn', account, connectedState
-    else
-      @emit 'UserHasJustLoggedOut', account, connectedState
+    eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+    eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+
+    # this emits following events
+    # -> "pageLoaded.as.loggedIn"
+    # -> "pageLoaded.as.loggedOut"
+    # -> "accountChanged.to.loggedIn"
+    # -> "accountChanged.to.loggedOut"
+
+    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   doJoin:->
     @loginScreen.animateToForm 'lr'
@@ -149,11 +155,16 @@ class MainController extends KDController
 
   attachListeners:->
 
-    @on 'UserHasJustLoggedOut', (account, connectedState)=>
+    # @on 'pageLoaded.*.*', (account)=>
+    #   log "pageLoaded", @isUserLoggedIn()
+
+    @on '*.*.loggedOut', (account)=>
+      # log "accountChanged Out"
       @mainViewController.sidebarController.accountChanged account
       @mainViewController.getView().decorateLoginState no
 
-    @on 'UserHasJustLoggedIn', (account, connectedState)=>
+    @on '*.*.loggedIn', (account)=>
+      # log "accountChanged In"
       @mainViewController.getView().decorateLoginState yes
       @mainViewController.sidebarController.accountChanged account
 
