@@ -112,7 +112,7 @@ task 'applicationsKite',({configFile})->
 
 task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {webserver} = KONFIG
+  {webserver,sourceServer} = KONFIG
 
   runServer = (config, port) ->
     processes.fork
@@ -130,6 +130,13 @@ task 'webserver', ({configFile}) ->
 
   webPort.forEach (port) ->
     runServer configFile, port
+
+  if sourceServer?.enabled
+    processes.fork
+      name            : 'sourceserver'
+      cmd             : __dirname + "/server/sourceserver -c #{configFile} -p #{sourceServer.port}"
+      restart         : yes
+      restartInterval : 100
 
   if webserver.watch is yes
     watcher = new Watcher
