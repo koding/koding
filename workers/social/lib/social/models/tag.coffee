@@ -17,13 +17,17 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/restrictedquery'
   # @trait __dirname, '../traits/groupable'
 
   @share()
 
   @set
     slugifyFrom     : 'title'
-    slugTemplate    : 'Topics/#{slug}'
+    slugTemplate    : ->
+      """
+      #{if @group is 'koding' then '' else @group}/Topics/\#{slug}
+      """
     permissions     :
       'create tags'           : ['member', 'moderator']
       'freetag content'       : ['member', 'moderator']
@@ -34,9 +38,9 @@ module.exports = class JTag extends jraphical.Module
       'delete own tags'       : ['moderator']
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
-      slug          : 'unique'
+      # slug          : 'unique'
       title         : 'sparse'
-      group         : 'sparse'
+      # group         : 'sparse'
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -170,10 +174,11 @@ module.exports = class JTag extends jraphical.Module
       {group} = client.context
       tag = new this data
       tag.group = group
-      tag.save client, (err)->
+      tag.save (err)->
         if err
           callback err
         else
+          tag.createSlug console.log.bind console, 'slkhflsh'
           tag.addCreator delegate, (err)->
             if err
               callback err
@@ -181,10 +186,10 @@ module.exports = class JTag extends jraphical.Module
               callback null, tag
 
   @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip}  = options
-
-    @inCollectionBySource(client.context)
-      .some {
+    {limit, blacklist, skip} = options
+    {group} = client.context
+    @some {
+        group
         title   : seed
         _id     :
           $nin  : blacklist

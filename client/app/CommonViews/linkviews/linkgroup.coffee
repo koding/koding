@@ -39,9 +39,12 @@ class LinkGroup extends KDCustomHTMLView
     for participant, index in participants
       if participant.bongo_.constructorName is "ObjectRef"
         itemOptions.origin = participant
-        @["participant#{index}"] = new itemClass itemOptions
+        inst = new itemClass itemOptions
+        @["participant#{index}"] = inst
       else
-        @["participant#{index}"] = new itemClass itemOptions, participant
+        inst = new itemClass itemOptions, participant
+        @["participant#{index}"] = inst
+      inst.on 'LinkClicked', => @emit 'ItemClicked', inst
     @setTemplate @pistachio()
     @template.update()
 
@@ -72,7 +75,7 @@ class LinkGroup extends KDCustomHTMLView
       when 2 then "{{> @participant0}} and {{> @participant1}}"
       when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
       when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
-      else "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+      else        "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
 
   render:->
 

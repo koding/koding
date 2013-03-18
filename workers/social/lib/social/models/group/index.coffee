@@ -59,6 +59,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
+        'fetchMembershipStatus'
       ]
     schema          :
       title         :
@@ -610,3 +611,20 @@ module.exports = class JGroup extends Module
 
   fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...
+
+  fetchMembershipStatus: secure (client, callback)->
+    JAccount = require '../account'
+    {delegate} = client.connection
+    unless delegate instanceof JAccount 
+      callback null, 'guest'
+    else
+      @fetchMyRoles client, (err, roles)=>
+        if err then callback err
+        else if 'member' in roles then callback null, 'member'
+        else
+          options = targetOptions:
+            selector: { koding: username: delegate.profile.nickname }
+          @fetchInvitationRequest {}, options, (err, request)->
+            if err then callback err
+            else unless request? then callback null, 'guest'
+            else callback null, "invitation-#{request.status}"

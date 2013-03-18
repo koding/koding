@@ -28,7 +28,6 @@ class LandingPageSideBar extends KDView
 
     @addSubView @nav = @navController.getView()
 
-
 class LandingPageNavigationController extends NavigationController
 
   constructor: ->
@@ -48,7 +47,7 @@ class LandingPageNavigationController extends NavigationController
           if err then console.warn err
           else if roles.length
             items.unshift \
-              { title: 'Open Group', path: "/#{groupEntryPoint}/Activity"}
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
             @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
@@ -56,17 +55,21 @@ class LandingPageNavigationController extends NavigationController
                 if err then console.warn err
                 else if policy?.approvalEnabled
                   items.unshift \
-                    { title: 'Request to Join', action: 'request'}
+                    { title: 'Request access', action: 'request'}
                 else
                   items.unshift \
                     { title: 'Join Group', action: 'join-group'}
                 @_instantiateListItems items
 
       else
-        items.unshift { title: 'Request to Join', action: 'request'}
+        items.unshift { title: 'Request access', action: 'request'}
+
+        if groupEntryPoint is "koding" then items.first.title = "Request Invite"
+
         @_instantiateListItems items
 
-    else if @lc.userEnteredFromProfile
+    else if @lc.userEnteredFromProfile()
+
       log 'entered from profile!'
       profileItems = [
         { title : 'Home',action : 'home', type : 'user'}
@@ -94,6 +97,15 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       @getListView().addItem itemData
 
+fetchGroupFirst = (callback)->
+  {groupEntryPoint} = KD.config
+  KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+    error err if err
+    if err then new KDNotificationView
+      title : "An error occured, please try again"
+    else unless group?
+      new KDNotificationView title : "No such group!"
+    else callback group
 
 class LandingPageNavigationLink extends NavigationLink
 
@@ -110,7 +122,8 @@ class LandingPageNavigationLink extends NavigationLink
     {action, appPath, title, path, type} = @getData()
     log "here", @getData()
 
-    {loginScreen} = @getSingleton 'mainController'
+    mc = @getSingleton 'mainController'
+    {loginScreen} = mc
 
     if path
       @openPath path
@@ -118,32 +131,32 @@ class LandingPageNavigationLink extends NavigationLink
 
     {groupEntryPoint, profileEntryPoint} = KD.config
 
-
-
     switch action
       when 'login'
         loginScreen.animateToForm 'login'
       when 'register'
         loginScreen.animateToForm 'register'
       when 'request'
-        loginScreen.animateToForm 'lr'
+        if KD.isLoggedIn()
+          fetchGroupFirst (group)=>
+            @getSingleton('groupsController').openPrivateGroup group
+        else
+          loginScreen.animateToForm 'lr'
       when 'join-group'
-        {groupEntryPoint} = KD.config
-        KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
-          error err if err
-          if err then new KDNotificationView
-            title : "An error occured, please try again"
-          else unless group?
-            new KDNotificationView title : "No such group!"
-          else group.join (err, response)=>
+        fetchGroupFirst (group)=>
+          group.join (err, response)=>
             error err if err
-            if err
-              new KDNotificationView
-                title : "An error occured, please try again"
+            if err then new KDNotificationView
+              title : "An error occured, please try again"
             else
               new KDNotificationView
                 title : "You successfully joined to group!"
               @openPath "/#{groupEntryPoint}/Activity"
+
+      when 'logout'
+        mainController = @getSingleton('mainController')
+        mainController.mainViewController.getView().hide()
+        @openPath '/Logout'
 
       when 'activity'
         # @openPath "/#{profileEntryPoint}/Activity"

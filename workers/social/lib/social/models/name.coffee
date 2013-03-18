@@ -36,15 +36,16 @@ module.exports = class JName extends Model
       if err then callback err
       else slowEach_ cursor, console.error
 
-  stripTemplate:->
-    konstructor = Base.constructors[@constructorName]
-    unless konstructor? then console.log this
-    {slugTemplate} = Base.constructors[@constructorName]
-    return @name  unless slugTemplate
+  stripTemplate =(konstructor, nameStr)->
+    {slugTemplate} = konstructor#Base.constructors[@constructorName]
+    return nameStr  unless slugTemplate
     slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
     re = RegExp slugTemplate.replace slugStripPattern,
       (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
-    @name.match(re)?[1]
+    nameStr.match(re)?[1]
+
+  stripTemplate:->
+    stripTemplate Base.constructors[@constructorName], @name
 
   migrateOldName:(callback=->)->
     return  unless @constructorName?
@@ -61,13 +62,34 @@ module.exports = class JName extends Model
         newName = {
           slug, collectionName, @usedAsPath, @constructorName
         }
-        console.log 'here'
         kallback =do -> i = 0; (err)->
-          console.log {arguments}
           if err then callback err
           else if ++i is 2 then callback null
         @update {$set: slugs: [newName]}, kallback
         @update {$unset: {constructorName:1, usedAsPath:1}}, kallback
+
+  @fetchModels =do->
+    fetchByNameObject =(nameObj, callback)->
+      models = []
+      queue = nameObj.slugs.map (slug, i)->->
+        konstructor = Base.constructors[slug.constructorName]
+        selector = {}
+        selector[slug.usedAsPath] = slug.slug
+        konstructor.one selector, (err, model)->
+          models[i] = model
+          queue.fin()
+      dash queue, -> callback null, models, nameObj
+
+    fetchModels = (name, callback)->
+      if 'string' is typeof name
+        @one {name}, (err, nameObj)->
+          if err then next err
+          else unless nameObj? then callback null
+          else fetchByNameObject nameObj, callback
+      else
+        fetchByNameObject name, callback
+
+  fetchModels:(callback)-> @fetchModels this, callback
 
   @release =(name, callback=->)->
     @remove {name}, callback
@@ -85,14 +107,10 @@ module.exports = class JName extends Model
       ], callback
 
   @claim =(fullName, slugs, konstructor, usedAsPath, callback)->
-    constructorName =\
-      if 'string' is typeof konstructor then konstructor
-      else konstructor.fullName
+    [callback, usedAsPath] = [usedAsPath, callback]  unless callback
     nameDoc = new this {
       name: fullName
       slugs
-      constructorName
-      usedAsPath
     }
     nameDoc.save (err)->
       if err?.code is 11000
@@ -120,11 +138,17 @@ module.exports = class JName extends Model
               cursor.each (err, doc)=>
                 if err then callback err
                 else if doc?
+                  {collectionName} = konstructor.getCollection()
                   name = getAt doc, usedAsPath
-                  @claim name, [name], konstructor, usedAsPath, (err)->
+                  slug = {
+                    collectionName
+                    usedAsPath
+                    constructorName   : konstructor.name
+                    slug              : stripTemplate konstructor, name
+                  }
+                  @claim name, [slug], konstructor, (err)->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err
                     else if ++j is docCount and ++i is konstructorCount
                       callback null
-
