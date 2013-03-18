@@ -8,60 +8,32 @@ class NSetPermissionsView extends JView
   CLASS CONTEXT
   ###
 
-  decimalToAnother = (n, radix) ->
-    hex = []
-    for i in [0..10]
-      hex[i+1] = i
-      
-    s = ''
-    a = n
-    while a >= radix
-      b = a % radix
-      a = Math.floor a / radix
-      s += hex[b + 1]
-      
-    s += hex[a + 1]
-    transpose s
-    
-  transpose = (s) ->
-    n = s.length
-    t = ''
-    for i in [0...n]
-      t = t + s.substring n - i - 1, n - i
-    s = t
-    s
-    
-  octalToBinary = (oc) ->
-    binary = decimalToAnother parseInt(oc, 8), 2
-    for i in [binary.length...3] #normalizing to 3 bits
-      binary = '0' + binary
-    binary
-    
-  binaryToOctal = (bin) ->
-    decimalToAnother parseInt(bin, 2), 8
-
+  permissionsToOctalString = (permissions)->
+    str = permissions.toString 8
+    str = "0" + str while str.length < 3
+    return str
 
   ###
   INSTANCE METHODS
   ###
 
   constructor: ->
-    
+
     super
 
-    @switches = {}
+    @switches = []
 
-    @setPermissionsButton = new KDButtonView 
+    @setPermissionsButton = new KDButtonView
       title     : "Set"
       callback  : =>
-        permissions = @getOctalPermissions()
+        permissions = permissionsToOctalString @getPermissions()
         recursive   = @recursive.getValue() or no
         file        = @getData()
         file.chmod {permissions, recursive}, (err,res)=>
           unless err
             @displayOldOctalPermissions()
 
-    @fetchPermissionsButton = new KDButtonView 
+    @fetchPermissionsButton = new KDButtonView
       title : "Fetch file permissions"
       callback: ->
         log "fetch"
@@ -71,40 +43,26 @@ class NSetPermissionsView extends JView
         #   setPermissionsView.applyExistingPermissions()
 
     @recursive = new KDOnOffSwitch
-    
-  createSwitches: (name, permission = 6) ->
-    @switches[name] = []
-    permissions = octalToBinary permission
-    for bit in permissions
-      @switches[name].push new KDOnOffSwitch
-        defaultValue  : !!parseInt(bit)
+
+  createSwitches: (permission) ->
+    for i in [0...9]
+      @switches.push new KDOnOffSwitch
+        defaultValue  : permission & (1<<i) != 0
         callback      : =>
           @displayOctalPermissions()
-    @switches[name]
-    
-  getBinaryOfGroup: (group) ->
-    binary = ''
-    for switcher in @switches[group]
-      binary += if switcher.getValue() then '1' else 0
-    binary
-    
-  getOctalPermissions: ->
-    binaryOwner     = @getBinaryOfGroup 'owner'
-    binaryGroup     = @getBinaryOfGroup 'group'
-    binaryEveryone  = @getBinaryOfGroup 'everyone'
-    
-    owner     = binaryToOctal(binaryOwner)
-    group     = binaryToOctal(binaryGroup)
-    everyone  = binaryToOctal(binaryEveryone)
 
-    permissions = owner + group + everyone
-    
+  getPermissions: ->
+    permissions = 0
+    for s, i in @switches
+      permissions |= 1<<i if s.getValue()
+    return permissions
+
   displayOctalPermissions: ->
-    @$('footer p.new em').html @getOctalPermissions()
-    
+    @$('footer p.new em').html permissionsToOctalString(@getPermissions())
+
   displayOldOctalPermissions: ->
-    @$('footer p.old em').html @getData().mode
-  
+    @$('footer p.old em').html permissionsToOctalString(@getData().mode)
+
   viewAppended:->
     @setClass "set-permissions-wrapper"
     @applyExistingPermissions()
@@ -113,7 +71,7 @@ class NSetPermissionsView extends JView
 
   pistachio:->
     mode = @getData().mode
-    
+
     unless mode?
       """
       <header class="clearfix"><div>Unknown file permissions</div></header>
@@ -122,22 +80,22 @@ class NSetPermissionsView extends JView
     else
       """
       <header class="clearfix"><span>Owner</span><span>Group</span><span>Everyone</span></header>
-      <aside class="permissions"><p>Read:</p><p>Write:</p><p>Execute:</p></aside> 
+      <aside class="permissions"><p>Read:</p><p>Write:</p><p>Execute:</p></aside>
       <section class="switch-holder clearfix">
         <div class="kdview switcher-group">
-          {{> @switches.owner[0]}}
-          {{> @switches.owner[1]}}
-          {{> @switches.owner[2]}}
+          {{> @switches[8]}}
+          {{> @switches[5]}}
+          {{> @switches[2]}}
         </div>
         <div class="kdview switcher-group">
-          {{> @switches.group[0]}}
-          {{> @switches.group[1]}}
-          {{> @switches.group[2]}}
+          {{> @switches[7]}}
+          {{> @switches[4]}}
+          {{> @switches[1]}}
         </div>
         <div class="kdview switcher-group">
-          {{> @switches.everyone[0]}}
-          {{> @switches.everyone[1]}}
-          {{> @switches.everyone[2]}}
+          {{> @switches[6]}}
+          {{> @switches[3]}}
+          {{> @switches[0]}}
         </div>
       </section>
       <footer class="clearfix">
@@ -150,22 +108,16 @@ class NSetPermissionsView extends JView
         {{> @setPermissionsButton}}
       </footer>
       """
-      
-  
+
+
   applyExistingPermissions:()->
-    
+
     setPermissionsView = @
     {mode} = @getData()
-    
+
     @getData().newMode = mode
-    
-    permissions =
-      owner     : mode[0]
-      group     : mode[1]
-      everyone  : mode[2]
-    
-    @createSwitches name, permission for name, permission of permissions
-      
+    @createSwitches mode
+
     setTimeout =>
       @displayOctalPermissions()
       @displayOldOctalPermissions()

@@ -42,7 +42,7 @@ class KodingAppsController extends KDController
 
     {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
+    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}" else path
     return path.replace /(\/+)$/, ""
 
   @getManifestFromPath = getManifestFromPath = (path)->
@@ -89,7 +89,7 @@ class KodingAppsController extends KDController
 
   fetchAppsFromFs:(callback)->
 
-    path = "/Users/#{KD.whoami().profile.nickname}/Applications"
+    path = "/home/#{KD.whoami().profile.nickname}/Applications"
 
     @kiteController.run "ls #{escapeFilePath path} -lpva", \
       KD.utils.getTimedOutCallback (err, response)=>
@@ -691,7 +691,7 @@ class KodingAppsController extends KDController
   #         callback? err
   #         return no
 
-  #       appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
+  #       appPath = "/home/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
   #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
 
   #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->

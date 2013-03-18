@@ -68,7 +68,7 @@ func init() {
 					log.Warn("Watcher error", err)
 					continue
 				}
-				fireCallbacks(path.Dir(ev.Name), "added", makeFileEntry(info))
+				fireCallbacks(path.Dir(ev.Name), "added", makeFileEntry(info, ev.Name))
 				continue
 			}
 			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {

@@ -52,7 +52,7 @@ checkPath = (formData, callback)->
 
   kc.run
     withArgs  :
-      command : "stat /Users/#{nickname}/Sites/#{domain}/website/#{path}"
+      command : "stat /home/#{nickname}/Sites/#{domain}/website/#{path}"
   , (err, response)=>
     parseOutput "Specified path isn't available, please delete it or select another path!", yes if response
     callback? err, response
@@ -62,19 +62,19 @@ installWordpress = (formData, callback)->
   {path, domain, timestamp} = formData
 
   commands =
-    a : "mkdir -vp '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    b : "curl --location 'http://wordpress.org/latest.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
-    # b : "curl --location 'http://sinan.koding.com/planet.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
-    c : "unzip '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip' -d '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    d : "chmod 774 -R '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    e : "rm '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
-    # f : "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet' '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
-    f : "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress' '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
-    g : "rm -r '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    a : "mkdir -vp '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    b : "curl --location 'http://wordpress.org/latest.zip' >'/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    # b : "curl --location 'http://sinan.koding.com/planet.zip' >'/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    c : "unzip '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip' -d '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    d : "chmod 774 -R '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    e : "rm '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    # f : "mv '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/home/sinan/Sites/sinan.koding.com/website/planet' '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
+    f : "mv '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress' '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
+    g : "rm -r '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
 
   if path is ""
-    commands.f = "cp -R /Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress/* /Users/#{nickname}/Sites/#{domain}/website"
-    # commands.f = "cp -R '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet/*' '/Users/#{nickname}/Sites/#{domain}/website'"
+    commands.f = "cp -R /home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress/* /home/#{nickname}/Sites/#{domain}/website"
+    # commands.f = "cp -R '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/home/sinan/Sites/sinan.koding.com/website/planet/*' '/home/#{nickname}/Sites/#{domain}/website'"
 
 
   parseOutput commands.a
@@ -108,7 +108,7 @@ installWordpress = (formData, callback)->
                         else
                           parseOutput res
                           parseOutput "<br>#############"
-                          parseOutput "<br>Wordpress successfully installed to: /Users/#{nickname}/Sites/#{domain}/website/#{path}"
+                          parseOutput "<br>Wordpress successfully installed to: /home/#{nickname}/Sites/#{domain}/website/#{path}"
                           parseOutput "<br>#############<br>"
                           callback? formData
                           appStorage.fetchStorage ->

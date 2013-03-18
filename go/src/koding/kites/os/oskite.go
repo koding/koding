@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/tools/config"
 	"koding/tools/db"
 	"koding/tools/dnode"
@@ -17,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -125,23 +123,23 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
-		user, _ := findSession(session)
-		absPath := path.Join("/home", user.Name, params.Path)
-		info, err := os.Stat(absPath)
+		user, vm := findSession(session)
+		vmPath := params.Path
+		if !path.IsAbs(vmPath) {
+			vmPath = "/home/" + user.Name + "/" + vmPath
+		}
+		fullPath, err := vm.ResolveRootfsFile(vmPath, user)
 		if err != nil {
 			return nil, err
 		}
-		if int(info.Sys().(*syscall.Stat_t).Uid) != user.Uid {
-			return nil, fmt.Errorf("You can only watch your own directories.")
-		}
 
-		watch, err := NewWatch(absPath, params.OnChange)
+		watch, err := NewWatch(fullPath, params.OnChange)
 		if err != nil {
 			return nil, err
 		}
 		session.OnDisconnect(func() { watch.Close() })
 
-		dir, err := os.Open(absPath)
+		dir, err := os.Open(fullPath)
 		defer dir.Close()
 		if err != nil {
 			return nil, err
@@ -154,7 +152,7 @@ func main() {
 
 		entries := make([]FileEntry, len(infos))
 		for i, info := range infos {
-			entries[i] = makeFileEntry(info)
+			entries[i] = makeFileEntry(info, vmPath+"/"+info.Name())
 		}
 
 		return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
@@ -175,8 +173,8 @@ func main() {
 		}
 		sessions := make(map[string]string)
 		for _, name := range names {
-			parts := strings.SplitN(name, ".", 2)
-			sessions[parts[0]] = parts[1]
+			segements := strings.SplitN(name, ".", 2)
+			sessions[segements[0]] = segements[1]
 		}
 		return sessions, nil
 	})
@@ -349,10 +347,34 @@ func (info *VMInfo) startTimeout() {
 }
 
 type FileEntry struct {
-	Name  string `json:"name"`
-	IsDir bool   `json:"isDir"`
+	Name     string      `json:"name"`
+	IsDir    bool        `json:"isDir"`
+	Size     int64       `json:"size"`
+	Mode     os.FileMode `json:"mode"`
+	Time     time.Time   `json:"time"`
+	IsBroken bool        `json:"isBroken"`
 }
 
-func makeFileEntry(info os.FileInfo) FileEntry {
-	return FileEntry{Name: info.Name(), IsDir: info.IsDir()}
+func makeFileEntry(info os.FileInfo, p string) FileEntry {
+	entry := FileEntry{
+		Name:  info.Name(),
+		IsDir: info.IsDir(),
+		Size:  info.Size(),
+		Mode:  info.Mode(),
+		Time:  info.ModTime(),
+	}
+
+	if info.Mode()&os.ModeSymlink != 0 {
+		symlinkInfo, err := os.Stat(p) // follow symlink
+		if err != nil {
+			entry.IsBroken = true
+			return entry
+		}
+		entry.IsDir = symlinkInfo.IsDir()
+		entry.Size = symlinkInfo.Size()
+		entry.Mode = symlinkInfo.Mode()
+		entry.Time = symlinkInfo.ModTime()
+	}
+
+	return entry
 }
