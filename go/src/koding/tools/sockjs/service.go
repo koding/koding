@@ -55,6 +55,7 @@ func NewService(jsFileUrl string, timeout time.Duration, callback func(*Session)
 				}
 			}
 			s.sessionsMutex.Unlock()
+			time.Sleep(timeout)
 		}
 	}()
 
