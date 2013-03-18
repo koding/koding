@@ -132,6 +132,8 @@ class StaticProfileController extends KDController
       itemClass : StaticActivityListItemView
     , {}
 
+    @sanitizeStaticContent @profileContentView
+
     @listWrapper = @controller.getView()
     @staticListWrapper = @staticController.getView()
     @listWrapper.hide()
@@ -141,12 +143,12 @@ class StaticProfileController extends KDController
 
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
-    @profileLandingView = new KDView
+    @landingView = new KDView
       lazyDomId : 'static-landing-page'
 
-    @profileLandingView.listenWindowResize()
-    @profileLandingView._windowDidResize = =>
-      @profileLandingView.setHeight window.innerHeight
+    @landingView.listenWindowResize()
+    @landingView._windowDidResize = =>
+      @landingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
       @repositionLogoView()
 
@@ -164,7 +166,7 @@ class StaticProfileController extends KDController
         @emit 'ShowMoreButtonClicked'
         @profileShowMoreView.hide()
         @profileShowMoreView.setHeight 0
-        @profileLandingView._windowDidResize()
+        @landingView._windowDidResize()
 
     if @profileContentView.$().attr('data-count') > 0
       @profileShowMoreView.show()
@@ -212,10 +214,11 @@ class StaticProfileController extends KDController
     # reviving loading bar
     @profileLoadingBar = new KDView
       lazyDomId : 'profile-loading-bar'
+      partial   : 'Loading'
     @profileLoadingBar.addSubView @profileLoaderView = new KDLoaderView
       size          :
-        width       : 32
-        height      : 32
+        width       : 16
+        height      : 16
       loaderOptions :
         color       : '#ff9200'
     @profileLoaderView.hide()
@@ -228,18 +231,20 @@ class StaticProfileController extends KDController
         @profileContentWrapperView.setClass 'slide-down'
         @profileLogoView.setClass 'top'
 
-        @profileLandingView.setClass 'profile-fading'
-        @utils.wait 1100, => @profileLandingView.setClass 'profile-hidden'
+        # @landingView.setClass 'profile-fading'
+        # @utils.wait 1100, => @landingView.setClass 'profile-hidden'
+
+        @getSingleton('lazyDomController').hideLandingPage()
 
     @repositionLogoView()
-
-    @utils.wait => @profileLogoView.setClass 'animate'
 
     console.timeEnd 'reviving page elements on pageload.'
 
   reviveViewsOnUserLoad:(user)->
 
     console.time 'reviving page elements on userload.'
+
+    @utils.wait 500, => @profileLogoView.setClass 'animate'
 
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes @profileUser
@@ -313,7 +318,7 @@ class StaticProfileController extends KDController
 
   repositionLogoView:->
     @profileLogoView.$().css
-      top: @profileLandingView.getHeight()-42
+      top: @landingView.getHeight()-42
 
   appendActivities:(err,activities)->
     @controller.listActivities activities
@@ -341,6 +346,10 @@ class StaticProfileController extends KDController
 
   getAllowedTypes:(@profileUser)->
     allowedTypes = @profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
+
+  sanitizeStaticContent:(view)->
+    view.$(".content-item > .has-markdown > span.data a").each (i,element)->
+      $(element).attr target : '_blank'
 
 
 class StaticNavLink extends KDView
