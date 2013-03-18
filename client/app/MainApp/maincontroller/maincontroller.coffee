@@ -23,8 +23,7 @@ class MainController extends KDController
 
     # window.appManager is there for backwards compatibilty
     # will be deprecated soon.
-    appManager = new ApplicationManager
-    window.appManager = appManager
+    window.appManager = new ApplicationManager
 
     KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
