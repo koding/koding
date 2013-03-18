@@ -19,7 +19,6 @@ class MainTabView extends KDTabView
       else
         @createTabPane options, view
 
-
     @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
       if e.target is @getSingleton("contentPanel").domElement[0]
         @tabHandleContainer.setWidth @getWidth()
@@ -30,7 +29,7 @@ class MainTabView extends KDTabView
   handleClicked:(index,event)->
     pane = @getPaneByIndex index
     if $(event.target).hasClass "close-tab"
-      @removePane pane
+      pane.mainView.destroy()
       return no
 
     @showPane pane
@@ -104,6 +103,8 @@ class MainTabView extends KDTabView
     if pane.getOption("behavior") is "application"
       mainView.setClass 'application-page'
     pane.setMainView mainView
+    mainView.on "KDObjectWillBeDestroyed", =>
+      @removePane pane
 
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []

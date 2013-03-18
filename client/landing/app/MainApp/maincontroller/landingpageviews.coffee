@@ -14,6 +14,7 @@ class LandingPageSideBar extends KDView
         type       : "navigation"
       scrollView   : no
       wrapper      : no
+      delegate     : @
     ,
       items : [
         { title : "Register", action : "register", loggedOut : yes }
@@ -21,6 +22,9 @@ class LandingPageSideBar extends KDView
         { title : "Logout",   action : "logout",   loggedIn  : yes }
         { title : "Login",    action : "login",    loggedOut : yes }
       ]
+
+    @on 'ListItemsInstantiated' , =>
+      $("#profile-static-nav").remove()
 
     @addSubView @nav = @navController.getView()
 
@@ -43,7 +47,7 @@ class LandingPageNavigationController extends NavigationController
           if err then console.warn err
           else if roles.length
             items.unshift \
-              { title: 'Open Group', path: "/#{groupEntryPoint}/Activity"}
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
             @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
@@ -65,11 +69,12 @@ class LandingPageNavigationController extends NavigationController
 
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities',action : 'activity', type : 'selected'}
-        { title : 'My Topics', action : 'topics', type : 'main' }
-        { title : 'My People', action : 'members', type : 'main'}
-        { title : 'My Groups', action : 'groups', type : 'main'}
-        { title : 'My Apps', action : 'apps', type : 'main'}
+        { title : 'My Activities', action : 'activity', type : 'user'}
+        { title : 'My Topics',     action : 'topics',   type : 'user' }
+        { title : 'My People',     action : 'members',  type : 'user'}
+        { title : 'My Groups',     action : 'groups',   type : 'user'}
+        { title : 'My Apps',       action : 'apps',     type : 'user'}
+        { type  : "separator" }
       ]
       items = profileItems.concat items
       @_instantiateListItems items
@@ -77,6 +82,7 @@ class LandingPageNavigationController extends NavigationController
       @_instantiateListItems items
 
   _instantiateListItems:(items)->
+    @getDelegate().emit 'ListItemsInstantiated'
     newItems = for itemData in items
       if KD.isLoggedIn()
         continue if itemData.loggedOut
@@ -84,11 +90,22 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       @getListView().addItem itemData
 
+fetchGroupFirst = (callback)->
+  {groupEntryPoint} = KD.config
+  KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+    error err if err
+    if err then new KDNotificationView
+      title : "An error occured, please try again"
+    else unless group?
+      new KDNotificationView title : "No such group!"
+    else callback group
+
 class LandingPageNavigationLink extends NavigationLink
 
   constructor:(options = {}, data)->
     data.type or= "account"
     super options, data
+    @lc = @getSingleton 'lazyDomController'
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
@@ -105,43 +122,54 @@ class LandingPageNavigationLink extends NavigationLink
       @openPath path
       return
 
+    {groupEntryPoint, profileEntryPoint} = KD.config
+
     switch action
       when 'login'
         loginScreen.animateToForm 'login'
       when 'register'
         loginScreen.animateToForm 'register'
       when 'request'
-        loginScreen.animateToForm 'lr'
+        if KD.isLoggedIn()
+          fetchGroupFirst (group)=>
+            @getSingleton('groupsController').openPrivateGroup group
+        else
+          loginScreen.animateToForm 'lr'
       when 'join-group'
-        {groupEntryPoint} = KD.config
-        KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
-          error err if err
-          if err then new KDNotificationView
-            title : "An error occured, please try again"
-          else unless group?
-            new KDNotificationView title : "No such group!"
-          else group.join (err, response)=>
+        fetchGroupFirst (group)=>
+          group.join (err, response)=>
             error err if err
-            if err
-              new KDNotificationView
-                title : "An error occured, please try again"
+            if err then new KDNotificationView
+              title : "An error occured, please try again"
             else
               new KDNotificationView
                 title : "You successfully joined to group!"
               @openPath "/#{groupEntryPoint}/Activity"
 
       when 'logout'
-        $('#kdmaincontainer').addClass 'hidden'
+        mainController = @getSingleton('mainController')
+        mainController.mainViewController.getView().hide()
         @openPath '/Logout'
 
       when 'activity'
+        @openPath "/#{profileEntryPoint}/Activity"
+        @lc.hideLandingPage()
         log 'Activity'
       when 'topics'
+        @openPath "/#{profileEntryPoint}/Topics"
+        @lc.hideLandingPage()
+
         log 'Topics'
       when 'members'
+        @openPath "/#{profileEntryPoint}/Members"
+        @lc.hideLandingPage()
         log 'Members'
       when 'groups'
+        @openPath "/#{profileEntryPoint}/Groups"
+        @lc.hideLandingPage()
         log 'Groups'
       when 'apps'
+        @openPath "/#{profileEntryPoint}/Apps"
+        @lc.hideLandingPage()
         log 'Apps'
 

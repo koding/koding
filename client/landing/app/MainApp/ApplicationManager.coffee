@@ -5,6 +5,8 @@ class ApplicationManager extends KDObject
 
   manifestsFetched = no
 
+  log = noop
+
   ###
 
   * EMITTED EVENTS
@@ -177,7 +179,8 @@ class ApplicationManager extends KDObject
 
   quit:(appInstance, callback = noop)->
 
-    @unregister appInstance
+    destroyer = if view = appInstance.getView?() then view else appInstance
+    destroyer.destroy()
     callback()
 
   quitAll:->
@@ -230,7 +233,6 @@ class ApplicationManager extends KDObject
       @appControllers[name].instances.splice index, 1
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
-      appInstance.destroy()
 
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response
@@ -276,10 +278,11 @@ class ApplicationManager extends KDObject
 
   setListeners:(appInstance)->
 
-    appView = appInstance.getView?()
-    appView?.once "KDObjectWillBeDestroyed", =>
+    destroyer = if view = appInstance.getView?() then view else appInstance
+    destroyer.once "KDObjectWillBeDestroyed", =>
       @unregister appInstance
       appInstance.emit "AppDidQuit"
+      KD.getSingleton('appManager').emit  "AppDidQuit", appInstance
 
   setLastActiveIndex:(appInstance)->
 

@@ -4,15 +4,16 @@ class MainController extends KDController
 
   * EMITTED EVENTS
     - AppIsReady
-    - AccountChanged          [account]
-    - UserIsJustLoggedIn      [account, connectedState]
-    - UserIsJustLoggedOut     [account, connectedState]
+    - AccountChanged                [account, firstLoad]
+    - pageLoaded.as.loggedIn        [account, connectedState, firstLoad]
+    - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
+    - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
+    - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
   ###
 
 
   connectedState =
     connected   : no
-    wasLoggedIn : no
 
   constructor:(options = {}, data)->
 
@@ -45,7 +46,7 @@ class MainController extends KDController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
     @setFailTimer()
-    @putGlobalEventListeners()
+    @attachListeners()
 
     @accountReadyState = 0
 
@@ -80,14 +81,14 @@ class MainController extends KDController
     if @accountReadyState > 0 then fn()
     else @once 'AccountChanged', fn
 
-  accountChanged:(account)->
+  accountChanged:(account, firstLoad = no)->
 
     @userAccount = account
     @accountReadyState = 1
 
     connectedState.connected = yes
 
-    @emit "AccountChanged", account
+    @emit "AccountChanged", account, firstLoad
 
     unless @mainViewController
       @loginScreen = new LoginView
@@ -102,17 +103,16 @@ class MainController extends KDController
 
     @decorateBodyTag()
 
-    if @isUserLoggedIn()
-      connectedState.wasLoggedIn = yes
-      @emit 'UserIsJustLoggedIn', account, connectedState
-    else
-      @emit 'UserIsJustLoggedOut', account, connectedState
+    eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+    eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
 
-  decorateBodyTag:->
-    if KD.checkFlag 'super-admin'
-      $('body').addClass 'super'
-    else
-      $('body').removeClass 'super'
+    # this emits following events
+    # -> "pageLoaded.as.loggedIn"
+    # -> "pageLoaded.as.loggedOut"
+    # -> "accountChanged.to.loggedIn"
+    # -> "accountChanged.to.loggedOut"
+
+    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   doJoin:->
     @loginScreen.animateToForm 'lr'
@@ -130,40 +130,43 @@ class MainController extends KDController
     @loginScreen.animateToForm 'recover'
 
   doLogout:->
+
+    @getSingleton("lazyDomController").showLandingPage =>
+      @loginScreen.showView =>
+        KD.getSingleton("appManager").quitAll =>
+          @mainViewController.sidebarController.accountChanged account
+          @mainViewController.getView().decorateLoginState no
+
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
 
-      $('#kdmaincontainer').css 'opacity', 0
+      @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView
         cssClass  : "login"
         title     : "<span></span>Come back soon!"
         duration  : 2000
+
       # fixme: get rid of reload, clean up ui on account change
       # tightly related to application manager refactoring
-      @utils.wait 2000, -> location.reload yes
+      # @utils.wait 2000, -> location.reload yes
 
-  putGlobalEventListeners:->
+  attachListeners:->
 
-    @on 'UserIsJustLoggedOut', (account, connectedState)=>
-      # if connectedState.wasLoggedIn
-      #   @loginScreen.showView =>
-      #     KD.getSingleton("appManager").quitAll =>
-      #       @mainViewController.sidebarController.accountChanged account
-      #       @mainViewController.getView().decorateLoginState no
-      # else
+    # @on 'pageLoaded.*.*', (account)=>
+    #   log "pageLoaded", @isUserLoggedIn()
+
+    @on '*.*.loggedOut', (account)=>
+      # log "accountChanged Out"
       @mainViewController.sidebarController.accountChanged account
       @mainViewController.getView().decorateLoginState no
 
-    @on 'UserIsJustLoggedIn', (account, connectedState)=>
+    @on '*.*.loggedIn', (account)=>
+      # log "accountChanged In"
       @mainViewController.getView().decorateLoginState yes
       @mainViewController.sidebarController.accountChanged account
-
-    @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.isWebTerm
-        KD.getSingleton("appManager").open 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
@@ -227,6 +230,12 @@ class MainController extends KDController
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
+
+  decorateBodyTag:->
+    if KD.checkFlag 'super-admin'
+      $('body').addClass 'super'
+    else
+      $('body').removeClass 'super'
 
   setFailTimer: do->
     modal = null
