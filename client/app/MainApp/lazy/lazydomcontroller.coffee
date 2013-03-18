@@ -47,4 +47,4 @@ class LazyDomController extends KDController
     return if @profileViewsAdded
     @profileViewsAdded      = yes
     staticProfileController = new StaticProfileController
-    @landingView            = staticProfileController.profileLandingView
+    {@landingView}            = staticProfileController

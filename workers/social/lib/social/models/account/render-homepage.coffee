@@ -22,9 +22,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
+    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
 
-    <div class="profile-personal-wrapper" id="profile-personal-wrapper">
+    <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
@@ -65,12 +65,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
 
       <div class="profile-koding-logo">
-        <div class="logo" id='profile-koding-logo'></div>
+        <div class="logo kdview" id='profile-koding-logo'></div>
       </div>
 
     </div>
 
-    <div class="profile-content-wrapper" id="profile-content-wrapper">
+    <div class="profile-content-wrapper kdview" id="profile-content-wrapper">
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
