@@ -677,7 +677,7 @@ class KDView extends KDObject
     dragGlobDir.y = if y > 0 then 'bottom' else 'top'
 
     el = @$()
-    if @dragIsAllowed # is this line should be here or at the top ?
+    if @dragIsAllowed
       dragMeta   = @dragState.meta
       targetPosX = if dragMeta.right  and not dragMeta.left then 'right'  else 'left'
       targetPosY = if dragMeta.bottom and not dragMeta.top  then 'bottom' else 'top'
