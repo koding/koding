@@ -8,29 +8,14 @@ class StaticProfileController extends KDController
   constructor:(options,data)->
     super options,data
 
+    console.time 'StaticProfileController'
+
     appManager = @getSingleton 'appManager'
 
-    @staticController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : StaticActivityListItemView
-      viewOptions       :
-        cssClass        : 'static-content'
-      showHeader        : no
-
-    @controller = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : ActivityListItemView
-      viewOptions       :
-        cssClass        : 'static-content activity-related'
-      showHeader        : no
-
-    # this is the JAccount object of the static profile
-    @profileUser  = null
-
     @navLinks     = {}
+    @profileUser  = null
     @lockSidebar  = no
+
 
     @registerSingleton 'staticProfileController', @, no
 
@@ -38,7 +23,9 @@ class StaticProfileController extends KDController
     @addEventListeners()
 
     # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
-    # FIXME - we want to use cacheable, not a JAccount call
+    # FIXME - we want to use cacheable, not a JAccount call, but names
+    # are not working correctly
+
     KD.remote.api.JAccount.one
       "profile.nickname" : KD.config.profileEntryPoint
     , (err, user, name)=>
@@ -49,6 +36,11 @@ class StaticProfileController extends KDController
   addEventListeners:->
 
     @on 'HomeLinkClicked', =>
+      unless @staticListWrapper?
+        @addStaticLogic()
+      else
+        @showWrapper @staticListWrapper
+
       @lockSidebar = no
       @utils.wait 250, =>
         @profileContentLinks.setClass 'links-hidden'
@@ -56,14 +48,36 @@ class StaticProfileController extends KDController
 
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes, =>
+        @showWrapper @staticListWrapper
+
 
     @on 'ActivityLinkClicked', (path)=>
+      unless @activityListWrapper?
+        @addActivityLogic()
+      else
+        @showWrapper @activityListWrapper
+
       @lockSidebar = yes
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', no, =>
+        @showWrapper @activityListWrapper
+
       @utils.wait 250, =>
         @profileContentList.setClass 'has-links'
         @profileContentLinks.unsetClass 'links-hidden'
+
+    @on 'AboutLinkClicked', (path)=>
+      unless @aboutWrapper?
+        @addAboutLogic =>
+          @showWrapper @aboutWrapper
+      else
+        @showWrapper @aboutWrapper
+
+      @lockSidebar = yes
+
+      @profileContentList.unsetClass 'has-links'
+      @profileContentLinks.setClass 'links-hidden'
 
     @on 'CustomizeLinkClicked',=>
       return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
@@ -85,7 +99,7 @@ class StaticProfileController extends KDController
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
 
-    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no)=>
+    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no,callback=->)=>
       @profileLoadingBar.setClass 'active'
       @profileLoaderView.show()
       facets = [facets] if 'string' is typeof facets
@@ -108,15 +122,8 @@ class StaticProfileController extends KDController
             bypass : yes
           , (err, activities)=>
             @refreshActivities err, activities, isStatic
+            callback()
         else @emit 'BlockedTypesRequested', blockedTypes
-
-    @controller.on 'LazyLoadThresholdReached', =>
-      appManager.tell 'Activity', 'fetchActivity',
-        originId  : @profileUser.getId()
-        facets    : @currentFacets
-        to        : @controller.itemsOrdered.last.getData().meta.createdAt
-        bypass    : yes
-      , @bound "appendActivities"
 
   reviveViewsOnPageLoad:->
 
@@ -133,13 +140,6 @@ class StaticProfileController extends KDController
     , {}
 
     @sanitizeStaticContent @profileContentView
-
-    @listWrapper = @controller.getView()
-    @staticListWrapper = @staticController.getView()
-    @listWrapper.hide()
-    @staticListWrapper.hide()
-    @profileContentView.addSubView @listWrapper
-    @profileContentView.addSubView @staticListWrapper
 
     # reviving the landing page. this is needed to handle window
     # resize events for the view and subviews
@@ -315,32 +315,34 @@ class StaticProfileController extends KDController
               disableLink.updatePartial 'Disable this Public Page'
 
     console.timeEnd 'reviving page elements on userload.'
+    console.timeEnd 'StaticProfileController'
+
+
 
   repositionLogoView:->
     @profileLogoView.$().css
       top: @landingView.getHeight()-42
 
   appendActivities:(err,activities)->
-    @controller.listActivities activities
-    @controller.hideLazyLoader()
+    @activityController.listActivities activities
+    @activityController.hideLazyLoader()
 
   refreshActivities:(err,activities,isStatic)->
-    @profileContentView.$('.content-item').remove()
     @profileShowMoreView.hide()
 
-    listWrapper = if isStatic then @staticListWrapper else @listWrapper
-    otherListWrapper = if isStatic then @listWrapper else @staticListWrapper
-    controller = if isStatic then @staticController else @controller
-    otherController = if isStatic then @controller else @staticController
+    listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
+    # otherListWrapper = if isStatic then @activityListWrapper else @staticListWrapper
+    controller = if isStatic then @staticController else @activityController
+    # otherController = if isStatic then @activityController else @staticController
 
     listWrapper.show()
-    otherListWrapper.hide()
+    # otherListWrapper.hide()
 
     controller.removeAllItems()
     controller.listActivities activities
 
     controller.hideLazyLoader()
-    otherController.showLazyLoader()
+    # otherController.showLazyLoader()
     @profileLoadingBar.unsetClass 'active'
     @profileLoaderView.hide()
 
@@ -351,6 +353,83 @@ class StaticProfileController extends KDController
     view.$(".content-item > .has-markdown > span.data a").each (i,element)->
       $(element).attr target : '_blank'
 
+  addActivityLogic:(callback=->)->
+    log 'adding activity logic'
+    @activityController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : ActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content activity-related'
+      showHeader        : no
+
+    @activityListWrapper = @activityController.getView()
+    @profileContentView.addSubView @activityListWrapper
+
+    @activityController.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId  : @profileUser.getId()
+        facets    : @currentFacets
+        to        : @activityController.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , @bound "appendActivities"
+
+    callback()
+
+  addAboutLogic:(callback=->)->
+    log 'adding about logic'
+    @profileUser.fetchAbout (err,about)=>
+      log arguments
+      if err
+        log err
+      else
+        unless about
+          partial = '<div class="has-markdown nothing-here"><span class="data">Nothing here yet!</span></div>'
+        else
+          partial = "<div class='has-markdown'><span class='data'>#{about.html or about.content}</span></div>"
+
+        log 'adding',partial
+
+        @profileContentView.addSubView @aboutWrapper = new KDView
+          partial : partial
+
+        callback()
+
+  addStaticLogic:(callback=->)->
+    log 'adding static logic'
+
+    @staticController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
+    @staticListWrapper = @staticController.getView()
+    @profileContentView.addSubView @staticListWrapper
+
+    @staticController.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId  : @profileUser.getId()
+        facets    : ['CBlogPostActivity']
+        to        : @staticController.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , @bound "appendActivities"
+
+    callback()
+
+  hideWrappers:->
+    @profileContentView.$('.content-item.static').remove()
+
+    @profileShowMoreView.hide()
+    @staticListWrapper?.hide()
+    @activityListWrapper?.hide()
+    @aboutWrapper?.hide()
+
+  showWrapper:(wrapper)->
+    @hideWrappers()
+    wrapper.show()
 
 class StaticNavLink extends KDView
   constructor:(options,data)->

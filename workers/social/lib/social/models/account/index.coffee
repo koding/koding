@@ -23,7 +23,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @getFlagRole = 'content'
 
-  {ObjectId, Register, secure, race, dash} = require 'bongo'
+  {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   @share()
   Experience =
@@ -63,7 +63,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle'
+        'setHandle','setAbout','fetchAbout'
       ]
     schema                  :
       skillTags             : [String]
@@ -164,6 +164,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
+      about:
+        as          : 'about'
+        targetType  : 'JMarkdownDoc'
+
       content       :
         as          : 'creator'
         targetType  : [
@@ -175,6 +179,37 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  setAbout: secure (client, text, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @fetchAbout (err, about)=>
+        console.log err if err
+        unless about
+          JMarkdownDoc = require '../markdowndoc',
+          about = new JMarkdownDoc content: text
+
+          daisy queue = [
+            ->
+              about.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
+              @addAbout about, (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            ->
+              callback null, about
+          ]
+
+        else
+          about.update $set:{ content: text }, (err)=>
+            if err then callback err
+            else callback null, about
+
 
   @renderHomepage: require './render-homepage'
 

@@ -114,7 +114,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   for blog,i in blogPosts
     postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
     posts+="""
-      <div class="content-item">
+      <div class="content-item static">
         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
         <div class="has-markdown">
           <span class="data">#{blog.html}</span>
