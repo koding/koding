@@ -94,7 +94,7 @@ class LazyDomController extends KDController
       when 'logout'
         mainViewController.getView().hide()
         @openPath '/Logout'
-     
+
       when 'activity'
         @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
 
