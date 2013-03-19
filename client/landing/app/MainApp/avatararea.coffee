@@ -246,7 +246,7 @@ class AvatarPopupNotifications extends AvatarPopup
     @listenTo
       KDEventTypes        : "click"
       listenedToInstance  : redirectLink
-      callback            : ()=>
+      callback            : ->
         appManager.openApplication('Inbox')
         appManager.tell 'Inbox', "goToNotifications"
         @hide()
@@ -353,6 +353,9 @@ class PopupNotificationListItem extends NotificationListItem
 
   click:(event)->
 
+    appManager.openApplication 'Inbox'
+    appManager.tell "Inbox", "goToNotifications", @
+
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
 
@@ -361,8 +364,7 @@ class PopupNotificationListItem extends NotificationListItem
     # {_id} = @getData()
     # KD.whoami().glanceActivities _id, (err)=>
     #   if err then log "Error: ", err
-
-    super
+    
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->
@@ -407,7 +409,7 @@ class PopupMessageListItem extends KDListItemView
     """
     <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
-      <a href='#'>{{#(subject) or '(No title)'}}</a><br/>
+      <a>{{#(subject) or '(No title)'}}</a><br/>
       {{@teaser #(body)}}
       <footer>
         <time>{{> @participants}} {{$.timeago #(meta.createdAt)}}</time>
