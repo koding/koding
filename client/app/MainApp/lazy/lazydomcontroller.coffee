@@ -1,5 +1,15 @@
 class LazyDomController extends KDController
 
+  fetchCurrentGroup = (callback)->
+    {groupEntryPoint} = KD.config
+    KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+      error err if err
+      if err then new KDNotificationView
+        title : "An error occured, please try again"
+      else unless group?
+        new KDNotificationView title : "No such group!"
+      else callback group
+
   constructor:->
     super
 
@@ -15,6 +25,8 @@ class LazyDomController extends KDController
         @addProfileViews()
 
       landingPageSideBar = new LandingPageSideBar
+
+      landingPageSideBar.on "navItemIsClicked", @bound "handleNavigationItemClick"
 
   hideLandingPage:->
 
@@ -47,4 +59,58 @@ class LazyDomController extends KDController
     return if @profileViewsAdded
     @profileViewsAdded      = yes
     staticProfileController = new StaticProfileController
-    {@landingView}            = staticProfileController
+    {@landingView}          = staticProfileController
+
+  openPath:(path)->
+    @getSingleton('router').handleRoute path
+    @hideLandingPage()
+
+  handleNavigationItemClick:(item, event)->
+
+    mc = @getSingleton 'mainController'
+    {action, appPath, title, path, type} = item.getData()
+    {loginScreen, mainViewController}    = mc
+    {groupEntryPoint, profileEntryPoint} = KD.config
+
+    return @openPath(path) if path
+
+    switch action
+      when 'login'
+        loginScreen.animateToForm 'login'
+      when 'register'
+        loginScreen.animateToForm 'register'
+      when 'request' then @requestAccess()
+      when 'join-group'
+        fetchCurrentGroup (group)=>
+          group.join (err, response)=>
+            error err if err
+            if err then new KDNotificationView
+              title : "An error occured, please try again"
+            else
+              new KDNotificationView
+                title : "You successfully joined to group!"
+              @openPath "/#{groupEntryPoint}/Activity"
+
+      when 'logout'
+        mainViewController.getView().hide()
+        @openPath '/Logout'
+     
+      when 'activity'
+        @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
+
+      when 'about'
+        @getSingleton('staticProfileController').emit 'AboutLinkClicked'
+
+      when 'topics','members','groups','apps'
+        new KDNotificationView
+          title : 'This feature is currently disabled'
+      when 'home'
+        @getSingleton('staticProfileController').emit 'HomeLinkClicked'
+
+  requestAccess:->
+
+    if KD.isLoggedIn()
+      fetchCurrentGroup (group)=>
+        @getSingleton('groupsController').openPrivateGroup group
+    else
+      @getSingleton('mainController').loginScreen.animateToForm 'lr'
