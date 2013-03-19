@@ -218,7 +218,7 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
 
 	// add ebtables entry to restrict IP and MAC
-	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
 }
@@ -238,7 +238,7 @@ func (vm *VM) Unprepare() error {
 
 	// remove ebtables entry
 	if vm.IP != nil {
-		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
+		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
 			firstError = commandError("ebtables rule deletion failed.", err, out)
 		}
 	}
