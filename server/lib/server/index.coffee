@@ -105,6 +105,20 @@ app.get "/-/cache/before/:timestamp", (req, res)->
     if err then console.warn err
     res.send if cache then cache.data else {}
 
+
+app.get "/-/kite/login", (req, res) ->
+  mqUser = "kite-" + req.query.apikey
+  mqPass = req.query.apikey + req.query.apisecret
+
+  args =
+    password: mqPass
+    tags: ''
+
+  rabbitAPI = require 'koding-rabbit-api'
+  rabbitAPI.set "users/#{mqUser}", args, (err, data) ->
+    res.header "Content-Type", "application/json"
+    res.send JSON.stringify {protocol: 'amqp', host: mq.host, username: mqUser, password: mqPass}
+
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
