@@ -135,17 +135,17 @@ class MainController extends KDController
   doLogout:->
 
     @getSingleton("lazyDomController").showLandingPage =>
-      @loginScreen.showView =>
-        KD.getSingleton("appManager").quitAll =>
-          @mainViewController.sidebarController.accountChanged account
-          @mainViewController.getView().decorateLoginState no
+      # @loginScreen.showView =>
+      KD.getSingleton("appManager").quitAll =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
 
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
 
-      @mainViewController.getView().$().css 'opacity', 0
+      # @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView
         cssClass  : "login"
