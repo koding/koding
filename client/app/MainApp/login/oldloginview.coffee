@@ -8,17 +8,15 @@ class OldLoginView extends KDScrollView
 
     options.lazyDomId = 'login-footer'
 
-    entryPoint = ''
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      # options = cssClass : 'land-page'
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    else entryPoint = ''
 
     super options, data
 
     @hidden = no
 
     handler =(route, event)=>
-      log "Handling", route
       route = "/#{entryPoint}#{route}" if entryPoint
       stop event
       @getSingleton('router').handleRoute route
@@ -29,6 +27,13 @@ class OldLoginView extends KDScrollView
     registerHandler   = handler.bind null, '/Register'
     joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
+
+    @logo = new KDCustomHTMLView
+      tagName     : "div"
+      cssClass    : "logo"
+      lazyDomId   : "header-logo"
+      partial     : "Koding"
+      click       : homeHandler
 
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
@@ -114,7 +119,6 @@ class OldLoginView extends KDScrollView
     @setClass "login-footer"
     @setTemplate @pistachio()
     @template.update()
-    # @hide()
 
   pistachio:->
     """
@@ -254,29 +258,31 @@ class OldLoginView extends KDScrollView
   hideView:(callback)->
 
     {winHeight} = @getSingleton("windowController")
-    @$().css marginTop : -winHeight
+
+    # @$().css marginTop : -winHeight
+    $('#main-form-handler').css marginTop : -winHeight
 
     @utils.wait 601, =>
-      @emit "LoginViewHidden"
       @hidden = yes
-      @hide()
+      # $('#main-form-handler').addClass 'hidden'
       callback?()
 
   showView:(callback)->
 
-    @show()
-    @emit "LoginViewShown"
+    # $('#main-form-handler').removeClass 'hidden'
 
-    @$().css marginTop : 0
+    # @$().css marginTop : 0
+    $('#main-form-handler').css marginTop : 0
 
-    @utils.wait 601,()=>
+    @utils.wait 601, =>
       @hidden = no
       callback?()
 
   _windowDidResize:(event)->
 
-    {winWidth,winHeight} = @getSingleton("windowController")
-    @$().css marginTop : -winHeight if @hidden
+    if @hidden
+      {winWidth,winHeight} = @getSingleton("windowController")
+      $('#main-form-handler').css marginTop : -winHeight
 
   animateToForm: (name)->
 

@@ -162,14 +162,16 @@ class MainController extends KDController
     #   log "pageLoaded", @isUserLoggedIn()
 
     @on '*.*.loggedOut', (account)=>
-      # log "accountChanged Out"
-      @mainViewController.sidebarController.accountChanged account
-      @mainViewController.getView().decorateLoginState no
+      log "accountChanged Out"
+      @loginScreen.showView =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
 
     @on '*.*.loggedIn', (account)=>
-      # log "accountChanged In"
-      @mainViewController.getView().decorateLoginState yes
-      @mainViewController.sidebarController.accountChanged account
+      log "accountChanged In"
+      @loginScreen.hideView =>
+        @mainViewController.getView().decorateLoginState yes
+        @mainViewController.sidebarController.accountChanged account
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
