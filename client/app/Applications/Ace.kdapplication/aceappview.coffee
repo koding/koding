@@ -42,6 +42,18 @@ class AceAppView extends JView
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
+      unless pane.tabHandle.tooltipCreated
+        {nickname} = KD.whoami().profile
+        title      = ace.data.path.replace("/Users/#{nickname}/", "~/").replace "localfile:/", ""
+        pane.tabHandle.setTooltip
+          title     : title
+          placement : "bottom"
+          delayIn   : 800
+        pane.tabHandle.tooltipCreated = yes
+
+      # ace.on "AceDidSaveAs", (name, parentPath) =>
+        # update tooltip title here
+
   viewAppended:->
     super
     @utils.defer => @addNewTab() if @tabView.panes.length is 0
