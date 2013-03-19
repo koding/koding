@@ -35,7 +35,6 @@ class AceAppView extends JView
       @tabView.emit 'SaveSession', data
 
     @on "SessionListCreated", (pane, sessionList) =>
-      #ooops!
       pane.getOptions().aceView.editorHeader.addSubView sessionList
 
     @tabView.on 'PaneDidShow', (pane) =>
