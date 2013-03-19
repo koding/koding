@@ -61,7 +61,7 @@ class NewMemberLinkGroup extends LinkGroup
 
   constructor:(options = {}, data)->
 
-    options.moreSuffix or= "became a member."
+    options.suffix or= " became a member."
     super options, data
 
     # @loader = new KDLoaderView
@@ -73,7 +73,7 @@ class NewMemberLinkGroup extends LinkGroup
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{totalCount-3} more #{@getOptions().moreSuffix}"
+      partial     : "#{totalCount-3} more"
       attributes  :
         href      : "#"
         title     : "Click to view..."

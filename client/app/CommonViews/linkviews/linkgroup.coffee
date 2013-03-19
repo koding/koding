@@ -10,7 +10,7 @@ class LinkGroup extends KDCustomHTMLView
     options.totalCount    or= data?.length or options.group?.length or 0
     options.hasMore         = options.totalCount > options.itemsToShow
     options.separator      ?= ', '
-    options.moreSuffix    or= ''
+    options.suffix        or= ''
 
     super options, data
 
@@ -52,7 +52,7 @@ class LinkGroup extends KDCustomHTMLView
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{totalCount-3} more #{@getOptions().moreSuffix}"
+      partial     : "#{totalCount-3} more"
       attributes  :
         href      : "#"
         title     : "Click to view..."
@@ -68,11 +68,11 @@ class LinkGroup extends KDCustomHTMLView
 
     switch totalCount
       when 0 then ""
-      when 1 then "{{> @participant0}}"
-      when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
-      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
-      else "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+      when 1 then "{{> @participant0}}#{@getOptions().suffix}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}#{@getOptions().suffix}"
+      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}#{@getOptions().suffix}"
+      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}#{@getOptions().suffix}"
+      else "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}#{@getOptions().suffix}"
 
   render:->
 
