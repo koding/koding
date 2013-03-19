@@ -44,7 +44,7 @@ class LinkGroup extends KDCustomHTMLView
       else
         inst = new itemClass itemOptions, participant
         @["participant#{index}"] = inst
-      inst.on 'LinkClicked', => @emit 'ItemClicked', inst
+#      inst.on 'LinkClicked', => @emit 'ItemClicked', inst
     @setTemplate @pistachio()
     @template.update()
 

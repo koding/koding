@@ -82,8 +82,8 @@ class TagCloudListItemView extends KDListItemView
   pistachio:->
     super "{{#(title)}}"
 
-  click:(event)->
-    event?.stopPropagation()
-    event?.preventDefault()
-    @getDelegate().emit 'TagWasClicked'
-    @emit 'LinkClicked'
+#  click:(event)->
+#    event?.stopPropagation()
+#    event?.preventDefault()
+#    @getDelegate().emit 'TagWasClicked'
+#    @emit 'LinkClicked'

@@ -30,8 +30,7 @@ __utils =
       chain.push caller
     chain
 
-  getUniqueId:->
-    "#{__utils.getRandomNumber(100000)}_#{Date.now()}"
+  getUniqueId: do -> i = 0; -> "~#{i++}"
 
   getRandomNumber :(range)->
     range = range or 1000000
