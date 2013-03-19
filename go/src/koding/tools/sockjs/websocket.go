@@ -31,7 +31,7 @@ func (service *Service) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	websocket.Handler(func(ws *websocket.Conn) {
-		session := service.newSession() // websockets use completely independent sessions
+		session := service.newSession(true) // websockets use completely independent sessions
 		defer session.Close()
 
 		go func() {

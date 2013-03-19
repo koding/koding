@@ -6,6 +6,7 @@ path              = require 'path'
 compilePistachios = require 'pistachio-compiler'
 ProgressBar       = require 'progress'
 SourceMap         = require 'source-map'
+base64VLQ         = require 'source-map/lib/source-map/base64-vlq'
 Stylus            = require 'stylus'
 UglifyJS          = require 'uglify-js'
 
@@ -46,7 +47,7 @@ module.exports = class Builder
       log.info "Watching for changes..." if initial
       setTimeout =>
         @compileChanged options, false
-      , 1000
+      , 250
 
   readIncludesFile: ->
     includesFile = @config.client.includesPath + "/includes.coffee"
@@ -87,7 +88,9 @@ module.exports = class Builder
     if sourceTime <= file.cacheTime
       if not file.content?
         file.content = fs.readFileSync file.cachePath, "utf-8"
-        file.sourceMap = fs.readFileSync file.sourceMapPath, "utf-8" if fs.existsSync file.sourceMapPath
+        if fs.existsSync file.sourceMapPath
+          sourceMapJSON = fs.readFileSync file.sourceMapPath, "utf-8"
+          file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
       return false
 
     source = fs.readFileSync file.sourcePath, "utf-8"
@@ -131,14 +134,18 @@ module.exports = class Builder
 
         ast = UglifyJS.parse js
         ast.figure_out_scope()
-        ast = ast.transform UglifyJS.Compressor(warnings: no)
+        ast = ast.transform UglifyJS.Compressor
+          warnings: no
+          sequences: no
+          drop_debugger: no
         
         uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
         stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
         ast.print stream
         file.content = stream.toString()
-        file.sourceMap = uglifiedSourceMap.toString()
-        fs.writeFileSync file.sourceMapPath, file.sourceMap, "utf8"
+        sourceMapJSON = uglifiedSourceMap.toString()
+        fs.writeFileSync file.sourceMapPath, sourceMapJSON, "utf8"
+        file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
       when ".styl"
         Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
           log.error "error with styl file at #{file.includePath}" if err
@@ -154,25 +161,53 @@ module.exports = class Builder
 
   buildJS: (options)->
     js = "var KD = {}; KD.config = #{JSON.stringify(@config.client.runtimeOptions)}; (function(){ "
-    lineOffset = 0
-    sourceMap = new SourceMap.SourceMapGenerator file: @config.client.js, sourceRoot: @config.client.runtimeOptions.sourceUri
-    for file in @scripts
-      contentLineCount = file.content.split("\n").length
-      new SourceMap.SourceMapConsumer(file.sourceMap).eachMapping (mapping)->
-        sourceMap.addMapping
-          generated:
-            line: lineOffset + mapping.generatedLine
-            column: mapping.generatedColumn
-          original:
-            line: mapping.originalLine
-            column: mapping.originalColumn
-          source: file.includePath
+    sourceMap =
+      version: 3
+      file: @config.client.js
+      sourceRoot: @config.client.runtimeOptions.sourceUri
+      sources: file.includePath for file in @scripts
+      names: []
+      mappings: ""
+    fileLineOffset = 0
+    firstInLine = true
+
+    previousGeneratedLine = 1
+    previousGeneratedColumn = 0
+    previousOriginalLine = 0
+    previousOriginalColumn = 0
+    previousSource = 0
+
+    for file, scriptIndex in @scripts
       js += file.content + "\n"
-      lineOffset += contentLineCount
+      for mapping in file.sourceMap
+        while previousGeneratedLine < fileLineOffset + mapping.generatedLine
+          sourceMap.mappings += ";"
+          previousGeneratedLine++
+          firstInLine = true
+          previousGeneratedColumn = 0
+
+        if not firstInLine
+          sourceMap.mappings += ","
+        firstInLine = false
+
+        sourceMap.mappings += base64VLQ.encode(mapping.generatedColumn - previousGeneratedColumn)
+        previousGeneratedColumn = mapping.generatedColumn
+
+        sourceMap.mappings += base64VLQ.encode(scriptIndex - previousSource)
+        previousSource = scriptIndex
+
+        sourceMap.mappings += base64VLQ.encode(mapping.originalLine - 1 - previousOriginalLine)
+        previousOriginalLine = mapping.originalLine - 1
+
+        sourceMap.mappings += base64VLQ.encode(mapping.originalColumn - previousOriginalColumn)
+        previousOriginalColumn = mapping.originalColumn
+
+      fileLineOffset += file.content.split("\n").length
+
     js += "}).call(this);\n//@ sourceMappingURL=/#{@config.client.js}.map"
 
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.js, js
-    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", sourceMap.toString()
+    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", JSON.stringify(sourceMap)
     log.info "Build complete: #{@config.client.js}"
 
   buildCSS: (options)->
