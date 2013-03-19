@@ -159,33 +159,19 @@ class LandingPageNavigationLink extends NavigationLink
         @openPath '/Logout'
 
       when 'activity'
-        # @openPath "/#{profileEntryPoint}/Activity"
-        # @lc.hideLandingPage()
 
         @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
 
-        log 'Activity'
-        contentDisplayController = @getSingleton "contentDisplayController"
-        contentDisplayController.emit "ContentDisplayWantsToBeShown", new ActivityContentDisplay
-          partial : 'SUP'
-          title : 'hi!'
+        # contentDisplayController = @getSingleton "contentDisplayController"
+        # contentDisplayController.emit "ContentDisplayWantsToBeShown", new ActivityContentDisplay
+        #   partial : 'SUP'
+        #   title : 'hi!'
 
-      when 'topics'
-        @openPath "/#{profileEntryPoint}/Topics"
-        @lc.hideLandingPage()
+      when 'about'
+        @getSingleton('staticProfileController').emit 'AboutLinkClicked'
 
-        log 'Topics'
-      when 'members'
-        @openPath "/#{profileEntryPoint}/Members"
-        @lc.hideLandingPage()
-        log 'Members'
-      when 'groups'
-        @openPath "/#{profileEntryPoint}/Groups"
-        @lc.hideLandingPage()
-        log 'Groups'
-      when 'apps'
-        @openPath "/#{profileEntryPoint}/Apps"
-        @lc.hideLandingPage()
-        log 'Apps'
+      when 'topics','members','groups','apps'
+        new KDNotificationView
+          title : 'This feature is currently disabled'
       when 'home'
         @getSingleton('staticProfileController').emit 'HomeLinkClicked'
