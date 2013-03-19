@@ -171,13 +171,28 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+error_ =(code, message)->
+  messageHTML = message.split('\n')
+    .map((line)-> "<p>#{line}</p>")
+    .join '\n'
+  """
+  <title>#{code}</title>
+  <h1>#{code}</h1>
+  #{messageHTML}
+  """
+
 error_404 =->
-  """
-  <title>404</title>
-  <h1>404</h1>
-  <p>This page exists, but it just an error.</p>
-  <p>- FAYAMF</p>
-  """
+  error_ 404,
+    """
+    not found
+    fayamf
+    """
+
+error_500 =->
+  error_ 500,
+    """
+    internal server error
+    """
 
 app.get '/:name/:section?', (req, res, next)->
   {JGroup, JName} = koding.models
@@ -191,7 +206,8 @@ app.get '/:name/:section?', (req, res, next)->
       else unless models? then res.send 404, error_404()
       else res.send models[0].fetchHomepageView (err, view)->
         if err then next err
-        else res.send view
+        else if view? then res.send view
+        else res.send 500, error_500()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->

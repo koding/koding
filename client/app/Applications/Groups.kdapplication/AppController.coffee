@@ -55,10 +55,10 @@ class GroupsAppController extends AppController
       return @currentGroupData.data.first
     return @currentGroupData.data
 
-  changeGroup:(groupName, callback=->)->
-    return callback()  if groupName is @currentGroup
+  changeGroup:(groupName='koding', callback=->)->
+    return callback()  if @currentGroup is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroup?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>

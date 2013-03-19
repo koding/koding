@@ -106,7 +106,7 @@ class TopicsAppController extends AppController
     group = KD.getSingleton('groupsController').getCurrentGroup()
     KD.getSingleton('router').handleRoute """
       #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
-      """
+      """, state:topic
 
   updateTopic:(topicItem)->
     topic = topicItem.data
