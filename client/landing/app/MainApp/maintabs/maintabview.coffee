@@ -24,6 +24,9 @@ class MainTabView extends KDTabView
         @tabHandleContainer.setWidth @getWidth()
         @resizeTabHandles()
 
+    @on "PaneAdded", =>
+      @tabHandleContainer.setWidth @getWidth()
+
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
   handleClicked:(index,event)->
