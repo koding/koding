@@ -10,7 +10,7 @@ class LandingPageSideBar extends KDView
 
     @navController = new LandingPageNavigationController
       view         : new NavigationList
-        itemClass  : NavigationLink
+        itemClass  : LandingNavigationLink
         type       : "navigation"
       scrollView   : no
       wrapper      : no
@@ -78,14 +78,17 @@ class LandingPageNavigationController extends NavigationController
 
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities', action : 'activity', type : 'user'}
-        { title : 'My Topics',     action : 'topics',   type : 'user' }
-        { title : 'My People',     action : 'members',  type : 'user'}
-        { title : 'My Groups',     action : 'groups',   type : 'user'}
-        { title : 'My Apps',       action : 'apps',     type : 'user'}
-        { type  : "separator" }
+        { title : 'Home',action : 'home', type : 'user'}
+        { title : 'Activity',action : 'activity', type : 'user'}
+        { title : 'Topics', action : 'topics', type : 'user' }
+        { title : 'People', action : 'members', type : 'user'}
+        { title : 'Groups', action : 'groups', type : 'user'}
+        { title : 'About', action : 'about', type : 'user'}
+        { title : 'Apps', action : 'apps', type : 'user'}
       ]
-      items = profileItems.concat items
+
+      items = [].concat.apply profileItems, items
+
       @_instantiateListItems items
     else
       @_instantiateListItems items
@@ -98,3 +101,6 @@ class LandingPageNavigationController extends NavigationController
       else
         continue if itemData.loggedIn
       @getListView().addItem itemData
+
+class LandingNavigationLink extends NavigationLink
+  click:->

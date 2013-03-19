@@ -4,8 +4,8 @@ class MainView extends KDView
     super
 
     mainController = @getSingleton 'mainController'
-    mainController.on 'AppIsReady', =>
-      @removeLoader()
+    # mainController.on 'AppIsReady', =>
+    #   @removeLoader()
 
   viewAppended:->
 
@@ -47,16 +47,16 @@ class MainView extends KDView
         @mainTabView.showHandleContainer()
         @sidebar.hideFinderPanel()
 
-  removeLoader:->
+  # removeLoader:->
 
-    $loadingScreen = $(".main-loading").eq(0)
-    {winWidth,winHeight} = @getSingleton "windowController"
-    $loadingScreen.css
-      marginTop : -winHeight
-      opacity   : 0
-    @utils.wait 601, =>
-      $loadingScreen.remove()
-      $('body').removeClass 'loading'
+  #   $loadingScreen = $(".main-loading").eq(0)
+  #   {winWidth,winHeight} = @getSingleton "windowController"
+  #   $loadingScreen.css
+  #     marginTop : -winHeight
+  #     opacity   : 0
+  #   @utils.wait 601, =>
+  #     $loadingScreen.remove()
+  #     $('body').removeClass 'loading'
 
   createMainPanels:->
 
@@ -189,6 +189,7 @@ class MainView extends KDView
 
     getSticky = =>
       @getSingleton('windowController')?.stickyNotification
+
     getStatus = =>
       KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
         if err
@@ -233,9 +234,6 @@ class MainView extends KDView
   decorateLoginState:(isLoggedIn = no)->
 
     if isLoggedIn
-      # $('body').removeClass "login"
-      # $('body').addClass "loggedIn"
-
       # Workaround for Develop Tab
       if "Develop" isnt @getSingleton("router")?.getCurrentPath()
         @contentPanel.setClass "social"
@@ -243,8 +241,6 @@ class MainView extends KDView
       @mainTabView.showHandleContainer()
 
     else
-      # $('body').addClass "login"
-      # $('body').removeClass "loggedIn"
 
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
