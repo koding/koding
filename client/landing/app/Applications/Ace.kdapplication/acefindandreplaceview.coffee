@@ -4,11 +4,10 @@ class AceFindAndReplaceView extends JView
 
     options.cssClass = "ace-find-replace-view"
 
-    @mode           = null
-    @isHidden       = yes
-    @lastViewHeight = 0
-
     super options, data
+
+    @mode           = null
+    @lastViewHeight = 0
 
     @findInput = new KDHitEnterInputView
       type         : "text"
@@ -73,10 +72,10 @@ class AceFindAndReplaceView extends JView
 
   setViewHeight: (isReplaceMode) ->
     height = if isReplaceMode then 60 else 32
-    @show()
     @$().css { height }
     @resizeAceEditor height
     @findInput.setFocus()
+    @show()
 
   resizeAceEditor: (height) ->
     {ace} = @getDelegate()
