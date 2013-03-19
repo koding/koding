@@ -4,7 +4,9 @@ class StaticGroupController extends KDController
 
     super
 
-    @mainController = @getSingleton "mainController"
+    @mainController    = @getSingleton "mainController"
+    @lazyDomController = @getSingleton "lazyDomController"
+    {@groupEntryPoint} = KD.config
 
     @landingView = new KDView
       lazyDomId : 'static-landing-page'
@@ -53,48 +55,55 @@ class StaticGroupController extends KDController
 
   checkGroupUserRelation:->
 
-    {@groupEntryPoint} = KD.config
-
-    log @groupEntryPoint, "<- we're here in this very group! as such, farewell!"
-
     KD.remote.cacheable @groupEntryPoint, (err, group, name)=>
       if err then warn err
       else if group?.first
         group.first.fetchMembershipStatus (err, status)=>
           if err then warn err
           else
-            log status, "<- this is the status of the fellow member which is currently lookin at this very page!"
             switch status
-              when "invitation-pending"
-                @emit "status.pending"
-              when "invitation-declined as such"
-                log "TBDL"
-                @emit "status.declined"
-              when "member"
-                @emit "status.member"
+              when "invitation-pending"  then @emit "status.pending"
+              when "invitation-sent"     then @emit "status.action-required"
+              when "invitation-declined" then @emit "status.declined"
+              when "member"              then @emit "status.member"
+              when "guest"               then @emit "status.guest"
 
 
 
   attachListeners:->
 
-    @on "status.*", -> log "wildcard in events"
-
     @on "status.pending", @bound "decoratePendingStatus"
     @on "status.member",  @bound "decorateMemberStatus"
-
-
+    @on "status.guest",   @bound "decorateGuestStatus"
 
   decoratePendingStatus:->
 
     @groupTitleView.addSubView new KDButtonView
       title    : "REQUEST PENDING"
-      cssClass : "clean-gray fr"
-      disabled : yes
+      cssClass : "editor-button"
 
   decorateMemberStatus:->
 
     @groupTitleView.addSubView new KDButtonView
-      title    : "Open"
-      cssClass : "cupid-green fr"
-      callback : ->
-        log "anca buraya gelince"
+      title    : "Open group"
+      cssClass : "editor-button"
+      callback : =>
+        @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+
+  decorateGuestStatus:->
+
+    @groupTitleView.addSubView button = new KDButtonView
+      title    : "Request Access"
+      cssClass : "editor-button"
+      callback : =>
+        @lazyDomController.requestAccess()
+
+    if KD.isLoggedIn()
+      KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
+        log 'geldiik mi ilkin=e?'
+        if err then console.warn err
+        else unless policy?.approvalEnabled
+          log 'geldiik mi?'
+          button.setTitle "Join Group"
+          button.setCallback =>
+            @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
