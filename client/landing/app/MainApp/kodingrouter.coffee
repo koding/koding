@@ -46,8 +46,8 @@ class KodingRouter extends KDRouter
 
       if KD.isLoggedIn()
         @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
-      # else
-      #   KD.getSingleton('mainController').doHome()
+      else
+        KD.getSingleton('mainController').doGoHome()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
