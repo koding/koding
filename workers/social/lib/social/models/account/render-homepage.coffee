@@ -116,14 +116,14 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
 getStaticProfileTitle = (profile)->
   {firstName,lastName,staticPage} = profile
-  unless staticPage?.title in [null, '']
+  if staticPage? and not (staticPage?.title in [null, ''])
     "#{staticPage.title}"
   else
     "#{firstName} #{lastName}"
 
 getStaticProfileAbout = (profile)->
   {about,staticPage} = profile
-  unless staticPage?.about in [null, '']
+  if staticPage? and not(staticPage?.about in [null, ''])
     "#{staticPage.about}"
   else
     "#{about}"
@@ -144,7 +144,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
     posts
   else
     """
-      <div class="content-item default-item">
+      <div class="content-item default-item" id='profile-blog-default-item'>
         <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
       </div>
     """
