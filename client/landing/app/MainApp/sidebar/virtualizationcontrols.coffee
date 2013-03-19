@@ -2,22 +2,22 @@ class VirtualizationControls extends KDButtonGroupView
 
   constructor:->
     options =
-      cssClass      : "virt-controls"
-      buttons       :
-        "Start"     :
-          callback  : ->
+      cssClass         : "virt-controls"
+      buttons          :
+        "Start"        :
+          callback     : ->
             KD.singletons.kiteController.run
               kiteName: 'os',
               method: 'vm.start'
-        "Stop"      :
-          callback  : ->
+        "Stop"         :
+          callback     : ->
             KD.singletons.kiteController.run
               kiteName: 'os',
               method: 'vm.stop'
-        "Nuke"      :
-          callback  : ->
+        "Reinitialize" :
+          callback     : ->
             KD.singletons.kiteController.run
               kiteName: 'os',
-              method: 'vm.nuke'
+              method: 'vm.reinitialize'
 
     super options
