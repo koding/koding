@@ -287,6 +287,7 @@ module.exports = [
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
+  "app/MainApp/login/oldloginview.coffee",
   "app/MainApp/login/loginform.coffee",
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
