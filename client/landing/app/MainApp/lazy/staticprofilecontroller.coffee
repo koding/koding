@@ -49,9 +49,10 @@ class StaticProfileController extends KDController
 
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
+      @staticDefaultItem.show()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes, =>
         @showWrapper @staticListWrapper
-
+        @staticDefaultItem.show()
 
     @on 'ActivityLinkClicked', (path)=>
       unless @activityListWrapper?
@@ -233,6 +234,10 @@ class StaticProfileController extends KDController
         @profileContentWrapperView.$().css marginLeft : "50px"
 
     # reviving feed type selectors that will activate feed facets
+
+
+    @staticDefaultItem = new KDView
+      lazyDomId : 'profile-blog-default-item'
 
     @profileContentLinks = new KDView
       lazyDomId : 'profile-content-links'
@@ -460,6 +465,8 @@ class StaticProfileController extends KDController
 
   hideWrappers:->
     @profileContentView.$('.content-item.static').remove()
+
+    @staticDefaultItem.hide()
 
     @profileShowMoreView.hide()
     @staticListWrapper?.hide()
