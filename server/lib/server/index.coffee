@@ -235,20 +235,20 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    {JGroup} = koding.models
-    groupName = 'koding'
-    JGroup.one { slug: groupName }, (err, group)->
-      if err or !group? then console.error err
-      else
-        group.fetchHomepageView (err, view)->
-          if err then console.error err
-          else res.send view
+    # {JGroup} = koding.models
+    # groupName = 'koding'
+    # JGroup.one { slug: groupName }, (err, group)->
+    #   if err or !group? then console.error err
+    #   else
+    #     group.fetchHomepageView (err, view)->
+    #       if err then console.error err
+    #       else res.send view
 
-    # log.info "serving index.html"
-    # res.header 'Content-type', 'text/html'
-    # fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
-    #   throw err if err
-    #   res.send data
+    log.info "serving index.html"
+    res.header 'Content-type', 'text/html'
+    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
+      throw err if err
+      res.send data
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

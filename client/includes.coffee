@@ -288,6 +288,7 @@ module.exports = [
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
+  "app/MainApp/login/oldloginview.coffee",
   "app/MainApp/login/loginform.coffee",
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
@@ -313,6 +314,7 @@ module.exports = [
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
+  "app/MainApp/lazy/staticgroupcontroller.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
