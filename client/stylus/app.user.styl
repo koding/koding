@@ -46,14 +46,18 @@
   width                 50px
   vendor transition, width 0.2s linear
   fl()
+  &.collapsed
+    .profile-avatar
+      margin-left -54px
 
-.profile-avatar
-  height                76px
-  width                 160px
-  background-position   center center
-  background-repeat     no-repeat
-  vendor background-size, 160px auto
-  shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+  .profile-avatar
+    height                76px
+    width                 160px
+    background-position   center center
+    background-repeat     no-repeat
+    vendor background-size, 160px auto
+    shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+    vendor transition, margin-left 0.2s linear
 
 
 .profile-buttons

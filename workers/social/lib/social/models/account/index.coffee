@@ -185,7 +185,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchAbout (err, about)=>
         console.log err if err
         unless about
-          JMarkdownDoc = require '../markdowndoc',
+          JMarkdownDoc = require '../markdowndoc'
           about = new JMarkdownDoc content: text
 
           daisy queue = [

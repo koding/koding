@@ -24,7 +24,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   <body class="login" data-profile="#{nickname}">
     <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
 
-    <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
+    <div class="profile-personal-wrapper kdview collapsed" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
@@ -44,6 +44,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon home"></span>Home</a>
+          </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
             <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
           </div>
