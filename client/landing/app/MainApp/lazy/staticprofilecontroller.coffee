@@ -106,9 +106,11 @@ class StaticProfileController extends KDController
           title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
         callback :(value)=>
           value = Encoder.htmlEncode value
-          @profileUser.setStaticPageTitle Encoder.XSSEncode value, =>
-            profileTitleNameView.unsetClass 'edit'
-            profileTitleNameView.updatePartial value
+          @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+            # profileTitleNameView.unsetClass 'edit'
+            # profileTitleNameView.updatePartial value
+            new KDNotificationView
+              title : 'Title updated.'
 
       profileTitleBioView = new KDView
         lazyDomId : 'profile-bio'
@@ -120,9 +122,11 @@ class StaticProfileController extends KDController
           title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
         callback :(value)=>
           value = Encoder.htmlEncode value
-          @profileUser.setStaticPageAbout Encoder.XSSEncode value, =>
-            profileTitleBioView.unsetClass 'edit'
-            profileTitleBioView.updatePartial value
+          @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
+            # profileTitleBioView.unsetClass 'edit'
+            # profileTitleBioView.updatePartial value
+            new KDNotificationView
+              title : 'Description updated.'
 
 
     @on 'ShowMoreButtonClicked', =>
@@ -218,11 +222,13 @@ class StaticProfileController extends KDController
     #
 
     @profilePersonalWrapperView.on 'mouseenter',(event)=>
+        @profilePersonalWrapperView.unsetClass 'collapsed'
         @profilePersonalWrapperView.setWidth 160
         @profileContentWrapperView.$().css marginLeft : "160px"
 
     @profilePersonalWrapperView.on 'mouseleave',(event)=>
       unless @lockSidebar
+        @profilePersonalWrapperView.setClass 'collapsed'
         @profilePersonalWrapperView.setWidth 50
         @profileContentWrapperView.$().css marginLeft : "50px"
 

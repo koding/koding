@@ -79,7 +79,6 @@ class LandingPageNavigationController extends NavigationController
         { title : 'Groups', action : 'groups', type : 'user'}
         { title : 'About', action : 'about', type : 'user'}
         { title : 'Apps', action : 'apps', type : 'user'}
-        { type  : "separator" }
       ]
 
       items = [].concat.apply profileItems, items
