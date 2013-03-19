@@ -22,9 +22,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div id="profile-landing" class='profile-landing' data-profile="#{nickname}">
+    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
 
-    <div class="profile-personal-wrapper" id="profile-personal-wrapper">
+    <div class="profile-personal-wrapper kdview collapsed" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
@@ -35,28 +35,33 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
         <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a></div>
 
-      <div class="profile-links">
+      <!--<div class="profile-links">
         <ul class='main'>
           <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
           <li class='github'>#{getHandleLink 'github', handles}</li>
         </ul>
-      </div>
+      </div>-->
 
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-activities"></span>My Activities</a>
+            <a class="title"><span class="main-nav-icon home"></span>Home</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-topics"></span>My Topics</a>
+            <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-people"></span>My People</a>
+            <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-groups"></span>My Groups</a></div>
+            <a class="title"><span class="main-nav-icon people"></span>People</a>
+          </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-apps"></span>My Apps</a></div>
+            <a class="title"><span class="main-nav-icon groups"></span>Groups</a></div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon about"></span>About</a></div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon apps"></span>Apps</a></div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
             <hr class="">
           </div>
@@ -65,22 +70,22 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
 
       <div class="profile-koding-logo">
-        <div class="logo" id='profile-koding-logo'></div>
+        <div class="logo kdview" id='profile-koding-logo'></div>
       </div>
 
     </div>
 
-    <div class="profile-content-wrapper" id="profile-content-wrapper">
+    <div class="profile-content-wrapper kdview" id="profile-content-wrapper">
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name">#{firstName} #{lastName}</div>
-          <div class="profile-bio">#{about}</div>
+          <div class="profile-name" id="profile-name"><span class="text">#{getStaticProfileTitle profile}</span></div>
+          <div class="profile-bio" id="profile-bio"><span class="text">#{getStaticProfileAbout profile}</span></div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
-        <div class="profile-content-links">
+        <div class="profile-content-links links-hidden" id="profile-content-links">
           <h4>Show me</h4>
           <ul>
             <li class="" id="CBlogPostActivity">Blog Posts</li>
@@ -90,7 +95,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
             <li class="disabled" id="CTutorialActivity">Tutorials</li>
           </ul>
         </div>
-        <div class="profile-content-list" id=class="profile-content-list">
+        <div class="profile-loading-bar" id="profile-loading-bar"></div>
+        <div class="profile-content-list" id="profile-content-list">
           <div class="profile-content" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
             #{getBlogPosts(lastBlogPosts,firstName,lastName)}
             <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
@@ -108,12 +114,26 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   </html>
   """
 
+getStaticProfileTitle = (profile)->
+  {firstName,lastName,staticPage} = profile
+  if staticPage? and not (staticPage?.title in [null, ''])
+    "#{staticPage.title}"
+  else
+    "#{firstName} #{lastName}"
+
+getStaticProfileAbout = (profile)->
+  {about,staticPage} = profile
+  if staticPage? and not(staticPage?.about in [null, ''])
+    "#{staticPage.about}"
+  else
+    "#{about}"
+
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
     postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
     posts+="""
-      <div class="content-item">
+      <div class="content-item static">
         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
         <div class="has-markdown">
           <span class="data">#{blog.html}</span>
@@ -124,7 +144,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
     posts
   else
     """
-      <div class="content-item default-item">
+      <div class="content-item default-item" id='profile-blog-default-item'>
         <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
       </div>
     """

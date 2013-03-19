@@ -23,7 +23,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @getFlagRole = 'content'
 
-  {ObjectId, Register, secure, race, dash} = require 'bongo'
+  {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   @share()
   Experience =
@@ -63,7 +63,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle'
+        'setHandle','setAbout','fetchAbout','setStaticPageTitle', 'setStaticPageAbout'
       ]
     schema                  :
       skillTags             : [String]
@@ -112,6 +112,8 @@ module.exports = class JAccount extends jraphical.Module
             type            : Boolean
             default         : yes
           showTypes         : [String]
+          title             : String
+          about             : String
         avatar              : String
         status              : String
         experience          : String
@@ -131,10 +133,6 @@ module.exports = class JAccount extends jraphical.Module
       repo          :
         as          : 'owner'
         targetType  : "JRepo"
-
-      # database      :
-      #   as          : 'owner'
-      #   targetType  : JDatabase
 
       follower      :
         as          : 'follower'
@@ -164,6 +162,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
+      about:
+        as          : 'about'
+        targetType  : 'JMarkdownDoc'
+
       content       :
         as          : 'creator'
         targetType  : [
@@ -175,6 +177,37 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  setAbout: secure (client, text, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @fetchAbout (err, about)=>
+        console.log err if err
+        unless about
+          JMarkdownDoc = require '../markdowndoc'
+          about = new JMarkdownDoc content: text
+
+          daisy queue = [
+            ->
+              about.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
+              @addAbout about, (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            ->
+              callback null, about
+          ]
+
+        else
+          about.update $set:{ content: text }, (err)=>
+            if err then callback err
+            else callback null, about
+
 
   @renderHomepage: require './render-homepage'
 
@@ -219,6 +252,28 @@ module.exports = class JAccount extends jraphical.Module
       value = null if value is ''
       operation = $set: {}
       operation.$set[selector] = value
+      @update operation, callback
+    else
+      callback? new KodingError 'Access denied!'
+
+  setStaticPageTitle: secure (client, title, callback)->
+    {delegate}    = client.connection
+    selector      = "profile.staticPage.title"
+    isMine        = this.equals delegate
+    if isMine
+      operation = $set: {}
+      operation.$set[selector] = title
+      @update operation, callback
+    else
+      callback? new KodingError 'Access denied!'
+
+  setStaticPageAbout: secure (client, about, callback)->
+    {delegate}    = client.connection
+    selector      = "profile.staticPage.about"
+    isMine        = this.equals delegate
+    if isMine
+      operation = $set: {}
+      operation.$set[selector] = about
       @update operation, callback
     else
       callback? new KodingError 'Access denied!'
