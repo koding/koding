@@ -368,12 +368,11 @@ class StaticProfileController extends KDController
     @profileLogoView.$().css
       top: @landingView.getHeight()-42
 
-  appendActivities:(err,activities)->
-    @activityController.listActivities activities
-    @activityController.hideLazyLoader()
+  appendActivities:(err,activities, controller)->
+    controller.listActivities activities
+    controller.hideLazyLoader()
 
   refreshActivities:(err,activities,wrapperInstance,controllerInstance)->
-    log ',,,,',arguments
     @profileShowMoreView.hide()
 
     # listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
@@ -417,7 +416,8 @@ class StaticProfileController extends KDController
         facets    : @currentFacets
         to        : @activityController.itemsOrdered.last.getData().meta.createdAt
         bypass    : yes
-      , @bound "appendActivities"
+      , (err,activities)=>
+        @appendActivities err,activities,@activityController
 
     callback()
 
@@ -426,6 +426,8 @@ class StaticProfileController extends KDController
 
     @profileLoadingBar.setClass 'active'
     @profileLoaderView.show()
+
+    @aboutWrapper = yes
 
     @profileUser.fetchAbout (err,about)=>
       log arguments
@@ -467,7 +469,8 @@ class StaticProfileController extends KDController
         facets    : ['CBlogPostActivity']
         to        : @staticController.itemsOrdered.last.getData().meta.createdAt
         bypass    : yes
-      , @bound "appendActivities"
+      , (err, activities)=>
+       @appendActivities err, activities, @staticController
 
     callback()
 
