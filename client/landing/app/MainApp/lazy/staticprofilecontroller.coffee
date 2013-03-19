@@ -42,6 +42,7 @@ class StaticProfileController extends KDController
         @showWrapper @staticListWrapper
 
       @lockSidebar = no
+
       @utils.wait 250, =>
         @profileContentLinks.setClass 'links-hidden'
         @profileContentList.unsetClass 'has-links'
@@ -86,7 +87,6 @@ class StaticProfileController extends KDController
       @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
 
       # reviving customization
-
       types = @getAllowedTypes @profileUser
 
       for type in CONTENT_TYPES
@@ -95,6 +95,19 @@ class StaticProfileController extends KDController
           defaultValue : type in types
           delegate     : @
         , @profileUser
+
+      profileTitleNameView = new KDView
+        lazyDomId : 'profile-name'
+        cssClass : 'edit'
+
+      profileTitleNameView.addSubView profileTitleNameInput = new KDHitEnterInputView
+        defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
+        callback :(value)=>
+          value = Encoder.htmlEncode value
+          @profileUser.setStaticPageTitle Encoder.XSSEncode value, =>
+            profileTitleNameView.unsetClass 'edit'
+            profileTitleNameView.updatePartial value
+
 
     @on 'ShowMoreButtonClicked', =>
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
@@ -124,6 +137,7 @@ class StaticProfileController extends KDController
             @refreshActivities err, activities, isStatic
             callback()
         else @emit 'BlockedTypesRequested', blockedTypes
+
 
   reviveViewsOnPageLoad:->
 
@@ -331,18 +345,14 @@ class StaticProfileController extends KDController
     @profileShowMoreView.hide()
 
     listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
-    # otherListWrapper = if isStatic then @activityListWrapper else @staticListWrapper
     controller = if isStatic then @staticController else @activityController
-    # otherController = if isStatic then @activityController else @staticController
 
     listWrapper.show()
-    # otherListWrapper.hide()
 
     controller.removeAllItems()
     controller.listActivities activities
 
     controller.hideLazyLoader()
-    # otherController.showLazyLoader()
     @profileLoadingBar.unsetClass 'active'
     @profileLoaderView.hide()
 
