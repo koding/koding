@@ -68,27 +68,10 @@ class AceFindAndReplaceView extends JView
       @setViewHeight yes
 
   close: ->
-    # @resizeAceEditor 0
-    # @$().css top: 19
     @hide()
     @resizeAceEditor 0
 
   setViewHeight: (isReplaceMode) ->
-    # height   = 32
-    # @mode    = "find"
-
-    # if isReplaceMode
-    #   @mode  = "replace"
-    #   height = 60
-
-    # if @isHidden
-    #   @show()
-    #   @isHidden = no
-
-    # @$().css { height }
-    # @resizeAceEditor height
-    # @findInput.setFocus()
-
     height = if isReplaceMode then 60 else 32
     @show()
     @$().css { height }
@@ -139,7 +122,6 @@ class AceFindAndReplaceView extends JView
     {editor}   = @getDelegate().ace
     methodName = if doReplaceAll then "replaceAll" else "replace"
 
-    # editor.find findKeyword, @getSearchOptions() if not doReplaceAll
     editor[methodName] replaceKeyword
 
   pistachio: ->
