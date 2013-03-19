@@ -81,7 +81,7 @@ if basicAuth
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   console.log process.pid
-#    console.error err
+  console.error err
 #    stack = err?.stack
 #    console.log stack  if stack?
 
@@ -107,17 +107,15 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
 
 app.get "/-/kite/login", (req, res) ->
-  mqUser = "kite-" + req.query.apikey
-  mqPass = req.query.apikey + req.query.apisecret
-
-  args =
-    password: mqPass
-    tags: ''
-
   rabbitAPI = require 'koding-rabbit-api'
-  rabbitAPI.set "users/#{mqUser}", args, (err, data) ->
+  rabbitAPI.newUser req.query.key, req.query.secret, (err, data) ->
+    creds =
+      protocol  : 'amqp'
+      host      : mq.host
+      username  : data.username
+      password  : data.password
     res.header "Content-Type", "application/json"
-    res.send JSON.stringify {protocol: 'amqp', host: mq.host, username: mqUser, password: mqPass}
+    res.send JSON.stringify creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
