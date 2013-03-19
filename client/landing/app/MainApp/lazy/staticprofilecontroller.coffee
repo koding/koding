@@ -410,6 +410,10 @@ class StaticProfileController extends KDController
 
   addAboutLogic:(callback=->)->
     log 'adding about logic'
+
+    @profileLoadingBar.setClass 'active'
+    @profileLoaderView.show()
+
     @profileUser.fetchAbout (err,about)=>
       log arguments
       if err
@@ -424,6 +428,9 @@ class StaticProfileController extends KDController
 
         @profileContentView.addSubView @aboutWrapper = new KDView
           partial : partial
+
+        @profileLoadingBar.unsetClass 'active'
+        @profileLoaderView.hide()
 
         callback()
 
