@@ -263,11 +263,7 @@ class LoginView extends KDScrollView
 
   hideView:(callback)->
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @unsetClass 'landed'
-    else
-      {winHeight} = @getSingleton("windowController")
-      @$().css marginTop : -winHeight
+    @unsetClass 'landed'
 
     @utils.wait 601, =>
       @emit "LoginViewHidden"
@@ -279,11 +275,6 @@ class LoginView extends KDScrollView
 
     @show()
     @emit "LoginViewShown"
-
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @setClass 'landed'
-    else
-      @$().css marginTop : 0
 
     @utils.wait 601,()=>
       @hidden = no
@@ -317,4 +308,4 @@ class LoginView extends KDScrollView
     @setClass name
 
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @setClass 'landed'
+      @setClass 'landed' unless name is 'home'
