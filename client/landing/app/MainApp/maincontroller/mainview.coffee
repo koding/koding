@@ -68,7 +68,6 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @contentPanel = new KDView
       domId    : "content-panel"
-      cssClass : "transition"
       bind     : "webkitTransitionEnd" #TODO: Cross browser support
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
