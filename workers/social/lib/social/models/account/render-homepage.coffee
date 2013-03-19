@@ -45,18 +45,20 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-activities"></span>My Activities</a>
+            <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-topics"></span>My Topics</a>
+            <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-people"></span>My People</a>
+            <a class="title"><span class="main-nav-icon people"></span>People</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-groups"></span>My Groups</a></div>
+            <a class="title"><span class="main-nav-icon groups"></span>Groups</a></div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon my-apps"></span>My Apps</a></div>
+            <a class="title"><span class="main-nav-icon about"></span>About</a></div>
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+            <a class="title"><span class="main-nav-icon apps"></span>Apps</a></div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
             <hr class="">
           </div>
@@ -75,7 +77,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name">#{firstName} #{lastName}</div>
+          <div class="profile-name" id="profile-name"><span class="text">#{getTitleName profile}</span></div>
           <div class="profile-bio">#{about}</div>
         </div>
       </div>
@@ -108,6 +110,13 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   </body>
   </html>
   """
+
+getTitleName = (profile)->
+  {firstName,lastName,staticPage} = profile
+  unless staticPage?.title in [null, '']
+    "#{staticPage.title}"
+  else
+    "#{firstName} #{lastName}"
 
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
