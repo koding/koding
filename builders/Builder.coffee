@@ -41,7 +41,7 @@ module.exports = class Builder
 
     @buildJS options if initial or includesChanged or scriptsChanged
     @buildCSS options if initial or includesChanged or stylesChanged
-    @buildHTML options if initial
+    @buildHTML options if initial or includesChanged or scriptsChanged
 
     if @config.client.watch is yes
       log.info "Watching for changes..." if initial

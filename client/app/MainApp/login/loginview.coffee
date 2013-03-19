@@ -319,6 +319,13 @@ class LoginView extends KDScrollView
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
       @setClass 'landed'
 
+
+
+
+
+
+
+
 class OldLoginView extends KDScrollView
 
   stop =(event)->
@@ -326,6 +333,8 @@ class OldLoginView extends KDScrollView
     event.stopPropagation()
 
   constructor:(options = {}, data)->
+
+    options.lazyDomId = 'login-footer'
 
     entryPoint = ''
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
@@ -337,10 +346,10 @@ class OldLoginView extends KDScrollView
     @hidden = no
 
     handler =(route, event)=>
+      log "Handling", route
       route = "/#{entryPoint}#{route}" if entryPoint
       stop event
       @getSingleton('router').handleRoute route
-
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -348,12 +357,6 @@ class OldLoginView extends KDScrollView
     registerHandler   = handler.bind null, '/Register'
     joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
-
-    @logo = new KDCustomHTMLView
-      tagName     : "div"
-      cssClass    : "logo"
-      partial     : "Koding"
-      click       : homeHandler
 
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
@@ -367,9 +370,9 @@ class OldLoginView extends KDScrollView
       click       : homeHandler
 
     @backToLoginLink = new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "Go ahead and login"
-      click     : loginHandler
+      tagName     : "a"
+      partial     : "Go ahead and login"
+      click       : loginHandler
 
     @goToRequestLink = new KDCustomHTMLView
       tagName     : "a"
@@ -421,94 +424,48 @@ class OldLoginView extends KDScrollView
       partial     : "Recover password"
       click       : recoverHandler
 
-    @loginOptions = new LoginOptions
-      cssClass : "login-options-holder log"
-
-    @registerOptions = new RegisterOptions
-      cssClass : "login-options-holder reg"
-
     @loginForm = new LoginInlineForm
+      lazyDomId: "login-form"
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
+      lazyDomId: "register-form"
       cssClass : "login-form"
       callback : (formData)=> @doRegister formData
 
     @recoverForm = new RecoverInlineForm
+      lazyDomId: "recover-form"
       cssClass : "login-form"
       callback : (formData)=> @doRecover formData
 
     @resetForm = new ResetInlineForm
+      lazyDomId: "reset-form"
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
 
     @requestForm = new RequestInlineForm
+      lazyDomId: "request-form"
       cssClass : "login-form"
       callback : (formData)=> @doRequest formData
 
-    @headBanner = new KDCustomHTMLView
-      cssClass : "head-banner hidden"
-      partial  : "..."
-
-    @video = new KDView
-      cssClass : "video-wrapper"
-
-    @on "LoginViewHidden", (name)=>
-      @video.updatePartial ""
-
-    @on "LoginViewShown", (name)=>
-      if @video.$('iframe').length is 0
-        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-
-    @video.on "viewAppended", =>
-      unless KD.isLoggedIn()
-        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-      else
-        @animateToForm 'login'
-
     @slideShow = new HomeSlideShowHolder
+      lazyDomId : 'home-screenshots'
 
   viewAppended:->
 
     @listenWindowResize()
-    @setClass "login-screen old-login-screen home"
+    @setClass "login-footer"
     @setTemplate @pistachio()
     @template.update()
     # @hide()
 
   pistachio:->
     """
-    {{> @headBanner}}
-    <div class="flex-wrapper">
-      <div class="login-box-header">
-        <a class="betatag">beta</a>
-        {{> @logo}}
-      </div>
-      {{> @loginOptions}}
-      {{> @registerOptions}}
-      <div class="login-form-holder lf">
-        {{> @loginForm}}
-      </div>
-      <div class="login-form-holder rf">
-        {{> @registerForm}}
-      </div>
-      <div class="login-form-holder rcf">
-        {{> @recoverForm}}
-      </div>
-      <div class="login-form-holder rsf">
-        {{> @resetForm}}
-      </div>
-      <div class="login-form-holder rqf">
-        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
-        {{> @requestForm}}
-      </div>
-    </div>
-    <div class="login-footer">
       <p class='bigLink'>{{> @bigLinkReq}}</p>
       <p class='bigLink'>{{> @bigLinkReg}}</p>
       <p class='bigLink'>{{> @bigLinkLog}}</p>
@@ -517,34 +474,7 @@ class OldLoginView extends KDScrollView
       <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-    </div>
-    <section>
-      <hr id='home-reviews'>
-      <div class="reviews">
-        <p>A new way for developers to work</p>
-        <span>We said.</span>
-        <p>Wow! Cool - good luck!</p>
-        <span>Someone we talked to the other day...</span>
-        <p>I don't get it... What is it, again?</p>
-        <span>Same dude.</span>
-        <p>Real software development in the browser...</p>
-        <span>Us again.</span>
-        <p>with a real VM and a real Terminal?</p>
-        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
-      </div>
-      <hr id='home-screenshots'>
-      <div class="screenshots">
-        {{> @slideShow}}
-      </div>
-      <hr/>
-      <div class="footer-links">
-        <p class='bigLink'>{{> @bigLinkReq1}}</p>
-        <p class='bigLink'>{{> @bigLinkReg1}}</p>
-        <p class='bigLink'>{{> @bigLinkLog1}}</p>
-      </div>
-      <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
-    </section>
-    {{> @backToHomeLink}}
+      <p class='vidLink'>Want to watch the {{> @backToVideoLink}}</p>
     """
 
   doReset:({recoveryToken, password, clientId})->
@@ -669,19 +599,10 @@ class OldLoginView extends KDScrollView
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
-  prepare:(callback)->
-    unless KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
-      @hideView callback
-    else
-      callback()
-
   hideView:(callback)->
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @unsetClass 'landed'
-    else
-      {winHeight} = @getSingleton("windowController")
-      @$().css marginTop : -winHeight
+    {winHeight} = @getSingleton("windowController")
+    @$().css marginTop : -winHeight
 
     @utils.wait 601, =>
       @emit "LoginViewHidden"
@@ -694,10 +615,7 @@ class OldLoginView extends KDScrollView
     @show()
     @emit "LoginViewShown"
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @setClass 'landed'
-    else
-      @$().css marginTop : 0
+    @$().css marginTop : 0
 
     @utils.wait 601,()=>
       @hidden = no
@@ -730,9 +648,10 @@ class OldLoginView extends KDScrollView
           @headBanner.updatePartial @headBannerMsg
           @headBanner.show()
 
-    @unsetClass "register recover login reset home lr landed"
     @emit "LoginViewAnimated", name
-    @setClass name
+
+    $('#main-form-handler').removeClass "register recover login reset home lr landed"
+    $('#main-form-handler').addClass name
 
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @setClass 'landed'
+      $('#main-form-handler').addClass 'landed'
