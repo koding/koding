@@ -50,7 +50,7 @@ class LazyDomController extends KDController
   addGroupViews:->
 
     return if @groupViewsAdded
-    @groupViewsAdded = yes
+    @groupViewsAdded        = yes
     staticGroupController   = new StaticGroupController
     {@landingView}          = staticGroupController
 
@@ -63,7 +63,7 @@ class LazyDomController extends KDController
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
-    @hideLandingPage()
+    @hideLandingPage() unless path is '/Logout'
 
   handleNavigationItemClick:(item, event)->
 
