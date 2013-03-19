@@ -88,7 +88,7 @@ func main() {
 		return info, nil
 	})
 
-	k.Handle("vm.nuke", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		_, vm := findSession(session)
 		vm.Prepare(getUsers(vm), true)
 		return vm.Start()

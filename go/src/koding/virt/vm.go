@@ -135,7 +135,7 @@ func LowerdirFile(p string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + p
 }
 
-func (vm *VM) Prepare(users []User, nuke bool) {
+func (vm *VM) Prepare(users []User, reinitialize bool) {
 	vm.Unprepare()
 
 	// write LXC files
@@ -152,8 +152,8 @@ func (vm *VM) Prepare(users []User, nuke bool) {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
-	// remove all except /home on nuke
-	if nuke {
+	// remove all except /home on reinitialize
+	if reinitialize {
 		entries, err := ioutil.ReadDir(vm.OverlayFile("/"))
 		if err != nil {
 			panic(err)

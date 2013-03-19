@@ -79,13 +79,13 @@ func (pty *PTY) SetSize(x, y uint16) {
 func (pty *PTY) Signal(sig syscall.Signal) {
 	var pgid int
 	if err := pty.Ioctl(syscall.TIOCGPGRP, uintptr(unsafe.Pointer(&pgid))); err != nil {
-		panic("Failed to get process group")
+		return
 	}
 	process, err := os.FindProcess(pgid)
 	if err != nil {
-		panic(err)
+		return
 	}
 	if err := process.Signal(sig); err != nil {
-		panic("Failed to send signal")
+		return
 	}
 }
