@@ -10,7 +10,7 @@ class LandingPageSideBar extends KDView
 
     @navController = new LandingPageNavigationController
       view         : new NavigationList
-        itemClass  : NavigationLink
+        itemClass  : LandingNavigationLink
         type       : "navigation"
       scrollView   : no
       wrapper      : no
@@ -101,3 +101,6 @@ class LandingPageNavigationController extends NavigationController
       else
         continue if itemData.loggedIn
       @getListView().addItem itemData
+
+class LandingNavigationLink extends NavigationLink
+  click:->
