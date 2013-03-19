@@ -38,7 +38,8 @@ class MainController extends KDController
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
 
-    KD.registerSingleton "groupsController", appManager.create 'Groups'
+    appManager.create 'Groups', (groupsController)->
+      KD.registerSingleton "groupsController", groupsController
 
     @appReady =>
       router.listen()
