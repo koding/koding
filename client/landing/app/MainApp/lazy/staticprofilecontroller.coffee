@@ -50,7 +50,7 @@ class StaticProfileController extends KDController
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
       @staticDefaultItem.show()
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', yes, =>
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', @staticListWrapper, @staticController, =>
         @showWrapper @staticListWrapper
         @staticDefaultItem.show()
 
@@ -62,7 +62,7 @@ class StaticProfileController extends KDController
 
       @lockSidebar = yes
 
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', no, =>
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', @activityListWrapper, @activityController, =>
         @showWrapper @activityListWrapper
 
       @utils.wait 250, =>
@@ -131,9 +131,11 @@ class StaticProfileController extends KDController
 
 
     @on 'ShowMoreButtonClicked', =>
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity'
+      @addStaticLogic()
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', @staticListWrapper, @staticController, =>
+        @showWrapper @staticListWrapper
 
-    @on 'StaticProfileNavLinkClicked', (facets,isStatic=no,callback=->)=>
+    @on 'StaticProfileNavLinkClicked', (facets,wrapper,controller,callback=->)=>
       @profileLoadingBar.setClass 'active'
       @profileLoaderView.show()
       facets = [facets] if 'string' is typeof facets
@@ -155,7 +157,7 @@ class StaticProfileController extends KDController
             facets : facets
             bypass : yes
           , (err, activities)=>
-            @refreshActivities err, activities, isStatic
+            @refreshActivities err, activities, wrapper, controller
             callback()
         else @emit 'BlockedTypesRequested', blockedTypes
 
@@ -205,6 +207,7 @@ class StaticProfileController extends KDController
 
     if @profileContentView.$().attr('data-count') > 0
       @profileShowMoreView.show()
+    else @profileShowMoreView.hide()
 
     # reviving wrapper views for resize/slide animations as well as
     # adding administrative views
@@ -278,6 +281,7 @@ class StaticProfileController extends KDController
         @getSingleton('lazyDomController').hideLandingPage()
 
     @repositionLogoView()
+    # @addStaticLogic()
 
     console.timeEnd 'reviving page elements on pageload.'
 
@@ -368,11 +372,15 @@ class StaticProfileController extends KDController
     @activityController.listActivities activities
     @activityController.hideLazyLoader()
 
-  refreshActivities:(err,activities,isStatic)->
+  refreshActivities:(err,activities,wrapperInstance,controllerInstance)->
+    log ',,,,',arguments
     @profileShowMoreView.hide()
 
-    listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
-    controller = if isStatic then @staticController else @activityController
+    # listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
+    # controller = if isStatic then @staticController else @activityController
+
+    listWrapper = wrapperInstance
+    controller = controllerInstance
 
     listWrapper.show()
 
