@@ -1,19 +1,5 @@
 class ActivityChildViewTagGroup extends LinkGroup
 
-  constructor:->
-    super
-    
-    @on 'ItemClicked', @bound 'handleTagClick'
-
-  getTagRoute =({group, slug})->
-    route = '/'
-    route += group  unless group is 'koding'
-    return "#{route}/Topics/#{slug}"
-
-  handleTagClick:(view)->
-    tag = view.getData()
-    @getSingleton('router').handleRoute getTagRoute tag
-
   pistachio:->
 
     participants = @getData()

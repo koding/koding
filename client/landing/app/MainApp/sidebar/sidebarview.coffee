@@ -47,7 +47,6 @@ class Sidebar extends JView
     # handle group related decisions
     @initializeGroup()
 
-
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"

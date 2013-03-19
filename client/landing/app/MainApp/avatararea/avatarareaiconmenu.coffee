@@ -41,9 +41,9 @@ class AvatarAreaIconMenu extends JView
 
   pistachio:->
     """
-      {{> @notificationsIcon}}
-      {{> @messagesIcon}}
-      {{> @groupsSwitcherIcon}}
+    {{> @notificationsIcon}}
+    {{> @messagesIcon}}
+    {{> @groupsSwitcherIcon}}
     """
 
   viewAppended:->

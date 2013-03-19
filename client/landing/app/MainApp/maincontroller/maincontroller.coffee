@@ -34,6 +34,8 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
 
+    KD.registerSingleton "linkController", new LinkController
+
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
 
