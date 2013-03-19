@@ -50,7 +50,7 @@ class LazyDomController extends KDController
   addGroupViews:->
 
     return if @groupViewsAdded
-    @groupViewsAdded = yes
+    @groupViewsAdded        = yes
     staticGroupController   = new StaticGroupController
     {@landingView}          = staticGroupController
 
@@ -59,11 +59,11 @@ class LazyDomController extends KDController
     return if @profileViewsAdded
     @profileViewsAdded      = yes
     staticProfileController = new StaticProfileController
-    @landingView            = staticProfileController.profileLandingView
+    {@landingView}          = staticProfileController
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
-    @hideLandingPage()
+    @hideLandingPage() unless path is '/Logout'
 
   handleNavigationItemClick:(item, event)->
 
@@ -96,24 +96,16 @@ class LazyDomController extends KDController
         @openPath '/Logout'
 
       when 'activity'
-        @openPath "/#{profileEntryPoint}/Activity"
-        @hideLandingPage()
+        @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
 
-      when 'topics'
-        @openPath "/#{profileEntryPoint}/Topics"
-        @hideLandingPage()
+      when 'about'
+        @getSingleton('staticProfileController').emit 'AboutLinkClicked'
 
-      when 'members'
-        @openPath "/#{profileEntryPoint}/Members"
-        @hideLandingPage()
-
-      when 'groups'
-        @openPath "/#{profileEntryPoint}/Groups"
-        @hideLandingPage()
-
-      when 'apps'
-        @openPath "/#{profileEntryPoint}/Apps"
-        @hideLandingPage()
+      when 'topics','members','groups','apps'
+        new KDNotificationView
+          title : 'This feature is currently disabled'
+      when 'home'
+        @getSingleton('staticProfileController').emit 'HomeLinkClicked'
 
   requestAccess:->
 

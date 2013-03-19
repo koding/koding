@@ -314,7 +314,9 @@ module.exports = [
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
+  "app/MainApp/lazy/staticprofileconfigviews.coffee",
   "app/MainApp/lazy/staticgroupcontroller.coffee",
+  "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
