@@ -189,10 +189,7 @@ error_404 =->
     """
 
 error_500 =->
-  error_ 500,
-    """
-    internal server error
-    """
+  error_ 500, 'internal server error'
 
 app.get '/:name/:section?', (req, res, next)->
   {JGroup, JName} = koding.models

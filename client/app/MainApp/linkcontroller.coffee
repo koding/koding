@@ -5,13 +5,13 @@ class LinkController extends KDController
     @linkHandlers = {}
 
   handleLinkClick:(link)->
-    {JAccount, JGroup, JTopic} = KD.remote.api
+    {JAccount, JGroup, JTag} = KD.remote.api
     data = link.getData?()
     return  unless data?
     route = switch data.constructor
       when JAccount   then "/#{data.profile.nickname}"
       when JGroup     then "/#{data.slug}"
-      when JTopic
+      when JTag
         {group, slug} = data
         route = if group is 'koding' then '' else "#{group}"
         route += "/Topics/#{slug}"

@@ -13,7 +13,6 @@ class LinkView extends KDCustomHTMLView
 
     if data.fake and options.origin
       @loadFromOrigin options.origin
-
     KD.getSingleton('linkController').registerLink this
 
   click:(event)->
