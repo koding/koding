@@ -200,7 +200,7 @@ class KDView extends KDObject
 # VIEW PROPERTY GETTERS
 # #
 
-  getDomId:()->
+  getDomId:->
     @domElement.attr "id"
 
 
@@ -209,7 +209,7 @@ class KDView extends KDObject
 # #
 
 
-  setDomElement:(cssClass="")->
+  setDomElement:(cssClass='')->
     {lazyDomId, tagName} = @getOptions()
 
     el = document.getElementById lazyDomId  if lazyDomId
