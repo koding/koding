@@ -10,6 +10,7 @@ class LinkGroup extends KDCustomHTMLView
     options.totalCount    or= data?.length or options.group?.length or 0
     options.hasMore         = options.totalCount > options.itemsToShow
     options.separator      ?= ', '
+    options.moreSuffix    or= ''
 
     super options, data
 
@@ -51,7 +52,7 @@ class LinkGroup extends KDCustomHTMLView
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{totalCount-3} more"
+      partial     : "#{totalCount-3} more #{@getOptions().moreSuffix}"
       attributes  :
         href      : "#"
         title     : "Click to view..."
