@@ -102,11 +102,27 @@ class StaticProfileController extends KDController
 
       profileTitleNameView.addSubView profileTitleNameInput = new KDHitEnterInputView
         defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
+        tooltip :
+          title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
         callback :(value)=>
           value = Encoder.htmlEncode value
           @profileUser.setStaticPageTitle Encoder.XSSEncode value, =>
             profileTitleNameView.unsetClass 'edit'
             profileTitleNameView.updatePartial value
+
+      profileTitleBioView = new KDView
+        lazyDomId : 'profile-bio'
+        cssClass : 'edit'
+
+      profileTitleBioView.addSubView profileTitleBioInput = new KDHitEnterInputView
+        defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or ''
+        tooltip :
+          title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
+        callback :(value)=>
+          value = Encoder.htmlEncode value
+          @profileUser.setStaticPageAbout Encoder.XSSEncode value, =>
+            profileTitleBioView.unsetClass 'edit'
+            profileTitleBioView.updatePartial value
 
 
     @on 'ShowMoreButtonClicked', =>

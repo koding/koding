@@ -77,8 +77,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name" id="profile-name"><span class="text">#{getTitleName profile}</span></div>
-          <div class="profile-bio">#{about}</div>
+          <div class="profile-name" id="profile-name"><span class="text">#{getStaticProfileTitle profile}</span></div>
+          <div class="profile-bio" id="profile-bio"><span class="text">#{getStaticProfileAbout profile}</span></div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
@@ -111,12 +111,19 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   </html>
   """
 
-getTitleName = (profile)->
+getStaticProfileTitle = (profile)->
   {firstName,lastName,staticPage} = profile
   unless staticPage?.title in [null, '']
     "#{staticPage.title}"
   else
     "#{firstName} #{lastName}"
+
+getStaticProfileAbout = (profile)->
+  {about,staticPage} = profile
+  unless staticPage?.about in [null, '']
+    "#{staticPage.about}"
+  else
+    "#{about}"
 
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
