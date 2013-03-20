@@ -574,7 +574,7 @@ class GroupsAppController extends AppController
     return pane
 
   prepareVocabularyTab:->
-    {groupView} = @
+    {groupView} = this
     group = groupView.getData()
     pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
       (pane, vocabView)->
@@ -586,8 +586,9 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
-  showContentDisplay:(group, callback=->)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+  createContentDisplay:([group])->
+    # controller = new ContentDisplayControllerGroups null, content
+    # contentDisplay = controller.getView()
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
@@ -603,7 +604,11 @@ class GroupsAppController extends AppController
       @prepareMembershipPolicyTab()
       @prepareInvitationsTab()
 
+    @showContentDisplay @groupView
+
+
+  showContentDisplay:(groupView, callback=->)->
+    contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
-    # console.log {contentDisplay}
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView

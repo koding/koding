@@ -58,7 +58,7 @@ class StaticGroupController extends KDController
     KD.remote.cacheable @groupEntryPoint, (err, group, name)=>
       if err then warn err
       else if group?.first
-        group.first.fetchMembershipStatus (err, status)=>
+        group.first.fetchMembershipStatuses (err, status)=>
           if err then warn err
           else
             log status
