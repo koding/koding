@@ -115,18 +115,20 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   """
 
 getStaticProfileTitle = (profile)->
-  {firstName,lastName,staticPage} = profile
-  if staticPage? and not (staticPage?.title in [null, ''])
+  {firstName,lastName,nickname,staticPage} = profile
+  if staticPage?.title? and not (staticPage.title in [null, ''])
     "#{staticPage.title}"
   else
-    "#{firstName} #{lastName}"
+    if firstName and lastName then "#{firstName} #{lastName}"
+    else if firstName then "#{firstName}"
+    else if lastName then "#{lastName}"
+    else "#{nickname}"
 
 getStaticProfileAbout = (profile)->
   {about,staticPage} = profile
-  if staticPage? and not(staticPage?.about in [null, ''])
+  if staticPage?.about? and not(staticPage.about in [null, ''])
     "#{staticPage.about}"
-  else
-    "#{about}"
+  else if about then "#{about}" else ""
 
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
