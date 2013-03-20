@@ -53,7 +53,7 @@ class ActivityTutorialWidget extends KDFormView
           @embedBox.resetEmbedAndHide()
 
       paste :=>
-          @utils.wait =>
+          @utils.defer =>
             @inputTutorialEmbedLink.setValue @sanitizeUrls @inputTutorialEmbedLink.getValue()
 
             url = @inputTutorialEmbedLink.getValue().trim()
