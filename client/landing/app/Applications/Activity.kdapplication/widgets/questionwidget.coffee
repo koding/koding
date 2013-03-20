@@ -1,35 +1,35 @@
 class ActivityQuestionWidget extends KDFormView
 
-  submit:=>
+  submit:->
     super
     @reset()
     no
 
-  reset:=>
+  reset:->
     @inputQuestionTitle.setValue ''
     @inputContent.setValue ''
     @addTags.input.clear()
-    
+
   viewAppended:()->
     @setClass "update-options question clearfix"
 
-    formline1 = new KDCustomHTMLView 
-      tagName : "div" 
+    formline1 = new KDCustomHTMLView
+      tagName : "div"
       cssClass : "clearfix form-headline input-with-extras"
-    formline2 = new KDCustomHTMLView 
-      tagName : "div" 
+    formline2 = new KDCustomHTMLView
+      tagName : "div"
       cssClass : "clearfix formline"
-    formline3 = new KDCustomHTMLView 
-      tagName : "div" 
+    formline3 = new KDCustomHTMLView
+      tagName : "div"
       cssClass : "clearfix formline"
-      
+
     # labelQuestionTitle = new KDLabelView
     #   title : "Question:"
     labelContent = new KDLabelView
       title : "Content:"
     labelAddTags = new KDLabelView
       title : "Add Tags:"
-    
+
     @inputQuestionTitle = new KDInputView
       name        : "questionTitle"
       placeholder : "Question title..."
@@ -37,7 +37,7 @@ class ActivityQuestionWidget extends KDFormView
         rules     : "required"
         messages  :
           required  : "Question title is required!"
-        
+
 
     @inputContent = new KDInputView
       label       : labelContent
@@ -48,7 +48,7 @@ class ActivityQuestionWidget extends KDFormView
         rules     : "required"
         messages  :
           required  : "Question body is required!"
-      
+
     @addTags = new CommonView_AddTagView
       input:
         placeholder : "Add some tags"
@@ -56,9 +56,9 @@ class ActivityQuestionWidget extends KDFormView
         itemClass : MemberAutoCompleteItemView
       button    :
         title     : ""
-        icon      : yes 
+        icon      : yes
         iconClass : "plus"
-    
+
     submit = new KDButtonView
       style : "clean-gray"
       title : "Ask your Question"

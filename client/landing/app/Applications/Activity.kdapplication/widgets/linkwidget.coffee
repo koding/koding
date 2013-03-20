@@ -125,7 +125,7 @@ class ActivityLinkWidget extends KDFormView
 
 
 
-  submit:=>
+  submit:->
     @addCustomData "link_url", @link.getValue()
     @addCustomData "link_embed", @embedBox.getEmbedData()
     @addCustomData "link_embed_hidden_items", @embedBox.embedHiddenItems
@@ -133,7 +133,7 @@ class ActivityLinkWidget extends KDFormView
     @once "FormValidationPassed", => @reset()
     super
 
-  reset:=>
+  reset:->
 
     @submitBtn.setTitle "Share your Link"
 

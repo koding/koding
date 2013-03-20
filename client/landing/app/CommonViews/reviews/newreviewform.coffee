@@ -7,7 +7,7 @@ class NewReviewForm extends NewCommentForm
 
     super options,data
 
-  commentInputReceivedEnter:(instance,event)=>
+  commentInputReceivedEnter:(instance,event)->
     if KD.isLoggedIn()
       review = @commentInput.getValue()
       @commentInput.setValue ''

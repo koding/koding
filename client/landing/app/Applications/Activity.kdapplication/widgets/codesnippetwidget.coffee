@@ -103,7 +103,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @updateSyntaxTag syntax
       @ace.setSyntax syntax
 
-  updateSyntaxTag:(syntax)=>
+  updateSyntaxTag:(syntax)->
     # Remove already appended syntax tag from submit queue if exists
     # FIXME It still fails for meta characters like /
     # oldSyntax = __aceSettings.syntaxAssociations[@ace.getSyntax()][0].toLowerCase()
@@ -119,7 +119,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     if @tagController.selectedItemCounter < selectedItemsLimit
       @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
-  submit:=>
+  submit:->
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
 
@@ -128,7 +128,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
-  reset:=>
+  reset:->
     @submitBtn.setTitle "Share your Code Snippet"
     @removeCustomData "activity"
     @title.setValue ''
