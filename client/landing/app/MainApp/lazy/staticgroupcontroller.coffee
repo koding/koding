@@ -100,7 +100,6 @@ class StaticGroupController extends KDController
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
-        log 'geldiik mi ilkin=e?'
         if err then console.warn err
         else unless policy?.approvalEnabled
           log 'geldiik mi?'
