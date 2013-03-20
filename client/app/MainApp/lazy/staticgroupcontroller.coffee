@@ -1,5 +1,12 @@
 class StaticGroupController extends KDController
 
+  roleEventMap =
+    "guest"               : "status.guest"
+    "member"              : "status.member"
+    "invitation-pending"  : "status.pending"
+    "invitation-sent"     : "status.action-required"
+    "invitation-declined" : "status.declined"
+
   constructor:->
 
     super
@@ -23,6 +30,9 @@ class StaticGroupController extends KDController
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
+
+    @groupTitleView.addSubView @buttonWrapper = new KDCustomHTMLView
+      cssClass : "button-wrapper"
 
     groupContentView = new KDView
       lazyDomId : 'group-loading-content'
@@ -55,20 +65,16 @@ class StaticGroupController extends KDController
 
   checkGroupUserRelation:->
 
-    KD.remote.cacheable @groupEntryPoint, (err, group, name)=>
+    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
       if err then warn err
-      else if group?.first
-        group.first.fetchMembershipStatus (err, status)=>
+      else if groups?.first
+        groups.first.fetchMembershipStatuses (err, statuses)=>
           if err then warn err
-          else
-            switch status
-              when "invitation-pending"  then @emit "status.pending"
-              when "invitation-sent"     then @emit "status.action-required"
-              when "invitation-declined" then @emit "status.declined"
-              when "member"              then @emit "status.member"
-              when "guest"               then @emit "status.guest"
-
-
+          else if statuses.length
+            if "member" in statuses or (isAdmin = "admin" in statuses)
+              @emit roleEventMap.member, isAdmin
+            else
+              @emit roleEventMap[statuses.first]
 
   attachListeners:->
 
@@ -76,33 +82,52 @@ class StaticGroupController extends KDController
     @on "status.member",  @bound "decorateMemberStatus"
     @on "status.guest",   @bound "decorateGuestStatus"
 
+    @mainController.on "accountChanged.to.loggedOut", =>
+      @buttonWrapper.destroySubViews()
+
+    @mainController.on "accountChanged.to.loggedIn", =>
+      @checkGroupUserRelation()
+
   decoratePendingStatus:->
 
-    @groupTitleView.addSubView new KDButtonView
+    button = new KDButtonView
       title    : "REQUEST PENDING"
       cssClass : "editor-button"
 
-  decorateMemberStatus:->
+    @buttonWrapper.addSubView button
 
-    @groupTitleView.addSubView new KDButtonView
+  decorateMemberStatus:(isAdmin)->
+
+    open = new KDButtonView
       title    : "Open group"
       cssClass : "editor-button"
       callback : =>
         @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
+    @buttonWrapper.addSubView open
+
+    dashboard = new KDButtonView
+      title    : "Go to Dashboard"
+      cssClass : "editor-button"
+      callback : =>
+        @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+
+    @buttonWrapper.addSubView dashboard
+
   decorateGuestStatus:->
 
-    @groupTitleView.addSubView button = new KDButtonView
+    button = new KDButtonView
       title    : "Request Access"
       cssClass : "editor-button"
       callback : =>
         @lazyDomController.requestAccess()
 
+    @buttonWrapper.addSubView button
+
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
-          log 'geldiik mi?'
           button.setTitle "Join Group"
           button.setCallback =>
             @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"

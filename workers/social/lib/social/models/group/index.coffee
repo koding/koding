@@ -59,7 +59,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatus'
+        'fetchMembershipStatuses'
       ]
     schema          :
       title         :
@@ -320,7 +320,7 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
   #     [callback, options] = [options, callback]  unless callback
-  #     options ?= 
+  #     options ?=
 
 
   # fetchMyFollowees: permit 'list members'
@@ -612,19 +612,20 @@ module.exports = class JGroup extends Module
   fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...
 
-  fetchMembershipStatus: secure (client, callback)->
+  fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
     {delegate} = client.connection
-    unless delegate instanceof JAccount 
-      callback null, 'guest'
+    unless delegate instanceof JAccount
+      callback null, ['guest']
     else
       @fetchMyRoles client, (err, roles)=>
         if err then callback err
-        else if 'member' in roles then callback null, 'member'
+        else if 'member' in roles or 'admin' in roles
+          callback null, roles
         else
           options = targetOptions:
             selector: { koding: username: delegate.profile.nickname }
           @fetchInvitationRequest {}, options, (err, request)->
             if err then callback err
-            else unless request? then callback null, 'guest'
-            else callback null, "invitation-#{request.status}"
+            else unless request? then callback null, ['guest']
+            else callback null, ["invitation-#{request.status}"]

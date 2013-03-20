@@ -78,6 +78,8 @@ class KodingRouter extends KDRouter
 
   openContent:(name, section, state, route)->
     KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
+      # TODO: this callback doesn't fire. We need to get this working again
+      # to regain "spatial" history
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
