@@ -1,5 +1,8 @@
 class ActivityItemChild extends KDView
 
+#  showAuthor =(author)->
+#    KD.getSingleton('router').handleRoute "/#{author.profile.nickname}", state: author
+
   constructor:(options, data)->
 
     origin =
@@ -10,8 +13,11 @@ class ActivityItemChild extends KDView
       size    : {width: 40, height: 40}
       origin
     }
-
+    
     @author = new ProfileLinkView { origin }
+
+#    @avatar.on 'LinkClicked', -> showAuthor @getData() 
+#    @author.on 'LinkClicked', -> showAuthor @getData()
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3

@@ -33,10 +33,13 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
 
+    KD.registerSingleton "linkController", new LinkController
+
     router = new KodingRouter location.pathname
     KD.registerSingleton 'router', router
 
-    KD.registerSingleton "groupsController", appManager.create 'Groups'
+    appManager.create 'Groups', (groupsController)->
+      KD.registerSingleton "groupsController", groupsController
 
     @appReady =>
       router.listen()
@@ -90,8 +93,12 @@ class MainController extends KDController
     @emit "AccountChanged", account, firstLoad
 
     unless @mainViewController
-      @loginScreen = new LoginView
-      KDView.appendToDOMBody @loginScreen
+
+      if KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
+        @loginScreen = new LoginView
+        KDView.appendToDOMBody @loginScreen
+      else
+        @loginScreen = new OldLoginView
 
       @mainViewController = new MainViewController
         view       : mainView = new MainView
@@ -131,17 +138,17 @@ class MainController extends KDController
   doLogout:->
 
     @getSingleton("lazyDomController").showLandingPage =>
-      @loginScreen.showView =>
-        KD.getSingleton("appManager").quitAll =>
-          @mainViewController.sidebarController.accountChanged account
-          @mainViewController.getView().decorateLoginState no
+      # @loginScreen.showView =>
+      KD.getSingleton("appManager").quitAll =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
 
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
 
-      @mainViewController.getView().$().css 'opacity', 0
+      # @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView
         cssClass  : "login"
@@ -158,14 +165,16 @@ class MainController extends KDController
     #   log "pageLoaded", @isUserLoggedIn()
 
     @on '*.*.loggedOut', (account)=>
-      # log "accountChanged Out"
-      @mainViewController.sidebarController.accountChanged account
-      @mainViewController.getView().decorateLoginState no
+      log "accountChanged Out"
+      @loginScreen.showView =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
 
     @on '*.*.loggedIn', (account)=>
-      # log "accountChanged In"
-      @mainViewController.getView().decorateLoginState yes
-      @mainViewController.sidebarController.accountChanged account
+      log "accountChanged In"
+      @loginScreen.hideView =>
+        @mainViewController.getView().decorateLoginState yes
+        @mainViewController.sidebarController.accountChanged account
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()

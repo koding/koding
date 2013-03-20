@@ -12,7 +12,7 @@
   margin-top 51px
 
 
-.profile-landing
+#static-landing-page.profile-landing
   height                100%
   width                 100%
   z-index               99
@@ -43,25 +43,33 @@
 .profile-personal-wrapper
   height                100%
   width                 160px
+  width                 50px
+  vendor transition, width 0.2s linear
   fl()
+  &.collapsed
+    .profile-avatar
+      margin-left -54px
 
-.profile-avatar
-  height                76px
-  width                 160px
-  background-position   center center
-  background-repeat     no-repeat
-  vendor background-size, 160px auto
-  shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+  .profile-avatar
+    height                76px
+    width                 160px
+    background-position   center center
+    background-repeat     no-repeat
+    vendor background-size, 160px auto
+    shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+    vendor transition, margin-left 0.2s linear
 
 
 .profile-buttons
   height                27px
   border-top            1px solid #403d37
-  width                 100%
+  width                 160px
   bg color,             rgba(0,0,0,0.2)
 
 .profile-content-wrapper
+  vendor transition, margin-left 0.2s linear
   margin-left           160px
+  margin-left           50px
   height                100%
   width                 auto
   bg color,             white
@@ -75,16 +83,20 @@
   border-bottom         1px solid rgb(229,229,229)
   shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
   gradient              rgb(255,255,255),rgb(242,242,242)
-  padding 20px 23px
+  padding 20px 23px 20px 23px
   .profile-title-wrapper
     height auto
     width auto
   .profile-name
     borderBox()
     color #ff9200
-    font-size 16px
+    font-size 32px
     width auto
     display inline-block
+    color #444
+    border-bottom 2px solid #ff9200
+
+
   .profile-bio
     borderBox()
     color #888
@@ -93,6 +105,8 @@
     overflow-y scroll
     width auto
     font-weight 300
+    display inline
+    padding-left 10px
 
 .profile-nickname
   borderBox()
@@ -144,53 +158,97 @@
 
 textarea.profile-handle-customize.kdinput
   display inline-block
-  width 90px
-  height 15px
+  width 228px
+  height 25px
   font-size 12px
-  line-height 1
-  background-position 70px -2px
+  // line-height 1
+  // background-position 70px -2px
   margin-top 3px
   background-color rgba(255,255,255,0.1)
-  color #a5a5a5
-  border-color #666
+  // color #a5a5a5
+  // border-color #666
   box-shadow none
   // &.active
   //   width auto
-.static-handle-link
-  span.title
-    color #a5a5a5
-  &.edit
+.static-link-container
+  a.static-handle-link
+    line-height 2.5
+    display block
+    color #888
     span.title
+      color #888
+    span.handle
+      color #444
+
+    &:hover
+      span.handle
+        color #ff9200
+
+    &.edit
+      span.handle
+      span.title
+      span.text
+        hidden()
+
+    > span.icon
+      fl()
+      rel()
+      opacity 1
+      size 26px 26px
+      &.twitter
+        bg position, -68px -340px
+      &.github
+        bg position, -39px -340px
+
+// @keyframes pulsatingBar
+//   0%
+//     bg color, #ff9200
+//   50%
+//     bg color, lighten(#ff9200, 50%)
+
+
+.profile-loading-bar
+  borderBox()
+  height 0
+  width auto
+  bg color, #fbfbfb
+  border none
+  vendor transition, height 0.1s linear
+  text-align center
+  color #ff9200
+
+  &.active
+    height 26px
+    border-bottom 1px solid rgba(0,0,0,0.075)
+  .kdloader
+    margin 5px
+
+.profile-name
+.profile-bio
+  textarea.kdinput.text
+    display inline-block
+  &.edit
+    span.text
       hidden()
 
 .profile-content-links
-  margin-right          0px
-  width                 139px
-  height                100%
-  border-right          1px solid #e8e8e8
-  padding               19px 23px 19px 23px
-  fl()
   borderBox()
+  fl()
+  vendor transition, width 0.2s linear //\, padding-left 0.2s linear
+  width                 139px
+  overflow              hidden
+  height                100%
+  margin-right          0px
+  border-right          1px solid #e8e8e8
+
+
+  &.links-hidden
+    width 0
+
   li
+    borderBox()
     overflow            visible
     vendor              transition, opacity .1s linear
-    &.disabled
-      opacity           0.5
-      cursor            default
-    &.blocked
-      opacity           0.5
-      cursor            default
-
-
-
-  h4
-    text-transform      uppercase
-    font-size           9px
-    color               #9f9d9a
-    font-weight         400
-    margin-bottom       9px
-
-  li
     color               #7c603b
     font-weight         normal
     noTextDeco()
@@ -199,6 +257,26 @@ textarea.profile-handle-customize.kdinput
     font-size           12px
     vertical-align      baseline
     margin-bottom       6px
+    white-space         nowrap
+    width               125px
+    &.disabled
+      opacity           0.5
+      cursor            default
+    &.blocked
+      opacity           0.5
+      cursor            default
+  ul
+    margin-left 23px
+  h4
+    margin-left 23px
+    margin-top          19px
+    borderBox()
+    text-transform      uppercase
+    font-size           9px
+    color               #9f9d9a
+    font-weight         400
+    margin-bottom       9px
+    width 125px
 
 .profile-koding-logo
   height 100%
@@ -241,7 +319,12 @@ textarea.profile-handle-customize.kdinput
 .profile-content-list
   overflow-y auto
   height 100%
-  margin-left 125px
+  width auto
+  margin-left 0px
+  vendor transition, margin-left 0.2s linear
+  vendor transition, margin-left 0.2s linear
+  &.has-links
+    margin-left 125px
 
 .profile-admin-customize
 .profile-admin-message
@@ -297,11 +380,11 @@ textarea.profile-handle-customize.kdinput
          width auto
          display inline-block
 
-      padding 20px 30px
+      padding 30px 40px
       border-bottom 1px solid #e8e8e8
     .has-markdown
       max-width 600px
-      padding 30px
+      padding 30px 40px
       margin-bottom 30px
       text-align justify
       text-rendering geometricPrecision
@@ -334,6 +417,18 @@ textarea.profile-handle-customize.kdinput
   input.kdinput.title-input
     borderBox()
     width 100%
+
+.static-profile-send-message-input-wrapper
+  width 100%
+  min-height 100px
+  borderBox()
+  padding 5px
+  textarea.kdinput.static-profile-send-message-input
+    width 100%
+    min-height 100px
+
+.static-profile-popup
+  top 102px
 
 .static-profile-tooltip
   padding 0px

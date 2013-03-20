@@ -10,7 +10,7 @@ class LandingPageSideBar extends KDView
 
     @navController = new LandingPageNavigationController
       view         : new NavigationList
-        itemClass  : LandingPageNavigationLink
+        itemClass  : LandingNavigationLink
         type       : "navigation"
       scrollView   : no
       wrapper      : no
@@ -31,9 +31,15 @@ class LandingPageSideBar extends KDView
 class LandingPageNavigationController extends NavigationController
 
   constructor: ->
+
     super
 
     @lc = @getSingleton 'lazyDomController'
+    landingPageSideBar = @getDelegate()
+
+    @getListView().on "ItemWasAdded", (item)->
+      item.on "click", (event)->
+        landingPageSideBar.emit "navItemIsClicked", item, event
 
   instantiateListItems:(items)->
 
@@ -72,14 +78,17 @@ class LandingPageNavigationController extends NavigationController
 
       log 'entered from profile!'
       profileItems = [
-        { title : 'My Activities', action : 'activity', type : 'user'}
-        { title : 'My Topics',     action : 'topics',   type : 'user' }
-        { title : 'My People',     action : 'members',  type : 'user'}
-        { title : 'My Groups',     action : 'groups',   type : 'user'}
-        { title : 'My Apps',       action : 'apps',     type : 'user'}
-        { type  : "separator" }
+        { title : 'Home',action : 'home', type : 'user'}
+        { title : 'Activity',action : 'activity', type : 'user'}
+        { title : 'Topics', action : 'topics', type : 'user' }
+        { title : 'People', action : 'members', type : 'user'}
+        { title : 'Groups', action : 'groups', type : 'user'}
+        { title : 'About', action : 'about', type : 'user'}
+        { title : 'Apps', action : 'apps', type : 'user'}
       ]
-      items = profileItems.concat items
+
+      items = [].concat.apply profileItems, items
+
       @_instantiateListItems items
     else
       @_instantiateListItems items
@@ -93,86 +102,5 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       @getListView().addItem itemData
 
-fetchGroupFirst = (callback)->
-  {groupEntryPoint} = KD.config
-  KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
-    error err if err
-    if err then new KDNotificationView
-      title : "An error occured, please try again"
-    else unless group?
-      new KDNotificationView title : "No such group!"
-    else callback group
-
-class LandingPageNavigationLink extends NavigationLink
-
-  constructor:(options = {}, data)->
-    data.type or= "account"
-    super options, data
-    @lc = @getSingleton 'lazyDomController'
-
-  openPath:(path)->
-    @getSingleton('router').handleRoute path
-    @getSingleton('lazyDomController').hideLandingPage()
-
-  click:(event)->
-    {action, appPath, title, path, type} = @getData()
-    log "here", @getData()
-
-    mc = @getSingleton 'mainController'
-    {loginScreen} = mc
-
-    if path
-      @openPath path
-      return
-
-    {groupEntryPoint, profileEntryPoint} = KD.config
-
-    switch action
-      when 'login'
-        loginScreen.animateToForm 'login'
-      when 'register'
-        loginScreen.animateToForm 'register'
-      when 'request'
-        if KD.isLoggedIn()
-          fetchGroupFirst (group)=>
-            @getSingleton('groupsController').openPrivateGroup group
-        else
-          loginScreen.animateToForm 'lr'
-      when 'join-group'
-        fetchGroupFirst (group)=>
-          group.join (err, response)=>
-            error err if err
-            if err then new KDNotificationView
-              title : "An error occured, please try again"
-            else
-              new KDNotificationView
-                title : "You successfully joined to group!"
-              @openPath "/#{groupEntryPoint}/Activity"
-
-      when 'logout'
-        mainController = @getSingleton('mainController')
-        mainController.mainViewController.getView().hide()
-        @openPath '/Logout'
-
-      when 'activity'
-        @openPath "/#{profileEntryPoint}/Activity"
-        @lc.hideLandingPage()
-        log 'Activity'
-      when 'topics'
-        @openPath "/#{profileEntryPoint}/Topics"
-        @lc.hideLandingPage()
-
-        log 'Topics'
-      when 'members'
-        @openPath "/#{profileEntryPoint}/Members"
-        @lc.hideLandingPage()
-        log 'Members'
-      when 'groups'
-        @openPath "/#{profileEntryPoint}/Groups"
-        @lc.hideLandingPage()
-        log 'Groups'
-      when 'apps'
-        @openPath "/#{profileEntryPoint}/Apps"
-        @lc.hideLandingPage()
-        log 'Apps'
-
+class LandingNavigationLink extends NavigationLink
+  click:->

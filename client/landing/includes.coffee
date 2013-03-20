@@ -140,6 +140,7 @@ module.exports = [
   # mainapp controllers
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
+  "app/MainApp/linkcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -288,6 +289,7 @@ module.exports = [
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
+  "app/MainApp/login/oldloginview.coffee",
   "app/MainApp/login/loginform.coffee",
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
@@ -313,7 +315,9 @@ module.exports = [
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
+  "app/MainApp/lazy/staticprofileconfigviews.coffee",
   "app/MainApp/lazy/staticgroupcontroller.coffee",
+  "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
@@ -386,10 +390,6 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",
   "app/Applications/Ace.kdapplication/acesettings.coffee",
   "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
-
-  # groups
-  "app/Applications/Groups.kdapplication/groupdata.coffee"
-  "app/Applications/Groups.kdapplication/AppController.coffee",
 
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
@@ -497,6 +497,8 @@ module.exports = [
   # GROUPS
 
   # groups controllers
+  "app/Applications/Groups.kdapplication/groupdata.coffee"
+  "app/Applications/Groups.kdapplication/AppController.coffee",
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
@@ -528,7 +530,6 @@ module.exports = [
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
-  "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",

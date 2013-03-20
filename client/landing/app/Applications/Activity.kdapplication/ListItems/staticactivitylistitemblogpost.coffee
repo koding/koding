@@ -26,6 +26,11 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
+    @handleExternalLinks()
+
+  handleExternalLinks:->
+    @$("div.blog-post-body > span.data a").each (i,element)->
+      $(element).attr target : '_blank'
 
   applyTextExpansions:(str = "")->
     str = @utils.applyTextExpansions str, yes

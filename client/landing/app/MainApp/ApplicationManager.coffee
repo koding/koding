@@ -139,9 +139,7 @@ class ApplicationManager extends KDObject
     appOptions = KD.getAppOptions name
     log "::: Creating #{name}"
     @register appInstance = new AppClass appOptions  if AppClass
-    callback? appInstance
-
-    return appInstance
+    @utils.defer -> callback? appInstance
 
   show:(appOptions, callback)->
 
@@ -157,7 +155,7 @@ class ApplicationManager extends KDObject
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
       @setLastActiveIndex appInstance
-      callback? appInstance
+      @utils.defer -> callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 
@@ -171,7 +169,7 @@ class ApplicationManager extends KDObject
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
       @setLastActiveIndex appInstance
-      callback? appInstance
+      @utils.defer -> callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 
