@@ -23,7 +23,7 @@ class KDTabViewController extends KDScrollView
         @handleClicked(index,event)
 
   # DEFAULT ACTIONS
-  handleClicked:(index,event)=>
+  handleClicked:(index,event)->
     pane = @getPaneByIndex index
     if $(event.target).hasClass "close-tab"
       @removePane pane
