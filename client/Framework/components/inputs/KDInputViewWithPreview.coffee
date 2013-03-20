@@ -215,7 +215,7 @@ class KDInputViewWithPreview extends KDInputView
     super value
     @generatePreview()
 
-  generatePreview:=>
+  generatePreview:->
     if @showPreview
       if @options.preview.language is "markdown"
         @$("div.preview_content span.data").html @utils.applyMarkdown @getValue()

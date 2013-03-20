@@ -370,7 +370,7 @@ class KDInputView extends KDView
     @getSingleton("windowController").revertKeyView @
     yes
 
-  mouseDown:=>
+  mouseDown:->
 
     @setFocus()
     #WHY NO?

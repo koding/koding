@@ -1,6 +1,6 @@
 class PageEnvironment extends KDView
   viewAppended:->
-      
+
     @addSubView comingSoonOverlay = new ComingSoonOverlay
 
     @addSubView mainContainer = new KDView cssClass : "environment-view-wrapper"
@@ -20,7 +20,7 @@ class ComingSoonOverlay extends KDView
             <p>The server settings area will contain statistics and settings for your deployment server, database management deploy target management and more.</p>
         </div>"
 
-    
+
 class EnvironmentController extends KDViewController
   viewMenuItems :
     type : "view-menu"
@@ -39,20 +39,20 @@ class EnvironmentController extends KDViewController
     tags : ["PHP","PYTHON","PERL","RUBY"]
     load : ["2.07","1.64","1.73"]
     uptime : "34d 23m 23s"
-  
+
 
   loadView:(mainView)->
-    {profile} = KD.whoami()    
+    {profile} = KD.whoami()
     header = mainView.header = new EnvironmentHeader type : "big", title : profile.nickname
     menu = mainView.menu = new EnvironmentViewMenu null,@viewMenuItems
 
     environmentView = mainView.environmentView = new EnvironmentView cssClass : "environment-view server",@envData #server cssClass is for server filter
 
-    @listenTo 
+    @listenTo
       KDEventTypes : "EnvironmentLaunchEditor"
       listenedToInstance : header
       callback : @launchEditor
-    
+
     mainView.environmentSplit = @environmentSplit = new ContentPageSplitBelowHeader
       cssClass  : "environment-pane-split"
       views     : [menu,environmentView]
@@ -68,13 +68,13 @@ class EnvironmentController extends KDViewController
       sizes     : [77,null]
       type      : "horizontal"
       resizable : no
-    
+
     mainView.addSubView mainView.headerSplit
     mainView.environmentView.init()
 
-  launchEditor:=>
+  launchEditor:->
     log "launchEditor",":::"
-    
+
 
 class EnvironmentView extends KDView
   init:->
