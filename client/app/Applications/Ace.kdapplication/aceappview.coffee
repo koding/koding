@@ -52,7 +52,7 @@ class AceAppView extends JView
 
   viewAppended:->
     super
-    @utils.wait 30, => @addNewTab() if @tabView.panes.length is 0
+    @utils.wait 100, => @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
