@@ -218,6 +218,7 @@ module.exports = [
   "app/CommonViews/markdownmodal.coffee",
 
   # "app/MainApp/foreign_auth.coffee",
+  "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
