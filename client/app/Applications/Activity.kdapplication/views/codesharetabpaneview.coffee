@@ -80,7 +80,7 @@ class CodeShareTabPaneView extends KDTabPaneView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(CodeShareItemSource)
         file.syntax   = CodeShareItemType.syntax
-        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFile file
 
     @openAllButton = new KDButtonView
       title     : ""
@@ -266,7 +266,7 @@ class CodeShareView extends KDCustomHTMLView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(CodeShareItemSource)
         file.syntax   = CodeShareItemType.syntax
-        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFile file
 
     @openAllButton = new KDButtonView
       title     : ""

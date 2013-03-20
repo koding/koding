@@ -25,7 +25,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       size    : {width: 50, height: 50}
       origin  : origin
 
-    @author = new ProfileLinkView {origin:origin}
+    @author = new ProfileLinkView {origin}
 
     @opinionBox = new OpinionView null, data
 

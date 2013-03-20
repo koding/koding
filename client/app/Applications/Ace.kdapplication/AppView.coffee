@@ -192,6 +192,7 @@ class AceView extends JView
             parent = node.getData()
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
+            @ace.emit "AceDidSaveAs", name, parent.path
         Cancel :
           style     : "modal-cancel"
           callback  : ()->

@@ -55,10 +55,10 @@ class GroupsAppController extends AppController
       return @currentGroupData.data.first
     return @currentGroupData.data
 
-  changeGroup:(groupName, callback=->)->
-    return callback()  if groupName is @currentGroup
+  changeGroup:(groupName='koding', callback=->)->
+    return callback()  if @currentGroup is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroup?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
@@ -586,8 +586,7 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
-  showContentDisplay:(group, callback=->)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+  createContentDisplay:([group])->
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     @groupView = groupView = new GroupView
@@ -605,7 +604,11 @@ class GroupsAppController extends AppController
       @prepareMembershipPolicyTab()
       @prepareInvitationsTab()
 
+    @showContentDisplay @groupView
+
+
+  showContentDisplay:(groupView, callback=->)->
+    contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
-    # console.log {contentDisplay}
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView

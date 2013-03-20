@@ -52,9 +52,7 @@ class ApplicationManager extends KDObject
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
-      {multiple, openWith} = appOptions
-
-      unless options.thirdParty
+      if options.thirdParty
         # if there is no registered appController
         # we assume it should be a 3rd party app
         # that's why it should be run via kodingappscontroller
@@ -141,9 +139,7 @@ class ApplicationManager extends KDObject
     appOptions = KD.getAppOptions name
     log "::: Creating #{name}"
     @register appInstance = new AppClass appOptions  if AppClass
-    callback? appInstance
-
-    return appInstance
+    @utils.defer -> callback? appInstance
 
   show:(appOptions, callback)->
 
@@ -159,7 +155,7 @@ class ApplicationManager extends KDObject
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
       @setLastActiveIndex appInstance
-      callback? appInstance
+      @utils.defer -> callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 
@@ -173,7 +169,7 @@ class ApplicationManager extends KDObject
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
       @setLastActiveIndex appInstance
-      callback? appInstance
+      @utils.defer -> callback? appInstance
     else
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 

@@ -138,7 +138,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.sessionsMutex.Unlock()
 			return
 		}
-		session = s.newSession()
+		session = s.newSession(false)
 		s.sessions[parts[1]] = session
 	}
 	s.sessionsMutex.Unlock()
@@ -275,8 +275,8 @@ func (s *Service) Close() {
 	s.sessions = make(map[string]*Session)
 }
 
-func (s *Service) newSession() *Session {
-	sess := newSession(s)
+func (s *Service) newSession(isWebsocket bool) *Session {
+	sess := newSession(s, isWebsocket)
 	go func() {
 		s.Callback(sess)
 		close(sess.sendChan)

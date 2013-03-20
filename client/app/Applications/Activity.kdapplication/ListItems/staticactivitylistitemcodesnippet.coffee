@@ -122,7 +122,7 @@ class CodeSnippetView extends KDCustomHTMLView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(content)
         file.syntax   = syntax
-        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFile file
 
     @copyButton = new KDButtonView
       title     : ""

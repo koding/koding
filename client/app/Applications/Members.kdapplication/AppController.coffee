@@ -189,13 +189,11 @@ class MembersAppController extends AppController
   #   contentDisplay = controller.getView()
   #   contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
-  createContentDisplay:(account, doShow = yes)->
-    controller = new ContentDisplayControllerMember null, account
+  createContentDisplay:(account, callback)->
+    controller     = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
-    if doShow
-      @showContentDisplay contentDisplay
-
-    return contentDisplay
+    @showContentDisplay contentDisplay
+    @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"

@@ -35,14 +35,12 @@ class AvatarView extends LinkView
 
     @bgImg = null
 
-  click:(event)->
-    event.stopPropagation()
-    event.preventDefault()
-    @hideTooltip()
-    account = @getData()
-    @utils.wait =>
-      KD.getSingleton('router').handleRoute "/#{account.profile.nickname}", state:account
-    return no
+  # click:(event)->
+  #   event.stopPropagation()
+  #   event.preventDefault()
+  #   @hideTooltip()
+  #   @utils.wait => @emit 'LinkClicked'
+  #   return no
 
   render:->
     account = @getData()

@@ -59,7 +59,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatus'
+        'fetchMembershipStatuses'
       ]
     schema          :
       title         :
@@ -84,6 +84,9 @@ module.exports = class JGroup extends Module
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
+      defaultPermissionSet:
+        targetType  : JPermissionSet
+        as          : 'default'
       member        :
         targetType  : 'JAccount'
         as          : 'member'
@@ -166,53 +169,60 @@ module.exports = class JGroup extends Module
           else
             @one {_id: targetId}, callback
 
-  @create = secure (client, formData, callback)->
-    JPermissionSet = require './permissionset'
-    JMembershipPolicy = require './membershippolicy'
-    JName = require '../name'
-    {delegate} = client.connection
-    JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
-      if err then callback err
-      else
-        group             = new @ formData
-        permissionSet     = new JPermissionSet
-        queue = [
-          -> group.save (err)->
-              if err then callback err
-              else
-                console.log 'group is saved'
-                queue.next()
-          -> group.addMember delegate, (err)->
-              if err then callback err
-              else
-                console.log 'member is added'
-                queue.next()
-          -> group.addAdmin delegate, (err)->
-              if err then callback err
-              else
-                console.log 'admin is added'
-                queue.next()
-          -> permissionSet.save (err)->
-              if err then callback err
-              else
-                console.log 'permissionSet is saved'
-                queue.next()
-          -> group.addPermissionSet permissionSet, (err)->
-              if err then callback err
-              else
-                console.log 'permissionSet is added'
-                queue.next()
-          -> group.addDefaultRoles (err)->
-              if err then callback err
-              else
-                console.log 'roles are added'
-                queue.next()
-        ]
-        if 'private' is group.privacy
-          queue.push -> group.createMembershipPolicy -> queue.next()
-        queue.push -> callback null, group
+  @create = do->
+    save_ =(label, model, queue, callback)->
+      model.save (err)->
+        if err then callback err
+        else
+          console.log "#{label} is saved"
+          queue.next()
+    create = secure (client, formData, callback)->
+      JPermissionSet = require './permissionset'
+      JMembershipPolicy = require './membershippolicy'
+      JName = require '../name'
+      {delegate} = client.connection
+      JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
+        if err then callback err
+        else
+          group                 = new this formData
+          permissionSet         = new JPermissionSet
+          defaultPermissionSet  = new JPermissionSet
+          queue = [
+            -> save_ 'group', group, queue, callback
+            -> group.addMember delegate, (err)->
+                if err then callback err
+                else
+                  console.log 'member is added'
+                  queue.next()
+            -> group.addAdmin delegate, (err)->
+                if err then callback err
+                else
+                  console.log 'admin is added'
+                  queue.next()
+            -> save_ 'permission set', permissionSet, queue, callback
+            -> save_ 'default permission set', defaultPermissionSet, queue, 
+                      callback
+            -> group.addPermissionSet permissionSet, (err)->
+                if err then callback err
+                else
+                  console.log 'permissionSet is added'
+                  queue.next()
+            -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
+                if err then callback err
+                else
+                  console.log 'permissionSet is added'
+                  queue.next()
+            -> group.addDefaultRoles (err)->
+                if err then callback err
+                else
+                  console.log 'roles are added'
+                  queue.next()
+          ]
+          if 'private' is group.privacy
+            queue.push -> group.createMembershipPolicy -> queue.next()
+          queue.push -> callback null, group
 
-        daisy queue
+          daisy queue
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -272,18 +282,52 @@ module.exports = class JGroup extends Module
           permissionSet = new JPermissionSet {permissions}
           permissionSet.save callback
 
-  fetchPermissions: permit 'grant permissions',
-    success:(client, callback)->
-      {permissionsByModule} = require '../../traits/protected'
-      {delegate} = client.connection
-      @fetchPermissionSet (err, permissionSet)->
-        if err
-          callback err
-        else
-          callback null, {
-            permissionsByModule
-            permissions: permissionSet.permissions
-          }
+  fetchPermissions:do->
+    fixDefaultPermissions_ =(model, permissionSet, callback)->
+      # It was lately recognized that we needed to have a default permission
+      # set that is created at the time of group creation, because other
+      # permissions may be roled out over time, and it is best to be secure by
+      # default.  Without knowing which permissions were present at the time
+      # of group creation, we may inadvertantly expose dangerous permissions
+      # to underprivileged roles.  We will create this group's "default
+      # permissions" by cloning the group's current permission set. C.T.
+      defaultPermissionSet = permissionSet.clone()
+      defaultPermissionSet.save (err)->
+        if err then callback err
+        else model.addDefaultPermissionSet defaultPermissionSet, (err)->
+          if err then callback err
+          else callback null, defaultPermissionSet
+
+    fetchPermissions = permit 'grant permissions',
+      success:(client, callback)->
+        {permissionsByModule} = require '../../traits/protected'
+        {delegate}            = client.connection
+        permissionSet         = null
+        defaultPermissionSet  = null
+        queue = [
+          => @fetchPermissionSet (err, model)->
+              if err then callback err
+              else
+                permissionSet = model
+                queue.next()
+          => @fetchDefaultPermissionSet (err, model)=>
+              if err then callback err
+              else if model?
+                console.log 'already had defaults'
+                defaultPermissionSet = model
+                queue.next()
+              else
+                console.log 'needed defaults fixed'
+                fixDefaultPermissions_ this, permissionSet, (err, newModel)->
+                  defaultPermissionSet = newModel
+                  queue.next()
+          -> callback null, {
+              permissionsByModule
+              permissions         : permissionSet.permissions
+              defaultPermissions  : defaultPermissionSet.permissions
+            }
+        ]
+        daisy queue
 
   fetchMyRoles: secure (client, callback)->
     {delegate} = client.connection
@@ -314,13 +358,12 @@ module.exports = class JGroup extends Module
               else callback null, arr
 
   fetchMembers$: permit 'list members',
-    success:(client, rest...)->
-      @fetchMembers rest...
+    success:(client, rest...)-> @fetchMembers rest...
 
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
   #     [callback, options] = [options, callback]  unless callback
-  #     options ?= 
+  #     options ?=
 
 
   # fetchMyFollowees: permit 'list members'
@@ -612,19 +655,20 @@ module.exports = class JGroup extends Module
   fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...
 
-  fetchMembershipStatus: secure (client, callback)->
+  fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
     {delegate} = client.connection
-    unless delegate instanceof JAccount 
-      callback null, 'guest'
+    unless delegate instanceof JAccount
+      callback null, ['guest']
     else
       @fetchMyRoles client, (err, roles)=>
         if err then callback err
-        else if 'member' in roles then callback null, 'member'
+        else if 'member' in roles or 'admin' in roles
+          callback null, roles
         else
           options = targetOptions:
             selector: { koding: username: delegate.profile.nickname }
           @fetchInvitationRequest {}, options, (err, request)->
             if err then callback err
-            else unless request? then callback null, 'guest'
-            else callback null, "invitation-#{request.status}"
+            else unless request? then callback null, ['guest']
+            else callback null, ["invitation-#{request.status}"]
