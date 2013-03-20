@@ -636,6 +636,11 @@ class KodingAppsController extends KDController
     fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
+      multiple      : no
+      background    : no
+      hiddenHandle  : no
+      openWith      : "lastActive"
+      behavior      : "application"
       version       : "0.1"
       name          : "#{name or type.capitalize()}"
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
