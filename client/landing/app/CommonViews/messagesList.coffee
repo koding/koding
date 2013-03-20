@@ -154,7 +154,6 @@ class NotificationListItem extends KDListItemView
     showPost = (err, post)->
       if post
         internalApp = if post.constructor.name is "JApp" then "Apps" else "Activity"
-        # KD.getSingleton("appManager").tell internalApp, "createContentDisplay", post
         KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
 
       else

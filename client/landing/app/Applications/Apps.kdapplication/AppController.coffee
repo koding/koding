@@ -108,8 +108,9 @@ class AppsAppController extends AppController
   updateApps:->
     @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"
 
-  createContentDisplay:(app, doShow = yes)->
-    @showContentDisplay app
+  createContentDisplay:(app, callback)->
+    controller = @showContentDisplay app
+    @utils.defer => callback controller
 
   showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
