@@ -100,7 +100,8 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedOut
       else
         continue if itemData.loggedIn
-      @getListView().addItem itemData
+      item = @getListView().addItem itemData
+      if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
   click:->

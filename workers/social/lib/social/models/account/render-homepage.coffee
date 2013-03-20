@@ -44,7 +44,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user invisible">
             <a class="title"><span class="main-nav-icon home"></span>Home</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
