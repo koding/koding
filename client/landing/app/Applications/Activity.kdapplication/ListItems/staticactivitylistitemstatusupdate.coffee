@@ -41,7 +41,7 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
 
     # load embed on next callstack
 
-    @utils.wait =>
+    @utils.defer =>
 
       # If there is embed data in the model, use that!
       if @getData().link?.link_url? and not (@getData().link.link_url is "")
