@@ -62,7 +62,7 @@ class ReviewListViewController extends KDListViewController
             listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
 
-  fetchAllReviews:(skipCount=3, callback = noop)=>
+  fetchAllReviews:(skipCount=3, callback = noop)->
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
@@ -72,7 +72,7 @@ class ReviewListViewController extends KDListViewController
       listView.emit "AllCommentsWereAdded"
       callback err, reivews
 
-  fetchRelativeReviews:(_limit = 10, _after)=>
+  fetchRelativeReviews:(_limit = 10, _after)->
     listView = @getListView()
     message = @getListView().getData()
     message.fetchRelativeReviews limit:_limit, after:_after, (err, reivews)=>

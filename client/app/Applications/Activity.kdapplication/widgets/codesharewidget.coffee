@@ -708,7 +708,7 @@ class ActivityCodeShareWidget extends KDFormView
 
 #     @codeShareContainer.showPane @codeShareResultPane
 
-  unsetWideScreen:(wideScreenHeight)=>
+  unsetWideScreen:(wideScreenHeight)->
 
           # @$(".formline-codeshare").css "margin-left":"168px"
           # @$(".formline-codeshare").css "margin-right":"0px"
@@ -737,7 +737,7 @@ class ActivityCodeShareWidget extends KDFormView
           # @wideScreenBtn.setTitle "Increase Editor Size"
           # @wideScreenBtn.setIconClass "maximize"
 
-  setWideScreen:(wideScreenHeight)=>
+  setWideScreen:(wideScreenHeight)->
           # @$(".formline-codeshare").css "margin-left":"10px"
           # @$(".formline-codeshare").css "margin-right":"10px"
           # @$(".code-snip-container").css "max-width":"100%"
@@ -768,7 +768,7 @@ class ActivityCodeShareWidget extends KDFormView
           # @wideScreenBtn.setIconClass "minimize"
 
 
-  submit:=>
+  submit:->
 
     ## checkbox debug ## log "csw::submit/pre (@getData().prefixCSSCheck):",@getData().prefixCSSCheck," (@getData().prefixCSS):",@getData().prefixCSS
     # if not (@getData().prefixCSSCheck?) or (@getData().prefixCSS is "off")
@@ -812,7 +812,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     super
 
-  reset:=>
+  reset:->
     @submitBtn.setTitle "Post your Code Share"
     @removeCustomData "activity"
     @removeCustomData "CodeShareItems"
@@ -861,7 +861,7 @@ class ActivityCodeShareWidget extends KDFormView
   setCodeShareData:(CodeShareItems)->
     @codeShareBoxView.emit "addCodeSharePanes",CodeShareItems
 
-  switchToEditView:(activity)=>
+  switchToEditView:(activity)->
 
     log "now in editview",activity
     @submitBtn.setTitle "Edit your Code Share"
@@ -1025,7 +1025,7 @@ class ActivityCodeShareWidget extends KDFormView
     #   @aceLoadCount++
     #   @checkForAce()
 
-  checkForAce:=>
+  checkForAce:->
     # @HTMLace.on "ace.ready", =>
     #   if @aceLoadCount is 3 then if not @aceLoaded
     #     @aceIsReady()
@@ -1039,7 +1039,7 @@ class ActivityCodeShareWidget extends KDFormView
     #     @aceIsReady()
     #     @aceLoaded = yes
 
-  aceIsReady:=>
+  aceIsReady:->
     # @HTMLloader.destroy()
     # @HTMLace.setShowGutter no
     # @HTMLace.setContents "//your html goes here..."

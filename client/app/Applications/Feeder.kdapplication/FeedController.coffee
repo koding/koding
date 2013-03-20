@@ -99,13 +99,13 @@ class FeedController extends KDViewController
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
 
-  emitLoadStarted:(filter)=>
+  emitLoadStarted:(filter)->
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
     @showNoItemFound listController, filter
     return listController
 
-  emitLoadCompleted:(filter)=>
+  emitLoadCompleted:(filter)->
     listController = @resultsController.listControllers[filter.name]
     listController.hideLazyLoader()
     return listController

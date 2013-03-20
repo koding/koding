@@ -53,7 +53,7 @@ class KDAutoCompleteController extends KDViewController
     for item in defaultItems
       @addItemToSubmitQueue @getView(), item
 
-  keyDownOnInputView:(event)=>
+  keyDownOnInputView:(event)->
 
     autoCompleteView = @getView()
     switch event.which
@@ -373,7 +373,7 @@ class KDAutoCompleteController extends KDViewController
         @refreshDropDown data
         @showDropdown()
 
-  keyUpOnInputView:(inputView, event)=>
+  keyUpOnInputView:(inputView, event)->
     return if event.keyCode in [9,38,40] #tab
     @updateDropdownContents()
     # else

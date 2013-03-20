@@ -169,7 +169,7 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView
 
-  showMemberContentDisplay:(pubInst, event)=>
+  showMemberContentDisplay:(pubInst, event)->
     {content} = event
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerMember null, content
@@ -289,5 +289,5 @@ class MembersListViewController extends KDListViewController
         listController.isLoading = no
         listController.hideLazyLoader()
 
-  getTotalMemberCount:(callback)=>
+  getTotalMemberCount:(callback)->
     KD.whoami().count? @getOptions().filterName, callback

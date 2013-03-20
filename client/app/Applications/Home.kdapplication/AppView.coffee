@@ -647,7 +647,7 @@ class ScreenshotItemLinkView extends KDView
       <img src="#{thumb}" />
     """
 
-  click:(event)=>
+  click:(event)->
     @parent.parent.propagateEvent {KDEventType : 'SetScreenshotModal'}, {screenshot : @getData(), itemCalling : @}
 
 
