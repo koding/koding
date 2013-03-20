@@ -172,7 +172,7 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity[methodName] options, (err, activities)=>
+    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
