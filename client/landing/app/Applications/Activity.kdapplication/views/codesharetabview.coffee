@@ -14,7 +14,7 @@ class CodeShareTabView extends KDTabView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
         file.syntax   = data.CodeShareItemType.syntax
-        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFile file
 
     super
 

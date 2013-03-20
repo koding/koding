@@ -31,6 +31,8 @@ class ApplicationTabView extends KDTabView
 
     appView.on "AceAppDidQuit", => @removeFromSession no
 
+  # session related methods
+
   fetchStorage: (callback) ->
     @appStorage.fetchValue @getOptions().sessionKey, (data) => callback? data
 
@@ -106,3 +108,5 @@ class ApplicationTabView extends KDTabView
             fileCount++
 
     return items
+
+  # end of session related methods
