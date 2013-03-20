@@ -1,4 +1,3 @@
-
 class LandingPageSideBar extends KDView
 
   defaultItems =  items : [
@@ -34,7 +33,6 @@ class LandingPageSideBar extends KDView
       @navController.removeAllItems()
       @navController.instantiateListItems defaultItems.items
 
-
 class LandingPageNavigationController extends NavigationController
 
   constructor: ->
@@ -47,9 +45,6 @@ class LandingPageNavigationController extends NavigationController
     @getListView().on "ItemWasAdded", (item)->
       item.on "click", (event)->
         landingPageSideBar.emit "navItemIsClicked", item, event
-
-
-
 
   instantiateListItems:(items)->
 
@@ -114,4 +109,11 @@ class LandingPageNavigationController extends NavigationController
       if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+
+    data.type or= "account"
+
+    super options, data
+
   click:->
