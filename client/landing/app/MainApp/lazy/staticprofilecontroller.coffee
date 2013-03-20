@@ -429,21 +429,22 @@ class StaticProfileController extends KDController
 
     @aboutWrapper = yes
 
-    @profileUser.fetchAbout (err,about)=>
-      log arguments
-      if err
-        log err
-      else
+    if @profileUser
+      @profileUser.fetchAbout (err,about)=>
+        log arguments
+        if err
+          log err
+        else
 
-        @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
-          about : about
-        ,@profileUser
+          @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
+            about : about
+          ,@profileUser
 
 
-        @profileLoadingBar.unsetClass 'active'
-        @profileLoaderView.hide()
+          @profileLoadingBar.unsetClass 'active'
+          @profileLoaderView.hide()
 
-        callback()
+          callback()
 
   addStaticLogic:(callback=->)->
     log 'adding static logic'
