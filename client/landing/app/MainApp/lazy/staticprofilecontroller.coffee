@@ -499,7 +499,8 @@ class StaticNavLink extends KDView
         @setClass 'blocked'
 
   click :->
-    @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId()
+    @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId(), @getDelegate().activityListWrapper, @getDelegate().activityController, =>
+
 
 
 class StaticNavCheckBox extends KDInputView
