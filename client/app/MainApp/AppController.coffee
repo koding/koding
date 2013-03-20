@@ -1,9 +1,9 @@
 class AppController extends KDViewController
 
   createContentDisplay:(models, doShow, callback)->
-
-    [callback, doShow] = [doShow, callback] unless callback
-    @showContentDisplay models, callback
+    warn "You need to override #createContentDisplay"
+    # [callback, doShow] = [doShow, callback] unless callback
+    # @showContentDisplay models, callback
 
   handleQuery:(query)->
 

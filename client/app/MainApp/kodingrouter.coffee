@@ -78,6 +78,7 @@ class KodingRouter extends KDRouter
 
   openContent:(name, section, state, route)->
     KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
+      console.trace()
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
