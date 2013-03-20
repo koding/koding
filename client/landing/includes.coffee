@@ -140,6 +140,7 @@ module.exports = [
   # mainapp controllers
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
+  "app/MainApp/linkcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -218,6 +219,7 @@ module.exports = [
   "app/CommonViews/markdownmodal.coffee",
 
   # "app/MainApp/foreign_auth.coffee",
+  "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
@@ -390,15 +392,14 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettings.coffee",
   "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
-  # groups
-  "app/Applications/Groups.kdapplication/groupdata.coffee"
-  "app/Applications/Groups.kdapplication/AppController.coffee",
-
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
   #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
+
   # viewer
+  'app/Applications/Viewer.kdapplication/topbar.coffee',
   'app/Applications/Viewer.kdapplication/AppController.coffee',
+  'app/Applications/Viewer.kdapplication/AppView.coffee',
 
   # webterm
   "app/Applications/WebTerm.kdapplication/AppController.coffee",
@@ -497,6 +498,8 @@ module.exports = [
   # GROUPS
 
   # groups controllers
+  "app/Applications/Groups.kdapplication/groupdata.coffee"
+  "app/Applications/Groups.kdapplication/AppController.coffee",
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
@@ -528,7 +531,6 @@ module.exports = [
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
-  "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",

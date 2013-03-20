@@ -37,10 +37,8 @@ class ProfileLinkView extends LinkView
 
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-  click:(event)->
-
-    #KD.getSingleton("appManager").tell "Members", "createContentDisplay", @getData()
-    KD.getSingleton('router')?.handleRoute "/#{@getData().profile.nickname}"
-    event.preventDefault()
-    event.stopPropagation()
-    no
+#  click:(event)->
+#    event.preventDefault()
+#    event.stopPropagation()
+#    @emit 'LinkClicked'
+#    return no

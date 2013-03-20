@@ -10,6 +10,7 @@ class LinkGroup extends KDCustomHTMLView
     options.totalCount    or= data?.length or options.group?.length or 0
     options.hasMore         = options.totalCount > options.itemsToShow
     options.separator      ?= ', '
+    options.suffix        or= ''
 
     super options, data
 
@@ -35,16 +36,12 @@ class LinkGroup extends KDCustomHTMLView
   createParticipantSubviews:->
     {itemClass, itemOptions} = @getOptions()
     participants = @getData()
-    return if null in participants
     for participant, index in participants
       if participant.bongo_.constructorName is "ObjectRef"
         itemOptions.origin = participant
-        inst = new itemClass itemOptions
-        @["participant#{index}"] = inst
+        @["participant#{index}"] = new itemClass itemOptions
       else
-        inst = new itemClass itemOptions, participant
-        @["participant#{index}"] = inst
-      inst.on 'LinkClicked', => @emit 'ItemClicked', inst
+        @["participant#{index}"] = new itemClass itemOptions, participant
     @setTemplate @pistachio()
     @template.update()
 
@@ -71,11 +68,11 @@ class LinkGroup extends KDCustomHTMLView
 
     switch totalCount
       when 0 then ""
-      when 1 then "{{> @participant0}}"
-      when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
-      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
-      else        "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+      when 1 then "{{> @participant0}}#{@getOptions().suffix}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}#{@getOptions().suffix}"
+      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}#{@getOptions().suffix}"
+      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}#{@getOptions().suffix}"
+      else        "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}#{@getOptions().suffix}"
 
   render:->
 

@@ -167,31 +167,41 @@ app.aceeditor.styl
   size(100%,100%)
 
 .ace-find-replace-view
-  position         relative
+  position         absolute
   display          block
-  vendor           transition, top 0.15s
-  vendor           transition, height 0.15s
+  bottom           28px
   gradient         #f9f9f9,#e7e7e7
   color            #282828
   border           1px solid #e2e2e2
   border-top-color #dadada
   z-index          1000
   borderBox()
+  padding-top      3px
 
   .ace-find-replace-settings
-    float          left
+    width          100px
+    abs()
+    left           0
 
-  .ace-find-replace-line
-    margin-left    10px
-    height         27px
-    line-height    27px
+  .ace-find-replace-inputs
+    padding        0 197px 0 110px
+    width          auto
+
+  .ace-replace-input
+    position     relative
+    top          3px
+
+  .ace-find-replace-buttons
+    width          170px
+    abs()
+    right          13px
+    top             3px
+
+  .ace-replace-button
+    top             3px
 
   .kdinput
-    display        inline !important
-
-  .label
-    display        inline-block
-    width          55px
+    width          100%
 
   .close-icon
     bg             position,-80px -222px

@@ -46,7 +46,6 @@ class CodesnipActivityItemView extends ActivityItemChild
 
     if $(event.target).is(".activity-item-right-col h3")
       KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-      #KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity
@@ -147,7 +146,7 @@ class CodeSnippetView extends KDCustomHTMLView
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(content)
         file.syntax   = syntax
-        KD.getSingleton("appManager").openFileWithApplication file, 'Ace'
+        KD.getSingleton("appManager").openFile file
 
     @copyButton = new KDButtonView
       title     : ""

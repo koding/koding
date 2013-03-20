@@ -4,23 +4,18 @@ class AceFindAndReplaceView extends JView
 
     options.cssClass = "ace-find-replace-view"
 
-    @mode           = null
-    @isHidden       = yes
-    @lastViewHeight = 0
-
     super options, data
 
+    @mode           = null
+    @lastViewHeight = 0
+
     @findInput = new KDHitEnterInputView
-      type              : "text"
-      cssClass          : "ace-find-replace-input"
-      validate          :
-        rules           :
-          required      : yes
-      callback          : => @findNext()
-      keyup             :
-        "super+shift+f" : (e) =>
-          e.preventDefault()
-          @setViewHeight yes
+      type         : "text"
+      validate     :
+        rules      :
+          required : yes
+      keyup        : @bindSpecialKeys()
+      callback     : => @findNext()
 
     @findNextButton = new KDButtonView
       title        : "Find Next"
@@ -32,55 +27,58 @@ class AceFindAndReplaceView extends JView
 
     @replaceInput = new KDHitEnterInputView
       type         : "text"
-      cssClass     : "ace-find-replace-input"
+      cssClass     : "ace-replace-input"
       validate     :
         rules      :
           required : yes
+      keyup        : @bindSpecialKeys()
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
       title        : "Replace"
+      cssClass     : "ace-replace-button clean-gray"
       callback     : => @replace()
 
     @replaceAllButton = new KDButtonView
       title        : "Replace All"
+      cssClass     : "ace-replace-button clean-gray"
       callback     : => @replaceAll()
 
     @closeButton = new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "close-icon"
-      click        : =>
-        @resizeAceEditor 0
-        @$().css top: 19
+      click        : => @close()
 
     @findInput.on "keyup", (e) =>
       @findNext() unless e.keyCode is 13
 
     @choices = new KDMultipleChoice
-      cssClass  : "clean-gray editor-button control-button"
-      labels    : ["case-sensitive", "whole-word", "regex"]
-      multiple  : yes
+      cssClass     : "clean-gray editor-button control-button"
+      labels       : ["case-sensitive", "whole-word", "regex"]
+      multiple     : yes
+
+  bindSpecialKeys: ->
+    "esc"           : (e) => @close()
+    "super+f"       : (e) =>
+      e.preventDefault()
+      @setViewHeight no
+    "super+shift+f" : (e) =>
+      e.preventDefault()
+      @setViewHeight yes
+
+  close: ->
+    @hide()
+    @resizeAceEditor 0
 
   setViewHeight: (isReplaceMode) ->
-    height   = 28
-    @mode    = "find"
-
-    if isReplaceMode
-      @mode  = "replace"
-      height = 56
-
-    if @isHidden
-      @show()
-      @isHidden = no
-
-    @$().css {
-      height,
-      top: 0
-    }
+    height = if isReplaceMode then 60 else 32
+    @$().css { height }
     @resizeAceEditor height
+    @findInput.setFocus()
+    @show()
 
   resizeAceEditor: (height) ->
-    {ace}  = @getDelegate()
+    {ace} = @getDelegate()
     ace.setHeight ace.getHeight() + @lastHeightTakenFromAce - height
     ace.editor.resize yes
     @lastHeightTakenFromAce = height
@@ -123,25 +121,22 @@ class AceFindAndReplaceView extends JView
     {editor}   = @getDelegate().ace
     methodName = if doReplaceAll then "replaceAll" else "replace"
 
-    # editor.find findKeyword, @getSearchOptions() if not doReplaceAll
     editor[methodName] replaceKeyword
 
   pistachio: ->
     """
-      {{> @choices}}
       <div class="ace-find-replace-settings">
-        <div class="ace-find-replace-line">
-          <span class="label">Find:</span>
-          {{> @findInput}}
-          {{> @findNextButton}}
-          {{> @findPrevButton}}
-        </div>
-        <div class="ace-find-replace-line">
-          <span class="label">Replace :</span>
-          {{> @replaceInput}}
-          {{> @replaceButton}}
-          {{> @replaceAllButton}}
-        </div>
+        {{> @choices}}
+      </div>
+      <div class="ace-find-replace-inputs">
+        {{> @findInput}}
+        {{> @replaceInput}}
+      </div>
+      <div class="ace-find-replace-buttons">
+        {{> @findNextButton}}
+        {{> @findPrevButton}}
+        {{> @replaceButton}}
+        {{> @replaceAllButton}}
       </div>
       {{> @closeButton}}
     """

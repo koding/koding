@@ -24,16 +24,6 @@ class KodingRouter extends KDRouter
         shouldPushState: yes
         replaceState: yes
 
-  nicenames = {
-    JTag      : 'Topics'
-    JApp      : 'Apps'
-    StartTab  : 'Develop'
-  }
-
-  getSectionName =(model)->
-    sectionName = nicenames[model.bongo_.constructorName]
-    if sectionName? then " - #{sectionName}" else ''
-
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
     @utils.defer => @addRoute route, ->
@@ -54,20 +44,11 @@ class KodingRouter extends KDRouter
 
   go:(app, group, query)->
     return @once 'ready', @go.bind this, arguments...  unless @ready
-    pageTitle = nicenames[app] ? app
-    @setPageTitle pageTitle
     @getSingleton('groupsController').changeGroup group, (err)->
       if err then new KDNotificationView title: err.message
       else
         KD.getSingleton("appManager").open app
         KD.getSingleton("appManager").tell app, 'handleQuery', query
-
-  stripTemplate =(str, konstructor)->
-    {slugTemplate} = konstructor
-    slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
-    re = RegExp slugTemplate.replace slugStripPattern,
-      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
-    str.match(re)?[1]
 
   handleNotFound:(route)->
 
@@ -85,7 +66,7 @@ class KodingRouter extends KDRouter
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
-  getContentTitle:([model])->
+  getContentTitle:(model)->
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
@@ -96,8 +77,9 @@ class KodingRouter extends KDRouter
     , maxLength: 100) # max char length of the title
 
   openContent:(name, section, state, route)->
-    @setPageTitle @getContentTitle state
     KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
+      # TODO: this callback doesn't fire. We need to get this working again
+      # to regain "spatial" history
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
@@ -305,7 +287,7 @@ class KodingRouter extends KDRouter
             open routeInfo, state, status_404
 
           else
-            KD.remote.cacheable params.name, (err, model, name)->
+            KD.remote.cacheable params.name, (err, [model], name)->
               open routeInfo, model, status_404
 
     sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
