@@ -56,7 +56,7 @@ class StaticGroupController extends KDController
 
     groupLogoView.setY @landingView.getHeight()-42
 
-    @utils.wait =>
+    @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
 

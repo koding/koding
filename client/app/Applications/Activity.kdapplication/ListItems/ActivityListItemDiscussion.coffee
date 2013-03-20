@@ -93,7 +93,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @$('p.body a[href^=http]').attr "target", "_blank"
 
   prepareScrollOverlay:->
-    @utils.wait =>
+    @utils.defer =>
 
       body = @$("div.activity-content-container.discussion")
       if body.height() < parseInt body.css("max-height"), 10

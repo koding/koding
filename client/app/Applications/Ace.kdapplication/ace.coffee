@@ -28,7 +28,7 @@ class Ace extends KDView
           notification?.destroy()
           @editor = ace.edit "editor#{@getId()}"
           @prepareEditor()
-          @utils.wait => @emit "ace.ready"
+          @utils.defer => @emit "ace.ready"
           @setContents contents if contents
           @editor.gotoLine 0
           @focus()

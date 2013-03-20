@@ -142,7 +142,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @hiddenAceInputClone.unsetClass 'warn-on-unsaved-data'
 
     # deferred resets
-    @utils.wait =>
+    @utils.defer =>
       @tagController.reset()
       @ace.setContents "//your code snippet goes here..."
       @ace.setSyntax 'javascript'

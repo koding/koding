@@ -60,7 +60,7 @@ class ActivityListContainer extends JView
 
     @listWrapper = @controller.getView()
 
-    @utils.wait =>
+    @utils.defer =>
       @getSingleton('activityController').emit "ActivityListControllerReady", @controller
 
   setSize:(newHeight)->
