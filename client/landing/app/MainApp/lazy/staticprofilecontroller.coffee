@@ -482,7 +482,15 @@ class StaticProfileController extends KDController
 
   showWrapper:(wrapper)->
     @hideWrappers()
+    @showHomeLink()
     wrapper.show()
+
+  setHomeLink:(view)->
+    @homeLink = view
+    view.setClass 'invisible'
+
+  showHomeLink:->
+    @homeLink.unsetClass 'invisible'
 
 class StaticNavLink extends KDView
   constructor:(options,data)->
