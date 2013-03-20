@@ -219,6 +219,7 @@ module.exports = [
   "app/CommonViews/markdownmodal.coffee",
 
   # "app/MainApp/foreign_auth.coffee",
+  "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
@@ -394,8 +395,11 @@ module.exports = [
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
   #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
+
   # viewer
+  'app/Applications/Viewer.kdapplication/topbar.coffee',
   'app/Applications/Viewer.kdapplication/AppController.coffee',
+  'app/Applications/Viewer.kdapplication/AppView.coffee',
 
   # webterm
   "app/Applications/WebTerm.kdapplication/AppController.coffee",

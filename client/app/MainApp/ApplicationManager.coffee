@@ -52,9 +52,7 @@ class ApplicationManager extends KDObject
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
-      {multiple, openWith} = appOptions
-
-      unless options.thirdParty
+      if options.thirdParty
         # if there is no registered appController
         # we assume it should be a 3rd party app
         # that's why it should be run via kodingappscontroller

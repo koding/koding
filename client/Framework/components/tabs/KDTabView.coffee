@@ -277,8 +277,7 @@ class KDTabView extends KDScrollView
       visibleHandles.push handle
       visibleTotalSize += handle.$().outerWidth no
 
-    sizeWhenUsedMaxHandleWidth = visibleHandles.length * options.maxHandleWidth;
-    possiblePercent = parseInt((100 - containerMarginInPercent) / visibleHandles.length, 10)
+    possiblePercent = ((100 - containerMarginInPercent) / visibleHandles.length).toFixed 2
 
     handle.setWidth(possiblePercent, "%") for handle in visibleHandles
   , 300
