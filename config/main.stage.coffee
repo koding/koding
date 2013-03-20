@@ -132,11 +132,6 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : "rabbit.#{domainName}"
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
