@@ -574,7 +574,7 @@ class GroupsAppController extends AppController
     return pane
 
   prepareVocabularyTab:->
-    {groupView} = this
+    {groupView} = @
     group = groupView.getData()
     pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
       (pane, vocabView)->
@@ -588,8 +588,6 @@ class GroupsAppController extends AppController
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    # controller = new ContentDisplayControllerGroups null, content
-    # contentDisplay = controller.getView()
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
