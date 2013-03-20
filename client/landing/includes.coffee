@@ -390,10 +390,6 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettings.coffee",
   "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
-  # groups
-  "app/Applications/Groups.kdapplication/groupdata.coffee"
-  "app/Applications/Groups.kdapplication/AppController.coffee",
-
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
   #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
@@ -497,6 +493,8 @@ module.exports = [
   # GROUPS
 
   # groups controllers
+  "app/Applications/Groups.kdapplication/groupdata.coffee"
+  "app/Applications/Groups.kdapplication/AppController.coffee",
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
@@ -528,7 +526,6 @@ module.exports = [
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
-  "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
