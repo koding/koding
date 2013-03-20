@@ -38,7 +38,7 @@ class ActivityListController extends KDListViewController
       else
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
-        
+
     @noActivityItem.hide()
 
   loadView:(mainView)->
@@ -71,6 +71,8 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
+
+    return @noActivityItem.show() unless Object.keys(cache).length
 
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1

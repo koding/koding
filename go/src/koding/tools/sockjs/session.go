@@ -22,10 +22,11 @@ type Session struct {
 	closed                       bool
 	closeMutex                   sync.Mutex
 	cookie                       string
+	IsWebsocket                  bool
 	Tag                          string
 }
 
-func newSession(service *Service) *Session {
+func newSession(service *Service, isWebsocket bool) *Session {
 	return &Session{
 		Service:         service,
 		ReceiveChan:     make(chan interface{}, 1024),
@@ -36,6 +37,7 @@ func newSession(service *Service) *Session {
 		writeOpenFrame:  true,
 		lastSendTime:    time.Now(),
 		cookie:          "JSESSIONID=dummy",
+		IsWebsocket:     isWebsocket,
 	}
 }
 

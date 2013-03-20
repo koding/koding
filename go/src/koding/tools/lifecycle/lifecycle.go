@@ -2,7 +2,6 @@ package lifecycle
 
 import (
 	"fmt"
-	"koding/tools/config"
 	"koding/tools/log"
 	"math/rand"
 	"os"
@@ -11,8 +10,7 @@ import (
 )
 
 var version string
-var numClients int = 0
-var ChangeNumClients chan int = make(chan int)
+var changeClientsGauge func(int)
 var ShuttingDown bool = false
 
 func Startup(serviceName string, needRoot bool) {
@@ -26,38 +24,25 @@ func Startup(serviceName string, needRoot bool) {
 
 	log.Init(serviceName)
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
-
-	go func() {
-		for {
-			numClients += <-ChangeNumClients
-			if ShuttingDown && numClients == 0 {
-				log.Info("Shutdown complete. Terminating.")
-				os.Exit(0)
-			}
-		}
-	}()
 }
 
 func BeginShutdown() {
 	ShuttingDown = true
-	ChangeNumClients <- 0
+	changeClientsGauge(0)
 	log.Info("Beginning shutdown.")
 }
 
-func RunStatusLogger() {
-	go func() {
-		for {
-			if ShuttingDown {
-				log.Info(fmt.Sprintf("Shutting down, still %d clients.", numClients))
+func CreateClientsGauge() func(int) {
+	value := new(int)
+	log.CreateGauge("clients", func() float64 { return float64(*value) })
+	changeClientsGauge = func(diff int) {
+		log.GaugeChanges <- func() {
+			*value += diff
+			if ShuttingDown && *value == 0 {
+				log.Info("Shutdown complete. Terminating.")
+				os.Exit(0)
 			}
-			var m runtime.MemStats
-			runtime.ReadMemStats(&m)
-			log.Gauges(map[string]float64{
-				"clients":    float64(numClients),
-				"goroutines": float64(runtime.NumGoroutine()),
-				"memory":     float64(m.Alloc),
-			})
-			time.Sleep(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
 		}
-	}()
+	}
+	return changeClientsGauge
 }

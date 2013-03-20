@@ -24,7 +24,10 @@ import (
 
 func main() {
 	lifecycle.Startup("broker", false)
-	lifecycle.RunStatusLogger()
+	changeClientsGauge := lifecycle.CreateClientsGauge()
+	changeNewClientsGauge := log.CreateCounterGauge("newClients", true)
+	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients", false)
+	log.RunGaugesLoop()
 
 	publishConn := amqputil.CreateConnection("broker")
 	defer publishConn.Close()
@@ -40,11 +43,18 @@ func main() {
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
 
-		lifecycle.ChangeNumClients <- 1
 		log.Debug("Client connected: " + socketId)
+		changeClientsGauge(1)
+		changeNewClientsGauge(1)
+		if session.IsWebsocket {
+			changeWebsocketClientsGauge(1)
+		}
 		defer func() {
-			lifecycle.ChangeNumClients <- -1
 			log.Debug("Client disconnected: " + socketId)
+			changeClientsGauge(-1)
+			if session.IsWebsocket {
+				changeWebsocketClientsGauge(-1)
+			}
 		}()
 
 		addToRouteMap := func(routingKeyPrefix string) {

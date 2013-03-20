@@ -41,7 +41,8 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	lifecycle.RunStatusLogger()
+	changeClientsGauge := lifecycle.CreateClientsGauge()
+	log.RunGaugesLoop()
 
 	routeMap := make(map[string](chan<- []byte))
 	defer func() {
@@ -97,10 +98,10 @@ func (k *Kite) Run() {
 				go func() {
 					defer log.RecoverAndLog()
 
-					lifecycle.ChangeNumClients <- 1
+					changeClientsGauge(1)
 					log.Debug("Client connected: " + client.Username)
 					defer func() {
-						lifecycle.ChangeNumClients <- -1
+						changeClientsGauge(-1)
 						log.Debug("Client disconnected: " + client.Username)
 					}()
 
