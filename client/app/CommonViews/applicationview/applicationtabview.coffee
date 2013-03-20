@@ -1,12 +1,13 @@
 class ApplicationTabView extends KDTabView
   constructor: (options = {}, data) ->
 
-    options.resizeTabHandles       = yes
-    options.lastTabHandleMargin    = 40
-    options.sortable               = yes
-    options.saveSession          or= no
-    options.sessionName          or= ""
-    options.sessionKey           or= "sessions"
+    options.resizeTabHandles             = yes
+    options.lastTabHandleMargin          = 40
+    options.sortable                     = yes
+    options.saveSession                or= no
+    options.sessionName                or= ""
+    options.sessionKey                 or= "sessions"
+    options.closeAppWhenAllTabsClosed  or= yes
 
     super options, data
 
@@ -15,7 +16,12 @@ class ApplicationTabView extends KDTabView
     appView = @getDelegate()
 
     @on 'PaneRemoved', =>
-      appView.emit 'AllViewsClosed' if @panes.length is 0
+      if @panes.length is 0
+        appView.emit 'AllViewsClosed'
+        if options.closeAppWhenAllTabsClosed
+          appManager = KD.getSingleton 'appManager'
+          appManager.quit appManager.frontApp
+
       @tabHandleContainer.repositionPlusHandle @handles
       @removeFromSession yes
 

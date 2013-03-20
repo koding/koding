@@ -14,10 +14,6 @@ class AceAppView extends JView
       saveSession          : yes
       sessionName          : "AceTabHistory"
 
-    @on 'AllViewsClosed', =>
-      appManager = KD.getSingleton 'appManager'
-      appManager.quit appManager.frontApp
-
     @on 'UpdateSessionData', (openPanes, data = {}) =>
       paths = []
       paths.push pane.getOptions().aceView.getData().path for pane in openPanes
