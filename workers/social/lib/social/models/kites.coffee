@@ -8,19 +8,26 @@ module.exports = class JKite extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  {Base, dash, ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
 
   @share()
 
   @set
     indexes         :
       apiKey          : 'unique'
+    permissions: [
+      'read kites'
+      'create kites'
+      'edit kites'
+      'delete kites'
+      'delete own kites'
+    ]  
     sharedMethods   :
       instance      : [
           'delete'
         ]
       static        : [
-          'create'
+          'create', 'get', 'fetchAll'
         ]
     schema          :
       name          :
@@ -61,3 +68,45 @@ module.exports = class JKite extends jraphical.Module
                 callback err
               else
                 callback null, kite
+
+
+  @get = secure ({connection:{delegate}}, data, callback)->
+    {limit, skip, sort}  = data
+
+    Relationship.one {
+      as          : 'owner'
+      targetId    : delegate._id
+      sourceId    : data.id
+    }, (err, relation)=>
+      if err
+        callback err
+      else
+        relation.fetchSource (err, result)=>
+          console.log result 
+          callback null, result
+
+
+  @fetchAll = secure ({connection:{delegate}}, options, callback)->
+
+    selector = {
+      targetId   : delegate._id
+      sourceName : 'JKite'
+      as         : 'owner'
+    }
+
+    options or= {}
+
+    Relationship.some selector, options, callback
+
+
+  delete: secure ({connection:{delegate}}, callback)->
+    # console.log this
+    # unless delegate.can 'delete', this
+    #   throw new KodingError 'Access denied!'
+    
+    @remove callback
+    
+    # Relationship.getDeleteHelper {
+    #   targetId    : delegate._id
+    #   sourceId    : @getId()
+    # }, 'source', callback
