@@ -212,26 +212,19 @@ module.exports = class JAccount extends jraphical.Module
   @renderHomepage: require './render-homepage'
 
   fetchHomepageView:(callback)->
-    console.log 'rendering hp'
-    console.log 'checking for blog posts'
-
     CActivity = require '../activity'
 
     CActivity.some
       originId: @getId()
       type : 'CBlogPostActivity'
-        # $in : @profile.staticPage?.showTypes or [
-        #   'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
-        #   'CDiscussionActivity', 'CTutorialActivity'
-        # ]
     ,
       to : Date.now()
       limit : 5
       sort :
         createdAt : -1
     , (err, activities)=>
-      console.log activities.length
       posts = []
+
       for i in activities
         posts.push JSON.parse(i.snapshot)
 
