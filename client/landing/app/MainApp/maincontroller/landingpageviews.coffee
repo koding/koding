@@ -50,6 +50,7 @@ class LandingPageNavigationController extends NavigationController
 
       if KD.isLoggedIn()
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
+          log ">>>", roles
           if err then console.warn err
           else if roles.length
             items.unshift \

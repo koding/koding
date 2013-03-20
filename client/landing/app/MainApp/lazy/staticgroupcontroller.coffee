@@ -61,11 +61,12 @@ class StaticGroupController extends KDController
         group.first.fetchMembershipStatus (err, status)=>
           if err then warn err
           else
+            log status
             switch status
               when "invitation-pending"  then @emit "status.pending"
               when "invitation-sent"     then @emit "status.action-required"
               when "invitation-declined" then @emit "status.declined"
-              when "member"              then @emit "status.member"
+              when "member","admin"      then @emit "status.member"
               when "guest"               then @emit "status.guest"
 
 
