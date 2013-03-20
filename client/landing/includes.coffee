@@ -315,6 +315,7 @@ module.exports = [
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
   "app/MainApp/lazy/staticprofileconfigviews.coffee",
+  "app/MainApp/lazy/staticprofileaboutview.coffee",
   "app/MainApp/lazy/staticgroupcontroller.coffee",
   "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
