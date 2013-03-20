@@ -1,6 +1,13 @@
 
 class LandingPageSideBar extends KDView
 
+  defaultItems =  items : [
+      { title : "Register", action : "register", loggedOut : yes }
+      { type  : "separator" }
+      { title : "Logout",   action : "logout",   loggedIn  : yes }
+      { title : "Login",    action : "login",    loggedOut : yes }
+    ]
+
   constructor:(isLoggedIn = no)->
 
     options     =
@@ -8,25 +15,25 @@ class LandingPageSideBar extends KDView
 
     super options
 
-    @navController = new LandingPageNavigationController
+    @mainController = @getSingleton "mainController"
+    @navController  = new LandingPageNavigationController
       view         : new NavigationList
         itemClass  : LandingNavigationLink
         type       : "navigation"
       scrollView   : no
       wrapper      : no
       delegate     : @
-    ,
-      items : [
-        { title : "Register", action : "register", loggedOut : yes }
-        { type  : "separator" }
-        { title : "Logout",   action : "logout",   loggedIn  : yes }
-        { title : "Login",    action : "login",    loggedOut : yes }
-      ]
+    , defaultItems
 
     @on 'ListItemsInstantiated' , =>
       $("#profile-static-nav").remove()
 
     @addSubView @nav = @navController.getView()
+
+    @mainController.on "accountChanged.to.*", =>
+      @navController.removeAllItems()
+      @navController.instantiateListItems defaultItems.items
+
 
 class LandingPageNavigationController extends NavigationController
 
@@ -41,6 +48,9 @@ class LandingPageNavigationController extends NavigationController
       item.on "click", (event)->
         landingPageSideBar.emit "navItemIsClicked", item, event
 
+
+
+
   instantiateListItems:(items)->
 
     # Build groups menu
@@ -50,7 +60,6 @@ class LandingPageNavigationController extends NavigationController
 
       if KD.isLoggedIn()
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
-          log ">>>", roles
           if err then console.warn err
           else if roles.length
             items.unshift \

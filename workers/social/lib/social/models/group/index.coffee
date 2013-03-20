@@ -320,7 +320,7 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
   #     [callback, options] = [options, callback]  unless callback
-  #     options ?= 
+  #     options ?=
 
 
   # fetchMyFollowees: permit 'list members'
@@ -615,12 +615,12 @@ module.exports = class JGroup extends Module
   fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
     {delegate} = client.connection
-    unless delegate instanceof JAccount 
+    unless delegate instanceof JAccount
       callback null, ['guest']
     else
       @fetchMyRoles client, (err, roles)=>
         if err then callback err
-        else if 'member' in roles or 'admin' in 'roles'
+        else if 'member' in roles or 'admin' in roles
           callback null, roles
         else
           options = targetOptions:
