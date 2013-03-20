@@ -1,12 +1,5 @@
 class LandingPageSideBar extends KDView
 
-  defaultItems =  items : [
-      { title : "Register", action : "register", loggedOut : yes }
-      { type  : "separator" }
-      { title : "Logout",   action : "logout",   loggedIn  : yes }
-      { title : "Login",    action : "login",    loggedOut : yes }
-    ]
-
   constructor:(isLoggedIn = no)->
 
     options     =
@@ -22,16 +15,20 @@ class LandingPageSideBar extends KDView
       scrollView   : no
       wrapper      : no
       delegate     : @
-    , defaultItems
+    ,
+      items : [
+        { title : "Register", action : "register", loggedOut : yes }
+        { type  : "separator" }
+        { title : "Logout",   action : "logout",   loggedIn  : yes }
+        { title : "Login",    action : "login",    loggedOut : yes }
+      ]
 
     @on 'ListItemsInstantiated' , =>
       $("#profile-static-nav").remove()
 
     @addSubView @nav = @navController.getView()
 
-    @mainController.on "accountChanged.to.*", =>
-      @navController.removeAllItems()
-      @navController.instantiateListItems defaultItems.items
+    @mainController.on "accountChanged.to.*", => @navController.reset()
 
 class LandingPageNavigationController extends NavigationController
 
@@ -47,6 +44,8 @@ class LandingPageNavigationController extends NavigationController
         landingPageSideBar.emit "navItemIsClicked", item, event
 
   instantiateListItems:(items)->
+
+    items = items.slice()
 
     # Build groups menu
     if @lc.userEnteredFromGroup()

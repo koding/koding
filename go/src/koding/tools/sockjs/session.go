@@ -28,16 +28,14 @@ type Session struct {
 
 func newSession(service *Service, isWebsocket bool) *Session {
 	return &Session{
-		Service:         service,
-		ReceiveChan:     make(chan interface{}, 1024),
-		sendChan:        make(chan interface{}, 1024),
-		doConnCheck:     make(chan bool),
-		connCheckResult: make(chan bool),
-		readSemaphore:   make(chan bool, 1),
-		writeOpenFrame:  true,
-		lastSendTime:    time.Now(),
-		cookie:          "JSESSIONID=dummy",
-		IsWebsocket:     isWebsocket,
+		Service:        service,
+		ReceiveChan:    make(chan interface{}, 1024),
+		sendChan:       make(chan interface{}, 1024),
+		readSemaphore:  make(chan bool, 1),
+		writeOpenFrame: true,
+		lastSendTime:   time.Now(),
+		cookie:         "JSESSIONID=dummy",
+		IsWebsocket:    isWebsocket,
 	}
 }
 
@@ -94,54 +92,23 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 	case s.readSemaphore <- true:
 		// can read
 	default:
-		s.doConnCheck <- true
-		errMsg := `[1002,"Connection interrupted"]`
-		if <-s.connCheckResult {
-			errMsg = `[2010,"Another connection still open"]`
-		}
-		w.Write(createFrame('c', errMsg, frameStart, frameEnd, escape))
+		w.Write(createFrame('c', `[1002,"Connection interrupted"]`, frameStart, frameEnd, escape))
 		return
 	}
 	defer func() {
 		<-s.readSemaphore
 	}()
 
-	c := make(chan []byte)
-	defer close(c)
-	go func() {
-		conn, buf, _ := w.(http.Hijacker).Hijack()
-		defer conn.Close()
-		defer buf.Flush()
+	conn, buf, _ := w.(http.Hijacker).Hijack()
+	defer conn.Close()
 
-		var frameWriter io.Writer = buf
-		if chunked {
-			defer buf.Write([]byte("\r\n"))
-			chunkedWriter := httputil.NewChunkedWriter(buf)
-			frameWriter = chunkedWriter
-			defer chunkedWriter.Close()
-		}
-
-		for {
-			select {
-			case frame, ok := <-c:
-				if !ok {
-					return
-				}
-				frameWriter.Write(frame)
-				if streaming {
-					buf.Flush()
-				}
-			case <-s.doConnCheck:
-				_, err := conn.Write([]byte("0\r\n"))
-				if err != nil {
-					s.connCheckResult <- false
-					s.Close()
-					return
-				}
-				s.connCheckResult <- true
-			}
-		}
-	}()
+	var frameWriter io.Writer = buf
+	if chunked {
+		defer buf.Write([]byte("\r\n"))
+		chunkedWriter := httputil.NewChunkedWriter(buf)
+		frameWriter = chunkedWriter
+		defer chunkedWriter.Close()
+	}
 
 	var frame []byte
 	var closed bool
@@ -149,7 +116,13 @@ func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, fr
 	for !closed && total < s.Service.StreamLimit {
 		frame, closed = s.CreateNextFrame(frameStart, frameEnd, escape)
 		total += len(frame)
-		c <- frame
+
+		frameWriter.Write(frame)
+		if err := buf.Flush(); err != nil {
+			s.Close()
+			return
+		}
+
 		s.lastSendTime = time.Now()
 		if !streaming {
 			break
