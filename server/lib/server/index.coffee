@@ -171,13 +171,25 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+error_ =(code, message)->
+  messageHTML = message.split('\n')
+    .map((line)-> "<p>#{line}</p>")
+    .join '\n'
+  """
+  <title>#{code}</title>
+  <h1>#{code}</h1>
+  #{messageHTML}
+  """
+
 error_404 =->
-  """
-  <title>404</title>
-  <h1>404</h1>
-  <p>This page exists, but it just an error.</p>
-  <p>- FAYAMF</p>
-  """
+  error_ 404,
+    """
+    not found
+    fayamf
+    """
+
+error_500 =->
+  error_ 500, 'internal server error'
 
 app.get '/:name/:section?', (req, res, next)->
   {JGroup, JName} = koding.models
@@ -191,7 +203,8 @@ app.get '/:name/:section?', (req, res, next)->
       else unless models? then res.send 404, error_404()
       else res.send models[0].fetchHomepageView (err, view)->
         if err then next err
-        else res.send view
+        else if view? then res.send view
+        else res.send 500, error_500()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->
@@ -219,20 +232,20 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    {JGroup} = koding.models
-    groupName = 'koding'
-    JGroup.one { slug: groupName }, (err, group)->
-      if err or !group? then console.error err
-      else
-        group.fetchHomepageView (err, view)->
-          if err then console.error err
-          else res.send view
+    # {JGroup} = koding.models
+    # groupName = 'koding'
+    # JGroup.one { slug: groupName }, (err, group)->
+    #   if err or !group? then console.error err
+    #   else
+    #     group.fetchHomepageView (err, view)->
+    #       if err then console.error err
+    #       else res.send view
 
-    # log.info "serving index.html"
-    # res.header 'Content-type', 'text/html'
-    # fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
-    #   throw err if err
-    #   res.send data
+    log.info "serving index.html"
+    res.header 'Content-type', 'text/html'
+    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
+      throw err if err
+      res.send data
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

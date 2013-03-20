@@ -19,8 +19,8 @@ class TagLinkView extends LinkView
   pistachio:->
     super "{{#(title)}}"
 
-  click:(event)->
-    event?.stopPropagation()
-    event?.preventDefault()
-    return unless @getOptions().clickable
-    @emit 'LinkClicked'
+#  click:(event)->
+#    event?.stopPropagation()
+#    event?.preventDefault()
+#    return unless @getOptions().clickable
+#    @emit 'LinkClicked'

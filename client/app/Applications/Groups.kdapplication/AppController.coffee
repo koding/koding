@@ -55,10 +55,10 @@ class GroupsAppController extends AppController
       return @currentGroupData.data.first
     return @currentGroupData.data
 
-  changeGroup:(groupName, callback=->)->
-    return callback()  if groupName is @currentGroup
+  changeGroup:(groupName='koding', callback=->)->
+    return callback()  if @currentGroup is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroup?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    groupName ?= "koding"
     unless @currentGroup is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
@@ -574,7 +574,7 @@ class GroupsAppController extends AppController
     return pane
 
   prepareVocabularyTab:->
-    {groupView} = this
+    {groupView} = @
     group = groupView.getData()
     pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
       (pane, vocabView)->
@@ -588,8 +588,6 @@ class GroupsAppController extends AppController
 
   showContentDisplay:(group, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    # controller = new ContentDisplayControllerGroups null, content
-    # contentDisplay = controller.getView()
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()

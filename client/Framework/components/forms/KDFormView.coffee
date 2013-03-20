@@ -12,17 +12,21 @@ class KDFormView extends KDView
 
     return inputs
 
+
   ###
   INSTANCE LEVEL
   ###
   constructor:(options = {}, data)->
 
+    options.tagName      = "form"
+    options.cssClass     = KD.utils.curryCssClass "kdformview", options.cssClass
     options.callback   or= noop     # a Function
     options.customData or= {}       # an Object of key/value pairs
     options.bind       or= "submit" # a String of space separated event names
 
     super options,data
 
+    @unsetClass "kdview"
     @valid = null
     @setCallback options.callback
     @customData = {}
@@ -32,10 +36,6 @@ class KDFormView extends KDView
     @emit 'inputWasAdded', child  if child instanceof KDInputView
 
     super
-
-  setDomElement:()->
-    cssClass = @getOptions().cssClass ? ""
-    @domElement = $ "<form class='kdformview #{cssClass}'></form>"
 
   getCustomData:(path)->
     if path

@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 )
 
 var loggrSource string
@@ -122,25 +123,75 @@ type Gauge struct {
 	Name   string  `json:"name"`
 	Value  float64 `json:"value"`
 	Source string  `json:"source"`
+	input  func() float64
 }
 
-func Gauges(gauges map[string]float64) {
+var gauges = make([]Gauge, 0)
+var GaugeChanges = make(chan func())
+
+func init() {
+	CreateGauge("goroutines", func() float64 {
+		return float64(runtime.NumGoroutine())
+	})
+	CreateGauge("memory", func() float64 {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		return float64(m.Alloc)
+	})
+}
+
+func CreateGauge(name string, input func() float64) {
+	gauges = append(gauges, Gauge{name, 0, libratoSource, input})
+}
+
+func CreateCounterGauge(name string, resetOnReport bool) func(int) {
+	value := new(int)
+	CreateGauge(name, func() float64 {
+		v := *value
+		if resetOnReport {
+			*value = 0
+		}
+		return float64(v)
+	})
+	return func(diff int) {
+		GaugeChanges <- func() {
+			*value += diff
+		}
+	}
+}
+
+func RunGaugesLoop() {
+	go func() {
+		reportInterval := time.Tick(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
+		for {
+			select {
+			case <-reportInterval:
+				LogGauges()
+
+			case change := <-GaugeChanges:
+				change()
+			}
+		}
+	}()
+}
+
+func LogGauges() {
 	if !config.Current.Librato.Push {
 		tagPrefix := "[gauges " + tags + "]"
-		for name, value := range gauges {
-			fmt.Printf("%-30s %s: %v\n", tagPrefix, name, value)
+		for _, gauge := range gauges {
+			fmt.Printf("%-30s %s: %v\n", tagPrefix, gauge.Name, gauge.input())
 			tagPrefix = ""
 		}
 		return
 	}
 
+	for _, gauge := range gauges {
+		gauge.Value = gauge.input()
+	}
 	var event struct {
 		Gauges []Gauge `json:"gauges"`
 	}
-	event.Gauges = make([]Gauge, 0, len(gauges))
-	for name, value := range gauges {
-		event.Gauges = append(event.Gauges, Gauge{name, value, libratoSource})
-	}
+	event.Gauges = gauges
 	b, err := json.Marshal(event)
 	if err != nil {
 		fmt.Println("logger error: json.Marshal failed.", err)
