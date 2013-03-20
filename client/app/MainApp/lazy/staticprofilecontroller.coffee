@@ -434,15 +434,11 @@ class StaticProfileController extends KDController
       if err
         log err
       else
-        unless about
-          partial = '<div class="has-markdown nothing-here"><span class="data">Nothing here yet!</span></div>'
-        else
-          partial = "<div class='has-markdown'><span class='data'>#{about.html or about.content}</span></div>"
 
-        log 'adding',partial
+        @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
+          about : about
+        ,@profileUser
 
-        @profileContentView.addSubView @aboutWrapper = new KDView
-          partial : partial
 
         @profileLoadingBar.unsetClass 'active'
         @profileLoaderView.hide()
