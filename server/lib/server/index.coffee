@@ -4,6 +4,8 @@ Object.defineProperty global, 'KONFIG', {
 }
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
+{loggedInPage, loggedOutPage} = require './staticpages'
+
 webPort = argv.p ? webserver.port
 
 processMonitor = (require 'processes-monitor').start
@@ -228,24 +230,31 @@ app.get '/:name/:section?', (req, res, next)->
 #         res.header 'Location', '/Activity'
 #         res.send 302
 
+serve = (content, res)->
+  res.header 'Content-type', 'text/html'
+  res.send content
+
 app.get "/", (req, res)->
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
-  else
-    # {JGroup} = koding.models
-    # groupName = 'koding'
-    # JGroup.one { slug: groupName }, (err, group)->
-    #   if err or !group? then console.error err
-    #   else
-    #     group.fetchHomepageView (err, view)->
-    #       if err then console.error err
-    #       else res.send view
 
-    log.info "serving index.html"
-    res.header 'Content-type', 'text/html'
-    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
-      throw err if err
-      res.send data
+  else
+
+    {clientId} = req.cookies
+
+    unless clientId
+      serve loggedOutPage, res
+    else
+      {JSession} = koding.models
+      JSession.one {clientId}, (err, session)=>
+        if err
+          console.error err
+          serve loggedOutPage, res
+        else
+          {username} = session.data
+          if username then serve loggedInPage, res
+          else serve loggedOutPage, res
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
