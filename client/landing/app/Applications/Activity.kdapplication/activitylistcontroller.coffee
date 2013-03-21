@@ -24,6 +24,14 @@ class ActivityListController extends KDListViewController
     options.startWithLazyLoader = yes
     options.showHeader        ?= yes
 
+    options.noItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity."
+
+    options.noMoreItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no more activity."
+
     super
 
     @_state = 'public'
