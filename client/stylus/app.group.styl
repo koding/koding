@@ -10,9 +10,6 @@
 
 */
 
-.own-group
-  background-color        chartreuse !important
-
 #static-landing-page
   &.group-leaving
     rel()
@@ -604,15 +601,21 @@
     clear                   none
     width                   50%
     display                 inline-block
-    height auto
-    vertical-align top
-
+    height                  auto
+    vertical-align          top
+    background-size         cover
+    vendor                  filter, blur(5px)
+    
     &:hover
       div.groups-settings-menu
         opacity 1
 
     &:nth-child(2n+1)
       border-right           1px solid #f5f5f5
+
+    &.own-group
+      background-color        chartreuse !important
+
 
     div.groups-settings-menu
         vendor            transition, opacity .1s ease-out
@@ -649,10 +652,11 @@
       display         block
       size(60px,60px)
       .avatar-image
-        display         block
-        text-decoration   none
-        background-size   cover
+        display               block
+        text-decoration       none
+        background-size       cover
         background-position   center
+        // bg                    image, url("../images/defaultavatar/default.group.128.png")
         size(60px,60px)
 
     .content
