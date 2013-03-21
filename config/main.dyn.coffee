@@ -73,7 +73,7 @@ module.exports = deepFreeze
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : no
   cacheWorker   :
     login       : 'prod-social'
@@ -142,11 +142,6 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : 'localhost'
-      login         : 'PROD-k5it50s4676pO9O'
-      password      : 'Dtxym6fRJXx4GJz'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: yes
