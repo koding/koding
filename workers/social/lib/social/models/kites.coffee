@@ -13,8 +13,6 @@ module.exports = class JKite extends jraphical.Module
   @share()
 
   @set
-    indexes         :
-      apiKey          : 'unique'
     permissions: [
       'read kites'
       'create kites'
@@ -30,10 +28,13 @@ module.exports = class JKite extends jraphical.Module
           'create', 'get', 'fetchAll', 'control'
         ]
     schema          :
-      name          :
+      appName       :
         type        : String
         required    : yes
-      secret         :
+      kiteName      :
+        type        : String
+        required    : yes
+      secret        :
         type        : String
         required    : no
       key          :
@@ -53,8 +54,8 @@ module.exports = class JKite extends jraphical.Module
     crypto.randomBytes 12, (ex1, key) ->
       crypto.randomBytes 12, (ex2, secret) ->
         #todo remove prefixes
-        apiKey    = "kite-api-key-" + key.toString 'hex'
-        apiSecret = "kite-api-secret-" + secret.toString 'hex'
+        apiKey    = "key-" + key.toString 'hex'
+        apiSecret = "secret-" + secret.toString 'hex'
         data.key = apiKey
         data.secret = apiSecret
 
