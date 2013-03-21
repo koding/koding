@@ -115,7 +115,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             @editDiscussionForm?.destroy()
             delete @editDiscussionForm
             @$(".tutorial-body .data").show()
-            @utils.wait =>
+            @utils.defer =>
               @embedBox.show()
           else
             @editDiscussionForm = new TutorialFormView
@@ -133,7 +133,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                   else
                     @editDiscussionForm.setClass "hidden"
                     @$(".tutorial-body .data").show()
-                    @utils.wait =>
+                    @utils.defer =>
                       @embedBox.show() if @embedBox.hasValidContent
             , data
 

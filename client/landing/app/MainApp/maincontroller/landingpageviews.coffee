@@ -1,14 +1,13 @@
-
 class LandingPageSideBar extends KDView
 
   constructor:(isLoggedIn = no)->
 
-    options     =
-      lazyDomId : 'landing-page-sidebar'
+    options = lazyDomId : 'landing-page-sidebar'
 
     super options
 
-    @navController = new LandingPageNavigationController
+    @mainController = @getSingleton "mainController"
+    @navController  = new LandingPageNavigationController
       view         : new NavigationList
         itemClass  : LandingNavigationLink
         type       : "navigation"
@@ -28,7 +27,19 @@ class LandingPageSideBar extends KDView
 
     @addSubView @nav = @navController.getView()
 
+    @mainController.on "accountChanged.to.*", => @navController.reset()
+    @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
+
+
 class LandingPageNavigationController extends NavigationController
+
+  reset:->
+    view = @getView()
+    view.setClass "out"
+    @utils.wait 200, =>
+      @removeAllItems()
+      @instantiateListItems @getData().items
+      view.unsetClass "out"
 
   constructor: ->
 
@@ -43,6 +54,8 @@ class LandingPageNavigationController extends NavigationController
 
   instantiateListItems:(items)->
 
+    items = items.slice()
+
     # Build groups menu
     if @lc.userEnteredFromGroup()
 
@@ -52,9 +65,7 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
-            items.unshift \
-              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
-            @_instantiateListItems items
+            @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
@@ -78,13 +89,13 @@ class LandingPageNavigationController extends NavigationController
 
       log 'entered from profile!'
       profileItems = [
-        { title : 'Home',action : 'home', type : 'user'}
-        { title : 'Activity',action : 'activity', type : 'user'}
-        { title : 'Topics', action : 'topics', type : 'user' }
-        { title : 'People', action : 'members', type : 'user'}
-        { title : 'Groups', action : 'groups', type : 'user'}
-        { title : 'About', action : 'about', type : 'user'}
-        { title : 'Apps', action : 'apps', type : 'user'}
+        { title : 'Home',     action : 'home',      type : 'user'}
+        { title : 'Activity', action : 'activity',  type : 'user'}
+        { title : 'Topics',   action : 'topics',    type : 'user'}
+        { title : 'People',   action : 'members',   type : 'user'}
+        { title : 'Groups',   action : 'groups',    type : 'user'}
+        { title : 'About',    action : 'about',     type : 'user'}
+        { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items
@@ -100,7 +111,15 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedOut
       else
         continue if itemData.loggedIn
-      @getListView().addItem itemData
+      item = @getListView().addItem itemData
+      if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+
+    data.type or= "account"
+
+    super options, data
+
   click:->

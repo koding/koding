@@ -77,6 +77,8 @@ class LoginView extends KDScrollView
       cssClass : "head-banner hidden"
       partial  : "..."
 
+    @getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
+
   viewAppended:->
 
     @listenWindowResize()
