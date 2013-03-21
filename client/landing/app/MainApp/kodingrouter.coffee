@@ -43,7 +43,6 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
-    console.trace()
     return @once 'ready', @go.bind this, arguments...  unless @ready
     @getSingleton('groupsController').changeGroup group, (err)->
       if err then new KDNotificationView title: err.message
@@ -114,8 +113,7 @@ class KodingRouter extends KDRouter
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
-        contentDisplay.on 'handleQuery', (query)=>
-          controller.ready -> controller.feedController?.handleQuery? query
+        contentDisplay.emit 'handleQuery', query
       else if state?
         @openContent name, section, state, route, query
       else
