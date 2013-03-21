@@ -594,27 +594,53 @@
 .content-page.groups
 
   .kdlistitemview-groups
+    rel()
     borderBox()
     border-bottom           1px solid #f5f5f5
     min-height              131px
-    min-width 250px
+    min-width               250px
     clear                   none
     width                   50%
     display                 inline-block
     height                  auto
     vertical-align          top
-    background-size         cover
-    vendor                  filter, blur(5px)
-    
+    overflow                hidden
+
     &:hover
       div.groups-settings-menu
         opacity 1
 
     &:nth-child(2n+1)
-      border-right           1px solid #f5f5f5
+      border-right          1px solid #f5f5f5
 
     &.own-group
-      background-color        chartreuse !important
+      background-color      chartreuse !important
+    // .topictext
+    //   z-index               1
+    // .bg
+    //   top                   -5px
+    //   left                  -5px
+    //   z-index               0
+    //   size                  110%, 110%
+    //   bg                    size, cover
+    //   vendor                filter, blur(2px)
+    //   opacity               .3
+    //   abs()
+    .kdlistview-members
+      border-top          1px solid #eee
+      margin              0 20px
+      padding             10px 0
+      .kdlistitemview-member
+        display           inline-block
+        size              20px, 20px
+        border            1px solid #ccc
+        bg                color, cyan
+        padding           1px
+        margin            2px 2px 0 0
+        borderBox()
+        &:first-child
+          margin            2px 2px 0 2px
+
 
 
     div.groups-settings-menu
@@ -641,16 +667,13 @@
         .chevron-separator
           display         none
 
-
-
-
     span.avatar
-      margin 20px 20px 5px 20px
-      padding         1px
-      border          1px solid #E3E3E3
+      margin              20px 20px 5px 20px
+      padding             1px
+      border              1px solid #E3E3E3
       fl()
-      display         block
-      size(60px,60px)
+      display             block
+      size                60px, 60px
       .avatar-image
         display               block
         text-decoration       none
@@ -697,23 +720,15 @@
 
       article
         borderBox()
-        width auto
-        margin-right 95px
-        padding-bottom 20px
-        overflow-x hidden
-        overflow-y hidden
-        text-overflow ellipsis
-        line-height 1.2em
-        height 3.6em
-        color #5f5f5f
-        font-size 12px
-        div.data
-          borderBox()
-          overflow-y hidden
-          overflow-x hidden
-          white-space nowrap
-          text-overflow ellipsis
-          display block
+        width             auto
+        margin            0 95px 10px 0
+        padding-bottom    20px
+        overflow          hidden
+        text-overflow     ellipsis
+        line-height       1.2em
+        height            3.6em
+        color             #5f5f5f
+        font-size         12px
 
     .topicmeta
       abs()
