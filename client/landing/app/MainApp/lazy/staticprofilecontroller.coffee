@@ -35,17 +35,57 @@ class StaticProfileController extends KDController
 
   addEventListeners:->
 
-    @on 'TopicLinkClicked', =>
-      @addTopicLogic()
-
     @on 'GroupsLinkClicked', =>
-      @addGroupsLogic()
+      unless @groupsListWrapper?
+        @addGroupsLogic =>
+          @showWrapper @groupsListWrapper
+      else
+        @showWrapper @groupsListWrapper
+
+      @lockSidebar = yes
+
+      @utils.wait 250, =>
+        @profileContentList.unsetClass 'has-links'
+        @profileContentLinks.setClass 'links-hidden'
+
+    @on 'TopicLinkClicked', =>
+      unless @topicsListWrapper?
+        @addTopicLogic =>
+          @showWrapper @topicsListWrapper
+      else
+        @showWrapper @topicsListWrapper
+
+      @lockSidebar = yes
+
+      @utils.wait 250, =>
+        @profileContentList.unsetClass 'has-links'
+        @profileContentLinks.setClass 'links-hidden'
 
     @on 'PeopleLinkClicked', =>
-      @addPeopleLogic()
+      unless @membersListWrapper?
+        @addPeopleLogic =>
+          @showWrapper @membersListWrapper
+      else
+        @showWrapper @membersListWrapper
+
+      @lockSidebar = yes
+
+      @utils.wait 250, =>
+        @profileContentList.unsetClass 'has-links'
+        @profileContentLinks.setClass 'links-hidden'
 
     @on 'AppsLinkClicked', =>
-      @addAppsLogic()
+      unless @appsListWrapper?
+        @addAppsLogic =>
+          @showWrapper @appsListWrapper
+      else
+        @showWrapper @appsListWrapper
+
+      @lockSidebar = yes
+
+      @utils.wait 250, =>
+        @profileContentList.unsetClass 'has-links'
+        @profileContentLinks.setClass 'links-hidden'
 
     @on 'HomeLinkClicked', =>
       unless @staticListWrapper?
@@ -447,24 +487,112 @@ class StaticProfileController extends KDController
         if err
           log err
         else
-
           @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
             about : about
           ,@profileUser
-
 
           @profileLoadingBar.unsetClass 'active'
           @profileLoaderView.hide()
 
           callback()
 
-  addTopicLogic:->
 
-  addGroupsLogic:->
+  addTopicLogic:(callback=->)->
+    log 'adding topics logic'
 
-  addAppsLogic:->
+    @topicsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticTopicsListItem
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
 
-  addPeopleLogic:->
+    @topicsListWrapper = @topicsController.getView()
+    @profileContentView.addSubView @topicsListWrapper
+
+    @profileUser.fetchFollowedTopics {},{},(err,topics)=>
+      if topics
+        @refreshActivities err, topics, @topicsListWrapper, @topicsController
+      else
+        log 'No topics'
+        @topicsController.hideLazyLoader()
+
+    callback()
+
+
+  addGroupsLogic:(callback=->)->
+    log 'adding groups logic'
+
+    @groupsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticGroupsListItem
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
+    @groupsListWrapper = @groupsController.getView()
+    @profileContentView.addSubView @groupsListWrapper
+
+    @profileUser.fetchGroups (err,groups)=>
+      if groups
+        groupList = (item.group for item in groups)
+        @refreshActivities err, groupList, @groupsListWrapper, @groupsController
+      else
+        log 'No groups'
+        @groupsController.hideLazyLoader()
+
+    callback()
+
+
+  addAppsLogic:(callback=->)->
+    log 'adding apps logic'
+
+    @appsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticAppsListItem
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
+    @appsListWrapper = @appsController.getView()
+    @profileContentView.addSubView @appsListWrapper
+
+    KD.remote.api.JApp.some {originId : @profileUser.getId()},{},(err,apps)=>
+      if apps?.length
+        @refreshActivities err, apps, @appsListWrapper, @appsController
+      else
+        log 'No apps'
+        @appsController.hideLazyLoader()
+
+    callback()
+
+
+  addPeopleLogic:(callback=->)->
+    log 'adding members logic'
+
+    @membersController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticMembersListItem
+      viewOptions       :
+        cssClass        : 'static-content'
+      showHeader        : no
+
+    @membersListWrapper = @membersController.getView()
+    @profileContentView.addSubView @membersListWrapper
+
+    @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
+      if members
+        @refreshActivities err, members, @membersListWrapper, @membersController
+      else
+        @membersController.hideLazyLoader()
+        log 'No members'
+
+    callback()
+
 
   addStaticLogic:(callback=->)->
     log 'adding static logic'
@@ -500,6 +628,10 @@ class StaticProfileController extends KDController
     @staticListWrapper?.hide()
     @activityListWrapper?.hide()
     @aboutWrapper?.hide()
+    @membersListWrapper?.hide()
+    @appsListWrapper?.hide()
+    @topicsListWrapper?.hide()
+    @groupsListWrapper?.hide()
 
   showWrapper:(wrapper)->
     @hideWrappers()
@@ -584,3 +716,31 @@ class StaticHandleInput extends KDHitEnterInputView
     options.cssClass = 'profile-handle-customize'
     options.defaultValue = data.profile.handles?[options.service] or ''
     super options,data
+
+class StaticAppsListItem extends KDListItemView
+  partial:(data)->
+    log data
+    "<div class='static-app'>
+       #{data.title}
+    </div>"
+
+class StaticGroupsListItem extends KDListItemView
+  partial:(data)->
+    log data
+    "<div class='static-topic'>
+       #{data.title}
+    </div>"
+
+class StaticTopicsListItem extends KDListItemView
+  partial:(data)->
+    log data
+    "<div class='static-topic'>
+       #{data.title}
+    </div>"
+
+class StaticMembersListItem extends KDListItemView
+  partial:(data)->
+    {profile} = data
+    "<div class='static-member'>
+       #{profile.nickname}
+    </div>"
