@@ -17,12 +17,12 @@ class ActivityListController extends KDListViewController
   constructor:(options,data)->
 
     viewOptions = options.viewOptions or {}
-    viewOptions.cssClass      or= 'activity-related'
-    viewOptions.comments      or= yes
-    viewOptions.itemClass     or= options.itemClass
-    options.view              or= new KDListView viewOptions, data
-    options.startWithLazyLoader = yes
-    options.showHeader        ?= yes
+    viewOptions.cssClass        or= 'activity-related'
+    viewOptions.comments        or= yes
+    viewOptions.itemClass       or= options.itemClass
+    options.view                or= new KDListView viewOptions, data
+    options.startWithLazyLoader   = yes
+    options.showHeader           ?= yes
 
     super
 
