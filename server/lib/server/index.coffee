@@ -108,14 +108,22 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
-  rabbitAPI.newUser req.query.key, req.query.secret, (err, data) ->
-    creds =
-      protocol  : 'amqp'
-      host      : mq.host
-      username  : data.username
-      password  : data.password
+  {JKite} = koding.models
+  koding.models.JKite.control {key : req.query.key, secret : req.query.secret}, (err, kite) =>
     res.header "Content-Type", "application/json"
-    res.send JSON.stringify creds
+
+    if err? or !kite?
+      res.send 401
+      return
+
+    rabbitAPI.newUser req.query.key, req.query.secret, (err, data) =>
+      creds =
+        protocol  : 'amqp'
+        host      : mq.host
+        username  : data.username
+        password  : data.password
+      res.header "Content-Type", "application/json"
+      res.send JSON.stringify creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
