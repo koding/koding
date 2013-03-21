@@ -16,6 +16,7 @@ module.exports = new Bongo {
   models: [
     "workers/social/lib/social/models/activity/cache.coffee",
     "workers/social/lib/social/models/account.coffee"
+    "workers/social/lib/social/models/kites.coffee"
   ].map (path)-> nodePath.join projectRoot, path
   mq: new Broker mqOptions
   resourceName: webserver.queueName
