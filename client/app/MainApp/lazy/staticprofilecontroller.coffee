@@ -135,6 +135,7 @@ class StaticProfileController extends KDController
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', @staticListWrapper, @staticController, =>
         @showWrapper @staticListWrapper
 
+
     @on 'StaticProfileNavLinkClicked', (facets,wrapper,controller,callback=->)=>
       @profileLoadingBar.setClass 'active'
       @profileLoaderView.show()
@@ -426,7 +427,6 @@ class StaticProfileController extends KDController
 
     if @profileUser
       @profileUser.fetchAbout (err,about)=>
-        log arguments
         if err
           log err
         else
