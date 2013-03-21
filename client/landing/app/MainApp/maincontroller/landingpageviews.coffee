@@ -32,6 +32,14 @@ class LandingPageSideBar extends KDView
 
 class LandingPageNavigationController extends NavigationController
 
+  reset:->
+    view = @getView()
+    view.setClass "out"
+    @utils.wait 200, =>
+      @removeAllItems()
+      @instantiateListItems @getData().items
+      view.unsetClass "out"
+
   constructor: ->
 
     super

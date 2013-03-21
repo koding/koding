@@ -280,6 +280,7 @@ class KodingRouter extends KDRouter
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
+          return if KD.config.groupEntryPoint?
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 
