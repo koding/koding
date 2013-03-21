@@ -17,12 +17,20 @@ class ActivityListController extends KDListViewController
   constructor:(options,data)->
 
     viewOptions = options.viewOptions or {}
-    viewOptions.cssClass        or= 'activity-related'
-    viewOptions.comments        or= yes
-    viewOptions.itemClass       or= options.itemClass
-    options.view                or= new KDListView viewOptions, data
-    options.startWithLazyLoader   = yes
-    options.showHeader           ?= yes
+    viewOptions.cssClass      or= 'activity-related'
+    viewOptions.comments      or= yes
+    viewOptions.itemClass     or= options.itemClass
+    options.view              or= new KDListView viewOptions, data
+    options.startWithLazyLoader = yes
+    options.showHeader         ?= yes
+
+    options.noItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity."
+
+    options.noMoreItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no more activity."
 
     super
 
@@ -36,18 +44,9 @@ class ActivityListController extends KDListViewController
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
 
-  showCustomItem:(text)->
-    @hideCustomItem()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : text
-
-  hideCustomItem:->
-    @customItem.destroy() if @customItem
-
   loadView:(mainView)->
 
-    @hideCustomItem()
+    @hideNoItemWidget()
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
@@ -83,8 +82,7 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
 
-    unless cache.overview?
-      return @showCustomItem "There is no activity item."
+    return @showNoItemWidget() unless cache.overview?
 
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1

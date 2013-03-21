@@ -16,6 +16,9 @@ class KDListViewController extends KDViewController
     options.defaultItem.options   or= {}
     options.defaultItem.data      or= {}
 
+    options.noItemFoundWidget     or= null
+    options.noMoreItemFoundWidget or= null
+
     defaultOptions = options.defaultItem.options
     defaultOptions.partial        or=  'This list is empty'
 
@@ -23,7 +26,6 @@ class KDListViewController extends KDViewController
     @itemsIndexed                 = {}
     @selectedItems                = []
     @lazyLoader                   = null
-
 
     if options.view
       @setListView listView = options.view
@@ -88,13 +90,6 @@ class KDListViewController extends KDViewController
 
     @emit "AllItemsAddedToList"
 
-    # Implement no Item found widget support FIXME GG
-    #
-    # if items.length is 0
-    #   options = @getOptions()
-    #   if options.noItemFoundWidget?
-    #     @getListView().addItem options.noItemFoundWidget
-
     return newItems
 
   ###
@@ -127,6 +122,18 @@ class KDListViewController extends KDViewController
     ids.forEach (id)=>
       item = @itemsIndexed[id]
       callback item  if item?
+
+  showNoItemWidget:->
+    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+    if @itemsOrdered.length > 0
+      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+    else
+      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
+
+  hideNoItemWidget:->
+    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+    @scrollView.removeSubView noItemFoundWidget if noItemFoundWidget
+    @scrollView.removeSubView noMoreItemFoundWidget if noMoreItemFoundWidget
 
   ###
   ITEM OPERATIONS
