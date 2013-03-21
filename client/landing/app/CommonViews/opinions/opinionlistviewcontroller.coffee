@@ -61,14 +61,14 @@ class OpinionListViewController extends KDListViewController
 
   # this updates the JDiscussion teaser, because posting a comment will only
   # update the JOpinion teaser, not the JDiscussion --arvid
-  fetchTeaser:=>
+  fetchTeaser:->
     listView = @getListView()
     message = @getListView().getData()
     message.updateTeaser (err, teaser)=>
       log err if err
 
   # will be used for pagination (soon) --arvid
-  fetchOpinionsByRange:(from,to,callback)=>
+  fetchOpinionsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
     query = {from,to}
     message = @getListView().getData()
@@ -77,7 +77,7 @@ class OpinionListViewController extends KDListViewController
       @getListView().emit "BackgroundActivityFinished"
       callback err, opinions
 
-  fetchAllOpinions:(skipCount=3, callback = noop)=>
+  fetchAllOpinions:(skipCount=3, callback = noop)->
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
@@ -87,7 +87,7 @@ class OpinionListViewController extends KDListViewController
       listView.emit "AllOpinionsWereAdded"
       callback err, opinions
 
-  fetchRelativeOpinions:(_limit = 10, _from, callback = noop)=>
+  fetchRelativeOpinions:(_limit = 10, _from, callback = noop)->
     listView = @getListView()
     message = @getListView().getData()
 

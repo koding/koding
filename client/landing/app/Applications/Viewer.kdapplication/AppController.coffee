@@ -1,5 +1,5 @@
 class ViewerAppController extends KDViewController
-  initApp:(options,callback)=>
+  initApp:(options,callback)->
     @openDocuments = []
     # log 'init application called'
     # @applyStyleSheet ()=>
@@ -7,7 +7,7 @@ class ViewerAppController extends KDViewController
       KDEventType : 'ApplicationInitialized', globalEvent : yes
     callback()
 
-  bringToFront:(frontDocument, path, callback)=>
+  bringToFront:(frontDocument, path, callback)->
     unless frontDocument
       if @doesOpenDocumentsExist()
         frontDocument = @getFrontDocument()
@@ -25,7 +25,7 @@ class ViewerAppController extends KDViewController
 
     callback()
 
-  openFile: (path, options = {})=>
+  openFile: (path, options = {})->
     doc = @createNewDocument() unless (doc = @getFrontDocument())?.isDocumentClean()
     @bringToFront doc, path, ->
       doc.openPath path

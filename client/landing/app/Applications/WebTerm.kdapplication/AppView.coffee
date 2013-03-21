@@ -1,22 +1,19 @@
 class WebTermView extends KDView
 
-  setDefaultStyle:->
-    @container.unsetClass font.value for font in __webtermSettings.fonts
-    @container.unsetClass theme.value for theme in __webtermSettings.themes
-    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
-    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
-    @container.$().css fontSize:@appStorage.getValue('fontSize')+'px' or '14px'
+  constructor: (@appStorage) ->
+    @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
+    @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
+    @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
+    @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
+    super
+
   viewAppended: ->
-
-    @appStorage = new AppStorage 'WebTerm', '1.0'
-
-
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
+      bind     : "scroll"
+    @container.on "scroll", =>
+      @container.$().scrollLeft 0
     @addSubView @container
-
-    @appStorage.fetchStorage (storage)=>
-      @setDefaultStyle()
 
     @sessionBox = new KDView
       cssClass: "kddialogview"
@@ -63,8 +60,8 @@ class WebTermView extends KDView
       itemClass     : WebtermSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
-
     @addSubView @advancedSettings
+    @updateSettings()
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -126,6 +123,17 @@ class WebTermView extends KDView
   destroy: ->
     super
     @terminal.server?.close()
+
+  updateSettings: ->
+    @container.unsetClass font.value for font in __webtermSettings.fonts
+    @container.unsetClass theme.value for theme in __webtermSettings.themes
+    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
+    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
+    @container.$().css
+      fontSize: @appStorage.getValue('fontSize') + 'px' or '14px'
+    @terminal.updateSize true
+    @terminal.scrollToBottom(no)
+    @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
 
   setKeyView: ->
     super

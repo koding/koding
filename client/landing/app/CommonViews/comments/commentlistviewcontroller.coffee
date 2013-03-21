@@ -69,7 +69,7 @@ class CommentListViewController extends KDListViewController
             listView.emit "OwnCommentWasSubmitted"
           listView.emit "BackgroundActivityFinished"
 
-  fetchCommentsByRange:(from,to,callback)=>
+  fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
     query = {from,to}
     message = @getListView().getData()
@@ -78,7 +78,7 @@ class CommentListViewController extends KDListViewController
       @getListView().emit "BackgroundActivityFinished"
       callback err,comments
 
-  fetchAllComments:(skipCount=3, callback = noop)=>
+  fetchAllComments:(skipCount=3, callback = noop)->
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
@@ -88,7 +88,7 @@ class CommentListViewController extends KDListViewController
       listView.emit "AllCommentsWereAdded"
       callback err, comments
 
-  fetchRelativeComments:(_limit = 10, _after)=>
+  fetchRelativeComments:(_limit = 10, _after)->
     listView = @getListView()
     message = @getListView().getData()
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>

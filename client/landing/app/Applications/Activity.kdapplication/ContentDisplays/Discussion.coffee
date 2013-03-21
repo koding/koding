@@ -202,7 +202,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             @commentBox.commentList.addItem comment
 
 
-  opinionHeaderCountString:(count)=>
+  opinionHeaderCountString:(count)->
     if count is 0
       countString = "No Answers yet"
     else if count is 1
@@ -239,7 +239,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  highlightCode:=>
+  highlightCode:->
     # @$("pre").addClass "prettyprint"
     @$("p.discussion-body span.data pre").each (i,element)=>
       hljs.highlightBlock element

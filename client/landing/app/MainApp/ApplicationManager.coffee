@@ -8,8 +8,8 @@ class ApplicationManager extends KDObject
     @openTabs               = []
     @activePath             = null
 
-    @listenTo KDEventTypes : ['ApplicationWantsToBeShown'], callback: @appShowedAView
-    @listenTo KDEventTypes : ['ApplicationWantsToClose'], callback: @appClosedAView
+    @listenTo KDEventTypes : ['ApplicationWantsToBeShown'], callback: @bound "appShowedAView"
+    @listenTo KDEventTypes : ['ApplicationWantsToClose'], callback: @bound "appClosedAView"
     super
 
   quitAll:(callback)->
@@ -192,7 +192,7 @@ class ApplicationManager extends KDObject
     index = @appInstances.indexOf @getAppInstance path
     @appViews2d[index]
 
-  appShowedAView:(app,{options,data})=>
+  appShowedAView:(app,{options,data})->
     if KD.isLoggedIn()
       index = @appInstances.indexOf app
       @appViews2d[index].push data
@@ -201,7 +201,7 @@ class ApplicationManager extends KDObject
       KD.getSingleton('router').handleRoute '/', replaceState: yes
 
 
-  appClosedAView:(app,{options,data}) =>
+  appClosedAView:(app,{options,data}) ->
     index = @appInstances.indexOf app
     (views = @appViews2d[index]).splice (views.indexOf data), 1
 
