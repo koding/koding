@@ -14,12 +14,6 @@ class AceAppView extends JView
       saveSession          : yes
       sessionName          : "AceTabHistory"
 
-    @on 'ViewClosed', => @emit 'AceAppViewWantsToClose'
-
-    @on 'AllViewsClosed', =>
-      appManager = KD.getSingleton('appManager')
-      appManager.quit appManager.frontApp
-
     @on 'UpdateSessionData', (openPanes, data = {}) =>
       paths = []
       paths.push pane.getOptions().aceView.getData().path for pane in openPanes
@@ -42,21 +36,23 @@ class AceAppView extends JView
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
-      unless pane.tabHandle.tooltipCreated
-        {nickname} = KD.whoami().profile
-        title      = ace.data.path.replace("/Users/#{nickname}/", "~/").replace "localfile:/", ""
-        pane.tabHandle.setTooltip
-          title     : title
-          placement : "bottom"
-          delayIn   : 800
-        pane.tabHandle.tooltipCreated = yes
+      # TODO: fatihacet - should add tab handle tooltips here
+
+      # unless pane.tabHandle.tooltipCreated
+      #   {nickname} = KD.whoami().profile
+      #   title      = ace.data.path.replace("/Users/#{nickname}/", "~/").replace "localfile:/", ""
+      #   pane.tabHandle.setTooltip
+      #     title     : title
+      #     placement : "bottom"
+      #     delayIn   : 800
+      #   pane.tabHandle.tooltipCreated = yes
 
       # ace.on "AceDidSaveAs", (name, parentPath) =>
-        # update tooltip title here
+      #   update tooltip title here
 
   viewAppended:->
     super
-    @utils.defer => @addNewTab() if @tabView.panes.length is 0
+    @utils.wait 100, => @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
