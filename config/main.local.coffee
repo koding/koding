@@ -35,6 +35,9 @@ module.exports = deepFreeze
   mongo         : mongo
   runGoBroker   : yes
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no

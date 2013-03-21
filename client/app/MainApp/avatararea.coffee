@@ -150,7 +150,7 @@ class AvatarPopup extends KDView
     @avatarPopupTab.on 'click', (event)=>
       @hide()
 
-  _windowDidResize:=>
+  _windowDidResize:->
     if @listController
       {scrollView}    = @listController
       windowHeight    = $(window).height()
@@ -364,7 +364,7 @@ class PopupNotificationListItem extends NotificationListItem
     # {_id} = @getData()
     # KD.whoami().glanceActivities _id, (err)=>
     #   if err then log "Error: ", err
-    
+
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->

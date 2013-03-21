@@ -212,7 +212,7 @@ class KDTreeViewController extends KDViewController
   itemMouseUp: (publishingInstance,event) ->
     @makeItemSelected(publishingInstance, event)
 
-  makeItemSelected:(publishingInstance)=>
+  makeItemSelected:(publishingInstance)->
     return unless publishingInstance?
     if publishingInstance instanceof KDTreeItemView
       @propagateEvent KDEventType : "ItemSelectedEvent", publishingInstance

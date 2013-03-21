@@ -152,7 +152,7 @@ class ActivityTutorialWidget extends KDFormView
 
         url
 
-  submit:=>
+  submit:->
     @once "FormValidationPassed", => @reset()
 
     if @embedBox.hasValidContent
@@ -169,7 +169,7 @@ class ActivityTutorialWidget extends KDFormView
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
-  reset:=>
+  reset:->
     @tagController.reset()
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"

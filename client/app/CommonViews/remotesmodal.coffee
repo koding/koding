@@ -87,10 +87,10 @@ class ManageRemotesModal extends KDModalViewWithForms
       itemClass   : RemoteListItem
 
     mountList = @mountController.getListView()
-    mountList.on "MountRemote",   @mountRemote
-    mountList.on "DeleteRemote",  @removeMount
-    mountList.on "UmountRemote",  @umountRemote
-    mountList.on "RefreshFolder", @refreshRemoteDrives
+    mountList.on "MountRemote",   @bound "mountRemote"
+    mountList.on "DeleteRemote",  @bound "removeMount"
+    mountList.on "UmountRemote",  @bound "umountRemote"
+    mountList.on "RefreshFolder", @bound "refreshRemoteDrives"
 
     mountsForm.fields.Mounts.addSubView @mountController.getView()
 
@@ -226,7 +226,7 @@ class ManageRemotesModal extends KDModalViewWithForms
       callback?()
     , 8000
 
-  mountRemote:(mount, callback)=>
+  mountRemote:(mount, callback)->
     {remotehost, haspass, remotepass, remoteuser} = mount
     args = {remotehost, remoteuser}
     args.remotepass = remotepass unless haspass
@@ -242,7 +242,7 @@ class ManageRemotesModal extends KDModalViewWithForms
         @refreshRemoteDrives "#{remoteuser}@#{remotehost}"
       callback? err
 
-  umountRemote:({remotehost, remoteuser, mountpoint}, callback)=>
+  umountRemote:({remotehost, remoteuser, mountpoint}, callback)->
     @hideMessages()
     @kc.run
       method   : 'umountDrive'
@@ -275,7 +275,7 @@ class ManageRemotesModal extends KDModalViewWithForms
             cssClass : "success"
           @modalTabs.forms['Create a new Remote'].reset()
 
-  removeMount:({remoteuser, remotehost, mountpoint})=>
+  removeMount:({remoteuser, remotehost, mountpoint})->
     @kc.run
       method       : 'removeMount'
       withArgs     : {remoteuser, remotehost, mountpoint}
@@ -287,7 +287,7 @@ class ManageRemotesModal extends KDModalViewWithForms
         type     : "mini"
         cssClass : "success"
 
-  refreshRemoteDrives:(finalPath = '', destroy = no, force = no)=>
+  refreshRemoteDrives:(finalPath = '', destroy = no, force = no)->
     {nickname}  = KD.whoami().profile
     remotesPath = "/home/#{nickname}/RemoteDrives"
     log finalPath

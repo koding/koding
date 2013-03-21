@@ -163,7 +163,7 @@ class ActivityStatusUpdateWidget extends KDFormView
         # if a protocol of any sort is found, no change
         url
 
-  requestEmbed:=>
+  requestEmbed:->
 
     @largeInput.setValue @sanitizeUrls @largeInput.getValue()
 
@@ -264,7 +264,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @switchToLargeView()
 
-  submit:=>
+  submit:->
 
 
     @addCustomData "link_cache", @embedBox.getEmbedCache() or []

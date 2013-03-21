@@ -11,7 +11,7 @@ class PageRegister extends KDView
     @addSubView @registerLists
     @manageTraditional()
 
-  formSubmit:(formData)=>
+  formSubmit:(formData)->
     KD.remote.api.JUser.register formData, (error, result) =>
       log arguments
       if error

@@ -39,6 +39,9 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : no
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -141,9 +144,4 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : 'web0.dev.system.aws.koding.com'
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'

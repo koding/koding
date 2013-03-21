@@ -51,7 +51,7 @@ class KDSplitViewPanel extends KDScrollView
   _getOffset:->
     if @isVertical then @getRelativeX() else @getRelativeY()
 
-  _animateTo:(size,offset,callback)=>
+  _animateTo:(size,offset,callback)->
     if "undefined" is typeof callback and "function" is typeof offset then callback = offset
     callback or= noop
 

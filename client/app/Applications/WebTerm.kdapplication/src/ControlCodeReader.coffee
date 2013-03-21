@@ -174,7 +174,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
 
   initEscapeSequenceHandler = ->
     switchCharacter
-      "\x07": -> if terminal.getBell() then new KDNotificationView {title: 'Bell!'}
+      "\x07": -> new KDNotificationView {title: 'Bell!'} if @visualBell
       "\x0E": -> terminal.setCharacterSetIndex 1
       "\x0F": -> terminal.setCharacterSetIndex 0
       "\x1B": switchCharacter # ESC

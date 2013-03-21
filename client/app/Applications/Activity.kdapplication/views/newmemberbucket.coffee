@@ -59,9 +59,10 @@ class NewMemberBucketView extends JView
 
 class NewMemberLinkGroup extends LinkGroup
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    options.suffix or= " became a member."
+    super options, data
 
     # @loader = new KDLoaderView
 
@@ -72,30 +73,30 @@ class NewMemberLinkGroup extends LinkGroup
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{totalCount-@getData().length} more"
+      partial     : "#{totalCount-3} more"
       attributes  :
         href      : "#"
         title     : "Click to view..."
       click       : (e)=>
         @emit "moreLinkClicked"
 
-  pistachio:->
+  # pistachio:->
 
-    participants = @getData()
-    {hasMore, totalCount, group, separator} = @getOptions()
+  #   participants = @getData()
+  #   {hasMore, totalCount, group, separator} = @getOptions()
 
-    @createMoreLink()
-    l = if @getData().length < 4 then @getData().length else 3
-    tmpl = ""
-    for i in [0...l]
-      tmpl += "{{> @participant#{i}}}"
-      tmpl += separator if i isnt l-1
+  #   @createMoreLink()
+  #   l = if @getData().length < 4 then @getData().length else 3
+  #   tmpl = ""
+  #   for i in [0...l]
+  #     tmpl += "{{> @participant#{i}}}"
+  #     tmpl += separator if i isnt l-1
 
-    if totalCount > @getData().length
-      tmpl += " and {{> @more}}"
+  #   if totalCount > @getData().length
+  #     tmpl += " and {{> @more}}"
 
-    tmpl += " became a member."
-    # tmpl += "{{> @loader }}"
+  #   tmpl += " became a member."
+  #   # tmpl += "{{> @loader }}"
 
 
 # SLIGHTLY OLD

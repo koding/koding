@@ -268,7 +268,7 @@ class AccountDatabaseList extends KDListView
               #   placeholder : "e.g. myDevDB..."
               #   defaultValue: "myDB#{(Date.now()+"").substr(-5)}"
 
-  showAddExternalOrUpdateModal:(listItem)=>
+  showAddExternalOrUpdateModal:(listItem)->
 
     @_listItemToBeUpdated = listItem
     data                  = listItem.getData()
@@ -449,7 +449,7 @@ class AccountDatabaseListItem extends KDListItemView
 
     super options,data
 
-  click:(event)=>
+  click:(event)->
 
     if $(event.target).is ".action-link"
       list = @getDelegate()

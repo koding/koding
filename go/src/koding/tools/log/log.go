@@ -13,15 +13,34 @@ import (
 	"time"
 )
 
+type Gauge struct {
+	Name   string  `json:"name"`
+	Value  float64 `json:"value"`
+	Source string  `json:"source"`
+	input  func() float64
+}
+
 var loggrSource string
 var libratoSource string
 var tags string
+
+var gauges = make([]*Gauge, 0)
+var GaugeChanges = make(chan func())
 
 func Init(service string) {
 	hostname, _ := os.Hostname()
 	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
 	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
 	tags = service + " " + config.Profile
+
+	CreateGauge("goroutines", func() float64 {
+		return float64(runtime.NumGoroutine())
+	})
+	CreateGauge("memory", func() float64 {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		return float64(m.Alloc)
+	})
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
@@ -58,10 +77,11 @@ func Send(event url.Values) {
 	event.Add("apikey", config.Current.Loggr.ApiKey)
 	resp, err := http.PostForm(config.Current.Loggr.Url, event)
 	if err != nil || resp.StatusCode != http.StatusCreated {
-		fmt.Println("logger error: http.PostForm failed.", resp, err)
-		return
+		fmt.Println("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
 	}
-	resp.Body.Close()
+	if resp.Body != nil {
+		resp.Body.Close()
+	}
 }
 
 func Log(level int, text string, data ...interface{}) {
@@ -119,29 +139,8 @@ func RecoverAndLog() {
 	}
 }
 
-type Gauge struct {
-	Name   string  `json:"name"`
-	Value  float64 `json:"value"`
-	Source string  `json:"source"`
-	input  func() float64
-}
-
-var gauges = make([]Gauge, 0)
-var GaugeChanges = make(chan func())
-
-func init() {
-	CreateGauge("goroutines", func() float64 {
-		return float64(runtime.NumGoroutine())
-	})
-	CreateGauge("memory", func() float64 {
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-		return float64(m.Alloc)
-	})
-}
-
 func CreateGauge(name string, input func() float64) {
-	gauges = append(gauges, Gauge{name, 0, libratoSource, input})
+	gauges = append(gauges, &Gauge{name, 0, libratoSource, input})
 }
 
 func CreateCounterGauge(name string, resetOnReport bool) func(int) {
@@ -189,7 +188,7 @@ func LogGauges() {
 		gauge.Value = gauge.input()
 	}
 	var event struct {
-		Gauges []Gauge `json:"gauges"`
+		Gauges []*Gauge `json:"gauges"`
 	}
 	event.Gauges = gauges
 	b, err := json.Marshal(event)
@@ -208,8 +207,9 @@ func LogGauges() {
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		fmt.Println("logger error: http.Post failed.", resp, err)
-		return
+		fmt.Printf("logger error: http.Post failed.\n%v\n%v\n%v\n", string(b), resp, err)
 	}
-	resp.Body.Close()
+	if resp.Body != nil {
+		resp.Body.Close()
+	}
 }

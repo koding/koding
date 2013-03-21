@@ -32,7 +32,7 @@ class MembersListGroupFilterItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
 
-  click: (event) =>
+  click: (event) ->
     event.stopPropagation()
     event.preventDefault()
     @getDelegate().propagateEvent (KDEventType : 'MembersFilter'), @getData()
@@ -46,7 +46,7 @@ class MembersListGroupSortItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
 
-  click: (event) =>
+  click: (event) ->
     event.stopPropagation()
     event.preventDefault()
     @getDelegate().propagateEvent (KDEventType : 'MembersSort'), @getData()

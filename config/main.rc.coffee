@@ -40,6 +40,9 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -136,11 +139,6 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : rabbit_host
-      login         : 'PROD-k5it50s4676pO9O'
-      password      : 'djfjfhgh4455__5'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: yes

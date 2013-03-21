@@ -203,11 +203,6 @@ config =
       poolSize        : 1
       batchSize       : 1
       cleanupCron     : 1
-    logger            :
-      mq              :
-        host          : 1
-        login         : 1
-        password      : 1
     pidFile       : 1
 
 

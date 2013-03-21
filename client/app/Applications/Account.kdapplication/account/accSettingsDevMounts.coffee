@@ -51,7 +51,7 @@ class AccountMountListController extends KDListViewController
     #     items.push item
     #   @instantiateListItems items
 
-  updateMount:(listItem, formData)=>
+  updateMount:(listItem, formData)->
     f = formData
 
     switch f.operation
@@ -160,7 +160,7 @@ class AccountMountList extends KDListView
 
     @on "ShowAddEditModal",(data,item)  => @showAddEditModal data,item
 
-  showAddEditModal:(data,listItem)=>
+  showAddEditModal:(data,listItem)->
 
     @_listItemToBeUpdated = listItem
 
@@ -301,18 +301,18 @@ class AccountMountList extends KDListView
 
     if data
       form.addCustomData "operation","update"
-      modal.createButton "Update", style : "modal-clean-gray", callback : form.submit
+      modal.createButton "Update", style : "modal-clean-gray", callback : form.bound("submit")
       modal.createButton "Delete", style : "modal-clean-red", callback : (event)=>
         form.addCustomData "operation","delete"
         form.submit(event)
     else
       form.addCustomData "operation","add"
-      modal.createButton "Add", style : "modal-clean-gray", callback : form.submit
+      modal.createButton "Add", style : "modal-clean-gray", callback : form.bound("submit")
 
-    modal.createButton "cancel",style : "modal-cancel", callback : @destroyModal
+    modal.createButton "cancel",style : "modal-cancel", callback : @bound "destroyModal"
     modal.addSubView helpBox = new HelpBox, ".kdmodal-buttons"
 
-  destroyModal:=>
+  destroyModal:->
     @modal.destroy()
 
 
