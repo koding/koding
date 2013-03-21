@@ -113,7 +113,7 @@ module.exports = deepFreeze
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : "http://koding.com:#{sourceServerPort}"
+      sourceUri : "http://web-prod.in.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
