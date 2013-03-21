@@ -47,8 +47,9 @@ class ActivityAppController extends AppController
   putListeners:->
     activityController = @getSingleton('activityController')
     activityController.on   "ActivityListControllerReady", @attachEvents.bind @
-    activityController.once "ActivityListControllerReady", @bound "populateActivity"
 
+    # Do we really need this? ~ GG
+    # activityController.once "ActivityListControllerReady", @bound "populateActivity"
 
   loadView:->
     @populateActivity() if @listController
@@ -105,14 +106,20 @@ class ActivityAppController extends AppController
 
   fetchActivitiesDirectly:(options = {})->
 
+    KD.time "Activity fetch took:"
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>
       isLoading = no
       @listController.hideLazyLoader()
+      KD.timeEnd "Activity fetch took:"
+
       if err or teasers.length is 0
         warn err  if err
-        @listController.noActivityItem.show()
+
+        more = if @listController.itemsOrdered.length is 0 then 'more' else ''
+        @listController.showCustomItem "There is no #{more} activity."
+
       else
         @listController.listActivities teasers
 
@@ -122,7 +129,10 @@ class ActivityAppController extends AppController
       if err or cache.length is 0
         warn err  if err
         @listController.hideLazyLoader()
-        @listController.noActivityItem.show()
+
+        more = if @listController.itemsOrdered.length is 0 then 'more' else ''
+        @listController.showCustomItem "There is no #{more} activity."
+
       else
         @sanitizeCache cache, (err, cache)=>
           @listController.hideLazyLoader()
@@ -133,7 +143,7 @@ class ActivityAppController extends AppController
     return if isLoading
     isLoading = yes
     @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
+    @listController.hideCustomItem()
 
     currentGroup = @getSingleton('groupsController').getCurrentGroupData()
     slug = currentGroup.getAt 'slug'
