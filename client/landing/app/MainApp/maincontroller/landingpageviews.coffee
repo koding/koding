@@ -17,7 +17,7 @@ class LandingPageSideBar extends KDView
     ,
       items : [
         { title : "Register", action : "register", loggedOut : yes }
-        { type  : "separator" }
+        # { type  : "separator" }
         { title : "Logout",   action : "logout",   loggedIn  : yes }
         { title : "Login",    action : "login",    loggedOut : yes }
       ]
@@ -65,7 +65,9 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
-            @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
+            items.unshift \
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+            @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
