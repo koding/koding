@@ -27,7 +27,7 @@ module.exports = class JKite extends jraphical.Module
           'delete'
         ]
       static        : [
-          'create', 'get', 'fetchAll'
+          'create', 'get', 'fetchAll', 'control'
         ]
     schema          :
       name          :
@@ -85,6 +85,18 @@ module.exports = class JKite extends jraphical.Module
           console.log result 
           callback null, result
 
+  @control = (data, callback)->
+    {limit, skip, sort}  = data
+
+    @one {
+      key    : data.key
+      secret : data.secret
+    }, (err, data)=>
+      if err
+        callback err
+      else
+        callback null, data
+
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
 
@@ -103,7 +115,7 @@ module.exports = class JKite extends jraphical.Module
     # console.log this
     # unless delegate.can 'delete', this
     #   throw new KodingError 'Access denied!'
-    
+
     @remove callback
     
     # Relationship.getDeleteHelper {
