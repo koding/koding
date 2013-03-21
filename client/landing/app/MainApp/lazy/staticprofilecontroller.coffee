@@ -156,7 +156,7 @@ class StaticProfileController extends KDController
             originId : @profileUser.getId()
             facets : facets
             bypass : yes
-          , (err, activities)=>
+          , (err, activities=[])=>
             @refreshActivities err, activities, wrapper, controller
             callback()
         else @emit 'BlockedTypesRequested', blockedTypes
@@ -363,7 +363,6 @@ class StaticProfileController extends KDController
     console.timeEnd 'StaticProfileController'
 
 
-
   repositionLogoView:->
     @profileLogoView.$().css
       top: @landingView.getHeight()-42
@@ -375,13 +374,9 @@ class StaticProfileController extends KDController
   refreshActivities:(err,activities,wrapperInstance,controllerInstance)->
     @profileShowMoreView.hide()
 
-    # listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
-    # controller = if isStatic then @staticController else @activityController
-
-    listWrapper = wrapperInstance
     controller = controllerInstance
 
-    listWrapper.show()
+    wrapperInstance.show()
 
     controller.removeAllItems()
     controller.listActivities activities
