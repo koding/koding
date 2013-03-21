@@ -734,7 +734,7 @@ class KDView extends KDObject
       @$overlay.appendTo parent.$()
 
     if animated
-      @utils.wait =>
+      @utils.defer =>
         @$overlay.addClass "in"
       @utils.wait 300, =>
         @emit "OverlayAdded", @

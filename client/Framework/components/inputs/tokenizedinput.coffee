@@ -90,7 +90,7 @@ class KDTokenizedInput extends JView
     val = val.replace token, replacedText
     @input.setValue val
     @menu.destroy()
-    @utils.wait =>
+    @utils.defer =>
       @input.setFocus()
       @input.setCaretPosition val.indexOf(replacedText) + replacedText.length
       @decorateLayer()

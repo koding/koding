@@ -22,7 +22,7 @@ class ProfileLinkView extends LinkView
     super options, data
     if @avatarPreview?
       @on 'TooltipReady', =>
-        @utils.wait =>
+        @utils.defer =>
           @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
     @setClass "profile"

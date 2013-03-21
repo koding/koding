@@ -214,7 +214,7 @@ class InstalledAppListItem extends KDListItemView
 
     @setTemplate @pistachio()
     @template.update()
-    @utils.wait => @setClass "in"
+    @utils.defer => @setClass "in"
 
   pistachio:->
     {path, timestamp, domain, name} = @getData()

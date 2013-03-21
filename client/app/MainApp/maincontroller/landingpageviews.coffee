@@ -1,10 +1,8 @@
-
 class LandingPageSideBar extends KDView
 
   constructor:(isLoggedIn = no)->
 
-    options     =
-      lazyDomId : 'landing-page-sidebar'
+    options = lazyDomId : 'landing-page-sidebar'
 
     super options
 
@@ -30,8 +28,18 @@ class LandingPageSideBar extends KDView
     @addSubView @nav = @navController.getView()
 
     @mainController.on "accountChanged.to.*", => @navController.reset()
+    @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
+
 
 class LandingPageNavigationController extends NavigationController
+
+  reset:->
+    view = @getView()
+    view.setClass "out"
+    @utils.wait 200, =>
+      @removeAllItems()
+      @instantiateListItems @getData().items
+      view.unsetClass "out"
 
   constructor: ->
 
@@ -107,4 +115,11 @@ class LandingPageNavigationController extends NavigationController
       if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+
+    data.type or= "account"
+
+    super options, data
+
   click:->
