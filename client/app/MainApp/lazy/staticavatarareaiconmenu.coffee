@@ -4,8 +4,12 @@ class StaticAvatarAreaIconMenu extends JView
 
     super
 
+    @bindEvent 'mouseenter'
+
+    @on 'mouseenter', =>
+      @getDelegate().lockSidebar = yes
+
     @setClass "actions"
-    # @setClass "invisible" unless KD.isLoggedIn()
 
     sidebar  = @getDelegate()
 
