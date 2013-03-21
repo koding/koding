@@ -1,6 +1,9 @@
 class WebTermView extends KDView
 
   constructor: (@appStorage) ->
+    @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
+    @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
+    @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
     super
 
   viewAppended: ->

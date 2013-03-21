@@ -1,12 +1,5 @@
 class WebTermController extends AppController
 
-  constructor: (options = {}, data) ->
-
-    options.view     = new WebTermView
-    options.cssClass = "webterm"
-
-    super options, data
-
   bringToFront: ->
     appStorage = new AppStorage 'WebTerm', '1.0'
     appStorage.fetchStorage =>
