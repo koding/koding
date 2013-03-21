@@ -227,12 +227,14 @@ class StaticProfileController extends KDController
     #
 
     @profilePersonalWrapperView.on 'mouseenter',(event)=>
+        @getSingleton('mainController').loginScreen.unsetClass 'sidebar-collapsed'
         @profilePersonalWrapperView.unsetClass 'collapsed'
         @profilePersonalWrapperView.setWidth 160
         @profileContentWrapperView.$().css marginLeft : "160px"
 
     @profilePersonalWrapperView.on 'mouseleave',(event)=>
       unless @lockSidebar
+        @getSingleton('mainController').loginScreen.setClass 'sidebar-collapsed'
         @profilePersonalWrapperView.setClass 'collapsed'
         @profilePersonalWrapperView.setWidth 50
         @profileContentWrapperView.$().css marginLeft : "50px"
