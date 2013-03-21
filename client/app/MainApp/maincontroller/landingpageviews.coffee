@@ -1,4 +1,3 @@
-
 class LandingPageSideBar extends KDView
 
   constructor:(isLoggedIn = no)->
@@ -107,4 +106,11 @@ class LandingPageNavigationController extends NavigationController
       if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+
+    data.type or= "account"
+
+    super options, data
+
   click:->

@@ -60,11 +60,11 @@ class PopupGroupListItem extends KDListItemView
     super
 
     {group:{title, avatar, slug}, roles} = @getData()
-  
+
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
-   
+
     @setClass "role #{roleClasses}"
-  
+
     @avatar = new KDCustomHTMLView
       tagName    : 'img'
       cssClass   : 'avatar-image'
@@ -73,7 +73,7 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
-      href        : "/#{slug}/Activity"
+      href        : "/#{if slug is 'koding' then '' else slug+'/'}Activity"
       target      : slug
       icon        :
         cssClass  : 'new-page'
