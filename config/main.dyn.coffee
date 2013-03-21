@@ -40,7 +40,7 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : no
+    enabled     : yes
     port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
