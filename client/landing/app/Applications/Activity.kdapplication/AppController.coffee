@@ -117,7 +117,7 @@ class ActivityAppController extends AppController
       if err or teasers.length is 0
         warn err  if err
 
-        more = if @listController.itemsOrdered.length is 0 then 'more' else ''
+        more = if @listController.itemsOrdered.length is 0 then '' else 'more'
         @listController.showCustomItem "There is no #{more} activity."
 
       else
@@ -130,7 +130,7 @@ class ActivityAppController extends AppController
         warn err  if err
         @listController.hideLazyLoader()
 
-        more = if @listController.itemsOrdered.length is 0 then 'more' else ''
+        more = if @listController.itemsOrdered.length is 0 then '' else 'more'
         @listController.showCustomItem "There is no #{more} activity."
 
       else
