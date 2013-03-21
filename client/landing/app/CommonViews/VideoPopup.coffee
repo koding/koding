@@ -67,7 +67,7 @@ class VideoPopupList extends KDListView
     @controller.on "PopupClosed", (popupName,index) =>
       # log "VideoPopupList removing item",popupName,index
       @removeItem {},{},index
-      # @utils.wait => log "VideoPopupList items are",@items
+      # @utils.defer => log "VideoPopupList items are",@items
       @resizeView()
 
     @on "FocusWindow", (windowName)=>
