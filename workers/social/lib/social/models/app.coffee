@@ -47,7 +47,7 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
       ]
 
     schema          :
