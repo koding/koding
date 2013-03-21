@@ -127,10 +127,10 @@ class WebTermView extends KDView
   updateSettings: ->
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
-    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
-    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
+    @container.setClass @appStorage.getValue('font')
+    @container.setClass @appStorage.getValue('theme')
     @container.$().css
-      fontSize: @appStorage.getValue('fontSize') + 'px' or '14px'
+      fontSize: @appStorage.getValue('fontSize') + 'px'
     @terminal.updateSize true
     @terminal.scrollToBottom(no)
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
