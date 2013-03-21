@@ -41,8 +41,8 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-personal-wrapper'
       cssClass  : 'slideable'
       click :(event)=>
-        unless event.target.tagName is 'A'
-          @mainController.loginScreen.unsetClass 'landed'
+        unless $(event.target).is 'a'
+          @mainController.emit "landingSidebarClicked"
 
     groupLogoView = new KDView
       lazyDomId: 'group-koding-logo'

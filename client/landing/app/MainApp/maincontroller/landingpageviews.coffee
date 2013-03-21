@@ -2,8 +2,7 @@ class LandingPageSideBar extends KDView
 
   constructor:(isLoggedIn = no)->
 
-    options     =
-      lazyDomId : 'landing-page-sidebar'
+    options = lazyDomId : 'landing-page-sidebar'
 
     super options
 
@@ -29,6 +28,8 @@ class LandingPageSideBar extends KDView
     @addSubView @nav = @navController.getView()
 
     @mainController.on "accountChanged.to.*", => @navController.reset()
+    @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
+
 
 class LandingPageNavigationController extends NavigationController
 
