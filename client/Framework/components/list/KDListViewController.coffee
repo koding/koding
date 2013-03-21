@@ -16,6 +16,9 @@ class KDListViewController extends KDViewController
     options.defaultItem.options   or= {}
     options.defaultItem.data      or= {}
 
+    options.noItemFoundWidget     or= {}
+    options.noMoreItemFoundWidget or= {}
+
     defaultOptions = options.defaultItem.options
     defaultOptions.partial        or=  'This list is empty'
 
@@ -23,7 +26,6 @@ class KDListViewController extends KDViewController
     @itemsIndexed                 = {}
     @selectedItems                = []
     @lazyLoader                   = null
-
 
     if options.view
       @setListView listView = options.view
@@ -89,11 +91,13 @@ class KDListViewController extends KDViewController
     @emit "AllItemsAddedToList"
 
     # Implement no Item found widget support FIXME GG
-    #
-    # if items.length is 0
-    #   options = @getOptions()
-    #   if options.noItemFoundWidget?
-    #     @getListView().addItem options.noItemFoundWidget
+    if items.length is 0
+      if @itemsOrdered.length > 0
+        {noMoreItemFoundWidget} = @getOptions()
+        @getListView().addItem noMoreItemFoundWidget if noMoreItemFoundWidget
+      else
+        {noItemFoundWidget} = @getOptions()
+        @getListView().addItem noItemFoundWidget if noItemFoundWidget
 
     return newItems
 
