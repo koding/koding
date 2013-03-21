@@ -222,9 +222,12 @@ KD.error = error = noop
 
     enableLogs =->
       window.console = oldConsole
-      KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-      KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-      KD.error = error = if console?.error then console.error.bind(console) else noop
+      KD.log     = log     = if console?.log     then console.log.bind(console)     else noop
+      KD.warn    = warn    = if console?.warn    then console.warn.bind(console)    else noop
+      KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
+      KD.time    = time    = if console?.time    then console.time .bind(console)   else noop
+      KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
+
       return "Logs are enabled now."
 
   exportKDFramework:->
