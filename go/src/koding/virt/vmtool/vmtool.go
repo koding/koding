@@ -80,6 +80,12 @@ var actions = map[string]func(){
 			fmt.Println(<-done)
 		}
 	},
+	"backup": func() {
+		for _, vm := range selectVMs(os.Args[2]) {
+			err := vm.Backup()
+			fmt.Printf("%v: %v\n", vm, err)
+		}
+	},
 	"dpkg-statistics": func() {
 		entries, err := ioutil.ReadDir("/var/lib/lxc/dpkg-statuses")
 		if err != nil {
