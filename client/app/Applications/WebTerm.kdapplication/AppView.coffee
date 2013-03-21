@@ -1,22 +1,16 @@
 class WebTermView extends KDView
 
-  setDefaultStyle:->
-    @container.unsetClass font.value for font in __webtermSettings.fonts
-    @container.unsetClass theme.value for theme in __webtermSettings.themes
-    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
-    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
-    @container.$().css fontSize:@appStorage.getValue('fontSize')+'px' or '14px'
+  constructor: (@appStorage) ->
+    super
+
   viewAppended: ->
-
-    @appStorage = new AppStorage 'WebTerm', '1.0'
-
-
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
+      bind     : "scroll"
+    @updateStyle()
+    @container.on "scroll", =>
+      @container.$().scrollLeft 0
     @addSubView @container
-
-    @appStorage.fetchStorage (storage)=>
-      @setDefaultStyle()
 
     @sessionBox = new KDView
       cssClass: "kddialogview"
@@ -126,6 +120,16 @@ class WebTermView extends KDView
   destroy: ->
     super
     @terminal.server?.close()
+
+  updateStyle: ->
+    @container.unsetClass font.value for font in __webtermSettings.fonts
+    @container.unsetClass theme.value for theme in __webtermSettings.themes
+    @container.setClass @appStorage.getValue('font') or 'ubuntu-mono'
+    @container.setClass @appStorage.getValue('theme') or 'green-on-black'
+    @container.$().css
+      fontSize: @appStorage.getValue('fontSize') + 'px' or '14px'
+    @terminal?.updateSize true
+    @terminal?.scrollToBottom(no)
 
   setKeyView: ->
     super

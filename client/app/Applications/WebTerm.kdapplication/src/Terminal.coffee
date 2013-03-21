@@ -14,8 +14,6 @@ class WebTerm.Terminal
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
-    @appStorage = new AppStorage 'WebTerm', '1.0'
-    @appStorage.fetchStorage (storage) =>
     @server = null
     @sessionEndedCallback = null
     @setTitleCallback = null
@@ -214,10 +212,13 @@ class WebTerm.Terminal
   isScrolledToBottom: ->
     @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
 
-  scrollToBottom: ->
+  scrollToBottom: (animate=yes) ->
     return if @isScrolledToBottom()
     @container.stop()
-    @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+    if animate
+      @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
+    else
+      @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
 
   inspectString: (string) ->
     escaped = string.replace /[\x00-\x1f\\]/g, (character) ->
@@ -228,26 +229,16 @@ class WebTerm.Terminal
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
 
-  getFontSize:->
-    @appStorage.getValue('fontSize') or 14
+  getSettings: ->
+    theme:    @appStorage.getValue('fontSize') or 14
+    fontSize: @appStorage.getValue('theme') or 'black-on-white'
+    font:     @appStorage.getValue('font') or 'ubuntu-mono'
 
-  getFont:->
-    @appStorage.getValue('font') or 'ubuntu-mono'
+  setTheme: (themeName) ->
+    @appStorage.setValue 'theme', themeName
 
-  getTheme:->
-    @appStorage.getValue('theme') or 'black-on-white'
+  setFontSize: (fontSize) ->
+    @appStorage.setValue 'fontSize', fontSize
 
-  getSettings:->
-    theme               : @getTheme()
-    fontSize            : @getFontSize()
-    font                : @getFont()
-
-  setTheme:(themeName)->
-    @appStorage.setValue 'theme', themeName, =>
-        noop
-  setFontSize:(fontSize)->
-    @appStorage.setValue 'fontSize', fontSize, =>
-        noop
-  setFont:(font)->
-    @appStorage.setValue 'font', font, =>
-        noop
+  setFont: (font) ->
+    @appStorage.setValue 'font', font
