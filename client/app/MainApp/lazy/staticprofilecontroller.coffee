@@ -35,6 +35,18 @@ class StaticProfileController extends KDController
 
   addEventListeners:->
 
+    @on 'TopicLinkClicked', =>
+      @addTopicLogic()
+
+    @on 'GroupsLinkClicked', =>
+      @addGroupsLogic()
+
+    @on 'PeopleLinkClicked', =>
+      @addPeopleLogic()
+
+    @on 'AppsLinkClicked', =>
+      @addAppsLogic()
+
     @on 'HomeLinkClicked', =>
       unless @staticListWrapper?
         @addStaticLogic()
@@ -274,14 +286,17 @@ class StaticProfileController extends KDController
     @profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
       click :=>
-        @profilePersonalWrapperView.setClass 'slide-down'
-        @profileContentWrapperView.setClass 'slide-down'
-        @profileLogoView.setClass 'top'
+        unless KD.whoami() instanceof KD.remote.api.JGuest
+          @profilePersonalWrapperView.setClass 'slide-down'
+          @profileContentWrapperView.setClass 'slide-down'
+          @profileLogoView.setClass 'top'
 
-        # @landingView.setClass 'profile-fading'
-        # @utils.wait 1100, => @landingView.setClass 'profile-hidden'
+          # @landingView.setClass 'profile-fading'
+          # @utils.wait 1100, => @landingView.setClass 'profile-hidden'
 
-        @getSingleton('lazyDomController').hideLandingPage()
+          @getSingleton('lazyDomController').hideLandingPage()
+        else
+          @getSingleton('mainController').loginScreen.animateToForm 'register'
 
     @repositionLogoView()
     # @addStaticLogic()
@@ -442,6 +457,14 @@ class StaticProfileController extends KDController
           @profileLoaderView.hide()
 
           callback()
+
+  addTopicLogic:->
+
+  addGroupsLogic:->
+
+  addAppsLogic:->
+
+  addPeopleLogic:->
 
   addStaticLogic:(callback=->)->
     log 'adding static logic'
