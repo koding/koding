@@ -115,8 +115,8 @@ app.get "/-/kite/login", (req, res) ->
     if err? or !kite?
       res.send 401
       return
-
-    rabbitAPI.newUser req.query.key, req.query.secret, (err, data) =>
+    console.log kite.kiteName
+    rabbitAPI.newUser req.query.key, req.query.secret, kite.kiteName, (err, data) =>
       creds =
         protocol  : 'amqp'
         host      : mq.host
