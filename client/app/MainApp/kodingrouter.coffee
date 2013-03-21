@@ -132,18 +132,17 @@ class KodingRouter extends KDRouter
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    waitress = new KDLoaderView
+    loader = new KDLoaderView
       size          :
         width       : 30
       loaderOptions :
         color       : "#FFFFFF"
-    waitress.appendToSelector '#main-loader'
-    waitress.show()
+    loader.appendToSelector '#main-loader'
+    loader.show()
 
-    log "Current:", $.cookie 'clientId'
     mainController.on "AppIsReady", =>
+      loader.destroy()
       KD.utils.wait 600, -> $('#main-koding-loader').hide()
-      waitress.destroy()
 
     content = createLinks(
       'Activity Apps Groups Members Topics'

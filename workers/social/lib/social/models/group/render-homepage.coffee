@@ -18,7 +18,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
       <div class="group-buttons">
         <div class="group-nickname">#{slug}</div>
       </div>
-
+      <div id="main-loader"></div>
       <div id="landing-page-sidebar"></div>
 
       <div class="profile-koding-logo">
