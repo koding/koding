@@ -12,7 +12,6 @@ class TopicsAppController extends AppController
     options.appInfo =
       name          : "Topics"
 
-
     super options, data
 
     @listItemClass = TopicsListItemView
@@ -100,7 +99,6 @@ class TopicsAppController extends AppController
           @updateTopic topicItem
 
     @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
   openTopic:(topic)->
     console.trace()
@@ -205,6 +203,8 @@ class TopicsAppController extends AppController
   createContentDisplay:(topic, callback)->
     controller = new ContentDisplayControllerTopic null, topic
     contentDisplay = controller.getView()
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
 

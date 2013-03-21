@@ -138,6 +138,6 @@ class ContentDisplayControllerMember extends KDViewController
           direction         : -1
         # and more
     }, (controller)=>
-
+      @feedController = controller
       @getView().addSubView controller.getView()
-
+      @emit 'ready'
