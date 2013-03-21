@@ -76,15 +76,16 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, state, route)->
-    KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
-      # TODO: this callback doesn't fire. We need to get this working again
-      # to regain "spatial" history
-      @openRoutes[route] = contentDisplay
-      @openRoutesById[contentDisplay.id] = route
+  openContent:(name, section, state, route, query)->
+    KD.getSingleton("appManager").tell section, 'createContentDisplay', state,
+      (contentDisplay)=>
+        @openRoutes[route] = contentDisplay
+        @openRoutesById[contentDisplay.id] = route
+        contentDisplay.emit 'handleQuery', query
 
-  loadContent:(name, section, slug, route)->
-    KD.remote.api.JName.one {name: route}, (err, name)=>
+  loadContent:(name, section, slug, route, query)->
+    routeWithoutParams = route.split('?')[0]
+    KD.remote.api.JName.one {name: routeWithoutParams}, (err, name)=>
       if err
         new KDNotificationView title: err?.message or 'An unknown error has occured.'
       else if name?
@@ -101,20 +102,22 @@ class KodingRouter extends KDRouter
             else
               models[i] = model
               if models.length is name.slugs.length
-                @openContent name, section, models, route
+                @openContent name, section, models, routeWithoutParams, query
       else
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
-    ({params:{name, slug}}, state, route)=>
-      contentDisplay = @openRoutes[route]
+    ({params:{name, slug}, query}, state, route)=>
+      route = name unless route
+      contentDisplay = @openRoutes[route.split('?')[0]]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
+        contentDisplay.emit 'handleQuery', query
       else if state?
-        @openContent name, section, state, route
+        @openContent name, section, state, route, query
       else
-        @loadContent name, section, slug, route
+        @loadContent name, section, slug, route, query
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -186,9 +189,9 @@ class KodingRouter extends KDRouter
           @openContent name, 'Groups', group, route
 
       # content
-      '/:name?/Topics/:slug'          : content.Topics
-      '/:name?/Activity/:slug'        : content.Activity
-      '/:name?/Apps/:slug'            : content.Apps
+      '/:name?/Topics/:slug'            : content.Topics
+      '/:name?/Activity/:slug'          : content.Activity
+      '/:name?/Apps/:slug'              : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
@@ -233,7 +236,7 @@ class KodingRouter extends KDRouter
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
           location.replace '#'
           if err
-            throw err
+            error err
             new KDNotificationView
               title: "Something went wrong, please try again later!"
           else
@@ -276,7 +279,6 @@ class KodingRouter extends KDRouter
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
             when 'JGroup'   then content.Groups  routeInfo, model
-            # when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
