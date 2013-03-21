@@ -30,7 +30,7 @@ __utils =
       chain.push caller
     chain
 
-  getUniqueId: do -> i = 0; -> "~#{i++}"
+  getUniqueId: do -> i = 0; -> "kd-#{i++}"
 
   getRandomNumber :(range)->
     range = range or 1000000
