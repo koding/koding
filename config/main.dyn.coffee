@@ -18,9 +18,10 @@ rabbitPrefix = rabbitPrefix.split('.').join('-')
 
 socialQueueName = "koding-social-prod"
 
-webPort         = 3040
-brokerPort      = 8010 + (version % 10)
-dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
+webPort          = 3040
+brokerPort       = 8010 + (version % 10)
+sourceServerPort = 1300 + (version % 10)
+dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports = deepFreeze
   haproxy:
@@ -40,7 +41,7 @@ module.exports = deepFreeze
     watch       : no
   sourceServer  :
     enabled     : no
-    port        : 1337
+    port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
@@ -112,7 +113,7 @@ module.exports = deepFreeze
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : 'http://koding.com:1337'
+      sourceUri : "http://koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
