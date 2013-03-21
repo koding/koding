@@ -158,7 +158,7 @@ class GlobalNotification extends KDView
 
     controller = @getSingleton('windowController')
     unless controller.stickyNotification
-      @utils.wait =>
+      @utils.defer =>
         @show()
       if @showTimer
         @notificationStartTimer @getOptions().duration
@@ -168,7 +168,7 @@ class GlobalNotification extends KDView
 
   notificationShowContent:->
     @content?.show()
-    @utils.wait =>
+    @utils.defer =>
       @$('.notification-content').height @contentText.getHeight()
 
   notificationHideContent:->

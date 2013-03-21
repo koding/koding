@@ -103,6 +103,7 @@ class TopicsAppController extends AppController
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
   openTopic:(topic)->
+    console.trace()
     group = KD.getSingleton('groupsController').getCurrentGroup()
     KD.getSingleton('router').handleRoute """
       #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
@@ -201,12 +202,15 @@ class TopicsAppController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content, callback=->)->
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerTopic null, content
+  createContentDisplay:(topic, callback)->
+    controller = new ContentDisplayControllerTopic null, topic
     contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
+    @utils.defer -> callback contentDisplay
+
+  showContentDisplay:(contentDisplay)->
+    contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
