@@ -240,6 +240,36 @@ task 'goBroker',({configFile})->
   if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
 
+task 'osKite',({configFile})->
+
+  processes.spawn
+    name  : 'osKite'
+    cmd   : "./go/bin/os -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'ldapServer',({configFile})->
+
+  processes.spawn
+    name  : 'ldapServer'
+    cmd   : "./go/bin/ldapserver -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'proxy',({configFile})->
+
+  processes.spawn
+    name  : 'proxy'
+    cmd   : "./go/bin/proxy -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -281,6 +311,9 @@ run =({configFile})->
 
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
+    invoke 'osKite'         if config.runOsKite
+    invoke 'ldapServer'     if config.runLdapServer
+    invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push

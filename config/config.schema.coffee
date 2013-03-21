@@ -106,6 +106,9 @@ config =
     watchGoBroker : 1
     compileGo     : 1
     buildClient   : 1
+    runOsKite     : 0
+    runLdapServer : 0
+    runProxy      : 0
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1

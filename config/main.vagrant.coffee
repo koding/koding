@@ -35,6 +35,9 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : yes
+  runLdapServer : yes
+  runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
