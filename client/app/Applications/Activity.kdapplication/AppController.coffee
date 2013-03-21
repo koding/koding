@@ -116,10 +116,7 @@ class ActivityAppController extends AppController
 
       if err or teasers.length is 0
         warn err  if err
-
-        more = if @listController.itemsOrdered.length is 0 then '' else 'more'
-        @listController.showCustomItem "There is no #{more} activity."
-
+        @listController.showNoItemWidget()
       else
         @listController.listActivities teasers
 
@@ -129,10 +126,7 @@ class ActivityAppController extends AppController
       if err or cache.length is 0
         warn err  if err
         @listController.hideLazyLoader()
-
-        more = if @listController.itemsOrdered.length is 0 then '' else 'more'
-        @listController.showCustomItem "There is no #{more} activity."
-
+        @listController.showNoItemWidget()
       else
         @sanitizeCache cache, (err, cache)=>
           @listController.hideLazyLoader()
@@ -143,7 +137,7 @@ class ActivityAppController extends AppController
     return if isLoading
     isLoading = yes
     @listController.showLazyLoader()
-    @listController.hideCustomItem()
+    @listController.hideNoItemWidget()
 
     currentGroup = @getSingleton('groupsController').getCurrentGroupData()
     slug = currentGroup.getAt 'slug'
