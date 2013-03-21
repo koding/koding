@@ -24,7 +24,7 @@ var loggrSource string
 var libratoSource string
 var tags string
 
-var gauges = make([]Gauge, 0)
+var gauges = make([]*Gauge, 0)
 var GaugeChanges = make(chan func())
 
 func Init(service string) {
@@ -140,7 +140,7 @@ func RecoverAndLog() {
 }
 
 func CreateGauge(name string, input func() float64) {
-	gauges = append(gauges, Gauge{name, 0, libratoSource, input})
+	gauges = append(gauges, &Gauge{name, 0, libratoSource, input})
 }
 
 func CreateCounterGauge(name string, resetOnReport bool) func(int) {
@@ -188,7 +188,7 @@ func LogGauges() {
 		gauge.Value = gauge.input()
 	}
 	var event struct {
-		Gauges []Gauge `json:"gauges"`
+		Gauges []*Gauge `json:"gauges"`
 	}
 	event.Gauges = gauges
 	b, err := json.Marshal(event)
