@@ -134,7 +134,7 @@ task 'webserver', ({configFile}) ->
   if sourceServer?.enabled
     processes.fork
       name            : 'sourceserver'
-      cmd             : __dirname + "/server/sourceserver -c #{configFile} -p #{sourceServer.port}"
+      cmd             : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
       restart         : yes
       restartInterval : 100
 
