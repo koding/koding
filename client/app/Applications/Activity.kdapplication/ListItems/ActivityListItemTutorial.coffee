@@ -93,7 +93,7 @@ class TutorialActivityItemView extends ActivityItemChild
     @$('div.body a[href^=http]').attr "target", "_blank"
 
   prepareScrollOverlay:->
-    @utils.wait =>
+    @utils.defer =>
 
       body = @$("div.activity-content-container.tutorial div.body")
       container = @$("div.activity-content-container.tutorial")

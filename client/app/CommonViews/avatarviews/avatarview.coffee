@@ -30,7 +30,7 @@ class AvatarView extends LinkView
 
     if @avatarPreview?
       @on 'TooltipReady', =>
-        @utils.wait =>
+        @utils.defer =>
           @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
     @bgImg = null
@@ -39,7 +39,7 @@ class AvatarView extends LinkView
   #   event.stopPropagation()
   #   event.preventDefault()
   #   @hideTooltip()
-  #   @utils.wait => @emit 'LinkClicked'
+  #   @utils.defer => @emit 'LinkClicked'
   #   return no
 
   render:->

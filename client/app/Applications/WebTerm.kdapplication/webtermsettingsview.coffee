@@ -20,7 +20,7 @@ class WebtermSettingsView extends JView
           fontSize:value+"px"
         webtermView.terminal.setFontSize value
         webtermView.terminal.updateSize yes
-        @utils.wait =>
+        @utils.defer =>
           webtermView.terminal.scrollToBottom()
 
     @theme          = new KDSelectBox

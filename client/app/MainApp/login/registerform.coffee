@@ -62,7 +62,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : "Please enter your email address."
             email     : "That doesn't seem like a valid email address."
         blur          : (input, event)=>
-          @utils.wait =>
+          @utils.defer =>
             @userAvatarFeedback input
 
     @avatar = new AvatarStaticView

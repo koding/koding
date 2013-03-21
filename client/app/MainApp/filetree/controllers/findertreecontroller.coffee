@@ -404,7 +404,7 @@ class NFinderTreeController extends JTreeViewController
         @notify "App compiled!", "success"
         @utils.wait 500, =>
           @refreshFolder nodeView, =>
-            @utils.wait =>
+            @utils.defer =>
               @selectNode @nodes["#{folder.path}/index.js"]
       callback? err
 
