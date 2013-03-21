@@ -228,17 +228,3 @@ class WebTerm.Terminal
       hex = "0" + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
-
-  getSettings: ->
-    theme:    @appStorage.getValue('fontSize') or 14
-    fontSize: @appStorage.getValue('theme') or 'black-on-white'
-    font:     @appStorage.getValue('font') or 'ubuntu-mono'
-
-  setTheme: (themeName) ->
-    @appStorage.setValue 'theme', themeName
-
-  setFontSize: (fontSize) ->
-    @appStorage.setValue 'fontSize', fontSize
-
-  setFont: (font) ->
-    @appStorage.setValue 'font', font
