@@ -214,7 +214,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @smallInput.hide()
     @$('>div.large-input, >div.formline').show()
 
-    @utils.wait =>
+    @utils.defer =>
       @largeInput.$().trigger "focus"
       @largeInput.setHeight 72
       @largeInput.setValue @lastestStatusMessage

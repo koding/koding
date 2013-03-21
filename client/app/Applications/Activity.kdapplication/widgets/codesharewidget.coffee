@@ -840,7 +840,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     # @$("select[name=libsJS]").val("none").trigger "change"
 
-    # @utils.wait =>
+    # @utils.defer =>
     #   @HTMLace.setContents "//your HTML goes here..."
     #   @HTMLace.setSyntax 'html'
     #   @HTMLace.render()

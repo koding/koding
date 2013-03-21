@@ -45,7 +45,7 @@ class TutorialFormView extends KDFormView
       blur:=>
         # @getDelegate().embedBox.hide()
       paste:=>
-          @utils.wait =>
+          @utils.defer =>
 
             @discussionEmbedLink.setValue @sanitizeUrls @discussionEmbedLink.getValue()
 
