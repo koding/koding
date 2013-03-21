@@ -78,6 +78,8 @@ class KodingRouter extends KDRouter
 
   openContent:(name, section, state, route)->
     KD.getSingleton("appManager").tell section, 'createContentDisplay', state, (contentDisplay)=>
+      # TODO: this callback doesn't fire. We need to get this working again
+      # to regain "spatial" history
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
 
@@ -278,6 +280,7 @@ class KodingRouter extends KDRouter
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
+          return if KD.config.groupEntryPoint?
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 

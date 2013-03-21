@@ -80,7 +80,7 @@ class EmbedBox extends KDView
 
   loadImages:->
     do =>
-      @utils.wait =>
+      @utils.defer =>
         @$("img").each (i,element)->
           if $(element).attr "data-src"
             $(element).attr "src" : $(element).attr("data-src")

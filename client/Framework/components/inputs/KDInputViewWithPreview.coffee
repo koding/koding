@@ -130,7 +130,7 @@ class KDInputViewWithPreview extends KDInputView
     #           modal.destroy()
 
 
-    #   @utils.wait =>
+    #   @utils.defer =>
 
     #     modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
     #     modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
@@ -199,7 +199,7 @@ class KDInputViewWithPreview extends KDInputView
                   modal.destroy()
 
 
-          @utils.wait =>
+          @utils.defer =>
 
             modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
             modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
@@ -269,7 +269,7 @@ class KDInputViewWithPreview extends KDInputView
 
 
     # hotfix for random display:none that can sometimes come up
-    @utils.wait  =>
+    @utils.defer =>
       @$("span.data").css display:"block"
 
     if @options.preview.mirrorScroll then @$().scroll (event)=>

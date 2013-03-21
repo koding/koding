@@ -135,7 +135,7 @@ class KDModalView extends KDView
     @$().width value
 
   setPositions:->
-    @utils.wait =>
+    @utils.defer =>
       {position} = @getOptions()
       newPosition = {}
 
@@ -182,7 +182,7 @@ class KDModalView extends KDView
   display:()->
 
     if @getOptions().fx
-      @utils.wait =>
+      @utils.defer =>
         @setClass "active"
 
   cancel:->

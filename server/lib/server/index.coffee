@@ -201,7 +201,7 @@ app.get '/:name/:section?', (req, res, next)->
     JName.fetchModels name, (err, models)->
       if err then next err
       else unless models? then res.send 404, error_404()
-      else res.send models[0].fetchHomepageView (err, view)->
+      else models[0].fetchHomepageView (err, view)->
         if err then next err
         else if view? then res.send view
         else res.send 500, error_500()

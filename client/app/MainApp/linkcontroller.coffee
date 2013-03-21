@@ -18,8 +18,9 @@ class LinkController extends KDController
     KD.getSingleton('router').handleRoute route, {state:data}  if route?
 
   registerLink:(link)->
+    id = link.getId()
     link.on 'LinkClicked', handler = => @handleLinkClick link 
-    @linkHandlers[link.getId()] = handler
+    @linkHandlers[id] = handler
 
   unregisterLink:(link)->
     id = link.getId()

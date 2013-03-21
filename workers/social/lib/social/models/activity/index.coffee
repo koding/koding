@@ -232,28 +232,6 @@ module.exports = class CActivity extends jraphical.Capsule
         else
           callback null, activities
 
-  @fetchFacets1 = secure (client, options, callback)->
-      console.log 'this is temporary'
-      {to, limit, facets, lowQuality, originId} = options
-
-      selector =
-        type         : { $in : facets }
-        createdAt    : { $lt : new Date to }
-        isLowQuality : { $ne : lowQuality }
-        group        : client.groupName ? 'koding'
-
-      selector.originId = originId if originId
-
-      options =
-        limit : limit or 20
-        sort  : createdAt : -1
-
-      @some selector, options, (err, activities)->
-        if err then callback err
-        else
-          callback null, activities
-
-
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()

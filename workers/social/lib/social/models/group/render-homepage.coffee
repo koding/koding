@@ -30,8 +30,8 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
     <div class="group-content-wrapper" id="group-content-wrapper">
       <div class="group-title" id="group-title">
         <div class="group-title-wrapper" id="group-title-wrapper">
-        <div class="group-name">#{title}</div>
-        <div class="group-bio">#{body}</div>
+          <div class="group-name">#{title}</div>
+          <div class="group-bio">#{body}</div>
         </div>
       </div>
       <div class="group-splitview" id="group-splitview">

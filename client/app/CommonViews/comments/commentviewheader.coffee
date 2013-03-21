@@ -89,7 +89,7 @@ class CommentViewHeader extends JView
     # If the count is changed then we need to update UI
     if _newCount isnt @oldCount
       @oldCount = _newCount
-      @utils.wait => @updateNewCount()
+      @utils.defer => @updateNewCount()
 
     super
 

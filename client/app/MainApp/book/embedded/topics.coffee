@@ -14,7 +14,7 @@ class BookTopics extends KDView
         speed       : 2
         FPS         : 25
 
-    @utils.wait -> loader.show()
+    @utils.defer -> loader.show()
 
     KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics",
       limit : 20

@@ -31,7 +31,7 @@ class StaticProfileTooltip extends KDView
       cssClass      : 'static-page-switch'
       tooltip:
         title : 'Enabling Public Page will expose your profile to the internet. Non-Koding users will be able to read your content, depending on your settings.'
-      defaultValue  : @getData().profile.staticPage.show
+      defaultValue  : @getData().profile.staticPage?.show
       callback:(state)=>
         @getData().setStaticPageVisibility state, =>
           # log 'done', arguments

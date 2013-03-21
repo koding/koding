@@ -94,7 +94,7 @@ class ActivityBlogPostWidget extends KDFormView
     @inputContent.setValue ''
 
     # deferred resets
-    @utils.wait => @tagController.reset()
+    @utils.defer => @tagController.reset()
 
     super
 
