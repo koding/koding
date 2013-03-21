@@ -9,6 +9,8 @@ SourceMap         = require 'source-map'
 base64VLQ         = require 'source-map/lib/source-map/base64-vlq'
 Stylus            = require 'stylus'
 UglifyJS          = require 'uglify-js'
+WebSocket         = require 'ws'
+WebSocketServer   = WebSocket.Server
 
 log =
   info  : console.log
@@ -44,7 +46,19 @@ module.exports = class Builder
     @buildHTML options if initial
 
     if @config.client.watch is yes
-      log.info "Watching for changes..." if initial
+      if initial
+        log.info "Watching for changes..."
+        @livereloads = []
+        wss = new WebSocketServer port: 35729, path: "/livereload"
+        wss.on 'connection', (ws)=>
+          ws.send "!!ver:1.6"
+          @livereloads.push ws
+
+      if includesChanged or scriptsChanged or stylesChanged
+        for ws in @livereloads
+          if ws.readyState == WebSocket.OPEN
+            ws.send JSON.stringify ['refresh', { path: "" }]
+
       setTimeout =>
         @compileChanged options, false
       , 250
