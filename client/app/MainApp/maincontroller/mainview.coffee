@@ -4,8 +4,8 @@ class MainView extends KDView
     super
 
     mainController = @getSingleton 'mainController'
-    # mainController.on 'AppIsReady', =>
-    #   @removeLoader()
+    mainController.on 'AppIsReady', =>
+      @removeLoader()
 
   viewAppended:->
 
@@ -47,16 +47,24 @@ class MainView extends KDView
         @mainTabView.showHandleContainer()
         @sidebar.hideFinderPanel()
 
-  # removeLoader:->
+  removeLoader:->
 
-  #   $loadingScreen = $(".main-loading").eq(0)
-  #   {winWidth,winHeight} = @getSingleton "windowController"
-  #   $loadingScreen.css
-  #     marginTop : -winHeight
-  #     opacity   : 0
-  #   @utils.wait 601, =>
-  #     $loadingScreen.remove()
-  #     $('body').removeClass 'loading'
+    loadingScreen = $("#main-koding-loader")
+
+    if loadingScreen.length
+      loginForm     = $('#main-form-handler')
+
+      loginForm.hide()
+
+      {winWidth,winHeight} = @getSingleton "windowController"
+      loadingScreen.css
+        marginTop : -winHeight
+        opacity   : 0
+
+      @utils.wait 601, =>
+        loadingScreen.remove()
+        $('body').removeClass 'loading'
+        loginForm.show()
 
   createMainPanels:->
 
