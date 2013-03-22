@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-type SnapshotStringTrimmer func(string) string
-
-var localPathToExport = ""
-
 func (vm *VM) createSnapshot() (string, error) {
 	snapName := fmt.Sprintf("%d", time.Now().Unix())
 	out, err := exec.Command("/usr/bin/rbd", "--pool", "vms", "snap", "create", "--snap", snapName, vm.String()).CombinedOutput()
@@ -57,9 +53,7 @@ func (vm *VM) exportImageFromSnapshot(snapshot, pathToExport string) error {
 }
 
 func (vm *VM) Backup() error {
-	if localPathToExport == "" {
-		localPathToExport = fmt.Sprintf("/tmp/snapshot_exports/%s", vm.String())
-	}
+	localPathToExport = fmt.Sprintf("/tmp/snapshot_exports/%s", vm.String())
 
 	var exportSnapErr, deleteSnapErr error
 
