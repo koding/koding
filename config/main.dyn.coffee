@@ -3,46 +3,50 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.11" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
 # PROD
-# mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@web0.beta.system.aws.koding.com:27017/beta_koding'
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@dbrc-m0.prod.aws.koding.com:27017/beta_koding'
-
-# RabbitMQ Host
-rabbit_host = 'rabbit-b.prod.aws.koding.com'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
 
 projectRoot = nodePath.join __dirname, '..'
 
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
+rabbitPrefix = ((
+  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  catch e then require("os").hostname()
+).trim())+"-dev-#{version}"
+rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-rc"
+socialQueueName = "koding-social-prod"
+
+webPort          = 3040
+brokerPort       = 8010 + (version % 10)
+sourceServerPort = 1300 + (version % 10)
+dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports = deepFreeze
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://rc.koding.com"
+    address     : "https://koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : 3020
-    clusterSize : 6
+    port        : dynConfig.webInternalPort
+    clusterSize : 10
     queueName   : socialQueueName+'web'
     watch       : no
+  sourceServer  :
+    enabled     : yes
+    port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
-  runLdapServer : no
-  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -67,21 +71,21 @@ module.exports = deepFreeze
     HomePrefix:   "/Users/"
     UseLVE:       true
   authWorker    :
-    login       : 'prod-auth-worker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 6
+    numberOfWorkers: 2
     watch       : no
-  social        :
-    login       : 'prod-social'
-    numberOfWorkers: 6
-    watch       : no
-    queueName   : socialQueueName
   cacheWorker   :
     login       : 'prod-social'
     watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
+  social        :
+    login       : 'prod-social'
+    numberOfWorkers: 10
+    watch       : no
+    queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -98,29 +102,29 @@ module.exports = deepFreeze
     indexMaster : "index-master.html"
     index       : "index.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://rc.koding.com'
+    staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'https://rc.koding.com'
+      mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : 'https://brc.koding.com/subscribe'
+        sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : 'http://rc.koding.com:1337'
+      sourceUri : "http://web-prod.in.koding.com:#{sourceServerPort}"
   mq            :
-    host        : rabbit_host
+    host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'djfjfhgh4455__5'
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : '/'
   broker        :
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    port        : brokerPort
+    certFile    : "/etc/nginx/ssl/server_new.crt"
+    keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'
@@ -132,7 +136,7 @@ module.exports = deepFreeze
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : yes
-    defaultRecepient : 'bahadir+emailworker@koding.com'
+    defaultRecepient : undefined
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -145,7 +149,8 @@ module.exports = deepFreeze
     url: "http://post.loggr.net/1/logs/koding/events"
     apiKey: "eb65f620b72044118015d33b4177f805"
   librato:
-    push: no
+    push: yes
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
+

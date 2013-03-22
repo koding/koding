@@ -16,6 +16,7 @@ import (
 type Gauge struct {
 	Name   string  `json:"name"`
 	Value  float64 `json:"value"`
+	Time   int64   `json:"measure_time"`
 	Source string  `json:"source"`
 	input  func() float64
 }
@@ -140,7 +141,7 @@ func RecoverAndLog() {
 }
 
 func CreateGauge(name string, input func() float64) {
-	gauges = append(gauges, &Gauge{name, 0, libratoSource, input})
+	gauges = append(gauges, &Gauge{name, 0, 0, libratoSource, input})
 }
 
 func CreateCounterGauge(name string, resetOnReport bool) func(int) {
@@ -160,12 +161,21 @@ func CreateCounterGauge(name string, resetOnReport bool) func(int) {
 }
 
 func RunGaugesLoop() {
+	reportTrigger := make(chan int64)
 	go func() {
-		reportInterval := time.Tick(time.Duration(config.Current.Librato.Interval) * time.Millisecond)
+		reportInterval := int64(config.Current.Librato.Interval) / 1000
+		nextReportTime := time.Now().Unix() / reportInterval * reportInterval
+		for {
+			nextReportTime += reportInterval
+			time.Sleep(time.Duration(nextReportTime-time.Now().Unix()) * time.Second)
+			reportTrigger <- nextReportTime
+		}
+	}()
+	go func() {
 		for {
 			select {
-			case <-reportInterval:
-				LogGauges()
+			case reportTime := <-reportTrigger:
+				LogGauges(reportTime)
 
 			case change := <-GaugeChanges:
 				change()
@@ -174,7 +184,7 @@ func RunGaugesLoop() {
 	}()
 }
 
-func LogGauges() {
+func LogGauges(reportTime int64) {
 	if !config.Current.Librato.Push {
 		tagPrefix := "[gauges " + tags + "]"
 		for _, gauge := range gauges {
@@ -186,6 +196,7 @@ func LogGauges() {
 
 	for _, gauge := range gauges {
 		gauge.Value = gauge.input()
+		gauge.Time = reportTime
 	}
 	var event struct {
 		Gauges []*Gauge `json:"gauges"`

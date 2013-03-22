@@ -88,6 +88,8 @@ config =
         baseDir             : 1
         setfacl             : 1
   main :
+    haproxy       :
+      webPort     : 1
     aws           :
       key         : 1
       secret      : 1
@@ -101,6 +103,9 @@ config =
       clusterSize : 1
       queueName   : 1
       watch       : 1
+    sourceServer  :
+      enabled     : 1
+      port        : 1
     mongo         : 1
     runGoBroker   : 1
     watchGoBroker : 1

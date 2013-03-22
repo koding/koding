@@ -3,37 +3,47 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
-mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
+mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitPrefix = (
+rabbitPrefix = ((
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then ""
-).trim()
+  catch e then require("os").hostname()
+).trim())+"-dev-#{version}"
+rabbitPrefix = rabbitPrefix.split('.').join('-')
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
+webPort         = 3000
+brokerPort      = 8000 + (version % 10)
+dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
+
 module.exports = deepFreeze
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
-    username    : ''
-    git_branch  : ''
-    git_rev     : ''
   uri           :
-    address     : "http://localhost:3000"
+    address     : "http://localhost:#{webPort}"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'webserver'
-    port        : 3000
+    port        : dynConfig.webInternalPort
     clusterSize : 4
     queueName   : socialQueueName+'web'
+    watch       : yes
+  sourceServer  :
+    enabled     : no
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
+  watchGoBroker : no
+  compileGo     : yes
   buildClient   : yes
   runOsKite     : no
   runLdapServer : no
@@ -41,7 +51,7 @@ module.exports = deepFreeze
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
-    # debugConnectionErrors: yes
+    debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -50,11 +60,18 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  # loadBalancer  :
-  #   port        : 3000
-  #   heartbeat   : 5000
-    # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo
+  loggr:
+    push   : no
+    url    : ""
+    apiKey : ""
+  librato :
+    push      : no
+    email     : ""
+    token     : ""
+    interval  : 60000
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -63,44 +80,56 @@ module.exports = deepFreeze
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
     numberOfWorkers: 1
+    watch       : yes
   social        :
     login       : 'social'
     numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
+  presence      :
+    exchange    : 'services-presence'
   client        :
-    pistachios  : no
     version     : version
-    minify      : no
     watch       : yes
-    js          : "./website/js/kd.#{version}.js"
-    css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index       : "./website/index.html"
-    includesFile: '../CakefileIncludes.coffee'
+    includesPath: 'client'
+    websitePath : 'website'
+    js          : "js/kd.#{version}.js"
+    css         : "css/kd.#{version}.css"
+    indexMaster : "index-master.html"
+    index       : "index.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: "http://localhost:3000"
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : "http://localhost:#{webPort}"
       broker    :
-        apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://dmq.koding.com:8008/subscribe'
-        vhost   : '/'
+        sockJS  : "http://localhost:#{brokerPort}/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'localhost'
     login       : 'guest'
+    componentUser: "<component>"
     password    : 'guest'
+    heartbeat   : 10
     vhost       : '/'
+  broker        :
+    port        : brokerPort
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -125,22 +154,3 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 'guest'
   pidFile       : '/tmp/koding.server.pid'
-  mixpanel :
-    key : "bb9dd21f58e3440e048a2c907422deed"
-  crypto :
-    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      cipher = crypto.createCipher('aes-256-cbc',""+key)
-      cipher.update(str,'utf-8')
-      a = cipher.final('hex')
-      return a
-    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-      crypto = require "crypto"
-      str = str+""
-      key = key+""
-      decipher = crypto.createDecipher('aes-256-cbc',""+key)
-      decipher.update(str,'hex')
-      b = decipher.final('utf-8')
-      return b

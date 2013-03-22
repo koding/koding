@@ -31,6 +31,9 @@ module.exports = deepFreeze
     clusterSize : 10
     queueName   : socialQueueName+'web'
     watch       : no
+  sourceServer  :
+    enabled     : no
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
