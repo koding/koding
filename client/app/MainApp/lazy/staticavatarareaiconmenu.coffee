@@ -210,23 +210,58 @@ class AvatarPopupStaticProfileUserNotifications extends AvatarPopup
   viewAppended:->
     super()
 
-    selector      =
-      originType  : 'JAccount'
-      group       : 'koding'
-    options       =
-      limit       : 10
+    # selector      =
+    #   originType  : 'JAccount'
+    #   group       : 'koding'
+    # options       =
+    #   limit       : 10
 
-    log 'getting activities'
+    # log 'getting activities'
 
-    KD.remote.api.CActivity.some selector, options, (err, res)=>
-      log err, res
+    # KD.remote.api.CActivity.some selector, options, (err, res)=>
+    #   log err, res
+
+
+    @_popupList = new PopupList
+      itemClass : PopupNotificationListItem
+
+    @listController = new MessagesListController
+      view         : @_popupList
+      maxItems     : 5
+
+    @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
+
+    @avatarPopupContent.addSubView @noNotification = new KDView
+      height   : "auto"
+      cssClass : "sublink top hidden"
+      partial  : "You have no new notifications."
+
+    @avatarPopupContent.addSubView @listController.getView()
 
     @avatarPopupContent.addSubView new KDView
       height   : "auto"
       cssClass : "sublink"
-      partial  : "<a href='#'>See all messages...</a>"
+      partial  : "<a href='#'>View all of your activity notifications...</a>"
       click    : =>
+        KD.getSingleton("appManager").open('Inbox')
+        KD.getSingleton("appManager").tell 'Inbox', "goToNotifications"
         @hide()
+
+  hide:->
+    KD.whoami()?.glanceActivities =>
+      for item in @listController.itemsOrdered
+        item.unsetClass 'unread'
+      @noNotification.show()
+      @listController.emit 'NotificationCountDidChange', 0
+    super
+
+
+    # @avatarPopupContent.addSubView new KDView
+    #   height   : "auto"
+    #   cssClass : "sublink"
+    #   partial  : "<a href='#'>See all messages...</a>"
+    #   click    : =>
+    #     @hide()
 
   show:->
     super

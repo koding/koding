@@ -48,6 +48,6 @@ class StaticProfileTooltip extends KDView
     {{> @staticPageSwitch}}
     </div>
     <div class="tooltip-formline">
-    <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Visit your Public Page</a>
+    <a class="user-profile-link" href="/#{nickname}" target="_blank">Visit your Public Page</a>
     </div>
     """

@@ -4,6 +4,8 @@ Object.defineProperty global, 'KONFIG', {
 }
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
+{loggedInPage, loggedOutPage} = require './staticpages'
+
 webPort = argv.p ? webserver.port
 
 processMonitor = (require 'processes-monitor').start
@@ -192,7 +194,7 @@ error_500 =->
   error_ 500, 'internal server error'
 
 app.get '/:name/:section?', (req, res, next)->
-  {JGroup, JName} = koding.models
+  {JGroup, JName, JSession} = koding.models
   {name} = req.params
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
@@ -201,10 +203,12 @@ app.get '/:name/:section?', (req, res, next)->
     JName.fetchModels name, (err, models)->
       if err then next err
       else unless models? then res.send 404, error_404()
-      else models[0].fetchHomepageView (err, view)->
-        if err then next err
-        else if view? then res.send view
-        else res.send 500, error_500()
+      else
+        {clientId} = req.cookies
+        models[models.length-1].fetchHomepageView clientId, (err, view)->
+          if err then next err
+          else if view? then res.send view
+          else res.send 500, error_500()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->
@@ -228,24 +232,27 @@ app.get '/:name/:section?', (req, res, next)->
 #         res.header 'Location', '/Activity'
 #         res.send 302
 
+serve = (content, res)->
+  res.header 'Content-type', 'text/html'
+  res.send content
+
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    # {JGroup} = koding.models
-    # groupName = 'koding'
-    # JGroup.one { slug: groupName }, (err, group)->
-    #   if err or !group? then console.error err
-    #   else
-    #     group.fetchHomepageView (err, view)->
-    #       if err then console.error err
-    #       else res.send view
-
-    log.info "serving index.html"
-    res.header 'Content-type', 'text/html'
-    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
-      throw err if err
-      res.send data
+    {clientId} = req.cookies
+    unless clientId
+      serve loggedOutPage, res
+    else
+      {JSession} = koding.models
+      JSession.one {clientId}, (err, session)=>
+        if err
+          console.error err
+          serve loggedOutPage, res
+        else
+          {username} = session.data
+          if username then serve loggedInPage, res
+          else serve loggedOutPage, res
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

@@ -100,7 +100,7 @@ module.exports =
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:

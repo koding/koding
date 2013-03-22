@@ -26,12 +26,10 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
-  @trait __dirname, '../../traits/slugifiable'
 
   @share()
 
   @set
-    slugifyFrom     : 'title'
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
@@ -73,9 +71,6 @@ module.exports = class JGroup extends Module
         type        : String
         validate    : require('../name').validateName
         set         : (value)-> value.toLowerCase()
-      slug_         :
-        type        : String
-        get         : -> @slug
       privacy       :
         type        : String
         enum        : ['invalid privacy type', ['public', 'private']]
@@ -186,57 +181,48 @@ module.exports = class JGroup extends Module
       JMembershipPolicy = require './membershippolicy'
       JName = require '../name'
       {delegate} = client.connection
-      # JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
-      group                 = new this formData
-      permissionSet         = new JPermissionSet
-      defaultPermissionSet  = new JPermissionSet
+      JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
+        if err then callback err
+        else
+          group                 = new this formData
+          permissionSet         = new JPermissionSet
+          defaultPermissionSet  = new JPermissionSet
+          queue = [
+            -> save_ 'group', group, queue, callback
+            -> group.addMember delegate, (err)->
+                if err then callback err
+                else
+                  console.log 'member is added'
+                  queue.next()
+            -> group.addAdmin delegate, (err)->
+                if err then callback err
+                else
+                  console.log 'admin is added'
+                  queue.next()
+            -> save_ 'permission set', permissionSet, queue, callback
+            -> save_ 'default permission set', defaultPermissionSet, queue,
+                      callback
+            -> group.addPermissionSet permissionSet, (err)->
+                if err then callback err
+                else
+                  console.log 'permissionSet is added'
+                  queue.next()
+            -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
+                if err then callback err
+                else
+                  console.log 'permissionSet is added'
+                  queue.next()
+            -> group.addDefaultRoles (err)->
+                if err then callback err
+                else
+                  console.log 'roles are added'
+                  queue.next()
+          ]
+          if 'private' is group.privacy
+            queue.push -> group.createMembershipPolicy -> queue.next()
+          queue.push -> callback null, group
 
-      queue = [
-        -> group.createSlug (err, slugObj)->
-          if err then callback err
-          else unless slugObj?
-            callback new KodingError "Couldn't claim the slug!"
-          else
-            {slug} = slugObj
-            console.log "slug is claimed: #{slug}"
-            group.slug  = slug
-            group.slug_ = slug
-            queue.next()
-        -> save_ 'group', group, queue, callback
-        -> group.addMember delegate, (err)->
-            if err then callback err
-            else
-              console.log 'member is added'
-              queue.next()
-        -> group.addAdmin delegate, (err)->
-            if err then callback err
-            else
-              console.log 'admin is added'
-              queue.next()
-        -> save_ 'permission set', permissionSet, queue, callback
-        -> save_ 'default permission set', defaultPermissionSet, queue, 
-                  callback
-        -> group.addPermissionSet permissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
-        -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
-            if err then callback err
-            else
-              console.log 'permissionSet is added'
-              queue.next()
-        -> group.addDefaultRoles (err)->
-            if err then callback err
-            else
-              console.log 'roles are added'
-              queue.next()
-      ]
-      if 'private' is group.privacy
-        queue.push -> group.createMembershipPolicy -> queue.next()
-      queue.push -> callback null, group
-
-      daisy queue
+          daisy queue
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -416,7 +402,10 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView:(callback)->
+  renderHomepageHelper: (roles, callback)->
+    [callback, roles] = [roles, callback]  unless callback
+    roles or= []
+
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
@@ -430,7 +419,28 @@ module.exports = class JGroup extends Module
             @body
             @counts
             content : readme?.html ? readme?.content
+            roles
           }
+
+  fetchHomepageView:(clientId, callback)->
+    [callback, clientId] = [clientId, callback]  unless callback
+
+    unless clientId
+      @renderHomepageHelper callback
+    else
+      JSession = require '../session'
+      JSession.one {clientId}, (err, session)=>
+        if err
+          console.error err
+          callback err
+        else
+          {username} = session.data
+          if username
+            @fetchMembershipStatusesByUsername username, (err, roles)=>
+              if err then callback err
+              else @renderHomepageHelper roles, callback
+          else
+            @renderHomepageHelper callback
 
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->
@@ -669,20 +679,33 @@ module.exports = class JGroup extends Module
   fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...
 
+  fetchRolesHelper: (account, callback)->
+    client = connection: delegate : account
+    @fetchMyRoles client, (err, roles)=>
+      if err then callback err
+      else if 'member' in roles or 'admin' in roles
+        callback null, roles
+      else
+        options = targetOptions:
+          selector: { koding: username: account.profile.nickname }
+        @fetchInvitationRequest {}, options, (err, request)->
+          if err then callback err
+          else unless request? then callback null, ['guest']
+          else callback null, ["invitation-#{request.status}"]
+
+  fetchMembershipStatusesByUsername: (username, callback)->
+    JAccount = require '../account'
+    JAccount.one {'profile.nickname': username}, (err, account)=>
+      if not err and account
+        @fetchRolesHelper account, callback
+      else
+        console.error err
+        callback err
+
   fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback null, ['guest']
     else
-      @fetchMyRoles client, (err, roles)=>
-        if err then callback err
-        else if 'member' in roles or 'admin' in roles
-          callback null, roles
-        else
-          options = targetOptions:
-            selector: { koding: username: delegate.profile.nickname }
-          @fetchInvitationRequest {}, options, (err, request)->
-            if err then callback err
-            else unless request? then callback null, ['guest']
-            else callback null, ["invitation-#{request.status}"]
+      @fetchRolesHelper delegate, callback
