@@ -80,64 +80,6 @@ class NewMemberLinkGroup extends LinkGroup
       click       : (e)=>
         @emit "moreLinkClicked"
 
-  # pistachio:->
-
-  #   participants = @getData()
-  #   {hasMore, totalCount, group, separator} = @getOptions()
-
-  #   @createMoreLink()
-  #   l = if @getData().length < 4 then @getData().length else 3
-  #   tmpl = ""
-  #   for i in [0...l]
-  #     tmpl += "{{> @participant#{i}}}"
-  #     tmpl += separator if i isnt l-1
-
-  #   if totalCount > @getData().length
-  #     tmpl += " and {{> @more}}"
-
-  #   tmpl += " became a member."
-  #   # tmpl += "{{> @loader }}"
-
-
-# SLIGHTLY OLD
-
-# class NewMemberBucketData extends KDObject
-
-#   constructor:(options, @buckets)->
-
-#     @bongo_ = {}
-#     @meta   = @buckets[0].meta
-#     @bongo_.constructorName = "NewMemberBucketData"
-#     super
-
-# class NewMemberBucketView extends JView
-
-#   constructor: (options = {}, data)->
-
-#     options.cssClass = "new-member"
-
-#     super
-
-#     @group = new LinkGroup {}, @getData().buckets.map (bucket)-> bucket.anchor
-
-#   viewAppended:->
-
-#     super
-
-#     @timer = @utils.wait 800, =>
-#       @$('.fx').removeClass "out hidden"
-#       @timer = @utils.wait 400, =>
-#         @$('.fx').addClass "hidden"
-
-#   pistachio:->
-#     """
-#     <span class='icon fx out'></span>
-#     <span class='icon'></span>
-#     {{> @group}}
-#     <span class='action'>became member.</span>
-#     """
-
-
 
 
 # OLD
