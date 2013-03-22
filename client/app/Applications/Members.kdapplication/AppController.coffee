@@ -192,6 +192,8 @@ class MembersAppController extends AppController
   createContentDisplay:(account, callback)->
     controller     = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
 

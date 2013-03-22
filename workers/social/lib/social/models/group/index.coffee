@@ -200,7 +200,7 @@ module.exports = class JGroup extends Module
                   console.log 'admin is added'
                   queue.next()
             -> save_ 'permission set', permissionSet, queue, callback
-            -> save_ 'default permission set', defaultPermissionSet, queue, 
+            -> save_ 'default permission set', defaultPermissionSet, queue,
                       callback
             -> group.addPermissionSet permissionSet, (err)->
                 if err then callback err
@@ -402,7 +402,10 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView:(callback)->
+  renderHomepageHelper: (roles, callback)->
+    [callback, roles] = [roles, callback]  unless callback
+    roles or= []
+
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
@@ -416,7 +419,28 @@ module.exports = class JGroup extends Module
             @body
             @counts
             content : readme?.html ? readme?.content
+            roles
           }
+
+  fetchHomepageView:(clientId, callback)->
+    [callback, clientId] = [clientId, callback]  unless callback
+
+    unless clientId
+      @renderHomepageHelper callback
+    else
+      JSession = require '../session'
+      JSession.one {clientId}, (err, session)=>
+        if err
+          console.error err
+          callback err
+        else
+          {username} = session.data
+          if username
+            @fetchMembershipStatusesByUsername username, (err, roles)=>
+              if err then callback err
+              else @renderHomepageHelper roles, callback
+          else
+            @renderHomepageHelper callback
 
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->
@@ -655,20 +679,33 @@ module.exports = class JGroup extends Module
   fetchVocabulary$: permit 'administer vocabularies',
     success:(client, rest...)-> @fetchVocabulary rest...
 
+  fetchRolesHelper: (account, callback)->
+    client = connection: delegate : account
+    @fetchMyRoles client, (err, roles)=>
+      if err then callback err
+      else if 'member' in roles or 'admin' in roles
+        callback null, roles
+      else
+        options = targetOptions:
+          selector: { koding: username: account.profile.nickname }
+        @fetchInvitationRequest {}, options, (err, request)->
+          if err then callback err
+          else unless request? then callback null, ['guest']
+          else callback null, ["invitation-#{request.status}"]
+
+  fetchMembershipStatusesByUsername: (username, callback)->
+    JAccount = require '../account'
+    JAccount.one {'profile.nickname': username}, (err, account)=>
+      if not err and account
+        @fetchRolesHelper account, callback
+      else
+        console.error err
+        callback err
+
   fetchMembershipStatuses: secure (client, callback)->
     JAccount = require '../account'
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback null, ['guest']
     else
-      @fetchMyRoles client, (err, roles)=>
-        if err then callback err
-        else if 'member' in roles or 'admin' in roles
-          callback null, roles
-        else
-          options = targetOptions:
-            selector: { koding: username: delegate.profile.nickname }
-          @fetchInvitationRequest {}, options, (err, request)->
-            if err then callback err
-            else unless request? then callback null, ['guest']
-            else callback null, ["invitation-#{request.status}"]
+      @fetchRolesHelper delegate, callback
