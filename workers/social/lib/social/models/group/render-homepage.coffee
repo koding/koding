@@ -1,5 +1,5 @@
 module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description})->
-  content ?= getDefaultGroupContents()
+  content ?= getDefaultGroupContents(title)
   """
 
   <!DOCTYPE html>
@@ -41,17 +41,15 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
         <div class="group-content-links">
           <h4>Show me</h4>
           <ul>
-            <li>Everything</li>
-            <li>Status Updates</li>
-            <li>Code Snippets</li>
-            <li>Discussions</li>
-            <li>Tutorials</li>
-            <li>Q&amp;A</li>
-            <li>Links</li>
+            <li class="" id="CBlogPostActivity">Blog Posts</li>
+            <li class="" id="CStatusActivity">Status Updates</li>
+            <li class="" id="CCodeSnipActivity">Code Snippets</li>
+            <li class="" id="CDiscussionActivity">Discussions</li>
+            <li class="" id="CTutorialActivity">Tutorials</li>
           </ul>
         </div>
         <div class="group-loading-content" id="group-loading-content">
-         <div class="content-item">
+         <div class="content-item" id='group-readme'>
            <div class="has-markdown">
              <span class="data">#{content}</span>
            </div>
@@ -145,12 +143,15 @@ getScripts =->
   """
 
 
-getDefaultGroupContents =->
+getDefaultGroupContents = (title)->
   """
-  Hi —
-
-  This is a group on Koding.  It doesn't have a readme.  That's all we know.
-
-  Sincerly,
-  The Internet
-  """.replace /\n/g, '<br>'
+  <h1>Hello!</h1>
+  <p>Welcome to the #{title} group on Koding.<p>
+  <h2>Talk.</h2>
+  <p>Looking for people who share your interest? You are in the right place. And you can discuss your ideas, questions and problems with them easily.</p>
+  <h2>Share.</h2>
+  <p>Here you will be able to find and share interesting content. Experts share their wisdom through links or tutorials, professionals answer the questions of those who want to learn.</p>
+  <h2>Collaborate.</h2>
+  <p>You will be able to share your code, thoughts and designs with like-minded enthusiasts, discussing and improving it with a community dedicated to improving each other's work.</p>
+  <p>Go ahead, the members of #{title} are waiting for you.</p>
+  """#.replace /\n/g, '<br>'
