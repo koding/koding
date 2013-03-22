@@ -93,7 +93,7 @@
   shadow                    inset 0 3px 1px 3px rgba(250,250,250,.5)
   gradient                  rgb(255,255,255),rgb(242,242,242)
   height                    auto
-  height                77px
+  height                    77px
   width                     auto
   border-bottom             1px solid rgb(229,229,229)
   padding                   20px 23px 20px 23px
@@ -104,24 +104,31 @@
 
   .profile-name
     borderBox()
+    vendor                  font-smoothing, antialiased
+    vendor                  text-rendering, geometricPrecision
     max-width               700px
-    color                   #ff9200
     font-size               32px
     width                   auto
     display                 inline-block
     color                   #444
     border-bottom           2px solid #ff9200
+    margin-right            10px
+    white-space             nowrap
+    text-overflow           ellipsis
 
   .profile-bio
     borderBox()
+    vendor                  font-smoothing, antialiased
+    vendor                  text-rendering, geometricPrecision
     color                   #888
     font-size               12px
     height                  29px
-    overflow-y              scroll
+    overflow                hidden
+    text-overflow           ellipsis
+    white-space             nowrap
     width                   auto
     font-weight             300
     display                 inline
-    padding-left            10px
 
 .profile-nickname
   borderBox()
@@ -582,7 +589,7 @@ textarea.profile-handle-customize.kdinput
     top                     0
     right                   0
 
-.static-content
+.about-sidebar .static-content
   padding                   10px
 
   border-bottom             1px solid #e8e8e8
