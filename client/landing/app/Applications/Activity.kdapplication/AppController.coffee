@@ -207,17 +207,33 @@ class ActivityAppController extends AppController
 
     unless isLoading
       if @listController.itemsOrdered.last
+
+        # DEBUG: duplicate entries in activity feed
         lastItemData = @listController.itemsOrdered.last.getData()
-        # memberbucket data has no serverside model it comes from cache
-        # so it has no meta, that's why we check its date by its overview
-        lastDate = if lastItemData.createdAtTimestamps
-          new Date lastItemData.createdAtTimestamps.first
-        else
-          new Date lastItemData.meta.createdAt
+        lastDate = @getTimeFromItem(lastItemData)
+        lastId = lastItemData._id
+
+        firstItemData = @listController.itemsOrdered.first.getData()
+        firstDate = @getTimeFromItem(firstItemData)
+        firstId = firstItemData._id
+
+        timeStamps =
+          top:
+            date:firstDate
+            id:lastId
+          bottom:
+            date:lastDate
+            id:lastId
+          correct:firstDate>lastDate
+
+        _rollbar.push(msg:"duplicate entries debug", timeStamps:timeStamps, level:"debug")
+        # DEBUG: duplicate entries in activity feed
       else
         lastDate = new Date
+        _rollbar.push(msg:"could not find date", date:lastDate)
 
       lastTimeStamp = lastDate.getTime()
+
       @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
