@@ -110,8 +110,15 @@ class KDListViewController extends KDViewController
   ###
 
   addItem:(itemData, index, animation)->
+    dataId = itemData.getId()
 
-    @getListView().addItem itemData, index, animation
+    if dataId?
+      if @itemsIndexed[dataId]
+        console.log "duplicate entry", dataId
+        _rollbar.push("duplicate entry", itemData.bongo_?.constructorName, dataId)
+      else
+        @itemsIndexed[dataId] = true
+        @getListView().addItem itemData, index, animation
 
   removeItem:(itemInstance, itemData, index)->
 
@@ -127,8 +134,6 @@ class KDListViewController extends KDViewController
       @itemsOrdered.splice(actualIndex, 0, view)
     else
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
-    if view.getData()?
-      @itemsIndexed[view.getItemDataId()] = view
 
     if options.selection
       @listenTo
