@@ -5,7 +5,7 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     {title, slug, body} = @getData()
-    @backgroundImage = "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
+    @backgroundImage = "http://lorempixel.com/80/80/?#{@utils.getRandomNumber()}"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
@@ -31,16 +31,7 @@ class GroupsListItemView extends KDListItemView
       attributes  :
         href      : "/#{slug}"
         target    : slug
-      pistachio   : '{div{#(title)}}'
-      tooltip     :
-        title     : title
-        direction : 'right'
-        placement : 'top'
-        selector : 'div.data'
-        offset    :
-          top     : 6
-          left    : -2
-        showOnlyWhenOverflowing : yes
+      pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
     , data
 
@@ -99,7 +90,7 @@ class GroupsListItemView extends KDListItemView
       click   : @bound 'privateGroupOpenHandler'
 
     memberCount = @getData().counts?.members or 0
-    memberCount = if memberCount > 10 then 10 else memberCount
+    memberCount = if memberCount > 19 then 19 else memberCount
 
     members = ({title: @utils.getDummyName()} for i in [0..memberCount])
 
@@ -119,6 +110,10 @@ class GroupsListItemView extends KDListItemView
     @members.on "viewAppended", ->
       membersController.instantiateListItems members
 
+    @ownGroupTitle = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "own-group-title"
+      partial   : "<span/>You are a member"
 
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
@@ -134,15 +129,19 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
+  markOwnGroup:-> @setClass "own-group"
+
   pistachio:->
     """
     <div class="wrapper">
       <span class="avatar">{{>@avatar}}</span>
-      <div class="content">
+      <div class="content right-overflow">
         {h3{> @titleLink}}
         {article{ #(body)}}
       </div>
+      <cite>MEMBERS</cite>
       {{> @members}}
+      {{> @ownGroupTitle}}
     </div>
     """
 
@@ -184,7 +183,10 @@ class GroupItemMemberView extends KDListItemView
 
     @setTooltip title : @getData().title
 
-  partial:-> ''
+  partial:->
+    """
+    <img class="avatar-image" src="http://lorempixel.com/60/60/?#{KD.utils.getRandomNumber()}">
+    """
 
 class ModalGroupsListItem extends TopicsListItemView
 
