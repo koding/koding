@@ -75,9 +75,13 @@ class AvatarTooltipView extends KDView
     origin = options.origin
 
     @profileName = new KDCustomHTMLView
+      tagName : 'a'
       cssClass : 'profile-name'
-      click:(event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
+      # click:(event)=>
+      #   KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
+      attributes:
+        href : "/#{@getData().profile.nickname}"
+        target : '_blank'
       pistachio : \
       """
         <h2>
