@@ -40,6 +40,9 @@ module.exports =
   watchGoBroker : no
   compileGo     : no
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -66,9 +69,6 @@ module.exports =
   #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -119,7 +119,7 @@ module.exports =
   mq            :
     host        : 'web-dev.in.koding.com'
     login       : 'guest'
-    componentUser: "<component>"
+    componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'

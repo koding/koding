@@ -87,6 +87,26 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
+  decimalToAnother:(n, radix) ->
+    hex = []
+    for i in [0..10]
+      hex[i+1] = i
+
+    s = ''
+    a = n
+    while a >= radix
+      b = a % radix
+      a = Math.floor a / radix
+      s += hex[b + 1]
+
+    s += hex[a + 1]
+    n = s.length
+    t = ''
+    for i in [0...n]
+      t = t + s.substring n - i - 1, n - i
+    s = t
+    s
+
   proxifyUrl:(url="")->
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
