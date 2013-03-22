@@ -92,6 +92,7 @@ class GroupsAppController extends AppController
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
+      listCssClass          : "groups"
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
