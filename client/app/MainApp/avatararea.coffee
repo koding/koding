@@ -353,11 +353,13 @@ class PopupNotificationListItem extends NotificationListItem
 
   click:(event)->
 
-    appManager.openApplication 'Inbox'
-    appManager.tell "Inbox", "goToNotifications", @
+    if @getData().type is 'CFolloweeBucketActivity'
+      appManager.openApplication 'Inbox'
+      appManager.tell "Inbox", "goToNotifications", @
 
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    super
 
     # If we need to use implement click to mark as read for notifications
     # Just un-comment following 3 line. A friend from past.
