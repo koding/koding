@@ -47,6 +47,11 @@ class StaticProfileAboutView extends KDView
         cssClass : 'hidden'
       @editView = new KDView
         cssClass : 'hidden'
+
+    @sideBarView = new StaticProfileAboutSidebarView
+      cssClass : 'about-sidebar'
+    , @getData()
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -55,6 +60,7 @@ class StaticProfileAboutView extends KDView
   pistachio:->
     """
     {{> @profileHeaderView}}
+    {{> @sideBarView}}
     {{> @editButton}}
     {{> @editView}}
     <div class="about-body">
@@ -66,6 +72,22 @@ class StaticProfileAboutView extends KDView
     </div>
 
     """
+
+
+class StaticProfileAboutSidebarView extends KDView
+  constructor:(options,data)->
+    super options,data
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    I AM SIDEBAR
+    """
+
 
 class StaticProfileAboutHeaderView extends KDView
   constructor:(options,data)->
