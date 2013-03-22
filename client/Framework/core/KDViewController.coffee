@@ -18,4 +18,4 @@ class KDViewController extends KDController
     else
       aViewInstance.once 'viewAppended', cb
       aViewInstance.once 'KDObjectWillBeDestroyed', =>
-        KD.utils.defer => @destroy()
+        KD.utils.defer @bound "destroy"

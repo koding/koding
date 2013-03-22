@@ -98,22 +98,22 @@ class AceFindAndReplaceView extends JView
     regExp        : @selections.indexOf("regex") > -1
     backwards     : no
 
-  findNext: -> @find_ "next"
+  findNext: -> @findHelper "next"
 
-  findPrev: -> @find_ "prev"
+  findPrev: -> @findHelper "prev"
 
-  find_: (direction) ->
+  findHelper: (direction) ->
     keyword = @findInput.getValue()
     return unless keyword
     methodName = if direction is "prev" then "findPrevious" else "find"
     @getDelegate().ace.editor[methodName] @findInput.getValue(), @getSearchOptions()
     @findInput.focus()
 
-  replace:    -> @replace_ no
+  replace:    -> @replaceHelper no
 
-  replaceAll: -> @replace_ yes
+  replaceAll: -> @replaceHelper yes
 
-  replace_: (doReplaceAll) ->
+  replaceHelper: (doReplaceAll) ->
     findKeyword    = @findInput.getValue()
     replaceKeyword = @replaceInput.getValue()
     return unless findKeyword or replaceKeyword
