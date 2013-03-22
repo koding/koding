@@ -67,7 +67,7 @@ class LinkGroup extends KDCustomHTMLView
     @createMoreLink()
     # fix for old cache instances
     count = totalCount
-    count = 20 if count is 4 and not @participant2
+    count = 1e3 if count is 4 and not @participant3
     switch count
       when 0 then ""
       when 1 then "{{> @participant0}}#{suffix}"
