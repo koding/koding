@@ -69,7 +69,7 @@ def get_process_path(cmd):
         return exe
 
 def print_usage():
-    print "Usage: %s start|stop|list <service1> ..." % sys.argv[0]
+    print "Usage: %s start|stop|status|list <service1> ..." % sys.argv[0]
     print "Example:"
     print "  %s start web" % sys.argv[0]
 
@@ -88,7 +88,7 @@ def main():
         print_usage()
         return -1
 
-    if operation not in ('start', 'stop', 'list'):
+    if operation not in ('start', 'stop', 'list', 'status'):
         print_usage()
         return -1
 
@@ -98,37 +98,46 @@ def main():
         for name in rules:
             print name
         return 0
-
-    unknown = set(services) - set(rules.keys())
-    if len(unknown):
-        print "Unknown service(s): %s" % ', '.join(unknown) 
-        return -1
+    elif operation in ('start', 'stop'):
+        unknown = set(services) - set(rules.keys())
+        if len(unknown):
+            print "Unknown service(s): %s" % ', '.join(unknown) 
+            return -1
+    elif operation == 'status':
+        services = rules.keys()
 
     rule_commands = []
     for service in services:
-        cmds = rules[service]
-        if isinstance(cmds, str):
-            cmds = [cmds]
-        for cmd in cmds:
+        if isinstance(rules[service], str):
+            rules[service] = [rules[service]]
+        for i, cmd in enumerate(rules[service]):
             cmd = shlex.split(cmd)
             cmd = shlex.split(get_process_path(cmd[0])) + cmd[1:]
+            rules[service][i] = cmd
             rule_commands.append(cmd)
 
     running_processes = []
     running_commands = []
-    for process in psutil.get_process_list():
+    for process in psutil.process_iter():
         try:
             cwd = os.path.abspath(process.getcwd())
         except:
             continue
         cmd = process.cmdline
+        if not len(cmd):
+            continue
         cmd[0] = process.exe
         if cwd == run_dir:
             if cmd in rule_commands:
                 running_processes.append(process)
                 running_commands.append(cmd)
 
-    if operation == 'stop':
+    if operation == 'status':
+        for cmd in running_commands:
+            for service in rules:
+                if cmd in rules[service]:
+                    print service
+    elif operation == 'stop':
         for proc in running_processes:
             kill_group(proc, signal.SIGKILL)
     elif operation == 'start':
