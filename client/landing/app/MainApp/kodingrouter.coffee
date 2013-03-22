@@ -1,6 +1,8 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
+    @landingPageLoading = KD.config.groupEntryPoint? 
+
     @openRoutes = {}
     @openRoutesById = {}
     @getSingleton('contentDisplayController')
@@ -8,7 +10,9 @@ class KodingRouter extends KDRouter
     @ready = no
     @getSingleton('mainController').once 'AccountChanged', =>
       @ready = yes
-      @utils.defer => @emit 'ready'
+      @utils.defer =>
+        @emit 'ready'
+        @landingPageLoading = no
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -131,18 +135,6 @@ class KodingRouter extends KDRouter
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
-
-    loader = new KDLoaderView
-      size          :
-        width       : 30
-      loaderOptions :
-        color       : "#FFFFFF"
-    loader.appendToSelector '#main-loader'
-    loader.show()
-
-    mainController.on "AppIsReady", =>
-      loader.destroy()
-      KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
@@ -286,7 +278,6 @@ class KodingRouter extends KDRouter
 
       # top level names
       '/:name':do->
-
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
@@ -294,7 +285,8 @@ class KodingRouter extends KDRouter
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
-          return if KD.config.groupEntryPoint?
+          return  if @landingPageLoading
+          
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 
