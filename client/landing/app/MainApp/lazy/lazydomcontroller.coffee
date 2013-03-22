@@ -112,9 +112,18 @@ class LazyDomController extends KDController
       when 'about'
         @getSingleton('staticProfileController').emit 'AboutLinkClicked'
 
-      when 'topics','members','groups','apps'
-        new KDNotificationView
-          title : 'This feature is currently disabled'
+      when 'topics'
+        @getSingleton('staticProfileController').emit 'TopicLinkClicked'
+
+      when 'members'
+        @getSingleton('staticProfileController').emit 'PeopleLinkClicked'
+
+      when 'groups'
+        @getSingleton('staticProfileController').emit 'GroupsLinkClicked'
+
+      when 'apps'
+        @getSingleton('staticProfileController').emit 'AppsLinkClicked'
+
       when 'home'
         @getSingleton('staticProfileController').emit 'HomeLinkClicked'
 
