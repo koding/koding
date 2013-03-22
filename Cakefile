@@ -570,7 +570,6 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     log.warn "email not set! Use -e flag"
     return false
 
-  # cmd = "ssh cblum@gateway.dev.service.aws.koding.com && sudo su && source /etc/openvpn/easy-rsa/vars && /etc/openvpn/easy-rsa/pkitool #{username}"
   cmd = "ssh #{username}@vpn.in.koding.com -- sudo /root/addVPNuser.sh #{name} #{email}"
   log.info "executing... cmd: #{cmd}"
   processes.spawn
