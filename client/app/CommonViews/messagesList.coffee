@@ -101,7 +101,10 @@ class NotificationListItem extends KDListItemView
     {group} = @snapshot
 
     # Cleanup my activities on my content
-    myid = KD.whoami()._id
+    myid = KD.whoami()?.getId()
+
+    return  unless myid
+    
     group = (member for member in group when member.id isnt myid)
 
     @participants = new options.linkGroupClass {group}
