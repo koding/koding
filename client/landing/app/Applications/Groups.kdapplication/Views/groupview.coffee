@@ -11,8 +11,8 @@ class GroupView extends ActivityContentDisplay
       bind        : "error"
       error       : =>
         @thumb.$().attr "src", "/images/default.app.thumb.png"
-      attributes  :
-        src       : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}}"
+      # attributes  :
+      #   src       : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}}"
 
     @joinButton = new JoinButton
       style           : if data.member then "join follow-btn following-topic" else "join follow-btn"
