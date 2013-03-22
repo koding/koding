@@ -47,12 +47,20 @@ class FeederResultsController extends KDViewController
     listController.on 'LazyLoadThresholdReached', =>
       @emit "LazyLoadThresholdReached"
 
+
+
     tabView.addPane @panes[name] = new paneClass
       name : name
 
-    @panes[name].addSubView @panes[name].listHeader  = new CommonListHeader
+    @panes[name].addSubView @panes[name].listHeader = header = new CommonListHeader
       title : filter.optional_title or filter.title
 
     @panes[name].addSubView @panes[name].listWrapper = listController.getView()
+
+    listController.scrollView?.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 0
+        header.setClass "scrolling-up-outset"
+      else
+        header.unsetClass "scrolling-up-outset"
 
     callback? listController
