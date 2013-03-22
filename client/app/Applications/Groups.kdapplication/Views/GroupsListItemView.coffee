@@ -5,7 +5,7 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     {title, slug, body} = @getData()
-    @backgroundImage = "http://lorempixel.com/80/80/?#{@utils.getRandomNumber()}"
+    @backgroundImage = "../images/defaultavatar/default.group.128.png"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
@@ -181,11 +181,13 @@ class GroupItemMemberView extends KDListItemView
 
     super options, data
 
-    @setTooltip title : @getData().title
+    @setTooltip
+      title : @getData().title
+      delay : 300
 
   partial:->
     """
-    <img class="avatar-image" src="http://lorempixel.com/60/60/?#{KD.utils.getRandomNumber()}">
+    <img class="avatar-image" src="../images/defaultavatar/default.avatar.60.png">
     """
 
 class ModalGroupsListItem extends TopicsListItemView

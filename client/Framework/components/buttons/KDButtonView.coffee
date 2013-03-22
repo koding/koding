@@ -21,7 +21,7 @@ class KDButtonView extends KDView
     @setCallback options.callback
     @setTitle options.title
     @setIconClass options.iconClass if options.iconClass
-    @showIcon()                     if options.icon
+    @showIcon()                     if options.icon or options.iconOnly
     @setIconOnly options.iconOnly   if options.iconOnly
     @disable()                      if options.disabled
 
