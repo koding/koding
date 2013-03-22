@@ -78,6 +78,105 @@ class StaticProfileAboutSidebarView extends KDView
   constructor:(options,data)->
     super options,data
 
+    @controllers = {}
+    @wrappers = {}
+    @profileUser = @getData()
+
+    topicsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticTopicsListItem
+      viewOptions       :
+        cssClass        : 'static-content topic'
+      showHeader        : no
+
+    @topicsListWrapper = topicsController.getView()
+
+    topicsController.hideLazyLoader()
+
+    @profileUser.fetchFollowedTopics {},{},(err,topics)=>
+      if topics
+        @refreshActivities err, topics, 'topic'
+      else
+        topicsController.hideLazyLoader()
+        log 'No topics'
+
+    @controllers['topic'] = topicsController
+    @wrappers['topic']    = @topicsListWrapper
+
+    groupsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticGroupsListItem
+      viewOptions       :
+        cssClass        : 'static-content group'
+      showHeader        : no
+
+    @groupsListWrapper = groupsController.getView()
+
+    @profileUser.fetchGroups (err,groups)=>
+      if groups
+        groupList = (item.group for item in groups)
+        @refreshActivities err, groupList, 'group'
+      else
+        groupsController.hideLazyLoader()
+        log 'No groups'
+
+    @controllers['group'] = groupsController
+    @wrappers['group']    = @groupsListWrapper
+
+    appsController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticAppsListItem
+      viewOptions       :
+        cssClass        : 'static-content app'
+      showHeader        : no
+
+    @appsListWrapper = appsController.getView()
+
+    KD.remote.api.JApp.some {originId : @profileUser.getId()},{},(err,apps)=>
+      if apps?.length
+        @refreshActivities err, apps, 'app'
+      else
+        appsController.hideLazyLoader()
+        log 'No apps'
+
+    @controllers['app'] = appsController
+    @wrappers['app']    = @appsListWrapper
+
+    membersController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticMembersListItem
+      viewOptions       :
+        cssClass        : 'static-content member'
+      showHeader        : no
+
+    @membersListWrapper = membersController.getView()
+
+    @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
+      if members
+        @refreshActivities err, members, 'member'
+      else
+        membersController.hideLazyLoader()
+        log 'No members'
+
+    @controllers['member'] = membersController
+    @wrappers['member']    = @membersListWrapper
+
+
+  refreshActivities:(err,activities,type)->
+    controller = @controllers[type]
+
+    @wrappers[type].show()
+
+    controller.removeAllItems()
+    controller.listActivities activities
+
+    controller.hideLazyLoader()
+
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -85,6 +184,10 @@ class StaticProfileAboutSidebarView extends KDView
 
   pistachio:->
     """
+    {{> @topicsListWrapper}}
+    {{> @groupsListWrapper}}
+    {{> @appsListWrapper}}
+    {{> @membersListWrapper}}
     I AM SIDEBAR
     """
 
