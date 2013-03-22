@@ -398,7 +398,7 @@ class StaticProfileController extends KDController
 
   hideLoadingBar:->
     @profileLoadingBar.unsetClass 'active'
-    @profileLoaderView.hide()
+    # @profileLoaderView.hide()
 
   showLoadingBar:->
     @profileLoadingBar.setClass 'active'
