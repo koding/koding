@@ -602,7 +602,7 @@ class KodingAppsController extends KDController
     $("head .app-#{__utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
+        urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
         $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
