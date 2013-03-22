@@ -13,7 +13,7 @@ class LinkController extends KDController
       when JGroup     then "/#{data.slug}"
       when JTag
         {group, slug} = data
-        route = if group is 'koding' then '' else "#{group}"
+        route = if group is 'koding' then '' else "/#{group}"
         route += "/Topics/#{slug}"
     KD.getSingleton('router').handleRoute route, {state:data}  if route?
 

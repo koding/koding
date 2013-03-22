@@ -8,12 +8,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   nickname  ?= ''
   about     ?= ''
 
-  sortedTags = []
-  skillTags ?= {}
-  for i in [0...skillTags.length]
-    sortedTags.push skillTags[i]
-  sortedTags.sort()
-
   """
   <!DOCTYPE html>
   <html>

@@ -94,6 +94,7 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
+
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
     query = @utils.parseQuery query.join '&'
@@ -105,8 +106,6 @@ class KDRouter extends KDObject
 
     node = @tree
     params = {}
-
-    isRooted = '/' is frag[0]
 
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'

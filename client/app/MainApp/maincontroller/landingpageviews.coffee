@@ -97,11 +97,11 @@ class LandingPageNavigationController extends NavigationController
       profileItems = [
         { title : 'Home',     action : 'home',      type : 'user'}
         { title : 'Activity', action : 'activity',  type : 'user'}
-        { title : 'Topics',   action : 'topics',    type : 'user'}
-        { title : 'People',   action : 'members',   type : 'user'}
-        { title : 'Groups',   action : 'groups',    type : 'user'}
+        # { title : 'Topics',   action : 'topics',    type : 'user'}
+        # { title : 'People',   action : 'members',   type : 'user'}
+        # { title : 'Groups',   action : 'groups',    type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
-        { title : 'Apps',     action : 'apps',      type : 'user'}
+        # { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items

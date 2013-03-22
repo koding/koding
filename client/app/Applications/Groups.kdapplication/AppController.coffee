@@ -589,7 +589,7 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
-  createContentDisplay:([group])->
+  createContentDisplay:(group)->
     # controller = new ContentDisplayControllerGroups null, content
     # contentDisplay = controller.getView()
     @groupView = groupView = new GroupView
