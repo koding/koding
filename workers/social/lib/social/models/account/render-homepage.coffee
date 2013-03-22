@@ -117,7 +117,7 @@ getStaticProfileAbout = (profile)->
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
-    postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy "at" hh:MM:ss TT')
+    postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
     posts+="""
       <div class="content-item static">
         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
