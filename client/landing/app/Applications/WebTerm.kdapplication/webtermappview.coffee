@@ -12,10 +12,6 @@ class WebTermAppView extends JView
       tabHandleContainer : @tabHandleContainer
       resizeTabHandles   : yes
 
-    @on 'ViewClosed', => @emit 'WebTermAppViewWantsToClose'
-
-    @on 'AllViewsClosed', => @emit 'WebTermAppViewWantsToClose'
-
     @tabView.on 'PaneDidShow', (pane) =>
       {webTermView} = pane.getOptions()
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes

@@ -174,9 +174,11 @@ class Sidebar extends JView
       @finderResizeHandle._dragged = yes
       newFpWidth = @_fpWidth + x
       return @finderResizeHandle.$().css left: '' if newFpWidth < 13
-      cp.$().css left : cp._left + x, width : cp._width - x
+      cpWidth = cp._width - x
+      cp.$().css left : cp._left + x, width : cpWidth
       @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
+      cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
     KD.utils.wait 8000, =>
       @$('#finder-bottom-controls').addClass 'go-down'
