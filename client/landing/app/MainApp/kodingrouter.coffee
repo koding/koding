@@ -1,7 +1,7 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
-    @landingPageLoading = KD.config.groupEntryPoint? 
+    @landingPageLoading = KD.config.groupEntryPoint?
 
     @openRoutes = {}
     @openRoutesById = {}
