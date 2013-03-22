@@ -149,6 +149,7 @@ class ActivityUpdateWidgetController extends KDViewController
       fakeTag       = $.extend {},fakeTag,
         title       : tag.title or tag.$suggest
         body        : tag.title or tag.$suggest
+        group       : tag.group or 'koding'
         counts      :
           followers : 0
           following : 0
@@ -158,7 +159,6 @@ class ActivityUpdateWidgetController extends KDViewController
     tags
 
   createFakeDataStructureForOwner = (activity)->
-
     oldActivity = activity
     constructorName = activity.fakeType
     # prepare fake post
@@ -168,6 +168,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
+      group       : activity.group or 'koding'
       html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0
