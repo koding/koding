@@ -49,11 +49,14 @@ class KDTabView extends KDScrollView
     if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
+      paneOptions    = paneInstance.options
+
       @addHandle newTabHandle = new tabHandleClass
         pane      : paneInstance
-        title     : paneInstance.options.name
-        hidden    : paneInstance.options.hiddenHandle
-        view      : paneInstance.options.tabHandleView
+        title     : paneOptions.name or paneOptions.title
+        hidden    : paneOptions.hiddenHandle
+        view      : paneOptions.tabHandleView
+        closable  : paneOptions.closable
         sortable  : @getOptions().sortable
         click     : (event)=> @handleMouseDownDefaultAction newTabHandle, event
 
