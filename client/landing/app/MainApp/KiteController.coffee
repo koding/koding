@@ -60,7 +60,7 @@ class KiteController extends KDController
       options.withArgs or= {}
 
     # notify "Talking to #{options.kiteName} asking #{options.withArgs.command}, #{options.toDo}"
-    return warn "you are not logged in."  if KD.whoami()?.tellKite?
+    return warn "you are not logged in."  unless KD.whoami()?.tellKite?
     
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
