@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-v', '--version [VERSION]', 'Switch to a specific version'
 
 {argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
@@ -40,6 +41,7 @@ fs                 = require "fs"
 http               = require 'http'
 url                = require 'url'
 nodePath           = require 'path'
+portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
@@ -110,7 +112,7 @@ task 'applicationsKite',({configFile})->
 
 task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  {webserver} = KONFIG
+  {webserver,sourceServer} = KONFIG
 
   runServer = (config, port) ->
     processes.fork
@@ -119,11 +121,22 @@ task 'webserver', ({configFile}) ->
       restart         : yes
       restartInterval : 100
 
-  webPort = webserver.port
-  webPort = [webPort] unless Array.isArray webPort
+  if webserver.clusterSize > 1
+    webPortStart = webserver.port
+    webPortEnd   = webserver.port + webserver.clusterSize - 1
+    webPort = [webPortStart..webPortEnd]
+  else
+    webPort = [webserver.port]
+
   webPort.forEach (port) ->
     runServer configFile, port
-    return # MORE THAN 1 PORT IS NOT ALLOWED. CONFUSES PROCESS MODULE.
+
+  if sourceServer?.enabled
+    processes.fork
+      name            : 'sourceserver'
+      cmd             : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
+      restart         : yes
+      restartInterval : 100
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -307,6 +320,174 @@ task 'run', (options)->
 
 task 'buildClient', (options)->
   (new Builder).buildClient options
+
+task 'release',(options)->
+  # Release and shared data directories
+  dataDir         = nodePath.join __dirname, "../koding-data"
+  releaseDir      = nodePath.join __dirname, "../koding-release"
+
+  unless fs.existsSync dataDir
+    fs.mkdirSync dataDir
+  unless fs.existsSync releaseDir
+    fs.mkdirSync releaseDir
+
+  # Temporary file for runnings bash scripts
+  tmpFile         = "/tmp/#{Date.now()}"
+
+  # Get ready for new release
+  config          = require('koding-config-manager').load("main.#{options.configFile}")
+  version         = parseInt config.version
+
+  buildDir        = "#{releaseDir}/#{version}"
+  dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
+
+  # Starting ports
+  webPort = config.haproxy.webPort + (version % 10) * 100 + 1
+
+  newRelease = ->
+    # Get previous dynamic config
+    if fs.existsSync dataDir+"/dynamic-config.json"
+      conf = JSON.parse fs.readFileSync dataDir+"/dynamic-config.json"
+    else
+      conf = JSON.parse fs.readFileSync __dirname+"/config/.dynamic-config.json"
+
+    # Build dynamic config
+    conf.webInternalPort   = webPort
+    conf.webClusterSize    = config.webserver.clusterSize
+    conf.webPort           = config.haproxy.webPort
+    unless conf.releaseDir == buildDir
+      conf.oldReleaseDir   = conf.releaseDir
+    conf.releaseDir        = buildDir
+
+    # Install new release
+    bash = """
+      echo Preparing new release...
+      rm -rf #{buildDir}
+      mkdir -p #{buildDir}
+      cp -R . #{buildDir}
+      cd #{buildDir}
+      npm install --unsafe-perm
+      echo
+    """
+
+    fs.writeFileSync tmpFile,bash
+
+    processes.exec "bash #{tmpFile}",()->
+      # Save config to release directory
+      fs.writeFileSync dynCfgPath,JSON.stringify conf
+
+      # Show release information
+      console.log "Version        : " + version
+      console.log "Release Folder : " + buildDir
+      console.log "Web Port       : " + webPort
+
+  # Deploy new release if necessary
+  if fs.existsSync dynCfgPath
+    oldConf = JSON.parse fs.readFileSync dynCfgPath
+    portchecker.isOpen oldConf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
+      if webOpen
+        console.log "Version #{version} is running. Creating a new release."
+        version++
+        fs.writeFileSync 'VERSION', version
+        buildDir        = "#{releaseDir}/#{version}"
+        # proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
+        dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
+        webPort = config.haproxy.webPort + (version % 10) * 100 + 1
+      newRelease()
+  else
+    newRelease()
+
+task 'switchProxy', (options) ->
+  releaseDir      = nodePath.join __dirname, "../koding-release"
+  dataDir         = nodePath.join __dirname, "../koding-data"
+
+  dynCfgPath      = "#{dataDir}/dynamic-config.json"
+  proxyCfgPath    = "#{dataDir}/haproxy.cfg"
+  haPidFile       = "#{dataDir}/haproxy.pid"
+
+  unless options.version
+    console.log "Available versions:"
+    for version in fs.readdirSync releaseDir
+      vConf = JSON.parse fs.readFileSync "#{releaseDir}/#{version}/config/.dynamic-config.json"
+      console.log "  #{version} : port #{vConf.webInternalPort}" 
+    console.log ""
+    console.log "Use cake -v [VERSION] switchProxy"
+    process.exit()
+
+  newDynCfg   = "#{releaseDir}/#{options.version}/config/.dynamic-config.json"
+
+  unless fs.existsSync newDynCfg
+    console.log "No such version."
+    console.log "Drop -v argument to see deployed versions."
+    process.exit()
+
+  conf        = JSON.parse fs.readFileSync newDynCfg
+
+  updateProxy = ->
+    haproxyCfg = """
+      global
+          daemon
+          maxconn 512
+
+      defaults
+          mode http
+          timeout connect 5000ms
+          timeout client 50000ms
+          timeout server 50000ms
+
+      listen stats :1234
+          mode http
+          stats enable
+          stats hide-version
+          stats realm 'Koding'
+          stats uri /
+          stats auth koding:vv8ogdHLaFA2MQA
+
+      listen http-in
+          bind *:#{conf.webPort}
+          option httpchk GET /index.html HTTP/1.0
+      
+    """
+
+    ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize-1]
+    for port, i in ports
+      haproxyCfg += "    server server#{i} 127.0.0.1:#{port} maxconn 128 check port #{port}\n"
+
+    # Save proxy configuration to release directory
+    fs.writeFileSync proxyCfgPath, haproxyCfg
+
+    if fs.existsSync dynCfgPath
+      fs.unlinkSync dynCfgPath
+    fs.symlinkSync newDynCfg, dynCfgPath
+    fs.readFile haPidFile, (err, data) ->
+      unless err
+        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile} -st #{data.toString().trim()}"
+      else
+        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile}"
+
+      processes.exec haProxyBash, ()->
+        console.log ""
+        console.log "Done."
+
+  # Update proxy configuration
+  tries = 10
+  tryProxy = ->
+    portchecker.isOpen conf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
+      console.log "Checking if new release is up and running..."
+      if webOpen
+        updateProxy()
+      else
+        tries--
+        if tries > 0
+          setTimeout tryProxy, 5000
+        else
+          console.log ""
+          console.log "This release is not running: #{conf.releaseDir}"
+          console.log "CD into #{conf.releaseDir}/ and execute cake run"
+          console.log ""
+          console.log ""
+
+  tryProxy()
 
 task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
