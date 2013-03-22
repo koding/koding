@@ -1,0 +1,8 @@
+web:
+    cake -c dev webserver
+auth:
+    cake -c dev authWorker
+social:
+    cake -c dev socialWorker
+cache:
+    cake -c dev cacheWorker
