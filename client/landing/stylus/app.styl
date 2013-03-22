@@ -508,9 +508,17 @@ span.main-nav-icon
     text-align    center
     size          auto,16px
     bg            image,none
+  &.register
+    bg(position,0 -420px)
+  &.request-access
+    bg(position,0 -540px)
 
 .kdlistitemview.selected
   span.main-nav-icon
+    &.request-access
+      bg(position,-20px -540px)
+    &.register
+      bg(position,-20px -420px)
     &.people
       bg(position,-20px -60px)
     &.home
@@ -1456,3 +1464,9 @@ span.main-nav-icon
 
 #landing-page-sidebar
   padding-top        10px
+  .kdlistview
+    vendor           transition, opacity .15s ease
+    opacity          1
+    &.out
+      opacity        0
+

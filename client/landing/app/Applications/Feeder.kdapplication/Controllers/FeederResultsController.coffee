@@ -2,7 +2,7 @@ class FeederResultsController extends KDViewController
   constructor:(options = {}, data)->
     options.view                or= new FeederTabView hideHandleCloseIcons : yes
     options.paneClass           or= FeederTabPaneView
-    options.itemClass        or= KDListItemView
+    options.itemClass           or= KDListItemView
     options.listControllerClass or= KDListViewController
 
     super options,data

@@ -5,12 +5,13 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     {title, slug, body} = @getData()
-
+    @backgroundImage = "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
       attributes :
-        src : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
+        # src : @getData().avatar or "/images/defaultavatar/default.group.128.png"
+        src : @getData().avatar or @backgroundImage
 
     # @settingsButton = new KDButtonViewWithMenu
     #     cssClass    : 'transparent groups-settings-context groups-settings-menu'
@@ -153,6 +154,8 @@ class GroupsListItemView extends KDListItemView
 
     @setTemplate @pistachio()
     @template.update()
+
+    @$().css "background-image" : @backgroundImage
 
     # log @titleLink.$()[0]#.innerWidth
 

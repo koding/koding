@@ -1,17 +1,8 @@
-
 class LandingPageSideBar extends KDView
-
-  defaultItems =  items : [
-      { title : "Register", action : "register", loggedOut : yes }
-      { type  : "separator" }
-      { title : "Logout",   action : "logout",   loggedIn  : yes }
-      { title : "Login",    action : "login",    loggedOut : yes }
-    ]
 
   constructor:(isLoggedIn = no)->
 
-    options     =
-      lazyDomId : 'landing-page-sidebar'
+    options = lazyDomId : 'landing-page-sidebar'
 
     super options
 
@@ -23,19 +14,32 @@ class LandingPageSideBar extends KDView
       scrollView   : no
       wrapper      : no
       delegate     : @
-    , defaultItems
+    ,
+      items : [
+        { title : "Register", action : "register", loggedOut : yes }
+        { type  : "separator" }
+        { title : "Logout",   action : "logout",   loggedIn  : yes }
+        { title : "Login",    action : "login",    loggedOut : yes }
+      ]
 
     @on 'ListItemsInstantiated' , =>
       $("#profile-static-nav").remove()
 
     @addSubView @nav = @navController.getView()
 
-    @mainController.on "accountChanged.to.*", =>
-      @navController.removeAllItems()
-      @navController.instantiateListItems defaultItems.items
+    @mainController.on "accountChanged.to.*", => @navController.reset()
+    @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
 
 
 class LandingPageNavigationController extends NavigationController
+
+  reset:->
+    view = @getView()
+    view.setClass "out"
+    @utils.wait 200, =>
+      @removeAllItems()
+      @instantiateListItems @getData().items
+      view.unsetClass "out"
 
   constructor: ->
 
@@ -48,10 +52,9 @@ class LandingPageNavigationController extends NavigationController
       item.on "click", (event)->
         landingPageSideBar.emit "navItemIsClicked", item, event
 
-
-
-
   instantiateListItems:(items)->
+
+    items = items.slice()
 
     # Build groups menu
     if @lc.userEnteredFromGroup()
@@ -62,9 +65,7 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
-            items.unshift \
-              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
-            @_instantiateListItems items
+            @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
@@ -88,13 +89,13 @@ class LandingPageNavigationController extends NavigationController
 
       log 'entered from profile!'
       profileItems = [
-        { title : 'Home',action : 'home', type : 'user'}
-        { title : 'Activity',action : 'activity', type : 'user'}
-        { title : 'Topics', action : 'topics', type : 'user' }
-        { title : 'People', action : 'members', type : 'user'}
-        { title : 'Groups', action : 'groups', type : 'user'}
-        { title : 'About', action : 'about', type : 'user'}
-        { title : 'Apps', action : 'apps', type : 'user'}
+        { title : 'Home',     action : 'home',      type : 'user'}
+        { title : 'Activity', action : 'activity',  type : 'user'}
+        { title : 'Topics',   action : 'topics',    type : 'user'}
+        { title : 'People',   action : 'members',   type : 'user'}
+        { title : 'Groups',   action : 'groups',    type : 'user'}
+        { title : 'About',    action : 'about',     type : 'user'}
+        { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items
@@ -114,4 +115,11 @@ class LandingPageNavigationController extends NavigationController
       if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
 
 class LandingNavigationLink extends NavigationLink
+
+  constructor:(options = {}, data)->
+
+    data.type or= "account"
+
+    super options, data
+
   click:->

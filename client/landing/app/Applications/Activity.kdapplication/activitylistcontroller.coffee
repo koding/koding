@@ -22,15 +22,19 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
-    options.showHeader        ?= yes
+    options.showHeader         ?= yes
+
+    options.noItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity."
+
+    options.noMoreItemFoundWidget = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no more activity."
 
     super
 
     @_state = 'public'
-
-    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : "There is no activity item."
 
     @scrollView.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 0
@@ -40,11 +44,9 @@ class ActivityListController extends KDListViewController
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
 
-    @noActivityItem.hide()
-
   loadView:(mainView)->
 
-    @noActivityItem.hide()
+    @hideNoItemWidget()
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
@@ -79,7 +81,8 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-    return @noActivityItem.show()  unless cache.overview?
+
+    return @showNoItemWidget() unless cache.overview?
 
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1
