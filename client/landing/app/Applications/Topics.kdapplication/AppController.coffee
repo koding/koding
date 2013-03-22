@@ -22,6 +22,7 @@ class TopicsAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
+      useHeaderNav          : yes
       noItemFoundText       : "There is no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
