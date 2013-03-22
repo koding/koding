@@ -437,6 +437,7 @@ class StaticProfileController extends KDController
        @addStaticLogic callback
 
 
+
   addActivityLogic:(callback=->)->
     log 'adding activity logic'
     activityController = new ActivityListController
@@ -495,7 +496,7 @@ class StaticProfileController extends KDController
       lazyLoadThreshold : .99
       itemClass         : StaticTopicsListItem
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content topic'
       showHeader        : no
 
     topicsListWrapper = topicsController.getView()
@@ -526,7 +527,7 @@ class StaticProfileController extends KDController
       lazyLoadThreshold : .99
       itemClass         : StaticGroupsListItem
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content group'
       showHeader        : no
 
     groupsListWrapper = groupsController.getView()
@@ -556,7 +557,7 @@ class StaticProfileController extends KDController
       lazyLoadThreshold : .99
       itemClass         : StaticAppsListItem
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content app'
       showHeader        : no
 
     appsListWrapper = appsController.getView()
@@ -585,7 +586,7 @@ class StaticProfileController extends KDController
       lazyLoadThreshold : .99
       itemClass         : StaticMembersListItem
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content member'
       showHeader        : no
 
     membersListWrapper = membersController.getView()
@@ -606,7 +607,6 @@ class StaticProfileController extends KDController
     callback()
 
 
-
   addStaticLogic:(callback=->)->
     log 'adding static logic'
 
@@ -615,7 +615,7 @@ class StaticProfileController extends KDController
       lazyLoadThreshold : .99
       itemClass         : StaticActivityListItemView
       viewOptions       :
-        cssClass        : 'static-content'
+        cssClass        : 'static-content static'
       showHeader        : no
 
     staticListWrapper = staticController.getView()
@@ -654,6 +654,8 @@ class StaticProfileController extends KDController
 
   showHomeLink:->
     @homeLink.unsetClass 'invisible'
+
+
 
 class StaticNavLink extends KDView
   constructor:(options,data)->
@@ -743,9 +745,12 @@ class StaticGroupsListItem extends KDListItemView
 
 class StaticTopicsListItem extends KDListItemView
   partial:(data)->
-    # log data
+    log data
     "<div class='static-topic'>
        #{data.title}
+       #{data.body}
+       #{data.counts.followers}
+       #{data.counts.post}
     </div>"
 
 class StaticMembersListItem extends KDListItemView
