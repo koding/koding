@@ -76,6 +76,7 @@ def print_usage():
 def main():
     run_dir = os.getcwd()
     run_file = os.path.join(run_dir, 'Runfile')
+    run_log = os.path.join(run_dir, 'run.log')
 
     if not os.access(run_file, os.R_OK):
         print "Nothing to do"
@@ -143,7 +144,7 @@ def main():
     elif operation == 'start':
         for cmd in rule_commands:
             if cmd not in running_commands:
-                fork_command(cmd)
+                fork_command(cmd, run_log)
 
 if __name__ == '__main__':
     main()
