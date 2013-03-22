@@ -92,8 +92,8 @@ class StaticGroupController extends KDController
         facets    : @currentFacets
         to        : @activityController.itemsOrdered.last.getData().meta.createdAt
         bypass    : yes
-      , (err,activities)=>
-        @refreshActivities err, activities, =>
+      , (err,activities=[])=>
+        @appendActivities err, activities, =>
 
 
     @utils.defer =>
@@ -145,6 +145,14 @@ class StaticGroupController extends KDController
     @groupReadmeView.hide()
     controller = @activityController
     controller.removeAllItems()
+    controller.listActivities activities
+    controller.hideLazyLoader()
+    callback?()
+
+  appendActivities:(err,activities,callback)->
+    @groupReadmeView.hide()
+    controller = @activityController
+    # controller.removeAllItems()
     controller.listActivities activities
     controller.hideLazyLoader()
     callback?()
