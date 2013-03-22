@@ -24,7 +24,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
       <div id="main-loader"></div>
       <div id="landing-page-sidebar"></div>
 
-      <div class="profile-koding-logo">
+      <div class="group-koding-logo" id="group-koding-logo">
         <div class="logo" id='profile-koding-logo'></div>
       </div>
 
@@ -38,7 +38,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
         </div>
       </div>
       <div class="group-splitview" id="group-splitview">
-        <div class="group-content-links">
+        <div class="group-content-links" id="group-content-links">
           <h4>Show me</h4>
           <ul>
             <li class="" id="CBlogPostActivity">Blog Posts</li>
