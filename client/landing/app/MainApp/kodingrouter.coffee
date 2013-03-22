@@ -136,6 +136,7 @@ class KodingRouter extends KDRouter
         acc
       , {}
 
+
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
