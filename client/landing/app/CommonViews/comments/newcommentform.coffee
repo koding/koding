@@ -58,18 +58,17 @@ class NewCommentForm extends KDView
       commentForm.resetCommentField() if $.trim(@commentInput.getValue()) is ""
 
   commentInputReceivedFocus:()->
+    # @makeCommentFieldActive()
+    # list = @getDelegate()
+    # listLength = list.items.length
 
-    @makeCommentFieldActive()
-    list = @getDelegate()
-    listLength = list.items.length
+    # if list.items.length > 0
+    #   firstCommentTimestamp = list.items[0].getData().meta.createdAt
+    #   fromUnixTime          = Date.parse firstCommentTimestamp
+    # else
+    #   fromUnixTime = Date.parse 1e7
 
-    if list.items.length > 0
-      firstCommentTimestamp = list.items[0].getData().meta.createdAt
-      fromUnixTime          = Date.parse firstCommentTimestamp
-    else
-      fromUnixTime = Date.parse 1e7
-
-    callback = => @makeCommentFieldActive()
+    # list.emit "CommentInputReceivedFocus", fromUnixTime, @bound("makeCommentFieldActive")
 
   commentInputReceivedBlur:()->
     @resetCommentField()  if @commentInput.getValue() is ""

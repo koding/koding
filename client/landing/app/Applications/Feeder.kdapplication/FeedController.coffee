@@ -1,11 +1,13 @@
 class FeedController extends KDViewController
   constructor:(options={})->
-    facetsController = options.facetsController or FeederFacetsController
-    @facetsController   = new facetsController
-      filters   : options.filter
-      sorts     : options.sort
-      help      : options.help
-      delegate  : @
+
+
+    options.autoPopulate  or= no
+    options.filter        or= {}
+    options.sort          or= {}
+    options.limitPerPage  or= 10
+    options.useHeaderNav   ?= no
+    options.dataType      or= null
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -14,18 +16,33 @@ class FeedController extends KDViewController
       listCssClass  : options.listCssClass or ""
       delegate      : @
 
-    options.view or= new FeederSplitView
-      views   : [
-        @facetsController.getView()
-        @resultsController.getView()
-      ]
+    unless options.useHeaderNav
+      facetsController    = options.facetsController or FeederFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
 
-    options.autoPopulate  or= no
-    options.filter        or= {}
-    options.sort          or= {}
-    options.limitPerPage  or= 10
+      options.view or= new FeederSplitView
+        views   : [
+          @facetsController.getView()
+          @resultsController.getView()
+        ]
+    else
+      facetsController    = options.facetsController or FeederHeaderFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
+      
+      view = (options.view or= new KDView)
 
-    options.dataType      or= null
+      view.on "viewAppended", =>
+        view.addSubView @resultsController.getView()
+        view.addSubView @facetsController.getView()
+      
 
     super options, null
 
@@ -123,6 +140,7 @@ class FeedController extends KDViewController
     @noItemFound.hide()
 
   loadFeed:(filter = @selection)->
+
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
     itemClass  = @getOptions().itemClass
