@@ -91,7 +91,7 @@ class GroupsAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
-      # useHeaderNav          : yes
+      useHeaderNav          : yes
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
@@ -116,7 +116,7 @@ class GroupsAppController extends AppController
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex groups, (view)->
                   view.markOwnGroup()
-        following           :
+        mine                :
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
@@ -128,20 +128,19 @@ class GroupsAppController extends AppController
         #   dataSource        : (selector, options, callback)=>
         #     callback 'Coming soon!'
       sort                  :
-        'counts.followers'  :
+        'counts.members'    :
           title             : "Most popular"
           direction         : -1
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'counts.posts'      :
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
-      log @feedController
 
       @putAddAGroupButton()
       @emit 'ready'
@@ -223,8 +222,10 @@ class GroupsAppController extends AppController
     {facetsController} = @feedController
     innerNav = facetsController.getView()
     innerNav.addSubView addButton = new KDButtonView
-      title     : "Create a Group"
+      tooltip   :
+        title   : "Create a Group"
       style     : "small-gray"
+      iconOnly  : yes
       callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->

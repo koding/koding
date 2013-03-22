@@ -36,13 +36,13 @@ class FeedController extends KDViewController
         sorts     : options.sort
         help      : options.help
         delegate  : @
-      
-      view = (options.view or= new KDView)
+
+      view = (options.view or= new FeederSingleView)
 
       view.on "viewAppended", =>
         view.addSubView @resultsController.getView()
         view.addSubView @facetsController.getView()
-      
+
 
     super options, null
 
