@@ -123,6 +123,9 @@ class KodingRouter extends KDRouter
       else
         @loadContent name, section, slug, route, query
 
+  clear:(route="/#{KD.config.groupEntryPoint}", replaceState=yes)->
+    super route, replaceState
+
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
     names
@@ -286,7 +289,7 @@ class KodingRouter extends KDRouter
 
         nameHandler =(routeInfo, state, route)->
           return  if @landingPageLoading
-          
+
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
 
