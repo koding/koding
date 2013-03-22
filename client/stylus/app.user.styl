@@ -93,7 +93,7 @@
   shadow                    inset 0 3px 1px 3px rgba(250,250,250,.5)
   gradient                  rgb(255,255,255),rgb(242,242,242)
   height                    auto
-  min-height                77px
+  height                77px
   width                     auto
   border-bottom             1px solid rgb(229,229,229)
   padding                   20px 23px 20px 23px
@@ -251,7 +251,9 @@ textarea.profile-handle-customize.kdinput
 
   textarea.kdinput.text
     display                 inline-block
-    line-height             1.5
+    line-height             14px
+    font-size               14px
+    padding                 10px 2px 0px 6px
 
   &.edit
 
@@ -399,8 +401,9 @@ textarea.profile-handle-customize.kdinput
 
     > .title
       bg color,             #fbfbfb
-      padding               30px 40px
+      padding               22px 40px
       border-bottom         1px solid #e8e8e8
+      height                16px
 
       span.text
         vendor              font-smoothing, antialiased
@@ -411,6 +414,9 @@ textarea.profile-handle-customize.kdinput
         color               #666
         font-size           24px
         font-weight         600
+        width               auto
+        fl()
+        margin-top          -7px
 
       .create-date
         display             inline
@@ -418,6 +424,8 @@ textarea.profile-handle-customize.kdinput
         font-weight         300
         color               #aaa
         width               auto
+        fr()
+        margin-top          0
 
         .link-group
           font-size         inherit
@@ -454,6 +462,7 @@ textarea.profile-handle-customize.kdinput
 
 .profile-about-view
   borderBox()
+  overflow                  auto
 
   .about-header
     borderBox()
@@ -470,8 +479,15 @@ textarea.profile-handle-customize.kdinput
 
   .about-body
     borderBox()
+    margin-top              294px
     padding                 30px
-    max-width               600px
+    // max-width               600px
+    height                  100%
+    width                   auto
+    // overflow                auto
+
+    .has-markdown
+      max-width             600px
 
   .about-edit
     borderBox()
@@ -539,57 +555,74 @@ textarea.profile-handle-customize.kdinput
 
   .about-sidebar
     fr()
+    margin-top              294px
     width                   300px
     height                  100%
     border-left             1px solid #e8e8e8
+    bg color,               #fbfbfb
+
+    .sidebar-header
+      width                 100%
+      height                auto
+      padding:              8px 8px 0px 12px;
+      font-weight:          600;
+      font-size:            14px;
+      color:                #888;
 
     .listview-wrapper
-      height auto
-      display inline
+      height                auto
+      display               inline
+
       .kdscrollview
-        height auto
-// .static-content
+        height              auto
 
-//   &.topic
+  .content-display-wrapper
+    // rel()
+    left                    0
+    top                     0
+    right                   0
 
-//     .kdlistitemview.kdview
-//       width                 200px
-//       height                200px
-//       display               inline-block
-//       border-right          1px solid #e8e8e8
-//       border-bottom         1px solid #e8e8e8
-//       overflow              hidden
-//       vertical-align        top
-//       padding               10px
+.static-content
+  padding                   10px
 
-//       .static-topic-title
-//           color             #fff
-//           background        #ee8800
-//           padding           2px 8px
-//           white-space       nowrap
-//           text-overflow     ellipsis
-//           max-width         100%
-//           overflow          hidden
-//           borderBox()
-//           rounded(4px)
-//           noTextDeco()
-//           width             auto
-//           display           inline-block
-//           margin-bottom     10px
+  border-bottom             1px solid #e8e8e8
+  &.member
 
-//           &:hover
-//             bg              color,#333
-//             cursor          default
+    .static-member
+      display               inline-block
+      width                 auto
+      margin                3px
+      shadow                0px 2px 5px rgba(0,0,0,0.2)
+      border                1px solid #e8e8e8
+  &.topic
 
-//       article.static-topic-body
-//         margin-bottom       15px
-//         margin-top          0px
-//         font-size           11px
-//         line-height         150%
-//         padding             0
-//         color               #353535
-//         height              65px
-//         overflow            hidden
+    .kdlistitemview.kdview
+      width                 auto
+      height                auto
+      display               inline-block
+      // border-right          1px solid #e8e8e8
+      // border-bottom         1px solid #e8e8e8
+      overflow              hidden
+      vertical-align        top
+      padding               2px 2px 2px 2px
+
+      .static-topic-title
+          color             #fff
+          background        #ee8800
+          padding           2px 8px
+          white-space       nowrap
+          text-overflow     ellipsis
+          max-width         100px
+          overflow          hidden
+          borderBox()
+          rounded(4px)
+          noTextDeco()
+          width             auto
+          display           inline-block
+
+          &:hover
+            bg              color,#333
+            cursor          default
 
 .disable-static-page-modal
 .enable-static-page-modal
