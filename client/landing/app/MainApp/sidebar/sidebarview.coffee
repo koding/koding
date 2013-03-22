@@ -100,12 +100,21 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
+    @virtualizationButtons = new VirtualizationControls
+
+  resetAdminNavController:->
+    @utils.wait 1000, =>
+      @adminNavController.removeAllItems()
+      if KD.isLoggedIn()
+        KD.whoami().fetchRole? (err, role)=>
+          if role is "super-admin"
+            @adminNavController.instantiateListItems adminNavItems.items
+
   initializeGroup:->
     currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
     unless currentGroupData?.data?.slug is 'koding'
       @avatar.setClass 'shared-avatar'
       @avatar.setWidth 80
-
       # group avatar should be either a URL or a dataURL
 
       @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/100/100/?' + @utils.getRandomNumber()})"
@@ -212,6 +221,7 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
