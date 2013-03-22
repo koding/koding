@@ -1,7 +1,7 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
-    @landingPageLoading = KD.config.groupEntryPoint? 
+    @landingPageLoading = KD.config.groupEntryPoint?
 
     @openRoutes = {}
     @openRoutesById = {}
@@ -136,8 +136,21 @@ class KodingRouter extends KDRouter
         acc
       , {}
 
+
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
+
+    loader = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#FFFFFF"
+    loader.appendToSelector '#main-loader'
+    loader.show()
+
+    mainController.on "AppIsReady", =>
+      loader.destroy()
+      KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
     content = createLinks(
       'Activity Apps Groups Members Topics'

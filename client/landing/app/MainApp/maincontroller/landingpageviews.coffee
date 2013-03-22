@@ -17,13 +17,14 @@ class LandingPageSideBar extends KDView
     ,
       items : [
         { title : "Register", action : "register", loggedOut : yes }
-        { type  : "separator" }
+        # { type  : "separator" }
         { title : "Logout",   action : "logout",   loggedIn  : yes }
         { title : "Login",    action : "login",    loggedOut : yes }
       ]
 
     @on 'ListItemsInstantiated' , =>
       $("#profile-static-nav").remove()
+      @mainController.emit "AppIsReady"
 
     @addSubView @nav = @navController.getView()
 
@@ -65,6 +66,11 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
+            # If you want to show Group Landing Page uncomment following lines
+            #
+            # items.unshift \
+            #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+            # @_instantiateListItems items
             @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
@@ -91,11 +97,11 @@ class LandingPageNavigationController extends NavigationController
       profileItems = [
         { title : 'Home',     action : 'home',      type : 'user'}
         { title : 'Activity', action : 'activity',  type : 'user'}
-        { title : 'Topics',   action : 'topics',    type : 'user'}
-        { title : 'People',   action : 'members',   type : 'user'}
-        { title : 'Groups',   action : 'groups',    type : 'user'}
+        # { title : 'Topics',   action : 'topics',    type : 'user'}
+        # { title : 'People',   action : 'members',   type : 'user'}
+        # { title : 'Groups',   action : 'groups',    type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
-        { title : 'Apps',     action : 'apps',      type : 'user'}
+        # { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items
@@ -105,7 +111,6 @@ class LandingPageNavigationController extends NavigationController
       @_instantiateListItems items
 
   _instantiateListItems:(items)->
-    @getDelegate().emit 'ListItemsInstantiated'
     newItems = for itemData in items
       if KD.isLoggedIn()
         continue if itemData.loggedOut
@@ -113,6 +118,7 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       item = @getListView().addItem itemData
       if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
+    @getDelegate().emit 'ListItemsInstantiated'
 
 class LandingNavigationLink extends NavigationLink
 
