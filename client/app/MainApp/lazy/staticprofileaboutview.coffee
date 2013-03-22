@@ -79,10 +79,26 @@ class StaticProfileAboutHeaderView extends KDView
     @$().css backgroundImage : bgImg
 
     @profileNicknameView = new KDView
-      partial : profile.nickname
+      cssClass : 'nickname'
+      partial : "@#{profile.nickname}"
 
     @profileNameView = new KDView
+      cssClass : 'name'
       partial : [profile.firstName, profile.lastName].join ' '
+
+    @profileLocationView = new KDView
+      cssClass : 'location'
+      partial : profile.locationTags?[0] or 'Earth'
+
+    @profileAboutView = new KDView
+      cssClass : 'about'
+      partial : profile.about or ''
+
+    @profileUserUrlView = new CustomLinkView
+      cssClass : 'url'
+      href : "http://#{profile.nickname}.koding.com"
+      title : "#{profile.nickname}.koding.com"
+      target : '_blank'
 
   viewAppended:->
     super
@@ -91,7 +107,16 @@ class StaticProfileAboutHeaderView extends KDView
 
   pistachio:->
     """
-      {{> @profileNicknameView}}
+    <div class="about-name">
       {{> @profileNameView}}
+      {{> @profileLocationView}}
+    </div>
+    <div class="about-link">
+      {{> @profileUserUrlView}}
+    </div>
+    <div class="about-about">
+      {{> @profileAboutView}}
+    </div>
+    {{> @profileNicknameView}}
     """
 

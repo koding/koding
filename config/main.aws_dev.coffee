@@ -131,11 +131,6 @@ module.exports =
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : "mq.#{domainName}"
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no

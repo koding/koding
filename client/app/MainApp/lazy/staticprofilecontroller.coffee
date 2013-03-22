@@ -135,6 +135,7 @@ class StaticProfileController extends KDController
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', @staticListWrapper, @staticController, =>
         @showWrapper @staticListWrapper
 
+
     @on 'StaticProfileNavLinkClicked', (facets,wrapper,controller,callback=->)=>
       @profileLoadingBar.setClass 'active'
       @profileLoaderView.show()
@@ -156,7 +157,7 @@ class StaticProfileController extends KDController
             originId : @profileUser.getId()
             facets : facets
             bypass : yes
-          , (err, activities)=>
+          , (err, activities=[])=>
             @refreshActivities err, activities, wrapper, controller
             callback()
         else @emit 'BlockedTypesRequested', blockedTypes
@@ -363,7 +364,6 @@ class StaticProfileController extends KDController
     console.timeEnd 'StaticProfileController'
 
 
-
   repositionLogoView:->
     @profileLogoView.$().css
       top: @landingView.getHeight()-42
@@ -375,13 +375,9 @@ class StaticProfileController extends KDController
   refreshActivities:(err,activities,wrapperInstance,controllerInstance)->
     @profileShowMoreView.hide()
 
-    # listWrapper = if isStatic then @staticListWrapper else @activityListWrapper
-    # controller = if isStatic then @staticController else @activityController
-
-    listWrapper = wrapperInstance
     controller = controllerInstance
 
-    listWrapper.show()
+    wrapperInstance.show()
 
     controller.removeAllItems()
     controller.listActivities activities
@@ -429,21 +425,21 @@ class StaticProfileController extends KDController
 
     @aboutWrapper = yes
 
-    @profileUser.fetchAbout (err,about)=>
-      log arguments
-      if err
-        log err
-      else
+    if @profileUser
+      @profileUser.fetchAbout (err,about)=>
+        if err
+          log err
+        else
 
-        @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
-          about : about
-        ,@profileUser
+          @profileContentView.addSubView @aboutWrapper = new StaticProfileAboutView
+            about : about
+          ,@profileUser
 
 
-        @profileLoadingBar.unsetClass 'active'
-        @profileLoaderView.hide()
+          @profileLoadingBar.unsetClass 'active'
+          @profileLoaderView.hide()
 
-        callback()
+          callback()
 
   addStaticLogic:(callback=->)->
     log 'adding static logic'
