@@ -114,7 +114,7 @@ class GroupsAppController extends AppController
               else
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex groups, (view)->
-                  view.setClass 'own-group'
+                  view.markOwnGroup()
         following           :
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
@@ -140,6 +140,8 @@ class GroupsAppController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
+      log @feedController
+
       @putAddAGroupButton()
       @emit 'ready'
 
