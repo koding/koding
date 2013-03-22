@@ -53,7 +53,7 @@ func (vm *VM) exportImageFromSnapshot(snapshot, pathToExport string) error {
 }
 
 func (vm *VM) Backup() error {
-	localPathToExport = fmt.Sprintf("/tmp/snapshot_exports/%s", vm.String())
+	localPathToExport := fmt.Sprintf("/tmp/snapshot_exports/%s", vm.String())
 
 	var exportSnapErr, deleteSnapErr error
 
