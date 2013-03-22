@@ -66,23 +66,39 @@
   shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
   gradient              rgb(255,255,255),rgb(242,242,242)
   padding 20px 23px
+
   .group-title-wrapper
     height auto
     width auto
+
   .group-name
+    vendor              font-smoothing, antialiased
+    vendor              text-rendering, geometricPrecision
     borderBox()
-    color #ff9200
-    font-size 16px
-    width auto
-    display inline-block
+    max-width               700px
+    font-size               32px
+    width                   auto
+    display                 inline-block
+    color                   #444
+    border-bottom           2px solid #ff9200
+    margin-right            10px
+    white-space             nowrap
+    text-overflow           ellipsis
+
   .group-bio
+    vendor              font-smoothing, antialiased
+    vendor              text-rendering, geometricPrecision
     borderBox()
-    color               #888
-    font-size           12px
-    height              29px
-    overflow-y          scroll
-    width               auto
-    font-weight         300
+    color                   #888
+    font-size               12px
+    height                  29px
+    overflow                hidden
+    text-overflow           ellipsis
+    white-space             nowrap
+    width                   auto
+    font-weight             300
+    display                 inline
+
   .button-wrapper
     abs()
     right               26px
