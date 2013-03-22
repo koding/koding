@@ -2,7 +2,7 @@ class FeedController extends KDViewController
   constructor:(options={})->
 
 
-    options.autoPopulate  or= yes
+    options.autoPopulate  or= no
     options.filter        or= {}
     options.sort          or= {}
     options.limitPerPage  or= 10
@@ -69,9 +69,10 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-    @selectFilter filter      if filter?
-    @changeActiveSort sort    if sort?
+    @selectFilter filter, no      if filter?
+    @changeActiveSort sort, no    if sort?
     @highlightFacets()
+    @loadFeed()
     # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
@@ -90,16 +91,16 @@ class FeedController extends KDViewController
     @loadFeed() if @getOptions().autoPopulate
     mainView._windowDidResize()
 
-  selectFilter:(name)->
+  selectFilter:(name, loadFeed=yes)->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
     if @resultsController.listControllers[name].itemsOrdered.length is 0
-      @loadFeed()
+      @loadFeed() if loadFeed
 
-  changeActiveSort:(name)->
+  changeActiveSort:(name, loadFeed=yes)->
     @selection.activeSort = name
     @resultsController.listControllers[@selection.name].removeAllItems()
-    @loadFeed()
+    @loadFeed() if loadFeed
 
   getFeedSelector:->
     # log @filters
