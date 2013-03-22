@@ -126,8 +126,8 @@ class KDListViewController extends KDViewController
       @itemsOrdered.splice(actualIndex, 0, view)
     else
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
-      if view.getData()?
-        @itemsIndexed[@view.getItemDataId()] = view
+    if view.getData()?
+      @itemsIndexed[@view.getItemDataId()] = view
 
     if options.selection
       @listenTo
