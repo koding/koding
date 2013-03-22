@@ -194,7 +194,7 @@ error_500 =->
   error_ 500, 'internal server error'
 
 app.get '/:name/:section?', (req, res, next)->
-  {JGroup, JName} = koding.models
+  {JGroup, JName, JSession} = koding.models
   {name} = req.params
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
@@ -203,10 +203,12 @@ app.get '/:name/:section?', (req, res, next)->
     JName.fetchModels name, (err, models)->
       if err then next err
       else unless models? then res.send 404, error_404()
-      else models[0].fetchHomepageView (err, view)->
-        if err then next err
-        else if view? then res.send view
-        else res.send 500, error_500()
+      else
+        {clientId} = req.cookies
+        models[models.length-1].fetchHomepageView clientId, (err, view)->
+          if err then next err
+          else if view? then res.send view
+          else res.send 500, error_500()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->
@@ -235,14 +237,10 @@ serve = (content, res)->
   res.send content
 
 app.get "/", (req, res)->
-
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
-
   else
-
     {clientId} = req.cookies
-
     unless clientId
       serve loggedOutPage, res
     else

@@ -18,7 +18,7 @@ class LazyDomController extends KDController
 
     @mainController = @getSingleton 'mainController'
 
-    @mainController.on 'AppIsReady', =>
+    @mainController.on 'FrameworkIsReady', =>
       if @userEnteredFromGroup()
         @addGroupViews()
       else if @userEnteredFromProfile()

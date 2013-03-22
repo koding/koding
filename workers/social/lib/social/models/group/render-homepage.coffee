@@ -1,4 +1,4 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, description})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description})->
   content ?= getDefaultGroupContents()
   """
 
@@ -9,6 +9,9 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
     #{getStyles()}
   </head>
   <body class="login">
+
+    #{getLoader roles}
+
     <div id="static-landing-page">
 
     <div class="group-personal-wrapper" id="group-personal-wrapper">
@@ -56,12 +59,30 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, descripti
        </div>
       </div>
     </div>
-    #{KONFIG.getConfigScriptTag groupEntryPoint: slug}
+    #{KONFIG.getConfigScriptTag {groupEntryPoint: slug, roles: roles}}
     #{getScripts()}
     </div>
   </body>
   </html>
   """
+
+getLoader = (roles)->
+  if 'member' in roles or 'admin' in roles
+    return """
+      <div id="main-koding-loader" class="kdview main-loading">
+        <figure>
+          <ul>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+          </ul>
+        </figure>
+      </div>
+    """
+  return ''
 
 getInviteLink =(policy)->
   if policy.approvalEnabled

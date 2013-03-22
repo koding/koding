@@ -42,7 +42,7 @@ class ActivityAppController extends AppController
     @mainController = @getSingleton 'mainController'
 
     if @mainController.appIsReady then @putListeners()
-    else @mainController.on 'AppIsReady', => @putListeners()
+    else @mainController.on 'FrameworkIsReady', => @putListeners()
 
   putListeners:->
     activityController = @getSingleton('activityController')
@@ -113,6 +113,7 @@ class ActivityAppController extends AppController
       isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took:"
+      @mainController.emit "AppIsReady"
 
       if err or teasers.length is 0
         warn err  if err
