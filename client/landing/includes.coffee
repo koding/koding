@@ -581,6 +581,8 @@ module.exports = [
   "app/Applications/Feeder.kdapplication/FeedController.coffee",
   "app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee",
   "app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee",
+  "app/Applications/Feeder.kdapplication/Controllers/feederheaderfacetscontroller.coffee",
+  "app/Applications/Feeder.kdapplication/Controllers/headernavigationcontroller.coffee",
 
   # FEED VIEWS
   "app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee",
