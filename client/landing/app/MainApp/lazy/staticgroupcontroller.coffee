@@ -1,5 +1,10 @@
 class StaticGroupController extends KDController
 
+  CONTENT_TYPES = [
+    'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+    'CDiscussionActivity', 'CTutorialActivity'
+  ]
+
   roleEventMap =
     "guest"               : "status.guest"
     "member"              : "status.member"
@@ -14,6 +19,9 @@ class StaticGroupController extends KDController
     @mainController    = @getSingleton "mainController"
     @lazyDomController = @getSingleton "lazyDomController"
     {@groupEntryPoint} = KD.config
+
+    @navLinks = []
+    @currentFacets = []
 
     @landingView = new KDView
       lazyDomId : 'static-landing-page'
@@ -30,6 +38,9 @@ class StaticGroupController extends KDController
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
+
+    @groupReadmeView = new KDView
+      lazyDomId : 'group-readme'
 
     @groupTitleView.addSubView @buttonWrapper = new KDCustomHTMLView
       cssClass : "button-wrapper"
@@ -55,6 +66,35 @@ class StaticGroupController extends KDController
         @utils.wait 1100, => @landingView.setClass 'group-hidden'
 
     groupLogoView.setY @landingView.getHeight()-42
+
+    for type in CONTENT_TYPES
+      @navLinks[type] = new StaticNavLink
+        delegate  : @
+        lazyDomId : type
+
+    @groupContentLinks = new KDView
+      lazyDomId : 'group-content-links'
+
+    @activityController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : ActivityListItemView
+      viewOptions       :
+        cssClass        : 'group-activity-content activity-related'
+      showHeader        : no
+
+    @activityListWrapper = @activityController.getView()
+    groupContentView.addSubView @activityListWrapper
+
+    @activityController.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        group     : @groupEntryPoint
+        facets    : @currentFacets
+        to        : @activityController.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , (err,activities)=>
+        @refreshActivities err, activities, =>
+
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
@@ -87,6 +127,27 @@ class StaticGroupController extends KDController
 
     @mainController.on "accountChanged.to.loggedIn", =>
       @checkGroupUserRelation()
+
+
+    @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
+
+      facets = [facets] if 'string' is typeof facets
+
+      @currentFacets = facets
+      appManager.tell 'Activity', 'fetchActivity',
+        group : @groupEntryPoint
+        facets : facets
+        bypass : yes
+      , (err, activities=[])=>
+        @refreshActivities err, activities, callback
+
+  refreshActivities:(err,activities,callback)->
+    @groupReadmeView.hide()
+    controller = @activityController
+    controller.removeAllItems()
+    controller.listActivities activities
+    controller.hideLazyLoader()
+    callback?()
 
   decoratePendingStatus:->
 
