@@ -3,6 +3,7 @@ class ActivityListController extends KDListViewController
   hiddenItems               = []
   hiddenNewMemberItemGroups = [[]]
   hiddenItemCount           = 0
+  itemsIndexed              = {}
 
   prepareNewMemberGroup = ->
 
@@ -130,6 +131,21 @@ class ActivityListController extends KDListViewController
 
 
   fakeItems = []
+
+  addItem:(activity, index, animation) ->
+    dataId = activity.getId()
+
+    if dataId?
+      if itemsIndexed[dataId]
+        console.log "duplicate entry", activity.bongo_?.constructorName, dataId
+        _rollbar.push "duplicate entry", activity.bongo_?.constructorName, dataId
+      else
+        itemsIndexed[dataId] = activity
+        super(activity, index, animation)
+
+  removeAllItems: ->
+    itemsIndexed = {}
+    super()
 
   ownActivityArrived:(activity)->
 

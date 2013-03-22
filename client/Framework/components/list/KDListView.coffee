@@ -47,7 +47,6 @@ class KDListView extends KDView
     }
 
   addItem:(itemData, index, animation)->
-
     @_addItemHelper itemData, {index, animation}
 
   removeItem:(itemInstance, itemData, index)->

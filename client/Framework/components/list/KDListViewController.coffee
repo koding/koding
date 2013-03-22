@@ -110,15 +110,7 @@ class KDListViewController extends KDViewController
   ###
 
   addItem:(itemData, index, animation)->
-    dataId = itemData.getId()
-
-    if dataId?
-      if @itemsIndexed[dataId]
-        console.log "duplicate entry", dataId
-        _rollbar.push("duplicate entry", itemData.bongo_?.constructorName, dataId)
-      else
-        @itemsIndexed[dataId] = true
-        @getListView().addItem itemData, index, animation
+    @getListView().addItem itemData, index, animation
 
   removeItem:(itemInstance, itemData, index)->
 
