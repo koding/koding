@@ -547,7 +547,38 @@ textarea.profile-handle-customize.kdinput
       display               inline-block
       border-right          1px solid #e8e8e8
       border-bottom         1px solid #e8e8e8
+      overflow              hidden
+      vertical-align        top
+      padding               10px
 
+      .static-topic-title
+          color             #fff
+          background        #ee8800
+          padding           2px 8px
+          white-space       nowrap
+          text-overflow     ellipsis
+          max-width         100%
+          overflow          hidden
+          borderBox()
+          rounded(4px)
+          noTextDeco()
+          width             auto
+          display           inline-block
+          margin-bottom     10px
+
+          &:hover
+            bg              color,#333
+            cursor          default
+
+      article.static-topic-body
+        margin-bottom       15px
+        margin-top          0px
+        font-size           11px
+        line-height         150%
+        padding             0
+        color               #353535
+        height              65px
+        overflow            hidden
 
 .disable-static-page-modal
 .enable-static-page-modal

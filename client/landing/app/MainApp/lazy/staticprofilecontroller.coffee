@@ -744,14 +744,33 @@ class StaticGroupsListItem extends KDListItemView
     </div>"
 
 class StaticTopicsListItem extends KDListItemView
-  partial:(data)->
-    log data
-    "<div class='static-topic'>
-       #{data.title}
-       #{data.body}
-       #{data.counts.followers}
-       #{data.counts.post}
-    </div>"
+  constructor:(options,data)->
+     super options,data
+
+     @titleView = new KDCustomHTMLView
+       tagName : 'span'
+       cssClass : 'static-topic-title'
+       partial : @getData().title
+
+     @bodyView = new KDCustomHTMLView
+       tagName : 'article'
+       cssClass : 'static-topic-body'
+       partial : @getData().body
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <div class='static-topic'>
+       {{> @titleView}}
+       {{> @bodyView}}
+       {{ #(counts.followers)}}
+       {{ #(counts.post)}}
+    </div>
+    """
 
 class StaticMembersListItem extends KDListItemView
   partial:(data)->
