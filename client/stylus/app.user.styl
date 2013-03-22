@@ -317,8 +317,23 @@ textarea.profile-handle-customize.kdinput
     margin-bottom           9px
     width                   125px
 
+#profile-koding-logo-info
+    position                fixed
+    bottom                  10px
+    left                    0
+    height                  auto
+    width                   160px
+    text-align              center
+    vendor transition,      opacity 0.5s linear
+    opacity                 0
+    cursor                  pointer
+    span
+      color                 #f5f5f5
+    &.in
+      opacity               1
+
 .profile-koding-logo
-  height                    100%
+  height                    auto
   vertical-align            bottom
 
   .logo
@@ -331,13 +346,19 @@ textarea.profile-handle-customize.kdinput
     bottom                  12px
     left                    15px
 
+    // &:hover
+    //   margin-top -40px
+    //   height 70px
+
     &.animate
-      vendor transition,    top 0.5s ease-in-out
+      vendor transition,    top 0.5s ease-in-out \, margin-top 0.5s ease-in-out
 
     &.top
       top                   12px!important
       bottom                none
 
+    &.with-text
+      margin-top            -20px
 
 .profile-show-more-wrapper
   height                    50px

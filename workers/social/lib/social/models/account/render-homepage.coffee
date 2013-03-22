@@ -53,8 +53,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
        </div>
 
 
-      <div class="profile-koding-logo">
+      <div class="profile-koding-logo" id="profile-koding-logo-wrapper">
         <div class="logo kdview" id='profile-koding-logo'></div>
+        <a class="info kdview" id="profile-koding-logo-info">Go to Koding.com</a>
       </div>
 
     </div>

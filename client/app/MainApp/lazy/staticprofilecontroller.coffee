@@ -168,6 +168,17 @@ class StaticProfileController extends KDController
             callback()
         else @emit 'BlockedTypesRequested', blockedTypes
 
+    @on "LogoClicked", =>
+        @profileLogoInfo.unsetClass 'in'
+        unless KD.whoami() instanceof KD.remote.api.JGuest
+          @profilePersonalWrapperView.setClass 'slide-down'
+          @profileContentWrapperView.setClass 'slide-down'
+          @profileLogoView.setClass 'top'
+
+          @getSingleton('lazyDomController').hideLandingPage()
+        else
+          @getSingleton('mainController').loginScreen.animateToForm 'register'
+
 
   reviveViewsOnPageLoad:->
 
@@ -277,31 +288,37 @@ class StaticProfileController extends KDController
     @profileLoaderView.hide()
 
     # reviving logo for the slideup animation
+    @profileLogoInfo = new CustomLinkView
+      title : 'Go to Koding.com'
+      lazyDomId : 'profile-koding-logo-info'
+
+
+    @profileLogoWrapperView = new KDView
+      lazyDomId: 'profile-koding-logo-wrapper'
+      bind : 'mouseenter mouseleave'
+      click :=> @emit 'LogoClicked'
+
     @profileLogoView = new KDView
       lazyDomId: 'profile-koding-logo'
-      click :=>
-        unless KD.whoami() instanceof KD.remote.api.JGuest
-          @profilePersonalWrapperView.setClass 'slide-down'
-          @profileContentWrapperView.setClass 'slide-down'
-          @profileLogoView.setClass 'top'
 
-          # @landingView.setClass 'profile-fading'
-          # @utils.wait 1100, => @landingView.setClass 'profile-hidden'
+    @profileLogoWrapperView.on 'mouseenter', (event)=>
+        @profileLogoView.setClass 'with-text'
+        @profileLogoInfo.setClass 'in'
 
-          @getSingleton('lazyDomController').hideLandingPage()
-        else
-          @getSingleton('mainController').loginScreen.animateToForm 'register'
+    @profileLogoWrapperView.on 'mouseleave', (event)=>
+      @profileLogoView.unsetClass 'with-text'
+      @profileLogoInfo.unsetClass 'in'
 
     @repositionLogoView()
-    # @addStaticLogic()
 
     console.timeEnd 'reviving page elements on pageload.'
+
 
   reviveViewsOnUserLoad:(user)->
 
     console.time 'reviving page elements on userload.'
 
-    @utils.wait 500, => @profileLogoView.setClass 'animate'
+    @utils.defer => @profileLogoView.setClass 'animate'
 
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes @profileUser
@@ -375,9 +392,9 @@ class StaticProfileController extends KDController
     console.timeEnd 'StaticProfileController'
 
 
-  repositionLogoView:->
+  repositionLogoView:(subtract=42)->
     @profileLogoView.$().css
-      top: @landingView.getHeight()-42
+      top: @landingView.getHeight()-subtract
 
   appendActivities:(err,activities, type)->
     @controllers[type].listActivities activities
