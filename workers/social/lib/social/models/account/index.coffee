@@ -211,7 +211,9 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:(clientId, callback)->
+    [callback, clientId] = [clientId, callback]  unless callback
+
     CActivity = require '../activity'
 
     CActivity.some
