@@ -4,13 +4,52 @@ class HeaderNavigationController extends KDController
 
     super
 
-    mainView = @getDelegate()
-
+    mainView       = @getDelegate()
     {items, title} = @getData()
+    @currentItem   = items.first
 
-    selectOptions = for item in items
-      { title : item.title, value : item.type }
+    itemsObj = {}
+    items.forEach (item)=>
+      itemsObj[item.title] =
+        callback : @emit.bind @, "contextMenuItemClicked", item
+        action   : item.action
 
-    mainView.addSubView new KDSelectBox
-      selectOptions : selectOptions
-      name          : items.first.action
+
+    # mainView.addSubView new KDSelectBox
+    #   selectOptions : selectOptions
+    #   name          : items.first.action
+
+    mainView.addSubView new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "title"
+      partial  : "#{title}:"
+
+    mainView.addSubView @activeFacet = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "active-facet"
+      pistachio : "{span{#(title)}}<cite/>"
+      click     : (event)=>
+        offset = @activeFacet.$().offset()
+        event.preventDefault()
+        @contextMenu = new JContextMenu
+          event       : event
+          delegate    : mainView
+          x           : offset.left + @activeFacet.getWidth() - 138
+          y           : offset.top + 22
+          arrow       :
+            placement : "top"
+            margin    : -20
+        , itemsObj
+    ,
+      title : items.first.title
+
+    @on "contextMenuItemClicked", (item)=>
+      @contextMenu?.destroy()
+      @currentItem = item
+      @emit "NavItemReceivedClick", item
+
+  selectItem:(item)->
+    @currentItem = item
+    {title}      = item
+    @activeFacet.setData { title }
+    @activeFacet.render()

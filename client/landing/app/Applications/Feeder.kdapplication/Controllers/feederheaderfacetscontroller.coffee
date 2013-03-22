@@ -1,18 +1,18 @@
 class FeederHeaderFacetsController extends KDViewController
-  
+
   constructor:(options, data)->
     options.view or= new KDView cssClass: 'header-facets'
     super
-    # log "# the order of these facetTypes is the order they'll be displayed in", @
+    # the order of these facetTypes is the order they'll be displayed in
     @facetTypes = ['filter', 'sort']
     @state = {}
+    @current
 
   facetChange:-> KD.getSingleton('router').handleQuery @state
 
   loadView:(mainView)->
-    log "kolkoa", mainView
+
     options = @getOptions()
-    # view = @getView()
 
     @facetTypes.forEach (facet)=>
 
@@ -37,12 +37,12 @@ class FeederHeaderFacetsController extends KDViewController
     # view.addSubView new HelpBox @getOptions().help
 
   highlight:(filterName, sortName)->
-    # @facetTypes.forEach (facetType)=>
-    #   controller = @["#{facetType}Controller"]
-    #   for item in controller.itemsOrdered
-    #     {type, action} = item.getData()
-    #     typeMatches = switch action
-    #       when 'filter' then filterName is type
-    #       when 'sort'   then sortName is type
-    #     isSelectedItem = typeMatches and controller.itemsOrdered.length > 1
-    #     controller.selectItem item  if isSelectedItem
+    @facetTypes.forEach (facetType)=>
+      controller = @["#{facetType}Controller"]
+      for item in controller.getData().items
+        {type, action} = item
+        typeMatches = switch action
+          when 'filter' then filterName is type
+          when 'sort'   then sortName   is type
+        if typeMatches
+          controller.selectItem item
