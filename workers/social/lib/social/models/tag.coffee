@@ -26,7 +26,7 @@ module.exports = class JTag extends jraphical.Module
     slugifyFrom     : 'title'
     slugTemplate    : ->
       """
-      #{if @group is 'koding' then '' else @group}/Topics/\#{slug}
+      #{if @group is 'koding' then '' else "#{@group}/"}Topics/\#{slug}
       """
     permissions     :
       'create tags'           : ['member', 'moderator']

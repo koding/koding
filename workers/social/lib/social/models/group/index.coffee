@@ -26,10 +26,12 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
+  @trait __dirname, '../../traits/slugifiable'
 
   @share()
 
   @set
+    slugifyFrom     : 'title'
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
@@ -71,6 +73,9 @@ module.exports = class JGroup extends Module
         type        : String
         validate    : require('../name').validateName
         set         : (value)-> value.toLowerCase()
+      slug_         :
+        type        : String
+        get         : -> @slug
       privacy       :
         type        : String
         enum        : ['invalid privacy type', ['public', 'private']]
@@ -181,48 +186,57 @@ module.exports = class JGroup extends Module
       JMembershipPolicy = require './membershippolicy'
       JName = require '../name'
       {delegate} = client.connection
-      JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
-        if err then callback err
-        else
-          group                 = new this formData
-          permissionSet         = new JPermissionSet
-          defaultPermissionSet  = new JPermissionSet
-          queue = [
-            -> save_ 'group', group, queue, callback
-            -> group.addMember delegate, (err)->
-                if err then callback err
-                else
-                  console.log 'member is added'
-                  queue.next()
-            -> group.addAdmin delegate, (err)->
-                if err then callback err
-                else
-                  console.log 'admin is added'
-                  queue.next()
-            -> save_ 'permission set', permissionSet, queue, callback
-            -> save_ 'default permission set', defaultPermissionSet, queue, 
-                      callback
-            -> group.addPermissionSet permissionSet, (err)->
-                if err then callback err
-                else
-                  console.log 'permissionSet is added'
-                  queue.next()
-            -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
-                if err then callback err
-                else
-                  console.log 'permissionSet is added'
-                  queue.next()
-            -> group.addDefaultRoles (err)->
-                if err then callback err
-                else
-                  console.log 'roles are added'
-                  queue.next()
-          ]
-          if 'private' is group.privacy
-            queue.push -> group.createMembershipPolicy -> queue.next()
-          queue.push -> callback null, group
+      # JName.claim formData.slug, [formData.slug], 'JGroup', 'slug', (err)=>
+      group                 = new this formData
+      permissionSet         = new JPermissionSet
+      defaultPermissionSet  = new JPermissionSet
 
-          daisy queue
+      queue = [
+        -> group.createSlug (err, slugObj)->
+          if err then callback err
+          else unless slugObj?
+            callback new KodingError "Couldn't claim the slug!"
+          else
+            {slug} = slugObj
+            console.log "slug is claimed: #{slug}"
+            group.slug  = slug
+            group.slug_ = slug
+            queue.next()
+        -> save_ 'group', group, queue, callback
+        -> group.addMember delegate, (err)->
+            if err then callback err
+            else
+              console.log 'member is added'
+              queue.next()
+        -> group.addAdmin delegate, (err)->
+            if err then callback err
+            else
+              console.log 'admin is added'
+              queue.next()
+        -> save_ 'permission set', permissionSet, queue, callback
+        -> save_ 'default permission set', defaultPermissionSet, queue, 
+                  callback
+        -> group.addPermissionSet permissionSet, (err)->
+            if err then callback err
+            else
+              console.log 'permissionSet is added'
+              queue.next()
+        -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
+            if err then callback err
+            else
+              console.log 'permissionSet is added'
+              queue.next()
+        -> group.addDefaultRoles (err)->
+            if err then callback err
+            else
+              console.log 'roles are added'
+              queue.next()
+      ]
+      if 'private' is group.privacy
+        queue.push -> group.createMembershipPolicy -> queue.next()
+      queue.push -> callback null, group
+
+      daisy queue
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
