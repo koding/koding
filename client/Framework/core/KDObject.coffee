@@ -24,7 +24,7 @@ class KDObject extends KDEventEmitter
     target.on eventName, @lazyBound 'emit', prefix + eventName
 
   ready:(listener)->
-    if @readyState is READY then listener()
+    if @readyState is READY then @utils.defer listener
     else @once 'ready', listener
 
   registerSingleton:KD.registerSingleton

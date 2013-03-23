@@ -20,6 +20,7 @@ class MembersAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
+      useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
       help                  :
