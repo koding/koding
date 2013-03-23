@@ -527,44 +527,43 @@ task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
-task 'deploy', (options) ->
-  {configFile,username} = options
+task 'aws', (options) ->
+  {configFile,type} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
-    git_branch = stdout
-    username ?= process.env['USER']
+  # List available machines
+  unless type
+    console.log "Machine types:"
+    for filename in fs.readdirSync './aws'
+      if filename.match /\.coffee$/
+        console.log "  #{filename.slice(0, -7)}"
+    console.log ""
+    console.log "Run: cake -c #{configFile} -t <type> aws"
+    process.exit()
 
-    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
-    proc.stdout.on 'data', (data) ->
-      console.log data.toString().trim()
-    proc.stderr.on 'data', (data) ->
-      console.log data.toString().trim()
+  console.log "Using ./aws/#{type}.coffee file as template"
+  console.log ""
 
-task 'destroy', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+  # AWS Utils
+  awsUtil = require 'koding-aws'
+  awsUtil.init aws
 
-  username ?= process.env['USER']
+  # Machine template
+  awsTemplate = require "./aws/#{type}"
 
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
+  # Build template
+  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
+    unless err
+      console.log "Template is ready:"
+      console.log templateData
+      console.log ""
 
-task 'deploy-info', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
-
-  username ?= process.env['USER']
-
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
-
+      # awsUtil.startEC2 templateData, (err, ecData) ->
+      #   unless err
+      #     console.log "EC2 instance is ready:"
+      #     console.log ecData
+      #     console.log ""
+          
 task 'buildAll',"build chris's modules", ->
 
   buildables = ["pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
