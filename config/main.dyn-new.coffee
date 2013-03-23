@@ -118,7 +118,7 @@ module.exports =
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
-    vhost       : '/new'
+    vhost       : 'new'
   broker        :
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
