@@ -95,6 +95,9 @@ def main():
 
     rules = yaml.load(file(run_file))
 
+    if 'all' in services:
+        services = rules.keys()
+
     if operation == 'list':
         for name in rules:
             print name
