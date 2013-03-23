@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import yaml
-import shlex
-import signal
-import psutil
-import subprocess
+try:
+    import os
+    import sys
+    import yaml
+    import shlex
+    import signal
+    import psutil
+    import subprocess
+except ImportError:
+    print "Missing Python module(s)"
+    print "  pip install psutil"
+    print "  pip install pyyml"
 
 
 def run_command(cmd, logfile='/dev/null'):
@@ -44,10 +49,12 @@ def fork_command(cmd, logfile='/dev/null'):
     subprocess.call(cmd)
     os._exit(os.EX_OK)
 
+
 def kill_group(proc, signal):
-    for child in proc.get_children():
-        kill_group(child, signal)
+    children = proc.get_children()
     proc.send_signal(signal)
+    for child in children:
+        kill_group(child, signal)
 
 def which(cmd):
     for dir in os.environ['PATH'].split(':'):
