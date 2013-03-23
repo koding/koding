@@ -123,7 +123,7 @@ class KodingRouter extends KDRouter
       else
         @loadContent name, section, slug, route, query
 
-  clear:(route="/#{KD.config.groupEntryPoint}", replaceState=yes)->
+  clear:(route="/#{KD.config.groupEntryPoint ? ''}", replaceState=yes)->
     super route, replaceState
 
   createLinks =(names, fn)->
@@ -205,7 +205,7 @@ class KodingRouter extends KDRouter
       '/:name?/Dashboard'               : (routeInfo, state, route)->
         {name} = routeInfo.params
         n = name ? 'koding'
-        KD.remote.cacheable n, (err, group, nameObj)=>
+        KD.remote.cacheable n, (err, [group], nameObj)=>
           @openContent name, 'Groups', group, route
 
       # content

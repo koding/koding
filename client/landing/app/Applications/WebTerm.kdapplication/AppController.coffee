@@ -7,13 +7,33 @@ class WebTermController extends AppController
     hiddenHandle : no
     behavior     : "application"
 
-  constructor:(options = {}, data)->
+  # TODO: the below was pasted in here during a merge.  fixme C.T.
+  # bringToFront: ->
+  #   appStorage = new AppStorage 'WebTerm', '1.0'
+  #   appStorage.fetchStorage =>
+  #     data = new WebTermView appStorage
+  #     data.on "WebTerm.terminated", =>
+  #       @propagateEvent
+  #         KDEventType : "ApplicationWantsToClose"
+  #         globalEvent : yes
+  #       , data: data
 
-    options.view    = new WebTermAppView
-    options.appInfo =
-      title        : "Terminal"
-      cssClass     : "webterm"
+  #     data.on 'ViewClosed', =>
+  #       @propagateEvent
+  #         KDEventType : 'ApplicationWantsToClose'
+  #         globalEvent : yes
+  #       ,
+  #         data : data
 
-    super options, data
+  #     options =
+  #       name         : "Terminal"
+  #       hiddenHandle : no
+  #       type         : "application"
+  #       cssClass     : "webterm"
+
+  #     @propagateEvent
+  #       KDEventType  : "ApplicationWantsToBeShown"
+  #       globalEvent  : yes
+  #     , {options, data}
 
 WebTerm = {}
