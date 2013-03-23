@@ -20,6 +20,7 @@
   height                    100%
   width                     100%
   z-index                   99
+  bg size,                  auto 100%
 
   &.profile-leaving
     rel()
@@ -42,6 +43,22 @@
         border              none
         height              0px
 
+  &.custom-bg
+    .profile-title
+      bg color, rgba(255,255,255,0.5)
+      shadow none
+      gradient none
+    .profile-sidebar
+      bg color, rgba(0,0,0,0.2)
+      .navigation-item .title
+        color rgba(255,255,255,0.7)!important
+        shadow 1px 1px 3px rgba(0,0,0,0.4)!important
+        vendor box-shadow, none!important
+    // .profile-splitview
+    //   bg color, rgba(255,255,255,0.95)
+    .kdlistview-navigation
+      margin-bottom 5px
+
 .profile-sidebar
   height                    auto
 
@@ -62,6 +79,7 @@
     .profile-avatar
       margin-left           -54px
 
+
   .profile-avatar
     vendor background-size, 160px auto
     shadow                  inset 0 0 13px 0 rgba(0,0,0,0.6)
@@ -80,7 +98,7 @@
 
 .profile-content-wrapper
   vendor transition,        margin-left 0.6s ease-in-out
-  bg color,                 white
+  bg color,                 transparent
   borderBox()
   margin-left               160px
   margin-left               50px
@@ -98,6 +116,7 @@
   border-bottom             1px solid rgb(229,229,229)
   padding                   20px 23px 20px 23px
 
+
   .profile-title-wrapper
     height                  auto
     width                   auto
@@ -111,17 +130,18 @@
     width                   auto
     display                 inline-block
     color                   #444
-    border-bottom           2px solid #ff9200
+    // border-bottom           2px solid #ff9200
     margin-right            10px
     white-space             nowrap
     text-overflow           ellipsis
+    font-weight             900
 
   .profile-bio
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    color                   #888
-    font-size               12px
+    color                   #444
+    font-size               14px
     height                  29px
     overflow                hidden
     text-overflow           ellipsis
@@ -380,6 +400,7 @@ textarea.profile-handle-customize.kdinput
 
 .profile-splitview
   height                    100%
+  bg color,                 white
 
 .profile-content-list
   vendor transition,        margin-left 0.2s linear
@@ -478,6 +499,12 @@ textarea.profile-handle-customize.kdinput
     height                  auto
     padding                 20px
     border-bottom           1px solid #e8e8e8
+
+#profile-placeholder
+  height 100%
+  width 100%
+
+
 
 .profile-sidebar
   height                    auto
