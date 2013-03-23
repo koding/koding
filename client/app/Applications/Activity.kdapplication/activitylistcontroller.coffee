@@ -128,7 +128,8 @@ class ActivityListController extends KDListViewController
       for item in @itemsOrdered
         if item.getData() instanceof NewMemberBucketData
           data = item.getData()
-          data.anchors.pop()
+          if data.count > 3
+            data.anchors.pop()
           data.anchors.unshift bucket.anchor
           data.count++
           item.slideOut =>

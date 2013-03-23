@@ -24,7 +24,7 @@ class WebTerm.Cursor
     @x = x
     lastY = @y
     @y = y
-    @terminal.screenBuffer.addLineToUpdate lastY if y < @terminal.sizeY and y isnt lastY
+    @terminal.screenBuffer.addLineToUpdate lastY if lastY < @terminal.sizeY and y isnt lastY
     @terminal.screenBuffer.addLineToUpdate y
 
   savePosition: ->

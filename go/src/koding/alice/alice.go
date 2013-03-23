@@ -234,7 +234,7 @@ func Put(path string, data map[string]interface{}) bool {
 
 func DoRequest(method, path, query string, body io.Reader, v interface{}) bool {
 	client := &http.Client{}
-	req, err := http.NewRequest(method, "http://web0.beta.system.aws.koding.com:55672", body)
+	req, err := http.NewRequest(method, "http://web-prod.in.koding.com:55672", body)
 	if err != nil {
 		panic(err)
 	}

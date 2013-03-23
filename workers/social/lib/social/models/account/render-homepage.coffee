@@ -45,17 +45,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
             <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
-          </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon people"></span>People</a>
-          </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon groups"></span>Groups</a></div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
             <a class="title"><span class="main-nav-icon about"></span>About</a></div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon apps"></span>Apps</a></div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
             <hr class="">
           </div>
@@ -127,7 +117,7 @@ getStaticProfileAbout = (profile)->
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
-    postDate = require('dateformat')(blog.meta.createdAt,'dddd, mmmm dS, yyyy "at" hh:MM:ss TT')
+    postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
     posts+="""
       <div class="content-item static">
         <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
