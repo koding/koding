@@ -12,9 +12,9 @@ class StaticProfileAboutView extends KDView
     else
       @partial = Encoder.htmlDecode about.html or about.content
 
-    @profileHeaderView = new StaticProfileAboutHeaderView
-      cssClass : 'about-header'
-    ,@getData()
+    # @profileHeaderView = new StaticProfileAboutHeaderView
+    #   cssClass : 'about-header'
+    # ,@getData()
 
     if KD.whoami().getId() is @getData().getId()
       @editButton = new KDButtonView
@@ -52,14 +52,23 @@ class StaticProfileAboutView extends KDView
       cssClass : 'about-sidebar'
     , @getData()
 
+    @profileView = new ProfileView
+      cssClass : 'profilearea'
+    , @getData()
+
   viewAppended:->
     super
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
+    # {{> @profileHeaderView}}
     """
-    {{> @profileHeaderView}}
+    <div class="content-display-wrapper">
+      <div class="content-display member">
+         {{> @profileView}}
+      </div>
+    </div>
     {{> @sideBarView}}
     {{> @editButton}}
     {{> @editView}}
@@ -91,12 +100,14 @@ class StaticProfileAboutSidebarView extends KDView
       showHeader        : no
 
     @topicsListWrapper = topicsController.getView()
+    @topicsListWrapper.hide()
 
     topicsController.hideLazyLoader()
 
     @profileUser.fetchFollowedTopics {},{},(err,topics)=>
       if topics
         @refreshActivities err, topics, 'topic'
+        @topicsHeaderView.show()
       else
         topicsController.hideLazyLoader()
         log 'No topics'
@@ -154,16 +165,28 @@ class StaticProfileAboutSidebarView extends KDView
       showHeader        : no
 
     @membersListWrapper = membersController.getView()
+    @membersListWrapper.hide()
 
     @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
       if members
         @refreshActivities err, members, 'member'
+        @membersHeaderView.show()
       else
         membersController.hideLazyLoader()
         log 'No members'
 
     @controllers['member'] = membersController
     @wrappers['member']    = @membersListWrapper
+
+    {profile} = @getData()
+
+    @topicsHeaderView = new KDView
+      cssClass  : 'sidebar-header topics hidden'
+      partial : "#{profile.firstName or profile.nickname}'s Topics"
+
+    @membersHeaderView = new KDView
+      cssClass  : 'sidebar-header members hidden'
+      partial : "#{profile.firstName or profile.nickname}'s People"
 
 
   refreshActivities:(err,activities,type)->
@@ -183,12 +206,15 @@ class StaticProfileAboutSidebarView extends KDView
     @template.update()
 
   pistachio:->
+    # {{> @groupsListWrapper}}
+    # {{> @appsListWrapper}}
     """
-    {{> @topicsListWrapper}}
-    {{> @groupsListWrapper}}
-    {{> @appsListWrapper}}
+    {{> @membersHeaderView}}
     {{> @membersListWrapper}}
-    I AM SIDEBAR
+
+    {{> @topicsHeaderView}}
+    {{> @topicsListWrapper}}
+
     """
 
 
