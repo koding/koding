@@ -77,8 +77,7 @@ class KDTooltip extends KDView
     @view = new constructorName options, data
     @wrapper.addSubView @view
 
-  getView:->
-    @view
+  getView:-> @view
 
   delayedDisplay:(timeout = @getOptions().delayIn)->
     @utils.killWait @displayTimer
