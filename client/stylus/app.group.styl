@@ -657,37 +657,55 @@
       margin-right          2%
 
     &.own-group
-      .own-group-title
+      .badge.member
         visible()
-        span
-          visible()
 
-    .own-group-title
+    .badge-wrapper
+      top                     0
+      right                   -4px
+      size                    auto, auto
+      display                 inline-block
+      abs()
+
+    .badge
       font-style              normal
       font-weight             700
       font-size               9px
       text-transform          uppercase
       background-color        linkColor1
       color                   white
-      display                 block
+      display                 inline-block
       padding                 4px 8px
-      top                     8px
-      right                   -4px
+      margin-top              8px
       shadow                  0 1px 5px rgba(0,0,0,.3)
       text-shadow             0 -1px 0 rgb(247,111,20)
-      hidden()
-      abs()
-      span
-        size                    0, 0
-        display                 block
-        border                  2px solid rgb(192, 110, 0)
-        border-color            rgb(192, 110, 0) transparent transparent  rgb(192, 110, 0)
-        right                   0
-        top                     19px
+      height                  11px
+      clear                   both
+      fr()
+      rel()
+      &.member
         hidden()
+      &.private
+        background-color      #0896bd
+        span.fold
+          border-color        #045065 transparent transparent #045065
+        .icon
+          display             block
+          margin-top          -4px
+          size                18px, 18px
+          bg                  position, -80px -640px
+          sprite()
+
+      span.fold
+        size                  0, 0
+        display               block
+        border                2px solid rgb(192, 110, 0)
+        border-color          rgb(192, 110, 0) transparent transparent  rgb(192, 110, 0)
+        right                 0
+        top                   19px
         abs()
 
-    .wrapper>cite
+    .members-list-wrapper > cite
       font-style              normal
       font-weight             600
       font-size               9px
@@ -783,6 +801,7 @@
         color                 linkColor1
         font-size             18px
         line-height           26px
+        max-height            78px
         borderBox()
         a
           width               auto
@@ -795,11 +814,10 @@
         borderBox()
         width             auto
         margin            0 20px 0 0
-        overflow          hidden
-        text-overflow     ellipsis
         line-height       20px
         color             #5f5f5f
         font-size         12px
+        max-height        60px
 
     .topicmeta
       abs()
