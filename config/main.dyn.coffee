@@ -16,7 +16,7 @@ rabbitPrefix = rabbitPrefix.split('.').join('-')
 
 socialQueueName = "koding-social-prod"
 
-webPort          = 3040
+webPort          = 4040
 brokerPort       = 9010 + (version % 10)
 sourceServerPort = 1400 + (version % 10)
 dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
@@ -28,7 +28,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://koding.com"
+    address     : "https://koding.com:4040"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -100,12 +100,12 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "index.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://koding.com'
+    staticFilesBaseUrl: 'https://koding.com:4040'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'https://koding.com'
+      mainUri   : 'https://koding.com:4040'
       broker    :
         sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
@@ -134,7 +134,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : yes
-    defaultRecepient : undefined
+    defaultRecepient : 'chris@koding.com'
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
