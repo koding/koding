@@ -132,12 +132,12 @@ class ActivityListController extends KDListViewController
   fakeItems = []
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId()
+    dataId = activity.getId?()
 
     if dataId?
       if @itemsIndexed[dataId]
         console.log "duplicate entry", activity.bongo_?.constructorName, dataId
-        _rollbar.push "duplicate entry", activity.bongo_?.constructorName, dataId
+        _rollbar.push msg:"duplicate entry", type:activity.bongo_?.constructorName, id:dataId
       else
         @itemsIndexed[dataId] = activity
         super(activity, index, animation)

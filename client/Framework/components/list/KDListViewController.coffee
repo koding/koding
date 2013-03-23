@@ -116,6 +116,7 @@ class KDListViewController extends KDViewController
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
+    dataId = itemData.getId?()
 
   registerItem:(view, index)->
 
@@ -127,7 +128,7 @@ class KDListViewController extends KDViewController
     else
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
     if view.getData()?
-      @itemsIndexed[@view.getItemDataId()] = view
+      @itemsIndexed[view.getItemDataId()] = view
 
     if options.selection
       @listenTo
