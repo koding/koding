@@ -10,9 +10,14 @@ import (
 )
 
 func CreateConnection(component string) *amqp.Connection {
-	user := strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1)
-	url := "amqp://" + user + ":" + config.Current.Mq.Password + "@" + config.Current.Mq.Host
-	conn, err := amqp.Dial(url)
+	conn, err := amqp.Dial(amqp.URI{
+		Scheme:   "amqp",
+		Host:     config.Current.Mq.Host,
+		Port:     5672,
+		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
+		Password: config.Current.Mq.Password,
+		Vhost:    config.Current.Mq.Vhost,
+	}.String())
 	if err != nil {
 		log.LogError(err, 0)
 		os.Exit(1)

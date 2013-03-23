@@ -22,6 +22,7 @@ type Config struct {
 		Host          string
 		ComponentUser string
 		Password      string
+		Vhost         string
 	}
 	Broker struct {
 		Port     int
