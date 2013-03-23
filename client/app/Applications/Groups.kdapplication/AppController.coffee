@@ -237,9 +237,9 @@ class GroupsAppController extends AppController
           duration: 1000
       else
         new KDNotificationView
-          title: 'Group was created!'
+          title   : 'Group was created!'
           duration: 1000
-        @showContentDisplay group
+        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
