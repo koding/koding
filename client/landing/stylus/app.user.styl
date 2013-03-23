@@ -1,4 +1,3 @@
-
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib"
@@ -7,190 +6,210 @@
 
 
 .slideable
-  vendor transition, margin-top 0.5s linear
-.slide-down
-  margin-top 51px
+  vendor transition,        margin-top 0.5s linear
 
+.slide-down
+  margin-top                51px
 
 #static-landing-page.profile-landing
-  height                100%
-  width                 100%
-  z-index               99
   abs()
-  bg image,             url("../images/koding-new-bg.png");
-  bg repeat,            repeat-x
-  vendor transition,    opacity 1s ease
+  bg image,                 url("../images/koding-new-bg.png");
+  bg repeat,                repeat-x
+  vendor transition,        opacity 1s ease
+  shadow                    0 0 50px 20px rgba(0,0,0,0.4)
+  height                    100%
+  width                     100%
+  z-index                   99
 
-  shadow 0 0 50px 20px rgba(0,0,0,0.4)
   &.profile-leaving
     rel()
+
   &.profile-shrinking
-    height 0
+    height                  0
+
   &.profile-fading
-    opacity             0
+    opacity                 0
+
   &.profile-hidden
-    z-index             1
-    display             none
+    z-index                 1
+    display                 none
 
   .kdlistview-navigation
+
     .navigation-item
+
       &.invisible
-        border none
-        height 0px
+        border              none
+        height              0px
 
 .profile-sidebar
-  height auto
+  height                    auto
 
 .profile-header
-  width                 100%
-  height                51px
-  display               none
+  width                     100%
+  height                    51px
+  display                   none
 
 .profile-personal-wrapper
-  height                100%
-  width                 160px
-  width                 50px
-  vendor transition, width 0.2s linear
+  height                    100%
+  width                     160px
+  width                     50px
+  vendor transition,        width 0.6s ease-in-out
   fl()
+
   &.collapsed
+
     .profile-avatar
-      margin-left -54px
+      margin-left           -54px
 
   .profile-avatar
-    height                76px
-    width                 160px
-    background-position   center center
-    background-repeat     no-repeat
     vendor background-size, 160px auto
-    shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
-    vendor transition, margin-left 0.2s linear
+    shadow                  inset 0 0 13px 0 rgba(0,0,0,0.6)
+    vendor transition,      margin-left 0.6s ease-in-out
+    height                  76px
+    width                   160px
+    background-position     center center
+    background-repeat       no-repeat
 
 
 .profile-buttons
-  height                27px
-  border-top            1px solid #403d37
-  width                 160px
-  bg color,             rgba(0,0,0,0.2)
+  bg color,                 rgba(0,0,0,0.2)
+  height                    27px
+  border-top                1px solid #403d37
+  width                     160px
 
 .profile-content-wrapper
-  vendor transition, margin-left 0.2s linear
-  margin-left           160px
-  margin-left           50px
-  height                100%
-  width                 auto
-  bg color,             white
+  vendor transition,        margin-left 0.6s ease-in-out
+  bg color,                 white
   borderBox()
+  margin-left               160px
+  margin-left               50px
+  height                    100%
+  width                     auto
 
 .profile-title
   borderBox()
-  height                auto
-  min-height            77px
-  width                 auto
-  bg                    color, white
-  border-bottom         1px solid rgb(229,229,229)
-  shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
-  gradient              rgb(255,255,255),rgb(242,242,242)
-  padding 20px 23px 20px 23px
-  .profile-title-wrapper
-    height auto
-    width auto
-  .profile-name
-    max-width             700px
-    borderBox()
-    color #ff9200
-    font-size 32px
-    width auto
-    display inline-block
-    color #444
-    border-bottom 2px solid #ff9200
+  bg                        color, white
+  shadow                    inset 0 3px 1px 3px rgba(250,250,250,.5)
+  gradient                  rgb(255,255,255),rgb(242,242,242)
+  height                    auto
+  min-height                77px
+  width                     auto
+  border-bottom             1px solid rgb(229,229,229)
+  padding                   20px 23px 20px 23px
 
+  .profile-title-wrapper
+    height                  auto
+    width                   auto
+
+  .profile-name
+    borderBox()
+    max-width               700px
+    color                   #ff9200
+    font-size               32px
+    width                   auto
+    display                 inline-block
+    color                   #444
+    border-bottom           2px solid #ff9200
 
   .profile-bio
     borderBox()
-    color #888
-    font-size 12px
-    height 29px
-    overflow-y scroll
-    width auto
-    font-weight 300
-    display inline
-    padding-left 10px
+    color                   #888
+    font-size               12px
+    height                  29px
+    overflow-y              scroll
+    width                   auto
+    font-weight             300
+    display                 inline
+    padding-left            10px
 
 .profile-nickname
   borderBox()
-  font-size 14px
-  width auto
-  display inline-block
-  color #aaa
-  padding 5px 5px 0 13px
+  font-size                 14px
+  width                     auto
+  display                   inline-block
+  color                     #aaa
+  padding                   5px 5px 0 13px
 
 .profile-links
-  margin                10px 0 15px 15px
+  margin                    10px 0 15px 15px
+
   ul
+
     li
+
       a
-        color             #adadad!important
+        color               #adadad!important
         noTextDeco()
-        font-size         12px
-        font-weight       300
-        line-height       20px
-      line-height       20px
-      margin-bottom     4px
+        font-size           12px
+        font-weight         300
+        line-height         20px
+      line-height           20px
+      margin-bottom         4px
+
       span.icon
         sprite()
         fl()
-        size            20px, 20px
-        margin-right    18px
+        size                20px, 20px
+        margin-right        18px
+
       &.blog
+
         span.icon
-          bg position,  0 -80px
+          bg position,      0 -80px
+
       &.twitter
+
         span.icon
-          bg position,  0 -100px
+          bg position,      0 -100px
+
       &.github
+
         span.icon
-          bg position,  0 -280px
+          bg position,      0 -280px
 
   ul.admin
+
     li
+
       a
-        padding-top 3px
-        font-size         11px
+        padding-top         3px
+        font-size           11px
+
   hr
-    border-top          1px solid rgba(44,41,36,0.5)
-    border-bottom       1px solid rgba(255,255,255,0.07)
-    width               auto
-    height              0
-    margin              20px 20px 10px 6px
-    padding             0 11px
+    border-top              1px solid rgba(44,41,36,0.5)
+    border-bottom           1px solid rgba(255,255,255,0.07)
+    width                   auto
+    height                  0
+    margin                  20px 20px 10px 6px
+    padding                 0 11px
 
 textarea.profile-handle-customize.kdinput
-  display inline-block
-  width 228px
-  height 25px
-  font-size 12px
-  // line-height 1
-  // background-position 70px -2px
-  margin-top 3px
-  background-color rgba(255,255,255,0.1)
-  // color #a5a5a5
-  // border-color #666
-  box-shadow none
-  // &.active
-  //   width auto
+  bg color,                 rgba(255,255,255,0.1)
+  display                   inline-block
+  width                     228px
+  height                    25px
+  font-size                 12px
+  margin-top                3px
+  box-shadow                none
+
 .static-link-container
+
   a.static-handle-link
-    line-height 2.5
-    display block
-    color #888
+    line-height             2.5
+    display                 block
+    color                   #888
+
     span.title
-      color #888
+      color                 #888
+
     span.handle
-      color #444
+      color                 #444
 
     &:hover
+
       span.handle
-        color #ff9200
+        color               #ff9200
 
     &.edit
       span.handle
@@ -201,360 +220,446 @@ textarea.profile-handle-customize.kdinput
     > span.icon
       fl()
       rel()
-      opacity 1
-      size 26px 26px
+      opacity               1
+      size                  26px 26px
+
       &.twitter
-        bg position, -68px -340px
+        bg position,        -68px -340px
+
       &.github
-        bg position, -39px -340px
-
-// @keyframes pulsatingBar
-//   0%
-//     bg color, #ff9200
-//   50%
-//     bg color, lighten(#ff9200, 50%)
-
+        bg position,        -39px -340px
 
 .profile-loading-bar
   borderBox()
-  height 0
-  width auto
-  bg color, #fbfbfb
-  border none
-  vendor transition, height 0.1s linear
-  text-align center
-  color #ff9200
+  vendor transition,        height 0.1s linear
+  bg color,                 #fbfbfb
+  height                    0
+  width                     auto
+  border                    none
+  text-align                center
+  color                     #ff9200
 
   &.active
-    height 26px
-    border-bottom 1px solid rgba(0,0,0,0.075)
+    height                  26px
+    border-bottom           1px solid rgba(0,0,0,0.075)
+
   .kdloader
-    margin 5px
+    margin                  5px
 
 .profile-name
 .profile-bio
+
   textarea.kdinput.text
-    display inline-block
-    line-height 1.5
+    display                 inline-block
+    line-height             1.5
+
   &.edit
+
     span.text
       hidden()
 
 .profile-content-links
   borderBox()
   fl()
-  vendor transition, width 0.2s linear //\, padding-left 0.2s linear
-  width                 139px
-  overflow              hidden
-  height                100%
-  margin-right          0px
-  border-right          1px solid #e8e8e8
+  vendor transition,        width 0.2s linear //\, padding-left 0.2s linear
+  width                     139px
+  overflow                  hidden
+  height                    100%
+  margin-right              0px
+  border-right              1px solid #e8e8e8
 
 
   &.links-hidden
-    width 0
+    width                   0
 
   li
     borderBox()
-    overflow            visible
-    vendor              transition, opacity .1s linear
-    color               #7c603b
-    font-weight         normal
+    overflow                visible
+    vendor                  transition, opacity .1s linear
+    color                   #7c603b
+    font-weight             normal
     noTextDeco()
-    cursor              pointer
-    line-height         16px
-    font-size           12px
-    vertical-align      baseline
-    margin-bottom       6px
-    white-space         nowrap
-    width               125px
+    cursor                  pointer
+    line-height             16px
+    font-size               12px
+    vertical-align          baseline
+    margin-bottom           6px
+    white-space             nowrap
+    width                   125px
+
     &.disabled
-      opacity           0.5
-      cursor            default
+      opacity               0.5
+      cursor                default
+
     &.blocked
-      opacity           0.5
-      cursor            default
+      opacity               0.5
+      cursor                default
   ul
-    margin-left 23px
+    margin-left             23px
+
   h4
-    margin-left 23px
-    margin-top          19px
     borderBox()
-    text-transform      uppercase
-    font-size           9px
-    color               #9f9d9a
-    font-weight         400
-    margin-bottom       9px
-    width 125px
+    margin-left             23px
+    margin-top              19px
+    text-transform          uppercase
+    font-size               9px
+    color                   #9f9d9a
+    font-weight             400
+    margin-bottom           9px
+    width                   125px
 
 .profile-koding-logo
-  height 100%
-  .logo
-    cursor pointer
-    sprite()
-    width 120px
-    height 30px
-    bg position, -240px -40px
-    position fixed
-    bottom 12px
-    left 15px
-    &.animate
-      vendor transition, top 0.5s ease-in-out
-    &.top
-      top 12px!important
-      bottom none
+  height                    100%
+  vertical-align            bottom
 
-  vertical-align bottom
+  .logo
+    sprite()
+    bg position,            -240px -40px
+    cursor                  pointer
+    width                   120px
+    height                  30px
+    position                fixed
+    bottom                  12px
+    left                    15px
+
+    &.animate
+      vendor transition,    top 0.5s ease-in-out
+
+    &.top
+      top                   12px!important
+      bottom                none
+
 
 .profile-show-more-wrapper
-  height 50px
-  width auto
+  height                    50px
+  width                     auto
+
   button
-    text-shadow none
-    border none
-    bg image, none
-    rounded 0
-    bg color, white
-    width 100%
+    bg image,               none
+    rounded                 0
+    bg color,               white
+    text-shadow             none
+    border                  none
+    width                   100%
+
     &:hover
-     text-shadow none
-     border none
-     bg image, none
-     bg color #f5f5f5
+     bg image,              none
+     bg color               #f5f5f5
+     text-shadow            none
+     border                 none
 
 .profile-splitview
-  height 100%
+  height                    100%
 
 .profile-content-list
-  overflow-y auto
-  height 100%
-  width auto
-  margin-left 0px
-  vendor transition, margin-left 0.2s linear
-  vendor transition, margin-left 0.2s linear
+  vendor transition,        margin-left 0.2s linear
+  vendor transition,        margin-left 0.2s linear
+  overflow-y                auto
+  height                    100%
+  width                     auto
+  margin-left               0px
+
   &.has-links
-    margin-left 125px
+    margin-left             125px
 
 .profile-admin-customize
 .profile-admin-message
-  margin-left 10px
   fr()
-  width auto
-  a span.title
-    color #aaa
-    noTextDeco()
-    font-weight 300
-    text-shadow 2px 2px 3px rgba(0,0,0,0.05)
-    &:hover
-      color #444
+  margin-left               10px
+  width                     auto
 
+  a span.title
+    noTextDeco()
+    color                   #aaa
+    font-weight             300
+    text-shadow             2px 2px 3px rgba(0,0,0,0.05)
+
+    &:hover
+      color                 #444
 
 .kdlistview.kdview.profile-content
 .profile-content
-  overflow auto
   borderBox()
-  height 100%
-  width auto
+  overflow                  auto
+  height                    100%
+  width                     auto
 
   .new-blogpost
     abs()
-    right 10px
-    top 10px
+    right                   10px
+    top                     10px
 
   .content-item
-    border-bottom 1px solid #e8e8e8
-    height auto
+    border-bottom           1px solid #e8e8e8
+    height                  auto
 
     &.default-item
-      padding-top 35px
-      padding-left 35px
+      padding-top           35px
+      padding-left          35px
+
     > .title
+      bg color,             #fbfbfb
+      padding               30px 40px
+      border-bottom         1px solid #e8e8e8
+
       span.text
-        max-width 600px
-        display block
-        margin-bottom 10px
-        color #666
-        font-size 24px
-        font-weight 600
-        vendor font-smoothing, antialiased
-        vendor text-rendering, geometricPrecision
-      bg color, #fbfbfb
+        vendor              font-smoothing, antialiased
+        vendor              text-rendering, geometricPrecision
+        max-width           600px
+        display             block
+        margin-bottom       10px
+        color               #666
+        font-size           24px
+        font-weight         600
+
       .create-date
-        display inline
-        font-size 14px
-        font-weight 300
-        color #aaa
-        width auto
+        display             inline
+        font-size           14px
+        font-weight         300
+        color               #aaa
+        width               auto
+
+        .link-group
+          font-size         inherit
+
       .static-action-links
          fr()
-         width auto
-         display inline-block
+         width              auto
+         display            inline-block
 
-      padding 30px 40px
-      border-bottom 1px solid #e8e8e8
     .has-markdown
-      max-width 600px
-      padding 30px 40px
-      margin-bottom 30px
-      text-align justify
-      text-rendering geometricPrecision
+      max-width             600px
+      padding               30px 40px
+      margin-bottom         30px
+      text-align            justify
+      text-rendering        geometricPrecision
+
   .default-item
     borderBox()
-    bg color, #fbfbfb
-    line-height 20px
-    min-height 50px
-    height auto
-    padding 20px
-    border-bottom 1px solid #e8e8e8
+    bg color,               #fbfbfb
+    line-height             20px
+    min-height              50px
+    height                  auto
+    padding                 20px
+    border-bottom           1px solid #e8e8e8
 
 .profile-sidebar
-  height  auto
+  height                    auto
 
 .profile-facet-customize-switch
   abs()
-  top 3px
-  left 0
-  margin-left -17px
+  top                       3px
+  left                      0
+  margin-left               -17px
 
 .profile-about-view
   borderBox()
+
   .about-header
     borderBox()
-    padding 30px
-    padding-right 190px
-    background-color #fbfbfb
-    border-bottom 1px solid #e8e8e8
-    bg position, top right
-    bg repeat, no-repeat
-    height 180px
-    // > div
-    //   height auto
+    bg position,            top right
+    bg repeat,              no-repeat
+    padding                 30px
+    padding-right           190px
+    background-color        #fbfbfb
+    border-bottom           1px solid #e8e8e8
+    height                  180px
 
   hr
-    color #e8e8e8
+    color                   #e8e8e8
 
   .about-body
-    padding 30px
     borderBox()
-    max-width 600px
+    padding                 30px
+    max-width               600px
 
   .about-edit
     borderBox()
-    width 100%
-    padding 10px
+    width                   100%
+    padding                 10px
 
   .about-edit-button
     fr()
-    margin 10px
-    width 100px
+    margin                  10px
+    width                   100px
+
   .about-save-button
     fr()
-    width 100px
-    margin 10px
+    width                   100px
+    margin                  10px
+
   textarea.kdinput.text.about-edit-input.kdinputwithpreview
-    width 100%
     borderBox()
-    min-height 200px
+    width                   100%
+    min-height              200px
+
   .about-name
+
     .name
-      font-size 24px
-      width auto
-      display inline-block
-      margin-right 15px
+      font-size             24px
+      width                 auto
+      display               inline-block
+      margin-right          15px
+
     .location
-      color #aaa
-      font-weight 300
-      width auto
-      display inline-block
-    // .about
+      color                 #aaa
+      font-weight           300
+      width                 auto
+      display               inline-block
+
   .about-link
+
     .url
-      margin-top 15px
-      font-weight 300
-      font-size 15px
-      line-height 20px
+      margin-top            15px
+      font-weight           300
+      font-size             15px
+      line-height           20px
 
   .about-about
-    padding-top: 20px
-    border-top: 1px solid #e3e3e3
-    margin-top: 10px
-    font-size 15px
-    font-weight 300
-    line-height 1.2
+    padding-top:            20px
+    border-top:             1px solid #e3e3e3
+    margin-top:             10px
+    font-size               15px
+    font-weight             300
+    line-height             1.2
 
   .nickname
     borderBox()
     abs()
-    right 0px
-    bottom 0px
-    width 160px
-    text-align center
-    color #888
-    display inline-block
-    height 20px
-    line-height 20px
-    bg color, #e8e8e8
-    border-left 1px solid #ddd
+    bg color,               #e8e8e8
+    right                   0px
+    bottom                  0px
+    width                   160px
+    text-align              center
+    color                   #888
+    display                 inline-block
+    height                  20px
+    line-height             20px
+    border-left             1px solid #ddd
+
+  .about-sidebar
+    fr()
+    width                   300px
+    height                  100%
+    border-left             1px solid #e8e8e8
+
+    .listview-wrapper
+      height auto
+      display inline
+      .kdscrollview
+        height auto
+// .static-content
+
+//   &.topic
+
+//     .kdlistitemview.kdview
+//       width                 200px
+//       height                200px
+//       display               inline-block
+//       border-right          1px solid #e8e8e8
+//       border-bottom         1px solid #e8e8e8
+//       overflow              hidden
+//       vertical-align        top
+//       padding               10px
+
+//       .static-topic-title
+//           color             #fff
+//           background        #ee8800
+//           padding           2px 8px
+//           white-space       nowrap
+//           text-overflow     ellipsis
+//           max-width         100%
+//           overflow          hidden
+//           borderBox()
+//           rounded(4px)
+//           noTextDeco()
+//           width             auto
+//           display           inline-block
+//           margin-bottom     10px
+
+//           &:hover
+//             bg              color,#333
+//             cursor          default
+
+//       article.static-topic-body
+//         margin-bottom       15px
+//         margin-top          0px
+//         font-size           11px
+//         line-height         150%
+//         padding             0
+//         color               #353535
+//         height              65px
+//         overflow            hidden
 
 .disable-static-page-modal
 .enable-static-page-modal
+
   .modalformline p
-    line-height 1.5
-    margin-bottom 5px
+    line-height             1.5
+    margin-bottom           5px
 
 .new-blogpost-modal
+
   .formline
     borderBox()
-    width 100%
-    padding 20px
+    width                   100%
+    padding                 20px
+
   textarea.kdinput.markdown-input
-    margin-top 15px
     borderBox()
-    height 200px
-    width 100%
+    margin-top              15px
+    height                  200px
+    width                   100%
+
   input.kdinput.title-input
     borderBox()
-    width 100%
+    width                   100%
 
 .static-profile-send-message-input-wrapper
-  width 100%
-  min-height 100px
   borderBox()
-  padding 5px
+  width                     100%
+  min-height                100px
+  padding                   5px
+
   textarea.kdinput.static-profile-send-message-input
-    width 100%
-    min-height 100px
+    width                   100%
+    min-height              100px
 
 .static-profile-popup
-  top 102px
+  top                       102px
 
 .static-profile-tooltip
-  padding 0px
-  margin 0
   borderBox()
+  padding                   0px
+  margin                    0
 
   .tooltip-formline
-    border-bottom 1px solid rgba(0,0,0,0.1)
-    padding 10px
     borderBox()
+    border-bottom           1px solid rgba(0,0,0,0.1)
+    padding                 10px
+
     &:last-child
-      border none
+      border                none
+
   a.user-profile-link
-    font-size         14px
-    font-weight       300
-    line-height       25px
-    color  #ff9200 //#0A92BA
     noTextDeco()
-    display block
+    font-size               14px
+    font-weight             300
+    line-height             25px
+    color                   #ff9200 //#0A92BA
+    display                 block
 
   .static-page-switch
-    width auto
+    width                   auto
+
     span
-      font-size 12px
-      font-weight 300
-      color #a5a5a5
+      font-size             12px
+      font-weight           300
+      color                 #a5a5a5
+
   button.static-page-settings-button
+
     > span.icon
-      size 15px 15px
       sprite()
-      bg position, -20px -320px
+      bg position,          -20px -320px
+      size                  15px 15px

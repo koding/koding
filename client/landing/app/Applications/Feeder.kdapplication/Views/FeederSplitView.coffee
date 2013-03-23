@@ -2,9 +2,9 @@ class FeederSplitView extends ContentPageSplitBelowHeader
 
   constructor:(options = {})->
 
-    options.sizes     = [139, null]
-    options.minimums  = [10, null]
-    options.resizable = no
-    options.bind      = "mouseenter"
+    options.sizes     or= [139, null]
+    options.minimums  or= [10, null]
+    options.resizable  ?= no
+    options.bind      or= "mouseenter"
 
     super options

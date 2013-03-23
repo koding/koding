@@ -20,6 +20,7 @@ class MembersAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
+      useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
       help                  :
@@ -192,6 +193,8 @@ class MembersAppController extends AppController
   createContentDisplay:(account, callback)->
     controller     = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
 
