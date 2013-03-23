@@ -45,6 +45,9 @@ module.exports =
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -65,9 +68,6 @@ module.exports =
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
@@ -135,6 +135,8 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : yes
     defaultRecepient : 'chris@koding.com'
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
