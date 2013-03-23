@@ -15,9 +15,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     <div id="static-landing-page">
 
     <div class="group-personal-wrapper" id="group-personal-wrapper">
-      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)">
 
-      </div>
       <div class="group-buttons">
         <div class="group-nickname">#{slug}</div>
       </div>
