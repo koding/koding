@@ -66,12 +66,11 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
-            # If you want to show Group Landing Page uncomment following lines
-            #
-            # items.unshift \
-            #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
-            # @_instantiateListItems items
+            @lc.landingView.hide()
             @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
+            items.unshift \
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+            @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
