@@ -30,6 +30,9 @@ module.exports = deepFreeze
     clusterSize : 2
     queueName   : socialQueueName+'web'
     watch       : yes
+  sourceServer  :
+    enabled     : yes
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
@@ -141,6 +144,8 @@ module.exports = deepFreeze
     email: ""
     token: ""
     interval: 60000
+  haproxy:
+    webPort     : 3020
 
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
