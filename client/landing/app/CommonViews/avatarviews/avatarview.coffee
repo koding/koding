@@ -6,32 +6,33 @@ class AvatarView extends LinkView
     options.size     or=
       width            : 50
       height           : 50
-    options.noTooltip ?= yes
+    options.detailed  ?= no
 
     # this needs to be pre-super
-    unless options.noTooltip
-      @avatarPreview =
+    if options.detailed
+      @detailedAvatar   =
         constructorName : AvatarTooltipView
         options         :
           delegate      : @
           origin        : options.origin
         data            : data
 
-    if @avatarPreview then options.tooltip or=
-      view             : unless options.noTooltip then @avatarPreview else null
-      viewCssClass     : 'avatar-tooltip'
-      animate          : yes
-      placement        : ['top','bottom','right','left'][@utils.getRandomNumber 3]
-      direction        : ['left','right','center','top','bottom'][@utils.getRandomNumber 4]
+      options.tooltip or= {}
+      options.tooltip.view         or= if options.detailed then @detailedAvatar else null
+      options.tooltip.viewCssClass or= 'avatar-tooltip'
+      options.tooltip.animate      or= yes
+      options.tooltip.placement    or= 'top'
+      options.tooltip.direction    or= 'right'
 
     options.cssClass = "avatarview #{options.cssClass}"
 
     super options,data
 
-    if @avatarPreview?
+    if @detailedAvatar?
       @on 'TooltipReady', =>
         @utils.defer =>
-          @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
+          data = @getData()
+          @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
 
