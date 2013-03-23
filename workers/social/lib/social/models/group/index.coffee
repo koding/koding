@@ -190,44 +190,44 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        # -> group.createSlug (err, slug)->
-        #   if err then callback err
-        #   else unless slug?
-        #     callback new KodingError "Couldn't claim the slug!"
-        #   else
-        #     console.log "created a slug #{slug}"
-        #     group.slug  = slug.slug
-        #     group.slug_ = slug.slug
-        #     queue.next()
-        # -> save_ 'group', group, queue, callback
-        # -> group.addMember delegate, (err)->
-        #     if err then callback err
-        #     else
-        #       console.log 'member is added'
-        #       queue.next()
-        # -> group.addAdmin delegate, (err)->
-        #     if err then callback err
-        #     else
-        #       console.log 'admin is added'
-        #       queue.next()
-        # -> save_ 'permission set', permissionSet, queue, callback
-        # -> save_ 'default permission set', defaultPermissionSet, queue,
-        #           callback
-        # -> group.addPermissionSet permissionSet, (err)->
-        #     if err then callback err
-        #     else
-        #       console.log 'permissionSet is added'
-        #       queue.next()
-        # -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
-        #     if err then callback err
-        #     else
-        #       console.log 'permissionSet is added'
-        #       queue.next()
-        # -> group.addDefaultRoles (err)->
-        #     if err then callback err
-        #     else
-        #       console.log 'roles are added'
-        #       queue.next()
+        -> group.createSlug (err, slug)->
+          if err then callback err
+          else unless slug?
+            callback new KodingError "Couldn't claim the slug!"
+          else
+            console.log "created a slug #{slug}"
+            group.slug  = slug.slug
+            group.slug_ = slug.slug
+            queue.next()
+        -> save_ 'group', group, queue, callback
+        -> group.addMember delegate, (err)->
+            if err then callback err
+            else
+              console.log 'member is added'
+              queue.next()
+        -> group.addAdmin delegate, (err)->
+            if err then callback err
+            else
+              console.log 'admin is added'
+              queue.next()
+        -> save_ 'permission set', permissionSet, queue, callback
+        -> save_ 'default permission set', defaultPermissionSet, queue,
+                  callback
+        -> group.addPermissionSet permissionSet, (err)->
+            if err then callback err
+            else
+              console.log 'permissionSet is added'
+              queue.next()
+        -> group.addDefaultPermissionSet defaultPermissionSet, (err)->
+            if err then callback err
+            else
+              console.log 'permissionSet is added'
+              queue.next()
+        -> group.addDefaultRoles (err)->
+            if err then callback err
+            else
+              console.log 'roles are added'
+              queue.next()
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
@@ -368,7 +368,10 @@ module.exports = class JGroup extends Module
               else callback null, arr
 
   fetchMembers$: permit 'list members',
-    success:(client, rest...)-> @fetchMembers rest...
+    success:(client, selector, options, callback)->
+      args = Module.limitEdges 100, [].slice.call arguments
+      [selector, options, callback] = args
+      @fetchMembers selector, options, callback
 
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
