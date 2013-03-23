@@ -1,12 +1,20 @@
 
 module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   content ?= getDefaultuserContents()
-  {nickname, firstName, lastName, hash, about, handles} = profile
+  {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
+
+  staticPage ?= {}
+  {backgrounds} = staticPage
 
   firstName ?= 'Koding'
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
+
+  if backgrounds?.length
+    console.log backgrounds.length, Math.floor(Math.random()*backgrounds.length)
+    selectedBackground = backgrounds[Math.floor(Math.random()*backgrounds.length)]
+    console.log selectedBackground
 
   """
   <!DOCTYPE html>
@@ -16,7 +24,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
+    <div class="profile-landing #{if selectedBackground then 'custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
     <div class="profile-personal-wrapper kdview collapsed" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
@@ -46,12 +54,10 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
             <a class="title"><span class="main-nav-icon about"></span>About</a></div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
-            <hr class="">
-          </div>
         </div>
        </div>
 
+      <div class="profile-placeholder" id="profile-placeholder"></div>
 
       <div class="profile-koding-logo" id="profile-koding-logo-wrapper">
         <div class="logo kdview" id='profile-koding-logo'></div>
