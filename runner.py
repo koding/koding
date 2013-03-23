@@ -52,7 +52,10 @@ def fork_command(cmd, logfile='/dev/null'):
 
 def kill_group(proc, signal):
     children = proc.get_children()
-    proc.send_signal(signal)
+    try:
+        proc.send_signal(signal)
+    except:
+        pass
     for child in children:
         kill_group(child, signal)
 
@@ -76,9 +79,15 @@ def get_process_path(cmd):
         return exe
 
 def print_usage():
-    print "Usage: %s start|stop|status|list <service1> ..." % sys.argv[0]
+    print "Usage: %s <command> [service1 service2 ...]" % sys.argv[0]
     print "Example:"
+    print "  %s list" % sys.argv[0]
     print "  %s start web" % sys.argv[0]
+    print "  %s start web auth" % sys.argv[0]
+    print "  %s stop all" % sys.argv[0]
+    print "  %s start all" % sys.argv[0]
+    print "  %s status" % sys.argv[0]
+    print "  %s log" % sys.argv[0]
 
 def main():
     run_dir = os.getcwd()
@@ -96,9 +105,14 @@ def main():
         print_usage()
         return -1
 
-    if operation not in ('start', 'stop', 'list', 'status'):
+    if operation not in ('start', 'stop', 'list', 'status', 'log'):
         print_usage()
         return -1
+
+    if operation == 'log':
+        if os.access(run_log, os.R_OK):
+            os.system('tail -f %s' % run_log)
+        return
 
     rules = yaml.load(file(run_file))
 
