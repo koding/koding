@@ -289,20 +289,20 @@ class ManageRemotesModal extends KDModalViewWithForms
 
   refreshRemoteDrives:(finalPath = '', destroy = no, force = no)->
     {nickname}  = KD.whoami().profile
-    remotesPath = "/Users/#{nickname}/RemoteDrives"
+    remotesPath = "/home/#{nickname}/RemoteDrives"
     log finalPath
     tc = KD.getSingleton("finderController").treeController
     navTo = =>
       tc.navigateTo remotesPath, =>
         if finalPath
-          tc.refreshFolder tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"], =>
-            tc.selectNode tc.nodes["/Users/#{nickname}/RemoteDrives/#{finalPath}"]
+          tc.refreshFolder tc.nodes["/home/#{nickname}/RemoteDrives/#{finalPath}"], =>
+            tc.selectNode tc.nodes["/home/#{nickname}/RemoteDrives/#{finalPath}"]
             @destroy() if destroy
         else
           @destroy() if destroy
 
     unless (remotesPath of tc.nodes) or force
-      tc.refreshFolder tc.nodes["/Users/#{nickname}"], =>
+      tc.refreshFolder tc.nodes["/home/#{nickname}"], =>
         navTo()
     else
       navTo()

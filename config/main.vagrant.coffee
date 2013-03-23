@@ -33,6 +33,9 @@ module.exports =
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : yes
+  runLdapServer : yes
+  runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -53,9 +56,6 @@ module.exports =
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
@@ -80,7 +80,7 @@ module.exports =
     exchange    : 'services-presence'
   client        :
     version     : version
-    watch       : no
+    watch       : yes
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -92,12 +92,12 @@ module.exports =
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
-      version   : version
-      mainUri   : 'http://koding.local'
       broker    :
         sockJS  : 'http://koding.local:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
+      version   : version
+      mainUri   : 'http://koding.local'
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://koding.local:1337'
   mq            :

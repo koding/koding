@@ -92,6 +92,7 @@ class GroupsAppController extends AppController
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
+      listCssClass          : "groups"
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
@@ -236,9 +237,9 @@ class GroupsAppController extends AppController
           duration: 1000
       else
         new KDNotificationView
-          title: 'Group was created!'
+          title   : 'Group was created!'
           duration: 1000
-        @showContentDisplay group
+        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->

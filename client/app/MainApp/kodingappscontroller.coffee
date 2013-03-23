@@ -57,7 +57,7 @@ class KodingAppsController extends KDController
 
   fetchAppsFromFs:(callback)->
 
-    path = "/Users/#{KD.whoami().profile.nickname}/Applications"
+    path = "/home/#{KD.whoami().profile.nickname}/Applications"
 
     @kiteController.run "ls #{escapeFilePath path} -lpva", \
       KD.utils.getTimedOutCallback (err, response)=>
@@ -574,7 +574,7 @@ class KodingAppsController extends KDController
   #         callback? err
   #         return no
 
-  #       appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
+  #       appPath = "/home/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
   #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
 
   #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->

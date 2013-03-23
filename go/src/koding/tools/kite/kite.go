@@ -4,17 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"io"
 	"koding/tools/amqputil"
-	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"os"
-	"os/exec"
 	"os/signal"
-	"os/user"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -145,20 +140,27 @@ func (k *Kite) Run() {
 
 						execHandler := func() {
 							result, err := handler.Callback(options.WithArgs, session)
+							if b, ok := result.([]byte); ok {
+								result = string(b)
+							}
+
 							if err != nil {
 								resultCallback(err.Error(), result)
-							} else if result != nil {
-								resultCallback(nil, result)
+								return
 							}
+
+							resultCallback(nil, result)
 						}
+
 						if handler.Concurrent {
 							go func() {
 								defer log.RecoverAndLog()
 								execHandler()
 							}()
-						} else {
-							execHandler()
+							return
 						}
+
+						execHandler()
 					}
 
 					go func() {
@@ -235,69 +237,26 @@ func (k *Kite) Run() {
 }
 
 type Session struct {
-	User, Home string
-	Uid, Gid   int
-	closers    []io.Closer
+	Username     string
+	Alive        bool
+	onDisconnect []func()
 }
 
 func NewSession(username string) *Session {
-	userData, err := user.Lookup(username)
-	if err != nil {
-		panic(err)
-	}
-	uid, err := strconv.Atoi(userData.Uid)
-	if err != nil {
-		panic(err)
-	}
-	gid, err := strconv.Atoi(userData.Gid)
-	if err != nil {
-		panic(err)
-	}
-	if uid == 0 || gid == 0 {
-		panic("SECURITY BREACH: User lookup returned root.")
-	}
 	return &Session{
-		User: username,
-		Home: config.Current.GoConfig.HomePrefix + username,
-		Uid:  uid,
-		Gid:  gid,
+		Username: username,
+		Alive:    true,
 	}
 }
 
-func (session *Session) CloseOnDisconnect(closer io.Closer) {
-	session.closers = append(session.closers, closer)
+func (session *Session) OnDisconnect(f func()) {
+	session.onDisconnect = append(session.onDisconnect, f)
 }
 
 func (session *Session) Close() {
-	for _, closer := range session.closers {
-		closer.Close()
+	session.Alive = false
+	for _, f := range session.onDisconnect {
+		f()
 	}
-	session.closers = nil
-}
-
-func (session *Session) CreateCommand(command ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if config.Current.GoConfig.UseLVE {
-		cmd = exec.Command("/bin/lve_exec", command...)
-	} else {
-		cmd = exec.Command(command[0], command[1:]...)
-	}
-	cmd.Dir = session.Home
-	cmd.Env = []string{
-		"USER=" + session.User,
-		"LOGNAME=" + session.User,
-		"HOME=" + session.Home,
-		"SHELL=/bin/bash",
-		"TERM=xterm",
-		"LANG=en_US.UTF-8",
-		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + session.Home + "/bin",
-	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Credential: &syscall.Credential{
-			Uid: uint32(session.Uid),
-			Gid: uint32(session.Gid),
-		},
-	}
-
-	return cmd
+	session.onDisconnect = nil
 }

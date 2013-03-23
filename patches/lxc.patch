@@ -1,0 +1,122 @@
+Index: koding/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c
+===================================================================
+--- koding.orig/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c	2013-01-14 22:03:59.000000000 +0000
++++ koding/temp/lxc-0.9.0~alpha2-0ubuntu1+b1~bzr1087/src/lxc/lxc_attach.c	2013-02-11 00:08:15.000000000 +0000
+@@ -29,6 +29,10 @@
+ #include <sys/param.h>
+ #include <sys/types.h>
+ #include <sys/wait.h>
++#include <utmp.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <grp.h>
+ 
+ #include "attach.h"
+ #include "commands.h"
+@@ -53,6 +57,7 @@
+ 	{"arch", required_argument, 0, 'a'},
+ 	{"namespaces", required_argument, 0, 's'},
+ 	{"remount-sys-proc", no_argument, 0, 'R'},
++	{"tty", required_argument, 0, 't'},
+ 	LXC_COMMON_OPTIONS
+ };
+ 
+@@ -60,6 +65,7 @@
+ static signed long new_personality = -1;
+ static int namespace_flags = -1;
+ static int remount_sys_proc = 0;
++static char* tty = 0;
+ 
+ static int my_parser(struct lxc_arguments* args, int c, char* arg)
+ {
+@@ -83,6 +89,7 @@
+ 		/* -s implies -e */
+ 		elevated_privileges = 1;
+ 		break;
++	case 't': tty = arg; break;
+ 	}
+ 
+ 	return 0;
+@@ -130,6 +137,8 @@
+ 	void *cgroup_data = NULL;
+ 	uid_t uid;
+ 	char *curdir;
++	gid_t groups[1] = { 0 };
++	int tty_fd;
+ 
+ 	ret = lxc_caps_init();
+ 	if (ret)
+@@ -183,21 +192,6 @@
+ 		}
+ 	}
+ 
+-	/* we need to attach before we fork since certain namespaces
+-	 * (such as pid namespaces) only really affect children of the
+-	 * current process and not the process itself
+-	 */
+-	ret = lxc_attach_to_ns(init_pid, namespace_flags);
+-	if (ret < 0) {
+-		ERROR("failed to enter the namespace");
+-		return -1;
+-	}
+-
+-	if (curdir && chdir(curdir))
+-		WARN("could not change directory to '%s'", curdir);
+-
+-	free(curdir);
+-
+ 	/* hack: we need sync.h infrastructure - and that needs a handler */
+ 	handler = calloc(1, sizeof(*handler));
+ 
+@@ -265,6 +259,12 @@
+ 		lxc_sync_fini_parent(handler);
+ 		lxc_cgroup_dispose_attach(cgroup_data);
+ 
++		ret = lxc_attach_to_ns(init_pid, namespace_flags);
++		if (ret < 0) {
++			ERROR("failed to enter the user namespace");
++			return -1;
++		}
++
+ 		/* A description of the purpose of this functionality is
+ 		 * provided in the lxc-attach(1) manual page. We have to
+ 		 * remount here and not in the parent process, otherwise
+@@ -301,6 +301,38 @@
+ 
+ 		lxc_sync_fini(handler);
+ 
++		if (tty != 0) {
++			if((tty_fd = open(tty, O_RDWR)) == 0) {
++				ERROR("opening tty failed: %s", strerror(errno));
++				return -1;
++			}
++
++			if(login_tty(tty_fd) == -1) {
++				ERROR("login_tty failed: %s", strerror(errno));
++				return -1;
++			}
++		}
++
++		if (setuid(0) != 0) {
++			ERROR("could not set user id: %s", strerror(errno));
++			return -1;
++		}
++
++		if (setgid(0) != 0) {
++			ERROR("could not set group id: %s", strerror(errno));
++			return -1;
++		}
++
++		if (setgroups(1, groups) != 0) {
++			ERROR("could not set groups: %s", strerror(errno));
++			return -1;
++		}
++
++		if (curdir && chdir(curdir))
++			WARN("could not change directory to '%s'", curdir);
++
++		free(curdir);
++
+ 		if (my_args.argc) {
+ 			execvp(my_args.argv[0], my_args.argv);
+ 			SYSERROR("failed to exec '%s'", my_args.argv[0]);
