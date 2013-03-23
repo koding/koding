@@ -222,6 +222,7 @@ module.exports = [
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
+  "app/MainApp/sidebar/groupavatar.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
   "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
