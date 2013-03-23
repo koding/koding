@@ -125,13 +125,18 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
     postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
+    commentCount =
+      if blog.repliesCount is 0 then ''
+      else if blog.repliesCount is 1 then ' · One Comment'
+      else " · #{blog.repliesCount} Comments"
+
     posts+="""
       <div class="content-item static">
         <div class="title">
           <span class="text">#{blog.title}</span>
         </div>
         <div class="has-markdown">
-          <span class="create-date">Published on #{postDate}</span>
+          <span class="create-date">Published on #{postDate}#{commentCount}</span>
           <span class="data">#{blog.html}</span>
         </div>
       </div>

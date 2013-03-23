@@ -19,6 +19,12 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+    count = @getData().repliesCount or 0
+    @commentCount =
+      if count is 0 then ''
+      else if count is 1 then ' · One Comment'
+      else " · #{count} Comments"
+
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
@@ -42,13 +48,15 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
         <span class="text">
           {{ @applyTextExpansions #(title)}}
         </span>
+      </div>
+      <div class="blog-post-body has-markdown">
         <div class='create-date'>
           <span class='type-icon'></span>
           {time{@formatCreateDate #(meta.createdAt)}}
-          {{> @tags}}
+          {{> @tags}}#{@commentCount}
           {{> @actionLinks}}
         </div>
+        {{Encoder.htmlDecode #(html)}}
       </div>
-      <div class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</div>
     </div>
     """
