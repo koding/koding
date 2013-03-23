@@ -127,8 +127,11 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
     postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
     posts+="""
       <div class="content-item static">
-        <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
+        <div class="title">
+          <span class="text">#{blog.title}</span>
+        </div>
         <div class="has-markdown">
+          <span class="create-date">Published on #{postDate}</span>
           <span class="data">#{blog.html}</span>
         </div>
       </div>
@@ -189,6 +192,7 @@ getStyles =->
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
   <link rel="stylesheet" href="/fonts/stylesheet.css" />
+  <link href="http://fonts.googleapis.com/css?family=Bree+Serif" rel="stylesheet" type="text/css">
   """
 
 getScripts =->
