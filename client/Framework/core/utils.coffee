@@ -495,21 +495,25 @@ __utils =
       else
         null
 
+  getDummyName:->
+    u  = KD.utils
+    gr = u.getRandomNumber
+    gp = u.generatePassword
+    gp(gr(10), yes)
+
   registerDummyUser:->
 
     return if location.hostname isnt "localhost"
 
     u  = KD.utils
-    gr = u.getRandomNumber
-    gp = u.generatePassword
 
     uniqueness = (Date.now()+"").slice(6)
     formData   =
       agree           : "on"
       email           : "sinanyasar+#{uniqueness}@gmail.com"
-      firstName       : gp(gr(10), yes)
+      firstName       : u.getDummyName()
+      lastName        : u.getDummyName()
       inviteCode      : "twitterfriends"
-      lastName        : gp(gr(10), yes)
       password        : "123123123"
       passwordConfirm : "123123123"
       username        : uniqueness

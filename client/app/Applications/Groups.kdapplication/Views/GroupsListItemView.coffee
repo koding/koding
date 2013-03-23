@@ -5,12 +5,13 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     {title, slug, body} = @getData()
-
+    @backgroundImage = "../images/defaultavatar/default.group.128.png"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
       attributes :
-        src : @getData().avatar or "http://lorempixel.com/60/60/?#{@utils.getRandomNumber()}"
+        # src : @getData().avatar or "/images/defaultavatar/default.group.128.png"
+        src : @getData().avatar or @backgroundImage
 
     # @settingsButton = new KDButtonViewWithMenu
     #     cssClass    : 'transparent groups-settings-context groups-settings-menu'
@@ -30,32 +31,22 @@ class GroupsListItemView extends KDListItemView
       attributes  :
         href      : "/#{slug}"
         target    : slug
-      pistachio   : '{div{#(title)}}'
-      tooltip     :
-        title     : title
-        direction : 'right'
-        placement : 'top'
-        selector : 'div.data'
-        offset    :
-          top     : 6
-          left    : -2
-        showOnlyWhenOverflowing : yes
+      pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
     , data
 
-    @bodyView = new KDCustomHTMLView
-      tagName  : 'div'
-      pistachio : '{div{#(body)}}'
-      tooltip     :
-        title     : body
-        direction : 'right'
-        placement : 'top'
-        selector : 'div.data'
-        offset    :
-          top     : 6
-          left    : -2
-        showOnlyWhenOverflowing : yes
-    ,data
+    # @bodyView = new KDCustomHTMLView
+    #   tagName     : 'div'
+    #   partial     : data.body
+    #   tooltip     :
+    #     title     : body
+    #     direction : 'right'
+    #     placement : 'top'
+    #     offset    :
+    #       top     : 6
+    #       left    : -2
+    #     showOnlyWhenOverflowing : yes
+    # ,data
 
     @joinButton = new JoinButton
       style           : if data.member then "join-group follow-btn following-topic" else "join-group follow-btn"
@@ -92,27 +83,67 @@ class GroupsListItemView extends KDListItemView
     @joinButton.on 'Left', =>
       @enterButton.hide()
 
-    # TODO: hide enter button for non-admins
-
-    # @enterButton = new KDButtonView
-    #   cssClass        : 'follow-btn following-btn enter-group hidden'
-    #   title           : "Enter"
-    #   dataPath        : "member"
-    #   # icon : yes
-    #   # iconClass : 'enter-group'
-    #   callback        : (event)=>
-    #     group = @getData().slug
-    #     KD.getSingleton('router').handleRoute "#{unless group is 'koding' then '/'+group else ''}/Activity"
-
-    # , data
-
     @enterLink = new CustomLinkView
       href    : "/#{slug}/Activity"
       target  : slug
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
 
+    memberCount = @getData().counts?.members or 0
+    memberCount = if memberCount > 19 then 19 else memberCount
+
+    members = ({title: @utils.getDummyName()} for i in [0..memberCount])
+
+    # log members
+
+    membersController = new KDListViewController
+      view         : @members = new KDListView
+        wrapper    : no
+        scrollView : no
+        type       : "members"
+        itemClass  : GroupItemMemberView
+    # ,
+    #   items : members
+
+    # FIXME: SY
+    # instantiateListItems doesnt fire by default
+    @members.on "viewAppended", ->
+      membersController.instantiateListItems members
+
+    @ownGroupTitle = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "own-group-title"
+      partial   : "<span/>You are a member"
+
+
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
+
+  titleReceivedClick:(event)->
+    group = @getData()
+    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
+    event.stopPropagation()
+    event.preventDefault()
+    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
+
+  viewAppended: JView::viewAppended
+
+  setFollowerCount:(count)-> @$('.followers a').html count
+
+  markOwnGroup:-> @setClass "own-group"
+
+  pistachio:->
+    """
+    <div class="wrapper">
+      <span class="avatar">{{>@avatar}}</span>
+      <div class="content right-overflow">
+        {h3{> @titleLink}}
+        {article{ #(body)}}
+      </div>
+      <cite>MEMBERS</cite>
+      {{> @members}}
+      {{> @ownGroupTitle}}
+    </div>
+    """
 
   # settingsMenu:(data)->
 
@@ -141,65 +172,22 @@ class GroupsListItemView extends KDListItemView
 
   #   return menu
 
-  titleReceivedClick:(event)->
-    group = @getData()
-    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
-    event.stopPropagation()
-    event.preventDefault()
-    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
+class GroupItemMemberView extends KDListItemView
 
-  viewAppended:->
-    @setClass "topic-item"
+  constructor:(options = {}, data)->
 
-    @setTemplate @pistachio()
-    @template.update()
+    options.type    = "member"
+    options.tagName = "span"
 
-    # log @titleLink.$()[0]#.innerWidth
+    super options, data
 
-    # @$().css backgroundImage : 'url('+(@getData().avatar or "http://lorempixel.com/#{100+@utils.getRandomNumber(300)}/#{50+@utils.getRandomNumber(150)}")+')'
+    @setTooltip
+      title : @getData().title
+      delay : 300
 
-
-  setFollowerCount:(count)->
-    @$('.followers a').html count
-
-  expandItem:->
-    return unless @_trimmedBody
-    list = @getDelegate()
-    $item   = @$()
-    $parent = list.$()
-    @$clone = $clone = $item.clone()
-
-    pos = $item.position()
-    pos.height = $item.outerHeight(no)
-    $clone.addClass "clone"
-    $clone.css pos
-    $clone.css "background-color" : "white"
-    $clone.find('.topictext article').html @getData().body
-    $parent.append $clone
-    $clone.addClass "expand"
-    $clone.on "mouseleave",=>@collapseItem()
-
-  collapseItem:->
-    return unless @_trimmedBody
-    # @$clone.remove()
-
-  pistachio:-> # {article{#(body)}}
+  partial:->
     """
-    <div class="topictext">
-      <span class="avatar">{{>@avatar}}</span>
-      <div class="content">
-      {h3{> @titleLink}}
-      {article{> @bodyView}}
-      </div>
-      <div class="topicmeta clearfix">
-        <div class="topicstats">
-          <p class="members">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.members) or 0}}</a> Members
-          </p>
-        </div>
-      </div>
-    </div>
+    <img class="avatar-image" src="../images/defaultavatar/default.avatar.60.png">
     """
 
 class ModalGroupsListItem extends TopicsListItemView

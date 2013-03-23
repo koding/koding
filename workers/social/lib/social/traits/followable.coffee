@@ -197,6 +197,7 @@ module.exports = class Followable
       if err then callback err
       else
         ids = (rel.sourceId for rel in docs)
+        JTag = require '../models/tag'
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 

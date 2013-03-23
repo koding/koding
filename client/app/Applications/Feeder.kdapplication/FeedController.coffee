@@ -1,11 +1,13 @@
 class FeedController extends KDViewController
   constructor:(options={})->
-    facetsController = options.facetsController or FeederFacetsController
-    @facetsController   = new facetsController
-      filters   : options.filter
-      sorts     : options.sort
-      help      : options.help
-      delegate  : @
+
+
+    options.autoPopulate  or= no
+    options.filter        or= {}
+    options.sort          or= {}
+    options.limitPerPage  or= 10
+    options.useHeaderNav   ?= no
+    options.dataType      or= null
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -14,18 +16,33 @@ class FeedController extends KDViewController
       listCssClass  : options.listCssClass or ""
       delegate      : @
 
-    options.view or= new FeederSplitView
-      views   : [
-        @facetsController.getView()
-        @resultsController.getView()
-      ]
+    unless options.useHeaderNav
+      facetsController    = options.facetsController or FeederFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
 
-    options.autoPopulate  or= yes
-    options.filter        or= {}
-    options.sort          or= {}
-    options.limitPerPage  or= 10
+      options.view or= new FeederSplitView
+        views   : [
+          @facetsController.getView()
+          @resultsController.getView()
+        ]
+    else
+      facetsController    = options.facetsController or FeederHeaderFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
 
-    options.dataType      or= null
+      view = (options.view or= new FeederSingleView)
+
+      view.on "viewAppended", =>
+        view.addSubView @resultsController.getView()
+        view.addSubView @facetsController.getView()
+
 
     super options, null
 
@@ -52,9 +69,10 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-    @selectFilter filter      if filter?
-    @changeActiveSort sort    if sort?
+    @selectFilter filter, no      if filter?
+    @changeActiveSort sort, no    if sort?
     @highlightFacets()
+    @loadFeed()
     # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
@@ -73,16 +91,16 @@ class FeedController extends KDViewController
     @loadFeed() if @getOptions().autoPopulate
     mainView._windowDidResize()
 
-  selectFilter:(name)->
+  selectFilter:(name, loadFeed=yes)->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
     if @resultsController.listControllers[name].itemsOrdered.length is 0
-      @loadFeed()
+      @loadFeed() if loadFeed
 
-  changeActiveSort:(name)->
+  changeActiveSort:(name, loadFeed=yes)->
     @selection.activeSort = name
     @resultsController.listControllers[@selection.name].removeAllItems()
-    @loadFeed()
+    @loadFeed() if loadFeed
 
   getFeedSelector:->
     # log @filters
