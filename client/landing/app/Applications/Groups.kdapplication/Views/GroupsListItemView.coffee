@@ -104,12 +104,18 @@ class GroupsListItemView extends KDListItemView
     group.fetchMembers (err, members)=>
       if err then warn err
       else if members
+        @$('.members-list-wrapper').removeClass "hidden"
         membersController.instantiateListItems members
 
-    @ownGroupTitle = new KDCustomHTMLView
+    @memberBadge = new KDCustomHTMLView
       tagName   : "div"
-      cssClass  : "own-group-title"
-      partial   : "<span/>You are a member"
+      cssClass  : "badge member"
+      partial   : "<span class='fold'/>You are a member"
+
+    @privateBadge = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
+      partial   : "<span class='fold'/><span class='icon'/>"
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
@@ -134,9 +140,14 @@ class GroupsListItemView extends KDListItemView
         {h3{> @titleLink}}
         {article{ #(body)}}
       </div>
-      <cite>MEMBERS</cite>
-      {{> @members}}
-      {{> @ownGroupTitle}}
+      <div class='members-list-wrapper hidden'>
+        <cite>MEMBERS</cite>
+        {{> @members}}
+      </div>
+      <div class='badge-wrapper'>
+        {{> @memberBadge}}
+        {{> @privateBadge}}
+      </div>
     </div>
     """
 
