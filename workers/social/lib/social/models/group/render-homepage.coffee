@@ -21,10 +21,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
       </div>
       <div id="main-loader"></div>
       <div id="landing-page-sidebar"></div>
-
-      <div class="group-koding-logo" id="group-koding-logo">
-        <div class="logo" id='profile-koding-logo'></div>
-      </div>
+      <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
 
     </div>
 
