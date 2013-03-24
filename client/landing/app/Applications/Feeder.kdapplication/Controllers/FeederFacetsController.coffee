@@ -1,7 +1,11 @@
 class FeederFacetsController extends KDViewController
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
+
     options.view or= new KDView cssClass: 'common-inner-nav'
-    super
+
+    super options, data
+
     # the order of these facetTypes is the order they'll be displayed in
     @facetTypes = ['filter', 'sort']
     @state = {}
@@ -9,6 +13,7 @@ class FeederFacetsController extends KDViewController
   facetChange:-> KD.getSingleton('router').handleQuery @state
 
   loadView:(mainView)->
+
     options = @getOptions()
     view = @getView()
 
