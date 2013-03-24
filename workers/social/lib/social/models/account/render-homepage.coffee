@@ -125,8 +125,8 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
 
-    console.log blog.slug
-    href = ("/#{blog.slug}" if 'string' is typeof slug) or "/#{blog.slug.group}/#{blog.slug.slug}" or '/#'
+    slug = blog.slug
+    href = ("/#{slug}" if 'string' is typeof slug) or "/#{slug.group}/#{slug.slug}" or '/#'
 
     if blog.tags?.length
       tags = ""
