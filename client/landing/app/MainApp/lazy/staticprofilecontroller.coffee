@@ -87,12 +87,47 @@ class StaticProfileController extends KDController
       @addLogic 'about', yes, no
 
     @on 'CustomizeLinkClicked',=>
-      return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
-      @customizeViewsAttached = yes
 
       @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
 
       # reviving customization
+
+      @profileTitleNameView.setClass 'edit'
+      @profileTitleBioView.setClass 'edit'
+
+      if @profileTitleNameInput then @profileTitleNameInput.show()
+      else
+        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
+          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
+          tooltip :
+            title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+              @profileTitleNameView.unsetClass 'edit'
+              @profileTitleNameView.$('span.text').html value
+              new KDNotificationView
+                title : 'Title updated.'
+
+      if @profileTitleBioInput
+        log 'haben wir schon',@profileTitleBioInput
+        @profileTitleBioInput.show()
+      else
+        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
+          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or ''
+          tooltip :
+            title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
+              @profileTitleBioView.unsetClass 'edit'
+              @profileTitleBioView.$('span.text').html value
+              new KDNotificationView
+                title : 'Description updated.'
+
+      return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
+      @customizeViewsAttached = yes
+
       types = @getAllowedTypes @profileUser
 
       for type in CONTENT_TYPES
@@ -101,38 +136,6 @@ class StaticProfileController extends KDController
           defaultValue : type in types
           delegate     : @
         , @profileUser
-
-      profileTitleNameView = new KDView
-        lazyDomId : 'profile-name'
-        cssClass : 'edit'
-
-      profileTitleNameView.addSubView profileTitleNameInput = new KDHitEnterInputView
-        defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
-        tooltip :
-          title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
-        callback :(value)=>
-          value = Encoder.htmlEncode value
-          @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
-            # profileTitleNameView.unsetClass 'edit'
-            # profileTitleNameView.updatePartial value
-            new KDNotificationView
-              title : 'Title updated.'
-
-      profileTitleBioView = new KDView
-        lazyDomId : 'profile-bio'
-        cssClass : 'edit'
-
-      profileTitleBioView.addSubView profileTitleBioInput = new KDHitEnterInputView
-        defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or ''
-        tooltip :
-          title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
-        callback :(value)=>
-          value = Encoder.htmlEncode value
-          @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
-            # profileTitleBioView.unsetClass 'edit'
-            # profileTitleBioView.updatePartial value
-            new KDNotificationView
-              title : 'Description updated.'
 
 
     @on 'ShowMoreButtonClicked', =>
@@ -333,6 +336,12 @@ class StaticProfileController extends KDController
     if user.getId() is KD.whoami().getId()
 
       # reviving admin stuff
+
+      @profileTitleNameView = new KDView
+        lazyDomId : 'profile-name'
+
+      @profileTitleBioView = new KDView
+        lazyDomId : 'profile-bio'
 
       profileAdminCustomizeView = new KDView
         lazyDomId : 'profile-admin-customize'
