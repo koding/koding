@@ -17,13 +17,30 @@
     border                                        none
     height                                        auto
     width                                         auto
-    padding                                       0
+    padding                                       15px 0 5px 0
     vendor margin-before                          0px
     vendor margin-after                           0px
     vendor margin-start                           0px
     vendor margin-end                             0px
     display                                       block
-    margin-bottom                                 15px
+    &:first-child
+      padding-top                                 0px
+    > a
+      display                                     inline
+
+  h1
+    font-size                                     16px
+    font-weight                                   800
+  h2
+    font-size                                     15px
+  h3
+    font-size                                     14px
+  h4
+    font-size                                     13px
+  h5
+    font-size                                     12px
+  h6
+    font-size                                     12px
 
   b,strong
     word-break                                    break-all
@@ -63,7 +80,7 @@
     margin-bottom                                 15px
     padding-left                                  10px
 
-  > ol
+  ol
     list-style                                    upper-roman inside
 
     ol
@@ -72,7 +89,7 @@
     ul
       list-style                                  disc inside
 
-  > ul
+  ul
     list-style                                    disc inside
 
     ul

@@ -167,6 +167,9 @@ func main() {
 						resetControlChannel()
 					}
 
+				case "ping":
+					session.Send(map[string]string{"routingKey": "broker.pong"})
+
 				default:
 					log.Warn("Invalid action.", message, socketId)
 
