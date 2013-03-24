@@ -24,6 +24,8 @@ class StaticProfileController extends KDController
     @reviveViewsOnPageLoad()
     @addEventListeners()
 
+    @lazyDomController = @getSingleton('lazyDomController')
+
     # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
     # FIXME - we want to use cacheable, not a JAccount call, but names
     # are not working correctly
@@ -178,7 +180,7 @@ class StaticProfileController extends KDController
           @profileContentWrapperView.setClass 'slide-down'
           @profileLogoView.setClass 'top'
 
-          @getSingleton('lazyDomController').hideLandingPage()
+          @lazyDomController.hideLandingPage()
         else
           @getSingleton('mainController').loginScreen.animateToForm 'register'
 
@@ -209,6 +211,12 @@ class StaticProfileController extends KDController
       @landingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
       @repositionLogoView()
+
+    groupAvatarDrop = new KDView
+      lazyDomId : 'landing-page-avatar-drop'
+      tooltip   :
+        title   : "Click here to go to Koding"
+      click     : => @lazyDomController.hideLandingPage()
 
     @profileTitleView = new KDView
       lazyDomId : 'profile-title'
@@ -246,18 +254,14 @@ class StaticProfileController extends KDController
     # resize avatar to center or something
     #
 
-    @profilePersonalWrapperView.on 'mouseenter',(event)=>
-        @getSingleton('mainController').loginScreen.unsetClass 'sidebar-collapsed'
-        @profilePersonalWrapperView.unsetClass 'collapsed'
-        @profilePersonalWrapperView.setWidth 160
-        @profileContentWrapperView.$().css marginLeft : "160px"
+    # @profilePersonalWrapperView.on 'mouseenter',(event)=>
+    #     @profilePersonalWrapperView.setWidth 160
+    #     # @profileContentWrapperView.$().css marginLeft : "160px"
 
-    @profilePersonalWrapperView.on 'mouseleave',(event)=>
-      unless @lockSidebar
-        @getSingleton('mainController').loginScreen.setClass 'sidebar-collapsed'
-        @profilePersonalWrapperView.setClass 'collapsed'
-        @profilePersonalWrapperView.setWidth 50
-        @profileContentWrapperView.$().css marginLeft : "50px"
+    # @profilePersonalWrapperView.on 'mouseleave',(event)=>
+    #   unless @lockSidebar
+    #     @profilePersonalWrapperView.setWidth 50
+    #     # @profileContentWrapperView.$().css marginLeft : "50px"
 
     # reviving feed type selectors that will activate feed facets
 

@@ -26,7 +26,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   <body class="login" data-profile="#{nickname}">
     <div class="profile-landing #{if selectedBackground then 'custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
-    <div class="profile-personal-wrapper kdview collapsed" id="profile-personal-wrapper">
+    <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
@@ -57,12 +57,14 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
        </div>
 
-      <div class="profile-placeholder" id="profile-placeholder"></div>
+      <!--<div class="profile-placeholder" id="profile-placeholder"></div>
 
       <div class="profile-koding-logo" id="profile-koding-logo-wrapper">
         <div class="logo kdview" id='profile-koding-logo'></div>
         <a class="info kdview" id="profile-koding-logo-info">Go to Koding.com</a>
-      </div>
+      </div>-->
+      <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
+
 
     </div>
 
