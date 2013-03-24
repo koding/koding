@@ -589,6 +589,7 @@ module.exports = [
   "app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee",
   "app/Applications/Feeder.kdapplication/Views/feedersingleview.coffee",
   "app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
+  "app/Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
 
 
   # HOME VIEWS
