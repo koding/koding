@@ -2,7 +2,7 @@ class GroupAvatar extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'group-avatar'
+    options.cssClass = 'group-avatar-drop'
     groupsController = KD.getSingleton 'groupsController'
     super options, groupsController.getCurrentGroupData()
 
@@ -12,8 +12,11 @@ class GroupAvatar extends JView
     if group
       @setTooltip
         title : "You are now in <strong>#{group.title}</strong> group."
-      @$().css backgroundImage : \
-        "url(#{group.avatar or 'http://lorempixel.com/60/60/?' + @utils.getRandomNumber()})"
+      if slug is 'koding'
+        @$().css backgroundImage : "url(images/logos/50.png)"
+      else
+        @$().css backgroundImage : \
+          "url(#{group.avatar or 'http://lorempixel.com/60/60/?' + @utils.getRandomNumber()})"
 
   click:->
     super
