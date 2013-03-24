@@ -124,19 +124,49 @@ getStaticProfileAbout = (profile)->
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
+
+    console.log blog.slug
+    href = ("/#{blog.slug}" if 'string' is typeof slug) or "/#{blog.slug.group}/#{blog.slug.slug}" or '/#'
+
+    if blog.tags?.length
+      tags = ""
+      for tag in blog.tags
+        tags+="<a class='ttag' href='#'>#{tag.title}</a>"
+      tagsList = " <div class='link-group'> in #{tags}</div>"
+    else tagsList = ""
+
     postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
+
     commentCount =
       if blog.repliesCount is 0 then ''
-      else if blog.repliesCount is 1 then ' · One Comment'
-      else " · #{blog.repliesCount} Comments"
+      else if blog.repliesCount is 1 then ' One Comment'
+      else " #{blog.repliesCount} Comments"
+
+    likes = blog.meta?.likes or 0
+
+    meta =
+      if likes is 0 then ''
+      else
+        if likes is 1 then "One Like"
+        else "#{likes} Likes"
+
+    meta += "#{if commentCount isnt '' then " · " else ''}" if likes isnt 0
+
 
     posts+="""
       <div class="content-item static">
         <div class="title">
-          <span class="text">#{blog.title}</span>
+          <a href="#{href}" target='_blank'><span class="text">#{blog.title}</span></a>
         </div>
         <div class="has-markdown">
-          <span class="create-date">Published on #{postDate}#{commentCount}</span>
+          <span class="create-date">
+            <span>
+              Published on #{postDate}#{tagsList}
+            </span>
+            <span>
+              <span class="meta">#{meta}#{commentCount}</span>
+            </span>
+          </span>
           <span class="data">#{blog.html}</span>
         </div>
       </div>

@@ -4,12 +4,15 @@
 @import "nib/gradients"
 @import "nib/vendor"
 
+headerFont()
+  font-family               "Bree Serif",Helvetica,sans-serif
+
 
 .slideable
   vendor transition,        margin-top 0.5s linear
 
-.slide-down
-  margin-top                51px
+// .slide-down
+//   margin-top                51px
 
 #static-landing-page.profile-landing
   abs()
@@ -21,6 +24,14 @@
   width                     100%
   z-index                   99
   bg size,                  auto 100%
+
+  &.down
+    top                 52px
+    .profile-avatar
+      height            77px
+
+  &.out
+    opacity             0
 
   &.profile-leaving
     rel()
@@ -44,21 +55,26 @@
         height              0px
 
   &.custom-bg
+
     .profile-content-wrapper
-      border-left 1px solid #aaa
+      border-left           1px solid #aaa
+
     .profile-title
-      bg color, rgba(255,255,255,0.5)
-      shadow none
-      background-image none!important
-      bg color, white
+      // bg color,             rgba(255,255,255,0.5)
+      shadow                none
+      background-image      none!important
+      bg color,             white
+
     .profile-sidebar
-      bg color, rgba(0,0,0,0.2)
+      bg color,             rgba(0,0,0,0.2)
+
       .navigation-item .title
-        color rgba(255,255,255,0.7)!important
-        shadow 1px 1px 3px rgba(0,0,0,0.4)!important
-        vendor box-shadow, none!important
+        color               rgba(255,255,255,0.7)!important
+        shadow              1px 1px 3px rgba(0,0,0,0.4)!important
+        vendor box-shadow,  none!important
     // .profile-splitview
     //   bg color, rgba(255,255,255,0.95)
+
     .kdlistview-navigation
       margin-bottom 5px
 
@@ -117,20 +133,21 @@
   height                    120px
   width                     auto
   border-bottom             1px solid rgb(229,229,229)
-  padding                   30px 23px 20px 55px
+  padding                   22px 10px 20px 40px
 
 
   .profile-title-wrapper
     height                  auto
     width                   auto
+    padding-right           75px
 
   .profile-name
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    max-width               700px
+    // max-width               700px
     font-size               42px
-    width                   auto
+    width                   100%
     display                 inline-block
     color                   #444
     // border-bottom           2px solid #ff9200
@@ -138,13 +155,13 @@
     white-space             nowrap
     text-overflow           ellipsis
     font-weight             900
-    font-family             "Bree Serif"
+    headerFont()
 
   .profile-bio
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    color                   #444
+    color                   #888
     font-size               14px
     height                  29px
     overflow                hidden
@@ -154,6 +171,7 @@
     font-weight             300
     display                 block
     text-shadow             1px 1px 3px rgba(0,0,0,0.1)
+    headerFont()
 
 .profile-nickname
   borderBox()
@@ -282,15 +300,38 @@ textarea.profile-handle-customize.kdinput
 .profile-bio
 
   textarea.kdinput.text
-    display                 inline-block
-    line-height             14px
-    font-size               14px
-    padding                 10px 2px 0px 6px
+    // display                 inline-block
+    // line-height             14px
+    // font-size               14px
+    // padding                 10px 2px 0px 6px
 
+    border: 1px solid #f5f5f5;
+    padding: 2px;
+    margin: 0px;
+    font-family: Bree serif;
+    width: 100%;
+    headerFont()
+
+  &:not(.edit)
+    textarea
+      hidden()
   &.edit
-
     span.text
       hidden()
+
+.profile-name textarea.kdinput.text
+  line-height: 32px;
+  height: 48px;
+  font-weight bold
+  margin 5px 0 0 0
+  padding 2px 0 0 2px
+  text-rendering geometricPrecision
+
+.profile-bio textarea.kdinput.text
+  height: 22px;
+  line-height: 14px;
+  color #888
+
 
 .profile-content-links
   borderBox()
@@ -379,8 +420,9 @@ textarea.profile-handle-customize.kdinput
       vendor transition,    top 0.5s ease-in-out \, margin-top 0.5s ease-in-out
 
     &.top
-      top                   12px!important
+      top                   32px!important
       bottom                none
+      // margin-top            0
 
     &.with-text
       margin-top            -20px
@@ -420,7 +462,9 @@ textarea.profile-handle-customize.kdinput
 
 .profile-admin-customize
 .profile-admin-message
-  fr()
+  abs()
+  top 10px
+  right 10px
   margin-left               10px
   width                     auto
 
@@ -433,6 +477,8 @@ textarea.profile-handle-customize.kdinput
     &:hover
       color                 #444
 
+.profile-admin-customize
+  top 30px
 .kdlistview.kdview.profile-content
 .profile-content
   borderBox()
@@ -465,18 +511,24 @@ textarea.profile-handle-customize.kdinput
       // border-bottom         1px solid #e8e8e8
       // height                16px
 
+      a
+        noTextDeco()
+        &:hover
+          span.text
+            color             #ff9200
       span.text
-        font-family           "Bree Serif"
+        headerFont()
         vendor              font-smoothing, antialiased
         vendor              text-rendering, geometricPrecision
         max-width           600px
         display             block
         margin-bottom       0px
-        color               #666
+        color               #444
         font-size           32px
         // font-weight         600
         width               auto
         margin-top          -7px
+        vendor transition,  color .1s linear
 
 
       .static-action-links
@@ -485,28 +537,39 @@ textarea.profile-handle-customize.kdinput
          display            inline-block
 
     .create-date
+      headerFont()
       font-size             14px
-      font-family           "Bree Serif"
       color                 #888
       font-weight           300
       display               block
       text-align            right
       width                 100%
-      margin-bottom         20px
+      margin-bottom         40px
       text-align            center
-
+      > span
+        display block
       .link-group
         font-size           inherit
         a.ttag
-          font-family         "Open Sans"
+          vendor transition,background-color .1s linear
+          bg color,         #aaa
+          font-family       "Open Sans",Helvetica,sans-serif
+          margin-top        2px
+          font-size         10px
+          cursor            default
+          &:hover
+            bg color,       #ff9200
 
     .has-markdown
       max-width             600px
-      padding               30px 40px 20px
+      padding               20px 40px 20px
       // margin-bottom         30px
-      text-align            justify
+      text-align            left
       text-rendering        geometricPrecision
-
+    .meta
+      headerFont()
+      text-align center
+      padding-top 10px
   .default-item
     borderBox()
     bg color,               #fbfbfb
