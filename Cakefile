@@ -554,16 +554,14 @@ task 'aws', (options) ->
   # Build template
   awsUtil.buildTemplate awsTemplate, (err, templateData) ->
     unless err
-      console.log "Template is ready:"
-      console.log templateData
-      console.log ""
+      console.log "Template is ready. Running instance..."
 
-      # awsUtil.startEC2 templateData, (err, ecData) ->
-      #   unless err
-      #     console.log "EC2 instance is ready:"
-      #     console.log ecData
-      #     console.log ""
-          
+      awsUtil.startEC2 templateData, (err, ecData) ->
+        unless err
+          console.log "EC2 instance is ready:"
+          console.log ecData
+          console.log ""
+
 task 'buildAll',"build chris's modules", ->
 
   buildables = ["pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
