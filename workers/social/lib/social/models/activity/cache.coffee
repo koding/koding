@@ -1,3 +1,4 @@
+_ = require 'underscore'
 jraphical = require 'jraphical'
 
 unless 'last' of Array.prototype
@@ -202,7 +203,7 @@ module.exports = class JActivityCache extends jraphical.Module
     cache = cursorArr.reduce (acc, doc)->
       if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
         acc.last.createdAt[1] = doc.createdAt
-        if acc.last.count++ < 3
+        if acc.last.count++ < 4
           acc.last.ids.push doc._id
       else
         acc.push
@@ -226,8 +227,8 @@ module.exports = class JActivityCache extends jraphical.Module
           processedCache[i] = memberBucket
           bucketIndex       = i
         else
-          if processedCache[bucketIndex].ids.length < 3
-            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
+          if processedCache[bucketIndex].ids.length < 4
+            newIds = item.ids.slice 0, 4 - processedCache[bucketIndex].ids.length
             processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
           processedCache[bucketIndex].count        += item.count
           processedCache[bucketIndex].createdAt[1]  = item.createdAt.last
@@ -343,48 +344,60 @@ module.exports = class JActivityCache extends jraphical.Module
 
       setModifier.to = overview[overview.length-1].createdAt[overview[overview.length-1].createdAt.length-1]
 
-      oldOverview = overview
-      overview = []
-      freshNewMemberBuckets = []
-      for overviewItem in oldOverview
+      freshNewMemberBucket = null
+      for id, overviewItem of overview
         if overviewItem.type is 'CNewMemberBucketActivity'
-          freshNewMemberBuckets.push overviewItem
-        else
-          overview.push overviewItem
+          freshNewMemberBucket = overviewItem
+          overview.splice(id, 1)
+          break
 
       pushAllModifier = {overview}
 
-      if freshNewMemberBuckets?.length
+      unsetModifier = {}
+
+      if freshNewMemberBucket
         if @newMemberBucketIndex?
-          index              = @newMemberBucketIndex
-          newMemberBucketKey = "overview.#{index}"
-          count              = @overview[@newMemberBucketIndex].count
-          createdAt          = freshNewMemberBuckets.last.createdAt.first
+          newMemberBucket = @overview[@newMemberBucketIndex]
+          key             = "overview.#{@newMemberBucketIndex}"
 
-          setModifier["#{newMemberBucketKey}.ids"] =\
-            @overview[@newMemberBucketIndex].ids
-              .slice(0, Math.max 3 - freshNewMemberBuckets.length, 0)
-              .concat freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
-          setModifier["#{newMemberBucketKey}.count"] =\
-            freshNewMemberBuckets.length + count
-          setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt
+          newIds = newMemberBucket.ids.map((v,k)-> v)
+            .slice(-1 * (4 - freshNewMemberBucket.ids.length))
+            .concat(freshNewMemberBucket.ids)
+
+          setModifier["#{key}.ids"]         = newIds
+          setModifier["#{key}.count"]       = freshNewMemberBucket.count + newMemberBucket.count
+          setModifier["#{key}.createdAt.1"] = freshNewMemberBucket.createdAt.last
         else
-          index              = @overview.length
-          newMemberBucketKey = "overview.#{index}"
-          createdAt0         = freshNewMemberBuckets.first.createdAt.first
-          createdAt1         = freshNewMemberBuckets.last.createdAt.first
+          index  = @overview.length
+          key    = "overview.#{index}"
+          newIds = freshNewMemberBucket.ids
 
-          setModifier.newMemberBucketIndex = index
-          setModifier["#{newMemberBucketKey}.ids"] =\
-              freshNewMemberBuckets.slice(-3).map (item)-> item.ids.first
-          setModifier["#{newMemberBucketKey}.count"] = freshNewMemberBuckets.length
-          setModifier["#{newMemberBucketKey}.createdAt.0"] = createdAt0
-          setModifier["#{newMemberBucketKey}.createdAt.1"] = createdAt1
+          setModifier.newMemberBucketIndex  = index
+          setModifier["#{key}.ids"]         = newIds
+          setModifier["#{key}.count"]       = freshNewMemberBucket.count
+          setModifier["#{key}.createdAt.0"] = freshNewMemberBucket.createdAt.first
+          setModifier["#{key}.createdAt.1"] = freshNewMemberBucket.createdAt.last
+          setModifier["#{key}.type"]        = 'CNewMemberBucketActivity'
+
+        # only keep CNewMemberBucketActivity's of newIds
+        for id, activity of @activities
+          if activity.type == 'CNewMemberBucketActivity'
+            found = false
+            for _id in newIds when _id.equals id
+              found = true
+            if not found
+              unsetModifier["activities.#{id}"] = 1
+
+        if _.size(unsetModifier)
+          console.log "removing #{_.size(unsetModifier)} obsolete activities..."
 
       if overview.length
         @update $pushAll: pushAllModifier, ->
 
-      @update $set: setModifier, (err)-> callback?()
+      @update
+        $set:   setModifier
+        $unset: unsetModifier
+      , (err)-> callback?()
 
 
   @modifyByTeaser = (teaser, callback)->

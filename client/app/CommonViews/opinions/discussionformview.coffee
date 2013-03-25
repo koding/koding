@@ -75,7 +75,7 @@ class DiscussionFormView extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-  submit:=>
+  submit:->
     # @once "FormValidationPassed", => @reset()
     super
 

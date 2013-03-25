@@ -220,7 +220,7 @@ class ProfileView extends JView
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
-  prepareMessage:(formOutput, callback)=>
+  prepareMessage:(formOutput, callback)->
     {body, subject, recipients} = formOutput
     to = recipients.join ' '
 

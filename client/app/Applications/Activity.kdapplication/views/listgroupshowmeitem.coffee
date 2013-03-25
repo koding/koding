@@ -1,6 +1,6 @@
 class ListGroupShowMeItem extends CommonInnerNavigationListItem
 
-  click: (event) =>
+  click: (event) ->
 
     if @getData().disabledForBeta
       new KDNotificationView

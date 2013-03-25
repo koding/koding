@@ -150,7 +150,7 @@ class AvatarPopup extends KDView
     @avatarPopupTab.on 'click', (event)=>
       @hide()
 
-  _windowDidResize:=>
+  _windowDidResize:->
     if @listController
       {scrollView}    = @listController
       windowHeight    = $(window).height()
@@ -353,18 +353,20 @@ class PopupNotificationListItem extends NotificationListItem
 
   click:(event)->
 
-    appManager.openApplication 'Inbox'
-    appManager.tell "Inbox", "goToNotifications", @
+    if @getData().type is 'CFolloweeBucketActivity'
+      appManager.openApplication 'Inbox'
+      appManager.tell "Inbox", "goToNotifications", @
 
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    super
 
     # If we need to use implement click to mark as read for notifications
     # Just un-comment following 3 line. A friend from past.
     # {_id} = @getData()
     # KD.whoami().glanceActivities _id, (err)=>
     #   if err then log "Error: ", err
-    
+
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->

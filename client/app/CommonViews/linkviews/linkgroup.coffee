@@ -10,6 +10,7 @@ class LinkGroup extends KDCustomHTMLView
     options.totalCount    or= data?.length or options.group?.length or 0
     options.hasMore         = options.totalCount > options.itemsToShow
     options.separator      ?= ', '
+    options.suffix        or= ''
 
     super options, data
 
@@ -61,17 +62,19 @@ class LinkGroup extends KDCustomHTMLView
   pistachio:->
 
     participants = @getData()
-    {hasMore, totalCount, group, separator} = @getOptions()
+    {suffix, hasMore, totalCount, group, separator} = @getOptions()
 
     @createMoreLink()
-
-    switch totalCount
+    # fix for old cache instances
+    count = totalCount
+    count = 1e3 if count is 4 and not @participant3
+    switch count
       when 0 then ""
-      when 1 then "{{> @participant0}}"
-      when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}"
-      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}"
-      else "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}"
+      when 1 then "{{> @participant0}}#{suffix}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}#{suffix}"
+      when 3 then "{{> @participant0}}#{separator}{{> @participant1}} and {{> @participant2}}#{suffix}"
+      when 4 then "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @participant3}}#{suffix}"
+      else "{{> @participant0}}#{separator}{{> @participant1}}#{separator}{{> @participant2}} and {{> @more}}#{suffix}"
 
   render:->
 

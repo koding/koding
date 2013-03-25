@@ -133,7 +133,7 @@ class InstallPane extends Pane
 
     pathExtension.inputLabel.updateTitle "/#{slug}"
 
-  submit:(formData)=>
+  submit:(formData)->
 
     split.resizePanel 250, 0
     {path, domain, name, db} = formData

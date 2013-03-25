@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
+mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -30,6 +30,9 @@ module.exports = deepFreeze
     clusterSize : 2
     queueName   : socialQueueName+'web'
     watch       : yes
+  sourceServer  :
+    enabled     : yes
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
   watchGoBroker : no
@@ -131,11 +134,6 @@ module.exports = deepFreeze
     poolSize        : 1e4
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : 'web0.dev.system.aws.koding.com'
-      login         : 'guest'
-      password      : 's486auEkPzvUjYfeFTMQ'
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
@@ -146,6 +144,8 @@ module.exports = deepFreeze
     email: ""
     token: ""
     interval: 60000
+  haproxy:
+    webPort     : 3020
 
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->

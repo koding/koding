@@ -6,7 +6,7 @@ class InboxReplyMessageView extends KDView
   _windowDidResize:->
     @resize()
 
-  formSubmit:(formData)=>
+  formSubmit:(formData)->
     privateMessage = @getData().getData()
     privateMessage.addPrivateMessageReply (type: 'reply'), formData.body
 

@@ -38,7 +38,7 @@ class ActivityListController extends KDListViewController
       else
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
-        
+
     @noActivityItem.hide()
 
   loadView:(mainView)->
@@ -71,6 +71,8 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
+
+    return @noActivityItem.show() unless Object.keys(cache).length
 
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1
@@ -116,7 +118,8 @@ class ActivityListController extends KDListViewController
       for item in @itemsOrdered
         if item.getData() instanceof NewMemberBucketData
           data = item.getData()
-          data.anchors.pop()
+          if data.count > 3
+            data.anchors.pop()
           data.anchors.unshift bucket.anchor
           data.count++
           item.slideOut =>
@@ -127,6 +130,17 @@ class ActivityListController extends KDListViewController
 
 
   fakeItems = []
+
+  addItem:(activity, index, animation) ->
+    dataId = activity.getId?()
+
+    if dataId?
+      if @itemsIndexed[dataId]
+        console.log "duplicate entry", activity.bongo_?.constructorName, dataId
+        _rollbar.push msg:"duplicate entry", type:activity.bongo_?.constructorName, id:dataId
+      else
+        @itemsIndexed[dataId] = activity
+        super(activity, index, animation)
 
   ownActivityArrived:(activity)->
 

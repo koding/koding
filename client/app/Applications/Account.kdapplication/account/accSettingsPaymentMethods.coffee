@@ -239,7 +239,7 @@ class AccountPaymentMethodsListItem extends KDListItemView
   #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
   #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
 
-  swapSwappable:()=>
+  swapSwappable:()->
     @swappable.swapViews()
 
   click:(event)->
