@@ -114,6 +114,7 @@ module.exports = class Builder
           try
             result = CoffeeScript.compile source,
               filename: file.includePath
+              sourceFiles: [file.includePath]
               bare: yes
               sourceMap: yes
             js = if result.js.indexOf("pistachio") != -1 
@@ -121,17 +122,7 @@ module.exports = class Builder
             else
               result.js
 
-            fixedSourceMap = new SourceMap.SourceMapGenerator file: ""
-            new SourceMap.SourceMapConsumer(result.v3SourceMap).eachMapping (mapping)->
-              fixedSourceMap.addMapping
-                generated:
-                  line: mapping.generatedLine - 1
-                  column: mapping.generatedColumn
-                original:
-                  line: mapping.originalLine
-                  column: mapping.originalColumn
-                source: file.includePath
-            jsSourceMap = fixedSourceMap.toJSON()
+            jsSourceMap = result.v3SourceMap
 
             if file.includePath.indexOf("Framework") == 0
               r = /^class (\w+)/g
