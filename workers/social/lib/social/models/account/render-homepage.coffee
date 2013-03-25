@@ -24,7 +24,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing #{if selectedBackground then 'custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
+    <div class="profile-landing#{if selectedBackground then ' custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
     <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
@@ -73,8 +73,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name" id="profile-name"><span class="text">#{getStaticProfileTitle profile}</span></div>
-          <div class="profile-bio" id="profile-bio"><span class="text">#{getStaticProfileAbout profile}</span></div>
+          <div class="profile-name" id="profile-name"><span id="profile-name-span" class="text">#{getStaticProfileTitle profile}</span></div>
+          <div class="profile-bio" id="profile-bio"><span id="profile-bio-span" class="text">#{getStaticProfileAbout profile}</span></div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
