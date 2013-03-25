@@ -19,5 +19,5 @@ class FeederOnboardingView extends JView
         app        = appManager.getFrontApp()
         app.appStorage?.fetchStorage =>
           {name} = @getOptions()
-          # app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
+          app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
           @emit "OnboardingMessageCloseIconClicked"

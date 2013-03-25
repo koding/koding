@@ -101,11 +101,12 @@ class GroupsListItemView extends KDListItemView
 
     # FIXME: SY
     # instantiateListItems doesnt fire by default
-    group.fetchMembers (err, members)=>
-      if err then warn err
-      else if members
-        @$('.members-list-wrapper').removeClass "hidden"
-        membersController.instantiateListItems members
+    if group.slug is "koding"
+      group.fetchMembers (err, members)=>
+        if err then warn err
+        else if members
+          @$('.members-list-wrapper').removeClass "hidden"
+          membersController.instantiateListItems members
 
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
