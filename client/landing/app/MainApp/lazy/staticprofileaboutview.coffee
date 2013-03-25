@@ -12,6 +12,11 @@ class StaticProfileAboutView extends KDView
     else
       @partial = Encoder.htmlDecode about.html or about.content
 
+    @aboutView = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass : 'data'
+      partial : @partial
+
     # @profileHeaderView = new StaticProfileAboutHeaderView
     #   cssClass : 'about-header'
     # ,@getData()
@@ -31,26 +36,26 @@ class StaticProfileAboutView extends KDView
         cssClass : 'about-edit-input'
 
       @editView.addSubView @saveButton = new KDButtonView
-        title : 'Save'
-        cssClass : 'about-save-button clean-gray'
+        title           : 'Save'
+        cssClass        : 'about-save-button clean-gray'
         loader          :
           diameter      : 12
         callback:=>
           @saveButton.showLoader()
-          @getData().setAbout Encoder.XSSEncode(@editForm.getValue()), =>
-            log arguments
+          @getData().setAbout Encoder.XSSEncode(@editForm.getValue()), (err,value)=>
             @editView.hide()
             @$('.about-body').removeClass 'hidden'
             @saveButton.hideLoader()
+            @aboutView.updatePartial Encoder.htmlDecode value.html
     else
       @editButton = new KDView
         cssClass : 'hidden'
       @editView = new KDView
         cssClass : 'hidden'
 
-    @sideBarView = new StaticProfileAboutSidebarView
-      cssClass : 'about-sidebar'
-    , @getData()
+    # @sideBarView = new StaticProfileAboutSidebarView
+    #   cssClass : 'about-sidebar'
+    # , @getData()
 
     @profileView = new ProfileView
       cssClass : 'profilearea'
@@ -63,20 +68,18 @@ class StaticProfileAboutView extends KDView
 
   pistachio:->
     # {{> @profileHeaderView}}
+    # {{> @sideBarView}}
     """
     <div class="content-display-wrapper">
       <div class="content-display member">
          {{> @profileView}}
       </div>
     </div>
-    {{> @sideBarView}}
     {{> @editButton}}
     {{> @editView}}
     <div class="about-body">
       <div class="has-markdown">
-        <span class="data">
-          #{@partial}
-        </span>
+        {{> @aboutView}}
       </div>
     </div>
 
