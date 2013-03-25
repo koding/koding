@@ -117,6 +117,8 @@ module.exports = class AuthWorker extends EventEmitter
       switch serviceType
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
+        when 'application'
+          console.log 'trying to open a group channel', messageData
         else
           @rejectClient routingKey
 
@@ -186,7 +188,7 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'kite.leave'
                   @removeService messageData
-                when 'client.auth'
+                when "client.#{@resourceName}"
                   @joinClient messageData, socketId
                 else
                   @rejectClient routingKey
