@@ -4,10 +4,10 @@ class StaticAvatarAreaIconMenu extends JView
 
     super
 
-    @bindEvent 'mouseenter'
+    # @bindEvent 'mouseenter'
 
-    @on 'mouseenter', =>
-      @getDelegate().lockSidebar = yes
+    # @on 'mouseenter', =>
+    #   @getDelegate().lockSidebar = yes
 
     @setClass "actions"
 
@@ -124,6 +124,10 @@ class StaticAvatarAreaIconMenu extends JView
     # else
     #   @setClass "invisible"
 
+# class StaticMemberMailLink extends MemberMailLink
+#   pistachio:->
+#     """<cite/><span>Send </span>{{#(profile.firstName)}} a message"""
+
 
 class AvatarPopupStaticProfileUserMessage extends AvatarPopup
   HANDLE_TYPES = [
@@ -162,23 +166,30 @@ class AvatarPopupStaticProfileUserMessage extends AvatarPopup
         title              : handleMap[type].text
         handle             : "#{if handle then handleMap[type].prefix or '' else ''}#{if handle then handle else ''}"
 
-    @avatarPopupContent.addSubView new KDView
-      height   : "auto"
-      cssClass : "sublink"
-      partial  : "Send this user a message:"
-      click    : =>
-        @hide()
 
-    @avatarPopupContent.addSubView inputWrapper = new KDView
-      cssClass : 'static-profile-send-message-input-wrapper'
-    inputWrapper.addSubView new KDHitEnterInputView
-      type : 'textarea'
-      cssClass : 'static-profile-send-message-input'
-      autoGrow: yes
-      callback :(value)=>
-        new KDNotificationView
-          title : 'Sending messages to this user is currently disabled.'
-        @hide()
+
+    # @avatarPopupContent.addSubView inputWrapper = new KDView
+    #   cssClass : 'static-profile-send-message-input-wrapper'
+
+    @avatarPopupContent.addSubView sendMessageLink = new MemberMailLink
+      cssClass : 'sublink profile-message-link'
+    , data
+
+    # @avatarPopupContent.addSubView new KDView
+    #   height   : "auto"
+    #   cssClass : "sublink"
+    #   partial  : "Send this user a message:"
+    #   click    : =>
+    #     @hide()
+
+    # inputWrapper.addSubView new KDHitEnterInputView
+    #   type : 'textarea'
+    #   cssClass : 'static-profile-send-message-input'
+    #   autoGrow: yes
+    #   callback :(value)=>
+    #     new KDNotificationView
+    #       title : 'Sending messages to this user is currently disabled.'
+    #     @hide()
 
     @on 'CustomizeLinkClicked', =>
       for type in HANDLE_TYPES
@@ -208,61 +219,15 @@ class AvatarPopupStaticProfileUserMessage extends AvatarPopup
 class AvatarPopupStaticProfileUserNotifications extends AvatarPopup
 
   viewAppended:->
-    super()
-
-    # selector      =
-    #   originType  : 'JAccount'
-    #   group       : 'koding'
-    # options       =
-    #   limit       : 10
-
-    # log 'getting activities'
-
-    # KD.remote.api.CActivity.some selector, options, (err, res)=>
-    #   log err, res
-
-
-    @_popupList = new PopupList
-      itemClass : PopupNotificationListItem
-
-    @listController = new MessagesListController
-      view         : @_popupList
-      maxItems     : 5
-
-    @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
-
-    @avatarPopupContent.addSubView @noNotification = new KDView
-      height   : "auto"
-      cssClass : "sublink top hidden"
-      partial  : "You have no new notifications."
-
-    @avatarPopupContent.addSubView @listController.getView()
-
+    super
     @avatarPopupContent.addSubView new KDView
       height   : "auto"
       cssClass : "sublink"
-      partial  : "<a href='#'>View all of your activity notifications...</a>"
+      partial  : "<a href='#'>See all activities of this user...</a>"
       click    : =>
-        KD.getSingleton("appManager").open('Inbox')
-        KD.getSingleton("appManager").tell 'Inbox', "goToNotifications"
+        new KDNotificationView
+          title : 'Coming soon'
         @hide()
-
-  hide:->
-    KD.whoami()?.glanceActivities =>
-      for item in @listController.itemsOrdered
-        item.unsetClass 'unread'
-      @noNotification.show()
-      @listController.emit 'NotificationCountDidChange', 0
-    super
-
-
-    # @avatarPopupContent.addSubView new KDView
-    #   height   : "auto"
-    #   cssClass : "sublink"
-    #   partial  : "<a href='#'>See all messages...</a>"
-    #   click    : =>
-    #     @hide()
-
   show:->
     super
 
@@ -274,8 +239,10 @@ class AvatarPopupStaticProfileQuickNav extends AvatarPopup
     @avatarPopupContent.addSubView new KDView
       height   : "auto"
       cssClass : "sublink"
-      partial  : "<a href='#'>See all messages...</a>"
+      partial  : "<a href='#'>See this users Groups...</a>"
       click    : =>
+        new KDNotificationView
+          title : 'Coming soon'
         @hide()
 
   show:->
