@@ -130,7 +130,7 @@ class StaticProfileController extends KDController
 
       return if KD.whoami().getId() isnt @profileUser.getId()
 
-      @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
+      # @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
 
       # reviving customization
 
@@ -411,12 +411,12 @@ class StaticProfileController extends KDController
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
 
-    @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
-      lazyDomId    : 'profile-buttons'
-      delegate     : @
-    , @profileUser
+    # @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
+    #   lazyDomId    : 'profile-buttons'
+    #   delegate     : @
+    # , @profileUser
 
-    @avatarAreaIconMenu.$('.static-profile-button').remove()
+    # @avatarAreaIconMenu.$('.static-profile-button').remove()
 
     if user.getId() is KD.whoami().getId()
 
