@@ -174,16 +174,20 @@ module.exports = class JTag extends jraphical.Module
       {group} = client.context
       tag = new this data
       tag.group = group
-      tag.save (err)->
-        if err
-          callback err
+      tag.createSlug (err, slug)->
+        if err then callback err
         else
-          tag.createSlug console.log.bind console, 'slkhflsh'
-          tag.addCreator delegate, (err)->
+          tag.slug = slug.slug
+          tag.slug_ = slug.slug      
+          tag.save (err)->
             if err
               callback err
             else
-              callback null, tag
+              tag.addCreator delegate, (err)->
+                if err
+                  callback err
+                else
+                  callback null, tag
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip} = options

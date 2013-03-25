@@ -4,13 +4,13 @@ class WebTermView extends KDView
     @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
     @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
     @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
+    @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
     super
 
   viewAppended: ->
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
       bind     : "scroll"
-    @updateStyle()
     @container.on "scroll", =>
       @container.$().scrollLeft 0
     @addSubView @container
@@ -60,8 +60,8 @@ class WebTermView extends KDView
       itemClass     : WebtermSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
-
     @addSubView @advancedSettings
+    @updateSettings()
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -109,8 +109,8 @@ class WebTermView extends KDView
     @bindEvent 'contextmenu'
 
     KD.singletons.kiteController.run
-      kiteName: 'webterm',
-      method: 'createSession',
+      kiteName: 'os',
+      method: 'webterm.createSession',
       withArgs:
         remote: @terminal.clientInterface
         name: "none"
@@ -125,15 +125,16 @@ class WebTermView extends KDView
     super
     @terminal.server?.close()
 
-  updateStyle: ->
+  updateSettings: ->
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
     @container.setClass @appStorage.getValue('font')
     @container.setClass @appStorage.getValue('theme')
     @container.$().css
       fontSize: @appStorage.getValue('fontSize') + 'px'
-    @terminal?.updateSize true
-    @terminal?.scrollToBottom(no)
+    @terminal.updateSize true
+    @terminal.scrollToBottom(no)
+    @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
 
   setKeyView: ->
     super
