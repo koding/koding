@@ -4,11 +4,6 @@ class StaticAvatarAreaIconMenu extends JView
 
     super
 
-    # @bindEvent 'mouseenter'
-
-    # @on 'mouseenter', =>
-    #   @getDelegate().lockSidebar = yes
-
     @setClass "actions"
 
     sidebar  = @getDelegate()
@@ -72,68 +67,14 @@ class StaticAvatarAreaIconMenu extends JView
     @on 'CustomizeLinkClicked', =>
       @messageUserPopup.emit 'CustomizeLinkClicked'
 
-    # @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
-    #   # No need the following
-    #   # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
-    #   if event is 'ActivityIsAdded'
-    #     @notificationsPopup.listController.fetchNotificationTeasers (notifications)=>
-    #       @notificationsPopup.noNotification.hide()
-    #       @notificationsPopup.listController.removeAllItems()
-    #       @notificationsPopup.listController.instantiateListItems notifications
-
-    # @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
-    #   @utils.killWait @notificationsPopup.loaderTimeout
-    #   if count > 0
-    #     @notificationsPopup.noNotification.hide()
-    #   else
-    #     @notificationsPopup.noNotification.show()
-    #   @notificationsIcon.updateCount count
-
-    # @messagesPopup.listController.on 'MessageCountDidChange', (count)=>
-    #   @utils.killWait @messagesPopup.loaderTimeout
-    #   if count > 0
-    #     @messagesPopup.noMessage.hide()
-    #   else
-    #     @messagesPopup.noMessage.show()
-    #   @messagesIcon.updateCount count
-
-  accountChanged:(account)->
-
-    # {notificationsPopup, messagesPopup, quickNavPopup} = @
-
-    # messagesPopup.listController.removeAllItems()
-    # notificationsPopup.listController.removeAllItems()
-    # quickNavPopup.listController.removeAllItems()
-
-    # if KD.isLoggedIn()
-    #   @unsetClass "invisible"
-
-    #   # log "accountChanged AvatarAreaIconMenu"
-
-    #   # do not remove the timeout it should give dom sometime before putting an extra load
-    #   notificationsPopup.loaderTimeout = @utils.wait 5000, =>
-    #     notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
-    #       notificationsPopup.listController.instantiateListItems teasers
-
-    #   messagesPopup.loaderTimeout = @utils.wait 5000, =>
-    #     messagesPopup.listController.fetchMessages()
-
-    #   quickNavPopup.loaderTimeout = @utils.wait 5000, =>
-    #     quickNavPopup.populateGroups()
-
-    # else
-    #   @setClass "invisible"
-
-# class StaticMemberMailLink extends MemberMailLink
-#   pistachio:->
-#     """<cite/><span>Send </span>{{#(profile.firstName)}} a message"""
-
 
 class AvatarPopupStaticProfileUserMessage extends AvatarPopup
+
   HANDLE_TYPES = [
     'twitter'
     'github'
   ]
+
   handleMap   =
     twitter   :
       baseUrl : 'https://www.twitter.com/'
