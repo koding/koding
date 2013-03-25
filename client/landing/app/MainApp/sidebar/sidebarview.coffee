@@ -74,6 +74,16 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
+    @virtualizationButtons = new VirtualizationControls
+
+  resetAdminNavController:->
+    @utils.wait 1000, =>
+      @adminNavController.removeAllItems()
+      if KD.isLoggedIn()
+        KD.whoami().fetchRole? (err, role)=>
+          if role is "super-admin"
+            @adminNavController.instantiateListItems adminNavItems.items
+
   setListeners:->
 
     mainView = @getDelegate()
@@ -163,6 +173,7 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
@@ -204,7 +215,6 @@ class Sidebar extends JView
     @$('.avatar-placeholder').addClass "collapsed"
     @$('#finder-panel').addClass "expanded"
     @contentPanel.unsetClass "mouse-on-nav"
-    @avatarHeader.hide()
     @utils.wait 300, =>
       callback?()
       @emit "NavigationPanelWillCollapse"
@@ -301,6 +311,14 @@ class Sidebar extends JView
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
+    ]
+
+  adminNavItems =
+    id    : "admin-navigation"
+    title : "admin-navigation"
+    items : [
+      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =
