@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 
 {argv} = require 'optimist'
@@ -267,6 +268,36 @@ task 'goBroker',({configFile})->
   if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
 
+task 'osKite',({configFile})->
+
+  processes.spawn
+    name  : 'osKite'
+    cmd   : "./go/bin/os -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'ldapServer',({configFile})->
+
+  processes.spawn
+    name  : 'ldapServer'
+    cmd   : "./go/bin/ldapserver -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'proxy',({configFile})->
+
+  processes.spawn
+    name  : 'proxy'
+    cmd   : "./go/bin/proxy -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -308,6 +339,9 @@ run =({configFile})->
 
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
+    invoke 'osKite'         if config.runOsKite
+    invoke 'ldapServer'     if config.runLdapServer
+    invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push

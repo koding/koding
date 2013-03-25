@@ -15,4 +15,4 @@ class NFolderItemView extends NFileItemView
         # Thats for broken symlinks under application temp folder
         # Maybe we can change its place, keep it for now
         {nickname} = KD.whoami().profile
-        KD.utils.removeBrokenSymlinksUnder "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/"
+        KD.utils.removeBrokenSymlinksUnder "/home/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/"

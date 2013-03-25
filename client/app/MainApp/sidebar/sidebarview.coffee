@@ -163,6 +163,7 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
