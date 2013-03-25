@@ -57,7 +57,7 @@ class StaticProfileController extends KDController
   addEventListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
-      log 'User tried to comment'
+      # log 'User tried to comment'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -69,7 +69,7 @@ class StaticProfileController extends KDController
 
 
     @on 'CommentCountReceivedClick', (view)=>
-      log 'User tried to see other comments'
+      # log 'User tried to see other comments'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -95,7 +95,6 @@ class StaticProfileController extends KDController
 
       else
         if view instanceof LikeView
-          log 'nav to item'
         else if view instanceof StaticTagLinkView
           @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
 
