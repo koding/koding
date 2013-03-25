@@ -56,15 +56,24 @@ class StaticProfileController extends KDController
 
   addEventListeners:->
 
-    @on 'CommentLinkReceivedClick', =>
+    @on 'CommentLinkReceivedClick', (view)=>
       log 'User tried to comment'
+      if KD.whoami() instanceof KD.remote.api.JGuest
+        log 'nav to item'
+      else
+        log view
 
-    @on 'CommentCountReceivedClick', =>
+
+    @on 'CommentCountReceivedClick', (view)=>
       log 'User tried to see other comments'
+      if KD.whoami() instanceof KD.remote.api.JGuest
+        log 'no'
+      else
+        log view
+        @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
 
     @on 'StaticInteractionHappened',(view)=>
       if KD.whoami() instanceof KD.remote.api.JGuest
-        log 'Guest tried things',view
         if view instanceof LikeView
           new KDNotificationView
             title : 'Please log in to like this post.'
@@ -72,17 +81,15 @@ class StaticProfileController extends KDController
           new  KDNotificationView
             title : 'PLease log in to see this Topic'
 
-    @on 'GroupsLinkClicked', =>
-      @addLogic 'group', yes, no
+        @utils.wait 1000, =>
+          @getSingleton('mainController').loginScreen.animateToForm 'login'
 
-    @on 'TopicLinkClicked', =>
-      @addLogic 'topic', yes, no
+      else
+        if view instanceof LikeView
+          log 'nav to item'
+        else if view instanceof StaticTagLinkView
+          @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
 
-    @on 'PeopleLinkClicked', =>
-      @addLogic 'member', yes, no
-
-    @on 'AppsLinkClicked', =>
-      @addLogic 'app', yes, no
 
     @on 'HomeLinkClicked', =>
 
@@ -91,7 +98,7 @@ class StaticProfileController extends KDController
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
       @staticDefaultItem.show()
-      @showLoadingBar()
+      # @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
@@ -117,7 +124,7 @@ class StaticProfileController extends KDController
       if @profileTitleNameInput then @profileTitleNameInput.show()
       else
         @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
+          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
           tooltip :
             placement : 'bottom'
             direction : 'right'
@@ -125,6 +132,7 @@ class StaticProfileController extends KDController
           callback :(value)=>
             value = Encoder.htmlEncode value
             @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+              if value is '' then value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
               @profileTitleNameView.unsetClass 'edit'
               @profileTitleNameView.$('span.text').html value
               new KDNotificationView
@@ -134,7 +142,7 @@ class StaticProfileController extends KDController
         @profileTitleBioInput.show()
       else
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or ''
+          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or "#{@profileUser.profile.about}"
           tooltip :
             placement : 'bottom'
             direction : 'right'
@@ -143,6 +151,7 @@ class StaticProfileController extends KDController
             value = Encoder.htmlEncode value
             @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
               @profileTitleBioView.unsetClass 'edit'
+              if value is '' then value = "#{@profileUser.profile.about}"
               @profileTitleBioView.$('span.text').html value
               new KDNotificationView
                 title : 'Description updated.'
@@ -168,7 +177,8 @@ class StaticProfileController extends KDController
 
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
 
-      @showLoadingBar() #unless type in ['activity','static']
+      log type
+      @showLoadingBar() unless type in ['static']
 
       facets = [facets] if 'string' is typeof facets
 
@@ -180,7 +190,8 @@ class StaticProfileController extends KDController
           return acc
         , []
 
-        @emit 'DecorateStaticNavLinks', allowedTypes
+        log facets.first
+        @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
 
         if blockedTypes.length is 0
           @currentFacets = facets
@@ -300,7 +311,7 @@ class StaticProfileController extends KDController
         delegate  : @
         lazyDomId : type
 
-    @emit 'DecorateStaticNavLinks', allowedTypes
+    @emit 'DecorateStaticNavLinks', allowedTypes, 'CBlogPostActivity'
 
     # reviving loading bar
     @profileLoadingBar = new KDView
@@ -311,7 +322,7 @@ class StaticProfileController extends KDController
         width       : 16
         height      : 16
       loaderOptions :
-        color       : '#ff9200'
+        color       : '#444'
     @profileLoaderView.hide()
 
     # reviving logo for the slideup animation
@@ -350,7 +361,7 @@ class StaticProfileController extends KDController
     @utils.defer => @profileLogoView.setClass 'animate'
 
     @profileUser = user
-    @emit 'DecorateStaticNavLinks', @getAllowedTypes @profileUser
+    @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
 
     @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
       lazyDomId    : 'profile-buttons'
@@ -442,9 +453,14 @@ class StaticProfileController extends KDController
     @wrappers[type].show()
 
     controller.removeAllItems()
-    controller.listActivities activities
-
     controller.hideLazyLoader()
+
+    controller.hideNoItemWidget()
+    if activities.length > 0
+      controller.listActivities activities
+    else
+      controller.showNoItemWidget() unless type in ['static']
+
 
     @hideLoadingBar()
 
@@ -499,6 +515,12 @@ class StaticProfileController extends KDController
       viewOptions       :
         cssClass        : 'static-content activity-related'
       showHeader        : no
+      noItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "So far, #{@profileUser.profile.firstName} has not posted this kind of activity."
+      noMoreItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "There is no more activity."
 
     activityListWrapper = activityController.getView()
     @profileContentView.addSubView activityListWrapper
@@ -698,15 +720,15 @@ class StaticProfileController extends KDController
 
   showWrapper:(wrapper)->
     @hideWrappers()
-    @showHomeLink()
+    # @showHomeLink()
     wrapper.show()
 
-  setHomeLink:(view)->
-    @homeLink = view
-    view.setClass 'invisible'
+  # setHomeLink:(view)->
+  #   @homeLink = view
+  #   view.setClass 'invisible'
 
-  showHomeLink:->
-    @homeLink.unsetClass 'invisible'
+  # showHomeLink:->
+  #   @homeLink.unsetClass 'invisible'
 
 
 
@@ -715,14 +737,16 @@ class StaticNavLink extends KDView
     super options,data
     @unsetClass 'disabled'
 
-    @getDelegate().on 'DecorateStaticNavLinks',(allowedTypes)=>
-      @decorate allowedTypes
+    @getDelegate().on 'DecorateStaticNavLinks',(allowedTypes,activeType)=>
+      @decorate allowedTypes,activeType
 
-  decorate:(allowedTypes)->
+  decorate:(allowedTypes,activeType)->
       if @getDomId() in allowedTypes
         @unsetClass 'blocked'
       else
         @setClass 'blocked'
+
+      if @getDomId() is activeType then @setClass 'selected' else @unsetClass 'selected'
 
   click :->
     @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId(), 'activity', =>
@@ -749,7 +773,7 @@ class StaticNavCheckBox extends KDInputView
     event.stopPropagation()
     state = @getValue()
     @getData()["#{if state then 'add' else 'remove'}StaticPageType"] @getOption('activityType'), =>
-      @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes @getData()
+      @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes(@getData())
 
 
 class StaticHandleLink extends CustomLinkView
