@@ -36,6 +36,12 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
+    groupAvatarDrop = new KDView
+      lazyDomId : 'landing-page-avatar-drop'
+      tooltip   :
+        title   : "Click here to see this group on Koding"
+      click     : => @lazyDomController.hideLandingPage()
+
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
 
