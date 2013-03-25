@@ -215,7 +215,6 @@ class Sidebar extends JView
     @$('.avatar-placeholder').addClass "collapsed"
     @$('#finder-panel').addClass "expanded"
     @contentPanel.unsetClass "mouse-on-nav"
-    @avatarHeader.hide()
     @utils.wait 300, =>
       callback?()
       @emit "NavigationPanelWillCollapse"
