@@ -24,6 +24,7 @@ class StaticProfileController extends KDController
     @reviveViewsOnPageLoad()
     @addEventListeners()
 
+    @mainController = @getSingleton 'mainController'
     @lazyDomController = @getSingleton('lazyDomController')
 
     # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
@@ -63,7 +64,7 @@ class StaticProfileController extends KDController
           title : "Please log in to see this post and it's comments"
 
         @utils.wait 1000, =>
-          @getSingleton('mainController').loginScreen.animateToForm 'login'
+          @mainController.loginScreen.animateToForm 'login'
       else
         @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
 
@@ -75,7 +76,7 @@ class StaticProfileController extends KDController
           title : "Please log in to see this post and it's comments"
 
         @utils.wait 1000, =>
-          @getSingleton('mainController').loginScreen.animateToForm 'login'
+          @mainController.loginScreen.animateToForm 'login'
 
       else
         @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
@@ -91,7 +92,7 @@ class StaticProfileController extends KDController
             title : 'Please log in to see this Topic'
 
         @utils.wait 1000, =>
-          @getSingleton('mainController').loginScreen.animateToForm 'login'
+          @mainController.loginScreen.animateToForm 'login'
 
       else
         if view instanceof LikeView
@@ -221,7 +222,7 @@ class StaticProfileController extends KDController
 
           @lazyDomController.hideLandingPage()
         else
-          @getSingleton('mainController').loginScreen.animateToForm 'register'
+          @mainController.loginScreen.animateToForm 'register'
 
 
   reviveViewsOnPageLoad:->
@@ -286,7 +287,10 @@ class StaticProfileController extends KDController
     @profilePersonalWrapperView = new KDView
       lazyDomId : 'profile-personal-wrapper'
       cssClass  : 'slideable'
-      bind : 'mouseenter mouseleave'
+      # bind : 'mouseenter mouseleave'
+      click :(event)=>
+        unless $(event.target).is 'a'
+          @mainController.emit "landingSidebarClicked"
 
     #
     # allow for sidebar lock here!

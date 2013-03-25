@@ -92,15 +92,10 @@ class LandingPageNavigationController extends NavigationController
 
     else if @lc.userEnteredFromProfile()
 
-      log 'entered from profile!'
       profileItems = [
         { title : 'Home',     action : 'home',      type : 'user'}
         { title : 'Activity', action : 'activity',  type : 'user'}
-        # { title : 'Topics',   action : 'topics',    type : 'user'}
-        # { title : 'People',   action : 'members',   type : 'user'}
-        # { title : 'Groups',   action : 'groups',    type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
-        # { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items
@@ -116,7 +111,6 @@ class LandingPageNavigationController extends NavigationController
       else
         continue if itemData.loggedIn
       item = @getListView().addItem itemData
-      # if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
     @getDelegate().emit 'ListItemsInstantiated'
 
 class LandingNavigationLink extends NavigationLink
