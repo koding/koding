@@ -11,7 +11,7 @@ module.exports = class JOldUser extends jraphical.Module
   {Relationship}    = jraphical
 
   {secure}          = require 'bongo'
-  # csvParser         = require 'csv'
+  csvParser         = require 'csv'
   createSalt        = require 'hat'
   dateFormat        = require 'dateformat'
 
@@ -56,7 +56,7 @@ module.exports = class JOldUser extends jraphical.Module
       callback null
       console.error "Not authorized request from", connection.delegate?.profile?.nickname
     else
-      pathToKodingenCSV = "#{process.cwd()}/../../wp_users.csv"
+      pathToKodingenCSV = "#{process.cwd()}/wp_users.csv"
       console.log "Parsing: ", pathToKodingenCSV
 
       limit      = options.limit or 0
@@ -68,11 +68,15 @@ module.exports = class JOldUser extends jraphical.Module
       csv.on 'record', (line, lineNumber)->
         if iterations < limit or limit is 0
 
-          if not line[9].indexOf(' ')
-            f_name = line[9].slice(0, line[9].indexOf(' '))
-            l_name = line[9].slice line[9].indexOf(' ')+1
+          name  = line[9].trim()
+          return if name is ''
+
+          names = name.split ' '
+          if names.length > 1
+            f_name = names[0..names.length - 2].join ' '
+            l_name = names[names.length - 1]
           else
-            f_name = line[9]
+            f_name = name
             l_name = ''
 
           olduser = new JOldUser
@@ -81,7 +85,10 @@ module.exports = class JOldUser extends jraphical.Module
             firstName : f_name
             nickname  : line[1]
 
-          iterations += 1 if limit isnt 0
+          iterations += 1 # if limit isnt 0
+
+          if iterations % 1000 == 0
+            console.info "#{iterations} old user record created."
 
           if limit isnt 0 and iterations is limit
             csv.end()
@@ -91,7 +98,7 @@ module.exports = class JOldUser extends jraphical.Module
 
       csv.on 'end', (count)->
         if limit is 0 or limit is iterations
-          callback "Finished to import accounts.", count
+          callback "Finished to import accounts.", count - 1
           iterations = limit+1
 
       csv.on 'error', (err)->
