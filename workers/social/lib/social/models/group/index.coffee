@@ -369,8 +369,7 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, selector, options, callback)->
-      args = Module.limitEdges 100, [].slice.call arguments
-      [selector, options, callback] = args
+      [selector, options, callback] = Module.limitEdges 100, [selector, options, callback]
       @fetchMembers selector, options, callback
 
   # fetchMyFollowees: permit 'list members'

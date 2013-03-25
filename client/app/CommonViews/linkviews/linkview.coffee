@@ -6,8 +6,8 @@ class LinkView extends KDCustomHTMLView
     data            or= fake : yes
     data.profile    or= {}
 
-    data.profile.firstName or= "a koding"
-    data.profile.lastName  or= "user"
+    data.profile.firstName ?= "a koding"
+    data.profile.lastName  ?= "user"
 
     super options, data
 
