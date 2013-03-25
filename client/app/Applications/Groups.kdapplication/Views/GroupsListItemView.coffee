@@ -101,7 +101,7 @@ class GroupsListItemView extends KDListItemView
 
     # FIXME: SY
     # instantiateListItems doesnt fire by default
-    if group.slug is "koding"
+    unless group.slug is "koding"
       group.fetchMembers (err, members)=>
         if err then warn err
         else if members
