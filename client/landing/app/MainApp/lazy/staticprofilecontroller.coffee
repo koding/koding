@@ -17,9 +17,7 @@ class StaticProfileController extends KDController
     @wrappers     = {}
 
     @profileUser  = null
-    @lockSidebar  = no
-
-    @registerSingleton 'staticProfileController', @, no
+    @registerSingleton 'staticProfileController', @, yes
 
     @reviveViewsOnPageLoad()
     @addEventListeners()
@@ -47,7 +45,6 @@ class StaticProfileController extends KDController
         @controllers[type]?.hideLazyLoader()
         @showWrapper @wrappers[type]
 
-      @lockSidebar = lockSidebar
       @displaySidebar displaySidebar
 
   displaySidebar:(show=yes,delay=250)->
@@ -58,7 +55,6 @@ class StaticProfileController extends KDController
   addEventListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
-      # log 'User tried to comment'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -70,7 +66,6 @@ class StaticProfileController extends KDController
 
 
     @on 'CommentCountReceivedClick', (view)=>
-      # log 'User tried to see other comments'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -112,60 +107,37 @@ class StaticProfileController extends KDController
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
 
+
     @on 'ActivityLinkClicked', (path)=>
       @addLogic 'activity', yes, yes
       @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
 
+
     @on 'AboutLinkClicked', (path)=>
       @addLogic 'about', yes, no
 
+
     @on 'CustomizeLinkClicked',=>
+
+      return if KD.whoami().getId() isnt @profileUser.getId()
 
       @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
 
       # reviving customization
 
-      @profileTitleNameView.setClass 'edit'
-      @profileTitleBioView.setClass 'edit'
+      # @profileTitleNameView.setClass 'edit'
+      # @profileTitleBioView.setClass 'edit'
 
-      if @profileTitleNameInput then @profileTitleNameInput.show()
-      else
-        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
-          tooltip :
-            placement : 'bottom'
-            direction : 'right'
-            title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
-          callback :(value)=>
-            value = Encoder.htmlEncode value
-            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
-              if value is '' then value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
-              @profileTitleNameView.unsetClass 'edit'
-              @profileTitleNameView.$('span.text').html value
-              new KDNotificationView
-                title : 'Title updated.'
+      # @profileTitleView.on 'click', =>
+      #   @profileTitleBioInput.hide()
+      #   @profileTitleNameView.setClass 'edit'
+      #   @profileTitleBioView.setClass 'edit'
+      #   no
 
-      if @profileTitleBioInput
-        @profileTitleBioInput.show()
-      else
-        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or "#{@profileUser.profile.about}"
-          tooltip :
-            placement : 'bottom'
-            direction : 'right'
-            title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
-          callback :(value)=>
-            value = Encoder.htmlEncode value
-            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
-              @profileTitleBioView.unsetClass 'edit'
-              if value is '' then value = "#{@profileUser.profile.about}"
-              @profileTitleBioView.$('span.text').html value
-              new KDNotificationView
-                title : 'Description updated.'
 
-      return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
+      return if @customizeViewsAttached
       @customizeViewsAttached = yes
 
       types = @getAllowedTypes @profileUser
@@ -186,7 +158,6 @@ class StaticProfileController extends KDController
 
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
 
-      log type
       @showLoadingBar() unless type in ['static']
 
       facets = [facets] if 'string' is typeof facets
@@ -199,7 +170,6 @@ class StaticProfileController extends KDController
           return acc
         , []
 
-        log facets.first
         @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
 
         if blockedTypes.length is 0
@@ -224,6 +194,77 @@ class StaticProfileController extends KDController
         else
           @mainController.loginScreen.animateToForm 'register'
 
+  reviveAdminViews:->
+
+      if @profileTitleNameInput then @profileTitleNameInput.show()
+      else
+        @profileTitleNameSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-name-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleNameInput.show()
+            @utils.defer => @profileTitleNameInput.setFocus()
+            @profileTitleNameView.setClass 'edit'
+
+
+        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.title \
+            or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
+
+          blur          : =>
+            @profileTitleNameInput.hide()
+            @profileTitleNameView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+
+              # set to default if empty
+              if value is ''
+                value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+              @profileTitleNameView.unsetClass 'edit'
+              @profileTitleNameSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Title updated.'
+
+      if @profileTitleBioInput
+        @profileTitleBioInput.show()
+      else
+        @profileTitleBioSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-bio-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleBioInput.show()
+            @utils.defer => @profileTitleBioInput.setFocus()
+            @profileTitleBioView.setClass 'edit'
+
+        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
+            or "#{@profileUser.profile.about}"
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
+
+          blur          : =>
+            @profileTitleBioInput.hide()
+            @profileTitleBioView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
+              @profileTitleBioView.unsetClass 'edit'
+              if value is ''
+                value = "#{@profileUser.profile.about}"
+              @profileTitleBioSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Description updated.'
 
   reviveViewsOnPageLoad:->
 
@@ -250,7 +291,7 @@ class StaticProfileController extends KDController
     @landingView._windowDidResize = =>
       @landingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
-      @repositionLogoView()
+      # @repositionLogoView()
 
     groupAvatarDrop = new KDView
       lazyDomId : 'landing-page-avatar-drop'
@@ -338,28 +379,28 @@ class StaticProfileController extends KDController
     @profileLoaderView.hide()
 
     # reviving logo for the slideup animation
-    @profileLogoInfo = new CustomLinkView
-      title : 'Go to Koding.com'
-      lazyDomId : 'profile-koding-logo-info'
+    # @profileLogoInfo = new CustomLinkView
+    #   title : 'Go to Koding.com'
+    #   lazyDomId : 'profile-koding-logo-info'
 
 
-    @profileLogoWrapperView = new KDView
-      lazyDomId: 'profile-koding-logo-wrapper'
-      bind : 'mouseenter mouseleave'
-      click :=> @emit 'LogoClicked'
+    # @profileLogoWrapperView = new KDView
+    #   lazyDomId: 'profile-koding-logo-wrapper'
+    #   bind : 'mouseenter mouseleave'
+    #   click :=> @emit 'LogoClicked'
 
-    @profileLogoView = new KDView
-      lazyDomId: 'profile-koding-logo'
+    # @profileLogoView = new KDView
+    #   lazyDomId: 'profile-koding-logo'
 
-    @profileLogoWrapperView.on 'mouseenter', (event)=>
-        @profileLogoView.setClass 'with-text'
-        @profileLogoInfo.setClass 'in'
+    # @profileLogoWrapperView.on 'mouseenter', (event)=>
+    #     @profileLogoView.setClass 'with-text'
+    #     @profileLogoInfo.setClass 'in'
 
-    @profileLogoWrapperView.on 'mouseleave', (event)=>
-      @profileLogoView.unsetClass 'with-text'
-      @profileLogoInfo.unsetClass 'in'
+    # @profileLogoWrapperView.on 'mouseleave', (event)=>
+    #   @profileLogoView.unsetClass 'with-text'
+    #   @profileLogoInfo.unsetClass 'in'
 
-    @repositionLogoView()
+    # @repositionLogoView()
 
     console.timeEnd 'reviving page elements on pageload.'
 
@@ -369,8 +410,6 @@ class StaticProfileController extends KDController
     console.time 'reviving page elements on userload.'
 
     @utils.defer => @emit 'HomeLinkClicked'
-
-    @utils.defer => @profileLogoView.setClass 'animate'
 
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
@@ -385,6 +424,7 @@ class StaticProfileController extends KDController
     if user.getId() is KD.whoami().getId()
 
       # reviving admin stuff
+
 
       @profileTitleNameView = new KDView
         lazyDomId : 'profile-name'
@@ -446,13 +486,11 @@ class StaticProfileController extends KDController
               if err then log err
               disableLink.updatePartial 'Disable this Public Page'
 
+      @reviveAdminViews()
+
     console.timeEnd 'reviving page elements on userload.'
     console.timeEnd 'StaticProfileController'
 
-
-  repositionLogoView:(subtract=42)->
-    @profileLogoView.$().css
-      top: @landingView.getHeight()-subtract
 
   appendActivities:(err,activities, type)->
     @controllers[type].listActivities activities
