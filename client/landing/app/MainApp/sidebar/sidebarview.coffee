@@ -205,7 +205,6 @@ class Sidebar extends JView
 
     @$('.avatar-placeholder').removeClass "collapsed"
     @$('#finder-panel').removeClass "expanded"
-    @avatarHeader.show() unless @avatarHeader.getData().slug is 'koding'
     if parseInt(@contentPanel.$().css("left"), 10) < 174
       @contentPanel.setClass "mouse-on-nav"
     @utils.wait 300, => callback?()
