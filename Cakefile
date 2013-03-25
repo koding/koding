@@ -433,19 +433,17 @@ task 'release',(options)->
 
   # Deploy new release if necessary
   if fs.existsSync dynCfgPath
+    console.log "Version #{version} is already deployed. Increasing release number."
     oldConf = JSON.parse fs.readFileSync dynCfgPath
-    portchecker.isOpen oldConf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
-      if webOpen
-        console.log "Version #{version} is running. Creating a new release."
-        version++
-        fs.writeFileSync 'VERSION', version
-        buildDir        = "#{releaseDir}/#{version}"
-        # proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
-        dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
-        webPort = config.haproxy.webPort + (version % 10) * 100 + 1
-      newRelease()
-  else
-    newRelease()
+    version++
+    fs.writeFileSync 'VERSION', version
+    buildDir        = "#{releaseDir}/#{version}"
+    # proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
+    dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
+    webPort = config.haproxy.webPort + (version % 10) * 100 + 1
+
+  console.log "Deploying version #{version} to #{buildDir}"
+  newRelease()
 
 task 'switchProxy', (options) ->
   releaseDir      = nodePath.join __dirname, "../koding-release"
@@ -495,7 +493,7 @@ task 'switchProxy', (options) ->
 
       listen http-in
           bind *:#{conf.webPort}
-          option httpchk GET /index.html HTTP/1.0
+          option httpchk GET / HTTP/1.0
       
     """
 
