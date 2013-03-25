@@ -5,6 +5,13 @@ class StaticProfileController extends KDController
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
   constructor:(options,data)->
     super options,data
 
@@ -17,9 +24,7 @@ class StaticProfileController extends KDController
     @wrappers     = {}
 
     @profileUser  = null
-    @lockSidebar  = no
-
-    @registerSingleton 'staticProfileController', @, no
+    @registerSingleton 'staticProfileController', @, yes
 
     @reviveViewsOnPageLoad()
     @addEventListeners()
@@ -47,7 +52,6 @@ class StaticProfileController extends KDController
         @controllers[type]?.hideLazyLoader()
         @showWrapper @wrappers[type]
 
-      @lockSidebar = lockSidebar
       @displaySidebar displaySidebar
 
   displaySidebar:(show=yes,delay=250)->
@@ -58,7 +62,6 @@ class StaticProfileController extends KDController
   addEventListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
-      # log 'User tried to comment'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -70,7 +73,6 @@ class StaticProfileController extends KDController
 
 
     @on 'CommentCountReceivedClick', (view)=>
-      # log 'User tried to see other comments'
       if KD.whoami() instanceof KD.remote.api.JGuest
         new  KDNotificationView
           title : "Please log in to see this post and it's comments"
@@ -112,60 +114,27 @@ class StaticProfileController extends KDController
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
 
+
     @on 'ActivityLinkClicked', (path)=>
       @addLogic 'activity', yes, yes
       @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
 
+
     @on 'AboutLinkClicked', (path)=>
       @addLogic 'about', yes, no
 
+
     @on 'CustomizeLinkClicked',=>
 
-      @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
+      return if KD.whoami().getId() isnt @profileUser.getId()
+
+      # @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
 
       # reviving customization
 
-      @profileTitleNameView.setClass 'edit'
-      @profileTitleBioView.setClass 'edit'
-
-      if @profileTitleNameInput then @profileTitleNameInput.show()
-      else
-        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
-          tooltip :
-            placement : 'bottom'
-            direction : 'right'
-            title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
-          callback :(value)=>
-            value = Encoder.htmlEncode value
-            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
-              if value is '' then value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
-              @profileTitleNameView.unsetClass 'edit'
-              @profileTitleNameView.$('span.text').html value
-              new KDNotificationView
-                title : 'Title updated.'
-
-      if @profileTitleBioInput
-        @profileTitleBioInput.show()
-      else
-        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
-          defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or "#{@profileUser.profile.about}"
-          tooltip :
-            placement : 'bottom'
-            direction : 'right'
-            title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
-          callback :(value)=>
-            value = Encoder.htmlEncode value
-            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
-              @profileTitleBioView.unsetClass 'edit'
-              if value is '' then value = "#{@profileUser.profile.about}"
-              @profileTitleBioView.$('span.text').html value
-              new KDNotificationView
-                title : 'Description updated.'
-
-      return if @customizeViewsAttached or KD.whoami().getId() isnt @profileUser.getId()
+      return if @customizeViewsAttached
       @customizeViewsAttached = yes
 
       types = @getAllowedTypes @profileUser
@@ -186,7 +155,6 @@ class StaticProfileController extends KDController
 
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
 
-      log type
       @showLoadingBar() unless type in ['static']
 
       facets = [facets] if 'string' is typeof facets
@@ -199,7 +167,6 @@ class StaticProfileController extends KDController
           return acc
         , []
 
-        log facets.first
         @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
 
         if blockedTypes.length is 0
@@ -224,6 +191,77 @@ class StaticProfileController extends KDController
         else
           @mainController.loginScreen.animateToForm 'register'
 
+  reviveAdminViews:->
+
+      if @profileTitleNameInput then @profileTitleNameInput.show()
+      else
+        @profileTitleNameSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-name-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleNameInput.show()
+            @utils.defer => @profileTitleNameInput.setFocus()
+            @profileTitleNameView.setClass 'edit'
+
+
+        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.title \
+            or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
+
+          blur          : =>
+            @profileTitleNameInput.hide()
+            @profileTitleNameView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+
+              # set to default if empty
+              if value is ''
+                value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+              @profileTitleNameView.unsetClass 'edit'
+              @profileTitleNameSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Title updated.'
+
+      if @profileTitleBioInput
+        @profileTitleBioInput.show()
+      else
+        @profileTitleBioSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-bio-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleBioInput.show()
+            @utils.defer => @profileTitleBioInput.setFocus()
+            @profileTitleBioView.setClass 'edit'
+
+        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
+            or "#{@profileUser.profile.about}"
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
+
+          blur          : =>
+            @profileTitleBioInput.hide()
+            @profileTitleBioView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
+              @profileTitleBioView.unsetClass 'edit'
+              if value is ''
+                value = "#{@profileUser.profile.about}"
+              @profileTitleBioSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Description updated.'
 
   reviveViewsOnPageLoad:->
 
@@ -250,7 +288,7 @@ class StaticProfileController extends KDController
     @landingView._windowDidResize = =>
       @landingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
-      @repositionLogoView()
+      # @repositionLogoView()
 
     groupAvatarDrop = new KDView
       lazyDomId : 'landing-page-avatar-drop'
@@ -342,28 +380,28 @@ class StaticProfileController extends KDController
     @profileLoaderView.hide()
 
     # reviving logo for the slideup animation
-    @profileLogoInfo = new CustomLinkView
-      title : 'Go to Koding.com'
-      lazyDomId : 'profile-koding-logo-info'
+    # @profileLogoInfo = new CustomLinkView
+    #   title : 'Go to Koding.com'
+    #   lazyDomId : 'profile-koding-logo-info'
 
 
-    @profileLogoWrapperView = new KDView
-      lazyDomId: 'profile-koding-logo-wrapper'
-      bind : 'mouseenter mouseleave'
-      click :=> @emit 'LogoClicked'
+    # @profileLogoWrapperView = new KDView
+    #   lazyDomId: 'profile-koding-logo-wrapper'
+    #   bind : 'mouseenter mouseleave'
+    #   click :=> @emit 'LogoClicked'
 
-    @profileLogoView = new KDView
-      lazyDomId: 'profile-koding-logo'
+    # @profileLogoView = new KDView
+    #   lazyDomId: 'profile-koding-logo'
 
-    @profileLogoWrapperView.on 'mouseenter', (event)=>
-        @profileLogoView.setClass 'with-text'
-        @profileLogoInfo.setClass 'in'
+    # @profileLogoWrapperView.on 'mouseenter', (event)=>
+    #     @profileLogoView.setClass 'with-text'
+    #     @profileLogoInfo.setClass 'in'
 
-    @profileLogoWrapperView.on 'mouseleave', (event)=>
-      @profileLogoView.unsetClass 'with-text'
-      @profileLogoInfo.unsetClass 'in'
+    # @profileLogoWrapperView.on 'mouseleave', (event)=>
+    #   @profileLogoView.unsetClass 'with-text'
+    #   @profileLogoInfo.unsetClass 'in'
 
-    @repositionLogoView()
+    # @repositionLogoView()
 
     console.timeEnd 'reviving page elements on pageload.'
 
@@ -374,21 +412,19 @@ class StaticProfileController extends KDController
 
     @utils.defer => @emit 'HomeLinkClicked'
 
-    @utils.defer => @profileLogoView.setClass 'animate'
-
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
 
-    @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
-      lazyDomId    : 'profile-buttons'
-      delegate     : @
-    , @profileUser
+    # @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
+    #   lazyDomId    : 'profile-buttons'
+    #   delegate     : @
+    # , @profileUser
 
-    @avatarAreaIconMenu.$('.static-profile-button').remove()
+    # @avatarAreaIconMenu.$('.static-profile-button').remove()
 
     if user.getId() is KD.whoami().getId()
 
-      # reviving admin stuff
+      # reviving ADMIN views (inline edits, feeder checkboxes)
 
       @profileTitleNameView = new KDView
         lazyDomId : 'profile-name'
@@ -450,32 +486,38 @@ class StaticProfileController extends KDController
               if err then log err
               disableLink.updatePartial 'Disable this Public Page'
 
+      @reviveAdminViews()
+
     console.timeEnd 'reviving page elements on userload.'
     console.timeEnd 'StaticProfileController'
 
-
-  repositionLogoView:(subtract=42)->
-    @profileLogoView.$().css
-      top: @landingView.getHeight()-subtract
 
   appendActivities:(err,activities, type)->
     @controllers[type].listActivities activities
     @controllers[type].hideLazyLoader()
 
+
   refreshActivities:(err,activities,type)->
-    @profileShowMoreView.hide()
+    unless err
+      @profileShowMoreView.hide()
 
-    controller = @controllers[type]
-    @wrappers[type].show()
+      controller = @controllers[type]
+      @wrappers[type].show()
 
-    controller.removeAllItems()
-    controller.hideLazyLoader()
+      controller.removeAllItems()
+      controller.hideLazyLoader()
 
-    controller.hideNoItemWidget()
-    if activities.length > 0
-      controller.listActivities activities
-    else
-      controller.showNoItemWidget() unless type in ['static']
+      controller.hideNoItemWidget()
+
+      facetPlural = constructorToPluralNameMap[@currentFacets[0]] or 'activity'
+
+      controller.getOptions().noItemFoundWidget.updatePartial \
+        "So far, #{@profileUser.profile.firstName} has not posted any #{facetPlural}"
+
+      if activities.length > 0
+        controller.listActivities activities
+      else
+        controller.showNoItemWidget() unless type in ['static']
 
 
     @hideLoadingBar()
@@ -502,28 +544,13 @@ class StaticProfileController extends KDController
       when 'activity'
        @addActivityLogic callback
 
-      when 'topic'
-       @addTopicLogic callback
-
-      when 'group'
-       @addGroupsLogic callback
-
-      when 'app'
-       @addAppsLogic callback
-
-      when 'member'
-       @addMembersLogic callback
-
       when 'about'
        @addAboutLogic callback
 
       when 'static'
        @addStaticLogic callback
 
-
-
   addActivityLogic:(callback=->)->
-    log 'adding activity logic'
     activityController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .99
@@ -559,7 +586,6 @@ class StaticProfileController extends KDController
     callback()
 
   addAboutLogic:(callback=->)->
-    log 'adding about logic'
 
     @showLoadingBar()
 
@@ -580,128 +606,7 @@ class StaticProfileController extends KDController
           @showWrapper aboutWrapper
           callback()
 
-
-  # addTopicLogic:(callback=->)->
-  #   log 'adding topics logic'
-
-  #   topicsController = new ActivityListController
-  #     delegate          : @
-  #     lazyLoadThreshold : .99
-  #     itemClass         : StaticTopicsListItem
-  #     viewOptions       :
-  #       cssClass        : 'static-content topic'
-  #     showHeader        : no
-
-  #   topicsListWrapper = topicsController.getView()
-  #   @profileContentView.addSubView topicsListWrapper
-
-  #   topicsController.hideLazyLoader()
-
-  #   @showLoadingBar()
-  #   @profileUser.fetchFollowedTopics {},{},(err,topics)=>
-  #     if topics
-  #       @refreshActivities err, topics, 'topic'
-  #     else
-  #       topicsController.hideLazyLoader()
-  #       @hideLoadingBar()
-  #       log 'No topics'
-
-  #   @controllers['topic'] = topicsController
-  #   @wrappers['topic']    = topicsListWrapper
-
-  #   callback()
-
-
-  # addGroupsLogic:(callback=->)->
-  #   log 'adding groups logic'
-
-  #   groupsController = new ActivityListController
-  #     delegate          : @
-  #     lazyLoadThreshold : .99
-  #     itemClass         : StaticGroupsListItem
-  #     viewOptions       :
-  #       cssClass        : 'static-content group'
-  #     showHeader        : no
-
-  #   groupsListWrapper = groupsController.getView()
-  #   @profileContentView.addSubView groupsListWrapper
-
-  #   @showLoadingBar()
-  #   @profileUser.fetchGroups (err,groups)=>
-  #     if groups
-  #       groupList = (item.group for item in groups)
-  #       @refreshActivities err, groupList, 'group'
-  #     else
-  #       groupsController.hideLazyLoader()
-  #       @hideLoadingBar()
-  #       log 'No groups'
-
-  #   @controllers['group'] = groupsController
-  #   @wrappers['group']    = groupsListWrapper
-
-  #   callback()
-
-
-  # addAppsLogic:(callback=->)->
-  #   log 'adding apps logic'
-
-  #   appsController = new ActivityListController
-  #     delegate          : @
-  #     lazyLoadThreshold : .99
-  #     itemClass         : StaticAppsListItem
-  #     viewOptions       :
-  #       cssClass        : 'static-content app'
-  #     showHeader        : no
-
-  #   appsListWrapper = appsController.getView()
-  #   @profileContentView.addSubView appsListWrapper
-
-  #   @showLoadingBar()
-  #   KD.remote.api.JApp.some {originId : @profileUser.getId()},{},(err,apps)=>
-  #     if apps?.length
-  #       @refreshActivities err, apps, 'app'
-  #     else
-  #       appsController.hideLazyLoader()
-  #       @hideLoadingBar()
-  #       log 'No apps'
-
-  #   @controllers['app'] = appsController
-  #   @wrappers['app']    = appsListWrapper
-
-  #   callback()
-
-
-  # addMembersLogic:(callback=->)->
-  #   log 'adding members logic'
-
-  #   membersController = new ActivityListController
-  #     delegate          : @
-  #     lazyLoadThreshold : .99
-  #     itemClass         : StaticMembersListItem
-  #     viewOptions       :
-  #       cssClass        : 'static-content member'
-  #     showHeader        : no
-
-  #   membersListWrapper = membersController.getView()
-  #   @profileContentView.addSubView membersListWrapper
-
-  #   @showLoadingBar()
-  #   @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
-  #     if members
-  #       @refreshActivities err, members, 'member'
-  #     else
-  #       membersController.hideLazyLoader()
-  #       @hideLoadingBar()
-  #       log 'No members'
-
-  #   @controllers['member'] = membersController
-  #   @wrappers['member']    = membersListWrapper
-
-  #   callback()
-
-
   addStaticLogic:(callback=->)->
-    log 'adding static logic'
 
     staticController = new ActivityListController
       delegate          : @
@@ -728,6 +633,7 @@ class StaticProfileController extends KDController
 
     callback()
 
+
   hideWrappers:->
     @profileContentView.$('.content-item.static').remove()
     @staticDefaultItem.hide()
@@ -738,15 +644,8 @@ class StaticProfileController extends KDController
 
   showWrapper:(wrapper)->
     @hideWrappers()
-    # @showHomeLink()
     wrapper.show()
 
-  # setHomeLink:(view)->
-  #   @homeLink = view
-  #   view.setClass 'invisible'
-
-  # showHomeLink:->
-  #   @homeLink.unsetClass 'invisible'
 
 
 

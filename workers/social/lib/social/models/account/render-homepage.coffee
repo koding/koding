@@ -24,20 +24,22 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing #{if selectedBackground then 'custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
+    <div class="profile-landing#{if selectedBackground then ' custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
     <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
 
+      <!--
       <div class="profile-buttons kdview actions" id="profile-buttons">
 
         <a class="static-profile-button notifications" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
         <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-        <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a></div>
+        <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+      </div>
 
-      <!--<div class="profile-links">
+      <div class="profile-links">
         <ul class='main'>
           <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
           <li class='github'>#{getHandleLink 'github', handles}</li>
@@ -73,8 +75,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name" id="profile-name"><span class="text">#{getStaticProfileTitle profile}</span></div>
-          <div class="profile-bio" id="profile-bio"><span class="text">#{getStaticProfileAbout profile}</span></div>
+          <div class="profile-name" id="profile-name"><span id="profile-name-span" class="text">#{getStaticProfileTitle profile}</span></div>
+          <div class="profile-bio" id="profile-bio"><span id="profile-bio-span" class="text">#{getStaticProfileAbout profile}</span></div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">

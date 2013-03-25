@@ -14,7 +14,7 @@ class BlogPostActivityItemView extends ActivityItemChild
 
     @readThisLink = new CustomLinkView
       cssClass : 'read-this-link'
-      title : 'Read this Blog Post'
+      title : @getData().title or 'Read this Blog Post'
       click : (event)=>
         event.stopPropagation()
         event.preventDefault()
@@ -35,7 +35,7 @@ class BlogPostActivityItemView extends ActivityItemChild
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
-      <h3 class='comment-title'>{{ @applyTextExpansions #(title)}}</h3>
+      <!-- <h3 class='comment-title'>{{ @applyTextExpansions #(title)}}</h3> -->
       <p class="blog-post-body">{{> @readThisLink}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
