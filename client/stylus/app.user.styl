@@ -165,7 +165,6 @@
     width                   auto
     font-weight             300
     display                 block
-    text-shadow             1px 1px 3px rgba(0,0,0,0.1)
     headerFont()
 
 .profile-nickname
@@ -281,12 +280,12 @@ textarea.profile-handle-customize.kdinput
   right                     0
   borderBox()
   vendor transition,        height 0.1s linear
-  bg color,                 #fbfbfb
+  bg color,                 white
   height                    0
   width                     auto
   border                    none
   text-align                center
-  color                     #ff9200
+  color                     #444
 
   &.active
     height                  26px
@@ -368,6 +367,10 @@ textarea.profile-handle-customize.kdinput
     &.blocked
       opacity               0.5
       cursor                default
+
+    &.selected
+      color:                #ff9200;
+      font-weight:          bold;
   ul
     margin-left             23px
 
@@ -507,10 +510,6 @@ textarea.profile-handle-customize.kdinput
     margin                  0 auto
     text-align              center
 
-    &.default-item
-      padding-top           35px
-      padding-left          35px
-
     > .title
       // bg color,             #fbfbfb
       padding               20px 40px 0px
@@ -590,14 +589,14 @@ textarea.profile-handle-customize.kdinput
       headerFont()
       text-align            center
       padding-top           10px
+
   .default-item
     borderBox()
-    bg color,               #fbfbfb
+    // bg color,               #fbfbfb
     line-height             20px
     min-height              50px
     height                  auto
-    padding                 20px
-    border-bottom           1px solid #e8e8e8
+    border-bottom           none
 
 #profile-placeholder
   height                    100%
@@ -642,7 +641,10 @@ textarea.profile-handle-customize.kdinput
 
     .has-markdown
       max-width             600px
-
+      margin-right          300px
+      img
+        max-width           100%
+        width               auto
   .about-edit
     borderBox()
     width                   100%

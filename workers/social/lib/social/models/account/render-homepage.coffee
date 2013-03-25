@@ -1,6 +1,6 @@
 
 module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
-  content ?= getDefaultuserContents()
+  # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
 
   staticPage ?= {}
@@ -46,7 +46,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user invisible">
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
             <a class="title"><span class="main-nav-icon home"></span>Home</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
@@ -128,7 +128,10 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   for blog,i in blogPosts
 
     slug = blog.slug
-    href = ("/#{slug}" if 'string' is typeof slug) or "/#{slug.group}/#{slug.slug}" or '/#'
+    if 'string' is typeof slug
+      href = "/Activity/#{slug}"
+    else
+      href = "/Activity/#{slug.slug}"
 
     if blog.tags?.length
       tags = ""
@@ -160,11 +163,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   if i>0
     posts
   else
-    """
-      <div class="content-item default-item" id='profile-blog-default-item'>
-        <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
-      </div>
-    """
+    getDefaultUserContents firstName, lastName
 
 getHandleLink = (handle,handles)->
 
@@ -202,12 +201,12 @@ getTags = (tags)->
 getMeta = (replies,likes)->
   """
   <div class="kdview static-activity-actions" id="kd-396">
-    <a class="action-link" href="#">Comment</a><a class="count" href="#"><span class="data" data-paths="repliesCount">#{replies}</span></a> ·
+    <a class="action-link" href="#">Comment</a><a class="count #{if replies is 0 then 'hidden'}" href="#"><span class="data" data-paths="repliesCount">#{replies}</span></a> ·
     <span class="optional">
     <a class="action-link" href="#">Share</a> ·
     </span>
     <span class="kdview like-view">
-      <a class="action-link" href="#">Like</a><a class="count" href="#"><span class="data" data-paths="meta.likes">#{likes}</span></a>
+      <a class="action-link" href="#">Like</a><a class="count #{if likes is 0 then 'hidden'}" href="#"><span class="data" data-paths="meta.likes">#{likes}</span></a>
     </span>
   </div>
   """
@@ -262,12 +261,13 @@ getScripts =->
   </script>
   """
 
-getDefaultuserContents =->
+getDefaultUserContents =(firstName, lastName)->
   """
-  Hi —
-
-  This is a user on Koding.  It doesn't have a readme.  That's all we know.
-
-  Sincerly,
-  The Internet
-  """.replace /\n/g, '<br>'
+    <div class="content-item default-item" id='profile-blog-default-item'>
+      <div class="title"><span class="text">Hello!</span></div>
+      <div class="has-markdown"><span class="data">
+        <p>
+          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activities' on the left to see #{firstName}'s posts on Koding.</span></div>
+        </p>
+    </div>
+  """

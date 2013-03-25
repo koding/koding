@@ -12,15 +12,16 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
 
     super options,data
 
-    @on 'CommentLinkReceivedClick', =>
-      @getSingleton('staticProfileController').emit 'CommentLinkReceivedClick'
-    @on 'CommentCountClicked'     , =>
-      @getSingleton('staticProfileController').emit 'CommentCountReceivedClick'
+    @on 'CommentLinkReceivedClick', (event,view)=>
+      @getSingleton('staticProfileController').emit 'CommentLinkReceivedClick', view
+    @on 'CommentCountClicked'     , (view)=>
+      @getSingleton('staticProfileController').emit 'CommentCountReceivedClick', view
 
     data = @getData()
 
     @titleLink  = new CustomLinkView
-      href      : "/#{data.slug}"
+      # href      : "/#{data.slug?.group}/#{data.slug?.slug}"
+      href      : "/Activity/#{data.slug?.slug}"
       title     : @applyTextExpansions data.title
       target    : '_blank'
 

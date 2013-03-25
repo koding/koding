@@ -101,7 +101,6 @@ class StaticGroupController extends KDController
       , (err,activities=[])=>
         @appendActivities err, activities, =>
 
-
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
