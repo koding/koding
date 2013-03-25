@@ -30,7 +30,7 @@ class FSHelper
       name = getFileName path
 
       if type is 'folder'
-        if /^\/Users\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
+        if /^\/home\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
           type = 'mount'
 
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
@@ -63,8 +63,50 @@ class FSHelper
         parentPath = parentPaths[0]
       for line in lines when line
         unless systemFilesRegExp.test line
+          log "FILE >> ", parseFile parentPath, line
           data.push FSHelper.createFile parseFile parentPath, line
-    data
+    console.log "LS OUTPUT", data
+    return data
+
+  parseWatcherFile = (parentPath, file, user)->
+
+    {name, size, mode} = file
+    createdAt          = file.time
+    type               = if file.isBroken then 'brokenLink' else \
+                         if file.isDir then 'folder' else 'file'
+    mode               = KD.utils.decimalToAnother mode, 8
+    path               = parentPath + '/' + name
+    group              = user
+    return { size, user, group, createdAt, mode, type, parentPath, path, name }
+
+  @parseWatcher = (parentPath, files)->
+
+    data = []
+    return data unless files
+    files = [files] unless Array.isArray files
+
+    sortedFiles = []
+    for p in [yes, no]
+      z = [x for x in files when x.isDir is p][0].sort (x,y)-> x.name > y.name
+      sortedFiles.push x for x in z
+
+    {nickname} = KD.whoami().profile
+    for file in sortedFiles
+      data.push FSHelper.createFile parseWatcherFile parentPath, file, nickname
+
+    return data
+
+  @folderOnChange = (path, change, treeController)->
+    console.log "THEY CHANGED:", change
+    file = @parseWatcher(path, change.file).first
+    switch change.event
+      when "added"
+        treeController.addNode file
+      when "removed"
+        for npath, node of treeController.nodes
+          if npath is file.path
+            treeController.removeNodeView node
+            break
 
   @registry = {}
 

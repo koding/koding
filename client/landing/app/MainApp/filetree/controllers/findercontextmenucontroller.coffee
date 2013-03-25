@@ -168,7 +168,7 @@ class NFinderContextMenuController extends KDController
 
     {nickname} = KD.whoami().profile
 
-    if fileData.path is "/Users/#{nickname}/Applications"
+    if fileData.path is "/home/#{nickname}/Applications"
       items.Refresh.separator         = yes
       items["Make a new Application"] =
         action : "makeNewApp"

@@ -9,27 +9,33 @@ class WebtermSettingsView extends JView
       selectOptions : __webtermSettings.fonts
       callback      : (value) =>
         webtermView.appStorage.setValue 'font', value
-        webtermView.updateStyle()
+        webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'font'
 
     @fontSize       = new KDSelectBox
       selectOptions : __webtermSettings.fontSizes
       callback      : (value) =>
         webtermView.appStorage.setValue 'fontSize', value
-        webtermView.updateStyle()
+        webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'fontSize'
 
     @theme          = new KDSelectBox
       selectOptions : __webtermSettings.themes
       callback      : (value) =>
         webtermView.appStorage.setValue 'theme', value
-        webtermView.updateStyle()
+        webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'theme'
+
+    @bell           = new KDOnOffSwitch
+      callback      : (value) =>
+        webtermView.appStorage.setValue 'visualBell', value
+        webtermView.updateSettings()
+      defaultValue  : webtermView.appStorage.getValue 'visualBell'
 
   pistachio:->
     """
     <p>Font                     {{> @font}}</p>
     <p>Font Size                {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
-
+    <p>Use Visual Bell          {{> @bell}}</p>
     """
