@@ -28,7 +28,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://koding.com:4040"
+    address     : "http://new.koding.com:4040"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -100,25 +100,25 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://koding.com:4040'
+    staticFilesBaseUrl: 'http://new.koding.com:4040'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'https://koding.com:4040'
+      mainUri   : 'http://new.koding.com:4040'
       broker    :
         sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : "http://web-prod.in.koding.com:#{sourceServerPort}"
+      sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
-    vhost       : '/new'
+    vhost       : 'new'
   broker        :
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
