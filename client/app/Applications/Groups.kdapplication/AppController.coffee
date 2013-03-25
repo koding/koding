@@ -109,9 +109,7 @@ class GroupsAppController extends AppController
               Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
             </p>
           """
-        mine                : new KDView
-          cssClass          : "onboarding"
-          partial           : "<h1>this is onboarding for my groups</h1>"
+        mine                : "<h1>this is onboarding for my groups</h1>"
       filter                :
         everything          :
           title             : "All groups"
