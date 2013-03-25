@@ -303,12 +303,18 @@ textarea.profile-handle-customize.kdinput
     // font-size               14px
     // padding                 10px 2px 0px 6px
 
-    border                  1px solid #f5f5f5
+    // border                  1px solid #f5f5f5
+    border                  none
     padding                 2px
     margin                  0px
     font-family             "Bree serif"
     width                   100%
     headerFont()
+    text-rendering          geometricPrecision
+    vendor font-smoothing   antialiased
+    &:focus
+      border none
+      shadow none
 
   &:not(.edit)
     textarea
@@ -317,18 +323,24 @@ textarea.profile-handle-customize.kdinput
     span.text
       hidden()
 
+  span.text.edit:hover
+    bg color, #f5f5f5
+
+
 .profile-name textarea.kdinput.text
-  line-height               32px
+  line-height               48px
   height                    48px
   font-weight               bold
-  margin                    5px 0 0 0
-  padding                   2px 0 0 2px
+  margin                    2px 0 1px -5px
+  padding                   0px 0 0 5px
   text-rendering            geometricPrecision
 
 .profile-bio textarea.kdinput.text
   height                    22px
   line-height               14px
   color                     #888
+  font-weight               300!important
+  margin                    0px 0 0 -2px
 
 
 .profile-content-links
@@ -505,7 +517,7 @@ textarea.profile-handle-customize.kdinput
     height                  auto
     border-bottom           1px solid rgba(0,0,0,0.1)
     padding                 50px
-    max-width               700px
+    max-width               840px
     borderBox()
     margin                  0 auto
     text-align              center
@@ -531,7 +543,8 @@ textarea.profile-handle-customize.kdinput
         color               #444
         font-size           32px
         width               auto
-        margin-top          -7px
+        line-height         100%
+        // margin-top          -7px
         vendor transition,  color .1s linear
         a
           line-height       100%
@@ -632,7 +645,7 @@ textarea.profile-handle-customize.kdinput
 
   .about-body
     borderBox()
-    margin-top              294px
+    // margin-top              294px
     padding                 30px
     // max-width               600px
     height                  100%
@@ -647,13 +660,14 @@ textarea.profile-handle-customize.kdinput
         width               auto
   .about-edit
     borderBox()
-    width                   100%
+    width                   auto
     padding                 10px
 
   .about-edit-button
     fr()
-    margin                  10px
+    margin                  10px 10px 10px 10px
     width                   100px
+
 
   .about-save-button
     fr()
@@ -711,11 +725,11 @@ textarea.profile-handle-customize.kdinput
 
   .about-sidebar
     fr()
-    margin-top              294px
+    // margin-top              294px
     width                   300px
     height                  100%
     border-left             1px solid #e8e8e8
-    bg color,               #fbfbfb
+    // bg color,               #fbfbfb
 
     .sidebar-header
       width                 100%
@@ -733,10 +747,33 @@ textarea.profile-handle-customize.kdinput
         height              auto
 
   .content-display-wrapper
-    // rel()
+    rel()
     left                    0
-    top                     0
-    right                   0
+    // top                     0
+    // right                   0
+    // bottom                  0
+    width                   300px
+    height                  100%
+    fr()
+
+    bg color,               transparent
+
+    .content-display
+      height                100%
+    .profilearea
+      borderBox()
+      height                100%
+      bg image,             none
+      border-bottom         1px solid #e8e8e8
+
+      .profileleft
+        hidden()
+
+      section
+        fr()
+        width 300px
+        height 100%
+        border-left 1px solid #e8e8e8
 
 .about-sidebar .static-content
   padding                   10px
