@@ -10,13 +10,17 @@ class StaticActivityItemChild extends KDView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      itemClass  : TagLinkView
+      itemClass  : StaticTagLinkView
     , data.tags
 
     likeCount = data.meta.likes
-    @actionLinks = new KDView
-      cssClass : 'static-action-links'
-      partial : if likeCount > 0 then "#{likeCount} Like#{if likeCount is 1 then '' else 's'}" else ""
+
+    # @actionLinks = new KDView
+    #   cssClass : 'static-action-links'
+    #   partial : if likeCount > 0 then "#{likeCount} Like#{if likeCount is 1 then '' else 's'}" else ""
+
+    @actionLinks = new StaticActivityActionsView delegate : @, cssClass : "", data
+
     super
 
     data = @getData()
@@ -46,3 +50,17 @@ class StaticActivityItemChild extends KDView
 
   formatCreateDate:(date = new Date())->
     "Published on #{dateFormat(date, 'mmmm dS, yyyy')}"
+
+class StaticActivityActionsView extends ActivityActionsView
+  viewAppended:->
+    @setClass "static-activity-actions"
+    @setTemplate @pistachio()
+    @template.update()
+    @attachListeners()
+    @loader.hide()
+
+class StaticTagLinkView extends TagLinkView
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
+    @getSingleton('staticProfileController').emit 'StaticInteractionHappened', @

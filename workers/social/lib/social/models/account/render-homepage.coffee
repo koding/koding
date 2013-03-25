@@ -139,22 +139,6 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
 
     postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
 
-    commentCount =
-      if blog.repliesCount is 0 then ''
-      else if blog.repliesCount is 1 then ' One Comment'
-      else " #{blog.repliesCount} Comments"
-
-    likes = blog.meta?.likes or 0
-
-    meta =
-      if likes is 0 then ''
-      else
-        if likes is 1 then "One Like"
-        else "#{likes} Likes"
-
-    meta += "#{if commentCount isnt '' then " · " else ''}" if likes isnt 0
-
-
     posts+="""
       <div class="content-item static">
         <div class="title">
@@ -166,7 +150,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
               Published on #{postDate}#{tagsList}
             </span>
             <span>
-              <span class="meta">#{meta}#{commentCount}</span>
+              #{getMeta blog.repliesCount, blog.meta.likes}
             </span>
           </span>
           <span class="data">#{blog.html}</span>
@@ -214,6 +198,19 @@ getTags = (tags)->
     """
     <div class='ttag' data-tag='#{value}'>#{value}</div>
     """
+
+getMeta = (replies,likes)->
+  """
+  <div class="kdview static-activity-actions" id="kd-396">
+    <a class="action-link" href="#">Comment</a><a class="count" href="#"><span class="data" data-paths="repliesCount">#{replies}</span></a> ·
+    <span class="optional">
+    <a class="action-link" href="#">Share</a> ·
+    </span>
+    <span class="kdview like-view">
+      <a class="action-link" href="#">Like</a><a class="count" href="#"><span class="data" data-paths="meta.likes">#{likes}</span></a>
+    </span>
+  </div>
+  """
 
 getStyles =->
   """

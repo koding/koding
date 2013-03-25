@@ -40,7 +40,7 @@ class StaticProfileController extends KDController
   addLogic:(type,lockSidebar=no,displaySidebar=yes)->
       unless @controllers[type]?
         @addLogicForType type, =>
-          @showWrapper @wrappers[type]
+          # @showWrapper @wrappers[type]
           @controllers[type]?.hideLazyLoader()
       else
         @controllers[type]?.hideLazyLoader()
@@ -56,6 +56,22 @@ class StaticProfileController extends KDController
 
   addEventListeners:->
 
+    @on 'CommentLinkReceivedClick', =>
+      log 'User tried to comment'
+
+    @on 'CommentCountReceivedClick', =>
+      log 'User tried to see other comments'
+
+    @on 'StaticInteractionHappened',(view)=>
+      if KD.whoami() instanceof KD.remote.api.JGuest
+        log 'Guest tried things',view
+        if view instanceof LikeView
+          new KDNotificationView
+            title : 'Please log in to like this post.'
+        else if view instanceof StaticTagLinkView
+          new  KDNotificationView
+            title : 'PLease log in to see this Topic'
+
     @on 'GroupsLinkClicked', =>
       @addLogic 'group', yes, no
 
@@ -69,6 +85,7 @@ class StaticProfileController extends KDController
       @addLogic 'app', yes, no
 
     @on 'HomeLinkClicked', =>
+
       @addLogic 'static', no, no
 
       # HERE is the place to implement custom profile splash screens, reveal.js and such
@@ -102,6 +119,8 @@ class StaticProfileController extends KDController
         @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
           defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.title or ''
           tooltip :
+            placement : 'bottom'
+            direction : 'right'
             title : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
           callback :(value)=>
             value = Encoder.htmlEncode value
@@ -112,12 +131,13 @@ class StaticProfileController extends KDController
                 title : 'Title updated.'
 
       if @profileTitleBioInput
-        log 'haben wir schon',@profileTitleBioInput
         @profileTitleBioInput.show()
       else
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
           defaultValue : Encoder.htmlDecode @profileUser.profile.staticPage?.about or ''
           tooltip :
+            placement : 'bottom'
+            direction : 'right'
             title : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
           callback :(value)=>
             value = Encoder.htmlEncode value
@@ -325,6 +345,8 @@ class StaticProfileController extends KDController
 
     console.time 'reviving page elements on userload.'
 
+    @utils.defer => @emit 'HomeLinkClicked'
+
     @utils.defer => @profileLogoView.setClass 'animate'
 
     @profileUser = user
@@ -515,126 +537,127 @@ class StaticProfileController extends KDController
           @hideLoadingBar()
 
           @wrappers['about'] = aboutWrapper
+          @showWrapper aboutWrapper
           callback()
 
 
-  addTopicLogic:(callback=->)->
-    log 'adding topics logic'
+  # addTopicLogic:(callback=->)->
+  #   log 'adding topics logic'
 
-    topicsController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : StaticTopicsListItem
-      viewOptions       :
-        cssClass        : 'static-content topic'
-      showHeader        : no
+  #   topicsController = new ActivityListController
+  #     delegate          : @
+  #     lazyLoadThreshold : .99
+  #     itemClass         : StaticTopicsListItem
+  #     viewOptions       :
+  #       cssClass        : 'static-content topic'
+  #     showHeader        : no
 
-    topicsListWrapper = topicsController.getView()
-    @profileContentView.addSubView topicsListWrapper
+  #   topicsListWrapper = topicsController.getView()
+  #   @profileContentView.addSubView topicsListWrapper
 
-    topicsController.hideLazyLoader()
+  #   topicsController.hideLazyLoader()
 
-    @showLoadingBar()
-    @profileUser.fetchFollowedTopics {},{},(err,topics)=>
-      if topics
-        @refreshActivities err, topics, 'topic'
-      else
-        topicsController.hideLazyLoader()
-        @hideLoadingBar()
-        log 'No topics'
+  #   @showLoadingBar()
+  #   @profileUser.fetchFollowedTopics {},{},(err,topics)=>
+  #     if topics
+  #       @refreshActivities err, topics, 'topic'
+  #     else
+  #       topicsController.hideLazyLoader()
+  #       @hideLoadingBar()
+  #       log 'No topics'
 
-    @controllers['topic'] = topicsController
-    @wrappers['topic']    = topicsListWrapper
+  #   @controllers['topic'] = topicsController
+  #   @wrappers['topic']    = topicsListWrapper
 
-    callback()
-
-
-  addGroupsLogic:(callback=->)->
-    log 'adding groups logic'
-
-    groupsController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : StaticGroupsListItem
-      viewOptions       :
-        cssClass        : 'static-content group'
-      showHeader        : no
-
-    groupsListWrapper = groupsController.getView()
-    @profileContentView.addSubView groupsListWrapper
-
-    @showLoadingBar()
-    @profileUser.fetchGroups (err,groups)=>
-      if groups
-        groupList = (item.group for item in groups)
-        @refreshActivities err, groupList, 'group'
-      else
-        groupsController.hideLazyLoader()
-        @hideLoadingBar()
-        log 'No groups'
-
-    @controllers['group'] = groupsController
-    @wrappers['group']    = groupsListWrapper
-
-    callback()
+  #   callback()
 
 
-  addAppsLogic:(callback=->)->
-    log 'adding apps logic'
+  # addGroupsLogic:(callback=->)->
+  #   log 'adding groups logic'
 
-    appsController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : StaticAppsListItem
-      viewOptions       :
-        cssClass        : 'static-content app'
-      showHeader        : no
+  #   groupsController = new ActivityListController
+  #     delegate          : @
+  #     lazyLoadThreshold : .99
+  #     itemClass         : StaticGroupsListItem
+  #     viewOptions       :
+  #       cssClass        : 'static-content group'
+  #     showHeader        : no
 
-    appsListWrapper = appsController.getView()
-    @profileContentView.addSubView appsListWrapper
+  #   groupsListWrapper = groupsController.getView()
+  #   @profileContentView.addSubView groupsListWrapper
 
-    @showLoadingBar()
-    KD.remote.api.JApp.some {originId : @profileUser.getId()},{},(err,apps)=>
-      if apps?.length
-        @refreshActivities err, apps, 'app'
-      else
-        appsController.hideLazyLoader()
-        @hideLoadingBar()
-        log 'No apps'
+  #   @showLoadingBar()
+  #   @profileUser.fetchGroups (err,groups)=>
+  #     if groups
+  #       groupList = (item.group for item in groups)
+  #       @refreshActivities err, groupList, 'group'
+  #     else
+  #       groupsController.hideLazyLoader()
+  #       @hideLoadingBar()
+  #       log 'No groups'
 
-    @controllers['app'] = appsController
-    @wrappers['app']    = appsListWrapper
+  #   @controllers['group'] = groupsController
+  #   @wrappers['group']    = groupsListWrapper
 
-    callback()
+  #   callback()
 
 
-  addMembersLogic:(callback=->)->
-    log 'adding members logic'
+  # addAppsLogic:(callback=->)->
+  #   log 'adding apps logic'
 
-    membersController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : StaticMembersListItem
-      viewOptions       :
-        cssClass        : 'static-content member'
-      showHeader        : no
+  #   appsController = new ActivityListController
+  #     delegate          : @
+  #     lazyLoadThreshold : .99
+  #     itemClass         : StaticAppsListItem
+  #     viewOptions       :
+  #       cssClass        : 'static-content app'
+  #     showHeader        : no
 
-    membersListWrapper = membersController.getView()
-    @profileContentView.addSubView membersListWrapper
+  #   appsListWrapper = appsController.getView()
+  #   @profileContentView.addSubView appsListWrapper
 
-    @showLoadingBar()
-    @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
-      if members
-        @refreshActivities err, members, 'member'
-      else
-        membersController.hideLazyLoader()
-        @hideLoadingBar()
-        log 'No members'
+  #   @showLoadingBar()
+  #   KD.remote.api.JApp.some {originId : @profileUser.getId()},{},(err,apps)=>
+  #     if apps?.length
+  #       @refreshActivities err, apps, 'app'
+  #     else
+  #       appsController.hideLazyLoader()
+  #       @hideLoadingBar()
+  #       log 'No apps'
 
-    @controllers['member'] = membersController
-    @wrappers['member']    = membersListWrapper
+  #   @controllers['app'] = appsController
+  #   @wrappers['app']    = appsListWrapper
 
-    callback()
+  #   callback()
+
+
+  # addMembersLogic:(callback=->)->
+  #   log 'adding members logic'
+
+  #   membersController = new ActivityListController
+  #     delegate          : @
+  #     lazyLoadThreshold : .99
+  #     itemClass         : StaticMembersListItem
+  #     viewOptions       :
+  #       cssClass        : 'static-content member'
+  #     showHeader        : no
+
+  #   membersListWrapper = membersController.getView()
+  #   @profileContentView.addSubView membersListWrapper
+
+  #   @showLoadingBar()
+  #   @profileUser.fetchFollowingWithRelationship {},{},(err, members)=>
+  #     if members
+  #       @refreshActivities err, members, 'member'
+  #     else
+  #       membersController.hideLazyLoader()
+  #       @hideLoadingBar()
+  #       log 'No members'
+
+  #   @controllers['member'] = membersController
+  #   @wrappers['member']    = membersListWrapper
+
+  #   callback()
 
 
   addStaticLogic:(callback=->)->
