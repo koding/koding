@@ -23,8 +23,8 @@ class DashboardPane extends Pane
 
       @removeItem listItemView
       {path, domain, name} = listItemView.getData()
-      command = "rm -r '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
-      parseOutput "<br><br>Deleting /Users/#{nickname}/Sites/#{domain}/website/#{path}<br><br>"
+      command = "rm -r '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
+      parseOutput "<br><br>Deleting /home/#{nickname}/Sites/#{domain}/website/#{path}<br><br>"
       parseOutput command
       kc.run withArgs  : {command} , (err, res)=>
         if err
@@ -36,7 +36,7 @@ class DashboardPane extends Pane
           parseOutput "<br><br>#############"
           parseOutput "<br>#{name} successfully deleted."
           parseOutput "<br>#############<br><br>"
-          tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"]
+          tc.refreshFolder tc.nodes["/home/#{nickname}/Sites/#{domain}/website"]
 
         __utils.wait 1500, ->
           split.resizePanel 0, 1

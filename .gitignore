@@ -24,8 +24,6 @@ ebin
 /website/dev/*.json
 /go/bin
 /go/pkg
-/kites/webterm
-/kites/os
 .project
 /kites/terminal/.tmp
 
@@ -45,6 +43,12 @@ sftp-config.json
 *.orig
 
 .vagrant
+kites/alice
+kites/broker
+kites/idshift
+kites/irc
+kites/ldapserver
+kites/proxy
 .pyc
 
 .cake_task_cache
