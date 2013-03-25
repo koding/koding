@@ -645,7 +645,7 @@ textarea.profile-handle-customize.kdinput
 
   .about-body
     borderBox()
-    margin-top              294px
+    // margin-top              294px
     padding                 30px
     // max-width               600px
     height                  100%
@@ -660,13 +660,14 @@ textarea.profile-handle-customize.kdinput
         width               auto
   .about-edit
     borderBox()
-    width                   100%
+    width                   auto
     padding                 10px
 
   .about-edit-button
     fr()
-    margin                  10px
+    margin                  10px 10px 10px 10px
     width                   100px
+
 
   .about-save-button
     fr()
@@ -724,7 +725,7 @@ textarea.profile-handle-customize.kdinput
 
   .about-sidebar
     fr()
-    margin-top              294px
+    // margin-top              294px
     width                   300px
     height                  100%
     border-left             1px solid #e8e8e8
@@ -746,13 +747,33 @@ textarea.profile-handle-customize.kdinput
         height              auto
 
   .content-display-wrapper
-    // rel()
+    rel()
     left                    0
-    top                     0
-    right                   0
+    // top                     0
+    // right                   0
+    // bottom                  0
+    width                   300px
+    height                  100%
+    fr()
+
+    bg color,               transparent
+
+    .content-display
+      height                100%
     .profilearea
+      borderBox()
+      height                100%
       bg image,             none
       border-bottom         1px solid #e8e8e8
+
+      .profileleft
+        hidden()
+
+      section
+        fr()
+        width 300px
+        height 100%
+        border-left 1px solid #e8e8e8
 
 .about-sidebar .static-content
   padding                   10px
