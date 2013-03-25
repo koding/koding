@@ -59,27 +59,36 @@ class StaticProfileController extends KDController
     @on 'CommentLinkReceivedClick', (view)=>
       log 'User tried to comment'
       if KD.whoami() instanceof KD.remote.api.JGuest
-        log 'nav to item'
+        new  KDNotificationView
+          title : "Please log in to see this post and it's comments"
+
+        @utils.wait 1000, =>
+          @getSingleton('mainController').loginScreen.animateToForm 'login'
       else
-        log view
+        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
 
 
     @on 'CommentCountReceivedClick', (view)=>
       log 'User tried to see other comments'
       if KD.whoami() instanceof KD.remote.api.JGuest
-        log 'no'
+        new  KDNotificationView
+          title : "Please log in to see this post and it's comments"
+
+        @utils.wait 1000, =>
+          @getSingleton('mainController').loginScreen.animateToForm 'login'
+
       else
-        log view
-        @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
+        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
 
     @on 'StaticInteractionHappened',(view)=>
       if KD.whoami() instanceof KD.remote.api.JGuest
+
         if view instanceof LikeView
           new KDNotificationView
             title : 'Please log in to like this post.'
         else if view instanceof StaticTagLinkView
           new  KDNotificationView
-            title : 'PLease log in to see this Topic'
+            title : 'Please log in to see this Topic'
 
         @utils.wait 1000, =>
           @getSingleton('mainController').loginScreen.animateToForm 'login'
