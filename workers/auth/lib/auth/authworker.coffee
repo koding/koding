@@ -189,6 +189,19 @@ module.exports = class AuthWorker extends EventEmitter
     bongo.mq.ready =>
       {connection} = bongo.mq
       @monitorPresence connection
+
+      connection.exchange "#{@resourceName}All", AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
+        connection.queue '', {exclusive:yes}, (authAllQueue)=>
+          authAllQueue.bind authAllExchange, ''
+          authAllQueue.on 'queueBindOk', =>
+            authAllQueue.subscribe (message, headers, deliveryInfo)=>
+              {routingKey} = deliveryInfo
+              messageStr = "#{message.data}"
+              switch routingKey
+                when 'broker.clientConnected' then # ignore
+                when 'broker.clientDisconnected'
+                  @cleanUpAfterDisconnect messageStr
+
       connection.exchange @resourceName, AUTH_EXCHANGE_OPTIONS, (authExchange)=>
         connection.queue  @resourceName, (authQueue)=>
           authQueue.bind authExchange, ''
@@ -199,9 +212,6 @@ module.exports = class AuthWorker extends EventEmitter
               messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
               switch routingKey
-                when 'broker.clientConnected' then # ignore
-                when 'broker.clientDisconnected'
-                  @cleanUpAfterDisconnect messageStr
                 when 'kite.join'
                   @addService messageData
                 when 'kite.leave'
