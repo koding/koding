@@ -597,8 +597,8 @@ class StaticProfileController extends KDController
           log err
         else
           @profileContentView.addSubView aboutWrapper = new StaticProfileAboutView
-            about : about
-          ,@profileUser
+            about : about or ''
+          , @profileUser
 
           @hideLoadingBar()
 
