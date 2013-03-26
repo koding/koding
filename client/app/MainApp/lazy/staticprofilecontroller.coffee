@@ -272,6 +272,8 @@ class StaticProfileController extends KDController
 
       handleLinks['twitter'] = new KDView
         lazyDomId : 'profile-handle-twitter'
+        tooltip :
+          title : 'Click here to change your Twitter handle'
         click:(event)->
           event.preventDefault()
           event.stopPropagation()
@@ -280,6 +282,8 @@ class StaticProfileController extends KDController
 
       handleLinks['github'] = new KDView
         lazyDomId : 'profile-handle-github'
+        tooltip :
+          title : 'Click here to change your GitHub handle'
         click:(event)->
           event.preventDefault()
           event.stopPropagation()
