@@ -119,12 +119,12 @@ module.exports = deepFreeze
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://localhost:1337'
   mq            :
-    host        : 'web-dev.in.koding.com'
-    login       : 'amqp_user'
-    componentUser: "amqp_user"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    host        : 'web-prod.in.koding.com'
+    login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "prod-<component>"
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
-    vhost       : '/'
+    vhost       : 'new'
   broker        :
     port        : 8008
     certFile    : ""
