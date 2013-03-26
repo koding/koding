@@ -31,21 +31,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
       </div>
 
-      <!--
-      <div class="profile-buttons kdview actions" id="profile-buttons">
-
-        <a class="static-profile-button notifications" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-        <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-        <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-      </div>
-
-      <div class="profile-links">
-        <ul class='main'>
-          <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
-          <li class='github'>#{getHandleLink 'github', handles}</li>
-        </ul>
-      </div>-->
-
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
@@ -59,12 +44,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
        </div>
 
-      <!--<div class="profile-placeholder" id="profile-placeholder"></div>
-
-      <div class="profile-koding-logo" id="profile-koding-logo-wrapper">
-        <div class="logo kdview" id='profile-koding-logo'></div>
-        <a class="info kdview" id="profile-koding-logo-info">Go to Koding.com</a>
-      </div>-->
       <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
 
 
@@ -77,6 +56,10 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
           <div class="profile-admin-message" id="profile-admin-message"></div>
           <div class="profile-name" id="profile-name"><span id="profile-name-span" class="text">#{getStaticProfileTitle profile}</span></div>
           <div class="profile-bio" id="profile-bio"><span id="profile-bio-span" class="text">#{getStaticProfileAbout profile}</span></div>
+          <div class="profile-handles">
+            #{getHandleLink 'twitter',handles}
+            #{getHandleLink 'github',handles}
+          </div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
@@ -182,16 +165,12 @@ getHandleLink = (handle,handles)->
   if handles?[handle]
     """
       <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}'>
-      <span class="icon"></span>
-      #{handleMap[handle].prefix or ''}#{handles[handle]}
-      </a>
+      <span class="icon #{handle}"></span><span class="text">#{handleMap[handle].prefix or ''}#{handles[handle]}</span></a>
     """
   else
     """
-      <a href='#' id='profile-handle-#{handle}'>
-      <span class="icon"></span>
-      #{handleMap[handle].text}
-      </a>
+      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}' class='hidden'>
+      <span class="icon #{handle}"></span><span class="text"></span></a>
     """
 
 getTags = (tags)->

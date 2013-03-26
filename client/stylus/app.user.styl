@@ -229,14 +229,15 @@
     padding                 0 11px
 
 textarea.profile-handle-customize.kdinput
+  borderBox()
   bg color,                 rgba(255,255,255,0.1)
   display                   inline-block
-  width                     228px
-  height                    25px
+  width                     auto
+  height                    22px
   font-size                 12px
-  margin-top                3px
   box-shadow                none
-
+  line-height               16px
+  vertical-align            top
 .static-link-container
 
   a.static-handle-link
@@ -298,12 +299,6 @@ textarea.profile-handle-customize.kdinput
 .profile-bio
 
   textarea.kdinput.text
-    // display                 inline-block
-    // line-height             14px
-    // font-size               14px
-    // padding                 10px 2px 0px 6px
-
-    // border                  1px solid #f5f5f5
     border                  none
     padding                 2px
     margin                  0px
@@ -312,6 +307,9 @@ textarea.profile-handle-customize.kdinput
     headerFont()
     text-rendering          geometricPrecision
     vendor font-smoothing   antialiased
+    bg image,               none
+    bg color,               transparent
+
     &:focus
       border none
       shadow none
@@ -494,7 +492,7 @@ textarea.profile-handle-customize.kdinput
       color                 #444
 
 .profile-admin-customize
-  top                       30px
+  right                     75px
 
 // ############################################################################
 // CONTENT
@@ -668,6 +666,11 @@ textarea.profile-handle-customize.kdinput
     margin                  10px 10px 10px 10px
     width                   100px
 
+
+  .about-cancel-button
+    fr()
+    width                   auto
+    margin                  10px
 
   .about-save-button
     fr()
@@ -934,3 +937,39 @@ textarea.profile-handle-customize.kdinput
       sprite()
       bg position,          -20px -320px
       size                  15px 15px
+
+
+.profile-handles
+  abs()
+  top                       47px
+  right                     30px
+  a
+    display                 inline-block
+    width                   auto
+    margin-left             3px
+    textarea
+      margin-left           3px
+
+  span.text
+    hidden()
+
+  span.icon
+    vendor filter,          grayscale(100%)
+    vendor transition,      filter 0.2s linear
+    sprite()
+
+    &:hover
+      vendor filter,        grayscale(0%)
+
+  #profile-handle-twitter
+    span.icon
+      size                  26px 26px
+      display               inline-block
+      bg position,          -68px -340px
+
+
+  #profile-handle-github
+    span.icon
+      bg position,          -39px -340px
+      size                  26px 26px
+      display               inline-block
