@@ -180,7 +180,7 @@ module.exports = class JGroup extends Module
         else
           console.log "#{label} is saved"
           queue.next()
-    
+
     create = secure (client, formData, callback)->
       JPermissionSet = require './permissionset'
       JMembershipPolicy = require './membershippolicy'
@@ -391,7 +391,7 @@ module.exports = class JGroup extends Module
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
-          JMarkdownDoc = require '../markdowndoc',
+          JMarkdownDoc = require '../markdowndoc'
           readme = new JMarkdownDoc content: text
 
           daisy queue = [
