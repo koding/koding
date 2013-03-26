@@ -389,7 +389,7 @@ module.exports = class JGroup extends Module
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
-          JMarkdownDoc = require '../markdowndoc',
+          JMarkdownDoc = require '../markdowndoc'
           readme = new JMarkdownDoc content: text
 
           daisy queue = [
