@@ -20,7 +20,7 @@ class StaticProfileSettingsModalView extends KDModalView
     callback()
 
 
-class StaticProfileTooltip extends KDView
+class StaticProfileTooltip extends JView
   constructor:(options,data)->
     super options,data
     @setClass 'static-profile-tooltip'
@@ -29,17 +29,14 @@ class StaticProfileTooltip extends KDView
       size          : 'tiny'
       title         : 'Enable Public Page'
       cssClass      : 'static-page-switch'
-      tooltip:
-        title : 'Enabling Public Page will expose your profile to the internet. Non-Koding users will be able to read your content, depending on your settings.'
-      defaultValue  : @getData().profile.staticPage.show
-      callback:(state)=>
+      tooltip       :
+        title       : """Enabling Public Page will expose your profile to
+                         the internet. Non-Koding users will be able to read
+                         your content, depending on your settings."""
+      defaultValue  : @getData().profile.staticPage?.show
+      callback      : (state)=>
         @getData().setStaticPageVisibility state, =>
           # log 'done', arguments
-
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio:->
     {nickname}=@getData().profile
