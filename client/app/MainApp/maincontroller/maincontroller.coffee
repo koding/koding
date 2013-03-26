@@ -156,9 +156,8 @@ class MainController extends KDController
         title     : "<span></span>Come back soon!"
         duration  : 2000
 
-      # fixme: get rid of reload, clean up ui on account change
-      # tightly related to application manager refactoring
-      # @utils.wait 2000, -> location.reload yes
+      # fixme: make a old tv switch off animation and reload
+      @utils.wait 2000, -> location.reload yes
 
   attachListeners:->
 
