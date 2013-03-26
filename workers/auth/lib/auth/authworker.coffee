@@ -112,23 +112,33 @@ module.exports = class AuthWorker extends EventEmitter
               exchange.close() # don't leak a channel
               @addClient socketId, exchange.name, routingKey
 
+    ensureGroupPermission =(group, account, roles)->
+      console.log 'ensure group permission', group, account, roles
+      {JPermissionSet} = @bongo.models
+      client = {context: group.slug}
+      JPermissionSet.checkPermission client, "read activities", group,
+        (err, hasPermission)->
+          if err then callback err
+          else
+            console.log {hasPermission}
 
     joinClientGroupHelper =(messageData, routingKey, socketId)->
+      console.trace()
       {JAccount, JGroup} = @bongo.models
-      fail = (err)=> @rejectClient routingKey; console.error err  if err
-      @authenticate messageData, routingKey, (session)->
+      fail = (err)=>
+        console.error err  if err
+        @rejectClient routingKey
+      @authenticate messageData, routingKey, (session)=>
         unless session then fail()
-        else
-          selector = {'profile.nickname': session.username}
-          JAccount.one selector, (err, account)->
+        else JAccount.one {'profile.nickname': session.username},
+          (err, account)=>
             if err or not account then fail err
-            else
-              JGroup.one {slug: messageData.group}, (err, group)->
-                if err or not group then fail err
-                else 
-                  group.fetchRolesByAccount account, (err, roles)->
-                    if err or not roles then fail err
-                    else
+            else JGroup.one {slug: messageData.group}, (err, group)=>
+              if err or not group then fail err
+              else 
+                group.fetchRolesByAccount account, (err, roles)=>
+                  if err or not roles then fail err
+                  else ensureGroupPermission.call this, group, account, roles
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
@@ -189,6 +199,19 @@ module.exports = class AuthWorker extends EventEmitter
     bongo.mq.ready =>
       {connection} = bongo.mq
       @monitorPresence connection
+
+      connection.exchange "#{@resourceName}All", AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
+        connection.queue '', {exclusive:yes}, (authAllQueue)=>
+          authAllQueue.bind authAllExchange, ''
+          authAllQueue.on 'queueBindOk', =>
+            authAllQueue.subscribe (message, headers, deliveryInfo)=>
+              {routingKey} = deliveryInfo
+              messageStr = "#{message.data}"
+              switch routingKey
+                when 'broker.clientConnected' then # ignore
+                when 'broker.clientDisconnected'
+                  @cleanUpAfterDisconnect messageStr
+
       connection.exchange @resourceName, AUTH_EXCHANGE_OPTIONS, (authExchange)=>
         connection.queue  @resourceName, (authQueue)=>
           authQueue.bind authExchange, ''
@@ -196,12 +219,8 @@ module.exports = class AuthWorker extends EventEmitter
             authQueue.subscribe (message, headers, deliveryInfo)=>
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
-              messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
               switch routingKey
-                when 'broker.clientConnected' then # ignore
-                when 'broker.clientDisconnected'
-                  @cleanUpAfterDisconnect messageStr
                 when 'kite.join'
                   @addService messageData
                 when 'kite.leave'
