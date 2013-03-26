@@ -1,5 +1,16 @@
 {Model, Base} = require 'bongo'
 
+class JSecretName extends Model
+
+  createId = require 'hat'
+
+  # TODO: the below should be made a bit more secure:
+  @setSchema
+    name        : String
+    secretName  :
+      type      : String
+      default   : createId
+
 module.exports = class JName extends Model
 
   KodingError = require '../error'
@@ -19,7 +30,16 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
-      secretName      : String
+
+  @fetchSecretName =(name, callback)->
+    JSecretName.one {name}, (err, secretNameObj)->
+      if err then callback err
+      else unless secretNameObj
+        secretNameObj = new JSecretName {name}
+        secretNameObj.save (err)->
+          if err then callback err
+          else callback null, secretNameObj.secretName
+      else callback secretNameObj.secretName
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->

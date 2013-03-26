@@ -52,8 +52,12 @@ module.exports = class JPermissionSet extends Module
         for own role, modulePerms of moduleRoles
           @permissions.push {module, role, permissions: modulePerms}
 
+  @wrapPermission = wrapPermission =(permission)->
+    [{permission, validateWith: require('./validators').any}]
+
   @checkPermission =(client, advanced, target, callback)->
     JGroup = require '../group'
+    advanced = wrapPermission advanced  if 'string' is typeof advanced
     # permission = [permission]  unless Array.isArray permission
     groupName =\
       if 'function' is typeof target
@@ -96,7 +100,7 @@ module.exports = class JPermissionSet extends Module
     # convert simple rules to complex rules:
     advanced =
       if promise.advanced then promise.advanced
-      else [{permission, validateWith: require('./validators').any}]
+      else wrapPermission permission
     # Support a "stub" form of permit that simply calls back with yes if the
     # permission is supported:
     promise.success ?= (client, callback)-> callback null, yes

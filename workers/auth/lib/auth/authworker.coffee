@@ -48,7 +48,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   addService:({serviceGenericName, serviceUniqueName})->
     servicesOfType = @services[serviceGenericName] ?= []
-    servicesOfType.push serviceUniqueName
+    servicesOfType.push serviceUniqueName 
 
   removeService:({serviceGenericName, serviceUniqueName})->
     servicesOfType = @services[serviceGenericName] 
@@ -113,18 +113,18 @@ module.exports = class AuthWorker extends EventEmitter
               exchange.close() # don't leak a channel
               @addClient socketId, exchange.name, routingKey
 
-    ensureGroupPermission =(group, account, roles)->
-      console.log 'ensure group permission', group, account, roles
-      {JPermissionSet} = @bongo.models
-      client = {context: group.slug}
+    ensureGroupPermission =(group, account, roles, callback)->
+      {JPermissionSet, JName} = @bongo.models
+      client = {context: group.slug, connection: delegate: account}
       JPermissionSet.checkPermission client, "read activities", group,
         (err, hasPermission)->
           if err then callback err
+          else unless hasPermission
+            callback {message: 'Access denied!', code: 403}
           else
-            console.log {hasPermission}
+            JName.fetchSecretName group.slug, callback
 
     joinClientGroupHelper =(messageData, routingKey, socketId)->
-      console.trace()
       {JAccount, JGroup} = @bongo.models
       fail = (err)=>
         console.error err  if err
@@ -139,11 +139,17 @@ module.exports = class AuthWorker extends EventEmitter
               else 
                 group.fetchRolesByAccount account, (err, roles)=>
                   if err or not roles then fail err
-                  else ensureGroupPermission.call this, group, account, roles
+                  else
+                    ensureGroupPermission.call this, group, account, roles,
+                      (err, secretName)=>
+                        console.log {err, secretName}
+                        if err or not secretName
+                          @rejectClient routingKey
+                        else
+                          console.log 'this client', secretName
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
-      console.log {routingKey, serviceType}
       switch serviceType
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
