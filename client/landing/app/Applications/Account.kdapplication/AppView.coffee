@@ -13,30 +13,31 @@ class AccountNavigationLink extends KDListItemView
 class AccountListWrapper extends KDView
 
   listClasses =
-    personal                   :
-      username                 : AccountEditUsername
-      security                 : AccountEditSecurity
-      emailNotifications       : AccountEmailNotifications
-      linkedAccountsController : AccountLinkedAccountsListController
-      linkedAccounts           : AccountLinkedAccountsList
-    billing                    :
-      historyController        : AccountPaymentHistoryListController
-      history                  : AccountPaymentHistoryList
-      methodsController        : AccountPaymentMethodsListController
-      methods                  : AccountPaymentMethodsList
-      subscriptionsController  : AccountSubscriptionsListController
-      subscriptions            : AccountSubscriptionsList
-    develop                    :
-      # databasesController      : AccountDatabaseListController
-      # databases                : AccountDatabaseList
-      editorsController        : AccountEditorListController
-      editors                  : AccountEditorList
-      mountsController         : AccountMountListController
-      mounts                   : AccountMountList
-      reposController          : AccountRepoListController
-      repos                    : AccountRepoList
-      keysController           : AccountSshKeyListController
-      keys                     : AccountSshKeyList
+    personal                         :
+      username                       : AccountEditUsername
+      security                       : AccountEditSecurity
+      emailNotifications             : AccountEmailNotifications
+      linkedAccountsController       : AccountLinkedAccountsListController
+      linkedAccounts                 : AccountLinkedAccountsList
+    billing                          :
+      historyController              : AccountPaymentHistoryListController
+      history                        : AccountPaymentHistoryList
+      methodsController              : AccountPaymentMethodsListController
+      methods                        : AccountPaymentMethodsList
+      subscriptionsController        : AccountSubscriptionsListController
+      subscriptions                  : AccountSubscriptionsList
+    develop                          :
+      editorsController              : AccountEditorListController
+      editors                        : AccountEditorList
+      mountsController               : AccountMountListController
+      mounts                         : AccountMountList
+      reposController                : AccountRepoListController
+      repos                          : AccountRepoList
+      keysController                 : AccountSshKeyListController
+      keys                           : AccountSshKeyList
+    kites                            :
+      kiteListController             : AccountKiteListController
+      kiteList                       : AccountKiteList
 
   viewAppended:->
 
