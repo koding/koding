@@ -183,6 +183,10 @@ class KodingAppsController extends KDController
 
   runApp:(manifest, callback)->
 
+    unless manifest
+      warn "AppManager doesn't know what to run, no options passed!"
+      return
+
     {options, name} = manifest
 
     putStyleSheets manifest
@@ -192,7 +196,9 @@ class KodingAppsController extends KDController
       else
         if options and options.type is "tab"
 
-          KD.getSingleton("appManager").open manifest.name, thirdParty : yes, (appInstance)->
+          KD.getSingleton("appManager").open manifest.name,
+            requestedFromAppsController : yes
+          , (appInstance)->
 
             appView = appInstance.getView()
             id      = appView.getId()
