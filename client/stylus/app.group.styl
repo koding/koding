@@ -35,12 +35,20 @@
   fl()
 
 .group-avatar
-  height                76px
-  width                 160px
-  background-position   center center
-  background-repeat     no-repeat
+  // height                76px
+  // width                 160px
+  // background-position   center center
+  // background-repeat     no-repeat
+  // vendor background-size, 160px auto
+  // shadow                inset 0 0 13px 0 rgba3(0,0,0,0.6)
   vendor background-size, 160px auto
-  shadow                inset 0 0 13px 0 rgba(0,0,0,0.6)
+  shadow                  inset 0 0 13px 0 rgba(0,0,0,0.6)
+  vendor transition,      margin-left 0.6s ease-in-out\,height 0.5s linear
+  height                  120px
+  width                   160px
+  background-position     center center
+  background-repeat       no-repeat
+
 
 .group-avatar-drop
   abs()
@@ -80,45 +88,82 @@
 
 .group-title
   borderBox()
-  height                77px
-  width                 auto
+  rel()
   bg                    color, white
-  border-bottom         1px solid rgb(229,229,229)
-  shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
-  gradient              rgb(255,255,255),rgb(242,242,242)
-  padding 20px 23px
+  height                77px
+  height                120px
+  width                 auto
+  // border-bottom         1px solid rgb(229,229,229)
+  // shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
+  // gradient              rgb(255,255,255),rgb(242,242,242)
+  // padding 20px 23px
+  border-bottom             1px solid rgb(229,229,229)
+  padding                   22px 10px 20px 40px
+  shadow                    0px -15px 50px rgba(0,0,0,0.4)
+  overflow                  hidden
+  z-index                   1
+
 
   .group-title-wrapper
     height auto
     width auto
+    padding-right       75px
 
   .group-name
-    vendor              font-smoothing, antialiased
-    vendor              text-rendering, geometricPrecision
+    // vendor              font-smoothing, antialiased
+    // vendor              text-rendering, geometricPrecision
+    // borderBox()
+    // max-width               700px
+    // font-size               32px
+    // width                   auto
+    // display                 inline-block
+    // color                   #444
+    // border-bottom           2px solid #ff9200
+    // margin-right            10px
+    // white-space             nowrap
+    // text-overflow           ellipsis
     borderBox()
-    max-width               700px
-    font-size               32px
-    width                   auto
+    vendor                  font-smoothing, antialiased
+    vendor                  text-rendering, geometricPrecision
+    // max-width               700px
+    font-size               42px
+    width                   100%
     display                 inline-block
     color                   #444
-    border-bottom           2px solid #ff9200
+    // border-bottom           2px solid #ff9200
     margin-right            10px
     white-space             nowrap
     text-overflow           ellipsis
+    font-weight             900
+    headerFont()
+
 
   .group-bio
-    vendor              font-smoothing, antialiased
-    vendor              text-rendering, geometricPrecision
+    // vendor              font-smoothing, antialiased
+    // vendor              text-rendering, geometricPrecision
+    // borderBox()
+    // color                   #888
+    // font-size               12px
+    // height                  29px
+    // overflow                hidden
+    // text-overflow           ellipsis
+    // white-space             nowrap
+    // width                   auto
+    // font-weight             300
+    // display                 inline
     borderBox()
+    vendor                  font-smoothing, antialiased
+    vendor                  text-rendering, geometricPrecision
     color                   #888
-    font-size               12px
+    font-size               14px
     height                  29px
     overflow                hidden
     text-overflow           ellipsis
     white-space             nowrap
     width                   auto
     font-weight             300
-    display                 inline
+    display                 block
+    headerFont()
 
   .button-wrapper
     abs()
