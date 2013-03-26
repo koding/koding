@@ -40,7 +40,11 @@ class StaticGroupController extends KDController
       lazyDomId : 'landing-page-avatar-drop'
       tooltip   :
         title   : "Click here to see this group on Koding"
-      click     : => @lazyDomController.hideLandingPage()
+      click     : =>
+        if KD.isLoggedIn()
+          @lazyDomController.hideLandingPage()
+        else
+          @mainController.loginScreen.animateToForm 'login'
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
@@ -58,7 +62,7 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-personal-wrapper'
       cssClass  : 'slideable'
       click :(event)=>
-        unless $(event.target).is 'a'
+        if event.target.id is 'group-personal-wrapper'
           @mainController.emit "landingSidebarClicked"
 
     groupLogoView = new KDView
@@ -100,7 +104,6 @@ class StaticGroupController extends KDController
         bypass    : yes
       , (err,activities=[])=>
         @appendActivities err, activities, =>
-
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
