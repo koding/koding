@@ -13,7 +13,7 @@ class ActivityActionsView extends KDView
         title     : "Show all"
       click       : (event)=>
         # event.preventDefault()
-        @getDelegate().emit "CommentCountClicked"
+        @getDelegate().emit "CommentCountClicked", @
     , activity
 
     @shareLink    = new ActivityActionLink
@@ -54,8 +54,8 @@ class ActivityActionsView extends KDView
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
 
-    @commentLink.on "click", (event)->
-      commentList.emit "CommentLinkReceivedClick", event
+    @commentLink.on "click", (event)=>
+      commentList.emit "CommentLinkReceivedClick", event, @
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
