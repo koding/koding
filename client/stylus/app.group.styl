@@ -674,8 +674,10 @@ h3#group-logo
     // shadow                  inset 0 0px 15px rgba(0,0,0,.1)
   // .onboarding-wrapper
   //   margin                  3% 3% 0 3%
+
   .kdlistview.groups
     padding-bottom          20px
+
   .kdlistitemview-groups
     margin                  20px 20px 0 20px
     min-width               250px
@@ -835,7 +837,6 @@ h3#group-logo
     h3
       font-family           Ubuntu
       width                 auto
-      padding               0 20px
       top                   18px
       left                  146px
       font-size             28px
@@ -846,11 +847,16 @@ h3#group-logo
       display               inline-block
       overflow              ellipsis
       color                 white
+      vendor                transition, background-color .1s ease
       bg                    color, rgba(0, 0, 0, .4)
       a
+        padding             0 20px
+        display             block
         color               white
         font-weight         400
         noTextDeco()
+      &:hover
+        bg                  color, linkColor1
 
     p
       a.custom-link-view
