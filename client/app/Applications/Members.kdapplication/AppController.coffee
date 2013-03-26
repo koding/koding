@@ -23,6 +23,8 @@ class MembersAppController extends AppController
       useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
+      # onboarding            :
+      #   everything          : "<h3 class='title'>yooo onboard me!!!</h3>"
       help                  :
         subtitle            : "Learn About Members"
         tooltip             :
@@ -206,11 +208,11 @@ class MembersAppController extends AppController
     group = KD.getSingleton('groupsController').getCurrentGroup()
     return unless group
     count = group.counts?.members
-    @getView().$(".activityhead span.member-numbers-#{type}").html count or "n/a"
+    @getView().$(".feeder-header span.member-numbers-#{type}").html count or "n/a"
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
-      @getView().$(".activityhead span.optional_title").html count
+      @getView().$(".feeder-header span.optional_title").html count
       return no
 
     if count >= 10 then count = '10+'
@@ -219,7 +221,7 @@ class MembersAppController extends AppController
     count   = 'No' if count is 0
     result  = "#{count} member" + if count isnt 1 then 's' else ''
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead span.optional_title").html title
+    @getView().$(".feeder-header span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options  =

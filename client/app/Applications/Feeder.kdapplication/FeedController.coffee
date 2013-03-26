@@ -2,12 +2,13 @@ class FeedController extends KDViewController
   constructor:(options={})->
 
 
-    options.autoPopulate  or= no
+    options.autoPopulate   ?= no
+    options.useHeaderNav   ?= no
     options.filter        or= {}
     options.sort          or= {}
     options.limitPerPage  or= 10
-    options.useHeaderNav   ?= no
     options.dataType      or= null
+    options.onboarding    or= null
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -15,6 +16,7 @@ class FeedController extends KDViewController
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
+      onboarding    : options.onboarding
 
     unless options.useHeaderNav
       facetsController    = options.facetsController or FeederFacetsController
@@ -136,7 +138,7 @@ class FeedController extends KDViewController
     if @noItemFound? then @noItemFound.destroy()
     controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
       cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
     @noItemFound.hide()
 
   loadFeed:(filter = @selection)->

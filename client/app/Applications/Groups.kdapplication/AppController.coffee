@@ -98,6 +98,18 @@ class GroupsAppController extends AppController
         tooltip             :
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
+      onboarding            :
+        everything          :
+          """
+            <h3 class='title'>yooo onboard me for da groop!!!</h3>
+            <p>
+              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
+            </p>
+            <p>
+              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
+            </p>
+          """
+        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
       filter                :
         everything          :
           title             : "All groups"
@@ -486,7 +498,7 @@ class GroupsAppController extends AppController
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
-      @getView().$(".activityhead span.optional_title").html count
+      @getView().$(".feeder-header span.optional_title").html count
       return no
     if count >= 20 then count = '20+'
     # return if count % 20 is 0 and count isnt 20
@@ -494,7 +506,7 @@ class GroupsAppController extends AppController
     count   = 'No' if count is 0
     result  = "#{count} result" + if count isnt 1 then 's' else ''
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead").html title
+    @getView().$(".feeder-header").html title
 
   prepareReadmeTab:->
     {groupView} = this
@@ -617,3 +629,4 @@ class GroupsAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
+

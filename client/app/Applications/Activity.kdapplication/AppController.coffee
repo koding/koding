@@ -193,16 +193,6 @@ class ActivityAppController extends AppController
         cache.overview.reverse()  if cache?.overview
         callback null, cache
 
-  fetch: (selector = {}, options = {}, callback) ->
-    KD.remote.api.CActivity.some selector, options, (err, activities)=>
-      return if err or activities.length is 0
-
-      activities = clearQuotes activities
-      KD.remote.reviveFromSnapshots activities, (err, teasers)=>
-        return warn err if err
-
-        callback? teasers, activities
-
   continueLoadingTeasers:->
 
     unless isLoading

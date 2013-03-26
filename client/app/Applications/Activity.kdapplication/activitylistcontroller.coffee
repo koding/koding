@@ -50,7 +50,7 @@ class ActivityListController extends KDListViewController
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
-      cssClass : 'activityhead clearfix'
+      cssClass : 'feeder-header clearfix'
 
     @activityHeader.hide() unless @getOptions().showHeader
 
@@ -140,6 +140,17 @@ class ActivityListController extends KDListViewController
 
 
   fakeItems = []
+
+  addItem:(activity, index, animation) ->
+    dataId = activity.getId?()
+
+    if dataId?
+      if @itemsIndexed[dataId]
+        console.log "duplicate entry", activity.bongo_?.constructorName, dataId
+        _rollbar.push msg:"duplicate entry", type:activity.bongo_?.constructorName, id:dataId
+      else
+        @itemsIndexed[dataId] = activity
+        super(activity, index, animation)
 
   ownActivityArrived:(activity)->
 

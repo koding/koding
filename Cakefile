@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 
 {argv} = require 'optimist'
@@ -267,6 +268,36 @@ task 'goBroker',({configFile})->
   if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
 
+task 'osKite',({configFile})->
+
+  processes.spawn
+    name  : 'osKite'
+    cmd   : "./go/bin/os -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'ldapServer',({configFile})->
+
+  processes.spawn
+    name  : 'ldapServer'
+    cmd   : "./go/bin/ldapserver -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'proxy',({configFile})->
+
+  processes.spawn
+    name  : 'proxy'
+    cmd   : "./go/bin/proxy -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -308,6 +339,9 @@ run =({configFile})->
 
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
+    invoke 'osKite'         if config.runOsKite
+    invoke 'ldapServer'     if config.runLdapServer
+    invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
@@ -509,43 +543,40 @@ task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
-task 'deploy', (options) ->
-  {configFile,username} = options
+task 'aws', (options) ->
+  {configFile,type} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
-    git_branch = stdout
-    username ?= process.env['USER']
+  # List available machines
+  unless type
+    console.log "Machine types:"
+    for filename in fs.readdirSync './aws'
+      if filename.match /\.coffee$/
+        console.log "  #{filename.slice(0, -7)}"
+    console.log ""
+    console.log "Run: cake -c #{configFile} -t <type> aws"
+    process.exit()
 
-    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
-    proc.stdout.on 'data', (data) ->
-      console.log data.toString().trim()
-    proc.stderr.on 'data', (data) ->
-      console.log data.toString().trim()
+  console.log "Using ./aws/#{type}.coffee file as template"
+  console.log ""
 
-task 'destroy', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+  # AWS Utils
+  awsUtil = require 'koding-aws'
+  awsUtil.init aws
 
-  username ?= process.env['USER']
+  # Machine template
+  awsTemplate = require "./aws/#{type}"
 
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
+  # Build template
+  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
+    unless err
+      console.log "Template is ready. Running instance..."
 
-task 'deploy-info', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
-
-  username ?= process.env['USER']
-
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
+      awsUtil.startEC2 templateData, (err, ecData) ->
+        unless err
+          console.log "EC2 instance is ready:"
+          console.log ecData
+          console.log ""
 
 task 'buildAll',"build chris's modules", ->
 

@@ -1034,6 +1034,45 @@ button.cancel-edit-button
   width                     auto
   border-left               1px solid #e8e8e8
   borderBox()
+  .onboarding-wrapper
+    size                    auto, 0
+    margin                  0
+    padding                 0 18px
+    color                   #90756d
+    overflow                hidden
+    bg                      color, #f5ede3
+    vendor                  transition, all .3s ease
+    rel()
+    &.in
+      margin                10px 0 18px 0
+      padding               18px
+      height                auto
+    .onboarding-close
+      right                 18px
+      top                   18px
+      rounded               10px
+      // shadow                inset 0 0 4px rgba(0, 0, 0, .75)
+      // bg                    color, rgba(0, 0, 0, .3)
+      abs()
+    .title
+      font-weight           400
+      font-size             18px
+      line-height           18px
+      padding-bottom        18px
+      color                 #735d57
+      text-shadow           0 1px 0 rgba(255,255,255,.6)
+    p
+      padding               0 0 18px 0
+      font-size             12px
+      line-height           20px
+      text-shadow           0 1px 0 rgba(255,255,255,.3)
+      &:last-child
+        padding-bottom      0
+    .close-icon
+      top                   0
+      left                  0
+      bg                    position, -80px -240px
+      rel()
 
 .header-facets
   right                     0
@@ -1096,7 +1135,9 @@ button.cancel-edit-button
         blockMid()
         sprite()
         bg                  position,-140px -500px
-    .feed,.showme,.actions
+    .feed
+    .showme
+    .actions
       padding-bottom        18px
     ul
       margin                0
