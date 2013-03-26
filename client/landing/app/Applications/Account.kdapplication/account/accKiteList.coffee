@@ -158,10 +158,18 @@ class AccountKiteListItem extends KDListItemView
 
   partial:(data)->
     """
-      <div class='labelish'>
-        <span>#{data._id}</span>
-        <span>#{data.appName}</span>
-        <span>#{data.kiteName}</span>
-        <span>#{data.key}</span>
+      <div class='kite-item'>
+        <div class='appName'>
+          <span class='label'>Application Name:</span>
+          <span class='value'>#{data.appName}</span>
+        </div>
+        <div class='kiteName'>    
+          <span class='label'>Used Kite Name:</span>
+          <span class='value'>#{data.kiteName}</span>
+        </div>
+        <div class='kiteKey'> 
+          <span class='label'>Kite Key:</span>
+          <span class='value'>#{data.key}</span>
+        </div>
       </div>
     """
