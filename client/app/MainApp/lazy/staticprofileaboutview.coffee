@@ -28,12 +28,14 @@ class StaticProfileAboutView extends KDView
         callback : =>
           @$('.about-body').addClass 'hidden'
           @editView.show()
+          @editButton.hide()
       @editView = new KDView
         cssClass : 'hidden about-edit'
 
       @editView.addSubView @editForm = new KDInputViewWithPreview
         defaultValue : Encoder.htmlDecode(about.content)
         cssClass : 'about-edit-input'
+
 
       @editView.addSubView @saveButton = new KDButtonView
         title           : 'Save'
@@ -47,6 +49,15 @@ class StaticProfileAboutView extends KDView
             @$('.about-body').removeClass 'hidden'
             @saveButton.hideLoader()
             @aboutView.updatePartial Encoder.htmlDecode value.html
+            @editButton.show()
+
+      @editView.addSubView @cancelButton = new KDButtonView
+        title : 'Cancel'
+        cssClass : 'about-cancel-button modal-cancel'
+        callback :=>
+          @editView.hide()
+          @$('.about-body').removeClass 'hidden'
+          @editButton.show()
     else
       @editButton = new KDView
         cssClass : 'hidden'
@@ -57,9 +68,14 @@ class StaticProfileAboutView extends KDView
     #   cssClass : 'about-sidebar'
     # , @getData()
 
-    @profileView = new ProfileView
-      cssClass : 'profilearea'
-    , @getData()
+    if @getData().getId() is KD.whoami().getId()
+      @profileView = new OwnProfileView
+        cssClass : 'profilearea'
+      , @getData()
+    else
+      @profileView = new ProfileView
+        cssClass : 'profilearea'
+      , @getData()
 
   viewAppended:->
     super

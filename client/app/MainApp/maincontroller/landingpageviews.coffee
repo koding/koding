@@ -93,7 +93,7 @@ class LandingPageNavigationController extends NavigationController
     else if @lc.userEnteredFromProfile()
 
       profileItems = [
-        { title : 'Home',     action : 'home',      type : 'user'}
+        { title : 'Home',     action : 'home',      type : 'user', selected : yes}
         { title : 'Activity', action : 'activity',  type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
       ]
@@ -120,5 +120,21 @@ class LandingNavigationLink extends NavigationLink
     data.type or= "account"
 
     super options, data
+    @loader = new KDLoaderView
+      size :
+        width : 20
+        height : 20
+      loaderOptions :
+        color : "#ffffff"
+    @loader.hide()
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
 
   click:->
+    @loader.show() if @getData().type is 'user'

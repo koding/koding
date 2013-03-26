@@ -8,7 +8,8 @@ class GroupsListItemView extends KDListItemView
     group = @getData()
 
     {title, slug, body} = group
-    @backgroundImage = "../images/defaultavatar/default.group.128.png"
+    # @backgroundImage = "../images/defaultavatar/default.group.128.png"
+    @backgroundImage = "//lorempixel.com/128/128?#{@utils.getRandomNumber()}"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
@@ -117,6 +118,12 @@ class GroupsListItemView extends KDListItemView
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
       partial   : "<span class='fold'/><span class='icon'/>"
 
+    @memberCount = new CustomLinkView
+      title       : "#{group.counts?.members or 'No'} Members"
+      icon        :
+        cssClass  : "members"
+        placement : "left"
+
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   titleReceivedClick:(event)->
@@ -134,19 +141,21 @@ class GroupsListItemView extends KDListItemView
 
   pistachio:->
     """
+    <span class="avatar">{{>@avatar}}</span>
     <div class="wrapper">
-      <span class="avatar">{{>@avatar}}</span>
-      <div class="content right-overflow">
-        {h3{> @titleLink}}
-        {article{ #(body)}}
-      </div>
-      <div class='members-list-wrapper hidden'>
-        <cite>MEMBERS</cite>
-        {{> @members}}
-      </div>
-      <div class='badge-wrapper'>
+      {h3{> @titleLink}}
+      <p>
+        {{> @memberCount}}
+      </p>
+      {article{ #(body)}}
+    </div>
+    <div class='side-wrapper'>
+      <div class='badge-wrapper clearfix'>
         {{> @memberBadge}}
         {{> @privateBadge}}
+      </div>
+      <div class='members-list-wrapper hidden'>
+        {{> @members}}
       </div>
     </div>
     """
@@ -191,8 +200,8 @@ class GroupItemMemberView extends KDListItemView
     {firstName, lastName} = account.profile
     @avatar = new AvatarView
       size      :
-        width   : 30
-        height  : 30
+        width   : 40
+        height  : 40
       # detailed  : yes
       tooltip   :
         title   : "#{firstName} #{lastName}"

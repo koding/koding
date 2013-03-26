@@ -50,7 +50,7 @@ class ActivityListController extends KDListViewController
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
-      cssClass : 'activityhead clearfix'
+      cssClass : 'feeder-header clearfix'
 
     @activityHeader.hide() unless @getOptions().showHeader
 

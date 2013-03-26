@@ -118,27 +118,26 @@ h1.kdheaderview.notification-header
 *  ACTIVITY LIST STYLES
 */
 
-.activityhead
-  padding            7px 0px 7px 17px
+.feeder-header
+  padding            0 18px
   line-height        12px
   font-size          13px
   color              #4F4F4F
   border-bottom      1px solid rgba(0, 0, 0, 0.075)
-  height             28px
+  height             auto
   top                0
   z-index            2
   bg(color,rgba(255,255,255,.9))
   borderBox()
+  > p
+    height           28px
+    line-height      28px
 
-  div
-    margin-right    6px
-    margin-left     4px
+  div.on-off
+    margin          -1px 6px 0 4px
     font-size       88%
     color           #AAA
     fr()
-
-    &.on-off
-      margin-top    -1px
 
     > a
       text-decoration   none
@@ -286,8 +285,9 @@ h1.kdheaderview.notification-header
       .read-this-link
         span.title
           color             #444
-          font-size         24px
+          // font-size         24px
           line-height       100%
+          font-weight       bold
 
     &.qanda
       .type-icon
