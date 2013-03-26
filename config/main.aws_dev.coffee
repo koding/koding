@@ -104,6 +104,8 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : "mq.#{domainName}"
+    port        : 5672
+    apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'
