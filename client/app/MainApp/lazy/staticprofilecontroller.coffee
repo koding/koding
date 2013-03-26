@@ -302,6 +302,7 @@ class StaticProfileController extends KDController
             offset    :
               left    : 5
               top     : 2
+          enableTabKey: yes
           attributes  :
             spellcheck: no
           cssClass    : 'hidden'
@@ -333,6 +334,7 @@ class StaticProfileController extends KDController
         @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.title \
             or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+          enableTabKey  : yes
           tooltip       :
             placement   : 'bottom'
             direction   : 'right'
@@ -369,6 +371,7 @@ class StaticProfileController extends KDController
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
             or "#{@profileUser.profile.about}"
+          enableTabKey  : yes
           tooltip       :
             placement   : 'bottom'
             direction   : 'right'

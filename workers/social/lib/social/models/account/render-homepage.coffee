@@ -150,7 +150,7 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   else
     getDefaultUserContents firstName, lastName
 
-getHandleLink = (handle,handles)->
+getHandleLink = (handle,handles={})->
 
   handleMap =
     twitter :
