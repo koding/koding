@@ -19,6 +19,7 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
+      secretName      : String
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->

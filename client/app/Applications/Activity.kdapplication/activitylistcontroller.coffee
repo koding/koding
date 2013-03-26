@@ -104,7 +104,7 @@ class ActivityListController extends KDListViewController
 
     if @_state is 'private'
       view = @addHiddenItem activity, 0
-      @activityHeader.newActivityArrived()
+      @activityHeader?.newActivityArrived()
 
   newActivityArrived:(activity)->
 
@@ -117,7 +117,7 @@ class ActivityListController extends KDListViewController
         @updateNewMemberBucket activity
       else
         view = @addHiddenItem activity, 0
-        @activityHeader.newActivityArrived()
+        @activityHeader?.newActivityArrived()
 
   updateNewMemberBucket:(activity)->
 

@@ -419,7 +419,11 @@ class StaticProfileController extends KDController
       lazyDomId : 'landing-page-avatar-drop'
       tooltip   :
         title   : "Click here to go to Koding"
-      click     : => @lazyDomController.hideLandingPage()
+      click     : =>
+        if KD.isLoggedIn()
+          @lazyDomController.hideLandingPage()
+        else
+          @mainController.loginScreen.animateToForm 'login'
 
     @profileTitleView = new KDView
       lazyDomId : 'profile-title'
@@ -452,7 +456,7 @@ class StaticProfileController extends KDController
       cssClass  : 'slideable'
       # bind : 'mouseenter mouseleave'
       click :(event)=>
-        unless $(event.target).is 'a'
+        if event.target.id is 'profile-personal-wrapper'
           @mainController.emit "landingSidebarClicked"
 
     #
@@ -615,9 +619,11 @@ class StaticProfileController extends KDController
       viewOptions       :
         cssClass        : 'static-content activity-related'
       showHeader        : no
+
       noItemFoundWidget : new KDCustomHTMLView
         cssClass : "lazy-loader"
         partial  : "So far, #{@profileUser.profile.firstName} has not posted this kind of activity."
+
       noMoreItemFoundWidget : new KDCustomHTMLView
         cssClass : "lazy-loader"
         partial  : "There is no more activity."
@@ -652,8 +658,8 @@ class StaticProfileController extends KDController
           log err
         else
           @profileContentView.addSubView aboutWrapper = new StaticProfileAboutView
-            about : about
-          ,@profileUser
+            about : about or ''
+          , @profileUser
 
           @hideLoadingBar()
 
