@@ -109,12 +109,15 @@ get_stats = ->
   print "MQ Deliver Rate: " + mq_rate_deliver
   mq_queued =
     name: 'mq.queued'
+    source: 'total'
     value: mq_queue_total
   mq_deliver_rate =
-    name: 'mq.rate.deliver'
+    name: 'mq.rate'
+    source: 'deliver'
     value: mq_rate_deliver
   mq_publish_rate =
-    name: 'mq.rate.publish'
+    name: 'mq.rate'
+    source: 'publish'
     value: mq_rate_publish
   
   # Combine all stats
