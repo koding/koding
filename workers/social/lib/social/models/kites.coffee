@@ -8,7 +8,7 @@ module.exports = class JKite extends jraphical.Module
 
   {Relationship} = jraphical
 
-  {Base, dash, ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  {Base, secure, race} = require 'bongo'
 
   @share()
 
@@ -60,11 +60,11 @@ module.exports = class JKite extends jraphical.Module
         data.secret = apiSecret
 
         kite = new JKite data
-        kite.save (err)->
+        kite.save (err)=>
           if err
             callback err
           else
-            kite.addCreator delegate, (err)->
+            kite.addCreator delegate, (err)=>
               if err
                 callback err
               else
@@ -109,17 +109,25 @@ module.exports = class JKite extends jraphical.Module
 
     options or= {}
 
-    Relationship.some selector, options, callback
-
+    Relationship.some selector, options, (err, relationships)=>
+      if err then callback err, []
+      else if relationships.length is 0 then callback null, []
+      else
+        teasers = []
+        collectTeasers = race (i, root, fin)->
+          root.fetchSource (err, kite)->
+            if err
+              callback err
+              fin()
+            else if not kite
+              console.warn "Source does not exists:", root.sourceName, root.sourceId
+              fin()
+            else
+              teasers.push(kite)
+              fin()
+        , -> callback null, teasers
+        collectTeasers relationship for relationship in relationships
 
   delete: secure ({connection:{delegate}}, callback)->
-    # console.log this
-    # unless delegate.can 'delete', this
-    #   throw new KodingError 'Access denied!'
 
     @remove callback
-    
-    # Relationship.getDeleteHelper {
-    #   targetId    : delegate._id
-    #   sourceId    : @getId()
-    # }, 'source', callback
