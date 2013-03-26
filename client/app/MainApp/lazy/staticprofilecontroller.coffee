@@ -43,16 +43,15 @@ class StaticProfileController extends KDController
       unless err
         @reviveViewsOnUserLoad user
 
-  addLogic:(type,lockSidebar=no,displaySidebar=yes)->
+  addLogic:(type,callback=->)->
       unless @controllers[type]?
         @addLogicForType type, =>
-          # @showWrapper @wrappers[type]
           @controllers[type]?.hideLazyLoader()
+          callback()
       else
         @controllers[type]?.hideLazyLoader()
         @showWrapper @wrappers[type]
-
-      @displaySidebar displaySidebar
+        callback()
 
   displaySidebar:(show=yes,delay=250)->
     @utils.wait delay, =>
@@ -102,28 +101,35 @@ class StaticProfileController extends KDController
           @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
 
 
-    @on 'HomeLinkClicked', =>
+    @on 'HomeLinkClicked', (callback=->)=>
 
-      @addLogic 'static', no, no
+      @addLogic 'static'
 
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
       @staticDefaultItem.show()
+      @displaySidebar no
       # @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
+        callback()
 
 
-    @on 'ActivityLinkClicked', (path)=>
-      @addLogic 'activity', yes, yes
+
+    @on 'ActivityLinkClicked', (callback=->)=>
+      @addLogic 'activity'
       @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
+        @displaySidebar yes
+        callback()
 
 
-    @on 'AboutLinkClicked', (path)=>
-      @addLogic 'about', yes, no
+    @on 'AboutLinkClicked', (callback=->)=>
+      @addLogic 'about', =>
+        callback()
+      @displaySidebar no
 
 
     @on 'CustomizeLinkClicked',=>
@@ -154,6 +160,9 @@ class StaticProfileController extends KDController
 
 
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
+      unless @profileUser
+        callback()
+        return
 
       @showLoadingBar() unless type in ['static']
 
@@ -175,6 +184,7 @@ class StaticProfileController extends KDController
             originId : @profileUser.getId()
             facets : facets
             bypass : yes
+            limit  : 10
           , (err, activities=[])=>
             @refreshActivities err, activities, type
             callback()
@@ -462,15 +472,10 @@ class StaticProfileController extends KDController
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
 
-    # @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
-    #   lazyDomId    : 'profile-buttons'
-    #   delegate     : @
-    # , @profileUser
+    unless user.getId() is KD.whoami().getId()
+      @addVisitorViews() if KD.isLoggedIn()
 
-    # @avatarAreaIconMenu.$('.static-profile-button').remove()
-
-    if user.getId() is KD.whoami().getId()
-
+    else
       @profileTitleNameView = new KDView
         lazyDomId : 'profile-name'
 
@@ -568,12 +573,15 @@ class StaticProfileController extends KDController
     @hideLoadingBar()
 
   hideLoadingBar:->
-    @profileLoadingBar.unsetClass 'active'
+    # @profileLoadingBar.unsetClass 'active'
     # @profileLoaderView.hide()
 
   showLoadingBar:->
-    @profileLoadingBar.setClass 'active'
-    @profileLoaderView.show()
+    # @profileLoadingBar.setClass 'active'
+    # @profileLoaderView.show()
+
+
+  addVisitorViews:->
 
 
   getAllowedTypes:(@profileUser)->
@@ -683,6 +691,7 @@ class StaticProfileController extends KDController
     @profileShowMoreView.hide()
 
     for own name,wrapper of @wrappers
+      log name, wrapper
       wrapper?.hide()
 
   showWrapper:(wrapper)->
