@@ -46,6 +46,10 @@
 
     .navigation-item
 
+      .kdloader
+        fr()
+        margin-right        5px
+
       &.invisible
         border              none
         height              0px
@@ -88,7 +92,8 @@
   // width                     50px
   vendor transition,        width 0.6s ease-in-out
   fl()
-
+  .kdlistview-navigation
+    margin-top              15px
   // &.collapsed
 
   //   .profile-avatar
@@ -122,6 +127,7 @@
 
 .profile-title
   borderBox()
+  rel()
   bg                        color, white
   // shadow                    inset 0 3px 1px 3px rgba(250,250,250,.5)
   // gradient                  rgb(255,255,255),rgb(242,242,242)
@@ -130,6 +136,9 @@
   width                     auto
   border-bottom             1px solid rgb(229,229,229)
   padding                   22px 10px 20px 40px
+  shadow                    0px -15px 50px rgba(0,0,0,0.4)
+  overflow                  hidden
+  z-index                   1
 
   .profile-title-wrapper
     height                  auto
@@ -229,13 +238,17 @@
     padding                 0 11px
 
 textarea.profile-handle-customize.kdinput
+  borderBox()
   bg color,                 rgba(255,255,255,0.1)
   display                   inline-block
-  width                     228px
-  height                    25px
+  width                     auto
+  height                    22px
   font-size                 12px
-  margin-top                3px
   box-shadow                none
+  line-height               16px
+  vertical-align            top
+
+
 
 .static-link-container
 
@@ -298,12 +311,6 @@ textarea.profile-handle-customize.kdinput
 .profile-bio
 
   textarea.kdinput.text
-    // display                 inline-block
-    // line-height             14px
-    // font-size               14px
-    // padding                 10px 2px 0px 6px
-
-    // border                  1px solid #f5f5f5
     border                  none
     padding                 2px
     margin                  0px
@@ -312,6 +319,9 @@ textarea.profile-handle-customize.kdinput
     headerFont()
     text-rendering          geometricPrecision
     vendor font-smoothing   antialiased
+    bg image,               none
+    bg color,               transparent
+
     &:focus
       border none
       shadow none
@@ -494,7 +504,7 @@ textarea.profile-handle-customize.kdinput
       color                 #444
 
 .profile-admin-customize
-  top                       30px
+  right                     75px
 
 // ############################################################################
 // CONTENT
@@ -669,6 +679,11 @@ textarea.profile-handle-customize.kdinput
     width                   100px
 
 
+  .about-cancel-button
+    fr()
+    width                   auto
+    margin                  10px
+
   .about-save-button
     fr()
     width                   100px
@@ -771,9 +786,12 @@ textarea.profile-handle-customize.kdinput
 
       section
         fr()
-        width 300px
-        height 100%
-        border-left 1px solid #e8e8e8
+        width               300px
+        height              100%
+        border-left         1px solid #e8e8e8
+
+      .static-page-link
+        margin-left         0px!important
 
 .about-sidebar .static-content
   padding                   10px
@@ -934,3 +952,39 @@ textarea.profile-handle-customize.kdinput
       sprite()
       bg position,          -20px -320px
       size                  15px 15px
+
+
+.profile-handles
+  abs()
+  top                       47px
+  right                     30px
+  a
+    display                 inline-block
+    width                   auto
+    margin-left             3px
+    textarea
+      margin-left           3px
+
+  span.text
+    hidden()
+
+  span.icon
+    vendor filter,          grayscale(100%)
+    vendor transition,      filter 0.2s linear
+    sprite()
+
+    &:hover
+      vendor filter,        grayscale(0%)
+
+  #profile-handle-twitter
+    span.icon
+      size                  26px 26px
+      display               inline-block
+      bg position,          -68px -340px
+
+
+  #profile-handle-github
+    span.icon
+      bg position,          -39px -340px
+      size                  26px 26px
+      display               inline-block

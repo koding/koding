@@ -43,16 +43,15 @@ class StaticProfileController extends KDController
       unless err
         @reviveViewsOnUserLoad user
 
-  addLogic:(type,lockSidebar=no,displaySidebar=yes)->
+  addLogic:(type,callback=->)->
       unless @controllers[type]?
         @addLogicForType type, =>
-          # @showWrapper @wrappers[type]
           @controllers[type]?.hideLazyLoader()
+          callback()
       else
         @controllers[type]?.hideLazyLoader()
         @showWrapper @wrappers[type]
-
-      @displaySidebar displaySidebar
+        callback()
 
   displaySidebar:(show=yes,delay=250)->
     @utils.wait delay, =>
@@ -102,28 +101,38 @@ class StaticProfileController extends KDController
           @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
 
 
-    @on 'HomeLinkClicked', =>
+    @on 'HomeLinkClicked', (callback=->)=>
 
-      @addLogic 'static', no, no
+      @addLogic 'static'
 
       # HERE is the place to implement custom profile splash screens, reveal.js and such
 
       @staticDefaultItem.show()
+      @displaySidebar no
       # @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
+        @staticPageSettingsButton.hide()
+        callback()
 
 
-    @on 'ActivityLinkClicked', (path)=>
-      @addLogic 'activity', yes, yes
-      @showLoadingBar()
+
+    @on 'ActivityLinkClicked', (callback=->)=>
+      @addLogic 'activity'
+      # @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
+        @displaySidebar yes
+        @staticPageSettingsButton.show()
+        callback()
 
 
-    @on 'AboutLinkClicked', (path)=>
-      @addLogic 'about', yes, no
+    @on 'AboutLinkClicked', (callback=->)=>
+      @addLogic 'about', =>
+        callback()
+      @displaySidebar no
+      @staticPageSettingsButton.hide()
 
 
     @on 'CustomizeLinkClicked',=>
@@ -154,6 +163,9 @@ class StaticProfileController extends KDController
 
 
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
+      unless @profileUser
+        callback()
+        return
 
       @showLoadingBar() unless type in ['static']
 
@@ -175,6 +187,7 @@ class StaticProfileController extends KDController
             originId : @profileUser.getId()
             facets : facets
             bypass : yes
+            limit  : 10
           , (err, activities=[])=>
             @refreshActivities err, activities, type
             callback()
@@ -193,6 +206,123 @@ class StaticProfileController extends KDController
 
   reviveAdminViews:->
 
+      # reviving ADMIN views (inline edits, feeder checkboxes)
+
+      @profileTitleNameView = new KDView
+        lazyDomId : 'profile-name'
+
+      @profileTitleBioView = new KDView
+        lazyDomId : 'profile-bio'
+
+      profileAdminCustomizeView = new KDView
+        lazyDomId : 'profile-admin-customize'
+
+      profileAdminCustomizeView.addSubView @staticPageSettingsButton = new CustomLinkView
+        title : 'Customize'
+        cssClass : 'static-page-settings-button clean-gray hidden'
+        click :(event)=>
+          @emit 'CustomizeLinkClicked'
+          event.stopPropagation()
+          event.preventDefault()
+
+      profileAdminCustomizeView.show()
+
+      profileAdminMessageView = new KDView
+        lazyDomId : 'profile-admin-message'
+
+      showPage = @profileUser.profile.staticPage?.show
+
+      profileAdminMessageView.addSubView disableLink = new CustomLinkView
+        title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
+        cssClass  : 'message-disable'
+        click     : (event)=>
+          event?.stopPropagation()
+          event?.preventDefault()
+
+          if @profileUser.profile.staticPage?.show is yes
+            modal           = new KDModalView
+              cssClass      : 'disable-static-page-modal'
+              title         : 'Do you really want to disable your Public Page?'
+              content       : """
+                <div class="modalformline">
+                  <p>Disabling this feature will disable other people
+                  from publicly viewing your profile. You will still be
+                  able to access the page yourself.</p>
+                  <p>Do you want to continue?</p>
+                </div>
+                """
+              buttons       :
+                "Disable the Public Page" :
+                  cssClass  : 'modal-clean-red'
+                  callback  : =>
+                    modal.destroy()
+                    @profileUser.setStaticPageVisibility no, (err,res)=>
+                      if err then log err
+                      disableLink.updatePartial '<span class="title">Enable</span>'
+                Cancel      :
+                  cssClass  : 'modal-cancel'
+                  callback  : =>
+                    modal.destroy()
+          else
+            @profileUser.setStaticPageVisibility yes, (err,res)=>
+              if err then log err
+              disableLink.updatePartial '<span class="title">Disable</span>'
+
+      handleLinks = {}
+
+      handleLinks['twitter'] = new KDView
+        lazyDomId : 'profile-handle-twitter'
+        tooltip :
+          title : 'Click here to change your Twitter handle'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['twitter'].show()
+          KD.utils.defer -> handleInputs['twitter'].setFocus()
+
+      handleLinks['github'] = new KDView
+        lazyDomId : 'profile-handle-github'
+        tooltip :
+          title : 'Click here to change your GitHub handle'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['github'].show()
+          KD.utils.defer -> handleInputs['github'].setFocus()
+
+      handle.show() for name,handle of handleLinks
+
+      handleInputs = {}
+
+      for type in ['twitter','github']
+        handleLinks[type].setClass 'edit'
+        handleLinks[type].addSubView handleInputs[type] = new StaticHandleInput
+          service     : type
+          delegate    : @
+          tooltip     :
+            title     : "Enter your handle and hit enter to save."
+            placement : 'right'
+            direction : 'center'
+            offset    :
+              left    : 5
+              top     : 2
+          enableTabKey: yes
+          attributes  :
+            spellcheck: no
+          cssClass    : 'hidden'
+          blur        :->
+            @hide()
+          callback    :(value)->
+            @getData().setHandle
+              service : @getOptions().service
+              value   : value
+            , =>
+              new KDNotificationView
+                title : 'Your changes were saved.'
+              @hide()
+
+        , @profileUser
+
       if @profileTitleNameInput then @profileTitleNameInput.show()
       else
         @profileTitleNameSpan = new KDCustomHTMLView
@@ -208,6 +338,7 @@ class StaticProfileController extends KDController
         @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.title \
             or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+          enableTabKey  : yes
           tooltip       :
             placement   : 'bottom'
             direction   : 'right'
@@ -244,6 +375,7 @@ class StaticProfileController extends KDController
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
             or "#{@profileUser.profile.about}"
+          enableTabKey  : yes
           tooltip       :
             placement   : 'bottom'
             direction   : 'right'
@@ -415,77 +547,10 @@ class StaticProfileController extends KDController
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
 
-    # @avatarAreaIconMenu = new StaticAvatarAreaIconMenu
-    #   lazyDomId    : 'profile-buttons'
-    #   delegate     : @
-    # , @profileUser
+    unless user.getId() is KD.whoami().getId()
+      @reviveVisitorViews() if KD.isLoggedIn()
 
-    # @avatarAreaIconMenu.$('.static-profile-button').remove()
-
-    if user.getId() is KD.whoami().getId()
-
-      # reviving ADMIN views (inline edits, feeder checkboxes)
-
-      @profileTitleNameView = new KDView
-        lazyDomId : 'profile-name'
-
-      @profileTitleBioView = new KDView
-        lazyDomId : 'profile-bio'
-
-      profileAdminCustomizeView = new KDView
-        lazyDomId : 'profile-admin-customize'
-
-      profileAdminCustomizeView.addSubView staticPageSettingsButton = new CustomLinkView
-        title : 'Customize'
-        cssClass : 'static-page-settings-button clean-gray'
-        click :(event)=>
-          @emit 'CustomizeLinkClicked'
-          event.stopPropagation()
-          event.preventDefault()
-
-      profileAdminCustomizeView.show()
-
-      profileAdminMessageView = new KDView
-        lazyDomId : 'profile-admin-message'
-
-      showPage = user.profile.staticPage?.show
-
-      profileAdminMessageView.addSubView disableLink = new CustomLinkView
-        title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
-        cssClass  : 'message-disable'
-        click     : (event)=>
-          event?.stopPropagation()
-          event?.preventDefault()
-
-          if user.profile.staticPage?.show is yes
-            modal           = new KDModalView
-              cssClass      : 'disable-static-page-modal'
-              title         : 'Do you really want to disable your Public Page?'
-              content       : """
-                <div class="modalformline">
-                  <p>Disabling this feature will disable other people
-                  from publicly viewing your profile. You will still be
-                  able to access the page yourself.</p>
-                  <p>Do you want to continue?</p>
-                </div>
-                """
-              buttons       :
-                "Disable the Public Page" :
-                  cssClass  : 'modal-clean-red'
-                  callback  : =>
-                    modal.destroy()
-                    user.setStaticPageVisibility no, (err,res)=>
-                      if err then log err
-                      disableLink.updatePartial 'Enable this Public Page'
-                Cancel      :
-                  cssClass  : 'modal-cancel'
-                  callback  : =>
-                    modal.destroy()
-          else
-            user.setStaticPageVisibility yes, (err,res)=>
-              if err then log err
-              disableLink.updatePartial 'Disable this Public Page'
-
+    else
       @reviveAdminViews()
 
     console.timeEnd 'reviving page elements on userload.'
@@ -523,12 +588,15 @@ class StaticProfileController extends KDController
     @hideLoadingBar()
 
   hideLoadingBar:->
-    @profileLoadingBar.unsetClass 'active'
+    # @profileLoadingBar.unsetClass 'active'
     # @profileLoaderView.hide()
 
   showLoadingBar:->
-    @profileLoadingBar.setClass 'active'
-    @profileLoaderView.show()
+    # @profileLoadingBar.setClass 'active'
+    # @profileLoaderView.show()
+
+
+  reviveVisitorViews:->
 
 
   getAllowedTypes:(@profileUser)->
@@ -640,7 +708,8 @@ class StaticProfileController extends KDController
     @profileShowMoreView.hide()
 
     for own name,wrapper of @wrappers
-      wrapper?.hide()
+      # log name, wrapper
+      wrapper?.hide?()
 
   showWrapper:(wrapper)->
     @hideWrappers()
@@ -719,7 +788,7 @@ class StaticHandleLink extends CustomLinkView
 
 class StaticHandleInput extends KDHitEnterInputView
   constructor:(options,data)->
-    options.cssClass = 'profile-handle-customize'
+    options.cssClass = "profile-handle-customize #{options.cssClass}"
     options.defaultValue = data.profile.handles?[options.service] or ''
     super options,data
 
