@@ -12,13 +12,18 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
 
     super options,data
 
-    @readThisLink = new CustomLinkView
-      cssClass : 'read-this-link'
-      title : 'Read this Blog Post'
-      click : (event)=>
-        event.stopPropagation()
-        event.preventDefault()
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+    @on 'CommentLinkReceivedClick', (event,view)=>
+      @getSingleton('staticProfileController').emit 'CommentLinkReceivedClick', view
+    @on 'CommentCountClicked'     , (view)=>
+      @getSingleton('staticProfileController').emit 'CommentCountReceivedClick', view
+
+    data = @getData()
+
+    @titleLink  = new CustomLinkView
+      # href      : "/#{data.slug?.group}/#{data.slug?.slug}"
+      href      : "/Activity/#{data.slug?.slug}"
+      title     : @applyTextExpansions data.title
+      target    : '_blank'
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
@@ -40,15 +45,20 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
     <div class='content-item'>
       <div class='title'>
         <span class="text">
-          {{ @applyTextExpansions #(title)}}
+          {{> @titleLink}}
         </span>
+      </div>
+      <div class="blog-post-body has-markdown">
         <div class='create-date'>
-          <span class='type-icon'></span>
+          <span>
           {time{@formatCreateDate #(meta.createdAt)}}
           {{> @tags}}
+          </span>
+          <span>
           {{> @actionLinks}}
+          </span>
         </div>
+        {{Encoder.htmlDecode #(html)}}
       </div>
-      <div class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</div>
     </div>
     """

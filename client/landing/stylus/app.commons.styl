@@ -1034,6 +1034,36 @@ button.cancel-edit-button
   width                     auto
   border-left               1px solid #e8e8e8
   borderBox()
+  .onboarding-wrapper
+    width                   94%
+    margin                  0 3% 3% 3%
+    margin-top              -1500px
+    rounded                 15px
+    padding                 20px
+    gradient                #999, #aaa
+    border                  1px solid #999
+    border-color            #888 #ccc #eee
+    shadow                  inset 0 2px 8px rgba(0,0,0,.2)
+    vendor                  transition, margin .3s ease
+    borderBox()
+    &.in
+      margin-top            20px
+    .title
+      font-weight           400
+      font-size             24px
+      line-height           40px
+      // color                 linkColor1
+      text-shadow           0 1px 0 rgba(255,255,255,.6)
+    p
+      margin                20px 0
+      font-size             13px
+      line-height           20px
+      text-shadow           0 1px 0 rgba(255,255,255,.3)
+    .close-icon
+      right                 10px
+      top                   10px
+      bg                    position, -60px -240px
+      abs()
 
 .header-facets
   right                     0
