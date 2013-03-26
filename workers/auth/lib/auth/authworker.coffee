@@ -84,6 +84,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange.push client
 
   rejectClient:(routingKey, message)->
+    return console.trace()  unless routingKey?
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: message ? 'Access denied']
@@ -142,6 +143,7 @@ module.exports = class AuthWorker extends EventEmitter
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
+      console.log {routingKey, serviceType}
       switch serviceType
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
@@ -220,6 +222,7 @@ module.exports = class AuthWorker extends EventEmitter
             authQueue.subscribe (message, headers, deliveryInfo)=>
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
+              messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
               switch routingKey
                 when 'kite.join'
