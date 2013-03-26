@@ -28,6 +28,7 @@ class StaticProfileAboutView extends KDView
         callback : =>
           @$('.about-body').addClass 'hidden'
           @editView.show()
+          @editButton.hide()
       @editView = new KDView
         cssClass : 'hidden about-edit'
 
@@ -48,6 +49,7 @@ class StaticProfileAboutView extends KDView
             @$('.about-body').removeClass 'hidden'
             @saveButton.hideLoader()
             @aboutView.updatePartial Encoder.htmlDecode value.html
+            @editButton.show()
 
       @editView.addSubView @cancelButton = new KDButtonView
         title : 'Cancel'
@@ -55,7 +57,7 @@ class StaticProfileAboutView extends KDView
         callback :=>
           @editView.hide()
           @$('.about-body').removeClass 'hidden'
-
+          @editButton.show()
     else
       @editButton = new KDView
         cssClass : 'hidden'
