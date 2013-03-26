@@ -752,11 +752,6 @@ class StaticTopicsListItem extends KDListItemView
        cssClass : 'static-topic-title'
        partial : @getData().title
 
-     @bodyView = new KDCustomHTMLView
-       tagName : 'article'
-       cssClass : 'static-topic-body'
-       partial : @getData().body
-
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -766,15 +761,32 @@ class StaticTopicsListItem extends KDListItemView
     """
     <div class='static-topic'>
        {{> @titleView}}
-       {{> @bodyView}}
-       {{ #(counts.followers)}}
-       {{ #(counts.post)}}
     </div>
     """
 
 class StaticMembersListItem extends KDListItemView
-  partial:(data)->
-    {profile} = data
-    "<div class='static-member'>
-       #{profile.nickname}
-    </div>"
+  constructor:(options,data)->
+    super options,data
+    @avatarView = new AvatarView
+      size    : {width: 30, height: 30}
+      noTooltip : no
+      click:->
+    ,@getData()
+
+    @setClass 'static-member'
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    {{> @avatarView}}
+    """
+
+  # partial:(data)->
+  #   {profile} = data
+  #   "<div class='static-member'>
+  #      #{profile.nickname}
+  #   </div>"

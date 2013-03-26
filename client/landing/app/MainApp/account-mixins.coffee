@@ -101,7 +101,7 @@ AccountMixin = do ->
             callback channel
             i = setInterval ->
               now = Date.now()
-              isUnresponsive = channel.lastPong? and (now - channel.lastPong > 6000)
+              isUnresponsive = channel.lastPong? and (now - channel.lastPong > 15000)
               cycleChannel.call channel  if isUnresponsive
               channel.publish JSON.stringify
                 method      : 'ping'

@@ -92,11 +92,26 @@ class GroupsAppController extends AppController
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
+      listCssClass          : "groups"
       help                  :
         subtitle            : "Learn About Groups"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
+      onboarding            :
+        everything          :
+          """
+            <h3 class='title'>yooo onboard me for da groop!!!</h3>
+            <p>
+              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
+            </p>
+            <p>
+              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
+            </p>
+          """
+        mine                : new KDView
+          cssClass          : "onboarding"
+          partial           : "<h1>this is onboarding for my groups</h1>"
       filter                :
         everything          :
           title             : "All groups"
@@ -236,9 +251,9 @@ class GroupsAppController extends AppController
           duration: 1000
       else
         new KDNotificationView
-          title: 'Group was created!'
+          title   : 'Group was created!'
           duration: 1000
-        @showContentDisplay group
+        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -616,3 +631,4 @@ class GroupsAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
+
