@@ -13,11 +13,13 @@ mqOptions.login = authWorker.login if authWorker?.login?
 
 module.exports = new Bongo {
   mongo
+  root: projectRoot
   models: [
     'workers/social/lib/social/models/session.coffee'
-    # 'workers/social/lib/social/models/account.coffee'
+    'workers/social/lib/social/models/account'
+    'workers/social/lib/social/models/group'
     # 'workers/social/lib/social/models/guest.coffee'
-  ].map (path)-> nodePath.join projectRoot, path
+  ]
   mq: new Broker mqOptions
   resourceName: authWorker.queueName
 }
