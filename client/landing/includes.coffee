@@ -550,6 +550,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
+  "app/Applications/Account.kdapplication/account/accKiteList.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # CONTENT DISPLAY VIEWS
