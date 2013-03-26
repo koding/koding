@@ -42,10 +42,10 @@
   opacity               .4
   padding               0
   border                1px solid rgba(0,0,0,0.5)
-  border-radius         60px 60px
+  rounded               60px
   background            rgba(0,0,0,0.25)
   shadow                0 2px 6px rgba(0,0,0,0.5),inset 0 8px rgba(255,255,255,0.3),inset 0 0px rgba(255,255,255,0.2),inset 0 11px 28px rgba(255,255,255,0.25),inset 0 -15px 30px rgba(0,0,0,0.3);
-  vendor transition,    opacity 0.4s ease-in-out
+  vendor transition,    opacity .4s ease
 
   &:hover
     opacity             1
@@ -429,7 +429,8 @@
   height            2000px
   a
     color           grouppage-link
-  #group-left-pane, #group-right-pane
+  #group-left-pane
+  #group-right-pane
     padding           10px 40px 0 5px
     borderBox()
     .kdview
@@ -623,7 +624,7 @@
 
 .content-page.groups
   .header-facets
-    margin-right            3%
+    margin-right            18px
     button.kdbutton
       margin-top            4px
       span.icon
@@ -634,30 +635,24 @@
 
   .feeder-tabs .listview-wrapper
     bg                      color, #f2f2f2
-    background              #f2f2f2 url("../images/dark-linen.png") repeat 0 0
-    shadow                  inset 0 0px 15px rgba(0,0,0,.1)
+    // background              #f2f2f2 url("../images/dark-linen.png") repeat 0 0
+    // shadow                  inset 0 0px 15px rgba(0,0,0,.1)
   // .onboarding-wrapper
   //   margin                  3% 3% 0 3%
   .kdlistview.groups
     padding-bottom          20px
   .kdlistitemview-groups
-    rel()
-    borderBox()
-    border                  1px solid #e2e2e2
-    border-color            #f2f2f2 #e2e2e2 #d2d2d2
-    bg                      color, #fff
-    rounded                 6px
-    margin                  3% 0 0 3%
-    min-height              131px
+    margin                  20px 20px 0 20px
     min-width               250px
-    clear                   none
-    width                   45.5%
-    display                 inline-block
-    height                  auto
+    max-width               900px
+    min-height              128px
+    size                    auto, auto
+    display                 block
     vertical-align          top
     overflow                visible
-    gradient                #fff, #fafafa
-    shadow                  0 2px 5px rgba(0,0,0,.15)
+    bg                      color, #fff
+    borderBox()
+    rel()
 
     &:hover
       div.groups-settings-menu
@@ -670,86 +665,75 @@
       .badge.member
         visible()
 
-    .badge-wrapper
+    .side-wrapper
       top                     0
-      right                   -4px
-      size                    auto, auto
-      display                 inline-block
+      right                   18px
+      size                    214px, 100%
+      z-index                 2
+      text-align              right
       abs()
+
+    .badge-wrapper
+      size                    auto, auto
+      margin-top              18px
 
     .badge
       font-style              normal
-      font-weight             700
-      font-size               9px
+      font-weight             600
+      font-size               12px
       text-transform          uppercase
       background-color        linkColor1
       color                   white
-      display                 inline-block
-      padding                 4px 8px
-      margin-top              8px
-      shadow                  0 1px 5px rgba(0,0,0,.3)
+      padding                 0 10px
       text-shadow             0 -1px 0 rgb(247,111,20)
-      height                  11px
-      clear                   both
+      height                  28px
+      line-height             28px
       fr()
       rel()
       &.member
         hidden()
       &.private
         background-color      #0896bd
-        span.fold
-          border-color        #045065 transparent transparent #045065
         .icon
           display             block
-          margin-top          -4px
+          margin-top          4px
           size                18px, 18px
           bg                  position, -80px -640px
           sprite()
 
-      span.fold
-        size                  0, 0
-        display               block
-        border                2px solid rgb(192, 110, 0)
-        border-color          rgb(192, 110, 0) transparent transparent  rgb(192, 110, 0)
-        right                 0
-        top                   19px
-        abs()
 
-    .members-list-wrapper > cite
-      font-style              normal
-      font-weight             600
-      font-size               9px
-      background-color        #FFF
-      color                   #CCC
-      margin                  -5px 0 0 20px
-      display                 block
-      height                  15px
-      z-index                 10
-      padding-right           5px
+
+
+    .members-list-wrapper
       abs()
-
+      borderBox()
+      padding               5px
+      size                  auto, auto
+      max-width             100%
+      bg                    color, #f2f2f2
+      bottom                18px
+      right                 0
 
     .kdlistview-members
-      border-top          1px solid #eee
-      margin              0 20px
-      padding             10px 0 20px
+      text-align          left
+      margin              0
       line-height         0
       overflow            visible
       .kdlistitemview-member
         display           inline-block
-        size              30px, 30px
-        margin            2px 2px 0 0
-        shadow            0 1px 3px rgba(0,0,0,.3)
+        size              40px, 40px
+        margin            0 1px 1px 0
         borderBox()
-        // border            1px solid #ccc
-        // bg                color, cyan
-        // padding           1px
-        // vendor            transition, all .1s ease .1s
+        &:nth-child(5n)
+          margin-right    0
+          clear           left
+        &:nth-child(6)
+        &:nth-child(7)
+        &:nth-child(8)
+        &:nth-child(9)
+        &:nth-child(10)
+          margin-bottom   0
 
-        // &:first-child
-        //   margin          2px 2px 0 2px
-        // &:hover
-        //   size            60px, 60px
         img
           display         block
           size            100%, 100%
@@ -783,51 +767,69 @@
           display         none
 
     span.avatar
-      margin                  20px 20px 5px 20px
+      // margin                  20px 20px 5px 20px
       // padding                 1px
       // border                  1px solid #E3E3E3
       display                 block
-      size                    80px, 80px
-      shadow                  0 1px 5px rgba(0,0,0,.3)
-      fl()
+      size                    128px, 100%
+      z-index                 0
+      top                     0
+      left                    0
+      // bg                      color, rgba(0, 0, 0, .1)
+      bg                      color, #f2f2f2
+      abs()
+      // shadow                  0 1px 5px rgba(0,0,0,.3)
+      // fl()
       .avatar-image
+        margin-top            18px
         display               block
         text-decoration       none
         background-size       cover
         background-position   center
         // bg                    image, url("../images/defaultavatar/default.group.128.png")
-        size                  100%, 100%
+        size                  100%, 128px
 
-    .content
-      width                   auto
-      padding-top             10px
-      min-height              103px
-      margin-bottom           20px
+    .wrapper
+      overflow          hidden
+      width             auto
+      padding           18px 214px 13px 148px
+      line-height       20px
+      min-height        214px
       borderBox()
-      h3
-        width                 auto
-        padding               0 20px 10px 0
-        margin-top            12px
-        color                 linkColor1
-        font-size             18px
-        line-height           26px
-        max-height            78px
-        borderBox()
-        a
-          width               auto
-          color               linkColor1
-          font-weight         400
-          borderBox()
-          noTextDeco()
 
-      article
-        borderBox()
-        width             auto
-        margin            0 20px 0 0
-        line-height       20px
-        color             #5f5f5f
-        font-size         12px
-        max-height        60px
+    h3
+      font-family           Avenir
+      width                 auto
+      padding               0 20px
+      top                   18px
+      left                  146px
+      font-size             28px
+      line-height           50px
+      max-height            50px
+      max-width             80%
+      z-index               10
+      display               inline-block
+      overflow              ellipsis
+      color                 white
+      bg                    color, rgba(0, 0, 0, .4)
+      a
+        color               white
+        font-weight         400
+        noTextDeco()
+
+    p
+      a.custom-link-view
+        font-size           11px
+        span.title
+          color             #aaa
+        .icon.members
+          bg                position, -140px -440px
+
+    article
+      margin-top        18px
+      color             #5f5f5f
+      font-size         12px
+      borderBox()
 
     .topicmeta
       abs()
