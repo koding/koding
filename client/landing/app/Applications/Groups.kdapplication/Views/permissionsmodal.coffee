@@ -146,7 +146,7 @@ class PermissionsModal extends KDFormViewWithFields
                 style     : "add-role-cancel modal-cancel"
                 cssClass  : 'add-role-cancel'
                 callback  : ()=>
-                  @buttons["Save"].hideLoader()
+                  @buttons["Add Role"].hideLoader()
                   addRoleDialog.hide()
 
           addRoleDialog.addSubView wrapper = new KDView
