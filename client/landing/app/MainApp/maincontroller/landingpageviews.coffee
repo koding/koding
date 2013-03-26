@@ -112,6 +112,8 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       item = @getListView().addItem itemData
     @getDelegate().emit 'ListItemsInstantiated'
+    @selectItemByName 'Home'
+
 
 class LandingNavigationLink extends NavigationLink
 
