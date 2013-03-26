@@ -5,7 +5,7 @@ module.exports =
   pidPath           : "/var/run/node/Applications.pid"
   logFile           : "/var/log/node/Applications.log"
   amqp              :
-    host            : 'web0.beta.system.aws.koding.com'
+    host            : 'web-prod.in.koding.com'
     login           : 'prod-applications-kite'
     password        : 'Dtxym6fRJXx4GJz'
     heartbeat       : 10

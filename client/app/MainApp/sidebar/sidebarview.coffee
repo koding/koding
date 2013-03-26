@@ -10,7 +10,9 @@ class Sidebar extends JView
     @_finderExpanded  = no
     @_popupIsActive   = no
 
-    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
+    groupsController = @getSingleton 'groupsController'
+
+    currentGroupData = groupsController.getCurrentGroupData()
 
     @avatar = new AvatarView
       tagName    : "div"
@@ -45,7 +47,7 @@ class Sidebar extends JView
     , currentGroupData
 
     # handle group related decisions
-    @initializeGroup()
+    groupsController.on 'GroupChanged', @bound 'initializeGroup'
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -111,15 +113,14 @@ class Sidebar extends JView
       @groupAvatar.setClass 'flash'
       @avatarHeader.setData currentGroupData
       @avatarHeader.show()
-#    else
-#      @avatar.unsetClass 'shared-avatar'
-#      @avatar.setWidth 160
-#      @groupAvatar.hide()
-#      @groupAvatar.unsetClass 'flash'
-#      @avatarHeader.setData currentGroupData
-#      @avatarHeader.hide()
+    else
+      @avatar.unsetClass 'shared-avatar'
+      @avatar.setWidth 160
+      @groupAvatar.hide()
+      @groupAvatar.unsetClass 'flash'
+      @avatarHeader.setData currentGroupData
+      @avatarHeader.hide()
     @render()
-
 
   setListeners:->
 

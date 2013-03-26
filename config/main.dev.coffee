@@ -5,8 +5,7 @@ version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'ut
 
 # mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
 # mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
-
-mongo = 'dev:k9lc4G1k32nyD72@web0.dev.system.aws.koding.com:27017/koding_dev2_copy'
+mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -33,6 +32,9 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
+  sourceServer  :
+    enabled     : yes
+    port        : 1337
   mongo         : mongo
   runGoBroker   : no
   watchGoBroker : no
@@ -115,7 +117,7 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://localhost:1337'
   mq            :
-    host        : 'web0.dev.system.aws.koding.com'
+    host        : 'web-dev.in.koding.com'
     login       : 'guest'
     componentUser: "<component>"
     password    : 's486auEkPzvUjYfeFTMQ'
@@ -146,3 +148,5 @@ module.exports =
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
   pidFile       : '/tmp/koding.server.pid'
+  haproxy:
+    webPort     : 3020

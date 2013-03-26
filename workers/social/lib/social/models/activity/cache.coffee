@@ -204,7 +204,7 @@ module.exports = class JActivityCache extends jraphical.Module
     cache = cursorArr.reduce (acc, doc)->
       if doc.type is lastDocType and /NewMemberBucket/.test lastDocType
         acc.last.createdAt[1] = doc.createdAt
-        if acc.last.count++ < 3
+        if acc.last.count++ < 4
           acc.last.ids.push doc._id
       else
         acc.push
@@ -228,8 +228,8 @@ module.exports = class JActivityCache extends jraphical.Module
           processedCache[i] = memberBucket
           bucketIndex       = i
         else
-          if processedCache[bucketIndex].ids.length < 3
-            newIds = item.ids.slice 0, 3 - processedCache[bucketIndex].ids.length
+          if processedCache[bucketIndex].ids.length < 4
+            newIds = item.ids.slice 0, 4 - processedCache[bucketIndex].ids.length
             processedCache[bucketIndex].ids = processedCache[bucketIndex].ids.concat newIds
           processedCache[bucketIndex].count        += item.count
           processedCache[bucketIndex].createdAt[1]  = item.createdAt.last
@@ -362,7 +362,7 @@ module.exports = class JActivityCache extends jraphical.Module
           key             = "overview.#{@newMemberBucketIndex}"
 
           newIds = newMemberBucket.ids.map((v,k)-> v)
-            .slice(-1 * (3 - freshNewMemberBucket.ids.length))
+            .slice(-1 * (4 - freshNewMemberBucket.ids.length))
             .concat(freshNewMemberBucket.ids)
 
           setModifier["#{key}.ids"]         = newIds

@@ -2,16 +2,19 @@ class GroupsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
     options.type = "groups"
+
     super options,data
 
-    {title, slug, body} = @getData()
+    group = @getData()
+
+    {title, slug, body} = group
     @backgroundImage = "../images/defaultavatar/default.group.128.png"
     @avatar = new KDCustomHTMLView
       tagName : 'img'
       cssClass : 'avatar-image'
       attributes :
-        # src : @getData().avatar or "/images/defaultavatar/default.group.128.png"
-        src : @getData().avatar or @backgroundImage
+        # src : group.avatar or "/images/defaultavatar/default.group.128.png"
+        src : group.avatar or @backgroundImage
 
     # @settingsButton = new KDButtonViewWithMenu
     #     cssClass    : 'transparent groups-settings-context groups-settings-menu'
@@ -19,7 +22,7 @@ class GroupsListItemView extends KDListItemView
     #     icon        : yes
     #     delegate    : @
     #     iconClass   : "arrow"
-    #     menu        : @settingsMenu data
+    #     menu        : @settingsMenu group
     #     callback    : (event)=> @settingsButton.contextMenu event
 
     # TODO : hide settings button for non-admins
@@ -33,11 +36,11 @@ class GroupsListItemView extends KDListItemView
         target    : slug
       pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
-    , data
+    , group
 
     # @bodyView = new KDCustomHTMLView
     #   tagName     : 'div'
-    #   partial     : data.body
+    #   partial     : group.body
     #   tooltip     :
     #     title     : body
     #     direction : 'right'
@@ -46,20 +49,20 @@ class GroupsListItemView extends KDListItemView
     #       top     : 6
     #       left    : -2
     #     showOnlyWhenOverflowing : yes
-    # ,data
+    # ,group
 
     @joinButton = new JoinButton
-      style           : if data.member then "join-group follow-btn following-topic" else "join-group follow-btn"
+      style           : if group.member then "join-group follow-btn following-topic" else "join-group follow-btn"
       title           : "Join"
       dataPath        : "member"
-      defaultState    : if data.member then "Leave" else "Join"
+      defaultState    : if group.member then "Leave" else "Join"
       loader          :
         color         : "#333333"
         diameter      : 18
         top           : 11
       states          : [
         "Join", (callback)->
-          data.join (err, response)=>
+          group.join (err, response)=>
             @hideLoader()
             unless err
               # @setClass 'following-btn following-topic'
@@ -67,7 +70,7 @@ class GroupsListItemView extends KDListItemView
               @emit 'Joined'
               callback? null
         "Leave", (callback)->
-          data.leave (err, response)=>
+          group.leave (err, response)=>
             @hideLoader()
             unless err
               # @unsetClass 'following-btn following-topic'
@@ -75,7 +78,7 @@ class GroupsListItemView extends KDListItemView
               @emit 'Left'
               callback? null
       ]
-    , data
+    , group
 
     @joinButton.on 'Joined', =>
       @enterButton.show()
@@ -89,32 +92,30 @@ class GroupsListItemView extends KDListItemView
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
 
-    memberCount = @getData().counts?.members or 0
-    memberCount = if memberCount > 19 then 19 else memberCount
-
-    members = ({title: @utils.getDummyName()} for i in [0..memberCount])
-
-    # log members
-
     membersController = new KDListViewController
       view         : @members = new KDListView
         wrapper    : no
         scrollView : no
         type       : "members"
         itemClass  : GroupItemMemberView
-    # ,
-    #   items : members
 
     # FIXME: SY
     # instantiateListItems doesnt fire by default
-    @members.on "viewAppended", ->
-      membersController.instantiateListItems members
+    group.fetchMembers (err, members)=>
+      if err then warn err
+      else if members
+        @$('.members-list-wrapper').removeClass "hidden"
+        membersController.instantiateListItems members
 
-    @ownGroupTitle = new KDCustomHTMLView
+    @memberBadge = new KDCustomHTMLView
       tagName   : "div"
-      cssClass  : "own-group-title"
-      partial   : "<span/>You are a member"
+      cssClass  : "badge member"
+      partial   : "<span class='fold'/>You are a member"
 
+    @privateBadge = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
+      partial   : "<span class='fold'/><span class='icon'/>"
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
@@ -139,9 +140,14 @@ class GroupsListItemView extends KDListItemView
         {h3{> @titleLink}}
         {article{ #(body)}}
       </div>
-      <cite>MEMBERS</cite>
-      {{> @members}}
-      {{> @ownGroupTitle}}
+      <div class='members-list-wrapper hidden'>
+        <cite>MEMBERS</cite>
+        {{> @members}}
+      </div>
+      <div class='badge-wrapper'>
+        {{> @memberBadge}}
+        {{> @privateBadge}}
+      </div>
     </div>
     """
 
@@ -181,14 +187,20 @@ class GroupItemMemberView extends KDListItemView
 
     super options, data
 
-    @setTooltip
-      title : @getData().title
-      delay : 300
+    account = @getData()
+    {firstName, lastName} = account.profile
+    @avatar = new AvatarView
+      size      :
+        width   : 30
+        height  : 30
+      # detailed  : yes
+      tooltip   :
+        title   : "#{firstName} #{lastName}"
+    , account
 
-  partial:->
-    """
-    <img class="avatar-image" src="../images/defaultavatar/default.avatar.60.png">
-    """
+  viewAppended:JView::viewAppended
+
+  pistachio:-> "{{> @avatar}}"
 
 class ModalGroupsListItem extends TopicsListItemView
 
