@@ -8,9 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
-	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -74,52 +72,6 @@ func (vm *VM) OverlayFile(p string) string {
 
 func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts")
-}
-
-func (vm *VM) ResolveRootfsFile(p string, user *User) (string, error) {
-	resolved, err := vm.resolve(p, user)
-	return vm.File("rootfs/" + resolved), err
-}
-
-func (vm *VM) resolve(p string, user *User) (string, error) {
-	constructedPath := ""
-	for _, segment := range strings.Split(path.Clean("/"+p), "/")[1:] {
-		// sanity check, should all be removed by path.Clean
-		if segment == ".." {
-			return "", fmt.Errorf("Error while processing path")
-		}
-
-		// check for symlink
-		fullPath := vm.File("rootfs/" + constructedPath + "/" + segment)
-		info, err := os.Lstat(fullPath)
-		if err != nil {
-			return "", fmt.Errorf("Error reading file or directory: %s/%s", constructedPath, segment)
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			link, err := os.Readlink(fullPath)
-			if err != nil {
-				return "", fmt.Errorf("Error reading symlink: %s/%s", constructedPath, segment)
-			}
-			if !path.IsAbs(link) {
-				link = constructedPath + "/" + link
-			}
-			constructedPath, err = vm.resolve(link, user)
-			if err != nil {
-				return "", err
-			}
-			continue
-		}
-
-		// check permissions
-		sysinfo := info.Sys().(*syscall.Stat_t)
-		readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == user.Uid)
-		if !readable {
-			return "", fmt.Errorf("Permission denied: %s/%s", constructedPath, segment)
-		}
-
-		constructedPath += "/" + segment
-	}
-	return constructedPath, nil
 }
 
 func (vm *VM) GetUserEntry(user *User) *UserEntry {

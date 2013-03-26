@@ -17,8 +17,7 @@ var watchMap = make(map[string][]*Watch)
 var watchMutex sync.Mutex
 
 type Watch struct {
-	VM       *virt.VM
-	User     *virt.User
+	VOS      *virt.VOS
 	Path     string
 	Callback dnode.Callback
 }
@@ -77,44 +76,48 @@ func init() {
 	}()
 }
 
-func WatchDir(vm *virt.VM, user *virt.User, vmPath string, callback dnode.Callback, session *kite.Session) (interface{}, error) {
-	watchMutex.Lock()
-	defer watchMutex.Unlock()
+func registerWatchMethod(k *kite.Kite) {
+	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path     string         `json:"path"`
+			OnChange dnode.Callback `json:"onChange"`
+		}
+		if args.Unmarshal(&params) != nil || params.OnChange == nil {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
+		}
 
-	if !path.IsAbs(vmPath) {
-		vmPath = "/home/" + user.Name + "/" + vmPath
-	}
-	fullPath, err := vm.ResolveRootfsFile(vmPath, user)
-	if err != nil {
-		return nil, err
-	}
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+		watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
+		if err != nil {
+			return nil, err
+		}
 
-	err = watcher.AddWatch(fullPath, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
-	if err != nil {
-		return nil, err
-	}
+		watchMutex.Lock()
+		defer watchMutex.Unlock()
 
-	watch := &Watch{vm, user, vmPath, callback}
-	watchMap[fullPath] = append(watchMap[fullPath], watch)
-	session.OnDisconnect(func() { watch.Close() })
+		watch := &Watch{vos, params.Path, params.OnChange}
+		watchMap[watchedPath] = append(watchMap[watchedPath], watch)
+		session.OnDisconnect(func() { watch.Close() })
 
-	dir, err := os.Open(fullPath)
-	defer dir.Close()
-	if err != nil {
-		return nil, err
-	}
+		dir, err := vos.Open(params.Path)
+		defer dir.Close()
+		if err != nil {
+			return nil, err
+		}
 
-	infos, err := dir.Readdir(0)
-	if err != nil {
-		return nil, err
-	}
+		infos, err := dir.Readdir(0)
+		if err != nil {
+			return nil, err
+		}
 
-	entries := make([]FileEntry, len(infos))
-	for i, info := range infos {
-		entries[i] = watch.makeFileEntry(info)
-	}
+		entries := make([]FileEntry, len(infos))
+		for i, info := range infos {
+			entries[i] = watch.makeFileEntry(info)
+		}
 
-	return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
+		return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
+	})
 }
 
 func (watch *Watch) Close() error {
@@ -148,12 +151,7 @@ func (watch *Watch) makeFileEntry(info os.FileInfo) FileEntry {
 	}
 
 	if info.Mode()&os.ModeSymlink != 0 {
-		fullPath, err := watch.VM.ResolveRootfsFile(watch.Path+"/"+info.Name(), watch.User)
-		if err != nil {
-			entry.IsBroken = true
-			return entry
-		}
-		symlinkInfo, err := os.Lstat(fullPath)
+		symlinkInfo, err := watch.VOS.Lstat(watch.Path + "/" + info.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry
