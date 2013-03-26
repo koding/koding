@@ -222,7 +222,9 @@ module.exports = [
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
+  "app/MainApp/sidebar/groupavatar.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
+  "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
@@ -588,6 +590,7 @@ module.exports = [
   "app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee",
   "app/Applications/Feeder.kdapplication/Views/feedersingleview.coffee",
   "app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
+  "app/Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
 
 
   # HOME VIEWS

@@ -10,10 +10,6 @@ class Sidebar extends JView
     @_finderExpanded  = no
     @_popupIsActive   = no
 
-    groupsController = @getSingleton 'groupsController'
-
-    currentGroupData = groupsController.getCurrentGroupData()
-
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
@@ -25,29 +21,7 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    @groupAvatar = new KDView
-      cssClass   : 'group-avatar-image-wrapper hidden'
-      tagName : 'div'
-    ,currentGroupData
-
-    @currentGroup = new KDCustomHTMLView
-      cssClass    : 'current-group-indicator'
-      pistachio   : "{{#(title)}}"
-      click       : ->
-        #KD.getSingleton('router').handleRoute
-        console.log @getData()
-    , currentGroupData
-
-    @avatarHeader = new KDView
-      cssClass : 'avatar-header hidden'
-      pistachio : '{{#(title)}}'
-      click :=>
-        # KD.getSingleton('router').handleRoute "/#{currentGroupData.slug}/Activity"
-
-    , currentGroupData
-
-    # handle group related decisions
-    groupsController.on 'GroupChanged', @bound 'initializeGroup'
+    @groupAvatar = new GroupAvatar
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -100,27 +74,15 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
-  initializeGroup:->
-    currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
-    unless currentGroupData?.data?.slug is 'koding'
-      @avatar.setClass 'shared-avatar'
-      @avatar.setWidth 80
+    @virtualizationButtons = new VirtualizationControls
 
-      # group avatar should be either a URL or a dataURL
-
-      @groupAvatar.$().css backgroundImage :  "url(#{currentGroupData?.data?.avatar or 'http://lorempixel.com/100/100/?' + @utils.getRandomNumber()})"
-      @groupAvatar.show()
-      @groupAvatar.setClass 'flash'
-      @avatarHeader.setData currentGroupData
-      @avatarHeader.show()
-    else
-      @avatar.unsetClass 'shared-avatar'
-      @avatar.setWidth 160
-      @groupAvatar.hide()
-      @groupAvatar.unsetClass 'flash'
-      @avatarHeader.setData currentGroupData
-      @avatarHeader.hide()
-    @render()
+  resetAdminNavController:->
+    @utils.wait 1000, =>
+      @adminNavController.removeAllItems()
+      if KD.isLoggedIn()
+        KD.whoami().fetchRole? (err, role)=>
+          if role is "super-admin"
+            @adminNavController.instantiateListItems adminNavItems.items
 
   setListeners:->
 
@@ -198,20 +160,20 @@ class Sidebar extends JView
     <div id="main-nav">
       <div class="avatar-placeholder">
         <div id="avatar-area">
-          {{> @groupAvatar}}
           {{> @avatar}}
-          {{> @avatarHeader}}
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
       {{> @statusLEDs}}
       {{> @nav}}
+      {{> @groupAvatar}}
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
@@ -243,7 +205,6 @@ class Sidebar extends JView
 
     @$('.avatar-placeholder').removeClass "collapsed"
     @$('#finder-panel').removeClass "expanded"
-    @avatarHeader.show() unless @avatarHeader.getData().slug is 'koding'
     if parseInt(@contentPanel.$().css("left"), 10) < 174
       @contentPanel.setClass "mouse-on-nav"
     @utils.wait 300, => callback?()
@@ -253,7 +214,6 @@ class Sidebar extends JView
     @$('.avatar-placeholder').addClass "collapsed"
     @$('#finder-panel').addClass "expanded"
     @contentPanel.unsetClass "mouse-on-nav"
-    @avatarHeader.hide()
     @utils.wait 300, =>
       callback?()
       @emit "NavigationPanelWillCollapse"
@@ -350,6 +310,14 @@ class Sidebar extends JView
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
+    ]
+
+  adminNavItems =
+    id    : "admin-navigation"
+    title : "admin-navigation"
+    items : [
+      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
     ]
 
   footerMenuItems =
