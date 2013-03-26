@@ -193,6 +193,57 @@ class StaticProfileController extends KDController
 
   reviveAdminViews:->
 
+      # reviving ADMIN views (inline edits, feeder checkboxes)
+      handleLinks = {}
+
+      handleLinks['twitter'] = new KDView
+        lazyDomId : 'profile-handle-twitter'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['twitter'].show()
+          KD.utils.defer -> handleInputs['twitter'].setFocus()
+
+      handleLinks['github'] = new KDView
+        lazyDomId : 'profile-handle-github'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['github'].show()
+          KD.utils.defer -> handleInputs['github'].setFocus()
+
+      handle.show() for name,handle of handleLinks
+
+      handleInputs = {}
+
+      for type in ['twitter','github']
+        handleLinks[type].setClass 'edit'
+        handleLinks[type].addSubView handleInputs[type] = new StaticHandleInput
+          service     : type
+          delegate    : @
+          tooltip     :
+            title     : "Enter your handle and hit enter to save."
+            placement : 'right'
+            direction : 'center'
+            offset    :
+              left    : 5
+              top     : 2
+          attributes  :
+            spellcheck: no
+          cssClass    : 'hidden'
+          blur        :->
+            @hide()
+          callback    :(value)->
+            @getData().setHandle
+              service : @getOptions().service
+              value   : value
+            , =>
+              new KDNotificationView
+                title : 'Your changes were saved.'
+              @hide()
+
+        , @profileUser
+
       if @profileTitleNameInput then @profileTitleNameInput.show()
       else
         @profileTitleNameSpan = new KDCustomHTMLView
@@ -420,8 +471,6 @@ class StaticProfileController extends KDController
 
     if user.getId() is KD.whoami().getId()
 
-      # reviving ADMIN views (inline edits, feeder checkboxes)
-
       @profileTitleNameView = new KDView
         lazyDomId : 'profile-name'
 
@@ -472,7 +521,7 @@ class StaticProfileController extends KDController
                     modal.destroy()
                     user.setStaticPageVisibility no, (err,res)=>
                       if err then log err
-                      disableLink.updatePartial 'Enable this Public Page'
+                      disableLink.updatePartial '<span class="title">Enable</span>'
                 Cancel      :
                   cssClass  : 'modal-cancel'
                   callback  : =>
@@ -480,7 +529,7 @@ class StaticProfileController extends KDController
           else
             user.setStaticPageVisibility yes, (err,res)=>
               if err then log err
-              disableLink.updatePartial 'Disable this Public Page'
+              disableLink.updatePartial '<span class="title">Disable</span>'
 
       @reviveAdminViews()
 
@@ -713,7 +762,7 @@ class StaticHandleLink extends CustomLinkView
 
 class StaticHandleInput extends KDHitEnterInputView
   constructor:(options,data)->
-    options.cssClass = 'profile-handle-customize'
+    options.cssClass = "profile-handle-customize #{options.cssClass}"
     options.defaultValue = data.profile.handles?[options.service] or ''
     super options,data
 
