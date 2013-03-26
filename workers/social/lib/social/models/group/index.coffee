@@ -32,7 +32,7 @@ module.exports = class JGroup extends Module
 
   @set
     slugifyFrom     : 'title'
-    slugTemplate    : '/#{slug}'
+    slugTemplate    : '#{slug}'
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
     permissions     :
