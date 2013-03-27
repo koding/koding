@@ -116,6 +116,9 @@ module.exports = class JKite extends jraphical.Module
             if err
               callback err
               fin()
+            else if not kite
+              # if relation found but source is not found
+              fin()
             else
               teasers.push(kite)
               fin()
