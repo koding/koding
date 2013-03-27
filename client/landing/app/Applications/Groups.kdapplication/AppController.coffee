@@ -129,6 +129,9 @@ class GroupsAppController extends AppController
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex groups, (view)->
                   view.markOwnGroup()
+          dataError         :(controller, err)->
+            log "Seems something broken:", controller, err
+
         mine                :
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
