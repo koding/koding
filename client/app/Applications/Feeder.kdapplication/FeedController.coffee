@@ -141,24 +141,18 @@ class FeedController extends KDViewController
       partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
     @noItemFound.hide()
 
-  sortByKey: (arr, key) ->
-    key = key.split(".")
-    len = key.length
-    arr.sort (a, b) ->
-      i = 0
-      while i < len
-        a = a[key[i]]
-        b = b[key[i]]
-        i++
-      if a < b
-        1
-      else if a > b
-        -1
-      else
-        0
+  # this is a temporary solution for a bug that 
+  # bongo returns correct result set in a wrong order
+  sortByKey : (array, key) ->
+    array.sort (first, second) ->
+      firstVar  = JsPath.getAt first,  key
+      secondVar = JsPath.getAt second, key
+      #quick sort-ware
+      if (firstVar < secondVar) then return 1 
+      else if (firstVar > secondVar) then return -1 
+      else return 0
 
-    arr
-  
+
   loadFeed:(filter = @selection)=>
 
     options    = @getFeedOptions()
@@ -175,7 +169,8 @@ class FeedController extends KDViewController
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
-            items = @sortByKey(items, filter.activeSort)
+            filter.activeSort = 'meta.modifiedAt' if not filter.activeSort
+            items = @sortByKey(items, filter.activeSort) #if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
             if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
