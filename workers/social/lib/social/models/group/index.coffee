@@ -392,23 +392,13 @@ module.exports = class JGroup extends Module
       @fetchReadme (err, readme)=>
         unless readme
           JMarkdownDoc = require '../markdowndoc'
-          readme = new JMarkdownDoc content: text
-
-          daisy queue = [
-            ->
-              readme.save (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            =>
+          JMarkdownDoc.create
+            content: text
+          ,(err,readme)=>
               @addReadme readme, (err)->
                 console.log err
                 if err then callback err
-                else queue.next()
-            ->
-              callback null, readme
-          ]
-
+                else callback null, readme
         else
           readme.update $set:{ content: text }, (err)=>
             if err then callback err

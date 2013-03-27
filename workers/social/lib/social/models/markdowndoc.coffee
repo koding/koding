@@ -2,6 +2,8 @@
 
 module.exports = class JMarkdownDoc extends Module
 
+  {daisy} = require 'bongo'
+
   @share()
 
   @set
@@ -42,12 +44,21 @@ module.exports = class JMarkdownDoc extends Module
     Module::update.apply this, arguments
 
   @create = (formData, callback)->
-
     data = formData
-    data.html = @generateHTML data.content
-    data.checksum = @generateChecksum data.content
+    markdownDoc = null
 
-    markdownDoc = new @ data
-    markdownDoc.save (err)->
-      if err then callback err
-      else callback null, markdownDoc
+    daisy queue = [
+      =>
+        data.html = @generateHTML data.content
+        queue.next()
+      =>
+        data.checksum = @generateChecksum data.content
+        queue.next()
+      =>
+        markdownDoc = new @ data
+        queue.next()
+      ->
+        markdownDoc.save (err)->
+          if err then callback err
+          else callback null, markdownDoc
+    ]
