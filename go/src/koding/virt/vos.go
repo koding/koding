@@ -116,9 +116,9 @@ func (vos *VOS) Create(name string) (file *os.File, err error) {
 	return
 }
 
-func (vos *VOS) Link(oldname, newname string) error {
+func (vos *VOS) Symlink(oldname, newname string) error {
 	return vos.inVosContext(oldname, func(resolved string) error {
-		if err := os.Link(resolved, newname); err != nil {
+		if err := os.Symlink(resolved, newname); err != nil {
 			return err
 		}
 		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
@@ -145,6 +145,14 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 func (vos *VOS) Open(name string) (file *os.File, err error) {
 	err = vos.inVosContext(name, func(resolved string) error {
 		file, err = os.Open(resolved)
+		return err
+	})
+	return
+}
+
+func (vos *VOS) Readlink(name string) (linkname string, err error) {
+	err = vos.inVosContext(name, func(resolved string) error {
+		linkname, err = os.Readlink(resolved)
 		return err
 	})
 	return
