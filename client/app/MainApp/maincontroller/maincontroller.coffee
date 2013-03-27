@@ -163,16 +163,16 @@ class MainController extends KDController
 
   attachListeners:->
 
-    # @on 'pageLoaded.*.*', (account)=>
+    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
-    @on '*.*.loggedOut', (account)=>
+    @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
       log "accountChanged Out"
       @loginScreen.showView =>
         @mainViewController.sidebarController.accountChanged account
         @mainViewController.getView().decorateLoginState no
 
-    @on '*.*.loggedIn', (account)=>
+    @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
       log "accountChanged In"
       @loginScreen.hideView =>
         @mainViewController.getView().decorateLoginState yes

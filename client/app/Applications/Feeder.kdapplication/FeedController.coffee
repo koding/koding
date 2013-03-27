@@ -176,5 +176,7 @@ class FeedController extends KDViewController
               @loadFeed filter
           else
             warn err
-        else
+        else unless err
           filter.dataEnd? @, rest...
+        else
+          filter.dataError? @, err
