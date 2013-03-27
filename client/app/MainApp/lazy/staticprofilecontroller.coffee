@@ -29,7 +29,7 @@ class StaticProfileController extends KDController
     @registerSingleton 'staticProfileController', @, yes
 
     @reviveViewsOnPageLoad()
-    @addEventListeners()
+    @attachListeners()
 
     @mainController = @getSingleton 'mainController'
     @lazyDomController = @getSingleton('lazyDomController')
@@ -60,7 +60,7 @@ class StaticProfileController extends KDController
       @profileContentList["#{if show then '' else 'un'}setClass"] 'has-links'
       @profileContentLinks["#{if show then 'un' else ''}setClass"] 'links-hidden'
 
-  addEventListeners:->
+  attachListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
       if KD.whoami() instanceof KD.remote.api.JGuest
