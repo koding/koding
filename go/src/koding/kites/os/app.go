@@ -204,7 +204,7 @@ func registerAppMethods(k *kite.Kite) {
 					return err
 				}
 				defer file.Close()
-				if n, err := io.Copy(tw, file); err != nil {
+				if _, err := io.Copy(tw, file); err != nil {
 					return err
 				}
 			} else {
