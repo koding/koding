@@ -177,7 +177,6 @@ module.exports = class AuthWorker extends EventEmitter
       catch e then console.error e
     @presence.listen()
 
-
   connect:->
     {bongo} = this
     bongo.mq.ready =>
@@ -203,6 +202,7 @@ module.exports = class AuthWorker extends EventEmitter
             authQueue.subscribe (message, headers, deliveryInfo)=>
               {routingKey, correlationId} = deliveryInfo
               socketId = correlationId
+              messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
               switch routingKey
                 when 'kite.join'
