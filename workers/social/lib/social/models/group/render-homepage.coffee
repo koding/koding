@@ -15,18 +15,13 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     <div id="static-landing-page">
 
     <div class="group-personal-wrapper" id="group-personal-wrapper">
-      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)">
-
-      </div>
+      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)"></div>
       <div class="group-buttons">
         <div class="group-nickname">#{slug}</div>
       </div>
       <div id="main-loader"></div>
       <div id="landing-page-sidebar"></div>
-
-      <div class="group-koding-logo" id="group-koding-logo">
-        <div class="logo" id='profile-koding-logo'></div>
-      </div>
+      <div id="landing-page-logo"></div>
 
     </div>
 
@@ -105,7 +100,6 @@ getStyles =->
   <link rel="shortcut icon" href="/images/favicon.ico" />
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/fonts/stylesheet.css" />
   """
 
 getScripts =->

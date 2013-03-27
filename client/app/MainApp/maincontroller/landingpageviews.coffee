@@ -66,12 +66,11 @@ class LandingPageNavigationController extends NavigationController
         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
           if err then console.warn err
           else if roles.length
-            # If you want to show Group Landing Page uncomment following lines
-            #
-            # items.unshift \
-            #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
-            # @_instantiateListItems items
+            @lc.landingView.hide()
             @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
+            items.unshift \
+              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+            @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
@@ -93,15 +92,10 @@ class LandingPageNavigationController extends NavigationController
 
     else if @lc.userEnteredFromProfile()
 
-      log 'entered from profile!'
       profileItems = [
-        { title : 'Home',     action : 'home',      type : 'user'}
+        { title : 'Home',     action : 'home',      type : 'user', selected : yes}
         { title : 'Activity', action : 'activity',  type : 'user'}
-        # { title : 'Topics',   action : 'topics',    type : 'user'}
-        # { title : 'People',   action : 'members',   type : 'user'}
-        # { title : 'Groups',   action : 'groups',    type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
-        # { title : 'Apps',     action : 'apps',      type : 'user'}
       ]
 
       items = [].concat.apply profileItems, items
@@ -117,8 +111,9 @@ class LandingPageNavigationController extends NavigationController
       else
         continue if itemData.loggedIn
       item = @getListView().addItem itemData
-      if itemData.action is 'home' then @getSingleton('staticProfileController').setHomeLink item
     @getDelegate().emit 'ListItemsInstantiated'
+    @selectItemByName 'Home'
+
 
 class LandingNavigationLink extends NavigationLink
 
@@ -127,5 +122,21 @@ class LandingNavigationLink extends NavigationLink
     data.type or= "account"
 
     super options, data
+    @loader = new KDLoaderView
+      size :
+        width : 20
+        height : 20
+      loaderOptions :
+        color : "#ffffff"
+    @loader.hide()
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
 
   click:->
+    @loader.show() if @getData().type is 'user'

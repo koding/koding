@@ -1,12 +1,20 @@
 
 module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
-  content ?= getDefaultuserContents()
-  {nickname, firstName, lastName, hash, about, handles} = profile
+  # content ?= getDefaultuserContents()
+  {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
+
+  staticPage ?= {}
+  {backgrounds} = staticPage
 
   firstName ?= 'Koding'
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
+
+  if backgrounds?.length
+    console.log backgrounds.length, Math.floor(Math.random()*backgrounds.length)
+    selectedBackground = backgrounds[Math.floor(Math.random()*backgrounds.length)]
+    console.log selectedBackground
 
   """
   <!DOCTYPE html>
@@ -16,29 +24,16 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
+    <div class="profile-landing#{if selectedBackground then ' custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
-    <div class="profile-personal-wrapper kdview collapsed" id="profile-personal-wrapper">
+    <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
       <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
 
       </div>
 
-      <div class="profile-buttons kdview actions" id="profile-buttons">
-
-        <a class="static-profile-button notifications" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-        <a class="static-profile-button messages" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-        <a class="static-profile-button group-switcher" href="#"><span class="count"><cite></cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a></div>
-
-      <!--<div class="profile-links">
-        <ul class='main'>
-          <li class='twitter'>#{getHandleLink 'twitter', handles}</li>
-          <li class='github'>#{getHandleLink 'github', handles}</li>
-        </ul>
-      </div>-->
-
       <div id="landing-page-sidebar" class=" profile-sidebar kdview">
         <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user invisible">
+          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
             <a class="title"><span class="main-nav-icon home"></span>Home</a>
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
@@ -46,16 +41,11 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
           </div>
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
             <a class="title"><span class="main-nav-icon about"></span>About</a></div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
-            <hr class="">
-          </div>
         </div>
        </div>
 
+      <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
 
-      <div class="profile-koding-logo">
-        <div class="logo kdview" id='profile-koding-logo'></div>
-      </div>
 
     </div>
 
@@ -64,8 +54,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
           <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name" id="profile-name"><span class="text">#{getStaticProfileTitle profile}</span></div>
-          <div class="profile-bio" id="profile-bio"><span class="text">#{getStaticProfileAbout profile}</span></div>
+          <div class="profile-name" id="profile-name"><span id="profile-name-span" class="text">#{getStaticProfileTitle profile}</span></div>
+          <div class="profile-bio" id="profile-bio"><span id="profile-bio-span" class="text">#{getStaticProfileAbout profile}</span></div>
+          <div class="profile-handles">
+            #{getHandleLink 'twitter',handles}
+            #{getHandleLink 'github',handles}
+          </div>
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
@@ -117,11 +111,36 @@ getStaticProfileAbout = (profile)->
 getBlogPosts = (blogPosts=[],firstName,lastName)->
   posts = ""
   for blog,i in blogPosts
+
+    slug = blog.slug
+    if 'string' is typeof slug
+      href = "/Activity/#{slug}"
+    else
+      href = "/Activity/#{slug.slug}"
+
+    if blog.tags?.length
+      tags = ""
+      for tag in blog.tags
+        tags+="<a class='ttag' href='#'>#{tag.title}</a>"
+      tagsList = " <div class='link-group'> in #{tags}</div>"
+    else tagsList = ""
+
     postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
+
     posts+="""
       <div class="content-item static">
-        <div class="title"><span class="text">#{blog.title}</span><span class="create-date">written on #{postDate}</span></div>
+        <div class="title">
+          <a href="#{href}" target='_blank'><span class="text">#{blog.title}</span></a>
+        </div>
         <div class="has-markdown">
+          <span class="create-date">
+            <span>
+              Published on #{postDate}#{tagsList}
+            </span>
+            <span>
+              #{getMeta blog.repliesCount, blog.meta.likes}
+            </span>
+          </span>
           <span class="data">#{blog.html}</span>
         </div>
       </div>
@@ -129,13 +148,9 @@ getBlogPosts = (blogPosts=[],firstName,lastName)->
   if i>0
     posts
   else
-    """
-      <div class="content-item default-item" id='profile-blog-default-item'>
-        <div class="has-markdown"><span class="data">#{firstName} #{lastName} has not written any Blog Posts yet.</span></div>
-      </div>
-    """
+    getDefaultUserContents firstName, lastName
 
-getHandleLink = (handle,handles)->
+getHandleLink = (handle,handles={})->
 
   handleMap =
     twitter :
@@ -150,16 +165,12 @@ getHandleLink = (handle,handles)->
   if handles?[handle]
     """
       <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}'>
-      <span class="icon"></span>
-      #{handleMap[handle].prefix or ''}#{handles[handle]}
-      </a>
+      <span class="icon #{handle}"></span><span class="text">#{handleMap[handle].prefix or ''}#{handles[handle]}</span></a>
     """
   else
     """
-      <a href='#' id='profile-handle-#{handle}'>
-      <span class="icon"></span>
-      #{handleMap[handle].text}
-      </a>
+      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}' class='hidden'>
+      <span class="icon #{handle}"></span><span class="text"></span></a>
     """
 
 getTags = (tags)->
@@ -167,6 +178,19 @@ getTags = (tags)->
     """
     <div class='ttag' data-tag='#{value}'>#{value}</div>
     """
+
+getMeta = (replies,likes)->
+  """
+  <div class="kdview static-activity-actions" id="kd-396">
+    <a class="action-link" href="#">Comment</a><a class="count #{if replies is 0 then 'hidden'}" href="#"><span class="data" data-paths="repliesCount">#{replies}</span></a> ·
+    <span class="optional">
+    <a class="action-link" href="#">Share</a> ·
+    </span>
+    <span class="kdview like-view">
+      <a class="action-link" href="#">Like</a><a class="count #{if likes is 0 then 'hidden'}" href="#"><span class="data" data-paths="meta.likes">#{likes}</span></a>
+    </span>
+  </div>
+  """
 
 getStyles =->
   """
@@ -181,7 +205,6 @@ getStyles =->
   <link rel="shortcut icon" href="/images/favicon.ico" />
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/fonts/stylesheet.css" />
   """
 
 getScripts =->
@@ -217,12 +240,13 @@ getScripts =->
   </script>
   """
 
-getDefaultuserContents =->
+getDefaultUserContents =(firstName, lastName)->
   """
-  Hi —
-
-  This is a user on Koding.  It doesn't have a readme.  That's all we know.
-
-  Sincerly,
-  The Internet
-  """.replace /\n/g, '<br>'
+    <div class="content-item default-item" id='profile-blog-default-item'>
+      <div class="title"><span class="text">Hello!</span></div>
+      <div class="has-markdown"><span class="data">
+        <p>
+          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activities' on the left to see #{firstName}'s posts on Koding.</span></div>
+        </p>
+    </div>
+  """

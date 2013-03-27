@@ -20,7 +20,7 @@ class MembersAppController extends AppController
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
-      useHeaderNav          : yes
+      useHeaderNav          : no
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
       # onboarding            :
@@ -42,12 +42,11 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               if group?
-                options = {
-                  options
-                  targetOptions: {selector}
+                relationshipOptions = {
+                  targetOptions: {options}
                 }
                 selector = {}
-                group.fetchMembers selector, options, callback
+                group.fetchMembers selector, relationshipOptions, callback
               else
                 JAccount.someWithRelationship selector, options, callback
               @setCurrentViewNumber 'all'
@@ -208,11 +207,11 @@ class MembersAppController extends AppController
     group = KD.getSingleton('groupsController').getCurrentGroup()
     return unless group
     count = group.counts?.members
-    @getView().$(".activityhead span.member-numbers-#{type}").html count or "n/a"
+    @getView().$(".feeder-header span.member-numbers-#{type}").html count or "n/a"
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
-      @getView().$(".activityhead span.optional_title").html count
+      @getView().$(".feeder-header span.optional_title").html count
       return no
 
     if count >= 10 then count = '10+'
@@ -221,7 +220,7 @@ class MembersAppController extends AppController
     count   = 'No' if count is 0
     result  = "#{count} member" + if count isnt 1 then 's' else ''
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead span.optional_title").html title
+    @getView().$(".feeder-header span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options  =

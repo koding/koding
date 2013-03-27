@@ -3,6 +3,7 @@ package pty
 import (
 	"io"
 	"os"
+	"syscall"
 )
 
 type PTY struct {
@@ -20,4 +21,7 @@ func New(ptsPath string) *PTY {
 }
 
 func (pty *PTY) SetSize(x, y uint16) {
+}
+
+func (pty *PTY) Signal(sig syscall.Signal) {
 }

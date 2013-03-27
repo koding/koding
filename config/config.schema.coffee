@@ -111,6 +111,9 @@ config =
     watchGoBroker : 1
     compileGo     : 1
     buildClient   : 1
+    runOsKite     : 0
+    runLdapServer : 0
+    runProxy      : 0
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
@@ -132,9 +135,6 @@ config =
       email     : 1
       token     : 1
       interval  : 1
-    goConfig:
-      HomePrefix   : 1
-      UseLVE       : 1
     bitly :
       username  : 1
       apiKey    : 1
@@ -173,6 +173,7 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions:
         resourceName: 1
+        authResourceName: 1
         suppressLogs: 1
         version   : 1
         mainUri   : 1

@@ -55,6 +55,13 @@ class ApplicationManager extends KDObject
       # if there is no registered appController
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
+
+      # FIXME: SY
+      # There is a joint recursion here
+      # we call kodingappscontroller.runApp which calls
+      # appManager.open back, this method should be divided
+      # to some logical parts, and runApp should call the
+      # appropriate method rather than ::open.
       if not appOptions?
         @fetchManifests ->
           kodingAppsController.runApp (KD.getAppOptions name), callback

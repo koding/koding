@@ -25,21 +25,21 @@ installWordpress = (formData, callback)->
   {path, domain, timestamp} = formData
 
   commands =
-    a : "mkdir -vp '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    b : "curl --location 'http://wordpress.org/latest.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
-    # b : "curl --location 'http://sinan.koding.com/planet.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
-    c : "unzip '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip' -d '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    d : "chmod 774 -R '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
-    e : "rm '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    a : "mkdir -vp '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    b : "curl --location 'http://wordpress.org/latest.zip' >'/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    # b : "curl --location 'http://sinan.koding.com/planet.zip' >'/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    c : "unzip '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip' -d '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    d : "chmod 774 -R '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    e : "rm '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
 
-    # f : "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet' '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
-    f : "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress' '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
+    # f : "mv '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/home/sinan/Sites/sinan.koding.com/website/planet' '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
+    f : "mv '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress' '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
 
-    g : "rm -r '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    g : "rm -r '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
 
   if path is ""
-    commands.f = "cp -R /Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress/* /Users/#{nickname}/Sites/#{domain}/website"
-    # commands.f = "cp -R '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet/*' '/Users/#{nickname}/Sites/#{domain}/website'"
+    commands.f = "cp -R /home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress/* /home/#{nickname}/Sites/#{domain}/website"
+    # commands.f = "cp -R '/home/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/home/sinan/Sites/sinan.koding.com/website/planet/*' '/home/#{nickname}/Sites/#{domain}/website'"
 
 
   parseOutput commands.a
@@ -73,7 +73,7 @@ installWordpress = (formData, callback)->
                         else
                           parseOutput res
                           parseOutput "<br>#############"
-                          parseOutput "<br>Wordpress successfully installed to: /Users/#{nickname}/Sites/#{domain}/website/#{path}"
+                          parseOutput "<br>Wordpress successfully installed to: /home/#{nickname}/Sites/#{domain}/website/#{path}"
                           parseOutput "<br>#############<br>"
                           callback? formData
                           appStorage.fetchStorage ->
@@ -139,8 +139,8 @@ class DashboardPane extends Pane
 
       @removeItem listItemView
       {path, domain, name} = listItemView.getData()
-      command = "rm -r '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
-      parseOutput "<br><br>Deleting /Users/#{nickname}/Sites/#{domain}/website/#{path}<br><br>"
+      command = "rm -r '/home/#{nickname}/Sites/#{domain}/website/#{path}'"
+      parseOutput "<br><br>Deleting /home/#{nickname}/Sites/#{domain}/website/#{path}<br><br>"
       parseOutput command
       kc.run withArgs  : {command} , (err, res)=>
         if err
@@ -152,7 +152,7 @@ class DashboardPane extends Pane
           parseOutput "<br><br>#############"
           parseOutput "<br>#{name} successfully deleted."
           parseOutput "<br>#############<br><br>"
-          tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"]
+          tc.refreshFolder tc.nodes["/home/#{nickname}/Sites/#{domain}/website"]
 
         __utils.wait 1500, ->
           split.resizePanel 0, 1
@@ -303,7 +303,7 @@ class InstallPane extends Pane
 
     @form.on "FormValidationFailed", => @form.buttons["Install Wordpress"].hideLoader()
 
-    domainsPath = "/Users/#{nickname}/Sites"
+    domainsPath = "/home/#{nickname}/Sites"
 
     kc.run
       withArgs  :
@@ -398,9 +398,9 @@ class WpApp extends JView
       dashboard.putNewItem formData
       __utils.wait 200, ->
         # timed out because we give some time to server to cleanup the temp files until it filetree refreshes
-        tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"], ->
+        tc.refreshFolder tc.nodes["/home/#{nickname}/Sites/#{domain}/website"], ->
           __utils.wait 200, ->
-            tc.selectNode tc.nodes["/Users/#{nickname}/Sites/#{domain}/website/#{path}"]
+            tc.selectNode tc.nodes["/home/#{nickname}/Sites/#{domain}/website/#{path}"]
 
   pistachio:->
 

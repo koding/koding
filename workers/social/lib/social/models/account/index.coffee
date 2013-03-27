@@ -63,7 +63,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle', 'setStaticPageAbout'
+        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
+        'setStaticPageAbout', 'addStaticBackground'
       ]
     schema                  :
       skillTags             : [String]
@@ -114,6 +115,7 @@ module.exports = class JAccount extends jraphical.Module
           showTypes         : [String]
           title             : String
           about             : String
+          backgrounds       : [String]
         avatar              : String
         status              : String
         experience          : String
@@ -279,6 +281,14 @@ module.exports = class JAccount extends jraphical.Module
     isMine        = this.equals delegate
     if isMine
       @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
+    else
+      callback? new KodingError 'Access denied!'
+
+  addStaticBackground: secure (client, url, callback)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
     else
       callback? new KodingError 'Access denied!'
 
