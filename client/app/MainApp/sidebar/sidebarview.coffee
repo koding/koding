@@ -21,7 +21,7 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    @groupAvatar = new GroupAvatar
+    # @groupAvatar = new GroupAvatar
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -166,7 +166,6 @@ class Sidebar extends JView
       {{> @avatarAreaIconMenu}}
       {{> @statusLEDs}}
       {{> @nav}}
-      {{> @groupAvatar}}
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>

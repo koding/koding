@@ -13,7 +13,7 @@
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-{librato, mongo} = KONFIG
+{librato, mongo, mq} = KONFIG
 
 os = require 'os'
 http = require 'http'
@@ -23,6 +23,11 @@ interval = if librato?.interval? then librato.interval else 10000
 
 # Node ID
 node_id = os.hostname()
+
+# RabbitMQ countr
+mq_queue_total = 0
+mq_rate_deliver = 0
+mq_rate_publish = 0
 
 # Mongo entry counts
 db_users = 0
@@ -97,6 +102,23 @@ get_stats = ->
     name: 'database'
     source: 'mongo'
     value: db_mongo
+
+  # RabbitMQ stats
+  print "MQ Queued: " + mq_queue_total
+  print "MQ Publish Rate:" + mq_rate_publish
+  print "MQ Deliver Rate: " + mq_rate_deliver
+  mq_queued =
+    name: 'mq.queued'
+    source: 'total'
+    value: mq_queue_total
+  mq_deliver_rate =
+    name: 'mq.rate'
+    source: 'deliver'
+    value: mq_rate_deliver
+  mq_publish_rate =
+    name: 'mq.rate'
+    source: 'publish'
+    value: mq_rate_publish
   
   # Combine all stats
   stats =
@@ -115,7 +137,11 @@ get_stats = ->
       total_activities,
       # Databases
       total_mysql,
-      total_mongo
+      total_mongo,
+      # MQ
+      mq_queued,
+      mq_deliver_rate,
+      mq_publish_rate
     ]
   print ""
   stats
@@ -171,6 +197,29 @@ collect_mongo = ->
   collector = db.collection 'jDatabases'
   collector.count {type: 'JDatabaseMongo'}, (err, count) ->
     db_mongo = count
+
+collect_rabbitmq = ->
+  console.log 'collecting...'
+
+  params = 
+    host    : mq.host
+    path    : '/api/overview'
+    port    : 55672
+    auth    : mq.login + ':' + mq.password
+    headers : {'content-type': 'application/json'}
+
+  http.get params, (res) ->
+    res.setEncoding 'utf8'
+    res.on 'data', (chunk) ->
+      data = JSON.parse chunk
+      mq_queue_total = data.queue_totals.messages
+      mq_rate_publish = data.message_stats.publish_details.rate
+      mq_rate_deliver = data.message_stats.deliver_get_details.rate
+
+# Collect data from RabbitMQ in every <interval>/2 seconds
+setInterval ->
+  collect_rabbitmq()
+, (interval / 2)
 
 # Collect data from Mongo in every <interval>/2 seconds
 setInterval ->

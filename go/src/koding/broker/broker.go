@@ -106,7 +106,7 @@ func main() {
 		resetControlChannel()
 		defer func() { controlChannel.Close() }()
 
-		err := controlChannel.Publish("auth", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 		if err != nil {
 			panic(err)
 		}
@@ -116,7 +116,7 @@ func main() {
 				removeFromRouteMap(routingKeyPrefix)
 			}
 			for {
-				err := controlChannel.Publish("auth", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish("authAll", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
 					break
 				}

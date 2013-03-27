@@ -180,7 +180,7 @@ module.exports = class JGroup extends Module
         else
           console.log "#{label} is saved"
           queue.next()
-    
+
     create = secure (client, formData, callback)->
       JPermissionSet = require './permissionset'
       JMembershipPolicy = require './membershippolicy'
@@ -339,10 +339,9 @@ module.exports = class JGroup extends Module
             }
         ]
 
-  fetchMyRoles: secure (client, callback)->
-    {delegate} = client.connection
+  fetchRolesByAccount:(account, callback)->
     Relationship.someData {
-      targetId: delegate.getId()
+      targetId: account.getId()
       sourceId: @getId()
     }, {as:1}, (err, cursor)->
       if err then callback err
@@ -350,6 +349,9 @@ module.exports = class JGroup extends Module
         cursor.toArray (err, arr)->
           if err then callback err
           else callback null, (doc.as for doc in arr)
+
+  fetchMyRoles: secure (client, callback)->
+    @fetchRolesByAccount client.connection.delegate, callback
 
   fetchUserRoles: permit 'grant permissions',
     success:(client, callback)->
@@ -389,7 +391,7 @@ module.exports = class JGroup extends Module
     success:(client, text, callback)->
       @fetchReadme (err, readme)=>
         unless readme
-          JMarkdownDoc = require '../markdowndoc',
+          JMarkdownDoc = require '../markdowndoc'
           readme = new JMarkdownDoc content: text
 
           daisy queue = [
