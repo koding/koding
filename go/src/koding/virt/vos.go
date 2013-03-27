@@ -150,6 +150,23 @@ func (vos *VOS) Open(name string) (file *os.File, err error) {
 	return
 }
 
+func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File, err error) {
+	err = vos.inVosContext(name, func(resolved string) error {
+		file, err = os.OpenFile(resolved, flag, perm)
+		if err != nil {
+			return err
+		}
+		if flag&os.O_CREATE != 0 {
+			if err := file.Chown(vos.user.Uid, vos.user.Uid); err != nil {
+				file.Close()
+				return err
+			}
+		}
+		return nil
+	})
+	return
+}
+
 func (vos *VOS) Readlink(name string) (linkname string, err error) {
 	err = vos.inVosContext(name, func(resolved string) error {
 		linkname, err = os.Readlink(resolved)

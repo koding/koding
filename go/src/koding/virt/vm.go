@@ -279,21 +279,17 @@ func prepareDir(p string, id int) bool {
 
 // may panic
 func (vm *VM) generateFile(p, template string, id int, executable bool) {
-	file, err := os.Create(p)
+	var mode os.FileMode = 0644
+	if executable {
+		mode = 0755
+	}
+	file, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
 	if err := templates.ExecuteTemplate(file, template, vm); err != nil {
-		panic(err)
-	}
-
-	var mod os.FileMode = 0644
-	if executable {
-		mod = 0755
-	}
-	if err = file.Chmod(mod); err != nil {
 		panic(err)
 	}
 
@@ -314,24 +310,22 @@ func copyFile(src, dst string, id int) error {
 	}
 	defer sf.Close()
 
-	df, err := os.Create(dst)
+	fi, err := sf.Stat()
 	if err != nil {
 		return err
 	}
 
-	defer sf.Close()
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
 	if _, err := io.Copy(df, sf); err != nil {
 		return err
 	}
 
 	if err := df.Chown(id, id); err != nil {
-		return err
-	}
-	info, err := sf.Stat()
-	if err != nil {
-		return err
-	}
-	if err := df.Chmod(info.Mode()); err != nil {
 		return err
 	}
 

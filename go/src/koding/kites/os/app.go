@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -92,7 +93,7 @@ func registerAppMethods(k *kite.Kite) {
 
 			switch header.Typeflag {
 			case tar.TypeReg, tar.TypeRegA:
-				file, err := vos.Create(filePath)
+				file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
 				if err != nil {
 					return nil, err
 				}
@@ -116,9 +117,6 @@ func registerAppMethods(k *kite.Kite) {
 				return nil, fmt.Errorf("Unsupported archive content.")
 			}
 
-			if err := vos.Chmod(filePath, os.FileMode(header.Mode)); err != nil {
-				return nil, err
-			}
 			if err := vos.Chtimes(filePath, header.ModTime, header.ModTime); err != nil {
 				return nil, err
 			}
@@ -252,11 +250,24 @@ func registerAppMethods(k *kite.Kite) {
 			Type, AppPath string
 		}
 		if args.Unmarshal(&params) != nil || params.AppPath == "" {
-			return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
+			return nil, &kite.ArgumentError{Expected: "{ type: [string], appPath: [string] }"}
 		}
 
 		if params.Type == "" {
 			params.Type = "blank"
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if _, err := vos.Lstat(params.AppPath); err == nil {
+			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
+				return nil, err
+			}
+		}
+
+		if err := recursiveCopy(config.Current.ProjectRoot+"/go/templates/app/"+params.Type, vos, params.AppPath); err != nil {
+			return nil, err
 		}
 
 		return true, nil
@@ -297,6 +308,41 @@ func downloadFile(url string, vos *virt.VOS, path string) error {
 	return err
 }
 
-func recursiveCopy() {
+func recursiveCopy(srcPath string, vos *virt.VOS, appPath string) error {
+	fi, err := os.Lstat(srcPath)
+	if err != nil {
+		return err
+	}
 
+	sf, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	if fi.IsDir() {
+		if err := vos.Mkdir(appPath, fi.Mode()); err != nil {
+			return err
+		}
+		entries, err := sf.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if err := recursiveCopy(srcPath+"/"+entry, vos, appPath+"/"+entry); err != nil {
+				return err
+			}
+		}
+	} else {
+		df, err := vos.OpenFile(appPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+		if err != nil {
+			return err
+		}
+
+		if _, err := io.Copy(df, sf); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
