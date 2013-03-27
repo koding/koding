@@ -34,12 +34,13 @@ module.exports = class JKite extends jraphical.Module
       kiteName      :
         type        : String
         required    : yes
-      secret        :
+      key           :
         type        : String
         required    : no
-      key          :
-        type        : String
+      count         :
+        type        : Number
         required    : no
+
     relationships   :->
       JAccount = require './account'
       creator       :
@@ -51,24 +52,20 @@ module.exports = class JKite extends jraphical.Module
 
     crypto = require 'crypto'
 
-    crypto.randomBytes 12, (ex1, key) ->
-      crypto.randomBytes 12, (ex2, secret) ->
-        #todo remove prefixes
-        apiKey    = "key-" + key.toString 'hex'
-        apiSecret = "secret-" + secret.toString 'hex'
-        data.key = apiKey
-        data.secret = apiSecret
+    crypto.randomBytes 32, (ex1, key) ->
+      apiKey   = key.toString 'hex'
+      data.key = apiKey
 
-        kite = new JKite data
-        kite.save (err)=>
-          if err
-            callback err
-          else
-            kite.addCreator delegate, (err)=>
-              if err
-                callback err
-              else
-                callback null, kite
+      kite = new JKite data
+      kite.save (err)=>
+        if err
+          callback err
+        else
+          kite.addCreator delegate, (err)=>
+            if err
+              callback err
+            else
+              callback null, kite
 
 
   @get = secure ({connection:{delegate}}, data, callback)->
@@ -90,8 +87,8 @@ module.exports = class JKite extends jraphical.Module
     {limit, skip, sort}  = data
 
     @one {
-      key    : data.key
-      secret : data.secret
+      key      : data.key
+      kiteName : data.kiteName
     }, (err, data)=>
       if err
         callback err
@@ -118,9 +115,6 @@ module.exports = class JKite extends jraphical.Module
           root.fetchSource (err, kite)->
             if err
               callback err
-              fin()
-            else if not kite
-              console.warn "Source does not exists:", root.sourceName, root.sourceId
               fin()
             else
               teasers.push(kite)
