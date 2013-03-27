@@ -110,7 +110,7 @@ func main() {
 		return vm.AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
-	registerWatchMethod(k)
+	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
 

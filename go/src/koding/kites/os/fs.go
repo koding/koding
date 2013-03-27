@@ -2,6 +2,8 @@ package main
 
 import (
 	"exp/inotify"
+	"fmt"
+	"io"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -50,7 +52,7 @@ func init() {
 				for _, watch := range watchMap[path.Dir(ev.Name)] {
 					watch.Callback(map[string]interface{}{
 						"event": "added",
-						"file":  watch.makeFileEntry(info),
+						"file":  makeFileEntry(watch.VOS, watch.Path, info),
 					})
 				}
 				watchMutex.Unlock()
@@ -76,29 +78,89 @@ func init() {
 	}()
 }
 
-func registerWatchMethod(k *kite.Kite) {
-	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+func registerFileSystemMethods(k *kite.Kite) {
+	k.Handle("fs.readFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
-			Path     string         `json:"path"`
-			OnChange dnode.Callback `json:"onChange"`
+			Path string
 		}
-		if args.Unmarshal(&params) != nil || params.OnChange == nil {
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		file, err := vos.Open(params.Path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		fi, err := file.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		if fi.Size() > 10*1024*1024 {
+			return nil, fmt.Errorf("File larger than 10MiB.")
+		}
+
+		buf := make([]byte, fi.Size())
+		if _, err := io.ReadFull(file, buf); err != nil {
+			return nil, err
+		}
+
+		return map[string]interface{}{"content": buf}, nil
+	})
+
+	k.Handle("fs.writeFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path    string
+			Content []byte
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		file, err := vos.Create(params.Path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		return file.Write(params.Content)
+	})
+
+	k.Handle("fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path     string
+			OnChange dnode.Callback
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
 		user, vm := findSession(session)
 		vos := vm.OS(user)
-		watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
-		if err != nil {
-			return nil, err
+		response := make(map[string]interface{})
+
+		if params.OnChange != nil {
+			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
+			if err != nil {
+				return nil, err
+			}
+
+			watchMutex.Lock()
+			defer watchMutex.Unlock()
+
+			watch := &Watch{vos, params.Path, params.OnChange}
+			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
+			session.OnDisconnect(func() { watch.Close() })
+			response["stopWatching"] = func() { watch.Close() }
 		}
-
-		watchMutex.Lock()
-		defer watchMutex.Unlock()
-
-		watch := &Watch{vos, params.Path, params.OnChange}
-		watchMap[watchedPath] = append(watchMap[watchedPath], watch)
-		session.OnDisconnect(func() { watch.Close() })
 
 		dir, err := vos.Open(params.Path)
 		defer dir.Close()
@@ -111,12 +173,13 @@ func registerWatchMethod(k *kite.Kite) {
 			return nil, err
 		}
 
-		entries := make([]FileEntry, len(infos))
+		files := make([]FileEntry, len(infos))
 		for i, info := range infos {
-			entries[i] = watch.makeFileEntry(info)
+			files[i] = makeFileEntry(vos, params.Path, info)
 		}
+		response["files"] = files
 
-		return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
+		return response, nil
 	})
 }
 
@@ -141,7 +204,7 @@ func (watch *Watch) Close() error {
 	return nil
 }
 
-func (watch *Watch) makeFileEntry(info os.FileInfo) FileEntry {
+func makeFileEntry(vos *virt.VOS, dir string, info os.FileInfo) FileEntry {
 	entry := FileEntry{
 		Name:  info.Name(),
 		IsDir: info.IsDir(),
@@ -151,7 +214,7 @@ func (watch *Watch) makeFileEntry(info os.FileInfo) FileEntry {
 	}
 
 	if info.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := watch.VOS.Lstat(watch.Path + "/" + info.Name())
+		symlinkInfo, err := vos.Lstat(dir + "/" + info.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry
