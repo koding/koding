@@ -169,8 +169,7 @@ class FeedController extends KDViewController
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
-            filter.activeSort = 'meta.modifiedAt' if not filter.activeSort
-            items = @sortByKey(items, filter.activeSort) #if filter.activeSort
+            items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
             if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
