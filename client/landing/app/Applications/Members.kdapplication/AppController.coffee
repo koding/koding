@@ -42,12 +42,11 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               if group?
-                options = {
-                  options
-                  targetOptions: {selector}
+                relationshipOptions = {
+                  targetOptions: {options}
                 }
                 selector = {}
-                group.fetchMembers selector, options, callback
+                group.fetchMembers selector, relationshipOptions, callback
               else
                 JAccount.someWithRelationship selector, options, callback
               @setCurrentViewNumber 'all'
