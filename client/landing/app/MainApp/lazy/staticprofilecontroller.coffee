@@ -45,21 +45,6 @@ class StaticProfileController extends KDController
       unless err
         @reviveViewsOnUserLoad user
 
-  addLogic:(type,callback=->)->
-      unless @controllers[type]?
-        @addLogicForType type, =>
-          @controllers[type]?.hideLazyLoader()
-          callback()
-      else
-        @controllers[type]?.hideLazyLoader()
-        @showWrapper @wrappers[type]
-        callback()
-
-  displaySidebar:(show=yes,delay=250)->
-    @utils.wait delay, =>
-      @profileContentList["#{if show then '' else 'un'}setClass"] 'has-links'
-      @profileContentLinks["#{if show then 'un' else ''}setClass"] 'links-hidden'
-
   attachListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
@@ -111,7 +96,7 @@ class StaticProfileController extends KDController
 
       @staticDefaultItem.show()
       @displaySidebar no
-      # @showLoadingBar()
+
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
@@ -122,7 +107,6 @@ class StaticProfileController extends KDController
 
     @on 'ActivityLinkClicked', (callback=->)=>
       @addLogic 'activity'
-      # @showLoadingBar()
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
         @displaySidebar yes
@@ -168,8 +152,6 @@ class StaticProfileController extends KDController
       unless @profileUser
         callback()
         return
-
-      @showLoadingBar() unless type in ['static']
 
       facets = [facets] if 'string' is typeof facets
 
@@ -598,27 +580,32 @@ class StaticProfileController extends KDController
         controller.showNoItemWidget() unless type in ['static']
 
 
-    @hideLoadingBar()
+  reviveVisitorViews:-> # put onboarding stuff here
 
-  hideLoadingBar:->
-    # @profileLoadingBar.unsetClass 'active'
-    # @profileLoaderView.hide()
-
-  showLoadingBar:->
-    # @profileLoadingBar.setClass 'active'
-    # @profileLoaderView.show()
-
-
-  reviveVisitorViews:->
+  displaySidebar:(show=yes,delay=250)->
+    @utils.wait delay, =>
+      @profileContentList["#{if show then '' else 'un'}setClass"] 'has-links'
+      @profileContentLinks["#{if show then 'un' else ''}setClass"] 'links-hidden'
 
 
   getAllowedTypes:(@profileUser)->
     allowedTypes = @profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
 
+
   sanitizeStaticContent:(view)->
     view.$(".content-item > .has-markdown > span.data a").each (i,element)->
       $(element).attr target : '_blank'
 
+
+  addLogic:(type,callback=->)->
+      unless @controllers[type]?
+        @addLogicForType type, =>
+          @controllers[type]?.hideLazyLoader()
+          callback()
+      else
+        @controllers[type]?.hideLazyLoader()
+        @showWrapper @wrappers[type]
+        callback()
 
   addLogicForType:(type,callback=->)->
     switch type
@@ -630,6 +617,7 @@ class StaticProfileController extends KDController
 
       when 'static'
        @addStaticLogic callback
+
 
   addActivityLogic:(callback=->)->
     activityController = new ActivityListController
@@ -659,7 +647,7 @@ class StaticProfileController extends KDController
         bypass    : yes
       , (err,activities)=>
         @appendActivities err,activities,'activity'
-        @hideLoadingBar()
+
 
     @controllers['activity'] = activityController
     @wrappers['activity']    = activityListWrapper
@@ -667,8 +655,6 @@ class StaticProfileController extends KDController
     callback()
 
   addAboutLogic:(callback=->)->
-
-    @showLoadingBar()
 
     @wrappers['about'] = yes
 
@@ -681,7 +667,7 @@ class StaticProfileController extends KDController
             about : about or ''
           , @profileUser
 
-          @hideLoadingBar()
+
 
           @wrappers['about'] = aboutWrapper
           @showWrapper aboutWrapper
