@@ -14,10 +14,9 @@ class StaticProfileController extends KDController
 
   placeholderBioText      = 'Click here to enter a subtitle'
 
+
   constructor:(options,data)->
     super options,data
-
-    console.time 'StaticProfileController'
 
     appManager = @getSingleton 'appManager'
 
@@ -44,6 +43,7 @@ class StaticProfileController extends KDController
       if err then log err,user,name
       unless err
         @reviveViewsOnUserLoad user
+
 
   attachListeners:->
 
@@ -104,7 +104,6 @@ class StaticProfileController extends KDController
         callback()
 
 
-
     @on 'ActivityLinkClicked', (callback=->)=>
       @addLogic 'activity'
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
@@ -122,14 +121,9 @@ class StaticProfileController extends KDController
 
 
     @on 'CustomizeLinkClicked',=>
+      if (KD.whoami().getId() isnt @profileUser.getId()) or @customizeViewsAttached
+        return
 
-      return if KD.whoami().getId() isnt @profileUser.getId()
-
-      # @avatarAreaIconMenu.emit 'CustomizeLinkClicked'
-
-      # reviving customization
-
-      return if @customizeViewsAttached
       @customizeViewsAttached = yes
 
       types = @getAllowedTypes @profileUser
@@ -187,6 +181,7 @@ class StaticProfileController extends KDController
           @lazyDomController.hideLandingPage()
         else
           @mainController.loginScreen.animateToForm 'register'
+
 
   reviveAdminViews:->
 
@@ -390,9 +385,8 @@ class StaticProfileController extends KDController
               new KDNotificationView
                 title   : 'Description updated.'
 
-  reviveViewsOnPageLoad:->
 
-    console.time 'reviving page elements on pageload.'
+  reviveViewsOnPageLoad:->
 
     allowedTypes  = ['CBlogPostActivity']
     blockedTypes  = []
@@ -461,23 +455,6 @@ class StaticProfileController extends KDController
         if event.target.id is 'profile-personal-wrapper'
           @mainController.emit "landingSidebarClicked"
 
-    #
-    # allow for sidebar lock here!
-    # resize avatar to center or something
-    #
-
-    # @profilePersonalWrapperView.on 'mouseenter',(event)=>
-    #     @profilePersonalWrapperView.setWidth 160
-    #     # @profileContentWrapperView.$().css marginLeft : "160px"
-
-    # @profilePersonalWrapperView.on 'mouseleave',(event)=>
-    #   unless @lockSidebar
-    #     @profilePersonalWrapperView.setWidth 50
-    #     # @profileContentWrapperView.$().css marginLeft : "50px"
-
-    # reviving feed type selectors that will activate feed facets
-
-
     @staticDefaultItem = new KDView
       lazyDomId : 'profile-blog-default-item'
 
@@ -506,36 +483,8 @@ class StaticProfileController extends KDController
         color       : '#444'
     @profileLoaderView.hide()
 
-    # reviving logo for the slideup animation
-    # @profileLogoInfo = new CustomLinkView
-    #   title : 'Go to Koding.com'
-    #   lazyDomId : 'profile-koding-logo-info'
-
-
-    # @profileLogoWrapperView = new KDView
-    #   lazyDomId: 'profile-koding-logo-wrapper'
-    #   bind : 'mouseenter mouseleave'
-    #   click :=> @emit 'LogoClicked'
-
-    # @profileLogoView = new KDView
-    #   lazyDomId: 'profile-koding-logo'
-
-    # @profileLogoWrapperView.on 'mouseenter', (event)=>
-    #     @profileLogoView.setClass 'with-text'
-    #     @profileLogoInfo.setClass 'in'
-
-    # @profileLogoWrapperView.on 'mouseleave', (event)=>
-    #   @profileLogoView.unsetClass 'with-text'
-    #   @profileLogoInfo.unsetClass 'in'
-
-    # @repositionLogoView()
-
-    console.timeEnd 'reviving page elements on pageload.'
-
 
   reviveViewsOnUserLoad:(user)->
-
-    console.time 'reviving page elements on userload.'
 
     @utils.defer => @emit 'HomeLinkClicked'
 
@@ -547,9 +496,6 @@ class StaticProfileController extends KDController
 
     else
       @reviveAdminViews()
-
-    console.timeEnd 'reviving page elements on userload.'
-    console.timeEnd 'StaticProfileController'
 
 
   appendActivities:(err,activities, type)->
@@ -582,6 +528,7 @@ class StaticProfileController extends KDController
 
   reviveVisitorViews:-> # put onboarding stuff here
 
+
   displaySidebar:(show=yes,delay=250)->
     @utils.wait delay, =>
       @profileContentList["#{if show then '' else 'un'}setClass"] 'has-links'
@@ -606,6 +553,7 @@ class StaticProfileController extends KDController
         @controllers[type]?.hideLazyLoader()
         @showWrapper @wrappers[type]
         callback()
+
 
   addLogicForType:(type,callback=->)->
     switch type
@@ -648,11 +596,11 @@ class StaticProfileController extends KDController
       , (err,activities)=>
         @appendActivities err,activities,'activity'
 
-
     @controllers['activity'] = activityController
     @wrappers['activity']    = activityListWrapper
 
     callback()
+
 
   addAboutLogic:(callback=->)->
 
@@ -667,11 +615,10 @@ class StaticProfileController extends KDController
             about : about or ''
           , @profileUser
 
-
-
           @wrappers['about'] = aboutWrapper
           @showWrapper aboutWrapper
           callback()
+
 
   addStaticLogic:(callback=->)->
 
@@ -707,13 +654,11 @@ class StaticProfileController extends KDController
     @profileShowMoreView.hide()
 
     for own name,wrapper of @wrappers
-      # log name, wrapper
       wrapper?.hide?()
 
   showWrapper:(wrapper)->
     @hideWrappers()
     wrapper.show()
-
 
 
 
@@ -761,6 +706,7 @@ class StaticNavCheckBox extends KDInputView
       @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes(@getData())
 
 
+
 class StaticHandleLink extends CustomLinkView
   constructor:(options,data)->
     options.cssClass = 'static-handle-link'
@@ -785,70 +731,74 @@ class StaticHandleLink extends CustomLinkView
 
     return tmpl
 
+
+
 class StaticHandleInput extends KDHitEnterInputView
   constructor:(options,data)->
     options.cssClass = "profile-handle-customize #{options.cssClass}"
     options.defaultValue = data.profile.handles?[options.service] or ''
     super options,data
 
-class StaticAppsListItem extends KDListItemView
-  partial:(data)->
-    # log data
-    "<div class='static-app'>
-       #{data.title}
-    </div>"
 
-class StaticGroupsListItem extends KDListItemView
-  partial:(data)->
-    # log data
-    "<div class='static-topic'>
-       #{data.title}
-    </div>"
 
-class StaticTopicsListItem extends KDListItemView
-  constructor:(options,data)->
-     super options,data
+# class StaticAppsListItem extends KDListItemView
+#   partial:(data)->
+#     # log data
+#     "<div class='static-app'>
+#        #{data.title}
+#     </div>"
 
-     @titleView = new KDCustomHTMLView
-       tagName : 'span'
-       cssClass : 'static-topic-title'
-       partial : @getData().title
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
 
-  pistachio:->
-    """
-    <div class='static-topic'>
-       {{> @titleView}}
-    </div>
-    """
+# class StaticGroupsListItem extends KDListItemView
+#   partial:(data)->
+#     # log data
+#     "<div class='static-topic'>
+#        #{data.title}
+#     </div>"
 
-class StaticMembersListItem extends KDListItemView
-  constructor:(options,data)->
-    super options,data
-    @avatarView = new AvatarView
-      size    : {width: 30, height: 30}
-      noTooltip : no
-      click:->
-    ,@getData()
 
-    @setClass 'static-member'
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
+# class StaticTopicsListItem extends KDListItemView
+#   constructor:(options,data)->
+#      super options,data
 
-  pistachio:->
-    """
-    {{> @avatarView}}
-    """
+#      @titleView = new KDCustomHTMLView
+#        tagName : 'span'
+#        cssClass : 'static-topic-title'
+#        partial : @getData().title
 
-  # partial:(data)->
-  #   {profile} = data
-  #   "<div class='static-member'>
-  #      #{profile.nickname}
-  #   </div>"
+#   viewAppended:->
+#     super
+#     @setTemplate @pistachio()
+#     @template.update()
+
+#   pistachio:->
+#     """
+#     <div class='static-topic'>
+#        {{> @titleView}}
+#     </div>
+#     """
+
+
+
+# class StaticMembersListItem extends KDListItemView
+#   constructor:(options,data)->
+#     super options,data
+#     @avatarView = new AvatarView
+#       size    : {width: 30, height: 30}
+#       noTooltip : no
+#       click:->
+#     ,@getData()
+
+#     @setClass 'static-member'
+
+#   viewAppended:->
+#     super
+#     @setTemplate @pistachio()
+#     @template.update()
+
+#   pistachio:->
+#     """
+#     {{> @avatarView}}
+#     """
