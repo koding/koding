@@ -180,6 +180,9 @@ class ActivityAppController extends AppController
           new Date lastItemData.createdAtTimestamps.first
         else
           new Date lastItemData.meta.createdAt
+
+        if isNan lastDate.getTime()
+          _rollbar.push msg:"bucket corrupted timestamp", item:lastItemData
       else
         lastDate = new Date
 
