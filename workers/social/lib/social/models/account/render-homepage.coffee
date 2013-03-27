@@ -44,9 +44,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
        </div>
 
-      <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
-
-
+      <div id="landing-page-logo"></div>
     </div>
 
     <div class="profile-content-wrapper kdview" id="profile-content-wrapper">
