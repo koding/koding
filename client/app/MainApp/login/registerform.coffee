@@ -242,7 +242,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     @addCustomData "kodingenUser", "on"
     @kodingenUser = yes
-    @parent.setClass "taller"
+    @parent?.setClass "taller"
     @username.setClass "kodingen"
     @password.input.$().attr "placeholder", "Type your kodingen password"
 
@@ -259,7 +259,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     @removeCustomData "kodingenUser"
     @kodingenUser = no
-    @parent.unsetClass "taller"
+    @parent?.unsetClass "taller"
     @username.unsetClass "kodingen"
     @password.input.$().attr "placeholder", "Create a password"
 

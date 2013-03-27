@@ -80,7 +80,7 @@ func Send(event url.Values) {
 	if err != nil || resp.StatusCode != http.StatusCreated {
 		fmt.Println("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
 	}
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
 }
@@ -220,7 +220,7 @@ func LogGauges(reportTime int64) {
 	if err != nil || resp.StatusCode != http.StatusOK {
 		fmt.Printf("logger error: http.Post failed.\n%v\n%v\n%v\n", string(b), resp, err)
 	}
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
 }

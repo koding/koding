@@ -7,6 +7,15 @@ class WebTermController extends AppController
     hiddenHandle : no
     behavior     : "application"
 
+  constructor:(options = {}, data)->
+
+    options.view    = new WebTermAppView
+    options.appInfo =
+      title        : "Terminal"
+      cssClass     : "webterm"
+
+    super options, data
+
   # TODO: the below was pasted in here during a merge.  fixme C.T.
   # bringToFront: ->
   #   appStorage = new AppStorage 'WebTerm', '1.0'

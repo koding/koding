@@ -8,27 +8,6 @@ class GroupsListItemView extends KDListItemView
     group = @getData()
 
     {title, slug, body} = group
-    # @backgroundImage = "../images/defaultavatar/default.group.128.png"
-    @backgroundImage = "//lorempixel.com/128/128?#{@utils.getRandomNumber()}"
-    @avatar = new KDCustomHTMLView
-      tagName : 'img'
-      cssClass : 'avatar-image'
-      attributes :
-        # src : group.avatar or "/images/defaultavatar/default.group.128.png"
-        src : group.avatar or @backgroundImage
-
-    # @settingsButton = new KDButtonViewWithMenu
-    #     cssClass    : 'transparent groups-settings-context groups-settings-menu'
-    #     title       : ''
-    #     icon        : yes
-    #     delegate    : @
-    #     iconClass   : "arrow"
-    #     menu        : @settingsMenu group
-    #     callback    : (event)=> @settingsButton.contextMenu event
-
-    # TODO : hide settings button for non-admins
-    # @settingsButton.hide()
-
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -38,19 +17,6 @@ class GroupsListItemView extends KDListItemView
       pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
     , group
-
-    # @bodyView = new KDCustomHTMLView
-    #   tagName     : 'div'
-    #   partial     : group.body
-    #   tooltip     :
-    #     title     : body
-    #     direction : 'right'
-    #     placement : 'top'
-    #     offset    :
-    #       top     : 6
-    #       left    : -2
-    #     showOnlyWhenOverflowing : yes
-    # ,group
 
     @joinButton = new JoinButton
       style           : if group.member then "join-group follow-btn following-topic" else "join-group follow-btn"
@@ -141,7 +107,6 @@ class GroupsListItemView extends KDListItemView
 
   pistachio:->
     """
-    <span class="avatar">{{>@avatar}}</span>
     <div class="wrapper">
       {h3{> @titleLink}}
       <p>
@@ -149,13 +114,13 @@ class GroupsListItemView extends KDListItemView
       </p>
       {article{ #(body)}}
     </div>
+    <div class='members-list-wrapper hidden'>
+      {{> @members}}
+    </div>
     <div class='side-wrapper'>
       <div class='badge-wrapper clearfix'>
         {{> @memberBadge}}
         {{> @privateBadge}}
-      </div>
-      <div class='members-list-wrapper hidden'>
-        {{> @members}}
       </div>
     </div>
     """

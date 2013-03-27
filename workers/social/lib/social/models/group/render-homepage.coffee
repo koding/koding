@@ -21,7 +21,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
       </div>
       <div id="main-loader"></div>
       <div id="landing-page-sidebar"></div>
-      <div id="landing-page-avatar-drop" class="group-avatar-drop"></div>
+      <div id="landing-page-logo"></div>
 
     </div>
 
@@ -100,7 +100,6 @@ getStyles =->
   <link rel="shortcut icon" href="/images/favicon.ico" />
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/fonts/stylesheet.css" />
   """
 
 getScripts =->
