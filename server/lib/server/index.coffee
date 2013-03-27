@@ -111,21 +111,20 @@ app.get "/-/kite/login", (req, res) ->
   rabbitAPI.setMQ mq
   
   {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.key, secret : req.query.secret}, (err, kite) =>
+  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
     res.header "Content-Type", "application/json"
 
     if err? or !kite?
       res.send 401
-      return
-
-    rabbitAPI.newUser req.query.key, req.query.secret, kite.kiteName, (err, data) =>
-      creds =
-        protocol  : 'amqp'
-        host      : mq.host
-        username  : data.username
-        password  : data.password
-      res.header "Content-Type", "application/json"
-      res.send JSON.stringify creds
+    else
+      rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
+        creds =
+          protocol  : 'amqp'
+          host      : mq.host
+          username  : data.username
+          password  : data.password
+        res.header "Content-Type", "application/json"
+        res.send JSON.stringify creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
