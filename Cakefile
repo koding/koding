@@ -358,6 +358,10 @@ task 'run', (options)->
   options.configFile = "dev" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
+  oldIndex = nodePath.join __dirname, "website/index.html"
+  if fs.existsSync oldIndex
+    fs.unlinkSync oldIndex
+
   config.buildClient = yes if options.buildClient
 
   queue = []
