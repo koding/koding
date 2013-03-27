@@ -50,6 +50,8 @@ class TopicsAppController extends AppController
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
                   followButton.redecorateState()
+          dataError         :->
+            log "Seems something broken:", arguments
 
         following           :
           title             : "Following"
