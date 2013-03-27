@@ -30,6 +30,14 @@ class StaticGroupController extends KDController
     @navLinks = []
     @currentFacets = []
 
+    @reviveViews()
+
+    @checkGroupUserRelation()
+    @attachListeners()
+
+
+  reviveViews :->
+
     @landingView = new KDView
       lazyDomId : 'static-landing-page'
 
@@ -140,10 +148,6 @@ class StaticGroupController extends KDController
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
-
-    @checkGroupUserRelation()
-    @attachListeners()
-
   checkGroupUserRelation:->
 
     KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
