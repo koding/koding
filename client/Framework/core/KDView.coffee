@@ -86,19 +86,19 @@ class KDView extends KDObject
     @setInstanceVariables options
     @defaultInit options,data
 
-    if location.hostname is "localhost"
-      @listenTo
-        KDEventTypes        : "click"
-        listenedToInstance  : @
-        callback            : (publishingInstance, event)=>
-          if event.metaKey and event.altKey and event.ctrlKey
-            log @getData()
-            event.stopPropagation?()
-            event.preventDefault?()
-            return false
-          else if event.altKey and (event.metaKey or event.ctrlKey)
-            log @
-            return false
+    # if location.hostname is "localhost"
+    @listenTo
+      KDEventTypes        : "click"
+      listenedToInstance  : @
+      callback            : (publishingInstance, event)=>
+        if event.metaKey and event.altKey and event.ctrlKey
+          log @getData()
+          event.stopPropagation?()
+          event.preventDefault?()
+          return false
+        else if event.altKey and (event.metaKey or event.ctrlKey)
+          log @
+          return false
 
     @on 'childAppended', @childAppended.bind @
 
