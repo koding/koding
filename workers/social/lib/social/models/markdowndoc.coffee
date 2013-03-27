@@ -11,12 +11,13 @@ module.exports = class JMarkdownDoc extends Module
       content   : String
       html      : String
       checksum  : String
+    sharedMethods   :
+      static        : ['generateHTML']
 
-  @generateHTML=(content)->
-    options =
-      gfm : yes
-      sanitize : yes
-      highlight : (code, lang)->
+  @generateHTML=(content,options={},callback=->)->
+    options.gfm         ?= yes
+    options.sanitize    ?= yes
+    options.highlight   ?= (code, lang)->
         hljs = require('highlight.js')
         try
           hljs.highlight(lang, code).value
@@ -25,11 +26,14 @@ module.exports = class JMarkdownDoc extends Module
             hljs.highlightAuto(code).value
           catch _e
             code
-      breaks : yes
-      langPrefix : 'lang-'
+    options.breaks      ?= yes
+    options.langPrefix  ?= 'lang-'
+
     marked = require('marked')
     marked.setOptions options
-    marked content
+    markdown = marked content
+    callback markdown
+    return markdown
 
   @generateChecksum=(content)->
     require('crypto')
