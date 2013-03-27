@@ -12,6 +12,8 @@ class StaticProfileController extends KDController
     'CDiscussionActivity' : 'Discussions'
     'CTutorialActivity'   : 'Tutorials'
 
+  placeholderBioText      = 'Click here to enter a subtitle'
+
   constructor:(options,data)->
     super options,data
 
@@ -271,6 +273,7 @@ class StaticProfileController extends KDController
       handleLinks = {}
 
       handleLinks['twitter'] = new KDView
+        tagName : 'a'
         lazyDomId : 'profile-handle-twitter'
         tooltip :
           title : 'Click here to change your Twitter handle'
@@ -281,6 +284,7 @@ class StaticProfileController extends KDController
           KD.utils.defer -> handleInputs['twitter'].setFocus()
 
       handleLinks['github'] = new KDView
+        tagName : 'a'
         lazyDomId : 'profile-handle-github'
         tooltip :
           title : 'Click here to change your GitHub handle'
@@ -372,14 +376,22 @@ class StaticProfileController extends KDController
             @utils.defer => @profileTitleBioInput.setFocus()
             @profileTitleBioView.setClass 'edit'
 
+        unless @profileUser.profile.about or @profileUser.profile.staticPage?.about
+          @profileTitleBioSpan.updatePartial placeholderBioText
+          @profileTitleBioSpan.setClass 'dim'
+
+        log placeholderBioText
+
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
-            or "#{@profileUser.profile.about}"
+            or if @profileUser.profile.about
+              "#{@profileUser.profile.about}"
+            else placeholderBioText
           enableTabKey  : yes
           tooltip       :
             placement   : 'bottom'
             direction   : 'right'
-            title       : 'Enter your page description and hit enter to save. Leaving this field empty will put your bio as default description.'
+            title       : 'Enter a subtitle and hit enter to save. Leaving this field empty will put your bio as default.'
 
           blur          : =>
             @profileTitleBioInput.hide()
@@ -390,7 +402,8 @@ class StaticProfileController extends KDController
             @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
               @profileTitleBioView.unsetClass 'edit'
               if value is ''
-                value = "#{@profileUser.profile.about}"
+                value = "#{@profileUser.profile.about or placeholderBioText}"
+              else @profileTitleBioSpan.unsetClass 'dim'
               @profileTitleBioSpan.updatePartial value
               new KDNotificationView
                 title   : 'Description updated.'
