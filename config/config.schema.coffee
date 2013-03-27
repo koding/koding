@@ -173,7 +173,6 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions:
         resourceName: 1
-        authResourceName: 1
         suppressLogs: 1
         version   : 1
         mainUri   : 1
