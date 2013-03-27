@@ -4,8 +4,7 @@ KiteBase = require './node_modules/kite-amqp/lib/kite-amqp/kite.coffee'
 config = 
   name      : 'cihangir'
   apiAdress : 'http://localhost:3000'
-  key       : "key-01eea49d10ca9542eb9fcd75"
-  secret    : "secret-b14c70d9e5f29b4e41799e85"
+  key       : "f3671e932f984ab6180a2caed83c70c238b9f9b9e29f8e677e6b93a99b878378"
 
 kite = new KiteBase config,
   hello: (options, callback) ->
