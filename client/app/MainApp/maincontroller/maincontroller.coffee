@@ -138,6 +138,10 @@ class MainController extends KDController
 
   doLogout:->
 
+    # fixme: make a old tv switch off animation and reload
+    # $('body').addClass "turn-off"
+    return location.reload yes
+
     @getSingleton("lazyDomController").showLandingPage =>
       # @loginScreen.showView =>
       KD.getSingleton("appManager").quitAll =>
@@ -156,8 +160,6 @@ class MainController extends KDController
         title     : "<span></span>Come back soon!"
         duration  : 2000
 
-      # fixme: make a old tv switch off animation and reload
-      @utils.wait 2000, -> location.reload yes
 
   attachListeners:->
 
