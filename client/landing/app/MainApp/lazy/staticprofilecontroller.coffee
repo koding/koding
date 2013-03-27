@@ -113,7 +113,7 @@ class StaticProfileController extends KDController
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
-        @staticPageSettingsButton.hide()
+        @staticPageSettingsButton?.hide()
         callback()
 
 
@@ -124,7 +124,7 @@ class StaticProfileController extends KDController
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
         @showWrapper @wrappers['activity']
         @displaySidebar yes
-        @staticPageSettingsButton.show()
+        @staticPageSettingsButton?.show()
         callback()
 
 
@@ -132,7 +132,7 @@ class StaticProfileController extends KDController
       @addLogic 'about', =>
         callback()
       @displaySidebar no
-      @staticPageSettingsButton.hide()
+      @staticPageSettingsButton?.hide()
 
 
     @on 'CustomizeLinkClicked',=>

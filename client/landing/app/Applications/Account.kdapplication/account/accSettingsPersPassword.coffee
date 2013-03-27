@@ -45,7 +45,7 @@ class AccountEditSecurity extends KDView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => @passwordSwappable.swapViews()
 
     # password STATIC PART
     nonPasswordInputs = new KDView cssClass : "initialval clearfix"
@@ -57,9 +57,9 @@ class AccountEditSecurity extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => @passwordSwappable.swapViews()
 
-    @passwordSwappable = passwordSwappable = new AccountsSwappable
+    @passwordSwappable = new AccountsSwappable
       views    : [passwordInputs, nonPasswordInputs]
       cssClass : "clearfix"
 
