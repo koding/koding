@@ -50,4 +50,7 @@ KD.remote = new Bongo
 
   mq: do->
     {broker} = KD.config
-    broker = new KDBroker.Broker broker.sockJS, autoReconnect: yes
+    options =
+      autoReconnect   : yes
+      authChannelName : KD.config.authResourceName
+    broker = new KDBroker.Broker broker.sockJS, options

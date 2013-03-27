@@ -12,6 +12,11 @@ class StaticProfileAboutView extends KDView
     else
       @partial = Encoder.htmlDecode about.html or about.content
 
+    @aboutView = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass : 'data'
+      partial : @partial
+
     # @profileHeaderView = new StaticProfileAboutHeaderView
     #   cssClass : 'about-header'
     # ,@getData()
@@ -23,6 +28,7 @@ class StaticProfileAboutView extends KDView
         callback : =>
           @$('.about-body').addClass 'hidden'
           @editView.show()
+          @editButton.hide()
       @editView = new KDView
         cssClass : 'hidden about-edit'
 
@@ -30,31 +36,46 @@ class StaticProfileAboutView extends KDView
         defaultValue : Encoder.htmlDecode(about.content)
         cssClass : 'about-edit-input'
 
+
       @editView.addSubView @saveButton = new KDButtonView
-        title : 'Save'
-        cssClass : 'about-save-button clean-gray'
+        title           : 'Save'
+        cssClass        : 'about-save-button clean-gray'
         loader          :
           diameter      : 12
         callback:=>
           @saveButton.showLoader()
-          @getData().setAbout Encoder.XSSEncode(@editForm.getValue()), =>
-            log arguments
+          @getData().setAbout Encoder.XSSEncode(@editForm.getValue()), (err,value)=>
             @editView.hide()
             @$('.about-body').removeClass 'hidden'
             @saveButton.hideLoader()
+            @aboutView.updatePartial Encoder.htmlDecode value.html
+            @editButton.show()
+
+      @editView.addSubView @cancelButton = new KDButtonView
+        title : 'Cancel'
+        cssClass : 'about-cancel-button modal-cancel'
+        callback :=>
+          @editView.hide()
+          @$('.about-body').removeClass 'hidden'
+          @editButton.show()
     else
       @editButton = new KDView
         cssClass : 'hidden'
       @editView = new KDView
         cssClass : 'hidden'
 
-    @sideBarView = new StaticProfileAboutSidebarView
-      cssClass : 'about-sidebar'
-    , @getData()
+    # @sideBarView = new StaticProfileAboutSidebarView
+    #   cssClass : 'about-sidebar'
+    # , @getData()
 
-    @profileView = new ProfileView
-      cssClass : 'profilearea'
-    , @getData()
+    if @getData().getId() is KD.whoami().getId()
+      @profileView = new OwnProfileView
+        cssClass : 'profilearea'
+      , @getData()
+    else
+      @profileView = new ProfileView
+        cssClass : 'profilearea'
+      , @getData()
 
   viewAppended:->
     super
@@ -63,20 +84,18 @@ class StaticProfileAboutView extends KDView
 
   pistachio:->
     # {{> @profileHeaderView}}
+    # {{> @sideBarView}}
     """
     <div class="content-display-wrapper">
       <div class="content-display member">
          {{> @profileView}}
       </div>
     </div>
-    {{> @sideBarView}}
     {{> @editButton}}
     {{> @editView}}
     <div class="about-body">
       <div class="has-markdown">
-        <span class="data">
-          #{@partial}
-        </span>
+        {{> @aboutView}}
       </div>
     </div>
 

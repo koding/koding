@@ -107,25 +107,13 @@ class LazyDomController extends KDController
         @openPath '/Logout'
 
       when 'activity'
-        @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
+        @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
 
       when 'about'
-        @getSingleton('staticProfileController').emit 'AboutLinkClicked'
-
-      when 'topics'
-        @getSingleton('staticProfileController').emit 'TopicLinkClicked'
-
-      when 'members'
-        @getSingleton('staticProfileController').emit 'PeopleLinkClicked'
-
-      when 'groups'
-        @getSingleton('staticProfileController').emit 'GroupsLinkClicked'
-
-      when 'apps'
-        @getSingleton('staticProfileController').emit 'AppsLinkClicked'
+        @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
 
       when 'home'
-        @getSingleton('staticProfileController').emit 'HomeLinkClicked'
+        @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
 

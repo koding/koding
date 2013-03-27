@@ -138,10 +138,22 @@ class FeedController extends KDViewController
     if @noItemFound? then @noItemFound.destroy()
     controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
       cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
     @noItemFound.hide()
 
-  loadFeed:(filter = @selection)->
+  # this is a temporary solution for a bug that 
+  # bongo returns correct result set in a wrong order
+  sortByKey : (array, key) ->
+    array.sort (first, second) ->
+      firstVar  = JsPath.getAt first,  key
+      secondVar = JsPath.getAt second, key
+      #quick sort-ware
+      if (firstVar < secondVar) then return 1 
+      else if (firstVar > secondVar) then return -1 
+      else return 0
+
+
+  loadFeed:(filter = @selection)=>
 
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
@@ -157,6 +169,7 @@ class FeedController extends KDViewController
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
+            items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
             if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()

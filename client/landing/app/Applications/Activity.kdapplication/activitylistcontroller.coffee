@@ -24,11 +24,11 @@ class ActivityListController extends KDListViewController
     options.startWithLazyLoader = yes
     options.showHeader         ?= yes
 
-    options.noItemFoundWidget = new KDCustomHTMLView
+    options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity."
 
-    options.noMoreItemFoundWidget = new KDCustomHTMLView
+    options.noMoreItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no more activity."
 
@@ -50,7 +50,7 @@ class ActivityListController extends KDListViewController
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
-      cssClass : 'activityhead clearfix'
+      cssClass : 'feeder-header clearfix'
 
     @activityHeader.hide() unless @getOptions().showHeader
 
@@ -104,7 +104,7 @@ class ActivityListController extends KDListViewController
 
     if @_state is 'private'
       view = @addHiddenItem activity, 0
-      @activityHeader.newActivityArrived()
+      @activityHeader?.newActivityArrived()
 
   newActivityArrived:(activity)->
 
@@ -117,7 +117,7 @@ class ActivityListController extends KDListViewController
         @updateNewMemberBucket activity
       else
         view = @addHiddenItem activity, 0
-        @activityHeader.newActivityArrived()
+        @activityHeader?.newActivityArrived()
 
   updateNewMemberBucket:(activity)->
 
@@ -140,6 +140,17 @@ class ActivityListController extends KDListViewController
 
 
   fakeItems = []
+
+  addItem:(activity, index, animation) ->
+    dataId = activity.getId?()
+
+    if dataId?
+      if @itemsIndexed[dataId]
+        console.log "duplicate entry", activity.bongo_?.constructorName, dataId
+        _rollbar.push msg:"duplicate entry", type:activity.bongo_?.constructorName, id:dataId
+      else
+        @itemsIndexed[dataId] = activity
+        super(activity, index, animation)
 
   ownActivityArrived:(activity)->
 

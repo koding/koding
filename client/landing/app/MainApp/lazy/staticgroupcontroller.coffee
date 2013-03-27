@@ -5,6 +5,13 @@ class StaticGroupController extends KDController
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
   roleEventMap =
     "guest"               : "status.guest"
     "member"              : "status.member"
@@ -36,8 +43,28 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
+    groupKodingLogo = new KDView
+      lazyDomId : 'landing-page-logo'
+      tooltip   :
+        title   : "Click here to see this group on Koding"
+      click     : =>
+        if KD.isLoggedIn()
+          @lazyDomController.hideLandingPage()
+        else
+          @mainController.loginScreen.animateToForm 'login'
+
+    groupLogo = new KDView
+      lazyDomId : 'group-logo'
+      tooltip   :
+        title   : "Click here to open group page"
+      click     : =>
+        @lazyDomController.showLandingPage()
+
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
+      click     : =>
+        @activityListWrapper.hide()
+        @groupReadmeView.show()
 
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
@@ -52,7 +79,7 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-personal-wrapper'
       cssClass  : 'slideable'
       click :(event)=>
-        unless $(event.target).is 'a'
+        if event.target.id is 'group-personal-wrapper'
           @mainController.emit "landingSidebarClicked"
 
     groupLogoView = new KDView
@@ -83,8 +110,18 @@ class StaticGroupController extends KDController
         cssClass        : 'group-activity-content activity-related'
       showHeader        : no
 
+      noItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "So far, this group does not have this kind of activity."
+
+      noMoreItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "There is no more activity."
+
     @activityListWrapper = @activityController.getView()
     groupContentView.addSubView @activityListWrapper
+
+    @activityListWrapper.hide()
 
     @activityController.on 'LazyLoadThresholdReached', =>
       appManager.tell 'Activity', 'fetchActivity',
@@ -94,7 +131,6 @@ class StaticGroupController extends KDController
         bypass    : yes
       , (err,activities=[])=>
         @appendActivities err, activities, =>
-
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
@@ -139,14 +175,21 @@ class StaticGroupController extends KDController
         facets : facets
         bypass : yes
       , (err, activities=[])=>
-        @refreshActivities err, activities, callback
+        @refreshActivities err, activities, facets, callback
 
-  refreshActivities:(err,activities,callback)->
+  refreshActivities:(err,activities,type,callback)->
     @groupReadmeView.hide()
     controller = @activityController
     controller.removeAllItems()
+
+    facetPlural = constructorToPluralNameMap[@currentFacets[0]] or 'activity'
+
+    controller.getOptions().noItemFoundWidget.updatePartial \
+      "So far, no one has not posted any #{facetPlural} in this group"
+
     controller.listActivities activities
     controller.hideLazyLoader()
+    @activityListWrapper.show()
     callback?()
 
   appendActivities:(err,activities,callback)->

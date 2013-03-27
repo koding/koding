@@ -43,11 +43,10 @@ class FeederResultsController extends KDViewController
       lazyLoadThreshold   : .75
       startWithLazyLoader : yes
       noItemFoundText     : filter.noItemFoundText or null
-      viewOptions         : {
+      viewOptions         :
         cssClass          : listCssClass
         type              : name
-        itemClass
-      }
+        itemClass         : itemClass
 
     forwardItemWasAdded = @emit.bind this, 'ItemWasAdded'
 
@@ -62,7 +61,6 @@ class FeederResultsController extends KDViewController
     pane.addSubView pane.listHeader = header = new CommonListHeader
       title : filter.optional_title or filter.title
 
-    pane.addSubView pane.listWrapper = listController.getView()
 
     if onboarding
       pane.onboarding = if onboarding[name] instanceof KDView
@@ -74,20 +72,30 @@ class FeederResultsController extends KDViewController
       if pane.onboarding
         pane.onboarding.setOption "name", name
         pane.onboarding.hide()
-        listController.getListView().addSubView pane.onboarding
+        header.once "ready", ->
+          header.addSubView pane.onboarding
 
         appManager = @getSingleton("appManager")
         app        = appManager.getFrontApp()
         app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)=>
           unless value
             pane.onboarding.show()
+            # pane.onboarding.once "viewAppended", =>
             @utils.defer ->
+              # pane.onboarding.setHeight pane.onboarding.getHeight()
               pane.onboarding.setClass 'in'
+              KD.utils.wait 400, tabView.bound "_windowDidResize"
 
-        pane.onboarding.on "OnboardingMessageCloseIconClicked", =>
+        pane.onboarding.on "OnboardingMessageCloseIconClicked", ->
           pane.onboarding.unsetClass 'in'
-          @utils.wait 400, ->
+          # ux illusion: real values will be put
+          # with _windowDidResize
+          p.listWrapper.setHeight window.innerHeight for p in tabView.panes
+          KD.utils.wait 400, ->
             pane.onboarding.hide()
+            tabView._windowDidResize()
+
+    pane.addSubView pane.listWrapper = listController.getView()
 
     listController.scrollView?.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 0

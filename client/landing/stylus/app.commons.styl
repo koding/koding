@@ -1034,36 +1034,60 @@ button.cancel-edit-button
   width                     auto
   border-left               1px solid #e8e8e8
   borderBox()
-  .onboarding-wrapper
-    width                   94%
-    margin                  0 3% 3% 3%
-    margin-top              -1500px
-    rounded                 15px
-    padding                 20px
-    gradient                #999, #aaa
-    border                  1px solid #999
-    border-color            #888 #ccc #eee
-    shadow                  inset 0 2px 8px rgba(0,0,0,.2)
-    vendor                  transition, margin .3s ease
+  .feeder-header
+    padding            0 18px
+    line-height        12px
+    font-size          13px
+    color              #4F4F4F
+    border-bottom      1px solid rgba(0, 0, 0, 0.075)
+    height             auto
+    top                0
+    z-index            2
+    bg(color,rgba(255,255,255,.9))
     borderBox()
+    > p
+      height           28px
+      line-height      28px
+
+  .onboarding-wrapper
+    size                    auto, 0
+    margin                  0
+    padding                 0 18px
+    color                   #90756d
+    overflow                hidden
+    bg                      color, #f5ede3
+    vendor                  transition, all .3s ease
+    rel()
     &.in
-      margin-top            20px
+      margin                10px 0 18px 0
+      padding               18px
+      height                auto
+    .onboarding-close
+      right                 18px
+      top                   18px
+      rounded               10px
+      // shadow                inset 0 0 4px rgba(0, 0, 0, .75)
+      // bg                    color, rgba(0, 0, 0, .3)
+      abs()
     .title
       font-weight           400
-      font-size             24px
-      line-height           40px
-      // color                 linkColor1
+      font-size             18px
+      line-height           18px
+      padding-bottom        18px
+      color                 #735d57
       text-shadow           0 1px 0 rgba(255,255,255,.6)
     p
-      margin                20px 0
-      font-size             13px
+      padding               0 0 18px 0
+      font-size             12px
       line-height           20px
       text-shadow           0 1px 0 rgba(255,255,255,.3)
+      &:last-child
+        padding-bottom      0
     .close-icon
-      right                 10px
-      top                   10px
-      bg                    position, -60px -240px
-      abs()
+      top                   0
+      left                  0
+      bg                    position, -80px -240px
+      rel()
 
 .header-facets
   right                     0
@@ -1126,7 +1150,9 @@ button.cancel-edit-button
         blockMid()
         sprite()
         bg                  position,-140px -500px
-    .feed,.showme,.actions
+    .feed
+    .showme
+    .actions
       padding-bottom        18px
     ul
       margin                0
