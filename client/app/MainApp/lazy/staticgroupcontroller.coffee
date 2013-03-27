@@ -148,6 +148,8 @@ class StaticGroupController extends KDController
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
+
+
   checkGroupUserRelation:->
 
     KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
