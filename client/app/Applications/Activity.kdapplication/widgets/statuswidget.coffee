@@ -237,7 +237,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     else
       @submitBtn.setTitle "Submit again"
 
-    @largeInput.setValue Encoder.htmlDecode body
+    @lastestStatusMessage = Encoder.htmlDecode body
     @utils.selectText @largeInput.$()[0]
 
     if link? and link.link_url isnt ''
