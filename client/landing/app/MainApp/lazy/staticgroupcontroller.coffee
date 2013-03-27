@@ -132,6 +132,11 @@ class StaticGroupController extends KDController
       , (err,activities=[])=>
         @appendActivities err, activities, =>
 
+    for type in CONTENT_TYPES
+      @navLinks[type] = new StaticNavLink
+        delegate  : @
+        lazyDomId : type
+
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
@@ -168,7 +173,7 @@ class StaticGroupController extends KDController
     @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
 
       facets = [facets] if 'string' is typeof facets
-
+      @emit 'DecorateStaticNavLinks', CONTENT_TYPES, facets.first
       @currentFacets = facets
       appManager.tell 'Activity', 'fetchActivity',
         group : @groupEntryPoint
