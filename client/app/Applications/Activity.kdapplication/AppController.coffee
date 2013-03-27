@@ -181,8 +181,11 @@ class ActivityAppController extends AppController
         else
           new Date lastItemData.meta.createdAt
 
-        if isNan lastDate.getTime()
-          _rollbar.push msg:"bucket corrupted timestamp", item:lastItemData
+        try
+          if isNaN lastDate.getTime()
+            _rollbar.push msg:"bucket corrupted timestamp", item:lastItemData
+        catch error
+          console.log "bucket corrupted timestamp error"
       else
         lastDate = new Date
 
