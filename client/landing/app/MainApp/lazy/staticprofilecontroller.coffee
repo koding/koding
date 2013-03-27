@@ -409,10 +409,10 @@ class StaticProfileController extends KDController
     @landingView._windowDidResize = =>
       @landingView.setHeight window.innerHeight
       @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
-      # @repositionLogoView()
 
-    groupAvatarDrop = new KDView
-      lazyDomId : 'landing-page-avatar-drop'
+
+    groupKodingLogo = new KDView
+      lazyDomId : 'landing-page-logo'
       tooltip   :
         title   : "Click here to go to Koding"
       click     : =>
@@ -420,6 +420,16 @@ class StaticProfileController extends KDController
           @lazyDomController.hideLandingPage()
         else
           @mainController.loginScreen.animateToForm 'login'
+
+    # groupAvatarDrop = new KDView
+    #   lazyDomId : 'landing-page-avatar-drop'
+    #   tooltip   :
+    #     title   : "Click here to go to Koding"
+    #   click     : =>
+    #     if KD.isLoggedIn()
+    #       @lazyDomController.hideLandingPage()
+    #     else
+    #       @mainController.loginScreen.animateToForm 'login'
 
     @profileTitleView = new KDView
       lazyDomId : 'profile-title'
