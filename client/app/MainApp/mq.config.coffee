@@ -38,12 +38,12 @@ KD.remote = new Bongo
           selector[slug.usedAsPath] = name.name
           @api[slug.constructorName].one? selector, (err, model)->
             if err then callback err
-            else unless model?
-              err = new Error \
-                "Unable to find model: #{nameStr} of type #{name.constructorName}"
-              queue.fin()
             else
-              models.push model
+              unless model?
+                err = new Error \
+                  "Unable to find model: #{nameStr} of type #{name.constructorName}"
+              else
+                models.push model
               queue.fin()
 
         dash queue, -> callback err, models, name
@@ -52,5 +52,4 @@ KD.remote = new Bongo
     {broker} = KD.config
     options =
       autoReconnect   : yes
-      authChannelName : KD.config.authResourceName
     broker = new KDBroker.Broker broker.sockJS, options

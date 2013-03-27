@@ -209,7 +209,7 @@ module.exports = class AuthWorker extends EventEmitter
       {connection} = bongo.mq
       @monitorPresence connection
 
-      connection.exchange "#{@resourceName}All", AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
+      connection.exchange 'authAll', AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
         connection.queue '', {exclusive:yes}, (authAllQueue)=>
           authAllQueue.bind authAllExchange, ''
           authAllQueue.on 'queueBindOk', =>
@@ -221,8 +221,8 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'broker.clientDisconnected'
                   @cleanUpAfterDisconnect messageStr
 
-      connection.exchange @resourceName, AUTH_EXCHANGE_OPTIONS, (authExchange)=>
-        connection.queue  @resourceName, (authQueue)=>
+      connection.exchange 'auth', AUTH_EXCHANGE_OPTIONS, (authExchange)=>
+        connection.queue  'auth', (authQueue)=>
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
             authQueue.subscribe (message, headers, deliveryInfo)=>

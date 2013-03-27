@@ -17,7 +17,6 @@ rabbitPrefix = (
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
-authResourceName = "koding-auth-#{rabbitPrefix}"
 
 module.exports =
   aws           :
@@ -76,7 +75,6 @@ module.exports =
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName+'auth'
-    authResourceName: authResourceName
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -108,7 +106,6 @@ module.exports =
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
-      authResourceName: authResourceName
       suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'

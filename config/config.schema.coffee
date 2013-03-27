@@ -141,7 +141,6 @@ config =
     authWorker    :
       login           : 1
       queueName       : 1
-      authResourceName: 1
       numberOfWorkers : 1
       watch           : 1
     social        :
@@ -173,7 +172,6 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions:
         resourceName: 1
-        authResourceName: 1
         suppressLogs: 1
         version   : 1
         mainUri   : 1
