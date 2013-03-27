@@ -106,17 +106,17 @@ class ActivityAppController extends AppController
 
   fetchActivitiesDirectly:(options = {})->
 
-    KD.time "Activity fetch took:"
+    KD.time "Activity fetch took"
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>
       isLoading = no
       @listController.hideLazyLoader()
-      KD.timeEnd "Activity fetch took:"
+      KD.timeEnd "Activity fetch took"
       @mainController.emit "AppIsReady"
 
       if err or teasers.length is 0
-        warn err  if err
+        warn "An error occured:", err  if err
         @listController.showNoItemWidget()
       else
         @listController.listActivities teasers
@@ -181,7 +181,6 @@ class ActivityAppController extends AppController
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
-
 
   fetchCachedActivity:(options = {}, callback)->
 
