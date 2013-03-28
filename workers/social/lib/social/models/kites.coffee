@@ -34,6 +34,14 @@ module.exports = class JKite extends jraphical.Module
       kiteName      :
         type        : String
         required    : yes
+      isPublic      :
+        type        : String
+        required    : no
+        default     : "T"
+      count         :
+        type        : Number
+        required    : no
+        default     : 1
       key           :
         type        : String
         required    : no
