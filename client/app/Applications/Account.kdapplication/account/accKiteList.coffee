@@ -70,11 +70,12 @@ class AccountKiteListController extends KDListViewController
     @emit "KiteUpdated", kite
   
   createKite : (form)-> 
-    data = form.getData()
+    data = form.getFormData()
     KD.remote.api.JKite.create
       description  : data.description
       kiteName     : data.kiteName
-      #count        : data.kiteCallLimit 
+      #count        : data.kiteCallLimit
+      #isPublic     : data.publicPrivate 
       (err, kite) => 
         if err
           @notify err.message, "fail"
@@ -112,7 +113,7 @@ class AccountKiteList extends KDListView
       overlay   : yes
       cssClass  : "kite-kdmodal"
       width     : 500
-      height    : 187
+      height    : 233
       view      : form
       buttons   :
         "Create New Kite" :
@@ -134,6 +135,11 @@ class AccountAddKiteForm extends KDFormView
     @addSubView kiteNameView  = new KDView
       cssClass : "modalformline"
     kiteNameView.addSubView kiteName  = new KDInputView name : "kiteName", placeholder : "Running Kite name..."
+    
+    # @addSubView publicOrPrivate   = new KDView
+    #   cssClass : "modalformline"
+    # publicOrPrivate.addSubView yesNo  = new KDOnOffSwitch {name : "publicPrivate", labels : ['Public', 'Private'] }
+
 
     # @addSubView kiteApiCallLimitView  = new KDView
     #   cssClass : "modalformline"
