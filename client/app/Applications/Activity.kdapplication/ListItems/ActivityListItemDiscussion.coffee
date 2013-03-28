@@ -54,6 +54,8 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     # @scrollAreaHint = new KDView
     #   cssClass : "enable-scroll-hint"
     #   partial : "Don't move your mouse to scroll"
@@ -69,7 +71,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     #         @scrollAreaOverlay.hide()
     #     "View the full Discussion":
     #       callback:=>
-    #         appManager.tell "Activity", "createContentDisplay", @getData()
+    #         KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
@@ -91,7 +93,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @$('p.body a[href^=http]').attr "target", "_blank"
 
   prepareScrollOverlay:->
-    @utils.wait =>
+    @utils.defer =>
 
       body = @$("div.activity-content-container.discussion")
       if body.height() < parseInt body.css("max-height"), 10
@@ -171,7 +173,6 @@ class DiscussionActivityItemView extends ActivityItemChild
     if $(event.target).is("[data-paths~=title]")
       # if not $(event.target).is("a.action-link, a.count, .like-view")
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-        #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -200,7 +201,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

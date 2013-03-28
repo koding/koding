@@ -1,9 +1,7 @@
 {Model, Base, ObjectId, secure} = require 'bongo'
 
 # Poor mans unique ID generator
-getUniqueId=->
-  r = Math.floor Math.random()*9000000+1
-  "#{r}#{Date.now()}"
+getUniqueId= -> createId 128
 
 module.exports = class JMailNotification extends Model
 

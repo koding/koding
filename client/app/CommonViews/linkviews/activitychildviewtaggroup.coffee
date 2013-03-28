@@ -13,4 +13,4 @@ class ActivityChildViewTagGroup extends LinkGroup
       when 2 then "in {{> @participant0}}{{> @participant1}}"
       when 3 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}"
       when 4 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}{{> @participant3}}"
-      else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}and {{> @more}}"
+      else        "in {{> @participant0}}{{> @participant1}}{{> @participant2}}and {{> @more}}"

@@ -7,6 +7,7 @@ class KDListItemView extends KDView
     options.bind         or= "mouseenter mouseleave"
     options.childClass   or= null
     options.childOptions or= {}
+    options.selectable    ?= yes
 
     super options,data
 

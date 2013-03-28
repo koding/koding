@@ -2,8 +2,8 @@ class JContextMenuItem extends JTreeItemView
 
   constructor:(options = {}, data = {})->
 
-    options.type             = "contextitem"
-    options.cssClass       or= "default"
+    options.type       = "contextitem"
+    options.cssClass or= "default"
 
     super options, data
 

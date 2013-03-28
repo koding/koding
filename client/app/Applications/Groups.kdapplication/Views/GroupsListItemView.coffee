@@ -2,141 +2,179 @@ class GroupsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
     options.type = "groups"
+
     super options,data
+
+    group = @getData()
+
+    {title, slug, body} = group
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : '#'
-      pistachio   : '{{#(title)}}'
-      click       : (event) => @titleReceivedClick event
-    , data
-
-    if options.editable
-      @editGroupButton = new KDCustomHTMLView
-        tagName     : 'a'
-        cssClass    : 'edit-group'
-        partial     : '<span class="icon"></span>Group settings'
-        click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditGroupButtonClicked', this
-      , null
-
-      @grantPermissionsButton = new KDCustomHTMLView
-        tagName     : 'a'
-        cssClass    : 'edit-group'
-        partial     : '<span class="icon"></span>Permissions'
-        click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', this
-      , null
-    else
-      @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+        href      : "/#{slug}"
+        target    : slug
+      pistachio   : '{{ #(title)}}'
+      # click       : (event) => @titleReceivedClick event
+    , group
 
     @joinButton = new JoinButton
-      style           : if data.member then "follow-btn following-topic" else "follow-btn"
+      style           : if group.member then "join-group follow-btn following-topic" else "join-group follow-btn"
       title           : "Join"
       dataPath        : "member"
-      defaultState    : if data.member then "Leave" else "Join"
+      defaultState    : if group.member then "Leave" else "Join"
       loader          :
         color         : "#333333"
         diameter      : 18
         top           : 11
       states          : [
         "Join", (callback)->
-          data.join (err, response)=>
+          group.join (err, response)=>
             @hideLoader()
             unless err
-              @setClass 'following-btn following-topic'
+              # @setClass 'following-btn following-topic'
+              @setClass 'following-topic'
+              @emit 'Joined'
               callback? null
         "Leave", (callback)->
-          data.leave (err, response)=>
+          group.leave (err, response)=>
             @hideLoader()
             unless err
-              @unsetClass 'following-btn following-topic'
+              # @unsetClass 'following-btn following-topic'
+              @unsetClass 'following-topic'
+              @emit 'Left'
               callback? null
       ]
-    , data
+    , group
+
+    @joinButton.on 'Joined', =>
+      @enterButton.show()
+
+    @joinButton.on 'Left', =>
+      @enterButton.hide()
+
+    @enterLink = new CustomLinkView
+      href    : "/#{slug}/Activity"
+      target  : slug
+      title   : 'Open group'
+      click   : @bound 'privateGroupOpenHandler'
+
+    membersController = new KDListViewController
+      view         : @members = new KDListView
+        wrapper    : no
+        scrollView : no
+        type       : "members"
+        itemClass  : GroupItemMemberView
+
+    # FIXME: SY
+    # instantiateListItems doesnt fire by default
+    group.fetchMembers (err, members)=>
+      if err then warn err
+      else if members
+        @$('.members-list-wrapper').removeClass "hidden"
+        membersController.instantiateListItems members
+
+    @memberBadge = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "badge member"
+      partial   : "<span class='fold'/>You are a member"
+
+    @privateBadge = new KDCustomHTMLView
+      tagName   : "div"
+      cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
+      partial   : "<span class='fold'/><span class='icon'/>"
+
+    @memberCount = new CustomLinkView
+      title       : "#{group.counts?.members or 'No'} Members"
+      icon        :
+        cssClass  : "members"
+        placement : "left"
+
+  privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   titleReceivedClick:(event)->
     group = @getData()
     KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
     event.stopPropagation()
     event.preventDefault()
-    #appManager.tell "Groups", "createContentDisplay", group
+    #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
 
-  viewAppended:->
-    @setClass "topic-item"
+  viewAppended: JView::viewAppended
 
-    @setTemplate @pistachio()
-    @template.update()
+  setFollowerCount:(count)-> @$('.followers a').html count
 
-  setFollowerCount:(count)->
-    @$('.followers a').html count
-
-  expandItem:->
-    return unless @_trimmedBody
-    list = @getDelegate()
-    $item   = @$()
-    $parent = list.$()
-    @$clone = $clone = $item.clone()
-
-    pos = $item.position()
-    pos.height = $item.outerHeight(no)
-    $clone.addClass "clone"
-    $clone.css pos
-    $clone.css "background-color" : "white"
-    $clone.find('.topictext article').html @getData().body
-    $parent.append $clone
-    $clone.addClass "expand"
-    $clone.on "mouseleave",=>@collapseItem()
-
-  collapseItem:->
-    return unless @_trimmedBody
-    # @$clone.remove()
+  markOwnGroup:-> @setClass "own-group"
 
   pistachio:->
     """
-    <div class="topictext">
+    <div class="wrapper">
       {h3{> @titleLink}}
-      {article{#(body)}}
-      <div class="topicmeta clearfix">
-        <div class="topicstats">
-          <p class="posts">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.post) or 0}}</a> Posts
-          </p>
-          <p class="followers">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.followers) or 0}}</a> Followers
-          </p>
-        </div>
-          <div class="edit-actions">
-          <h4>Edit:</h4>
-          <ul>
-            {li{> @editGroupButton}}
-            {li{> @grantPermissionsButton}}
-          </ul>
-        </div>
-        <div class="button-container">{{> @joinButton}}</div>
+      <p>
+        {{> @memberCount}}
+      </p>
+      {article{ #(body)}}
+    </div>
+    <div class='members-list-wrapper hidden'>
+      {{> @members}}
+    </div>
+    <div class='side-wrapper'>
+      <div class='badge-wrapper clearfix'>
+        {{> @memberBadge}}
+        {{> @privateBadge}}
       </div>
     </div>
     """
 
-  refreshPartial: ->
-    @skillList?.destroy()
-    @locationList?.destroy()
-    super
-    @_addSkillList()
-    @_addLocationsList()
+  # settingsMenu:(data)->
 
-  _addSkillList: ->
+  #   account        = KD.whoami()
+  #   mainController = @getSingleton('mainController')
 
-    @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
-    @addSubView @skillList, '.profile-meta'
+  #   menu =
+  #     'Group settings'  :
+  #       callback        : =>
+  #         mainController.emit 'EditGroupButtonClicked', @
+  #     # 'Permissions'     :
+  #     #   callback : =>
+  #     #     mainController.emit 'EditPermissionsButtonClicked', @
+  #     'My roles'        :
+  #       callback        : =>
+  #         mainController.emit 'MyRolesRequested', @
 
-  _addLocationsList: ->
+  #   # if KD.checkFlag 'super-admin'
+  #   #   menu =
+  #   #     'MARK USER AS TROLL' :
+  #   #       callback : =>
+  #   #         mainController.markUserAsTroll data
+  #   #     'UNMARK USER AS TROLL' :
+  #   #       callback : =>
+  #   #         mainController.unmarkUserAsTroll data
 
-    @locationList = new TopicsLocationView {}, @getData().locations
-    @addSubView @locationList, '.personal'
+  #   return menu
+
+class GroupItemMemberView extends KDListItemView
+
+  constructor:(options = {}, data)->
+
+    options.type    = "member"
+    options.tagName = "span"
+
+    super options, data
+
+    account = @getData()
+    {firstName, lastName} = account.profile
+    @avatar = new AvatarView
+      size      :
+        width   : 40
+        height  : 40
+      # detailed  : yes
+      tooltip   :
+        title   : "#{firstName} #{lastName}"
+    , account
+
+  viewAppended:JView::viewAppended
+
+  pistachio:-> "{{> @avatar}}"
 
 class ModalGroupsListItem extends TopicsListItemView
 
@@ -144,13 +182,10 @@ class ModalGroupsListItem extends TopicsListItemView
 
     super options,data
 
-    @titleLink = new TagLinkView {expandable: no}, data
-
-    @titleLink.registerListener
-      KDEventTypes  : 'click'
-      listener      : @
-      callback      : (pubInst, event)=>
-        @getDelegate().emit "CloseTopicsModal"
+    @titleLink = new TagLinkView
+      expandable: no
+      click     : => @getDelegate().emit "CloseTopicsModal"
+    , data
 
   pistachio:->
     """
@@ -159,11 +194,8 @@ class ModalGroupsListItem extends TopicsListItemView
         <div class="button-container">{{> @joinButton}}</div>
         {{> @titleLink}}
         <div class="stats">
-          <p class="posts">
-            <span class="icon"></span>{{#(counts.post) or 0}} Posts
-          </p>
-          <p class="fers">
-            <span class="icon"></span>{{#(counts.followers) or 0}} Followers
+          <p class="members">
+            <span class="icon"></span>{{#(counts.members) or 0}} Members
           </p>
         </div>
       </div>

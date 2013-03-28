@@ -43,7 +43,7 @@ module.exports = class Builder
 
     @buildJS options if initial or includesChanged or scriptsChanged
     @buildCSS options if initial or includesChanged or stylesChanged
-    @buildHTML options if initial
+    @buildHTML options if initial or includesChanged or scriptsChanged
 
     if @config.client.watch is yes
       if initial
@@ -117,7 +117,7 @@ module.exports = class Builder
               sourceFiles: [file.includePath]
               bare: yes
               sourceMap: yes
-            js = if result.js.indexOf("pistachio") != -1 
+            js = if result.js.indexOf("pistachio") != -1
               compilePistachios(result.js).toString()
             else
               result.js
@@ -137,13 +137,18 @@ module.exports = class Builder
           js = source
           jsSourceMap = null
 
-        ast = UglifyJS.parse js
+        try ast = UglifyJS.parse js
+        catch e
+          console.error """
+            JS parse error occurred during minification: #{file.sourcePath}
+            """
+          throw e
         ast.figure_out_scope()
         ast = ast.transform UglifyJS.Compressor
           warnings: no
           sequences: no
           drop_debugger: no
-        
+
         uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
         stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
         ast.print stream
@@ -165,7 +170,7 @@ module.exports = class Builder
     return true
 
   buildJS: (options)->
-    js = "var KD = {}; KD.config = #{JSON.stringify(@config.client.runtimeOptions)}; (function(){ "
+    js = "(function(){ "
     sourceMap =
       version: 3
       file: @config.client.js
@@ -222,10 +227,12 @@ module.exports = class Builder
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.css, code
     log.info "Build complete: #{@config.client.css}"
 
+  # Deprecated. Look at render-homepage for groups and profileviews
   buildHTML: (options)->
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
+    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag() # groupEntryPoint: 'koding'
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""

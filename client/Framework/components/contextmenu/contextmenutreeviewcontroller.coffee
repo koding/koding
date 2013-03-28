@@ -63,7 +63,6 @@ class JContextMenuTreeViewController extends JTreeViewController
 
     unless nodes.length
       @setData nodes = convertToArray nodes
-
     super nodes
 
 

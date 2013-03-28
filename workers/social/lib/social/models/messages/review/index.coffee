@@ -20,15 +20,14 @@ module.exports = class JReview extends Reply
   @getDefaultRole =-> 'review'
 
   @set
-    permissions     : [
-      'read reviews'
-      'create reviews'
-      'edit reviews'
-      'delete reviews'
-      'edit own reviews'
-      'delete own reviews'
-      'reply to reviews'
-    ]
+    permissions     :
+      'read reviews'        : ['member', 'moderator']
+      'create reviews'      : ['member', 'moderator']
+      'edit reviews'        : ['moderator']
+      'delete reviews'      : ['moderator']
+      'edit own reviews'    : ['member', 'moderator']
+      'delete own reviews'  : ['member', 'moderator']
+      'reply to reviews'    : ['member', 'moderator']
     sharedMethods  :
       static       : ['fetchRelated']
       instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']

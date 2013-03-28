@@ -60,6 +60,8 @@ class KiteController extends KDController
       options.withArgs or= {}
 
     # notify "Talking to #{options.kiteName} asking #{options.withArgs.command}, #{options.toDo}"
+    return warn "you are not logged in."  unless KD.whoami()?.tellKite?
+    
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
     ###
@@ -121,7 +123,6 @@ class KiteController extends KDController
       @resetKiteIds kiteName, (err, res)=>
         unless err
           @status = yes
-          @propagateEvent KDEventType : "SharedHostingIsReady"
     else
       @status = no
 
@@ -210,7 +211,6 @@ class KiteController extends KDController
       unless err
         @status = yes
         clearInterval @pinger if @pinger
-        # @propagateEvent KDEventType : "SharedHostingIsWorking"
         notify _notifications.alive
 
       else

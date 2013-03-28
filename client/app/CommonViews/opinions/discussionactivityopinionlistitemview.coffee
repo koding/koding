@@ -54,6 +54,8 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       size    : {width: 20, height: 20}
       origin  : origin
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -73,7 +75,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
         <span class="avatar">{{> @avatar}}</span>
         <footer class="activity-opinion-item-footer">
            {{> @author}} posted an answer
-         <time>{{$.timeago #(meta.createdAt)}}</time>
+         {{> @timeAgoView}}
          <span class="comment-count">#{if @getData().repliesCount > 0 then @utils.formatPlural(@getData().repliesCount, "Comment") else ""}</span>
         </footer>
     </div>

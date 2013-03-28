@@ -1,5 +1,3 @@
-# FIXME : render runs on every data change in account object which leads to a flash on avatarview. Sinan 08/2012
-
 class AvatarView extends LinkView
 
   constructor:(options = {},data)->
@@ -8,46 +6,44 @@ class AvatarView extends LinkView
     options.size     or=
       width            : 50
       height           : 50
-    options.noTooltip ?= yes
+    options.detailed  ?= no
 
     # this needs to be pre-super
-    unless options.noTooltip
-      @avatarPreview =
+    if options.detailed
+      @detailedAvatar   =
         constructorName : AvatarTooltipView
         options         :
           delegate      : @
           origin        : options.origin
         data            : data
 
-    if @avatarPreview then options.tooltip or=
-      view             : unless options.noTooltip then @avatarPreview else null
-      viewCssClass     : 'avatar-tooltip'
-      animate          : yes
-      placement        : ['top','bottom','right','left'][@utils.getRandomNumber 3]
-      direction        : ['left','right','center','top','bottom'][@utils.getRandomNumber 4]
+      options.tooltip or= {}
+      options.tooltip.view         or= if options.detailed then @detailedAvatar else null
+      options.tooltip.viewCssClass or= 'avatar-tooltip'
+      options.tooltip.animate      or= yes
+      options.tooltip.placement    or= 'top'
+      options.tooltip.direction    or= 'right'
 
     options.cssClass = "avatarview #{options.cssClass}"
 
     super options,data
 
-    if @avatarPreview?
+    if @detailedAvatar?
       @on 'TooltipReady', =>
-        @utils.wait =>
-          @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
+        @utils.defer =>
+          data = @getData()
+          @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
 
-  click:(event)->
-    event.stopPropagation()
-    event.preventDefault()
-    @hideTooltip()
-    account = @getData()
-    @utils.wait =>
-      KD.getSingleton('router').handleRoute "/#{account.profile.nickname}", state:account
-    return no
+  # click:(event)->
+  #   event.stopPropagation()
+  #   event.preventDefault()
+  #   @hideTooltip()
+  #   @utils.defer => @emit 'LinkClicked'
+  #   return no
 
   render:->
-
     account = @getData()
     return unless account
     {profile} = account
@@ -80,9 +76,13 @@ class AvatarTooltipView extends KDView
     origin = options.origin
 
     @profileName = new KDCustomHTMLView
+      tagName : 'a'
       cssClass : 'profile-name'
-      click:(event)=>
-        KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
+      # click:(event)=>
+      #   KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
+      attributes:
+        href : "/#{@getData().profile.nickname}"
+        target : '_blank'
       pistachio : \
       """
         <h2>
@@ -138,7 +138,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if @getData().counts.followers is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
     , @getData()
 
     @following = new KDView
@@ -148,7 +148,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if @getData().counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
+        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
     , @getData()
 
     @likes = new KDView
@@ -158,7 +158,7 @@ class AvatarTooltipView extends KDView
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)=>
         return if @getData().counts.following is 0
-        appManager.tell "Members", "createLikedContentDisplay", @getData()
+        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", @getData()
     , @getData()
 
     @sendMessageLink = new MemberMailLink {}, @getData()

@@ -8,6 +8,7 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
 option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
+option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 
 {argv} = require 'optimist'
@@ -218,6 +219,21 @@ task 'emailWorker',({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
+task 'emailSender',({configFile})->
+
+  processes.fork
+    name            : 'emailSender'
+    cmd             : "./workers/emailsender/index -c #{configFile}"
+    restart         : yes
+    restartInterval : 100
+
+  watcher = new Watcher
+    groups        :
+      email       :
+        folders   : ['./workers/emailsender']
+        onChange  : (path) ->
+          processes.kill "emailSender"
+
 task 'goBroker',({configFile})->
 
   processes.spawn
@@ -251,6 +267,36 @@ task 'goBroker',({configFile})->
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
   if watchGoBroker is yes
     watchBroker(sockjs_url, 10000)
+
+task 'osKite',({configFile})->
+
+  processes.spawn
+    name  : 'osKite'
+    cmd   : "./go/bin/os -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'ldapServer',({configFile})->
+
+  processes.spawn
+    name  : 'ldapServer'
+    cmd   : "./go/bin/ldapserver -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'proxy',({configFile})->
+
+  processes.spawn
+    name  : 'proxy'
+    cmd   : "./go/bin/proxy -c #{configFile}"
+    restart: no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
 task 'libratoWorker',({configFile})->
 
@@ -293,6 +339,9 @@ run =({configFile})->
 
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
+    invoke 'osKite'         if config.runOsKite
+    invoke 'ldapServer'     if config.runLdapServer
+    invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
@@ -300,6 +349,7 @@ run =({configFile})->
     invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
+    invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
 
 
@@ -307,6 +357,10 @@ task 'run', (options)->
   {configFile} = options
   options.configFile = "dev" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+  oldIndex = nodePath.join __dirname, "website/index.html"
+  if fs.existsSync oldIndex
+    fs.unlinkSync oldIndex
 
   config.buildClient = yes if options.buildClient
 
@@ -456,7 +510,7 @@ task 'switchProxy', (options) ->
 
       listen http-in
           bind *:#{conf.webPort}
-          option httpchk GET /index.html HTTP/1.0
+          option httpchk GET / HTTP/1.0
       
     """
 
@@ -504,43 +558,40 @@ task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
-task 'deploy', (options) ->
-  {configFile,username} = options
+task 'aws', (options) ->
+  {configFile,type} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
 
-  exec "git branch | grep '*' | awk -F ' ' '{print $2}'", (error, stdout, stderr) ->
-    git_branch = stdout
-    username ?= process.env['USER']
+  # List available machines
+  unless type
+    console.log "Machine types:"
+    for filename in fs.readdirSync './aws'
+      if filename.match /\.coffee$/
+        console.log "  #{filename.slice(0, -7)}"
+    console.log ""
+    console.log "Run: cake -c #{configFile} -t <type> aws"
+    process.exit()
 
-    proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-g', git_branch]
-    proc.stdout.on 'data', (data) ->
-      console.log data.toString().trim()
-    proc.stderr.on 'data', (data) ->
-      console.log data.toString().trim()
+  console.log "Using ./aws/#{type}.coffee file as template"
+  console.log ""
 
-task 'destroy', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
+  # AWS Utils
+  awsUtil = require 'koding-aws'
+  awsUtil.init aws
 
-  username ?= process.env['USER']
+  # Machine template
+  awsTemplate = require "./aws/#{type}"
 
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-X']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
+  # Build template
+  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
+    unless err
+      console.log "Template is ready. Running instance..."
 
-task 'deploy-info', (options) ->
-  {configFile,username} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
-
-  username ?= process.env['USER']
-
-  proc = spawn 'builders/aws/cloud-formation/pushDev.py', ['-a', aws.key, '-s', aws.secret, '-u', username, '-i']
-  proc.stdout.on 'data', (data) ->
-    console.log data.toString().trim()
-  proc.stderr.on 'data', (data) ->
-    console.log data.toString().trim()
+      awsUtil.startEC2 templateData, (err, ecData) ->
+        unless err
+          console.log "EC2 instance is ready:"
+          console.log ecData
+          console.log ""
 
 task 'buildAll',"build chris's modules", ->
 
@@ -590,7 +641,7 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     stderr : process.stderr
     verbose : yes
     onExit : null
-      
+
 
 
 
@@ -638,8 +689,8 @@ task 'parseAnalyzedCss','',(options)->
     log.info stuff
 
 task 'analyzeCss','',(options)->
-  configFile = normalizeConfigPath options.configFile
-  config = require configFile
+
+  config = require('koding-config-manager').load("main.#{options.configFile}")
   compareArrays = (arrA, arrB) ->
     return false if arrA?.length isnt arrB?.length
     if arrA?.slice()?.sort?

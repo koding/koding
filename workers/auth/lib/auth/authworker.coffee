@@ -16,21 +16,8 @@ module.exports = class AuthWorker extends EventEmitter
       byRoutingKey  : {}
     }
     @counts   = {}
-    # @monitorServices()
 
   bound: require 'koding-bound'
-
-  # monitorServices: do ->
-  #   pingAll =(services)->
-  #     # for own servicesOfType of services
-  #     #   servicesOfType.forEach (service)->
-  #     # TODO: implement pingA       
-  #   monitorServicesHelper =->
-  #     console.log {@services, @clients}
-  #     pingAll @services
-  #   monitorServices =->
-  #     handler = monitorServicesHelper.bind this
-  #     setInterval handler, 10000
 
   authenticate:(messageData, routingKey, callback)->
     {clientId, channel, event} = messageData
@@ -125,11 +112,31 @@ module.exports = class AuthWorker extends EventEmitter
               exchange.close() # don't leak a channel
               @addClient socketId, exchange.name, routingKey
 
+
+    joinClientGroupHelper =(messageData, routingKey, socketId)->
+      {JAccount, JGroup} = @bongo.models
+      fail = (err)=> @rejectClient routingKey; console.error err  if err
+      @authenticate messageData, routingKey, (session)->
+        unless session then fail()
+        else
+          selector = {'profile.nickname': session.username}
+          JAccount.one selector, (err, account)->
+            if err or not account then fail err
+            else
+              JGroup.one {slug: messageData.group}, (err, group)->
+                if err or not group then fail err
+                else 
+                  group.fetchRolesByAccount account, (err, roles)->
+                    if err or not roles then fail err
+                    else
+
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
       switch serviceType
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
+        when 'group'
+          joinClientGroupHelper.call this, messageData, routingKey, socketId
         else
           @rejectClient routingKey
 

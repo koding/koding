@@ -73,8 +73,7 @@ module.exports = class JUser extends jraphical.Module
     schema          :
       username      :
         type        : String
-        validate    : (value)->
-          3 < value.length < 26 and /^[^-][a-z0-9-]+$/.test value
+        validate    : require('./name').validateName
         set         : (value)-> value.toLowerCase()
       email         :
         type        : String
@@ -339,7 +338,7 @@ module.exports = class JUser extends jraphical.Module
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    JName.claim username, 'JUser', 'username', (err)->
+                    JName.claim username, [username], 'JUser', 'username', (err)->
                       if err then callback err
                       else
                         salt = createSalt()
@@ -524,6 +523,13 @@ module.exports = class JUser extends jraphical.Module
               callback null
         else
           callback new KodingError 'PIN is not confirmed.'
+
+  fetchHomepageView:(clientId, callback)->
+    [callback, clientId] = [clientId, callback]  unless callback
+
+    @fetchAccount 'koding', (err, account)->
+      if err then callback err
+      else account.fetchHomepageView callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require './emailconfirmation'

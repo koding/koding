@@ -47,7 +47,7 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
       ]
 
     schema          :
@@ -482,7 +482,7 @@ module.exports = class JApp extends jraphical.Module
   #                 else
   #                   callback null, app
 
-  # @findSuggestions = (seed, options, callback)->
+  # @findSuggestions = (client, seed, options, callback)->
   #   {limit,blacklist}  = options
 
   #   @some {

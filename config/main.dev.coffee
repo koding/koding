@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
@@ -19,8 +17,9 @@ rabbitPrefix = (
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
+authResourceName = "koding-auth-#{rabbitPrefix}"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -42,12 +41,15 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : no
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
     debugConnectionErrors: yes
   uploads       :
-    enableStreamingUploads: no
+    enableStreamingUploads: yes
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
@@ -68,16 +70,13 @@ module.exports = deepFreeze
   #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
+    authResourceName: authResourceName
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -104,11 +103,12 @@ module.exports = deepFreeze
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
+      authResourceName: authResourceName
       suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
@@ -121,7 +121,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'web-dev.in.koding.com'
     login       : 'guest'
-    componentUser: "<component>"
+    componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
@@ -141,6 +141,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

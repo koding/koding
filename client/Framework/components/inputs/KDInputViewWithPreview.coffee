@@ -1,13 +1,14 @@
 class KDInputViewWithPreview extends KDInputView
 
-  constructor:(options,data)->
+  constructor:(options={},data)->
 
-    options.preview               or= {}
+    options.preview               ?= {}
     options.preview.autoUpdate    ?= yes
     options.preview.language      or= "markdown"
     options.preview.showInitially ?= yes
     options.preview.mirrorScroll  ?= yes
     options.allowMaximized        ?= yes
+    options.openMaximized         ?= no
     options.showHelperModal       ?= yes
 
     options.keyup ?= (event)=>
@@ -88,6 +89,69 @@ class KDInputViewWithPreview extends KDInputView
 
       @previewOnOffContainer.addSubView @markdownLink
 
+    # if @options.openMaximized
+    #   log 'opening maximized'
+    #   @hide()
+    #   @textContainer = new KDView
+    #     cssClass:"modal-fullscreen-text"
+
+    #   @text = new KDInputViewWithPreview
+    #     type : "textarea"
+    #     cssClass : "fullscreen-data kdinput text"
+    #     allowMaximized : no
+    #     defaultValue : @getValue()
+
+    #   @textContainer.addSubView @text
+
+    #   modal = new KDModalView
+    #     title       : "Please enter your content here."
+    #     cssClass    : "modal-fullscreen"
+    #     width       : window.innerWidth-100
+    #     height      : window.innerHeight-100
+    #     # width       : $(window).width()-100
+    #     # height      : $(window).height()-100
+    #     view        : @textContainer
+    #     position:
+    #       top       : 35
+    #       left      : 35
+    #     overlay     : yes
+    #     buttons     :
+    #       Cancel    :
+    #         title   : "Discard changes"
+    #         style   : "modal-clean-gray"
+    #         callback:=>
+    #           modal.destroy()
+    #       Apply     :
+    #         title   : "Apply changes"
+    #         style   : "modal-clean-gray"
+    #         callback:=>
+    #           @setValue @text.getValue()
+    #           @generatePreview()
+    #           modal.destroy()
+
+
+    #   @utils.defer =>
+
+    #     modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
+    #     modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
+    #     modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
+    #     modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
+    #     modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
+
+    #     contentWidth = modal.$(".kdmodal-content").width()-40
+    #     halfWidth  = contentWidth / 2
+
+    #     @text.on "PreviewHidden", =>
+    #       modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
+    #       # modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+
+    #     @text.on "PreviewShown", =>
+    #       modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+    #       # modal.$(".input_preview").width halfWidth-5
+
+    #     modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+    #     modal.$(".input_preview").width halfWidth-5
+
     if @options.allowMaximized
       @fullScreenBtn = new KDButtonView
         style           : "clean-gray small"
@@ -135,7 +199,7 @@ class KDInputViewWithPreview extends KDInputView
                   modal.destroy()
 
 
-          @utils.wait =>
+          @utils.defer =>
 
             modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
             modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
@@ -178,11 +242,11 @@ class KDInputViewWithPreview extends KDInputView
      scrollTop : ((s[0].scrollHeight - s.height())*percentage/100)
     , 50, "linear"
 
-  setDomElement:(CssClass="")->
-    super CssClass
-
-    @$().after """
-      <div class='input_preview preview-#{@options.preview.language}'>
+  setDomElement:(cssClass="")->
+    @inputName = @getOptions().name
+    name = "name='#{@inputName}'"
+    @domElement = $ """<textarea #{name} class='kdinput text #{cssClass}'></textarea>
+      <div class='input_preview kdinputwithpreview preview-#{@options.preview.language}'>
         <div class="preview_content"><span class="data"></span></div>
       </div>"""
 
@@ -205,7 +269,7 @@ class KDInputViewWithPreview extends KDInputView
 
 
     # hotfix for random display:none that can sometimes come up
-    @utils.wait  =>
+    @utils.defer =>
       @$("span.data").css display:"block"
 
     if @options.preview.mirrorScroll then @$().scroll (event)=>
@@ -213,6 +277,7 @@ class KDInputViewWithPreview extends KDInputView
 
   setValue:(value)->
     super value
+    @text?.setValue value
     @generatePreview()
 
   generatePreview:->

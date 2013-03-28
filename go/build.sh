@@ -7,8 +7,11 @@ ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
 	koding/broker
 	koding/kites/os
-	koding/kites/webterm
 	koding/kites/irc
+	koding/virt/idshift
+	koding/virt/ldapserver
+	koding/virt/proxy
+	koding/virt/vmtool
 	koding/alice
 )
 

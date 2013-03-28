@@ -69,6 +69,8 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
     # @scrollAreaList = new KDButtonGroupView
     #   buttons:
     #     "Allow Scrolling here":
@@ -79,7 +81,7 @@ class TutorialActivityItemView extends ActivityItemChild
     #         @scrollAreaOverlay.hide()
     #     "View the full Tutorial":
     #       callback:=>
-    #         appManager.tell "Activity", "createContentDisplay", @getData()
+    #         KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
@@ -91,7 +93,7 @@ class TutorialActivityItemView extends ActivityItemChild
     @$('div.body a[href^=http]').attr "target", "_blank"
 
   prepareScrollOverlay:->
-    @utils.wait =>
+    @utils.defer =>
 
       body = @$("div.activity-content-container.tutorial div.body")
       container = @$("div.activity-content-container.tutorial")
@@ -185,7 +187,7 @@ class TutorialActivityItemView extends ActivityItemChild
   click:(event)->
     if $(event.target).is("[data-paths~=title]") # or\
       KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
-         # appManager.tell "Activity", "createContentDisplay", @getData()
+         # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
     if $(event.target).is("[data-paths~=preview]")
 
       @videoPopup = new VideoPopup
@@ -225,7 +227,7 @@ class TutorialActivityItemView extends ActivityItemChild
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
           </div>
           {{> @actionLinks}}

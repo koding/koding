@@ -49,7 +49,6 @@ class ActivityAppView extends JView
 class ActivityListContainer extends JView
 
   constructor:(options = {}, data)->
-
     options.cssClass = "activity-content feeder-tabs"
 
     super options, data
@@ -61,7 +60,7 @@ class ActivityListContainer extends JView
 
     @listWrapper = @controller.getView()
 
-    @utils.wait =>
+    @utils.defer =>
       @getSingleton('activityController').emit "ActivityListControllerReady", @controller
 
   setSize:(newHeight)->

@@ -35,6 +35,8 @@ module.exports = class Followable
         @constructor.count {}, callback
 
   @fetchMyFollowees = secure (client, ids, callback)->
+    return callback null  unless ids
+
     Relationship.someData {
       sourceId  :
         $in     : ids
@@ -122,13 +124,13 @@ module.exports = class Followable
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
             action = "follow"
-            @emit 'FollowCountChanged'
+            @emit 'FollowCountChanged',
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
               follower        : follower
               action          : action
 
-            @emit 'FollowHappened'
+            @emit 'FollowHappened',
               origin    : @
               actorType : 'follower'
               follower  : ObjectRef(follower).data
@@ -157,7 +159,7 @@ module.exports = class Followable
           throw err if err
         callback err, count
         action = "unfollow"
-        @emit 'FollowCountChanged'
+        @emit 'FollowCountChanged',
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
           follower        : follower
@@ -197,6 +199,7 @@ module.exports = class Followable
       if err then callback err
       else
         ids = (rel.sourceId for rel in docs)
+        JTag = require '../models/tag'
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
@@ -222,7 +225,7 @@ module.exports = class Followable
       Relationship.count targetId:@_id, as:'follower', (error, count)=>
         Model::update.call @, $set: 'counts.following': count, (err)->
           throw err if err
-        @emit 'FollowCountChanged'
+        @emit 'FollowCountChanged',
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
           followee        : followee

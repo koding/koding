@@ -2,24 +2,35 @@ class KDListViewController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.wrapper             ?= yes
-    options.scrollView          ?= yes
-    options.keyNav              ?= no
-    options.multipleSelection   ?= no
-    options.selection           ?= yes
-    options.startWithLazyLoader ?= no
-    options.itemChildClass     or= null
-    options.itemChildOptions   or= {}
+    options.wrapper               ?= yes
+    options.scrollView            ?= yes
+    options.keyNav                ?= no
+    options.multipleSelection     ?= no
+    options.selection             ?= yes
+    options.startWithLazyLoader   ?= no
+    options.itemChildClass        or= null
+    options.itemChildOptions      or= {}
+    options.showDefaultItem       or= no
+    options.defaultItem           or= {}
+    options.defaultItem.itemClass or= KDView
+    options.defaultItem.options   or= {}
+    options.defaultItem.data      or= {}
 
-    @itemsOrdered                = [] unless @itemsOrdered
-    @itemsIndexed                = {}
-    @selectedItems               = []
-    @lazyLoader                  = null
+    options.noItemFoundWidget     or= null
+    options.noMoreItemFoundWidget or= null
+
+    defaultOptions = options.defaultItem.options
+    defaultOptions.partial        or=  'This list is empty'
+
+    @itemsOrdered                 = [] unless @itemsOrdered
+    @itemsIndexed                 = {}
+    @selectedItems                = []
+    @lazyLoader                   = null
 
     if options.view
       @setListView listView = options.view
     else
-      viewOptions                  = options.viewOptions or {}
+      viewOptions                    = options.viewOptions or {}
       viewOptions.lastToFirst      or= options.lastToFirst
       viewOptions.itemClass        or= options.itemClass
       viewOptions.itemChildClass   or= options.itemChildClass
@@ -44,6 +55,18 @@ class KDListViewController extends KDViewController
     if options.keyNav
       listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
+  addDefaultItem:->
+    {itemClass,options,data} = @getOptions().defaultItem
+    @getListView().addSubView @defaultItem = new itemClass options, data
+
+  removeDefaultItem:->
+    @getListView().removeSubView @defaultItem if @defaultItem
+
+  putDefaultItem:(list=[])->
+    if @getOptions().showDefaultItem
+      if list.length is 0 then @addDefaultItem()
+      else @removeDefaultItem()
+
   loadView:(mainView)->
 
     options = @getOptions()
@@ -63,14 +86,9 @@ class KDListViewController extends KDViewController
     newItems = for itemData in items
       @getListView().addItem itemData
 
-    @emit "AllItemsAddedToList"
+    @putDefaultItem newItems
 
-    # Implement no Item found widget support FIXME GG
-    #
-    # if items.length is 0
-    #   options = @getOptions()
-    #   if options.noItemFoundWidget?
-    #     @getListView().addItem options.noItemFoundWidget
+    @emit "AllItemsAddedToList"
 
     return newItems
 
@@ -105,6 +123,18 @@ class KDListViewController extends KDViewController
       item = @itemsIndexed[id]
       callback item  if item?
 
+  showNoItemWidget:->
+    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+    if @itemsOrdered.length > 0
+      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+    else
+      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
+
+  hideNoItemWidget:->
+    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+    @scrollView.removeSubView noItemFoundWidget if noItemFoundWidget
+    @scrollView.removeSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+
   ###
   ITEM OPERATIONS
   ###
@@ -112,10 +142,12 @@ class KDListViewController extends KDViewController
   addItem:(itemData, index, animation)->
 
     @getListView().addItem itemData, index, animation
+    @putDefaultItem @getListView().items
 
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
+    @putDefaultItem @getListView().items
     dataId = itemData.getId?()
 
   registerItem:(view, index)->
@@ -131,20 +163,11 @@ class KDListViewController extends KDViewController
       @itemsIndexed[view.getItemDataId()] = view
 
     if options.selection
-      @listenTo
-        KDEventTypes        : 'click'
-        listenedToInstance  : view
-        callback            : (view, event)=> @selectItem view, event
+      view.on 'click', (event)=> @selectItem view, event
 
     if options.keyNav or options.multipleSelection
-      @listenTo
-        KDEventTypes       : ["mousedown","mouseenter"]
-        listenedToInstance : view
-        callback           : (view, event)=>
-          switch event.type
-            when "mousedown"  then @mouseDownHappenedOnItem view, event
-            when "mouseenter" then @mouseEnterHappenedOnItem view, event
-
+      view.on "mousedown", (event)=> @mouseDownHappenedOnItem view, event
+      view.on "mouseenter", (event)=> @mouseEnterHappenedOnItem view, event
 
   unregisterItem:(itemInfo)->
 
@@ -205,7 +228,7 @@ class KDListViewController extends KDViewController
       @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
       @selectItemsByRange @mouseDownTempItem,item
     else
-      @propagateEvent KDEventType : "MouseEnterHappenedOnItem", item
+      @emit "MouseEnterHappenedOnItem", item
 
   ###
   HANDLING KEY EVENTS
@@ -216,7 +239,7 @@ class KDListViewController extends KDViewController
     switch event.which
       when 40, 38
         @selectItemBelowOrAbove event
-        @propagateEvent KDEventType : "KeyDownOnListHandled", @selectedItems
+        @emit "KeyDownOnListHandled", @selectedItems
 
   ###
   ITEM SELECTION
@@ -229,7 +252,11 @@ class KDListViewController extends KDViewController
     return unless item?
 
     @lastEvent = event
-    @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
+
+    if not(@getOption("multipleSelection"))\
+       and item.getOption("selectable")\
+       and not(event.metaKey or event.ctrlKey or event.shiftKey)
+      @deselectAllItems()
 
     if event.shiftKey and @selectedItems.length > 0
       @selectItemsByRange @selectedItems[0], item
@@ -294,7 +321,7 @@ class KDListViewController extends KDViewController
 
   selectSingleItem:(item)->
 
-    unless item in @selectedItems
+    if item.getOption("selectable") and !(item in @selectedItems)
       item.highlight()
       @selectedItems.push item
       if item is @itemsOrdered[@itemsOrdered.length-1]
@@ -316,11 +343,11 @@ class KDListViewController extends KDViewController
 
   itemSelectionPerformed:->
 
-    @propagateEvent KDEventType : "ItemSelectionPerformed", (event : @lastEvent, items : @selectedItems)
+    @emit "ItemSelectionPerformed", @, (event : @lastEvent, items : @selectedItems)
 
   itemDeselectionPerformed:(deselectedItems)->
 
-    @propagateEvent KDEventType : "ItemDeselectionPerformed", (event : @lastEvent, items : deselectedItems)
+    @emit "ItemDeselectionPerformed", @, (event : @lastEvent, items : deselectedItems)
 
   ###
   LAZY LOADER

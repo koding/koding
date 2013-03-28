@@ -93,12 +93,11 @@ class KDListView extends KDView
   appendItem:(itemInstance, animation)->
     itemInstance.setParent @
     scroll = @doIHaveToScroll()
-    # @items.push itemInstance
     if animation?
       itemInstance.$().hide()
       @$()[if @getOptions().lastToFirst then 'prepend' else 'append'] itemInstance.$()
       itemInstance.$()[animation.type] animation.duration,()=>
-        itemInstance.propagateEvent KDEventType: 'introEffectCompleted'
+        itemInstance.emit 'introEffectCompleted'
     else
       @$()[if @getOptions().lastToFirst then 'prepend' else 'append'] itemInstance.$()
     if scroll
@@ -116,13 +115,10 @@ class KDListView extends KDView
       @$()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.$() if index is 0
       @items[actualIndex-1].$()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.$() if index > 0
       itemInstance.$()[animation.type] animation.duration,()=>
-        itemInstance.propagateEvent KDEventType: 'introEffectCompleted'
-        # itemInstance.handleEvent { type : "viewAppended"}
+        itemInstance.emit 'introEffectCompleted'
     else
       @$()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.$() if index is 0
       @items[actualIndex-1].$()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.$() if index > 0
-      # @items[actualIndex].$()[if @getOptions().lastToFirst then 'after' else 'before']  itemInstance.$()
-      # itemInstance.handleEvent { type : "viewAppended"}
     if @parentIsInDom
       itemInstance.emit 'viewAppended'
     null

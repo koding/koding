@@ -21,16 +21,18 @@ class StatusActivityItemView extends ActivityItemChild
     else
       @embedBox = new KDView
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   attachTooltipAndEmbedInteractivity:->
-    @$("p.status-body > span.data > a").each (i,element)->
-      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
+    # @$("p.status-body > span.data > a").each (i,element)->
+    #   href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
-      twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
+    #   twOptions = (title) ->
+    #      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      if $(element).attr("target") is "_blank"
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
-      element
+    #   if $(element).attr("target") is "_blank"
+    #     $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+    #   element
 
 
   viewAppended:()->
@@ -41,7 +43,7 @@ class StatusActivityItemView extends ActivityItemChild
 
     # load embed on next callstack
 
-    @utils.wait =>
+    @utils.defer =>
 
       # If there is embed data in the model, use that!
       if @getData().link?.link_url? and not (@getData().link.link_url is "")
@@ -139,7 +141,7 @@ class StatusActivityItemView extends ActivityItemChild
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @timeAgoView}}
           {{> @tags}}
         </div>
         {{> @actionLinks}}

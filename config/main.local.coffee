@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
 mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
@@ -21,7 +19,7 @@ webPort         = 3000
 brokerPort      = 8000 + (version % 10)
 dynConfig       = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
-module.exports = deepFreeze
+module.exports =
   haproxy:
     webPort     : webPort
   aws           :
@@ -45,6 +43,9 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -138,7 +139,9 @@ module.exports = deepFreeze
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    defaultRecepient : undefined
+    defaultRecepient : "gokmen+emailworkerstage@koding.com"
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

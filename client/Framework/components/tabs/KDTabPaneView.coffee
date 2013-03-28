@@ -1,40 +1,38 @@
 class KDTabPaneView extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      hiddenHandle : no      # yes or no
-      name         : no      # a String
-    ,options
-    super options,data
-    @name = options.name
-    @setClass "clearfix"
-    @setHeight @$().parent().height()
+  constructor:(options = {},data)->
 
-    @on "KDTabPaneActive"   , @becameActive
-    @on "KDTabPaneInactive" , @becameInactive
-    @on "KDTabPaneDestroy"  , @aboutToBeDestroyed
+    options.hiddenHandle ?= no      # a Boolean
+    options.name        or= ""      # a String
+    defaultCssClass       = "kdtabpaneview kdhiddentab #{KD.utils.slugify(options.name.toLowerCase())} clearfix"
+    options.cssClass      = KD.utils.curryCssClass defaultCssClass, options.cssClass
+
+    super options, data
+
+    @name = options.name
+
+    @on "KDTabPaneActive",   @becameActive
+    @on "KDTabPaneInactive", @becameInactive
+    @on "KDTabPaneDestroy",  @aboutToBeDestroyed
 
   becameActive: noop
   becameInactive: noop
   aboutToBeDestroyed: noop
 
   show:()->
-    @getDomElement().removeClass("kdhiddentab").addClass("active")
+    @unsetClass "kdhiddentab"
+    @setClass "active"
     @active = yes
     @emit "KDTabPaneActive"
 
   hide:()->
-    @getDomElement().removeClass("active").addClass("kdhiddentab")
+    @unsetClass "active"
+    @setClass "kdhiddentab"
     @active = no
     @emit "KDTabPaneInactive"
 
-  viewAppended:()->
-    {name} = @getOptions()
-    @setClass "kdtabpaneview"# #{name or ''}" Why do we need something like crazy?
-    super
-
   setTitle:(title)->
     @getDelegate().setPaneTitle @,title
-    @setOption "name", name
+    # @setOption "name", name
     @name = title
 
   getHandle: ->
@@ -42,41 +40,3 @@ class KDTabPaneView extends KDView
 
   hideTabCloseIcon:()->
     @getDelegate().hideCloseIcon @
-
-class KDTabHandleView extends KDView
-  constructor:(options)->
-    options = $.extend
-      hidden  : no          # yes or no
-      title   : "Title"     # a String
-      pane    : null        # a KDTabPaneView instance
-      view    : null        # a KDView instance to put in the tab handle
-    ,options
-    super options
-
-  setDomElement:()->
-    c = if @getOptions().hidden then "hidden" else ""
-    @domElement = $ "<div class='kdtabhandle #{c}'>
-                      <span class='close-tab'></span>
-                    </div>"
-
-  viewAppended:()->
-    if (view = @getOptions().view)?
-      @addSubView view
-    else
-      @setPartial @partial()
-
-  partial:->
-    $ "<b>#{@getOptions().title or 'Default Title'}</b>"
-
-  makeActive:()->
-    @getDomElement().addClass "active"
-
-  makeInactive:()->
-    @getDomElement().removeClass "active"
-
-  setTitle:(title)->
-    # @getDomElement().find("span.close-tab").css "color", @getDelegate().getDomElement().css "background-color"
-
-  # viewAppended:()->
-  #   log @getDelegate()
-

@@ -32,7 +32,7 @@ class KDAutoCompleteListView extends KDListView
       if @items[activeItem.index-1]?
         @items[activeItem.index-1].makeItemActive()
       else
-        @propagateEvent KDEventType: 'ItemsDeselected'
+        @emit 'ItemsDeselected'
     else
       @items[0].makeItemActive()
 

@@ -1,6 +1,6 @@
 class LoginViewInlineForm extends KDFormView
 
-  viewAppended:()->
+  viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()

@@ -18,6 +18,8 @@ class KDRouter extends KDObject
     @tree   = {} # this is the tree for quick lookups
     @routes = {} # this is the flat namespace containing all routes
     @addRoutes routes
+
+  listen:->
     # this handles the case that the url is an "old-style" hash fragment hack.
     if location.hash.length
       hashFragment = location.hash.substr 1
@@ -27,7 +29,7 @@ class KDRouter extends KDObject
         replaceState      : yes
     @startListening()
 
-  popState:(event)-> # fat-arrow binding makes this handler easier to remove.
+  popState:(event)->
     revive event.state, (err, state)=>
       if err?
         new KDNotificationView title: 'An unknown error has occurred.'
@@ -92,6 +94,7 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
+
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
     query = @utils.parseQuery query.join '&'
@@ -103,8 +106,6 @@ class KDRouter extends KDObject
 
     node = @tree
     params = {}
-
-    isRooted = '/' is frag[0]
 
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'
@@ -135,11 +136,14 @@ class KDRouter extends KDObject
         else @handleNotFound frag.join '/'
 
     routeInfo = {params, query}
+    @emit 'Params', {params, query}
 
     unless suppressListeners
       listeners = node[listenerKey]
       if listeners?.length
         listener.call @, routeInfo, state, path  for listener in listeners
+
+    return this
 
   handleQuery:(query)->
     query = @utils.stringifyQuery query  unless 'string' is typeof query

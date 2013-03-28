@@ -17,12 +17,8 @@ class LoginInputView extends JView
     @input = new KDInputView inputOptions, data
     @icon  = new KDCustomHTMLView iconOptions, data
 
-    @listenTo
-      KDEventTypes       : "mouseenter"
-      listenedToInstance : @icon
-      callback           : =>
-        if @$().hasClass "validation-error"
-          @input.validate()
+    @icon.on "mouseenter", =>
+      @input.validate() if @$().hasClass "validation-error"
 
     @input.on "ValidationError", (err)=> @decorateValidation err
     @input.on "ValidationPassed", => @decorateValidation()

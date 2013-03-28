@@ -62,7 +62,7 @@ class ActivityQuestionWidget extends KDFormView
     submit = new KDButtonView
       style : "clean-gray"
       title : "Ask your Question"
-      # callback : @submit
+      # callback : @bound "submit"
 
     # formline1.addSubView labelQuestionTitle
     formline1.addSubView @inputQuestionTitle

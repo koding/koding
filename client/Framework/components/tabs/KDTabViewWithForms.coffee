@@ -23,18 +23,21 @@ class KDTabViewWithForms extends KDTabView
     if @getOptions().navigable
       super
 
+  createTab:(formData, index)->
+    @addPane (tab = new KDTabPaneView name : formData.title), formData.shouldShow
+
+    oldCallback = formData.callback
+    formData.callback = (formData)=>
+      @showNextPane() if @getOptions().goToNextFormOnSubmit
+      oldCallback? formData
+      if index is @getOptions().forms.length - 1
+        @fireFinalCallback()
+
+    @createForm formData,tab
+    return tab
+
   createTabs:(forms)->
-    forms.forEach (formData,index)=>
-      @addPane tab = new KDTabPaneView name : formData.title
-
-      oldCallback = formData.callback
-      formData.callback = (formData)=>
-        @showNextPane() if @getOptions().goToNextFormOnSubmit
-        oldCallback? formData
-        if index is forms.length - 1
-          @fireFinalCallback()
-
-      @createForm formData,tab
+    forms.forEach @bound 'createTab'
 
   createForm:(formData,parentTab)->
     parentTab.addSubView form = new KDFormViewWithFields formData

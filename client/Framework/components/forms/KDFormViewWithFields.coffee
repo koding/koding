@@ -6,9 +6,8 @@ class KDFormViewWithFields extends KDFormView
     @fields  = {}
     @buttons = {}
     {fields,buttons} = @getOptions()
-    @createFields @sanitizeOptions fields
-    @createButtons @sanitizeOptions buttons
-    # log "@inputs:",@inputs,"@fields:",@fields
+    @createFields @sanitizeOptions  fields  if fields
+    @createButtons @sanitizeOptions buttons if buttons
 
   sanitizeOptions:(options)->
     for key,option of options
@@ -43,6 +42,12 @@ class KDFormViewWithFields extends KDFormView
       for key, next of data.nextElement
         next.title or= key
         @createField next, inputWrapper
+
+    if data.nextElementFlat
+      for key, next of data.nextElementFlat
+        next.title or= key
+        @createField next, field
+
 
     return field
 

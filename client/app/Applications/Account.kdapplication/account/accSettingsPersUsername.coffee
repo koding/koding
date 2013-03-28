@@ -55,6 +55,8 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
+      click        : => emailSwappable.swapViews()
+
 
     # EMAIL STATIC PART
     nonEmailInputs = new KDView cssClass : "initialval clearfix"
@@ -71,14 +73,12 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      click        : => emailSwappable.swapViews()
 
     # SET EMAIL SWAPPABLE
     emailForm.addSubView emailSwappable = new AccountsSwappable
       views    : [emailInputs,nonEmailInputs]
       cssClass : "clearfix"
-
-    @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
 
     # #
     # ADDING USERNAME FORM
@@ -107,6 +107,7 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
+      click        : => usernameSwappable.swapViews()
 
     # USERNAME STATIC PART
     usernameNonInputs = usernameNonInputs = new KDView cssClass : "initialval clearfix"
@@ -118,11 +119,9 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      click        : => usernameSwappable.swapViews()
 
     # SET USERNAME SWAPPABLE
     usernameForm.addSubView usernameSwappable = new AccountsSwappable
       views    : [usernameInputs,usernameNonInputs]
       cssClass : "clearfix"
-
-    @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews

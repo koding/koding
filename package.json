@@ -7,7 +7,7 @@
   "private" : true,
   "repository": {
     "type": "git",
-    "url": "git@git.koding.com:koding.git"
+    "url": "git@git.in.koding.com:koding.git"
   },
   "main": "server/index.js",
   "scripts": {
@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "async"           : "0.2.5",
+    "aws2js"          : "0.8.2",
+    "aws-sdk"         : "0.9.5-pre.6",
     "bitly"           : "1.2.4",
     "coffee-script"   : "1.6.2",
     "colors"          : "0.6.0-1",
@@ -24,13 +26,15 @@
     "dateformat"      : "1.0.2-1.2.3",
     "embedly"         : "0.6.0",
     "express"         : "3.0.2",
-    "gzip"            : "0.1.0",
-    "hashish"         : "0.0.4",
+    "formidable"      : "1.0.12",
     "hat"             : "0.0.3",
+    "highlight.js"    : "7.3.0",
     "jsonify"         : "0.0.0",
     "librato-metrics" : "0.0.6",
     "log"             : "1.2.0",
     "log4js"          : "0.4.1",
+    "marked"          : "0.2.8",
+    "mime"            : "1.2.9",
     "mkdirp"          : "0.3.2",
     "mongodb"         : "1.1.2",
     "mongoskin"       : "0.3.7",

@@ -164,6 +164,8 @@ class OpinionListItemView extends KDListItemView
       @editLink.unsetClass "hidden"
       @deleteLink.unsetClass "hidden"
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   render:->
     super()
 
@@ -246,7 +248,7 @@ class OpinionListItemView extends KDListItemView
         <footer class='opinion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> answer by {{> @author}} •
-            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @timeAgoView}}
             {{> @tags}}
             {{> @actionLinks}}
           </div>

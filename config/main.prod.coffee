@@ -1,8 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
 
-deepFreeze = require 'koding-deep-freeze'
-
 version = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
@@ -17,7 +15,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-prod"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -39,6 +37,9 @@ module.exports = deepFreeze
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : no
+  runLdapServer : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -59,9 +60,6 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
@@ -92,7 +90,7 @@ module.exports = deepFreeze
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
@@ -129,6 +127,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : yes
     defaultRecepient : undefined
+  emailSender   :
+    run         : yes
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

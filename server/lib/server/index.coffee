@@ -1,6 +1,10 @@
 {argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+Object.defineProperty global, 'KONFIG', {
+  value: require('koding-config-manager').load("main.#{argv.c}")
+}
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+
+{loggedInPage, loggedOutPage} = require './staticpages'
 
 webPort = argv.p ? webserver.port
 
@@ -67,7 +71,7 @@ app.configure ->
   app.set 'case sensitive routing', on
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
-  app.use express.bodyParser()
+  # app.use express.bodyParser()
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
@@ -140,38 +144,28 @@ if uploads?.enableStreamingUploads
       resource  : nodePath.join uploads.distribution, file.path
     )
 
-  app.get '/Upload/test', (req, res)->
-    res.send \
-      """
-      <script>
-        function submitForm(form) {
-          var file, fld;
-          input = document.getElementById('image');
-          file = input.files[0];
-          fld = document.createElement('input');
-          fld.hidden = true;
-          fld.name = input.name + '-size';
-          fld.value = file.size;
-          form.appendChild(fld);
-          return true;
-        }
-      </script>
-      <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-        <p>Title: <input type="text" name="title" /></p>
-        <p>Image: <input type="file" name="image" id="image" /></p>
-        <p><input type="submit" value="Upload" /></p>
-      </form>
-      """
-
-app.get "/", (req, res)->
-  if frag = req.query._escaped_fragment_?
-    res.send 'this is crawlable content'
-  else
-    # log.info "serving index.html"
-    res.header 'Content-type', 'text/html'
-    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
-      throw err if err
-      res.send data
+  # app.get '/Upload/test', (req, res)->
+  #   res.send \
+  #     """
+  #     <script>
+  #       function submitForm(form) {
+  #         var file, fld;
+  #         input = document.getElementById('image');
+  #         file = input.files[0];
+  #         fld = document.createElement('input');
+  #         fld.hidden = true;
+  #         fld.name = input.name + '-size';
+  #         fld.value = file.size;
+  #         form.appendChild(fld);
+  #         return true;
+  #       }
+  #     </script>
+  #     <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+  #       <p>Title: <input type="text" name="title" /></p>
+  #       <p>Image: <input type="file" name="image" id="image" /></p>
+  #       <p><input type="submit" value="Upload" /></p>
+  #     </form>
+  #     """
 
 app.get "/-/presence/:service", (req, res) ->
   {service} = req.params
@@ -199,6 +193,87 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
     else
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
+
+error_ =(code, message)->
+  messageHTML = message.split('\n')
+    .map((line)-> "<p>#{line}</p>")
+    .join '\n'
+  """
+  <title>#{code}</title>
+  <h1>#{code}</h1>
+  #{messageHTML}
+  """
+
+error_404 =->
+  error_ 404,
+    """
+    not found
+    fayamf
+    """
+
+error_500 =->
+  error_ 500, 'internal server error'
+
+app.get '/:name/:section?', (req, res, next)->
+  {JGroup, JName, JSession} = koding.models
+  {name} = req.params
+  [firstLetter] = name
+  if firstLetter.toUpperCase() is firstLetter
+    next()
+  else
+    JName.fetchModels name, (err, models)->
+      if err then next err
+      else unless models? then res.send 404, error_404()
+      else
+        {clientId} = req.cookies
+        models[models.length-1].fetchHomepageView clientId, (err, view)->
+          if err then next err
+          else if view? then res.send view
+          else res.send 500, error_500()
+
+  # groupName = name
+  # JGroup.one { slug: groupName }, (err, group)->
+  #   if err or !group? then next err
+  #   else
+  #     group.fetchHomepageView (err, view)->
+  #       if err then next err
+  #       else res.send view
+
+# app.get '/:userName', (req, res, next)->
+#   {JAccount} = koding.models
+#   {userName} = req.params
+#   JAccount.one { 'profile.nickname': userName }, (err, account)->
+#     if err or !account? then next err
+#     else
+#       if account.profile.staticPage?.show is yes
+#         account.fetchHomepageView (err, view)->
+#           if err then next err
+#           else res.send view
+#       else
+#         res.header 'Location', '/Activity'
+#         res.send 302
+
+serve = (content, res)->
+  res.header 'Content-type', 'text/html'
+  res.send content
+
+app.get "/", (req, res)->
+  if frag = req.query._escaped_fragment_?
+    res.send 'this is crawlable content'
+  else
+    {clientId} = req.cookies
+    unless clientId
+      serve loggedOutPage, res
+    else
+      {JSession} = koding.models
+      JSession.one {clientId}, (err, session)=>
+        if err
+          console.error err
+          serve loggedOutPage, res
+        else
+          {username} = session.data
+          if username then serve loggedInPage, res
+          else serve loggedOutPage, res
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

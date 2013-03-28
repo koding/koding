@@ -24,10 +24,11 @@ module.exports = class Slugifiable
     if isNaN count then ''          # show empty string instead of zero...
     else "-#{count + 1}"            # otherwise, try the next integer.
 
-  generateUniqueSlug =(konstructor, slug, i, template, callback)->
+  generateUniqueSlug =(ctx, konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback
     template or= '#{slug}'
     JName = require '../models/name'
+    template = template.call ctx  if 'function' is typeof template
     selector = name: RegExp "^#{template.replace '#\{slug\}', slug}(-\\d+)?$"
     JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
@@ -35,13 +36,20 @@ module.exports = class Slugifiable
         if err then callback err
         else
           nextCount = getNextCount names
-          nextName = "#{slug}#{nextCount}"
-          nextNameFull = template.replace '#{slug}', nextName
-          JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
+          {collectionName} = konstructor.getCollection()
+          nextName = {
+            slug            : "#{slug}#{nextCount}"
+            constructorName : konstructor.name
+            usedAsPath      : konstructor.usedAsPath ? 'slug'
+            group           : ctx.group
+            collectionName
+          }
+          nextNameFull = template.replace '#{slug}', nextName.slug
+          JName.claim nextNameFull, [nextName], konstructor, 'slug', (err, nameDoc)->
             if err?.code is 11000
               console.log err
               # we lost the race; try again
-              generateUniqueSlug konstructor, slug, 0, template, callback
+              generateUniqueSlug ctx, konstructor, slug, 0, template, callback
             else if err
               callback err
             else
@@ -78,7 +86,6 @@ module.exports = class Slugifiable
     konstructors = [konstructors]  unless Array.isArray konstructors
     konstructors.forEach (konstructor)->
       counter = 0
-      console.log konstructor.name
       konstructor.updateAllSlugs {batchSize}, (err,slug)->
         console.log slug
         if ++counter is batchSize
@@ -115,4 +122,4 @@ module.exports = class Slugifiable
     {constructor} = this
     {slugTemplate, slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
-    generateUniqueSlug constructor, slug, 0, slugTemplate, callback
+    generateUniqueSlug this, constructor, slug, 0, slugTemplate, callback

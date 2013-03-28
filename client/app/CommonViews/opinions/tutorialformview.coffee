@@ -45,7 +45,7 @@ class TutorialFormView extends KDFormView
       blur:=>
         # @getDelegate().embedBox.hide()
       paste:=>
-          @utils.wait =>
+          @utils.defer =>
 
             @discussionEmbedLink.setValue @sanitizeUrls @discussionEmbedLink.getValue()
 
@@ -95,7 +95,7 @@ class TutorialFormView extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 

@@ -42,6 +42,7 @@ module.exports = class JCodeSnip extends JPost
         syntax    : data.syntax
       }]
       meta        : data.meta
+      group       : data.group
     JPost.create.call @, client, codeSnip, callback
 
   modify: secure (client, data, callback)->

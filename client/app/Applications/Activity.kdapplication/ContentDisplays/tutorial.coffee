@@ -25,7 +25,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       size    : {width: 50, height: 50}
       origin  : origin
 
-    @author = new ProfileLinkView {origin:origin}
+    @author = new ProfileLinkView {origin}
 
     @opinionBox = new OpinionView null, data
 
@@ -52,6 +52,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
@@ -114,7 +115,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             @editDiscussionForm?.destroy()
             delete @editDiscussionForm
             @$(".tutorial-body .data").show()
-            @utils.wait =>
+            @utils.defer =>
               @embedBox.show()
           else
             @editDiscussionForm = new TutorialFormView
@@ -132,7 +133,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                   else
                     @editDiscussionForm.setClass "hidden"
                     @$(".tutorial-body .data").show()
-                    @utils.wait =>
+                    @utils.defer =>
                       @embedBox.show() if @embedBox.hasValidContent
             , data
 
@@ -175,14 +176,12 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.destroy()
 
   opinionHeaderCountString:(count)->
-    if count is 0
-      countString = "No Opinions yet"
-    else if count is 1
-      countString = "One Opinion"
-    else
-      countString = count+ " Opinions"
 
-    '<span class="opinion-count">'+countString+'</span>'
+    countString = if count is 0 then "No Answers yet"
+    else if count is 1 then          "One Answer"
+    else                             "#{count} Answers"
+
+    return '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteTutorial:(data)->
 
@@ -272,7 +271,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <footer class='tutorial-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
-                <time>{{$.timeago #(meta.createdAt)}}</time>
+                {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}
               </div>
@@ -328,11 +327,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 #         animate : no
 #         className : "tutorial-video"
 #       callback:=>
-#         unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#         unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   click:->
 #     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
-#     unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#     unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   viewAppended:->
 #     super()

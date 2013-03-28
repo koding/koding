@@ -22,6 +22,7 @@ module.exports = class JActivityCache extends jraphical.Module
     'CNewMemberBucketActivity'
     'CDiscussionActivity'
     'CTutorialActivity'
+    'CBlogPostActivity'
     'CInstallerBucketActivity'
   ]
 

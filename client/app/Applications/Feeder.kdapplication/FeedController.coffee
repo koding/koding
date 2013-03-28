@@ -1,11 +1,14 @@
 class FeedController extends KDViewController
   constructor:(options={})->
-    facetsController = options.facetsController or FeederFacetsController
-    @facetsController   = new facetsController
-      filters   : options.filter
-      sorts     : options.sort
-      help      : options.help
-      delegate  : @
+
+
+    options.autoPopulate   ?= no
+    options.useHeaderNav   ?= no
+    options.filter        or= {}
+    options.sort          or= {}
+    options.limitPerPage  or= 10
+    options.dataType      or= null
+    options.onboarding    or= null
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -13,19 +16,35 @@ class FeedController extends KDViewController
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
+      onboarding    : options.onboarding
 
-    options.view or= new FeederSplitView
-      views   : [
-        @facetsController.getView()
-        @resultsController.getView()
-      ]
+    unless options.useHeaderNav
+      facetsController    = options.facetsController or FeederFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
 
-    options.autoPopulate  or= yes
-    options.filter        or= {}
-    options.sort          or= {}
-    options.limitPerPage  or= 10
+      options.view or= new FeederSplitView
+        views   : [
+          @facetsController.getView()
+          @resultsController.getView()
+        ]
+    else
+      facetsController    = options.facetsController or FeederHeaderFacetsController
+      @facetsController   = new facetsController
+        filters   : options.filter
+        sorts     : options.sort
+        help      : options.help
+        delegate  : @
 
-    options.dataType      or= null
+      view = (options.view or= new FeederSingleView)
+
+      view.on "viewAppended", =>
+        view.addSubView @resultsController.getView()
+        view.addSubView @facetsController.getView()
+
 
     super options, null
 
@@ -52,9 +71,10 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-    @selectFilter filter      if filter?
-    @changeActiveSort sort    if sort?
+    @selectFilter filter, no      if filter?
+    @changeActiveSort sort, no    if sort?
     @highlightFacets()
+    @loadFeed()
     # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
@@ -73,16 +93,16 @@ class FeedController extends KDViewController
     @loadFeed() if @getOptions().autoPopulate
     mainView._windowDidResize()
 
-  selectFilter:(name)->
+  selectFilter:(name, loadFeed=yes)->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
     if @resultsController.listControllers[name].itemsOrdered.length is 0
-      @loadFeed()
+      @loadFeed() if loadFeed
 
-  changeActiveSort:(name)->
+  changeActiveSort:(name, loadFeed=yes)->
     @selection.activeSort = name
     @resultsController.listControllers[@selection.name].removeAllItems()
-    @loadFeed()
+    @loadFeed() if loadFeed
 
   getFeedSelector:->
     # log @filters
@@ -118,10 +138,22 @@ class FeedController extends KDViewController
     if @noItemFound? then @noItemFound.destroy()
     controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
       cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
     @noItemFound.hide()
 
-  loadFeed:(filter = @selection)->
+  # this is a temporary solution for a bug that 
+  # bongo returns correct result set in a wrong order
+  sortByKey : (array, key) ->
+    array.sort (first, second) ->
+      firstVar  = JsPath.getAt first,  key
+      secondVar = JsPath.getAt second, key
+      #quick sort-ware
+      if (firstVar < secondVar) then return 1 
+      else if (firstVar > secondVar) then return -1 
+      else return 0
+
+
+  loadFeed:(filter = @selection)=>
 
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
@@ -137,11 +169,14 @@ class FeedController extends KDViewController
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
+            items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
             if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
               @loadFeed filter
           else
             warn err
-        else
+        else unless err
           filter.dataEnd? @, rest...
+        else
+          filter.dataError? @, err
