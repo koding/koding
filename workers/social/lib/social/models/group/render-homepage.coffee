@@ -52,6 +52,9 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
       </div>
       <div id="landing-page-logo"></div>
       <div id="group-splash-wrapper">
+        <div id="koding-landing-logo-wrapper">
+          <h3 id="koding-landing-logo"><a href='#'>Koding</a></h3>
+        </div>
         <div id="group-splash"></div>
         <div id="group-logo-wrapper">
           <i></i><i></i>
