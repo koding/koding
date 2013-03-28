@@ -113,7 +113,6 @@ class AccountKiteList extends KDListView
       overlay   : yes
       cssClass  : "kite-kdmodal"
       width     : 500
-      height    : 233
       view      : form
       buttons   :
         "Create New Kite" :
