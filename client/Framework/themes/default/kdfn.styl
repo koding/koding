@@ -79,6 +79,15 @@ gradient1()
   background-image -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
   background-image -o-linear-gradient(arguments[0], arguments[1]);
 
+gradient2()
+  // background-color arguments[1]
+  background-image -moz-radial-gradient(arguments[0] arguments[1], arguments[2] arguments[3])
+  background-image -webkit-radial-gradient(arguments[0], arguments[1],arguments[2], arguments[3])
+  background-image -khtml-radial-gradient(arguments[0], arguments[1], arguments[2], arguments[3])
+  background-image -o-radial-gradient(arguments[2], arguments[3]);
+
+
+
 fl()
   display block
   float left
