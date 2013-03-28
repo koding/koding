@@ -375,8 +375,7 @@ module.exports = class JActivityCache extends jraphical.Module
           setModifier.newMemberBucketIndex  = index
           setModifier["#{key}.ids"]         = newIds
           setModifier["#{key}.count"]       = freshNewMemberBucket.count
-          setModifier["#{key}.createdAt.0"] = freshNewMemberBucket.createdAt.first
-          setModifier["#{key}.createdAt.1"] = freshNewMemberBucket.createdAt.last
+          setModifier["#{key}.createdAt"]   = freshNewMemberBucket.createdAt
           setModifier["#{key}.type"]        = 'CNewMemberBucketActivity'
 
         # only keep CNewMemberBucketActivity's of newIds
