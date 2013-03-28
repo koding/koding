@@ -264,6 +264,7 @@ dimmedNeighbor()
       top             0
       right           0
       sprite()
+
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
     rounded             2px
@@ -299,7 +300,6 @@ dimmedNeighbor()
     border-top      1px solid #d9d9d9
     border-bottom   1px solid #f2f2f2
     margin          0 20px
-
 
 #finder-header-holder
   size              auto, 66px
@@ -340,11 +340,16 @@ dimmedNeighbor()
     sprite()
     bg(position,-60px -160px)
 
+  .finder-bottom-pin
+    right           0
+    top             2px
+    border          none
+    background      none
+    opacity         .4
+    abs()
+
   &.go-down
     size                    100%, 27px
-
-  &:hover
-    height                  180px
 
   ul
     min-width               208px

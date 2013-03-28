@@ -72,22 +72,6 @@ class MembersListGroupSortItem extends KDListItemView
 #     searchArea.setDelegate membersList
 #     # searchArea.search()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MembersListItemView extends KDListItemView
   constructor:(options,data)->
     options = options ? {}
@@ -112,13 +96,16 @@ class MembersListItemView extends KDListItemView
         diameter      : 18
         top           : 11
       states          : [
-        "Follow", (callback)->
+        title         : "Follow"
+        callback      : (callback)->
           memberData.follow (err, response)=>
             @hideLoader()
             unless err
               @setClass 'following-btn'
               callback? null
-        "Unfollow", (callback)->
+      ,
+        title         : "Unfollow"
+        callback      : (callback)->
           memberData.unfollow (err, response)=>
             @hideLoader()
             unless err
