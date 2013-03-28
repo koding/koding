@@ -88,14 +88,17 @@ class TopicView extends KDView
         diameter      : 18
         top           : 11
       states          : [
-        "Follow", (callback)->
+        title         : "Follow"
+        callback      : (callback)->
           data.follow (err, response)=>
             data.followee = yes
             @hideLoader()
             unless err
               @setClass 'following-btn following-topic'
               callback? null
-        "Following", (callback)->
+      ,
+        title         : "Following"
+        callback      : (callback)->
           data.unfollow (err, response)=>
             data.followee = no
             @hideLoader()

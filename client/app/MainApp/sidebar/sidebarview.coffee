@@ -93,6 +93,24 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
+    @finderBottomControlPin = new KDToggleButton
+      cssClass     : "finder-bottom-pin"
+      iconOnly     : yes
+      defaultState : "hide"
+      states       : [
+        title      : "show"
+        iconClass  : "up"
+        callback   : (callback)=>
+          @showBottomControls()
+          callback?()
+      ,
+        title      : "hide",
+        iconClass  : "down"
+        callback   : (callback)=>
+          @hideBottomControls()
+          callback?()
+      ]
+
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
@@ -162,10 +180,6 @@ class Sidebar extends JView
       cp.$().css left : cp._left - x, width : cp._width + x
       $fp.css "width", newFpWidth
 
-    KD.utils.wait 8000, =>
-      @$('#finder-bottom-controls').addClass 'go-down'
-      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
     @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
@@ -203,6 +217,7 @@ class Sidebar extends JView
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
+        {{> @finderBottomControlPin}}
         <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
@@ -266,6 +281,14 @@ class Sidebar extends JView
   showEnvironmentPanel:->
 
     @showFinderPanel()
+
+  hideBottomControls:->
+    @$('#finder-bottom-controls').addClass 'go-down'
+    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
+
+  showBottomControls:->
+    @$('#finder-bottom-controls').removeClass 'go-down'
+    # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
   showFinderPanel:->
 

@@ -11,10 +11,13 @@ class AppView extends KDView
       dataPath        : "followee"
       defaultState    : if app.followee then "Unfollow" else "Follow"
       states          : [
-        "Follow", (callback)->
+        title         : "Follow"
+        callback      : (callback)->
           app.follow (err)->
             callback? err
-        "Unfollow", (callback)->
+      ,
+        title         : "Unfollow"
+        callback      : (callback)->
           app.unfollow (err)->
             callback? err
       ]
@@ -23,10 +26,13 @@ class AppView extends KDView
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
       states          : [
-        "Like", (callback)->
+        title         : "Like"
+        callback      : (callback)->
           app.like (err)->
             callback? err
-        "Unlike", (callback)->
+      ,
+        title         : "Unlike"
+        callback      : (callback)->
           app.like (err)->
             callback? err
       ]
@@ -40,7 +46,8 @@ class AppView extends KDView
         dataPath        : "approved"
         defaultState    : if app.approved then "Disapprove" else "Approve"
         states          : [
-          "Approve", (callback)->
+          title         : "Approve"
+          callback      : (callback)->
             appsController.approveApp app, (err)=>
               if not err
                 app.approve yes, (err)->
@@ -48,7 +55,9 @@ class AppView extends KDView
                   callback? err
               else
                 callback? err
-          "Disapprove", (callback)->
+        ,
+          title         : "Disapprove"
+          callback      : (callback)->
             app.approve no, (err)->
               callback? err
         ]
