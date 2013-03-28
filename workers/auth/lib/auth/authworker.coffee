@@ -142,11 +142,12 @@ module.exports = class AuthWorker extends EventEmitter
                   else
                     ensureGroupPermission.call this, group, account, roles,
                       (err, secretName)=>
-                        console.log {err, secretName}
                         if err or not secretName
                           @rejectClient routingKey
                         else
-                          console.log 'this client', secretName
+                          setSecretNameEvent = "#{routingKey}.setSecretName"
+                          message = JSON.stringify "group.#{secretName}"
+                          @bongo.respondToClient setSecretNameEvent, message
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
@@ -235,7 +236,7 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'kite.leave'
                   @removeService messageData
-                when "client.#{@resourceName}"
+                when "client.auth"
                   @joinClient messageData, socketId
                 else
                   @rejectClient routingKey

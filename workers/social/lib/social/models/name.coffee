@@ -39,7 +39,7 @@ module.exports = class JName extends Model
         secretNameObj.save (err)->
           if err then callback err
           else callback null, secretNameObj.secretName
-      else callback secretNameObj.secretName
+      else callback null, secretNameObj.secretName
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->
