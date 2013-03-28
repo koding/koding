@@ -104,7 +104,7 @@ module.exports = class JKite extends jraphical.Module
     options or= {}
 
     Relationship.some selector, options, (err, relationships)=>
-      if err then callback err, []
+      if err then callback err
       else if relationships.length is 0 then callback null, []
       else
         teasers = []
