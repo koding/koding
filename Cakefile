@@ -327,7 +327,7 @@ task 'accounting', (options)->
 
   processes.fork
     name    : "accounting"
-    cmd     : __dirname + "/accounting -c #{configFile}"
+    cmd     : __dirname + "/workers/accounting/index -c #{configFile}"
     verbose: yes
 
 
