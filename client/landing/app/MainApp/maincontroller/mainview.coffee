@@ -107,18 +107,6 @@ class MainView extends KDView
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
 
-    {groupEntryPoint} = KD.config
-    if groupEntryPoint
-      KD.remote.cacheable groupEntryPoint, (err, groups, name)=>
-        if err then warn err
-        else if groups?.first
-
-          @header.addSubView new KDCustomHTMLView
-            tagName   : "h3"
-            domId     : "group-logo"
-            partial   : "<a href='#'>#{groups.first.title}</a>"
-
-
   createMainTabView:->
 
     @mainTabHandleHolder = new MainTabHandleHolder

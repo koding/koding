@@ -35,13 +35,15 @@ class LazyDomController extends KDController
         @landingView.setClass "down"
         @utils.wait 300, =>
           @landingView.setClass "out"
-          @utils.wait 1200, @landingView.bound "hide"
+          # @utils.wait 1200, =>
+          #   # @mainController.mainViewController.getView().groupLogo.unsetClass "out"
+          #   @landingView.hide()
       # FIXME: GG
       # @landingView.on "transtionEnd", @landingView.bound "hide"
 
   showLandingPage:(callback = noop)->
-
     if @landingView
+      # @landingView.groupLogo.setClass "out"
       {contentPanel} = @mainController.mainViewController.getView()
       contentPanel.setClass "no-anim"
       contentPanel.setClass "social"

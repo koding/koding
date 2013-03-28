@@ -53,12 +53,11 @@ class StaticGroupController extends KDController
         else
           @mainController.loginScreen.animateToForm 'login'
 
-    groupLogo = new KDView
-      lazyDomId : 'group-logo'
-      tooltip   :
-        title   : "Click here to open group page"
-      click     : =>
-        @lazyDomController.showLandingPage()
+    @landingView.groupLogo = new KDCustomHTMLView
+      tagName   : "h3"
+      lazyDomId : "group-logo"
+      # cssClass  : "out"
+      click     : => @getSingleton('lazyDomController').showLandingPage()
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
