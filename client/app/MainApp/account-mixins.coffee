@@ -43,19 +43,63 @@ AccountMixin = do ->
 
       ready =(resourceName)->
         @exchange = resourceName
-        @emit 'ready'
+        console.log "ready"
+        @emit "ready"
 
       error =(err)->
         cycleChannel.call this
         console.error err
 
-      pong =-> @lastPong = Date.now()
+      ping = (callback) ->
+        @publish JSON.stringify(
+          method      : 'ping'
+          arguments   : []
+          callbacks   : {}
+        )
+        @once 'pong', ->
+          callback()  if callback
+
+      pong = ->
+        @emit 'pong'
+        @lastPong = Date.now()
 
       cycleChannel =->
         @off()
         @stopPinging?()
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
+
+        kite = KD.getSingleton "kiteController"
+        kite.deleteKite(@name)
+
+      messageArrived = (msg) ->
+        console.log msg
+
+        clearTimeout @unresponsiveTimeout
+        @unresponded = 0
+
+        @pingTimeout = setTimeout =>
+          @ping()
+        , 5000
+
+      messageSent = (msg) ->
+        console.log msg
+
+        clearTimeout @pingTimeout
+        clearTimeout @unresponsiveTimeout
+
+        @unresponsiveTimeout = setTimeout =>
+          @emit "possibleUnresponsive"
+        , 5000
+
+      possibleUnresponsive = ->
+        @unresponded ||= 0
+        @unresponded  += 1
+
+        if @unresponded > 1
+          @emit 'unresponsive'
+
+      unresponsive = -> cycleChannel.bind this
 
       messageHandler =(kiteName, args) ->
         {method} = args
@@ -93,29 +137,28 @@ AccountMixin = do ->
         return callback readyChannels[channelName]  if readyChannels[channelName]
         channel = KD.remote.mq.subscribe channelName
         kiteController = KD.getSingleton 'kiteController'
-        kiteController.channels ?= {}
-        kiteController.channels[kiteName] = channel
-        channel.cycleChannel = -> cycleChannel.call this
-        channel.once 'broker.subscribed', ->
-          onReady channel, ->
-            callback channel
-            i = setInterval ->
-              now = Date.now()
-              isUnresponsive = channel.lastPong? and (now - channel.lastPong > 15000)
-              cycleChannel.call channel  if isUnresponsive
-              channel.publish JSON.stringify
-                method      : 'ping'
-                arguments   : []
-                callbacks   : {}
-            , 5000
-            channel.stopPinging =-> clearInterval i
+        kiteController.addKite(kiteName, channel)
+
         unless channels[channelName]?
+          channel.cycleChannel = -> cycleChannel.call this
+          channel.ping = (callback) -> ping.call this, callback
+
           channel.on "message", messageHandler.bind channel, kiteName
+          channel.on "publish", messageSent.bind channel
+          channel.on "message", messageArrived.bind channel
+          channel.on "possibleUnresponsive", possibleUnresponsive.bind channel
+          channel.on "unresponsive", unresponsive.bind channel
+
+          channel.once 'broker.subscribed', ->
+            onReady channel, ->
+              callback channel
+
         channels[channelName] = channel
         channel.setAuthenticationInfo
           serviceType : 'kite'
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
+
 
       tellKite =(options, callback=->)->
         scrubber = new Scrubber localStore

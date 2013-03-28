@@ -66,6 +66,15 @@ do ->
     mainController.accountChanged account
     AccountMixin.init(KD.remote.api)
 
+    bongo = KD.remote
+    broker = KD.remote.mq
+    monitorItems = KD.getSingleton("monitorItems")
+    monitorItems.register {bongo}
+
+    kite = KD.getSingleton("kiteController")
+    kite.on "channelAdded", (channel, name) ->
+      monitorItems.getItems()[name] = channel
+
   KD.remote.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
 
   KD.remote.on 'connected', ->
