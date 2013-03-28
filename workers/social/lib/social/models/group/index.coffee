@@ -683,7 +683,7 @@ module.exports = class JGroup extends Module
       @addMember member, role, queue.fin.bind queue
     dash queue, =>
       callback()
-      @update $inc: 'counts.members': 1, ->
+      @updateCounts()
       @emit 'NewMember'
 
   each:(selector, rest...)->
@@ -723,3 +723,12 @@ module.exports = class JGroup extends Module
       callback null, ['guest']
     else
       @fetchRolesHelper delegate, callback
+
+  updateCounts:->
+    Relationship.count
+      as         : 'member'
+      targetName : 'JAccount'
+      sourceId   : @getId()
+      sourceName : 'JGroup'
+    , (err, count)=>
+      @update ($set: 'counts.members': count), ->
