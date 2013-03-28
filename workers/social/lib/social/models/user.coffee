@@ -338,7 +338,13 @@ module.exports = class JUser extends jraphical.Module
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    JName.claim username, [username], 'JUser', 'username', (err)->
+                    slug = {
+                      slug: username,
+                      constructorName: 'JUser',
+                      usedAsPath: 'username',
+                      collectionName: 'jUsers'
+                    }
+                    JName.claim username, [slug], 'JUser', (err)->
                       if err then callback err
                       else
                         salt = createSalt()
