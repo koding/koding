@@ -40,20 +40,20 @@
   100%
     transform                   rotateX(0deg)
 
+#koding-landing-logo-wrapper
 #group-logo-wrapper
-  perspective                 800px
-  bottom                      0
-  right                       10px
-  margin-bottom               -42px
-  max-width                   80%
-  z-index                     10
-  display                     inline-block
-  height                      42px
+  perspective           800px
+  bottom                0
+  right                 6px
+  margin-bottom         -42px
+  max-width             80%
+  z-index               10
+  display               inline-block
+  height                42px
   abs()
   i
-    top                 0
     display             block
-    size                2px, 8px
+    size                2px, 15px
     z-index             0
     bg                  color, #999
     abs()
@@ -61,6 +61,41 @@
       left              15px
     &:nth-child(2n)
       right             17px
+
+#group-logo-wrapper i
+  top                 0
+
+#koding-landing-logo-wrapper
+  height                32px
+  margin-bottom         0px
+  i
+    height              0
+    bottom              0
+
+#koding-landing-logo
+  margin-bottom         8px
+  font-family           Ubuntu
+  size                  auto, 30px
+  padding               2px
+  font-size             20px
+  overflow              visible
+  color                 rgba(255, 255, 255, .5)
+  gradient              #302D27, #332F2A
+  shadow                0 0 5px rgba(0, 0, 0, 0.5)
+  transition            top .3s ease-in\,\
+                        margin-top .1s ease-out
+  vendor                transform-origin-x, 0
+  vendor                transform-origin-y, 0
+  transform             translateX(0px)\
+                        translateY(0px)\
+                        translateZ(0px)\
+                        rotateX(0deg)\
+                        rotateY(0deg)\
+                        rotateZ(0deg)
+  shadow                0 0 5px rgba(0, 0, 0, 0.5)\,\
+                        inset 0 0 2px 5px rgba(255, 255, 255, 0.1)
+  z-index               1
+  rel()
 
 h3#group-logo
   margin-top            8px
@@ -72,7 +107,8 @@ h3#group-logo
   color                 rgba(255, 255, 255, .5)
   gradient              #d64b4b, #ab2c2c
   shadow                0 0 5px rgba(0, 0, 0, 0.5)
-  transition            top .3s ease-in
+  transition            top .3s ease-in\,\
+                        margin-top .1s ease-out
   vendor                transform-origin-x, 0
   vendor                transform-origin-y, 0
   transform             translateX(0px)\
@@ -81,6 +117,8 @@ h3#group-logo
                         rotateX(-90deg)\
                         rotateY(0deg)\
                         rotateZ(0deg)
+  shadow                0 0 5px rgba(0, 0, 0, 0.5)\,\
+                        inset 0 0 2px 5px rgba(255, 255, 255, 0.1)
   rel()
   &.animate
     animation-name              swing
@@ -91,7 +129,8 @@ h3#group-logo
   &.out
     top                       -42px
 
-
+#koding-landing-logo
+h3#group-logo
   a
     border              1px dashed rgba(0, 0, 0, 0.2)
     color               white
