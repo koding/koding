@@ -24,12 +24,15 @@ module.exports = class JKiteApp extends jraphical.Module
           'create', 'get', 'inc'
         ]
     schema          :
-      appKey      :
+      username      :
         type        : String
         required    : yes
       methodName    :
         type        : String
         required    : yes
+      kiteName      :
+        type        : String
+        required    : yes        
       count         :
         type        : Number
         required    : no
@@ -47,7 +50,6 @@ module.exports = class JKiteApp extends jraphical.Module
 
     @one {
       appKey     : data.appKey
-      methodName : data.methodName
     }, (err, appData)=>
       if err
         callback err
