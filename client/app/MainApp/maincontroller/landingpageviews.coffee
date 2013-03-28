@@ -123,11 +123,11 @@ class LandingNavigationLink extends NavigationLink
 
     super options, data
     @loader = new KDLoaderView
-      size :
-        width : 20
-        height : 20
+      size          :
+        width       : 20
+        height      : 20
       loaderOptions :
-        color : "#ffffff"
+        color       : "#444444"
     @loader.hide()
 
   viewAppended:->
