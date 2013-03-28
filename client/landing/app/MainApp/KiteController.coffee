@@ -42,6 +42,17 @@ class KiteController extends KDController
     @status    = no
     @intervals = {}
     @setListeners()
+    @kites     = {}
+    @channels  = {}
+
+  addKite: (name, channel) ->
+    @channels[name] = channel
+    @kites[name] = channel
+    @emit "channelAdded", channel, name
+
+  deleteKite: (name) ->
+    @emit "channelDeleted", @kites[name], name
+    delete @kites[name]
 
   run:(options = {}, callback)->
 

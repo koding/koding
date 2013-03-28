@@ -584,6 +584,7 @@ module.exports = [
   # "app/MainApp/oldPages/irc/tabs.coffee",
   "app/MainApp/account-mixins.coffee",
   "app/MainApp/main.coffee",
+  "app/MainApp/monitor_status.coffee",
 
   # --- Styles ---
   "css/style.css",
