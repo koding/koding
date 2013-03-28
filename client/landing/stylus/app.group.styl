@@ -109,12 +109,54 @@ h3#group-logo
   bg color,             rgba(0,0,0,0.2)
   padding 0 5px 5px 0
   borderBox()
+
+
 .group-content-wrapper
-  margin-left           160px
-  height                100%
-  width                 auto
-  bg color,             white
+  // margin-left           160px
+  height                        100%
+  width                         auto
+  bg color,                     white
   borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  // bg image,                     url(http://www.eitc.org/Young_Investigator_Forum/photos/Stanford-P1020589.JPG)
+
+
+  #landing-page-sidebar
+    width                       auto
+    height                      auto
+    abs()
+    top                         120px
+    left                        0
+    right                       0
+
+    .kdlistview-navigation
+      text-align                center
+      width                     100%
+      margin                    0px
+
+      .navigation-item
+        width                   auto
+        display                 inline-block
+        bg color,               #fbfbfb
+        border                  1px solid #e8e8e8
+        rounded                 3px
+        z-index                 1000
+
+        .title
+          text-align            center
+          padding               0px
+          color                 #444!important
+          font-weight           400
+
+          span.main-nav-icon
+            hidden()
+
+        &.selected
+          a.title
+            color               #444!important
 
 .group-title
   borderBox()
@@ -306,15 +348,26 @@ h3#group-logo
 
 .kdlistview.kdview.group-loading-content
 .group-loading-content
-  overflow auto
-  // margin-left 125px
   borderBox()
-  height 100%
-  width auto
+  overflow                              auto
+  height                                100%
+  width                                 auto
+  padding-top                           50px
+  // bg color, rgba(255,255,255,0.5)
+  gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
+
+  .content-item
+    borderBox()
+    padding-top                         40px
 
   .has-markdown
-    padding 30px
-    max-width 600px
+    padding                             30px
+    max-width                           600px
+    margin                              0px auto
+    rounded                             5px
+    border                              1px solid #e3e3e3
+    bg                                  color, #f5f5f5
+    shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
 
 
 // .group-loader

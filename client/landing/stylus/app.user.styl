@@ -91,8 +91,11 @@
     .navigation-item
       width                 auto
       display               inline-block
+
       .title
-        text-align          left
+        text-align          center
+        span.main-nav-icon
+          hidden()
       &.selected
         a.title
           color             #444!important
@@ -691,7 +694,7 @@ textarea.profile-handle-customize.kdinput
     // overflow                auto
 
     .has-markdown
-      max-width             600px
+      // max-width             600px
       margin-right          300px
       img
         max-width           100%
@@ -721,7 +724,12 @@ textarea.profile-handle-customize.kdinput
     borderBox()
     width                   100%
     min-height              200px
+    height                  45%
 
+  div.input_preview.kdinputwithpreview.preview-markdown
+    height                  45%
+    div.preview_content
+      max-height            100%
   .about-name
 
     .name
