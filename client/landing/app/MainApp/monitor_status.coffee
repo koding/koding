@@ -17,7 +17,6 @@ class Ping extends KDObject
 
   setPingTimeout: ->
     @pingTimeout = setTimeout =>
-      console.log "failed", @name
       @status = FAILED
       @emit "failed", @item, @name
     , 5000
@@ -105,6 +104,7 @@ class MonitorStatus extends KDObject
     reasons.internetDown      = ["bongo", "broker", "external"]
     reasons.kodingDown        = ["bongo", "broker"]
     reasons.brokerDown        = ["broker"]
+    reasons.bongoDown         = ["bongo"]
     reasons.sharedHostingDown = ["sharedHosting"]
     reasons.webtermDown       = ["webterm"]
 
