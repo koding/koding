@@ -69,7 +69,7 @@ do ->
     bongo = KD.remote
     broker = KD.remote.mq
     monitorItems = KD.getSingleton("monitorItems")
-    monitorItems.register {bongo}
+    monitorItems.register {bongo, broker}
 
     kite = KD.getSingleton("kiteController")
     kite.on "channelAdded", (channel, name) ->
