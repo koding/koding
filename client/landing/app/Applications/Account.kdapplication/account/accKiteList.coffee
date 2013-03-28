@@ -44,9 +44,9 @@ class AccountKiteListController extends KDListViewController
         overlay : yes
         content : """
                   <div class='modalformline'>
-                    <p><label>Kite Application Name:  </label> <i>#{itemData.appName}</i></p>
-                    <p><label>Kite Name            :  </label> <i>#{itemData.kiteName}</i></p>
-                    <p><label>Kite Key             :  </label> <b>#{itemData.key}</b></p>
+                    <p><label>Decription:  </label> <i>#{itemData.description}</i></p>
+                    <p><label>Kite Name :  </label> <i>#{itemData.kiteName}</i></p>
+                    <p><label>Kite Key  :  </label> <b>#{itemData.key}</b></p>
                   </div>
                   """
 
@@ -72,9 +72,9 @@ class AccountKiteListController extends KDListViewController
   createKite : (form)-> 
     data = form.getData()
     KD.remote.api.JKite.create
-      appName   : data.kiteAppName
-      kiteName  : data.kiteName
-      count     : data.kiteCallLimit 
+      description  : data.description
+      kiteName     : data.kiteName
+      #count        : data.kiteCallLimit 
       (err, kite) => 
         if err
           @notify err.message, "fail"
@@ -112,7 +112,7 @@ class AccountKiteList extends KDListView
       overlay   : yes
       cssClass  : "kite-kdmodal"
       width     : 500
-      height    : 233
+      height    : 187
       view      : form
       buttons   :
         "Create New Kite" :
@@ -127,17 +127,17 @@ class AccountKiteList extends KDListView
 class AccountAddKiteForm extends KDFormView
   viewAppended:->
     super
-    @addSubView kiteAppNameView  = new KDView
+    @addSubView descriptionView  = new KDView
       cssClass : "modalformline"
-    kiteAppNameView.addSubView kiteAppName  = new KDInputView name : "kiteAppName", placeholder : "Your app name..."
+    descriptionView.addSubView description  = new KDInputView name : "description", placeholder : "Description (optional)..."
 
     @addSubView kiteNameView  = new KDView
       cssClass : "modalformline"
-    kiteNameView.addSubView kiteName  = new KDInputView name : "kiteName", placeholder : "Kite name..."
+    kiteNameView.addSubView kiteName  = new KDInputView name : "kiteName", placeholder : "Running Kite name..."
 
-    @addSubView kiteApiCallLimitView  = new KDView
-      cssClass : "modalformline"
-    kiteApiCallLimitView.addSubView kiteApiCallLimit = new KDInputView name : "kiteCallLimit", placeholder : "Kite Api Call limit..."
+    # @addSubView kiteApiCallLimitView  = new KDView
+    #   cssClass : "modalformline"
+    # kiteApiCallLimitView.addSubView kiteApiCallLimit = new KDInputView name : "kiteCallLimit", placeholder : "Kite Api Call limit..."
 
 
 class AccountKiteListItem extends KDListItemView
@@ -159,9 +159,9 @@ class AccountKiteListItem extends KDListItemView
   partial:(data)->
     """
       <div class='kite-item'>
-        <div class='appName'>
-          <span class='label'>Application Name:</span>
-          <span class='value'>#{data.appName}</span>
+        <div class='description'>
+          <span class='label'>Description:</span>
+          <span class='value'>#{data.description}</span>
         </div>
         <div class='kiteName'>    
           <span class='label'>Used Kite Name:</span>
