@@ -1,12 +1,19 @@
 class HomeAppController extends AppController
-  constructor:(options = {}, data)->
-    options.view = new KDView
-    # options.view = new HomeMainView
-      cssClass : "content-page home"
-    super options,data
 
-  bringToFront:()->
-    super name : 'Home', type : 'background'
+  KD.registerAppClass @,
+    name         : "Home"
+    route        : "Home"
+    hiddenHandle : yes
+    background   : yes
+
+  constructor:(options = {}, data)->
+    # options.view    = new HomeMainView
+    options.view    = new KDView
+      cssClass      : "content-page home"
+    options.appInfo =
+      name          : "Home"
+
+    super options,data
 
   loadView:(mainView)->
     @mainView = mainView
@@ -25,17 +32,17 @@ class HomeAppController extends AppController
     @bringFeeds()
 
   bringFeeds:->
-    appManager.tell "Topics", "fetchSomeTopics", null, (err,topics)=>
+    KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics", null, (err,topics)=>
       unless err
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
 
-    # appManager.tell "Activity", "fetchFeedForHomePage", (activity)=>
+    # KD.getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", (activity)=>
     #   if activity
     #     @mainView.widgetHolder.activityLoader.hide()
     #     @activityController.instantiateListItems activity
 
-    appManager.tell "Members", "fetchFeedForHomePage", (err,topics)=>
+    KD.getSingleton("appManager").tell "Members", "fetchFeedForHomePage", (err,topics)=>
       unless err
         @mainView.widgetHolder.membersLoader.hide()
         @membersController.instantiateListItems topics

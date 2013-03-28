@@ -63,7 +63,7 @@ class ActivityCodeShareWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
 
@@ -840,7 +840,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     # @$("select[name=libsJS]").val("none").trigger "change"
 
-    # @utils.wait =>
+    # @utils.defer =>
     #   @HTMLace.setContents "//your HTML goes here..."
     #   @HTMLace.setSyntax 'html'
     #   @HTMLace.render()

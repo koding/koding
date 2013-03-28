@@ -5,8 +5,8 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <title>Koding</title>
-  <meta name="description" content="" />
-  <meta name="author" content="" />
+  <meta name="description" content="Koding is your new development computer in your browser." />
+  <meta name="author" content="Koding, Inc." />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Koding" />
@@ -14,54 +14,118 @@
   <link rel="shortcut icon" href="/images/favicon.ico" />
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.css" />
-  <link rel="stylesheet" href="/fonts/stylesheet.css" />
 </head>
-<body class="loading">
-  <div class="kdview main-loading">
-    <figure>
-      <ul>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-      </ul>
-    </figure>
-  </div>
+<body>
+
+  <!--LOADER-->
+
   <!--[if IE]>
-  <script type="text/javascript">
-    (function() { window.location.href = '/unsupported.html'})();
-  </script>
+  <script>(function(){window.location.href='/unsupported.html'})();</script>
   <![endif]-->
-  <script type="text/javascript">
-    (function() {
-      var result;
-      if ((result = /AppleWebKit\/([\d.]+)/.exec(navigator.userAgent))
-      && (parseFloat(result[1]) < 535.0)) {
-        window.location.href = '/unsupported.html'
-      }
-    })();
-  </script>
 
+  <div id="main-form-handler" class="kdview kdscrollview login-screen home" style="margin-top: 0px;">
+    <div class="head-banner hidden"></div>
+
+    <div class="flex-wrapper">
+      <div id="login-details"></div>
+      <div class="login-box-header">
+        <a class="betatag">beta</a>
+        <div id="header-logo" class="logo">Koding</div>
+      </div>
+      <div class="kdview login-options-holder log" id="82093_1363646314329">
+        <h3 class="kdview kdheaderview">
+          <span>SIGN IN WITH:</span>
+        </h3>
+        <ul class="login-options">
+          <li class="koding active">koding</li>
+          <li class="github">github</li>
+          <li class="facebook">facebook</li>
+          <li class="google">google</li>
+        </ul>
+      </div>
+      <div class="kdview login-options-holder reg" id="37648_1363646314330">
+        <h3 class="kdview kdheaderview ">
+          <span>
+            YOU NEED AN INVITATION CODE TO REGISTER.
+          </span>
+        </h3>
+        <ul class="login-options">
+          <li class="koding active">koding</li>
+          <li class="github">github</li>
+          <li class="facebook">facebook</li>
+          <li class="google">google</li>
+        </ul>
+      </div>
+
+      <div class="login-form-holder lf">
+        <form id="login-form"></form>
+      </div>
+
+      <div class="login-form-holder rf">
+        <form id="register-form"></form>
+      </div>
+
+      <div class="login-form-holder rcf">
+        <form id="recover-form"></form>
+      </div>
+
+      <div class="login-form-holder rsf">
+        <form id="reset-form"></form>
+      </div>
+
+      <div class="login-form-holder rqf">
+        <form id="request-form"></form>
+      </div>
+
+      <div class="login-form-holder home">
+        <div class="kdview video-wrapper">
+          <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
+          height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
+          allowfullscreen="">
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+    <div id="main-loader"></div>
+    <div id="login-footer"></div>
+    <section>
+      <hr id="home-reviews">
+      <div class="reviews">
+        <p>A new way for developers to work</p>
+        <span>We said.</span>
+        <p>Wow! Cool - good luck!</p>
+        <span>Someone we talked to the other day...</span>
+        <p>I don't get it... What is it, again?</p>
+        <span>Same dude.</span>
+        <p>Real software development in the browser...</p>
+        <span>Us again.</span>
+        <p>with a real VM and a real Terminal?</p>
+        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+      </div>
+      <hr />
+      <div id="home-screenshots" class="screenshots"></div>
+      <hr />
+
+      <footer id="copy-footer" class="copy">
+        ©2013 All rights reserved Koding, Inc.
+      </footer>
+
+    </section>
+
+    <a class="back-to-home" href="#" ></a>
+
+  </div>
+
+  <script>(function(){var result;if ((result=/AppleWebKit\/([\d.]+)/.exec(navigator.userAgent)) && (parseFloat(result[1]) < 535.0)){window.location.href='/unsupported.html'}})();</script>
+  <!--KONFIG-->
+  <script>var _rollbarParams = {"server.environment": "production"}; _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["a8e4249898c348d2b403abef0ef4e3fb", _rollbarParams]; var _ratchet=_rollbar; (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0; f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);</script>
   <script src="/js/require.js"></script>
-
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require([
-      "order!/js/libs/jquery-1.8.2.min.js",
-      "order!/js/libs/jquery-ui-1.8.16.custom.min.js",
-      "order!/js/underscore-min.1.3.js",
-      "order!/js/libs/highlight.pack.js",
-      "order!/js/kd.js",
-    ]);
+    require(["order!/js/libs/highlight.pack.js","order!/js/kd.js"]);
   </script>
-
-  <script type="text/javascript">
-    var _rollbarParams = {"server.environment": "production"}; _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["a8e4249898c348d2b403abef0ef4e3fb", _rollbarParams]; var _ratchet=_rollbar; (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0; f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);
-  </script>
-
-  <script type="text/javascript">
+  <script>
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-6520910-8']);
     _gaq.push(['_setDomainName', 'koding.com']);
@@ -72,5 +136,6 @@
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   </script>
+
 </body>
 </html>

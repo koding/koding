@@ -22,7 +22,7 @@ class ProfileLinkView extends LinkView
     super options, data
     if @avatarPreview?
       @on 'TooltipReady', =>
-        @utils.wait =>
+        @utils.defer =>
           @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
     @setClass "profile"
@@ -37,10 +37,8 @@ class ProfileLinkView extends LinkView
 
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-  click:(event)->
-
-    #appManager.tell "Members", "createContentDisplay", @getData()
-    KD.getSingleton('router')?.handleRoute "/#{@getData().profile.nickname}"
-    event.preventDefault()
-    event.stopPropagation()
-    no
+#  click:(event)->
+#    event.preventDefault()
+#    event.stopPropagation()
+#    @emit 'LinkClicked'
+#    return no

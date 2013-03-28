@@ -13,6 +13,16 @@ class LinkView extends KDCustomHTMLView
 
     if data.fake and options.origin
       @loadFromOrigin options.origin
+    KD.getSingleton('linkController').registerLink this
+
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
+    @emit 'LinkClicked'
+
+  destroy:->
+    super
+    KD.getSingleton('linkController').unregisterLink this
 
   loadFromOrigin:(origin)->
 

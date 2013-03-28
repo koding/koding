@@ -47,6 +47,8 @@ class TutorialActivityOpinionListItemView extends KDListItemView
       size    : {width: 20, height: 20}
       origin  : origin
 
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -56,17 +58,17 @@ class TutorialActivityOpinionListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
     else
-      appManager.tell "Activity", "createContentDisplay", @parent.getData()
+      KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @parent.getData()
 
   pistachio:->
     """
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
         <footer class="activity-opinion-item-footer">
-           {{> @author}} posted an answer
-         <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @author}} posted an answer
+          {{> @timeAgoView}}
         </footer>
     </div>
     """

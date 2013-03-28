@@ -75,45 +75,71 @@ h1.kdheaderview.notification-header
       font-size          12px
       color              #5F5F5F
 
+.new-members-loader
+  display           block !important
+  margin            10px auto !important
+
+
+.new-member
+  .close-button
+    abs()
+    top              3px
+    right            0px
+    width           40px
+    height          20px
+    text-align      right
+    cursor          pointer
+  .show-more
+    width           70px
+    cursor          pointer
+    margin          0 auto 10px
+.activity-new-members
+  max-width         737px
+  margin-left       53px
+  .kdlistitemview
+    max-width       348px
+    height           40px
+    float           left
+    clear           none
+    &:nth-child(2n)
+      margin-left   40px
+    .member-details
+      float         left
+      margin-left   20px
+    .avatarview
+      float         left
+    footer
+      abs()
+      right          0px
+      top            5px
+
+
 /*
 *  ACTIVITY LIST STYLES
 */
+.content-page.activity
+  .feeder-header
+    height                28px
+    line-height           28px
+    div.on-off
+      margin              1px 0 0 12px
+      font-size           88%
+      color               #AAA
+      fr()
 
-.activityhead
-  padding            7px 0px 7px 17px
-  line-height        12px
-  font-size          13px
-  color              #4F4F4F
-  border-bottom      1px solid rgba(0, 0, 0, 0.075)
-  height             28px
-  top                0
-  z-index            2
-  bg(color,rgba(255,255,255,.9))
-  borderBox()
+      > a
+        text-decoration   none
+        font-size         88%
 
-  div
-    margin-right    6px
-    margin-left     4px
-    font-size       88%
-    color           #AAA
-    fr()
-
-    &.on-off
-      margin-top    -1px
-
-    > a
-      text-decoration   none
-      font-size         88%
-
-  .new-updates
-    span
-      rounded           3px
-      background-color  #FF9200
-      color             white
-      font-size         10px
-      padding           1px 4px
-      line-height       10px
-      display           inline-block
+    .new-updates
+      span
+        rounded           3px
+        background-color  #FF9200
+        color             white
+        font-size         10px
+        padding           1px 4px
+        line-height       10px
+        display           inline-block
 
 .super .activity-related .activity-item.exempt
   bg                    color, rgba(255, 0, 0, .03)
@@ -156,7 +182,7 @@ h1.kdheaderview.notification-header
       padding             2px 0 0 0
       &.new-member
         overflow          visible
-
+        max-width         790px
 
     .ttag
       margin              -1px 0 0 0
@@ -238,6 +264,18 @@ h1.kdheaderview.notification-header
     &.status
       .type-icon
         bg(position,-399px -376px)
+
+    &.blog-post
+      .type-icon
+        bg(position,-399px -376px)
+
+      // bg color,         #f5f5f5
+      .read-this-link
+        span.title
+          color             #444
+          line-height       100%
+          // font-size         24px
+          // font-weight       bold
 
     &.qanda
       .type-icon
@@ -730,6 +768,8 @@ form.status-widget
     blockMid()
     &.update
       bg            position,-80px 0
+    &.blogpost
+      bg            position,-80px 0
     &.discussion
       bg            position,-80px -20px
     &.question
@@ -774,6 +814,8 @@ button.activity-status-context
     size            20px,20px
     blockMid()
     &.update
+      bg(position,-140px -320px)
+    &.blogpost
       bg(position,-140px -320px)
     &.discussion
       bg(position,-140px -340px)
@@ -916,6 +958,8 @@ button.activity-status-context
 
   .update .icon
     bg                      position,-140px -320px
+  .blogpost .icon
+    bg                      position,-140px -320px
   .discussion .icon
     bg                      position,-140px -340px
   .question .icon
@@ -931,6 +975,8 @@ button.activity-status-context
 
   .selected
     .update .icon
+      bg                    position,-160px -320px
+    .blogpost .icon
       bg                    position,-160px -320px
     .discussion .icon
       bg                    position,-160px -340px
@@ -1058,11 +1104,6 @@ div.show-more-opinions
     &.new-count
       font-weight       600
 
-  span.small-loader
-    abs()
-    right               15px
-    top                 11px
-
   .new-items
     left                  500px
     opacity               0
@@ -1154,7 +1195,7 @@ div.kdview.link-embed-box.condensed
   width max-content
   width intrinsic
 
-div.kdview.link-embed-box
+.kdview.link-embed-box
   borderBox()
   rel()
 
@@ -1396,7 +1437,7 @@ div.kdview.link-embed-box
               height 15px
               white-space nowrap
 
-  > div.link-embed
+  > .link-embed
     borderBox()
     height inherit
     opacity 1
@@ -1789,6 +1830,7 @@ div.kdinputwithpreview.input_preview
       margin-left     2px
       vertical-align  baseline
       line-height     19px
+      display         inline-block
 
     button.fullscreen-button
       float           none
@@ -1797,6 +1839,7 @@ div.kdinputwithpreview.input_preview
       padding         0px 3px
       line-height     10px
       margin-right    10px
+      display         inline-block
 
       span
         font-size     9px
@@ -1810,6 +1853,7 @@ div.kdinputwithpreview.input_preview
 
 
     label.preview_switch_label
+      display         inline-block
       color           #ff9200
       width           auto
       min-width       auto
@@ -1832,6 +1876,8 @@ div.kdinputwithpreview.input_preview
 
     div.kdinput.on-off
       // margin-top            2px
+      line-height           1.5
+      display               inline-block
       float                 right
       font-family           sans
       width                 auto
@@ -1900,20 +1946,36 @@ div.kdinputwithpreview.input_preview
 
   div.preview_content
     borderBox()
-    border            1px solid
-    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
-    padding           20px 10px 10px 10px
-    rounded           4px
-    max-height        300px
-    min-height        24px
-    overflow          auto
-    vendor            transition, all 0.1s linear
+    border                  1px solid
+    border-color            #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+    padding                 20px 10px 10px 10px
+    rounded                 4px
+    max-height              300px
+    min-height              24px
+    overflow                auto
+    vendor                  transition, all 0.1s linear
 
     span.data
-      display         block
+      display               block
 
     > *:last-child
-      margin-bottom   0
+      margin-bottom         0
+
+.content-display-main-section .activity-item-right-col
+  h3.blog-post-title
+    headerFont()
+    font-size               24px
+    font-weight             bold
+    color                   #444
+    margin-bottom           30px
+
+  .blog-post-body
+    max-width               600px
+    margin-bottom           50px
+    text-align              justify
+    hyphen                  auto
+    text-rendering          geometricPrecision
+
 
 .twipsy.link-expander
 
@@ -2071,6 +2133,7 @@ div.show-tutorial-embed
   margin-right 0px
   display inline-block
   z-index 10
+  fr()
 
 .no-scroll
   overflow-x hidden
@@ -2361,6 +2424,7 @@ div.activity-content-container
       background-color                  #ff0
       box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
       opacity                           1
+
 div.status-leds
   margin                                0px auto 0px auto
   text-align                            center
@@ -2479,6 +2543,8 @@ div.kdtooltip
         margin-left 90px
         .profile-name
           margin 10px 0px 0px 15px
+          noTextDeco()
+          color #444
           &:hover
             cursor pointer
         .profilestats

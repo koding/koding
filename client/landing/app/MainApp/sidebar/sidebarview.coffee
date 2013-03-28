@@ -21,12 +21,7 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
-
-    # @currentGroup = new KDCustomHTMLView
-    #   cssClass    : 'current-group-indicator'
-    #   pistachio   : "{{#(title)}}"
-    # , currentGroupData
+    # @groupAvatar = new GroupAvatar
 
     @navController = new NavigationController
       view           : new NavigationList
@@ -37,27 +32,6 @@ class Sidebar extends JView
     , navItems
 
     @nav = @navController.getView()
-
-    @accNavController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        cssClass     : "account"
-        itemClass    : NavigationLink
-      wrapper        : no
-      scrollView     : no
-    , accNavItems
-
-    @accNav = @accNavController.getView()
-
-    @adminNavController = new NavigationController
-      view           : new NavigationList
-        type         : "navigation"
-        cssClass     : "account admin"
-        itemClass    : AdminNavigationLink
-      wrapper        : no
-      scrollView     : no
-
-    @adminNav = @adminNavController.getView()
 
     @footerMenuController = new NavigationController
       view           : new NavigationList
@@ -100,6 +74,8 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
+    @virtualizationButtons = new VirtualizationControls
+
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
@@ -132,8 +108,11 @@ class Sidebar extends JView
       else
         fpLastWidth = 208 if fpLastWidth < 100
         $fp.css "width", fpLastWidth
-        cp.$().css left : 52 + fpLastWidth, width : @wc.winWidth - 52 - fpLastWidth
+        cpWidth = @wc.winWidth - 52 - fpLastWidth
+        cp.$().css left : 52 + fpLastWidth, width : cpWidth
+        cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
         fpLastWidth = null
+      @finderResizeHandle.$().css left: ''
 
     @finderResizeHandle.on "DragStarted", (e, dragState)=>
       cp._left  = parseInt cp.$().css("left"), 10
@@ -155,10 +134,13 @@ class Sidebar extends JView
 
     @finderResizeHandle.on "DragInAction", (x, y)=>
       @finderResizeHandle._dragged = yes
-      newFpWidth = @_fpWidth - x
-      return if newFpWidth < 13
-      cp.$().css left : cp._left - x, width : cp._width + x
+      newFpWidth = @_fpWidth + x
+      return @finderResizeHandle.$().css left: '' if newFpWidth < 13
+      cpWidth = cp._width - x
+      cp.$().css left : cp._left + x, width : cpWidth
+      @finderResizeHandle.$().css left: ''
       $fp.css "width", newFpWidth
+      cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
     KD.utils.wait 8000, =>
       @$('#finder-bottom-controls').addClass 'go-down'
@@ -174,7 +156,6 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
-
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -185,16 +166,13 @@ class Sidebar extends JView
       {{> @avatarAreaIconMenu}}
       {{> @statusLEDs}}
       {{> @nav}}
-      <hr />
-      {{> @accNav}}
-      {{> @adminNav}}
-      <hr />
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
@@ -260,10 +238,6 @@ class Sidebar extends JView
       @_finderExpanded = no
       callback?()
 
-  showEnvironmentPanel:->
-
-    @showFinderPanel()
-
   showFinderPanel:->
 
     unless @_finderExpanded
@@ -298,39 +272,39 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity",   path: "/Activity" }
-          { title : "Topics",     path: "/Topics" }
-          { title : "Members",    path: "/Members" }
-          { title : "Develop",    path: "/Develop", loggedIn: yes }
-          { title : "Apps",       path: "/Apps" }
+          { title : "Activity",       path : "/Activity" }
+          { title : "Topics",         path : "/Topics" }
+          { title : "Members",        path : "/Members" }
+          { title : "Develop",        path : "/Develop", loggedIn: yes }
+          { title : "Apps",           path : "/Apps" }
+          { type  : "separator" }
+          { title : "Invite Friends", type : "account", loggedIn: yes }
+          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
         ]
       else
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity",   path: "/Activity" }
-          { title : "Topics",     path: "/Topics" }
-          { title : "Members",    path: "/Members" }
-          { title : "Groups",     path: "/Groups" }
-          { title : "Develop",    path: "/Develop",  loggedIn: yes }
-          { title : "Apps",       path: "/Apps" }
+          { title : "Activity",       path : "/Activity" }
+          { title : "Topics",         path : "/Topics" }
+          { title : "Members",        path : "/Members" }
+          { title : "Groups",         path : "/Groups" }
+          { title : "Develop",        path : "/Develop",  loggedIn: yes }
+          { title : "Apps",           path : "/Apps" }
+          { type  : "separator" }
+          { title : "Invite Friends", type : "account", loggedIn: yes }
+          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
         ]
-
-  accNavItems =
-    id    : "acc-navigation"
-    title : "acc-navigation"
-    items : [
-      { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes, path   : '/Account' }
-      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
-      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
-    ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
-      { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
+      { title : "Launch Terminal",    icon : "terminal",  appPath: 'WebTerm' }
+      { title : "Manage Remotes",     icon : "remotes",   action: 'manageRemotes'}
       { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }

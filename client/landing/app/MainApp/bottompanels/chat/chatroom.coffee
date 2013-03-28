@@ -16,7 +16,7 @@ class BottomChatRoom extends JView
           removed          : (data)->
             log "tag is removed from the input", data
           dataSource       : (token)->
-            appManager.tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
+            KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
               # log err, topics
               if not err and topics.length > 0
                 tokenInput.showMenu {token, rule : "topic"}, topics
@@ -30,7 +30,7 @@ class BottomChatRoom extends JView
             log "user is removed from the input", data
           dataSource       : (token)->
             # log token, "member"
-            appManager.tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
+            KD.getSingleton("appManager").tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
               # log err, members
               if not err and members.length > 0
                 tokenInput.showMenu {

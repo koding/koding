@@ -1,10 +1,10 @@
 class StartTabMainView extends JView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
 
     options.cssClass or= 'start-tab'
 
-    super
+    super options, data
 
     @listenWindowResize()
 
@@ -24,9 +24,7 @@ class StartTabMainView extends JView
     finder.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
-    @loader = new KDLoaderView
-      size    :
-        width : 16
+    @loader = new KDLoaderView size : width : 16
 
     @refreshButton = new KDButtonView
       cssClass    : "editor-button refresh-apps-button"
@@ -98,7 +96,7 @@ class StartTabMainView extends JView
 
     # Refresh Applications Folder
     finder = @getSingleton("finderController").treeController
-    finder.refreshFolder finder.nodes["/Users/#{KD.whoami().profile.nickname}/Applications"]
+    finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
 
   pistachio:->
     """
@@ -168,7 +166,7 @@ class StartTabMainView extends JView
         tagName   : 'a'
         cssClass  : 'start-tab-split-option'
         partial   : splitOption.partial
-        click     : -> appManager.notify()
+        click     : -> KD.getSingleton("appManager").notify()
       @addSubView option, '.start-tab-split-options'
 
   addRecentFiles:->

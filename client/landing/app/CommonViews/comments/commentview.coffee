@@ -16,7 +16,7 @@ class CommentView extends KDView
 
     @commentList = new KDListView
       type          : "comments"
-      itemClass  : CommentListItemView
+      itemClass     : CommentListItemView
       delegate      : @
     , data
 
@@ -24,6 +24,14 @@ class CommentView extends KDView
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
     @addSubView @commentController.getView()
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
+
+    @commentList.on 'ReplyLinkClicked', (username) =>
+      input = @commentForm.commentInput
+      value = input.getValue()
+      value = if value.indexOf("@#{username}") >= 0 then value else if value.length is 0 then "@#{username} " else "#{value} @#{username} "
+
+      input.setFocus()
+      input.setValue value
 
     @commentList.on "OwnCommentWasSubmitted", ->
       @getDelegate()?.emit "RefreshTeaser"
@@ -45,24 +53,16 @@ class CommentView extends KDView
 
   attachListeners:->
 
-    @listenTo
-      KDEventTypes : "DecorateActiveCommentView"
-      listenedToInstance : @commentList
-      callback : @decorateActiveCommentState
+    @commentList.on "DecorateActiveCommentView", @bound "decorateActiveCommentState"
 
-    @listenTo
-      KDEventTypes : "CommentLinkReceivedClick"
-      listenedToInstance : @commentList
-      callback : (pubInst, event) =>
-        @commentForm.commentInput.setFocus()
+    @commentList.on "CommentLinkReceivedClick", (event) =>
+      @commentForm.makeCommentFieldActive()
+      @commentForm.commentInput.setFocus()
 
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
 
-    @listenTo
-      KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @commentList
-      callback : @resetDecoration
+    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
 
   resetDecoration:->
     post = @getData()

@@ -39,7 +39,7 @@ class NFinderContextMenuController extends KDController
 
   handleContextMenuClick:(fileView, contextMenuItem)->
 
-    @propagateEvent KDEventType : 'ContextMenuItemClicked', {fileView, contextMenuItem}
+    @emit 'ContextMenuItemClicked', {fileView, contextMenuItem}
 
   getFileMenu:(fileView)->
 
@@ -99,7 +99,7 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : 'gitHubClone'
 
-    if 'archive' isnt @utils.getFileType @utils.getFileExtension fileData.name
+    if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
       delete items.Extract
     else
       delete items.Compress
@@ -152,6 +152,9 @@ class NFinderContextMenuController extends KDController
         children                  :
           customView              : new NCopyUrlView {}, fileData
         separator                 : yes
+      'Open Terminal from here'   :
+        action                    : 'openTerminal'
+        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
       #   separator                 : yes
@@ -165,7 +168,7 @@ class NFinderContextMenuController extends KDController
 
     {nickname} = KD.whoami().profile
 
-    if fileData.path is "/Users/#{nickname}/Applications"
+    if fileData.path is "/home/#{nickname}/Applications"
       items.Refresh.separator         = yes
       items["Make a new Application"] =
         action : "makeNewApp"

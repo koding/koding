@@ -35,6 +35,9 @@ app.comments.styl
       font-size             11px
       color                 #444
       padding               10px
+      &:hover
+        .action-link.reply-link
+          display           inline
       span.avatar
         border              1px solid #E3E3E3
         padding             1px
@@ -77,6 +80,11 @@ app.comments.styl
               // border        1px solid #e0e0df
               // rounded       2px
               // bg            position, -80px -540px
+        .reply-link
+          noTextDeco()
+          abs()
+          right             10px
+          display           none
 
   .delete-link
     display                 block
@@ -194,11 +202,6 @@ app.comments.styl
       noTextDeco()
       &.new-count
         font-weight       600
-
-    span.small-loader
-      abs()
-      right               15px
-      top                 11px
 
     .new-items
       left                  500px
@@ -350,8 +353,6 @@ app.comments.styl
       padding         1px 4px
       line-height     10px
       rounded         3px
-  span.small-loader
-    margin-right      5px
 
 .comment-actions
   color               #ccc
@@ -369,3 +370,4 @@ app.comments.styl
 
   a.count
     noTextDeco()
+

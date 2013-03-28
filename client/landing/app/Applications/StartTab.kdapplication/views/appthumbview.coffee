@@ -22,7 +22,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       authorNick = KD.whoami().profile.nickname
 
     proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
@@ -133,7 +133,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @getSingleton("kiteController").run "rm -r #{path}"
     , (err, res)=>
       unless err
-        finder.refreshFolder finder.nodes["/Users/#{KD.whoami().profile.nickname}/Applications"]
+        finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
         apps.refreshApps =>
           @deleteModal.destroy()
       else
@@ -199,7 +199,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
-    appManager.openApplication 'Apps', => @hideLoader()
+    KD.getSingleton("appManager").open 'Apps', => @hideLoader()
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -234,6 +234,6 @@ class AppShortcutButton extends StartTabAppThumbView
 
     if type is 'koding-app'
       @showLoader()
-      appManager.openApplication path, => @hideLoader()
+      KD.getSingleton("appManager").open path, => @hideLoader()
 
     return no

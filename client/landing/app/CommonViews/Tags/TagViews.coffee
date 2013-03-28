@@ -17,7 +17,7 @@ class TagGroup extends KDCustomHTMLView
           $in     : stringTags
       ,
         sort      :
-          'title' : 1
+          title   : 1
       , (err,tags)=>
         unless err and not tags
           callback null, tags
@@ -42,6 +42,10 @@ class SkillTagGroup extends TagGroup
       view            : new KDListView
         itemClass     : TagCloudListItemView
         cssClass      : "skilltag-cloud"
+        delegate        : @
+
+    controller.listView.on 'TagWasClicked', =>
+      @emit 'TagWasClicked'
 
     @listViewWrapper = controller.getView()
 
@@ -78,11 +82,8 @@ class TagCloudListItemView extends KDListItemView
   pistachio:->
     super "{{#(title)}}"
 
-  click:(event)->
-    event?.stopPropagation()
-    event?.preventDefault()
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
+#  click:(event)->
+#    event?.stopPropagation()
+#    event?.preventDefault()
+#    @getDelegate().emit 'TagWasClicked'
+#    @emit 'LinkClicked'

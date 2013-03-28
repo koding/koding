@@ -1,8 +1,20 @@
 class MainController extends KDController
 
+  ###
+
+  * EMITTED EVENTS
+    - AppIsReady
+    - FrameworkIsReady
+    - AccountChanged                [account, firstLoad]
+    - pageLoaded.as.loggedIn        [account, connectedState, firstLoad]
+    - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
+    - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
+    - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
+  ###
+
+
   connectedState =
     connected   : no
-    wasLoggedIn : no
 
   constructor:(options = {}, data)->
 
@@ -10,30 +22,40 @@ class MainController extends KDController
 
     super options, data
 
-
+    # window.appManager is there for backwards compatibilty
+    # will be deprecated soon.
     window.appManager = new ApplicationManager
+
+    KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    # KD.registerSingleton "groupsController", new GroupsController this
+    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "lazyDomController", new LazyDomController
+
+    KD.registerSingleton "linkController", new LinkController
+
+    router = new KodingRouter location.pathname
+    KD.registerSingleton 'router', router
+
+    appManager.create 'Groups', (groupsController)->
+      KD.registerSingleton "groupsController", groupsController
 
     @appReady =>
-
+      router.listen()
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
-    @on 'ManageRemotes', -> new ManageRemotesModal
-    @on 'ManageDatabases', -> new ManageDatabasesModal
-
     @setFailTimer()
-    @putGlobalEventListeners()
+    @attachListeners()
 
     @accountReadyState = 0
 
     @appStorages = {}
 
+  # FIXME GG
   getAppStorageSingleton:(appName, version)->
     if @appStorages[appName]?
       storage = @appStorages[appName]
@@ -53,87 +75,51 @@ class MainController extends KDController
       else
         applicationIsReady = yes
         listener() for listener in queue
-        @getSingleton('mainView').removeLoader()
         queue.length = 0
 
-  getUserArea:-> @userArea
-
-  setUserArea:(userArea)->
-    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
-    @userArea = userArea
-
-  getGroup:-> @userArea?.group
-
-  setGroup:(group)->
-    @emit 'GroupChanged', group
-    @setUserArea {
-      group, user: KD.whoami().getAt('profile.nickname')
-    }
-
-  resetUserArea:()->
-    @setUserArea {
-      group: 'koding', user: KD.whoami().profile.nickname
-    }
+        @emit 'FrameworkIsReady'
+        @appIsReady = yes
 
   accountReady:(fn)->
     if @accountReadyState > 0 then fn()
     else @once 'AccountChanged', fn
 
-  accountChanged:(account)->
+  accountChanged:(account, firstLoad = no)->
 
     @userAccount = account
     @accountReadyState = 1
 
     connectedState.connected = yes
 
-    @emit "RemoveFailModal"
-    @emit "AccountChanged", account
-
-    @resetUserArea()
+    @emit "AccountChanged", account, firstLoad
 
     unless @mainViewController
-      @loginScreen = new LoginView
-      KDView.appendToDOMBody @loginScreen
+
+      if KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
+        @loginScreen = new LoginView
+        KDView.appendToDOMBody @loginScreen
+      else
+        @loginScreen = new OldLoginView
+
       @mainViewController = new MainViewController
-        view    : mainView = new MainView
-          domId : "kdmaincontainer"
+        view       : mainView = new MainView
+          domId    : "kdmaincontainer"
+          # cssClass : "hidden"
+
       @appReady()
 
-    unless @router?
-      @router = new KodingRouter location.pathname
-      @router.on 'GroupChanged', @bound 'setGroup'
-      KD.registerSingleton 'router', @router
+    @decorateBodyTag()
 
-    if KD.checkFlag 'super-admin'
-      $('body').addClass 'super'
-    else
-      $('body').removeClass 'super'
+    eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+    eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
 
-    if @isUserLoggedIn() then @createLoggedInState account
-    else @createLoggedOutState account
+    # this emits following events
+    # -> "pageLoaded.as.loggedIn"
+    # -> "pageLoaded.as.loggedOut"
+    # -> "accountChanged.to.loggedIn"
+    # -> "accountChanged.to.loggedOut"
 
-  createLoggedOutState:(account)->
-
-    if connectedState.wasLoggedIn
-      @loginScreen.slideDown =>
-        appManager.quitAll =>
-          @mainViewController.sidebarController.accountChanged account
-          # appManager.openApplication "Home"
-          @mainViewController.getView().decorateLoginState no
-    else
-      @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Home"
-      @mainViewController.getView().decorateLoginState no
-      @loginScreen.slideDown()
-
-
-  createLoggedInState:(account)->
-    connectedState.wasLoggedIn = yes
-    mainView = @mainViewController.getView()
-    @loginScreen.slideUp =>
-      @mainViewController.sidebarController.accountChanged account
-      #appManager.openApplication @getOptions().startPage, yes
-      @mainViewController.getView().decorateLoginState yes
+    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   doJoin:->
     @loginScreen.animateToForm 'lr'
@@ -151,38 +137,50 @@ class MainController extends KDController
     @loginScreen.animateToForm 'recover'
 
   doLogout:->
+
+    # fixme: make a old tv switch off animation and reload
+    # $('body').addClass "turn-off"
+    return location.reload yes
+
+    @getSingleton("lazyDomController").showLandingPage =>
+      # @loginScreen.showView =>
+      KD.getSingleton("appManager").quitAll =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
+
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
+
+      # @mainViewController.getView().$().css 'opacity', 0
+
       new KDNotificationView
         cssClass  : "login"
         title     : "<span></span>Come back soon!"
         duration  : 2000
-      # fixme: get rid of reload, clean up ui on account change
-      # tightly related to application manager refactoring
-      @utils.wait 2000, -> location.reload yes
 
-  # goToPage:(pageInfo)=>
-  #   console.log 'go to page'
-  #   path = pageInfo.appPath
-  #   if path is "Login"
-  #     @loginScreen.slideDown()
-  #   else
-  #     appManager.openApplication path, yes
 
-  putGlobalEventListeners:()->
+  attachListeners:->
 
-    @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.path
-        @router.handleRoute pageInfo.path
-      else if pageInfo.isWebTerm
-        appManager.openApplication 'WebTerm'
+    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
+    #   log "pageLoaded", @isUserLoggedIn()
+
+    @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
+      log "accountChanged Out"
+      @loginScreen.showView =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
+
+    @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
+      log "accountChanged In"
+      @loginScreen.hideView =>
+        @mainViewController.getView().decorateLoginState yes
+        @mainViewController.sidebarController.accountChanged account
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
       book.fillPage index
-
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
@@ -243,6 +241,12 @@ class MainController extends KDController
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
 
+  decorateBodyTag:->
+    if KD.checkFlag 'super-admin'
+      $('body').addClass 'super'
+    else
+      $('body').removeClass 'super'
+
   setFailTimer: do->
     modal = null
     fail  = ->
@@ -266,7 +270,7 @@ class MainController extends KDController
       fail() unless connectedState.connected
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
-      @on "RemoveFailModal", =>
+      @on "AccountChanged", =>
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

@@ -19,12 +19,8 @@ class TagLinkView extends LinkView
   pistachio:->
     super "{{#(title)}}"
 
-  click:(event)->
-    event?.stopPropagation()
-    event?.preventDefault()
-    return unless @getOptions().clickable
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
+#  click:(event)->
+#    event?.stopPropagation()
+#    event?.preventDefault()
+#    return unless @getOptions().clickable
+#    @emit 'LinkClicked'

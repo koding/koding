@@ -107,10 +107,7 @@ class SlidingSplit extends KDSplitView
 
     panel = super
 
-    @listenTo
-      KDEventTypes       : 'click'
-      listenedToInstance : panel
-      callback           : @setFocusedPanel
+    panel.on 'click', (event)=> @setFocusedPanel panel
 
     return panel
 

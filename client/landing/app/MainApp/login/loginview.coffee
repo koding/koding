@@ -1,15 +1,22 @@
 class LoginView extends KDScrollView
 
-  stop =(event)->
+  stop = (event)->
     event.preventDefault()
     event.stopPropagation()
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
-    @hidden = no
+    entryPoint = ''
+    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      options = cssClass : 'land-page'
+      entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    else
+      if KD.isLoggedIn() then options = cssClass : 'hidden'
+
+    super options, data
 
     handler =(route, event)=>
+      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
       @getSingleton('router').handleRoute route
 
@@ -24,86 +31,12 @@ class LoginView extends KDScrollView
       tagName     : "div"
       cssClass    : "logo"
       partial     : "Koding"
-      click       : homeHandler
-      # @animateToForm "home"
-      # click       : =>
-      #   @slideUp ->
-      #     appManager.openApplication "Home"
-
-
-    @backToHomeLink = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "back-to-home"
-      click       : homeHandler
-      # partial     : "<span></span> Koding Homepage <span></span>"
-      # click       : =>
-      #   @slideUp ->
-      #     appManager.openApplication "Home"
-
-    @backToVideoLink = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "video-link"
-      partial     : "video again?"
-      click       : homeHandler
-      # click       : =>
-      #   @slideUp ->
-      #     appManager.openApplication "Home"
+      click       : handler.bind null, '/'
 
     @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"
-      # cssClass  : "back-to-login"
       partial   : "Go ahead and login"
-      # partial   : "« back to login"
       click     : loginHandler
-        # @animateToForm "login"
-
-    @goToRequestLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an invite"
-      # partial     : "Want to get in? Request an invite"
-      click       : joinHandler
-        # @animateToForm "lr"
-
-    @goToRegisterLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Register an account"
-      # partial     : "Have an invite? Register an account"
-      click       : registerHandler
-
-    @bigLinkReg = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Register"
-      click       : registerHandler
-
-    @bigLinkReg1 = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Register"
-      click       : registerHandler
-
-    @bigLinkReq = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an Invite"
-      click       : joinHandler
-
-    @bigLinkReq1 = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an Invite"
-      click       : joinHandler
-
-    @bigLinkLog = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Login"
-      click       : loginHandler
-
-    @bigLinkLog1 = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Login"
-      click       : loginHandler
-
-    @bigLinkLearn = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Learn more"
-      click       : => @$().animate scrollTop : 1200
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
@@ -144,28 +77,13 @@ class LoginView extends KDScrollView
       cssClass : "head-banner hidden"
       partial  : "..."
 
-    @video = new KDView
-      cssClass : "video-wrapper"
-
-    @on "LoginViewHidden", (name)=>
-      @video.updatePartial ""
-
-    @on "LoginViewShown", (name)=>
-      if @video.$('iframe').length is 0
-        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-
-    @video.on "viewAppended", =>
-      unless KD.isLoggedIn()
-        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-      else
-        @animateToForm 'login'
-
-    @slideShow = new HomeSlideShowHolder
+    @getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
   viewAppended:->
-    @windowController = @getSingleton("windowController")
+
     @listenWindowResize()
     @setClass "login-screen home"
+
     @setTemplate @pistachio()
     @template.update()
     # @hide()
@@ -180,9 +98,6 @@ class LoginView extends KDScrollView
       </div>
       {{> @loginOptions}}
       {{> @registerOptions}}
-      <div class="login-form-holder home">
-        {{> @video}}
-      </div>
       <div class="login-form-holder lf">
         {{> @loginForm}}
       </div>
@@ -201,43 +116,9 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='bigLink'>{{> @bigLinkReq}}</p>
-      <p class='bigLink'>{{> @bigLinkReg}}</p>
-      <p class='bigLink'>{{> @bigLinkLog}}</p>
-      <p class='bigLink'>{{> @bigLinkLearn}}</p>
-      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
-      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='vidLink'>Want to watch the {{> @backToVideoLink}}</p>
     </div>
-    <section>
-      <hr id='home-reviews'>
-      <div class="reviews">
-        <p>A new way for developers to work</p>
-        <span>We said.</span>
-        <p>Wow! Cool - good luck!</p>
-        <span>Someone we talked to the other day...</span>
-        <p>I don't get it... What is it, again?</p>
-        <span>Same dude.</span>
-        <p>Real software development in the browser...</p>
-        <span>Us again.</span>
-        <p>with a real VM and a real Terminal?</p>
-        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
-      </div>
-      <hr id='home-screenshots'>
-      <div class="screenshots">
-        {{> @slideShow}}
-      </div>
-      <hr/>
-      <div class="footer-links">
-        <p class='bigLink'>{{> @bigLinkReq1}}</p>
-        <p class='bigLink'>{{> @bigLinkReg1}}</p>
-        <p class='bigLink'>{{> @bigLinkLog1}}</p>
-      </div>
-      <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
-    </section>
-    {{> @backToHomeLink}}
     """
 
   doReset:({recoveryToken, password, clientId})->
@@ -301,14 +182,33 @@ class LoginView extends KDScrollView
         @loginForm.resetDecoration()
       else
         $.cookie 'clientId', replacementToken  if replacementToken
-        @getSingleton('mainController').accountChanged account
-        @getSingleton('router').handleRoute null, replaceState: yes
+        mainController = @getSingleton('mainController')
+        mainView       = mainController.mainViewController.getView()
+        mainController.accountChanged account
+        mainView.show()
+        mainView.$().css "opacity", 1
+
+        {groupEntryPoint} = KD.config
+
+
+        if groupEntryPoint and groupEntryPoint isnt 'koding'
+          route = "/#{groupEntryPoint}/Activity"
+        else
+          route = "/Activity"
+
+        @getSingleton('router').handleRoute route, replaceState: yes
+
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
+
+        @hideView()
+
+        if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+          @getSingleton('lazyDomController').hideLandingPage()
 
   doRequest:(formData)->
 
@@ -330,12 +230,20 @@ class LoginView extends KDScrollView
   showHeadBanner:(message, callback)->
     @$('.login-footer').hide()
     @$('.footer-links').hide()
+    $('body').addClass 'recovery'
+
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
     @headBanner.setClass 'show'
-    $('body').addClass 'recovery'
     @headBanner.click = callback
+
+  headBannerShowGoBackGroup:(groupTitle)->
+    @showHeadBanner "<span>Go Back to</span> #{groupTitle}", =>
+      @headBanner.hide()
+
+      $('#group-landing').css 'height', '100%'
+      $('#group-landing').css 'opacity', 1
 
   headBannerShowRecovery:(recoveryToken)->
 
@@ -346,40 +254,38 @@ class LoginView extends KDScrollView
       @animateToForm "reset"
 
   headBannerShowInvitation:(invite)->
+
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
       @getSingleton('router').clear '/Register'
       $('body').removeClass 'recovery'
-      @slideDown =>
+      @showView =>
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
-  slideUp:(callback)->
-    {winWidth,winHeight} = @windowController
-    @$().css marginTop : -winHeight
-    @utils.wait 601,()=>
+  hideView:(callback)->
+
+    @unsetClass 'landed'
+
+    @utils.wait 601, =>
       @emit "LoginViewHidden"
       @hidden = yes
-      $('body').removeClass 'login'
-      # @hide()
+      @hide()
       callback?()
 
-  slideDown:(callback)->
+  showView:(callback)->
 
-    $('body').addClass 'login'
-    # @show()
+    @show()
     @emit "LoginViewShown"
-    @$().css marginTop : 0
+
     @utils.wait 601,()=>
       @hidden = no
       callback?()
 
-  _windowDidResize:(event)->
-
-    {winWidth,winHeight} = @windowController
-    @$().css marginTop : -winHeight if @hidden
-
   animateToForm: (name)->
+
+    log 'animateForm called.', arguments
+
     switch name
       when "register"
         # @utils.wait 5000, =>
@@ -399,6 +305,9 @@ class LoginView extends KDScrollView
           @headBanner.updatePartial @headBannerMsg
           @headBanner.show()
 
-    @unsetClass "register recover login reset home lr"
+    @unsetClass "register recover login reset home lr landed"
     @emit "LoginViewAnimated", name
     @setClass name
+
+    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      @setClass 'landed' unless name is 'home'

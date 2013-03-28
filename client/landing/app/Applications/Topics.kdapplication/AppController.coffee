@@ -1,26 +1,28 @@
 class TopicsAppController extends AppController
 
-  constructor:(options, data)->
-    options = $.extend
-      # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
-      # view : new TopicsComingSoon
-      view : new TopicsMainView(cssClass : "content-page topics")
-    ,options
-    super options,data
+  KD.registerAppClass @,
+    name         : "Topics"
+    route        : "Topics"
+    hiddenHandle : yes
+
+  constructor:(options = {}, data)->
+
+    options.view    = new TopicsMainView
+      cssClass      : "content-page topics"
+    options.appInfo =
+      name          : "Topics"
+
+    super options, data
+
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
-      options :
-        name : 'Topics'
-      data : @getView()
-
   createFeed:(view)->
     {JTag} = KD.remote.api
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
+      useHeaderNav          : yes
       noItemFoundText       : "There is no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -48,6 +50,8 @@ class TopicsAppController extends AppController
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
                   followButton.redecorateState()
+          dataError         :->
+            log "Seems something broken:", arguments
 
         following           :
           title             : "Following"
@@ -73,6 +77,8 @@ class TopicsAppController extends AppController
           direction         : -1
     }, (controller)=>
       @feedController = controller
+      controller.resultsController.on 'ItemWasAdded', (item)=>
+        item.on 'LinkClicked', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
@@ -96,7 +102,13 @@ class TopicsAppController extends AppController
           @updateTopic topicItem
 
     @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
+
+  openTopic:(topic)->
+    console.trace()
+    group = KD.getSingleton('groupsController').getCurrentGroup()
+    KD.getSingleton('router').handleRoute """
+      #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
+      """, state:topic
 
   updateTopic:(topicItem)->
     topic = topicItem.data
@@ -181,7 +193,7 @@ class TopicsAppController extends AppController
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
-      @getView().$(".activityhead span.optional_title").html count
+      @getView().$(".feeder-header span.optional_title").html count
       return no
     if count >= 20 then count = '20+'
     # return if count % 20 is 0 and count isnt 20
@@ -189,14 +201,19 @@ class TopicsAppController extends AppController
     count   = 'No' if count is 0
     result  = "#{count} result" + if count isnt 1 then 's' else ''
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead").html title
+    @getView().$(".feeder-header").html title
 
-  showContentDisplay:(content, callback=->)->
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerTopic null, content
+  createContentDisplay:(topic, callback)->
+    controller = new ContentDisplayControllerTopic null, topic
     contentDisplay = controller.getView()
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
+    @showContentDisplay contentDisplay
+    @utils.defer -> callback contentDisplay
+
+  showContentDisplay:(contentDisplay)->
+    contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
@@ -204,4 +221,4 @@ class TopicsAppController extends AppController
       unless err
         callback? tags
       else
-        warn "there was an error fetching topics"
+        warn "there was an error fetching topics #{err.message}"

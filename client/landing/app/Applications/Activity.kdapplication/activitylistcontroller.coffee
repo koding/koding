@@ -22,14 +22,19 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
+    options.showHeader         ?= yes
+
+    options.noItemFoundWidget or= new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity."
+
+    options.noMoreItemFoundWidget or= new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no more activity."
 
     super
 
     @_state = 'public'
-
-    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : "There is no activity item."
 
     @scrollView.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 0
@@ -39,16 +44,21 @@ class ActivityListController extends KDListViewController
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
 
-    @noActivityItem.hide()
-
   loadView:(mainView)->
 
-    @noActivityItem.hide()
-
+    @hideNoItemWidget()
 
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
-      cssClass : 'activityhead clearfix'
+      cssClass : 'feeder-header clearfix'
+
+    @activityHeader.hide() unless @getOptions().showHeader
+
+    @scrollView.on 'scroll', (event) =>
+      if event.delegateTarget.scrollTop > 10
+        @activityHeader.setClass "scrolling-up-outset"
+      else
+        @activityHeader.unsetClass "scrolling-up-outset"
 
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
@@ -72,7 +82,7 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
 
-    return @noActivityItem.show() unless Object.keys(cache).length
+    return @showNoItemWidget() unless cache.overview?
 
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1
@@ -94,7 +104,7 @@ class ActivityListController extends KDListViewController
 
     if @_state is 'private'
       view = @addHiddenItem activity, 0
-      @activityHeader.newActivityArrived()
+      @activityHeader?.newActivityArrived()
 
   newActivityArrived:(activity)->
 
@@ -107,7 +117,7 @@ class ActivityListController extends KDListViewController
         @updateNewMemberBucket activity
       else
         view = @addHiddenItem activity, 0
-        @activityHeader.newActivityArrived()
+        @activityHeader?.newActivityArrived()
 
   updateNewMemberBucket:(activity)->
 

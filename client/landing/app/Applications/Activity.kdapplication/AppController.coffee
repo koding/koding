@@ -1,5 +1,10 @@
 class ActivityAppController extends AppController
 
+  KD.registerAppClass @,
+    name         : "Activity"
+    route        : "Activity"
+    hiddenHandle : yes
+
   activityTypes = [
       'CStatusActivity'
       'CCodeSnipActivity'
@@ -8,10 +13,7 @@ class ActivityAppController extends AppController
       'CDiscussionActivity'
       'CTutorialActivity'
       'CInstallerBucketActivity'
-      # DISABLING NOT READY ITEM TYPES
-      # 'COpinionActivity'
-      # 'CLinkActivity'
-      # 'CCodeShareActivity'
+      'CBlogPostActivity'
     ]
 
   lastTo    = null
@@ -25,37 +27,32 @@ class ActivityAppController extends AppController
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
 
-  isExempt = (callback)->
-
-    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
-      if err
-        log 'error fetching app storage', err
-        callback no
-      else
-        flags = KD.whoami().globalFlags
-        exempt = flags?.indexOf 'exempt'
-        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-        callback exempt
 
   constructor:(options={})->
 
-    options.view = new ActivityAppView
+    options.view    = new ActivityAppView
+    options.appInfo =
+      name          : 'Activity'
 
     super options
 
     @currentFilter     = activityTypes
     @appStorage        = new AppStorage 'Activity', '1.0'
+
+    @mainController = @getSingleton 'mainController'
+
+    if @mainController.appIsReady then @putListeners()
+    else @mainController.on 'FrameworkIsReady', => @putListeners()
+
+  putListeners:->
     activityController = @getSingleton('activityController')
-    activityController.on "ActivityListControllerReady", @attachEvents.bind @
+    activityController.on   "ActivityListControllerReady", @attachEvents.bind @
 
-  bringToFront:()->
+    # Do we really need this? ~ GG
+    # activityController.once "ActivityListControllerReady", @bound "populateActivity"
 
-    super name : 'Activity'
-
-    if @listController then @populateActivity()
-    else
-      ac = @getSingleton('activityController')
-      ac.once "ActivityListControllerReady", @populateActivity.bind @
+  loadView:->
+    @populateActivity() if @listController
 
   resetList:->
 
@@ -68,6 +65,8 @@ class ActivityAppController extends AppController
   getFilter: -> @currentFilter
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
+
+  fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   attachEvents:(controller)->
 
@@ -97,39 +96,63 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
+  isExempt:(callback)->
+
+    @appStorage.fetchStorage (storage) =>
+      flags  = KD.whoami().globalFlags
+      exempt = flags?.indexOf 'exempt'
+      exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
+      callback exempt
+
+  fetchActivitiesDirectly:(options = {})->
+
+    KD.time "Activity fetch took"
+    options = to : options.to or Date.now()
+
+    @fetchActivity options, (err, teasers)=>
+      isLoading = no
+      @listController.hideLazyLoader()
+      KD.timeEnd "Activity fetch took"
+      @mainController.emit "AppIsReady"
+
+      if err or teasers.length is 0
+        warn "An error occured:", err  if err
+        @listController.showNoItemWidget()
+      else
+        @listController.listActivities teasers
+
+  fetchActivitiesFromCache:(options = {})->
+    @fetchCachedActivity options, (err, cache)=>
+      isLoading = no
+      if err or cache.length is 0
+        warn err  if err
+        @listController.hideLazyLoader()
+        @listController.showNoItemWidget()
+      else
+        @sanitizeCache cache, (err, cache)=>
+          @listController.hideLazyLoader()
+          @listController.listActivitiesFromCache cache
+
   populateActivity:(options = {})->
 
     return if isLoading
     isLoading = yes
     @listController.showLazyLoader()
-    @listController.noActivityItem.hide()
+    @listController.hideNoItemWidget()
 
-    isExempt (exempt)=>
+    currentGroup = @getSingleton('groupsController').getCurrentGroupData()
+    slug = currentGroup.getAt 'slug'
 
-      if exempt or @getFilter() isnt activityTypes
+    unless slug is 'koding'
+      # options.group = slug
+      @fetchActivitiesDirectly options
 
-        options = to : options.to or Date.now()
-
-        @fetchActivity options, (err, teasers)=>
-          isLoading = no
-          @listController.hideLazyLoader()
-          if err or teasers.length is 0
-            warn err
-            @listController.noActivityItem.show()
-          else
-            @listController.listActivities teasers
-
-      else
-        @fetchCachedActivity options, (err, cache)=>
-          isLoading = no
-          if err or cache.length is 0
-            warn err
-            @listController.hideLazyLoader()
-            @listController.noActivityItem.show()
-          else
-            @sanitizeCache cache, (err, cache)=>
-              @listController.hideLazyLoader()
-              @listController.listActivitiesFromCache cache
+    else
+      @isExempt (exempt)=>
+        if exempt or @getFilter() isnt activityTypes
+          @fetchActivitiesDirectly options
+        else
+          @fetchActivitiesFromCache options
 
   sanitizeCache:(cache, callback)->
 
@@ -146,10 +169,11 @@ class ActivityAppController extends AppController
   fetchActivity:(options = {}, callback)->
 
     options       =
-      limit       : options.limit  or 20
-      to          : options.to     or Date.now()
-      facets      : options.facets or @getFilter()
-      lowQuality  : options.exempt or no
+      limit       : options.limit    or 20
+      to          : options.to       or Date.now()
+      facets      : options.facets   or @getFilter()
+      lowQuality  : options.exempt   or no
+      originId    : options.originId or null
       sort        :
         createdAt : -1
 
@@ -157,7 +181,6 @@ class ActivityAppController extends AppController
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
-
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -197,18 +220,19 @@ class ActivityAppController extends AppController
     unless @listController.scrollView.hasScrollBars()
       @continueLoadingTeasers()
 
-  createContentDisplay:(activity)->
-    switch activity.bongo_.constructorName
+  createContentDisplay:(activity, callback=->)->
+    controller = switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JBlogPost"     then @createBlogPostContentDisplay activity
       when "JTutorial"     then @createTutorialContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # when "JCodeShare"    then @createCodeShareContentDisplay activity
+    @utils.defer -> callback contentDisplayController
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    return contentDisplayController
 
   createStatusUpdateContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayStatusUpdate
@@ -216,17 +240,17 @@ class ActivityAppController extends AppController
       type  : "status"
     ,activity
 
+  createBlogPostContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayBlogPost
+      title : "Blog Post"
+      type  : "blogpost"
+    ,activity
+
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
       title : "Code Snippet"
       type  : "codesnip"
     ,activity
-
-  createCodeShareContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayCodeShare
-      title : "Code Share"
-      type  : "codeshare"
-    , activity
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion
@@ -262,3 +286,8 @@ class ActivityAppController extends AppController
           else
             callback instances
 
+  unhideNewItems: ->
+    @listController?.activityHeader.updateShowNewItemsLink yes
+
+  getNewItemsCount: (callback) ->
+    callback? @listController?.activityHeader?.getNewItemsCount() or 0

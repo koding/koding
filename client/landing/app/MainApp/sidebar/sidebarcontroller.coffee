@@ -1,5 +1,13 @@
 class SidebarController extends KDViewController
 
+  constructor:->
+    super
+
+    mainController = @getSingleton 'mainController'
+
+    mainController.on 'ManageRemotes', -> new ManageRemotesModal
+    mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+
   accountChanged:(account)->
 
     {profile} = account
@@ -8,8 +16,8 @@ class SidebarController extends KDViewController
 
     {
      avatar, finderHeader, navController
-     accNavController, avatarAreaIconMenu
-     finderController, footerMenuController
+     avatarAreaIconMenu, finderController
+     footerMenuController
     } = sidebar
 
     avatar.setData account
@@ -21,10 +29,40 @@ class SidebarController extends KDViewController
     finderHeader.render()
 
     navController.reset()
-    accNavController.reset()
     footerMenuController.reset()
-    sidebar.resetAdminNavController()
+    @resetAdminNavItems()
 
     avatarAreaIconMenu.accountChanged account
 
     finderController.reset()
+
+  resetAdminNavItems:->
+    return unless KD.isLoggedIn()
+    KD.whoami().fetchRole? (err, role)=>
+      if role is "super-admin"
+        @getView().navController.addItem
+          title    : "Admin Panel"
+          type     : "admin"
+          loggedIn : yes
+          callback : -> new AdminModal
+
+    do =>
+      {navController} = @getView()
+      groupsController = @getSingleton 'groupsController'
+      groupsController.on 'GroupChanged', ->
+        group = groupsController.getCurrentGroup()
+
+        # We need to fix that, it happens when you logged-in from groupEntryPoint
+        return unless group
+
+        group.fetchMyRoles (err, roles)=>
+          if err
+            console.warn err
+          else if 'admin' in roles
+            navController.removeItem dashboardLink  if @dashboardLink?
+            @dashboardLink = navController.addItem
+              title     : 'Admin dashboard'
+              type      : 'admin'
+              loggedIn  : yes
+              callback  : ->
+                KD.getSingleton('router').handleRoute "/#{group.slug}/Dashboard"

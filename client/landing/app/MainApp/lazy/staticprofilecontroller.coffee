@@ -1,0 +1,804 @@
+class StaticProfileController extends KDController
+
+  CONTENT_TYPES = [
+    'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+    'CDiscussionActivity', 'CTutorialActivity'
+  ]
+
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
+  placeholderBioText      = 'Click here to enter a subtitle'
+
+
+  constructor:(options,data)->
+    super options,data
+
+    appManager = @getSingleton 'appManager'
+
+    @navLinks     = {}
+    @controllers  = {}
+    @wrappers     = {}
+
+    @profileUser  = null
+    @registerSingleton 'staticProfileController', @, yes
+
+    @reviveViewsOnPageLoad()
+    @attachListeners()
+
+    @mainController = @getSingleton 'mainController'
+    @lazyDomController = @getSingleton('lazyDomController')
+
+    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+    # FIXME - we want to use cacheable, not a JAccount call, but names
+    # are not working correctly
+
+    KD.remote.api.JAccount.one
+      "profile.nickname" : KD.config.profileEntryPoint
+    , (err, user, name)=>
+      if err then log err,user,name
+      unless err
+        @reviveViewsOnUserLoad user
+
+
+  attachListeners:->
+
+    @on 'CommentLinkReceivedClick', (view)=>
+      if KD.whoami() instanceof KD.remote.api.JGuest
+        new  KDNotificationView
+          title : "Please log in to see this post and it's comments"
+
+        @utils.wait 1000, =>
+          @mainController.loginScreen.animateToForm 'login'
+      else
+        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
+
+
+    @on 'CommentCountReceivedClick', (view)=>
+      if KD.whoami() instanceof KD.remote.api.JGuest
+        new  KDNotificationView
+          title : "Please log in to see this post and it's comments"
+
+        @utils.wait 1000, =>
+          @mainController.loginScreen.animateToForm 'login'
+
+      else
+        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
+
+    @on 'StaticInteractionHappened',(view)=>
+      if KD.whoami() instanceof KD.remote.api.JGuest
+
+        if view instanceof LikeView
+          new KDNotificationView
+            title : 'Please log in to like this post.'
+        else if view instanceof StaticTagLinkView
+          new  KDNotificationView
+            title : 'Please log in to see this Topic'
+
+        @utils.wait 1000, =>
+          @mainController.loginScreen.animateToForm 'login'
+
+      else
+        if view instanceof LikeView
+        else if view instanceof StaticTagLinkView
+          @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
+
+
+    @on 'HomeLinkClicked', (callback=->)=>
+
+      @addLogic 'static'
+
+      # HERE is the place to implement custom profile splash screens, reveal.js and such
+
+      @staticDefaultItem.show()
+      @displaySidebar no
+
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
+        @showWrapper @wrappers['static']
+        @staticDefaultItem.show()
+        @staticPageSettingsButton?.hide()
+        callback()
+
+
+    @on 'ActivityLinkClicked', (callback=->)=>
+      @addLogic 'activity'
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
+        @showWrapper @wrappers['activity']
+        @displaySidebar yes
+        @staticPageSettingsButton?.show()
+        callback()
+
+
+    @on 'AboutLinkClicked', (callback=->)=>
+      @addLogic 'about', =>
+        callback()
+      @displaySidebar no
+      @staticPageSettingsButton?.hide()
+
+
+    @on 'CustomizeLinkClicked',=>
+      if (KD.whoami().getId() isnt @profileUser.getId()) or @customizeViewsAttached
+        return
+
+      @customizeViewsAttached = yes
+
+      types = @getAllowedTypes @profileUser
+
+      for type in CONTENT_TYPES
+        @navLinks[type].addSubView new StaticNavCheckBox
+          activityType : type
+          defaultValue : type in types
+          delegate     : @
+        , @profileUser
+
+
+    @on 'ShowMoreButtonClicked', =>
+      @addStaticLogic()
+      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
+        @showWrapper @staticListWrapper
+
+
+    @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
+      unless @profileUser
+        callback()
+        return
+
+      facets = [facets] if 'string' is typeof facets
+
+      if @profileUser
+        allowedTypes = @getAllowedTypes @profileUser
+
+        blockedTypes = facets.reduce (acc, facet)->
+          acc.push facet unless facet in allowedTypes
+          return acc
+        , []
+
+        @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
+
+        if blockedTypes.length is 0
+          @currentFacets = facets
+          appManager.tell 'Activity', 'fetchActivity',
+            originId : @profileUser.getId()
+            facets : facets
+            bypass : yes
+            limit  : 10
+          , (err, activities=[])=>
+            @refreshActivities err, activities, type
+            callback()
+        else @emit 'BlockedTypesRequested', blockedTypes
+
+    @on "LogoClicked", =>
+        @profileLogoInfo.unsetClass 'in'
+        unless KD.whoami() instanceof KD.remote.api.JGuest
+          @profilePersonalWrapperView.setClass 'slide-down'
+          @profileContentWrapperView.setClass 'slide-down'
+          @profileLogoView.setClass 'top'
+
+          @lazyDomController.hideLandingPage()
+        else
+          @mainController.loginScreen.animateToForm 'register'
+
+
+  reviveAdminViews:->
+
+      # reviving ADMIN views (inline edits, feeder checkboxes)
+
+      @profileTitleNameView = new KDView
+        lazyDomId : 'profile-name'
+
+      @profileTitleBioView = new KDView
+        lazyDomId : 'profile-bio'
+
+      profileAdminCustomizeView = new KDView
+        lazyDomId : 'profile-admin-customize'
+
+      profileAdminCustomizeView.addSubView @staticPageSettingsButton = new CustomLinkView
+        title : 'Customize'
+        cssClass : 'static-page-settings-button clean-gray hidden'
+        click :(event)=>
+          @emit 'CustomizeLinkClicked'
+          event.stopPropagation()
+          event.preventDefault()
+
+      profileAdminCustomizeView.show()
+
+      profileAdminMessageView = new KDView
+        lazyDomId : 'profile-admin-message'
+
+      showPage = @profileUser.profile.staticPage?.show
+
+      profileAdminMessageView.addSubView disableLink = new CustomLinkView
+        title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
+        cssClass  : 'message-disable'
+        click     : (event)=>
+          event?.stopPropagation()
+          event?.preventDefault()
+
+          if @profileUser.profile.staticPage?.show is yes
+            modal           = new KDModalView
+              cssClass      : 'disable-static-page-modal'
+              title         : 'Do you really want to disable your Public Page?'
+              content       : """
+                <div class="modalformline">
+                  <p>Disabling this feature will disable other people
+                  from publicly viewing your profile. You will still be
+                  able to access the page yourself.</p>
+                  <p>Do you want to continue?</p>
+                </div>
+                """
+              buttons       :
+                "Disable the Public Page" :
+                  cssClass  : 'modal-clean-red'
+                  callback  : =>
+                    modal.destroy()
+                    @profileUser.setStaticPageVisibility no, (err,res)=>
+                      if err then log err
+                      disableLink.updatePartial '<span class="title">Enable</span>'
+                Cancel      :
+                  cssClass  : 'modal-cancel'
+                  callback  : =>
+                    modal.destroy()
+          else
+            @profileUser.setStaticPageVisibility yes, (err,res)=>
+              if err then log err
+              disableLink.updatePartial '<span class="title">Disable</span>'
+
+      handleLinks = {}
+
+      handleLinks['twitter'] = new KDView
+        tagName : 'a'
+        lazyDomId : 'profile-handle-twitter'
+        tooltip :
+          title : 'Click here to change your Twitter handle'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['twitter'].show()
+          KD.utils.defer -> handleInputs['twitter'].setFocus()
+
+      handleLinks['github'] = new KDView
+        tagName : 'a'
+        lazyDomId : 'profile-handle-github'
+        tooltip :
+          title : 'Click here to change your GitHub handle'
+        click:(event)->
+          event.preventDefault()
+          event.stopPropagation()
+          handleInputs['github'].show()
+          KD.utils.defer -> handleInputs['github'].setFocus()
+
+      handle.show() for name,handle of handleLinks
+
+      handleInputs = {}
+
+      for type in ['twitter','github']
+        handleLinks[type].setClass 'edit'
+        handleLinks[type].addSubView handleInputs[type] = new StaticHandleInput
+          service     : type
+          delegate    : @
+          tooltip     :
+            title     : "Enter your handle and hit enter to save."
+            placement : 'right'
+            direction : 'center'
+            offset    :
+              left    : 5
+              top     : 2
+          enableTabKey: yes
+          attributes  :
+            spellcheck: no
+          cssClass    : 'hidden'
+          blur        :->
+            @hide()
+          callback    :(value)->
+            @getData().setHandle
+              service : @getOptions().service
+              value   : value
+            , =>
+              new KDNotificationView
+                title : 'Your changes were saved.'
+              @hide()
+
+        , @profileUser
+
+      if @profileTitleNameInput then @profileTitleNameInput.show()
+      else
+        @profileTitleNameSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-name-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleNameInput.show()
+            @utils.defer => @profileTitleNameInput.setFocus()
+            @profileTitleNameView.setClass 'edit'
+
+
+        @profileTitleNameView.addSubView @profileTitleNameInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.title \
+            or "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+          enableTabKey  : yes
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter your page title and hit enter to save. Leaving this field empty will put your full name as default title.'
+
+          blur          : =>
+            @profileTitleNameInput.hide()
+            @profileTitleNameView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageTitle Encoder.XSSEncode(value), =>
+
+              # set to default if empty
+              if value is ''
+                value = "#{@profileUser.profile.firstName} #{@profileUser.profile.lastName}"
+              @profileTitleNameView.unsetClass 'edit'
+              @profileTitleNameSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Title updated.'
+
+      if @profileTitleBioInput
+        @profileTitleBioInput.show()
+      else
+        @profileTitleBioSpan = new KDCustomHTMLView
+          tagName       : 'span'
+          lazyDomId     : 'profile-bio-span'
+          cssClass      : 'edit'
+          click         : =>
+            @profileTitleBioInput.show()
+            @utils.defer => @profileTitleBioInput.setFocus()
+            @profileTitleBioView.setClass 'edit'
+
+        unless @profileUser.profile.about or @profileUser.profile.staticPage?.about
+          @profileTitleBioSpan.updatePartial placeholderBioText
+          @profileTitleBioSpan.setClass 'dim'
+
+        log placeholderBioText
+
+        @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
+          defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
+            or if @profileUser.profile.about
+              "#{@profileUser.profile.about}"
+            else placeholderBioText
+          enableTabKey  : yes
+          tooltip       :
+            placement   : 'bottom'
+            direction   : 'right'
+            title       : 'Enter a subtitle and hit enter to save. Leaving this field empty will put your bio as default.'
+
+          blur          : =>
+            @profileTitleBioInput.hide()
+            @profileTitleBioView.unsetClass 'edit'
+
+          callback :(value)=>
+            value = Encoder.htmlEncode value
+            @profileUser.setStaticPageAbout Encoder.XSSEncode(value), =>
+              @profileTitleBioView.unsetClass 'edit'
+              if value is ''
+                value = "#{@profileUser.profile.about or placeholderBioText}"
+              else @profileTitleBioSpan.unsetClass 'dim'
+              @profileTitleBioSpan.updatePartial value
+              new KDNotificationView
+                title   : 'Description updated.'
+
+
+  reviveViewsOnPageLoad:->
+
+    allowedTypes  = ['CBlogPostActivity']
+    blockedTypes  = []
+    @currentFacets = []
+    # reviving the content view. this encapsulates the listitem feed after
+    # user input (type selection, more-button)
+    @profileContentView = new KDListView
+      lazyDomId : 'profile-content'
+      itemClass : StaticActivityListItemView
+    , {}
+
+    @sanitizeStaticContent @profileContentView
+
+    # reviving the landing page. this is needed to handle window
+    # resize events for the view and subviews
+    @landingView = new KDView
+      lazyDomId : 'static-landing-page'
+
+    @landingView.listenWindowResize()
+    @landingView._windowDidResize = =>
+      @landingView.setHeight window.innerHeight
+      @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+
+
+    groupKodingLogo = new KDView
+      lazyDomId : 'landing-page-logo'
+      tooltip   :
+        title   : "Click here to go to Koding"
+      click     : =>
+        if KD.isLoggedIn()
+          @lazyDomController.hideLandingPage()
+        else
+          @mainController.loginScreen.animateToForm 'login'
+
+    profileTitleView = new KDView
+      lazyDomId : 'profile-title'
+
+    @profileShowMoreView = new KDView
+      lazyDomId : 'profile-show-more-wrapper'
+      cssClass  : 'hidden'
+
+    profileShowMoreButton = new KDButtonView
+      lazyDomId : 'profile-show-more-button'
+      title     : 'Show more'
+      callback  : =>
+        @emit 'ShowMoreButtonClicked'
+        @profileShowMoreView.hide()
+        @profileShowMoreView.setHeight 0
+        @landingView._windowDidResize()
+
+    if @profileContentView.$().attr('data-count') > 0
+      @profileShowMoreView.show()
+    else @profileShowMoreView.hide()
+
+    # reviving wrapper views for resize/slide animations as well as
+    # adding administrative views
+    @profileContentWrapperView = new KDView
+      lazyDomId : 'profile-content-wrapper'
+      cssClass  : 'slideable'
+
+    @profilePersonalWrapperView = new KDView
+      lazyDomId : 'profile-personal-wrapper'
+      cssClass  : 'slideable'
+      # bind : 'mouseenter mouseleave'
+      click :(event)=>
+        if event.target.id is 'profile-personal-wrapper'
+          @mainController.emit "landingSidebarClicked"
+
+    @staticDefaultItem = new KDView
+      lazyDomId : 'profile-blog-default-item'
+
+    @profileContentLinks = new KDView
+      lazyDomId : 'profile-content-links'
+
+    @profileContentList = new KDView
+      lazyDomId : 'profile-content-list'
+
+    for type in CONTENT_TYPES
+      @navLinks[type] = new StaticNavLink
+        delegate  : @
+        lazyDomId : type
+
+    @emit 'DecorateStaticNavLinks', allowedTypes, 'CBlogPostActivity'
+
+    # reviving loading bar
+    @profileLoadingBar = new KDView
+      lazyDomId : 'profile-loading-bar'
+      partial   : 'Loading'
+    @profileLoadingBar.addSubView @profileLoaderView = new KDLoaderView
+      size          :
+        width       : 16
+        height      : 16
+      loaderOptions :
+        color       : '#444'
+    @profileLoaderView.hide()
+
+
+  reviveViewsOnUserLoad:(user)->
+
+    @utils.defer => @emit 'HomeLinkClicked'
+
+    @profileUser = user
+    @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
+
+    unless user.getId() is KD.whoami().getId()
+      @reviveVisitorViews() if KD.isLoggedIn()
+
+    else
+      @reviveAdminViews()
+
+
+  appendActivities:(err,activities, type)->
+    @controllers[type].listActivities activities
+    @controllers[type].hideLazyLoader()
+
+
+  refreshActivities:(err,activities,type)->
+    unless err
+      @profileShowMoreView.hide()
+
+      controller = @controllers[type]
+      @wrappers[type].show()
+
+      controller.removeAllItems()
+      controller.hideLazyLoader()
+
+      controller.hideNoItemWidget()
+
+      facetPlural = constructorToPluralNameMap[@currentFacets[0]] or 'activity'
+
+      controller.getOptions().noItemFoundWidget.updatePartial \
+        "So far, #{@profileUser.profile.firstName} has not posted any #{facetPlural}"
+
+      if activities.length > 0
+        controller.listActivities activities
+      else
+        controller.showNoItemWidget() unless type in ['static']
+
+
+  reviveVisitorViews:-> # put onboarding stuff here
+
+
+  displaySidebar:(show=yes,delay=250)->
+    @utils.wait delay, =>
+      @profileContentList["#{if show then '' else 'un'}setClass"] 'has-links'
+      @profileContentLinks["#{if show then 'un' else ''}setClass"] 'links-hidden'
+
+
+  getAllowedTypes:(@profileUser)->
+    allowedTypes = @profileUser.profile.staticPage?.showTypes or CONTENT_TYPES
+
+
+  sanitizeStaticContent:(view)->
+    view.$(".content-item > .has-markdown > span.data a").each (i,element)->
+      $(element).attr target : '_blank'
+
+
+  addLogic:(type,callback=->)->
+      unless @controllers[type]?
+        @addLogicForType type, =>
+          @controllers[type]?.hideLazyLoader()
+          callback()
+      else
+        @controllers[type]?.hideLazyLoader()
+        @showWrapper @wrappers[type]
+        callback()
+
+
+  addLogicForType:(type,callback=->)->
+    switch type
+      when 'activity'
+       @addActivityLogic callback
+
+      when 'about'
+       @addAboutLogic callback
+
+      when 'static'
+       @addStaticLogic callback
+
+
+  addActivityLogic:(callback=->)->
+    activityController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : ActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content activity-related'
+      showHeader        : no
+
+      noItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "So far, #{@profileUser.profile.firstName} has not posted this kind of activity."
+
+      noMoreItemFoundWidget : new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "There is no more activity."
+
+    activityListWrapper = activityController.getView()
+    @profileContentView.addSubView activityListWrapper
+
+    activityController.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId  : @profileUser.getId()
+        facets    : @currentFacets
+        to        : @activityController.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , (err,activities)=>
+        @appendActivities err,activities,'activity'
+
+    @controllers['activity'] = activityController
+    @wrappers['activity']    = activityListWrapper
+
+    callback()
+
+
+  addAboutLogic:(callback=->)->
+
+    @wrappers['about'] = yes
+
+    if @profileUser
+      @profileUser.fetchAbout (err,about)=>
+        if err
+          log err
+        else
+          @profileContentView.addSubView aboutWrapper = new StaticProfileAboutView
+            about : about or ''
+          , @profileUser
+
+          @wrappers['about'] = aboutWrapper
+          @showWrapper aboutWrapper
+          callback()
+
+
+  addStaticLogic:(callback=->)->
+
+    staticController = new ActivityListController
+      delegate          : @
+      lazyLoadThreshold : .99
+      itemClass         : StaticActivityListItemView
+      viewOptions       :
+        cssClass        : 'static-content static'
+      showHeader        : no
+
+    staticListWrapper = staticController.getView()
+    @profileContentView.addSubView staticListWrapper
+
+    staticController.on 'LazyLoadThresholdReached', =>
+      appManager.tell 'Activity', 'fetchActivity',
+        originId  : @profileUser.getId()
+        facets    : ['CBlogPostActivity']
+        to        : staticController.itemsOrdered.last.getData().meta.createdAt
+        bypass    : yes
+      , (err, activities)=>
+       @appendActivities err, activities, 'static'
+
+    @controllers['static'] = staticController
+    @wrappers['static']    = staticListWrapper
+
+    callback()
+
+
+  hideWrappers:->
+    @profileContentView.$('.content-item.static').remove()
+    @staticDefaultItem.hide()
+    @profileShowMoreView.hide()
+
+    for own name,wrapper of @wrappers
+      wrapper?.hide?()
+
+  showWrapper:(wrapper)->
+    @hideWrappers()
+    wrapper.show()
+
+
+
+class StaticNavLink extends KDView
+  constructor:(options,data)->
+    super options,data
+    @unsetClass 'disabled'
+
+    @getDelegate().on 'DecorateStaticNavLinks',(allowedTypes,activeType)=>
+      @decorate allowedTypes,activeType
+
+  decorate:(allowedTypes,activeType)->
+      if @getDomId() in allowedTypes
+        @unsetClass 'blocked'
+      else
+        @setClass 'blocked'
+
+      if @getDomId() is activeType then @setClass 'selected' else @unsetClass 'selected'
+
+  click :->
+    @getDelegate().emit 'StaticProfileNavLinkClicked', @getDomId(), 'activity', =>
+
+
+
+class StaticNavCheckBox extends KDInputView
+
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
+  constructor:(options,data)->
+    options.type      = "checkbox"
+    options.cssClass  = 'profile-facet-customize-switch'
+    options.tooltip   =
+      title           : "Check this box to display your #{constructorToPluralNameMap[options.activityType]} on this page"
+    super options,data
+
+  click:(event)->
+    event.stopPropagation()
+    state = @getValue()
+    @getData()["#{if state then 'add' else 'remove'}StaticPageType"] @getOption('activityType'), =>
+      @getDelegate().emit 'DecorateStaticNavLinks', @getDelegate().getAllowedTypes(@getData())
+
+
+
+class StaticHandleLink extends CustomLinkView
+  constructor:(options,data)->
+    options.cssClass = 'static-handle-link'
+    super options,data
+
+  click:(event)->
+    if @$().hasClass 'edit'
+      event.stopPropagation()
+      event.preventDefault()
+
+  pistachio:->
+    options = @getOptions()
+    data    = @getData()
+
+    data.title ?= options.attributes.href
+    options.handle ?= ""
+
+    tmpl = "{{> @icon}}"
+    tmpl += "<span class='text'>not </span>" if options.handle is ""
+    tmpl += "<span class='text'>on </span>{span.title{ #(title)}}"
+    tmpl += "<span class='text'> as </span><span class='handle'>#{options.handle}</span>" if options.handle isnt ""
+
+    return tmpl
+
+
+
+class StaticHandleInput extends KDHitEnterInputView
+  constructor:(options,data)->
+    options.cssClass = "profile-handle-customize #{options.cssClass}"
+    options.defaultValue = data.profile.handles?[options.service] or ''
+    super options,data
+
+
+
+# class StaticAppsListItem extends KDListItemView
+#   partial:(data)->
+#     # log data
+#     "<div class='static-app'>
+#        #{data.title}
+#     </div>"
+
+
+
+# class StaticGroupsListItem extends KDListItemView
+#   partial:(data)->
+#     # log data
+#     "<div class='static-topic'>
+#        #{data.title}
+#     </div>"
+
+
+
+# class StaticTopicsListItem extends KDListItemView
+#   constructor:(options,data)->
+#      super options,data
+
+#      @titleView = new KDCustomHTMLView
+#        tagName : 'span'
+#        cssClass : 'static-topic-title'
+#        partial : @getData().title
+
+#   viewAppended:->
+#     super
+#     @setTemplate @pistachio()
+#     @template.update()
+
+#   pistachio:->
+#     """
+#     <div class='static-topic'>
+#        {{> @titleView}}
+#     </div>
+#     """
+
+
+
+# class StaticMembersListItem extends KDListItemView
+#   constructor:(options,data)->
+#     super options,data
+#     @avatarView = new AvatarView
+#       size    : {width: 30, height: 30}
+#       noTooltip : no
+#       click:->
+#     ,@getData()
+
+#     @setClass 'static-member'
+
+#   viewAppended:->
+#     super
+#     @setTemplate @pistachio()
+#     @template.update()
+
+#   pistachio:->
+#     """
+#     {{> @avatarView}}
+#     """

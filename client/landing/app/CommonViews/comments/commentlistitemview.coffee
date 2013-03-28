@@ -40,12 +40,21 @@ class CommentListItemView extends KDListItemView
        loggedInId is activity.originId or       # if activity/app owner
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
       @deleteLink.unsetClass "hidden"
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @deleteLink
-        callback           : => @confirmDeleteComment data
+      @deleteLink.on "click", => @confirmDeleteComment data
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
+
+    if loggedInId isnt data.originId
+      @replyView = new ActivityActionLink
+        cssClass : "action-link reply-link"
+        partial  : "Reply"
+        click    : =>
+          KD.remote.cacheable data.originType, data.originId, (err, res) =>
+            @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
+    else
+      @replyView = new KDView
+
+    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
   applyTooltips:->
     @$("p.status-body > span.data > a").each (i,element)->
@@ -84,7 +93,7 @@ class CommentListItemView extends KDListItemView
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
           KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
-          # appManager.tell "Members", "createContentDisplay", origin
+          # KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
     {type} = @getOptions()
@@ -135,8 +144,9 @@ class CommentListItemView extends KDListItemView
           {{@utils.applyTextExpansions #(body), yes}}
         </p>
         {{> @deleteLink}}
-        <time>{{$.timeago #(meta.createdAt)}}</time>
+        {{> @timeAgoView}}
         {{> @likeView}}
+        {{> @replyView}}
       </div>
     </div>
     """

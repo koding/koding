@@ -12,7 +12,7 @@ class CommonView_InputWithButton extends KDFormView
     super options,data
 
   viewAppended:()->
-    
+
     {icon,input,button} = @getOptions()
 
     if icon
@@ -29,21 +29,13 @@ class CommonView_InputWithButton extends KDFormView
       button.callback ?= noop
       button.type     or= "submit"
       @addSubView @button = new KDButtonView button
-  
-    @listenTo
-      KDEventTypes : "focus"
-      listenedToInstance : @input
-      callback : => @setClass "focus"
-      
-    @listenTo
-      KDEventTypes : "blur"
-      listenedToInstance : @input
-      callback : => @unsetClass "focus validation-error"
-      
+
+    @input.on "focus", => @setClass "focus"
+    @input.on "blur", => @unsetClass "focus validation-error"
     @input.on "ValidationError", => @setClass "validation-error"
     @input.on "ValidationPassed", => @unsetClass "validation-error"
 
-  getValue:()-> 
+  getValue:()->
 
     @input.getValue()
 
@@ -54,21 +46,21 @@ class CommonView_InputWithButton extends KDFormView
 
 class CommonView_AddTagView extends NoAutocompleteMultipleListView
   constructor: (options = {}, data) ->
-    options = $.extend 
+    options = $.extend
       cssClass: 'add-tag-view'
     ,options
     super options, data
 
   viewAppended: ->
     {icon,input,button} = @options
-    
+
     if icon
       @setClass "with-icon"
       options =
         tagName  : "span"
         cssClass : "icon #{icon}"
       @addSubView @icon   = new KDCustomHTMLView options
-      
+
     if input
       @addSubView @input  = new NoAutocompleteInputViewForTags input
 
@@ -78,13 +70,13 @@ class CommonView_AddTagView extends NoAutocompleteMultipleListView
           event.preventDefault()
           event.stopPropagation()
           @input.inputAddCurrentValue()
-          
+
       button = $.extend defaults, button
       @input.addSubView @button = new KDButtonView button
 
 class NoAutocompleteInputViewForTags extends NoAutocompleteInputView
   constructor: (options = {}, data) ->
-    options = $.extend 
+    options = $.extend
       cssClass: 'common-view input-with-extras'
     ,options
     super options, data

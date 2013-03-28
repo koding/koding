@@ -194,7 +194,7 @@ class EmbedBoxLinkView extends KDView
 
   loadImages:->
     do =>
-      @utils.wait =>
+      @utils.defer =>
         @$("img").each (i,element)->
           if $(element).attr "data-src"
             $(element).attr "src" : $(element).attr("data-src")
@@ -377,7 +377,7 @@ class EmbedBoxImageView extends KDView
   loadImages:->
     # defer the image load
     do =>
-      @utils.wait =>
+      @utils.defer =>
 
         @loader.hide()
 

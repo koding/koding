@@ -1,18 +1,13 @@
 class AppController extends KDViewController
 
-  bringToFront:(options = {}, view = @getView())->
-    @propagateEvent
-      KDEventType  : 'ApplicationWantsToBeShown'
-      globalEvent  : yes
-    ,
-      options : options
-      data    : view
+  constructor:->
 
-  createContentDisplay:(tag, doShow, callback)->
-    [callback, doShow] = [doShow, callback] unless callback
-    @showContentDisplay tag, callback
+    super
+
+    @appStorage = new AppStorage @getOption("name"), "1.0"
+
+  createContentDisplay:(models, callback)->
+    warn "You need to override #createContentDisplay - #{@constructor.name}"
 
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
-
-  setGroup:(group)-> @bringToFront()

@@ -1,32 +1,32 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
+    @landingPageLoading = KD.config.groupEntryPoint?
+
     @openRoutes = {}
     @openRoutesById = {}
     @getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
+    @ready = no
+    @getSingleton('mainController').once 'AccountChanged', =>
+      @ready = yes
+      @utils.defer =>
+        @emit 'ready'
+        @landingPageLoading = no
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
+    @on 'Params', ({params, query})=>
+      #@utils.defer => @getSingleton('groupsController').changeGroup params.name
+
+  listen:->
+    super
     unless @userRoute
-      @handleRoute defaultRoute,
+      @handleRoute @defaultRoute,
         shouldPushState: yes
         replaceState: yes
-
-  nicenames = {
-    JTag      : 'Topics'
-    JApp      : 'Apps'
-    StartTab  : 'Develop'
-  }
-
-  getSectionName =(model)->
-    sectionName = nicenames[model.bongo_.constructorName]
-    if sectionName? then " - #{sectionName}" else ''
-
-  handleRoute =(groupId, route)->
-    console.log 'invoking a route by group id...'
 
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
@@ -46,27 +46,18 @@ class KodingRouter extends KDRouter
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
-  go:(app, group, query, rest...)->
-    pageTitle = nicenames[app] ? app
-    @setPageTitle pageTitle
-    unless group?
-      appManager.openApplication app
-    else
-      @emit 'GroupChanged', group
-      appManager.tell app, 'setGroup', group
-    appManager.tell app, 'handleQuery', query
-
-  stripTemplate =(str, konstructor)->
-    {slugTemplate} = konstructor
-    slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
-    re = RegExp slugTemplate.replace slugStripPattern,
-      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
-    str.match(re)?[1]
+  go:(app, group, query)->
+    return @once 'ready', @go.bind this, arguments...  unless @ready
+    @getSingleton('groupsController').changeGroup group, (err)->
+      if err then new KDNotificationView title: err.message
+      else
+        KD.getSingleton("appManager").open app
+        KD.getSingleton("appManager").tell app, 'handleQuery', query
 
   handleNotFound:(route)->
 
     status_404 = =>
-      KDRouter::handleNotFound.call @, route
+      KDRouter::handleNotFound.call this, route
 
     status_301 = (redirectTarget)=>
       @handleRoute "/#{redirectTarget}", replaceState: yes
@@ -89,43 +80,51 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, state, route)->
-    @setPageTitle @getContentTitle state
-    appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
-      @openRoutes[route] = contentDisplay
-      @openRoutesById[contentDisplay.id] = route
+  openContent:(name, section, state, route, query)->
+    KD.getSingleton("appManager").tell section, 'createContentDisplay', state,
+      (contentDisplay)=>
+        @openRoutes[route] = contentDisplay
+        @openRoutesById[contentDisplay.id] = route
+        contentDisplay.emit 'handleQuery', query
 
-  loadContent:(name, section, slug, route)->
-    KD.remote.api.JName.one {name: route}, (err, name)=>
+  loadContent:(name, section, slug, route, query)->
+    routeWithoutParams = route.split('?')[0]
+    KD.remote.api.JName.one {name: routeWithoutParams}, (err, name)=>
       if err
         new KDNotificationView title: err?.message or 'An unknown error has occured.'
       else if name?
-        {constructorName, usedAsPath} = name
-        selector = {}
-        konstructor = KD.remote.api[constructorName]
-        slug = stripTemplate route, konstructor
-        selector[usedAsPath] = slug
-        konstructor?.one selector, (err, model)=>
-          error err if err?
-          unless model
-            @handleNotFound route
-          else
-            @openContent name, section, model, route
+        models = []
+        name.slugs.forEach (slug, i)=>
+          {constructorName, usedAsPath} = slug
+          selector = {}
+          konstructor = KD.remote.api[constructorName]
+          selector[usedAsPath] = slug.slug
+          konstructor?.one selector, (err, model)=>
+            error err if err?
+            unless model
+              @handleNotFound route
+            else
+              models[i] = model
+              if models.length is name.slugs.length
+                @openContent name, section, models, routeWithoutParams, query
       else
         @handleNotFound route
 
   createContentDisplayHandler:(section)->
-    ({params:{name, slug}}, state, route)=>
-      contentDisplay = @openRoutes[route]
+    ({params:{name, slug}, query}, state, route)=>
+      route = name unless route
+      contentDisplay = @openRoutes[route.split('?')[0]]
       if contentDisplay?
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
+        contentDisplay.emit 'handleQuery', query
+      else if state?
+        @openContent name, section, state, route, query
       else
-        # appManager.tell section, 'setGroup', name  if name?
-        if state?
-          @openContent name, section, state, route
-        else
-          @loadContent name, section, slug, route
+        @loadContent name, section, slug, route, query
+
+  clear:(route="/#{KD.config.groupEntryPoint ? ''}", replaceState=yes)->
+    super route, replaceState
 
   createLinks =(names, fn)->
     names = names.split ' '  if names.split?
@@ -137,18 +136,29 @@ class KodingRouter extends KDRouter
         acc
       , {}
 
+
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
+    loader = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#FFFFFF"
+    loader.appendToSelector '#main-loader'
+    loader.show()
+
+    mainController.on "AppIsReady", =>
+      loader.destroy()
+      KD.utils.wait 600, -> $('#main-koding-loader').hide()
+
     content = createLinks(
-      # 'Activity Apps Groups Members Topics'
-      'Activity Apps Members Topics'
+      'Activity Apps Groups Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
     section = createLinks(
-      # 'Account Activity Apps Groups Members StartTab Topics'
-      'Account Activity Apps Inbox Members StartTab Topics'
+      'Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -156,14 +166,12 @@ class KodingRouter extends KDRouter
 
     requireLogin =(fn)->
       mainController.accountReady ->
-        # console.log 'faafafaf'
-        if KD.isLoggedIn() then fn()
+        if KD.isLoggedIn() then __utils.defer fn
         else clear()
 
     requireLogout =(fn)->
       mainController.accountReady ->
-        # console.log 'sfsfsfsfsfsf', KD.whoami(), KD.isLoggedIn()
-        unless KD.isLoggedIn() then fn()
+        unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
     routes =
@@ -184,7 +192,8 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.doRecover name
 
       # section
-      # '/:name?/Groups'                  : section.Groups
+      # TODO: nested groups are disabled.
+      '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity
       '/:name?/Members'                 : section.Members
       '/:name?/Topics'                  : section.Topics
@@ -192,10 +201,17 @@ class KodingRouter extends KDRouter
       '/:name?/Apps'                    : section.Apps
       '/:name?/Account'                 : section.Account
 
+      # group dashboard
+      '/:name?/Dashboard'               : (routeInfo, state, route)->
+        {name} = routeInfo.params
+        n = name ? 'koding'
+        KD.remote.cacheable n, (err, [group], nameObj)=>
+          @openContent name, 'Groups', group, route
+
       # content
-      '/:name?/Topics/:topicSlug'       : content.Topics
-      '/:name?/Activity/:activitySlug'  : content.Activity
-      '/:name?/Apps/:appSlug'           : content.Apps
+      '/:name?/Topics/:slug'            : content.Topics
+      '/:name?/Activity/:slug'          : content.Activity
+      '/:name?/Apps/:slug'              : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
@@ -207,7 +223,8 @@ class KodingRouter extends KDRouter
           mainController.loginScreen.hidden = no
 
           recoveryToken = decodeURIComponent recoveryToken
-          KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)=>
+          {JPasswordRecovery} = KD.remote.api
+          JPasswordRecovery.validate recoveryToken, (err, isValid)=>
             if err or !isValid
               new KDNotificationView
                 title   : 'Something went wrong.'
@@ -239,7 +256,7 @@ class KodingRouter extends KDRouter
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
           location.replace '#'
           if err
-            throw err
+            error err
             new KDNotificationView
               title: "Something went wrong, please try again later!"
           else
@@ -250,48 +267,50 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      '/:name?/Unsubscribe/:unsubscribeToken/:opt?': \
-      ({params:{unsubscribeToken, opt}})->
-        opt              = decodeURIComponent opt
-        unsubscribeToken = decodeURIComponent unsubscribeToken
-        KD.remote.api.JMailNotification.unsubscribeWithId \
-        unsubscribeToken, opt, (err, content)=>
-          if err or not content
-            title   = 'An error occured'
-            content = 'Invalid unsubscribe token provided.'
-            log err
-          else
-            title   = 'E-mail settings updated'
+      '/:name?/Unsubscribe/:unsubscribeToken/:opt?':
+        ({params:{unsubscribeToken, opt}})->
+          opt              = decodeURIComponent opt
+          unsubscribeToken = decodeURIComponent unsubscribeToken
+          KD.remote.api.JMailNotification.unsubscribeWithId \
+          unsubscribeToken, opt, (err, content)=>
+            if err or not content
+              title   = 'An error occured'
+              content = 'Invalid unsubscribe token provided.'
+              log err
+            else
+              title   = 'E-mail settings updated'
 
-          modal = new KDModalView
-            title        : title
-            overlay      : yes
-            cssClass     : "new-kdmodal"
-            content      : "<div class='modalformline'>#{content}</div>"
-            buttons      :
-              "Close"    :
-                style    : "modal-clean-gray"
-                callback : (event)->
-                  modal.destroy()
-          @clear()
+            modal = new KDModalView
+              title        : title
+              overlay      : yes
+              cssClass     : "new-kdmodal"
+              content      : "<div class='modalformline'>#{content}</div>"
+              buttons      :
+                "Close"    :
+                  style    : "modal-clean-gray"
+                  callback : (event)->
+                    modal.destroy()
+            @clear()
 
       # top level names
       '/:name':do->
-
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            # when 'JGroup'   then content.Groups  routeInfo, model
-            when 'JTopic'   then content.Topics  routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
+          return  if @landingPageLoading
+
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
+
           if state?
             open routeInfo, state, status_404
+
           else
-            KD.remote.cacheable params.name, (err, model, name)->
+            KD.remote.cacheable params.name, (err, [model], name)->
               open routeInfo, model, status_404
 
     sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->

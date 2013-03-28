@@ -5,6 +5,8 @@ module.exports = [
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
+  "libs/jquery-1.9.1.js",
+  "libs/underscore-min.1.3.js"
   # "libs/highlight.pack.js",
   # "libs/jquery-1.7.1.js",
   # "libs/jquery-1.7.1.min.js",
@@ -16,7 +18,7 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
-  
+
   # core
   "Framework/core/utils.coffee",
   "Framework/core/KD.coffee",
@@ -54,21 +56,15 @@ module.exports = [
   "Framework/components/list/KDListItemView.coffee",
 
   #tree
-  "Framework/components/tree/KDTreeViewController.coffee",
-  "Framework/components/tree/KDTreeView.coffee",
-  "Framework/components/tree/KDTreeItemView.coffee",
   "Framework/components/tree/treeviewcontroller.coffee",
   "Framework/components/tree/treeview.coffee",
   "Framework/components/tree/treeitemview.coffee",
 
   #tabs
-  "Framework/components/tabs/KDTabViewController.coffee",
+  "Framework/components/tabs/KDTabHandleView.coffee",
   "Framework/components/tabs/KDTabView.coffee",
   "Framework/components/tabs/KDTabPaneView.coffee",
   "Framework/components/tabs/KDTabViewWithForms.coffee",
-
-  # menus
-  "Framework/components/menus/KDContextMenu.coffee",
 
   # menus
   "Framework/components/contextmenu/contextmenu.coffee",
@@ -132,6 +128,9 @@ module.exports = [
   "Framework/components/autocomplete/autocompletemisc.coffee",
   "Framework/components/autocomplete/autocompleteditems.coffee",
 
+  #time
+  "Framework/components/time/timeagoview.coffee",
+
   # --- Application ---
   "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
@@ -141,9 +140,14 @@ module.exports = [
   # mainapp controllers
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
+  "app/MainApp/linkcontroller.coffee",
 
   # COMMON VIEWS
+  "app/CommonViews/applicationview/applicationtabview.coffee",
+  "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
+
   "app/CommonViews/linkviews/linkview.coffee",
+  "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
   "app/CommonViews/linkviews/profilelinkview.coffee",
   "app/CommonViews/linkviews/profiletextview.coffee",
@@ -165,6 +169,7 @@ module.exports = [
 
   "app/CommonViews/LikeView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
+  "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/FormViews.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
@@ -172,13 +177,12 @@ module.exports = [
   "app/CommonViews/ContentPageSplitBelowHeader.coffee",
   "app/CommonViews/CommonListHeader.coffee",
   "app/CommonViews/CommonInnerNavigation.coffee",
-  "app/CommonViews/CommonFeedMessage.coffee",
   "app/CommonViews/headers.coffee",
   # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
+  "app/CommonViews/mainnavigation/navigationactivitylink.coffee",
   "app/CommonViews/Navigation.coffee",
-  "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
 
   "app/CommonViews/followbutton.coffee",
@@ -215,9 +219,12 @@ module.exports = [
   "app/CommonViews/markdownmodal.coffee",
 
   # "app/MainApp/foreign_auth.coffee",
+  "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
+  "app/MainApp/sidebar/groupavatar.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
+  "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
@@ -269,10 +276,22 @@ module.exports = [
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
 
-  "app/MainApp/avatararea.coffee",
+  # avatararea
+  "app/MainApp/avatararea/avatarareapopup.coffee",
+  "app/MainApp/avatararea/avatarareapopuplist.coffee",
+  "app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee",
+  "app/MainApp/avatararea/avatarareaiconlink.coffee",
+  "app/MainApp/avatararea/avatarareaiconmenu.coffee",
+  "app/MainApp/avatararea/avatarareamessagespopup.coffee",
+  "app/MainApp/avatararea/avatarareanotificationspopup.coffee",
+  "app/MainApp/avatararea/avatarareapopupmessageslistitem.coffee",
+  "app/MainApp/avatararea/avatarareapopupnotificationslistitem.coffee",
+  "app/MainApp/avatararea/avatarareasharestatuspopup.coffee",
+
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
+  "app/MainApp/login/oldloginview.coffee",
   "app/MainApp/login/loginform.coffee",
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
@@ -294,12 +313,20 @@ module.exports = [
   "app/MainApp/maincontroller/mainview.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
+  "app/MainApp/maincontroller/landingpageviews.coffee",
+  "app/MainApp/localstorage.coffee",
+  "app/MainApp/lazy/lazydomcontroller.coffee",
+  "app/MainApp/lazy/staticprofilecontroller.coffee",
+  "app/MainApp/lazy/staticprofileconfigviews.coffee",
+  "app/MainApp/lazy/staticprofileaboutview.coffee",
+  "app/MainApp/lazy/staticgroupcontroller.coffee",
+  "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
 
 
-  "libs/jquery-hashchange.js",
+#  "libs/jquery-hashchange.js",
   "libs/jquery-timeago.js",
   "libs/date.format.js",
   "libs/jquery.cookie.js",
@@ -314,11 +341,11 @@ module.exports = [
   "libs/md5-min.js",
   # "libs/frogaloop.min.js",
 
-  "libs/bootstrap-twipsy.js",
-  "libs/jquery.tipsy.js",
+  # "libs/bootstrap-twipsy.js",
+  # "libs/jquery.tipsy.js",
   "libs/async.js",
   "libs/jquery.mousewheel.js",
-  "libs/mwheelIntent.js",
+  # "libs/mwheelIntent.js",
   # "libs/underscore.js",
   "libs/inflector.js",
   "libs/canvas-loader.js",
@@ -341,7 +368,6 @@ module.exports = [
   "app/MainApp/channels/kitechannel.coffee",
   "app/MainApp/ApplicationManager.coffee",
   "app/MainApp/AppController.coffee",
-  "app/MainApp/DocumentManager.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
 
@@ -362,23 +388,25 @@ module.exports = [
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
+  "app/Applications/Ace.kdapplication/aceappview.coffee",
   "app/Applications/Ace.kdapplication/ace.coffee",
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",
   "app/Applications/Ace.kdapplication/acesettings.coffee",
-
-  # groups
-  "app/Applications/Groups.kdapplication/AppController.coffee",
-  "app/Applications/Groups.kdapplication/groupscontroller.coffee",
+  "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
   # termlib shell
   #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
   #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
+
   # viewer
+  'app/Applications/Viewer.kdapplication/topbar.coffee',
   'app/Applications/Viewer.kdapplication/AppController.coffee',
+  'app/Applications/Viewer.kdapplication/AppView.coffee',
 
   # webterm
   "app/Applications/WebTerm.kdapplication/AppController.coffee",
   "app/Applications/WebTerm.kdapplication/AppView.coffee",
+  "app/Applications/WebTerm.kdapplication/webtermappview.coffee",
   "app/Applications/WebTerm.kdapplication/webtermsettingsview.coffee",
   "app/Applications/WebTerm.kdapplication/webtermsettings.coffee",
   "app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee",
@@ -419,15 +447,17 @@ module.exports = [
   "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee",
+  "app/Applications/Activity.kdapplication/widgets/blogpostwidget.coffee",
 
   # Activity content displays
   "app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee",
+  "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee",
-
+  "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
   # Activity content displays commons
@@ -440,6 +470,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee",
@@ -448,6 +479,16 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
+
+ # Static Profile List Items
+  "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
+  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -456,14 +497,42 @@ module.exports = [
   "app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
-  # GROUPS VIEWS
-  "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
-  "app/Applications/Groups.kdapplication/AppView.coffee",
+  # GROUPS
+
+  # groups controllers
+  "app/Applications/Groups.kdapplication/groupdata.coffee"
+  "app/Applications/Groups.kdapplication/AppController.coffee",
+  "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
+
+  # groups views
+  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
+  "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
-  "app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
+  "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupview.coffee",
-  "app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee",
+  "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
+  "app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee",
+  "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
+  "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
+  "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
+
+  # app
+  "app/Applications/Groups.kdapplication/AppView.coffee",
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
@@ -487,6 +556,7 @@ module.exports = [
   "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
+  "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
 
   # START TAB VIEWS
   "app/Applications/StartTab.kdapplication/AppView.coffee",
@@ -507,23 +577,25 @@ module.exports = [
   "app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxReplyForm.coffee",
-  "app/Applications/Inbox.kdapplication/Views/InboxReplyMessageView.coffee",
   "app/Applications/Inbox.kdapplication/Views/InboxReplyView.coffee",
 
   # FEED CONTROLLERS
   "app/Applications/Feeder.kdapplication/FeedController.coffee",
   "app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee",
   "app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee",
+  "app/Applications/Feeder.kdapplication/Controllers/feederheaderfacetscontroller.coffee",
+  "app/Applications/Feeder.kdapplication/Controllers/headernavigationcontroller.coffee",
 
   # FEED VIEWS
   "app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee",
+  "app/Applications/Feeder.kdapplication/Views/feedersingleview.coffee",
   "app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
+  "app/Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
 
 
   # HOME VIEWS
   "app/Applications/Home.kdapplication/AppView.coffee",
 
-  "app/Applications/Home.kdapplication/ContentDisplays/AboutContentDisplayController.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
 
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
@@ -563,7 +635,7 @@ module.exports = [
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
   # "app/MainApp/oldPages/pageRegister.coffee",
-  "app/MainApp/oldPages/pageEnvironment.coffee",
+  # "app/MainApp/oldPages/pageEnvironment.coffee",
 
   # ENVIRONMENT SETTINGS
   # "app/MainApp/oldPages/environment/envSideBar.coffee",
@@ -589,7 +661,7 @@ module.exports = [
   # --- Styles ---
   "css/style.css",
   "css/highlight-styles/sunburst.css",
-  "css/tipsy.css",
+  # "css/tipsy.css",
 
   "Framework/themes/default/kdfn.styl",
   "stylus/appfn.styl",
@@ -607,6 +679,7 @@ module.exports = [
   # "stylus/kd.tiptip.styl" => discarded,
 
   "stylus/app.styl",
+  "stylus/app.landing.styl",
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
@@ -633,7 +706,9 @@ module.exports = [
   "stylus/app.viewer.styl",
   "stylus/app.book.styl",
   "stylus/app.codeshare.styl",
-
+  "stylus/app.group.styl",
+  "stylus/app.user.styl",
+  "stylus/app.markdown.styl",
   "stylus/temp.styl",
 
   # mediaqueries should stay at the bottom

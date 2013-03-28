@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -10,29 +11,8 @@ app.commons.styl
 */
 }
 
-button.joined
-  background            pink !important
-
-table.permissions-grid
-  width                 100%
-  border-width          1px
-  border-spacing        0px
-  border-style          solid
-  border-color          gray
-  border-collapse       collapse
-  background-color      white
-  th
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
-  td
-    border-width        1px
-    padding             4px
-    border-style        inset
-    border-color        gray
-    background-color    white
+// button.joined
+//   background            pink !important
 
 span.collapsedtext
   borderBox()
@@ -216,6 +196,8 @@ button.kdbutton.icon-only
       bg            position,-100px -560px
     &.refresh
       bg            position,-120px -580px
+    &.dot
+      bg            position,0 -140px
 
 /* editor-button
 *******************************************************************************/
@@ -358,7 +340,7 @@ button.editor-button
   noTextDeco()
 
   &.expandable
-    vendor            transition, max-width .4s linear
+    vendor            transition, max-width .4s linear .4s
     &:hover
       max-width       300px
       > span
@@ -837,18 +819,6 @@ button.cancel-edit-button
 
 
 
-.small-loader
-  opacity         .5
-  display         inline-block
-  padding         0!important
-  bg(image,url("../images/small-loader.gif"))
-  bg(color,transparent)
-  bg(repeat,no-repeat)
-  bg(position,0 0)
-  size(10px!important,10px!important)
-  &.white
-    bg(image,url("../images/small-loader-white.gif"))
-
 .right-overflow
   width           auto
   display         block
@@ -1064,6 +1034,94 @@ button.cancel-edit-button
   width                     auto
   border-left               1px solid #e8e8e8
   borderBox()
+  .feeder-header
+    padding            0 18px
+    line-height        12px
+    font-size          13px
+    color              #4F4F4F
+    border-bottom      1px solid rgba(0, 0, 0, 0.075)
+    height             auto
+    top                0
+    z-index            2
+    bg(color,rgba(255,255,255,.9))
+    borderBox()
+    > p
+      height           28px
+      line-height      28px
+
+  .onboarding-wrapper
+    size                    auto, 0
+    margin                  0
+    padding                 0 18px
+    color                   #90756d
+    overflow                hidden
+    bg                      color, #f5ede3
+    vendor                  transition, all .3s ease
+    rel()
+    &.in
+      margin                10px 0 18px 0
+      padding               18px
+      height                auto
+    .onboarding-close
+      right                 18px
+      top                   18px
+      rounded               10px
+      // shadow                inset 0 0 4px rgba(0, 0, 0, .75)
+      // bg                    color, rgba(0, 0, 0, .3)
+      abs()
+    .title
+      font-weight           400
+      font-size             18px
+      line-height           18px
+      padding-bottom        18px
+      color                 #735d57
+      text-shadow           0 1px 0 rgba(255,255,255,.6)
+    p
+      padding               0 0 18px 0
+      font-size             12px
+      line-height           20px
+      text-shadow           0 1px 0 rgba(255,255,255,.3)
+      &:last-child
+        padding-bottom      0
+    .close-icon
+      top                   0
+      left                  0
+      bg                    position, -80px -240px
+      rel()
+
+.header-facets
+  right                     0
+  top                       0
+  size                      auto, auto
+  z-index                   3
+  line-height               28px
+  height                    28px
+  abs()
+  span.title
+    margin-right            8px
+    text-transform          uppercase
+    font-size               10px
+    font-weight             600
+    color                   #ddd
+  a.active-facet
+    rel()
+    display                 inline-block
+    text-decoration         none
+    font-weight             600
+    margin-right            20px
+    padding-right           16px
+    font-size               12px
+    line-height             28px
+    color                   linkColor1
+    cite
+      abs()
+      top                   4px
+      right                 0
+      display               block
+      background-color      red
+      sprite()
+      size                  16px, 20px
+      bg                    position, -82px -260px
 
 .common-inner-nav
   width                     auto!important
@@ -1092,7 +1150,9 @@ button.cancel-edit-button
         blockMid()
         sprite()
         bg                  position,-140px -500px
-    .feed,.showme,.actions
+    .feed
+    .showme
+    .actions
       padding-bottom        18px
     ul
       margin                0
@@ -1426,6 +1486,68 @@ figure.code-container
       display           inline-block
       margin-top        7px
       color             #aaa
+
+
+.custom-link-view
+  display               inline-block
+  line-height           20px
+  clearfix()
+  noTextDeco()
+  span.icon
+    size                20px, 20px
+    display             inline-block
+    vertical-align      top
+    sprite()
+  span.title
+    // text-decoration     underline
+    color               linkColor1
+
+
+.application-tab-handle-holder.kdtabhandlecontainer
+  padding               0
+  border                1px solid #e2e2e2
+  border-bottom         0
+  height                21px
+  overflow              hidden
+  gradient              #bbb, #d5d5d5
+
+  .kdtabhandle
+    color               #444
+    font-size           11px
+    line-height         21px
+    height              21px
+    border-width        0 1px 0 0
+    border-color        rgba(0,0,0,.1)
+    rounded             0
+    &:first-child
+      margin            0
+    &.active
+      height            21px
+      color             normal-text
+      bg                color, #f9f9f9
+    &:hover
+      span.close-tab
+        opacity         1
+    &:last-child
+      border-right      none
+
+    span.close-tab
+      bg                color, transparent
+      line-height       23px
+      height            20px
+      top               0px
+      right             0px
+      opacity           0
+      vendor            transition, opacity .1s linear
+  .plus
+    padding             0 3px 0 3px
+  .icon
+    margin              1px 0 0 0
+    size                20px, 20px
+    display             block
+    bg                  position, -120px -460px
+    sprite()
+
 
 // /*
 //   Animation tests
