@@ -28,17 +28,14 @@ module.exports = class JKite extends jraphical.Module
           'create', 'get', 'fetchAll', 'control'
         ]
     schema          :
-      appName       :
+      description   :
         type        : String
-        required    : yes
+        required    : no
       kiteName      :
         type        : String
         required    : yes
       key           :
         type        : String
-        required    : no
-      count         :
-        type        : Number
         required    : no
 
     relationships   :->
