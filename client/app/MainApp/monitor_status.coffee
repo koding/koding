@@ -1,5 +1,5 @@
 class Ping extends KDObject
-  [NOTSTARTED, WAITING, SUCCESS, FAILED] = [1...4]
+  [NOTSTARTED, WAITING, SUCCESS, FAILED] = [1..4]
 
   constructor: (item, name, options={}) ->
     super options
