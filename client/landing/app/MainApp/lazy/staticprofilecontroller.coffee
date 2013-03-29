@@ -209,44 +209,6 @@ class StaticProfileController extends KDController
       profileAdminMessageView = new KDView
         lazyDomId : 'profile-admin-message'
 
-      showPage = @profileUser.profile.staticPage?.show
-
-      profileAdminMessageView.addSubView disableLink = new CustomLinkView
-        title     : "#{if showPage is yes then 'Disable' else 'Enable'}"
-        cssClass  : 'message-disable'
-        click     : (event)=>
-          event?.stopPropagation()
-          event?.preventDefault()
-
-          if @profileUser.profile.staticPage?.show is yes
-            modal           = new KDModalView
-              cssClass      : 'disable-static-page-modal'
-              title         : 'Do you really want to disable your Public Page?'
-              content       : """
-                <div class="modalformline">
-                  <p>Disabling this feature will disable other people
-                  from publicly viewing your profile. You will still be
-                  able to access the page yourself.</p>
-                  <p>Do you want to continue?</p>
-                </div>
-                """
-              buttons       :
-                "Disable the Public Page" :
-                  cssClass  : 'modal-clean-red'
-                  callback  : =>
-                    modal.destroy()
-                    @profileUser.setStaticPageVisibility no, (err,res)=>
-                      if err then log err
-                      disableLink.updatePartial '<span class="title">Enable</span>'
-                Cancel      :
-                  cssClass  : 'modal-cancel'
-                  callback  : =>
-                    modal.destroy()
-          else
-            @profileUser.setStaticPageVisibility yes, (err,res)=>
-              if err then log err
-              disableLink.updatePartial '<span class="title">Disable</span>'
-
       handleLinks = {}
 
       handleLinks['twitter'] = new KDView
@@ -301,7 +263,6 @@ class StaticProfileController extends KDController
               new KDNotificationView
                 title : 'Your changes were saved.'
               @hide()
-
         , @profileUser
 
       if @profileTitleNameInput then @profileTitleNameInput.show()
@@ -357,8 +318,6 @@ class StaticProfileController extends KDController
           @profileTitleBioSpan.updatePartial placeholderBioText
           @profileTitleBioSpan.setClass 'dim'
 
-        log placeholderBioText
-
         @profileTitleBioView.addSubView @profileTitleBioInput = new KDHitEnterInputView
           defaultValue  : Encoder.htmlDecode @profileUser.profile.staticPage?.about \
             or if @profileUser.profile.about
@@ -384,6 +343,26 @@ class StaticProfileController extends KDController
               @profileTitleBioSpan.updatePartial value
               new KDNotificationView
                 title   : 'Description updated.'
+
+      @advancedSettings   = new KDButtonViewWithMenu
+          style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
+          icon            : yes
+          iconOnly        : yes
+          iconClass       : "cog"
+          type            : "contextmenu"
+          delegate        : @
+          itemClass       : StaticProfileSettingsView
+          callback        : (event)-> @contextMenu event
+          menu            : @getAdvancedSettingsMenuItems.bind @
+
+      profileAdminMessageView.addSubView @advancedSettings
+
+
+  getAdvancedSettingsMenuItems:->
+    settings      :
+      type        : 'customView'
+      view        : new StaticProfileSettingsView
+        delegate  : @
 
 
   reviveViewsOnPageLoad:->
@@ -741,64 +720,59 @@ class StaticHandleInput extends KDHitEnterInputView
 
 
 
-# class StaticAppsListItem extends KDListItemView
-#   partial:(data)->
-#     # log data
-#     "<div class='static-app'>
-#        #{data.title}
-#     </div>"
+class StaticProfileSettingsView extends JView
+  constructor:(options,data)->
+    super options,data
+
+    @setClass 'settings-view ace-settings-view'
+
+    user = @getDelegate().profileUser
+
+    if user.profile.staticPage
+      {show} = user.profile.staticPage
+    else show = yes
+
+    @visibilityView = new KDOnOffSwitch
+      size                  : 'tiny'
+      defaultValue          : show
+      callback              : (value)=>
+          if show is yes
+            modal           = new KDModalView
+              cssClass      : 'disable-static-page-modal'
+              title         : 'Do you really want to disable your Public Page?'
+              content       : """
+                <div class="modalformline">
+                  <p>Disabling this feature will disable other people
+                  from publicly viewing your profile. You will still be
+                  able to access the page yourself.</p>
+                  <p>Do you want to continue?</p>
+                </div>
+                """
+              buttons       :
+                "Disable the Public Page" :
+                  cssClass  : 'modal-clean-red'
+                  callback  : =>
+                    modal.destroy()
+                    user.setStaticPageVisibility no, (err,res)=>
+                      if err then log err
+                Cancel      :
+                  cssClass  : 'modal-cancel'
+                  callback  : =>
+                    @visibilityView.setValue off
+                    modal.destroy()
+          else
+            user.setStaticPageVisibility yes, (err,res)=>
+              if err then log err
 
 
-
-# class StaticGroupsListItem extends KDListItemView
-#   partial:(data)->
-#     # log data
-#     "<div class='static-topic'>
-#        #{data.title}
-#     </div>"
+  pistachio:->
+    """
+    <p>Make this page Public   {{> @visibilityView}}</p>
+    """
 
 
+  click:(event)->
 
-# class StaticTopicsListItem extends KDListItemView
-#   constructor:(options,data)->
-#      super options,data
-
-#      @titleView = new KDCustomHTMLView
-#        tagName : 'span'
-#        cssClass : 'static-topic-title'
-#        partial : @getData().title
-
-#   viewAppended:->
-#     super
-#     @setTemplate @pistachio()
-#     @template.update()
-
-#   pistachio:->
-#     """
-#     <div class='static-topic'>
-#        {{> @titleView}}
-#     </div>
-#     """
-
-
-
-# class StaticMembersListItem extends KDListItemView
-#   constructor:(options,data)->
-#     super options,data
-#     @avatarView = new AvatarView
-#       size    : {width: 30, height: 30}
-#       noTooltip : no
-#       click:->
-#     ,@getData()
-
-#     @setClass 'static-member'
-
-#   viewAppended:->
-#     super
-#     @setTemplate @pistachio()
-#     @template.update()
-
-#   pistachio:->
-#     """
-#     {{> @avatarView}}
-#     """
+    event.preventDefault()
+    event.stopPropagation()
+    return no

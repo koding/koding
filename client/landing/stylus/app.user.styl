@@ -78,8 +78,77 @@
     .kdlistview-navigation
       margin-bottom         5px
 
+
 .profile-sidebar
-  height                    auto
+#landing-page-sidebar
+  width                       100%
+  height                      auto
+  display                     inline-block
+  // padding                     0
+  margin-right                -3px
+
+  .kdlistview-navigation
+    text-align                center
+    width                     100%
+    margin                    0px
+
+    .navigation-item
+      border                  none
+      width                   auto
+      min-width               10px
+      display                 inline-block
+      z-index                 1000
+      margin                  0 5px 0 0
+
+      &.selected
+        bg color,             transparent
+        margin                0 5px 0 0
+
+    // height                    auto
+    // width                     auto
+
+    // .kdlistview-navigation
+    //   text-align              center
+    //   width                   100%
+    //   margin                  0px
+
+    //   .navigation-item
+    //     width                   auto
+    //     display                 inline-block
+    //     bg color,               #fbfbfb
+    //     border                  1px solid #eee
+    //     rounded                 3px
+    //     z-index                 1000
+    //     margin                  5px
+    //     // shadow                  0px 5px 5px -5px rgba(0,0,0,0.1)
+    //     // vendor transition,      box-shadow 0.2s linear
+    //     .title
+    //       text-align            center
+    //       padding               0px
+    //       color                 #888!important
+    //       font-weight           400
+
+    //       span.main-nav-icon
+    //         hidden()
+
+    //     // &:hover
+    //     //   shadow                  0px 5px 5px -5px rgba(0,0,0,0.35)
+    //     &.selected
+    //       a.title
+    //         color               #444!important
+
+    // .navigation-item
+    //   width                 auto
+    //   display               inline-block
+
+    //   .title
+    //     text-align          center
+    //     span.main-nav-icon
+    //       hidden()
+    //   &.selected
+    //     a.title
+    //       color             #444!important
+    //     bg color,           transparent
 
 .profile-header
   width                     100%
@@ -120,7 +189,7 @@
   vendor transition,        margin-left 0.6s ease-in-out
   bg color,                 transparent
   borderBox()
-  margin-left               160px
+  // margin-left               160px
   // margin-left               50px
   height                    100%
   width                     auto
@@ -501,6 +570,10 @@ textarea.profile-handle-customize.kdinput
     &:hover
       color                 #444
 
+.profile-advanced-settings-menu
+  .settings-view
+    padding                 10px 20px
+
 .profile-admin-customize
   right                     75px
 
@@ -545,7 +618,7 @@ textarea.profile-handle-customize.kdinput
         headerFont()
         vendor              font-smoothing, antialiased
         vendor              text-rendering, geometricPrecision
-        max-width           600px
+        max-width           660px
         display             block
         margin-bottom       0px
         color               #444
@@ -581,7 +654,10 @@ textarea.profile-handle-customize.kdinput
       a
         border              none
       a.count
-        margin-top          0px
+        > span
+          vertical-align    top
+          margin-top        2px
+          padding           2px 3px
       a.action-link
         vendor transition,  color .1s linear
         font-weight         300
@@ -598,14 +674,15 @@ textarea.profile-handle-customize.kdinput
           vendor transition,background-color .1s linear
           bg color,         #aaa
           font-family       "Open Sans",Helvetica,sans-serif
-          margin-top        2px
+          margin-top        1px
           font-size         10px
           cursor            default
           &:hover
             bg color,       #ff9200
 
     .has-markdown
-      max-width             600px
+      borderBox()
+      max-width             780px
       padding               20px 40px 20px
       // margin-bottom         30px
       text-align            left
@@ -666,7 +743,7 @@ textarea.profile-handle-customize.kdinput
     // overflow                auto
 
     .has-markdown
-      max-width             600px
+      // max-width             600px
       margin-right          300px
       img
         max-width           100%
@@ -696,7 +773,12 @@ textarea.profile-handle-customize.kdinput
     borderBox()
     width                   100%
     min-height              200px
+    height                  45%
 
+  div.input_preview.kdinputwithpreview.preview-markdown
+    height                  45%
+    div.preview_content
+      max-height            100%
   .about-name
 
     .name
