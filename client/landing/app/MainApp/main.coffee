@@ -2,8 +2,8 @@
 #Broker.channel_auth_endpoint = 'http://localhost:8008/auth'
 
 do ->
+  status                     = new Status
   mainController             = new MainController
-  status                     = KD.getSingleton "status"
   firstLoad                  = yes
   connectionLostModal        = null
   connectionLostNotification = null
