@@ -172,7 +172,6 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
-        authResourceName: 1
         resourceName: 1
         suppressLogs: 1
         version   : 1
@@ -184,6 +183,9 @@ config =
         sourceUri : 1
     mq            :
       host        : 1
+      port        : 1
+      apiPort     : 1
+      apiAddress  : 1
       login       : 1
       componentUser: 1
       password    : 1

@@ -372,6 +372,19 @@ task 'run', (options)->
   queue.push -> run options
   daisy queue
 
+
+task 'accounting', (options)->
+
+  {configFile} = options
+  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
+  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name    : "accounting"
+    cmd     : __dirname + "/workers/accounting/index -c #{configFile}"
+    verbose: yes
+
+
 task 'buildClient', (options)->
   (new Builder).buildClient options
 
@@ -487,7 +500,7 @@ task 'switchProxy', (options) ->
           timeout client 50000ms
           timeout server 50000ms
 
-      listen stats :1234
+      listen stats :1235
           mode http
           stats enable
           stats hide-version
