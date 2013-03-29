@@ -33,11 +33,8 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
                </div>
              </div>
            </div>
-           <div class="content-item kdview back" id='group-config'>
-             <div class="content-item-scroll-wrapper">
-               <div class="has-markdown">
-                 <span class="data">OMG OMG OMG</span>
-               </div>
+           <div class="content-item kdview back" >
+             <div class="content-item-scroll-wrapper" id='group-config'>
              </div>
            </div>
 

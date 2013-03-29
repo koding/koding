@@ -319,9 +319,8 @@
   &.edit
     .group-splitview
       .group-loading-content
-        // vendor transform, rotateY(180deg)
         .content-item.front
-          vendor transform, rotateY(-180deg)
+          vendor transform,rotateY(-180deg)
         .content-item.back
           vendor transform, rotateY(0deg)
 
@@ -337,6 +336,7 @@
 
 .kdlistview.kdview.group-loading-content
 .group-loading-content
+  vendor transition, background-color 0.2s linear
   vendor perspective, 800px
   // vendor perspective-origin-x, 50%
   // vendor perspective-origin-y, 50%
@@ -398,6 +398,19 @@
     // padding                             30px
     overflow                            auto
     height                              100%
+
+.custom-image-selectitemview
+  width 200px
+  height 100px
+  display inline-block
+  border 1px solid #e8e8e8
+  rounded 3px
+  padding 2px
+
+.custom-image-default
+  width:200px
+
+
 
 // .group-loader
 //   width                   30px

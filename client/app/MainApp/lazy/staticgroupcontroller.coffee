@@ -35,6 +35,8 @@ class StaticGroupController extends KDController
     @checkGroupUserRelation()
     @attachListeners()
 
+    @registerSingleton 'staticGroupController', @, yes
+
 
   reviveViews :->
 
@@ -45,9 +47,9 @@ class StaticGroupController extends KDController
     @landingView._windowDidResize = =>
       {innerHeight} = window
       @landingView.setHeight innerHeight
-      groupContentView.setHeight innerHeight - @groupTitleView.getHeight()
+      @groupContentView.setHeight innerHeight - @groupTitleView.getHeight()
 
-    groupContentWrapperView = new KDView
+    @groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
@@ -88,10 +90,14 @@ class StaticGroupController extends KDController
       cssClass : 'clean-gray'
       title : "Config"
       callback :=>
-        groupContentWrapperView.setClass 'edit'
+        @groupContentWrapperView.setClass 'edit'
 
+    groupConfigView = new KDView
+      lazyDomId : 'group-config'
 
-    groupContentView = new KDView
+    groupConfigView.addSubView new StaticGroupCustomizeView {},@getData()
+
+    @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
     groupPersonalWrapperView = new KDView
@@ -105,7 +111,7 @@ class StaticGroupController extends KDController
       lazyDomId: 'group-koding-logo'
       click :=>
         groupPersonalWrapperView.setClass 'slide-down'
-        groupContentWrapperView.setClass 'slide-down'
+        @groupContentWrapperView.setClass 'slide-down'
         groupLogoView.setClass 'top'
 
         @landingView.setClass 'group-fading'
@@ -138,7 +144,7 @@ class StaticGroupController extends KDController
     #     partial  : "There is no more activity."
 
     # @activityListWrapper = @activityController.getView()
-    # groupContentView.addSubView @activityListWrapper
+    # @groupContentView.addSubView @activityListWrapper
 
     # @activityListWrapper.hide()
 
@@ -172,6 +178,14 @@ class StaticGroupController extends KDController
               @emit roleEventMap.member, isAdmin
             else
               @emit roleEventMap[statuses.first]
+
+  setBackground:(url)->
+    console.log url
+    @groupContentView.$().css backgroundColor : 'white'
+    @utils.wait 200, =>
+      @groupContentWrapperView.$().css backgroundImage : "url(#{url})"
+      @utils.wait 200, =>
+        @groupContentView.$().css backgroundColor : 'transparent'
 
   attachListeners:->
 
