@@ -95,10 +95,11 @@ class MonitorStatus extends KDObject
   notify: (reason) ->
     notifications =
       internetUp : "All systems go!"
-      internetDown: "Internet Down."
-      bongoDown: "Bongo Down"
-      brokerDown: "Broker Down."
-      undefined: "Something went wrong."
+      internetDown: "Your internet is down or very slow."
+      kitesDown: "Kites are down"
+      bongoDown: "Bongo is down"
+      brokerDown: "Broker is Down."
+      undefined: "Sorry, something went wrong."
 
     msg = notifications[reason] or "All systems go."
 
@@ -124,6 +125,7 @@ class MonitorStatus extends KDObject
     reasons = {}
     reasons.internetDown      = ["bongo", "broker", "external"]
     reasons.kodingDown        = ["bongo", "broker"]
+    reasons.kitesDown         = ["sharedHosting", "webterm"]
     reasons.brokerDown        = ["broker"]
     reasons.bongoDown         = ["bongo"]
     reasons.sharedHostingDown = ["sharedHosting"]
