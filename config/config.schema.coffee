@@ -184,6 +184,8 @@ config =
         sourceUri : 1
     mq            :
       host        : 1
+      port        : 1
+      apiPort     : 1
       login       : 1
       componentUser: 1
       password    : 1
