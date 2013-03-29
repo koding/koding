@@ -267,6 +267,8 @@
 .group-splitview
   height 100%
   borderBox()
+  margin-top: -120px
+  padding-top 120px
 
 .group-content-links
   margin-right          0px
@@ -325,7 +327,8 @@
   width                                 auto
   padding-top                           50px
   // bg color, rgba(255,255,255,0.5)
-  gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
+  gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
+  // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
 
   .content-item
     borderBox()
@@ -333,7 +336,8 @@
 
   .content-item-scroll-wrapper
     padding                             40px
-    max-width                           600px
+    // max-width                           600px
+    max-width                           61.803398875%
     margin                              0px auto
     rounded                             5px
     border                              1px solid #e3e3e3
