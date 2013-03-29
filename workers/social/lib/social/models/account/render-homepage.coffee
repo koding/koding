@@ -26,27 +26,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   <body class="login" data-profile="#{nickname}">
     <div class="profile-landing#{if selectedBackground then ' custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
 
-    <div class="profile-personal-wrapper kdview" id="profile-personal-wrapper">
-      <div class="profile-avatar" style="background-image:url(//gravatar.com/avatar/#{hash}?size=160&d=/images/defaultavatar/default.avatar.160.png)">
-
-      </div>
-
-      <div id="landing-page-sidebar" class=" profile-sidebar kdview">
-        <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
-            <a class="title"><span class="main-nav-icon home"></span>Home</a>
-          </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
-          </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon about"></span>About</a></div>
-        </div>
-       </div>
-
-      <div id="landing-page-logo"></div>
-    </div>
-
     <div class="profile-content-wrapper kdview" id="profile-content-wrapper">
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
@@ -61,6 +40,28 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
+        <div id="landing-page-sidebar" class=" profile-sidebar kdview">
+          <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">Home</span>
+              </button>
+            </div>
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">Activity</span>
+              </button>
+            </div>
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">About</span>
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="profile-content-links links-hidden" id="profile-content-links">
           <h4>Show me</h4>
           <ul>
@@ -72,7 +73,8 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
           </ul>
         </div>
         <div class="profile-loading-bar" id="profile-loading-bar"></div>
-        <div class="profile-content-list" id="profile-content-list">
+
+         <div class="profile-content-list" id="profile-content-list">
           <div class="profile-content" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
             #{getBlogPosts(lastBlogPosts,firstName,lastName)}
             <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
@@ -81,6 +83,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
             </div>
           </div>
         </div>
+
+      <div id="landing-page-logo"></div>
+
       </div>
     </div>
     #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}

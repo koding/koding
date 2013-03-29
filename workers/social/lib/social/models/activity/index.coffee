@@ -229,6 +229,16 @@ module.exports = class CActivity extends jraphical.Capsule
       @some selector, options, (err, activities)->
         if err then callback err
         else
+
+          # When the snapshot already contains &quot;, those will be
+          # decoded once the client receives them (along with the " that
+          # are encoded for the server-client transmission). That's why
+          # they are converted into \" here.              02/28/13 Arvid
+
+          for own index,activity of activities
+            if activity.snapshot
+              activities[index].snapshot = activities[index].snapshot.replace(/(&quot;)/g, '\\"')
+
           callback null, activities
 
   markAsRead: secure ({connection:{delegate}}, callback)->
