@@ -93,6 +93,17 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
+    @serverStackPin = new KDButtonView
+      cssClass     : "server-pin-button"
+      iconOnly     : yes
+      iconClass    : "up"
+      callback     : =>
+        $('body').addClass 'server-stack'
+        @putOverlay
+          animated    : yes
+          isRemovable : no
+          color       : 'rgba(0,0,0,.3)'
+
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
@@ -104,7 +115,7 @@ class Sidebar extends JView
           @showBottomControls()
           callback?()
       ,
-        title      : "hide",
+        title      : "hide"
         iconClass  : "down"
         callback   : (callback)=>
           @hideBottomControls()
@@ -211,6 +222,7 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @serverStackPin}}
         {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
