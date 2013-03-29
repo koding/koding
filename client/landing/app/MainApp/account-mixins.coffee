@@ -92,10 +92,10 @@ AccountMixin = do ->
         @unresponded++
         if @unresponded > 1 then @emit 'unresponsive' else @ping()
 
-        console.log 'possibleUnresponsive', @name, @unresponded
+        log 'possibleUnresponsive', @name, @unresponded
 
       unresponsive = ->
-        console.log 'unresponsive', @name
+        log 'unresponsive', @name
         cycleChannel.bind this
 
       messageHandler =(kiteName, args) ->

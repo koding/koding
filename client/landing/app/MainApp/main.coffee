@@ -38,7 +38,7 @@ do ->
   disconnectionText = (reason) ->
     text = {}
     text.internetDown = "Your internet connection is down.<br/><br/>"
-    text.kodingDown = "Our server is down.<br/><br/>"
+    text.kodingDown = "Sorry, our servers are down temporarily..<br/><br/>"
 
     return text[reason] or "Something went wrong."
 
