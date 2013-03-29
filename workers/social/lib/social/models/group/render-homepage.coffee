@@ -14,47 +14,56 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
 
     <div id="static-landing-page">
 
-    <div class="group-personal-wrapper" id="group-personal-wrapper">
-      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)"></div>
-      <div class="group-buttons">
-        <div class="group-nickname">#{slug}</div>
-      </div>
-      <div id="main-loader"></div>
-      <div id="landing-page-sidebar"></div>
-      <div id="landing-page-logo"></div>
-
-    </div>
-
-    <div class="group-content-wrapper" id="group-content-wrapper">
-      <div class="group-title" id="group-title">
-        <div class="group-title-wrapper" id="group-title-wrapper">
-          <div class="group-name">#{title}</div>
-          <div class="group-bio">#{body}</div>
+      <div class="group-personal-wrapper" id="group-personal-wrapper">
+        <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)"></div>
+        <div class="group-buttons">
+          <div class="group-nickname">#{slug}</div>
         </div>
+        <div id="main-loader"></div>
+        <div id="landing-page-sidebar"></div>
       </div>
-      <div class="group-splitview" id="group-splitview">
-        <div class="group-content-links" id="group-content-links">
-          <h4>Show me</h4>
-          <ul>
-            <li class="" id="CBlogPostActivity">Blog Posts</li>
-            <li class="" id="CStatusActivity">Status Updates</li>
-            <li class="" id="CCodeSnipActivity">Code Snippets</li>
-            <li class="" id="CDiscussionActivity">Discussions</li>
-            <li class="" id="CTutorialActivity">Tutorials</li>
-          </ul>
+
+      <div class="group-content-wrapper" id="group-content-wrapper">
+        <div class="group-title" id="group-title">
+          <div class="group-title-wrapper" id="group-title-wrapper">
+            <div class="group-name">#{title}</div>
+            <div class="group-bio">#{body}</div>
+          </div>
         </div>
-        <div class="group-loading-content" id="group-loading-content">
-         <div class="content-item" id='group-readme'>
-           <div class="has-markdown">
-             <span class="data">#{content}</span>
+        <div class="group-splitview" id="group-splitview">
+          <div class="group-content-links" id="group-content-links">
+            <h4>Show me</h4>
+            <ul>
+              <li class="" id="CBlogPostActivity">Blog Posts</li>
+              <li class="" id="CStatusActivity">Status Updates</li>
+              <li class="" id="CCodeSnipActivity">Code Snippets</li>
+              <li class="" id="CDiscussionActivity">Discussions</li>
+              <li class="" id="CTutorialActivity">Tutorials</li>
+            </ul>
+          </div>
+          <div class="group-loading-content" id="group-loading-content">
+           <div class="content-item" id='group-readme'>
+             <div class="has-markdown">
+               <span class="data">#{content}</span>
+             </div>
            </div>
          </div>
-       </div>
+        </div>
+      </div>
+      <div id="landing-page-logo"></div>
+      <div id="group-splash-wrapper">
+        <div id="koding-landing-logo-wrapper">
+          <h3 id="koding-landing-logo"><a href='#'>Koding</a></h3>
+        </div>
+        <div id="group-splash"></div>
+        <div id="group-logo-wrapper">
+          <i></i><i></i>
+          <h3 id="group-logo"><a href='#'>#{title}</a></h3>
+        </div>
       </div>
     </div>
     #{KONFIG.getConfigScriptTag {groupEntryPoint: slug, roles: roles}}
     #{getScripts()}
-    </div>
   </body>
   </html>
   """
