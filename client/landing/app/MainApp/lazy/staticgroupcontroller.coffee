@@ -86,16 +86,13 @@ class StaticGroupController extends KDController
       cssClass : "button-wrapper"
       lazyDomId : "group-button-wrapper"
 
-    @buttonWrapper.addSubView configButton = new KDButtonView
-      cssClass : 'clean-gray'
-      title : "Config"
-      callback :=>
-        @groupContentWrapperView.setClass 'edit'
 
     groupConfigView = new KDView
       lazyDomId : 'group-config'
 
-    groupConfigView.addSubView new StaticGroupCustomizeView {},@getData()
+    groupConfigView.addSubView new StaticGroupCustomizeView
+      delegate : @
+    ,@getData()
 
     @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
@@ -174,13 +171,13 @@ class StaticGroupController extends KDController
         groups.first.fetchMembershipStatuses (err, statuses)=>
           if err then warn err
           else if statuses.length
-            if "member" in statuses or (isAdmin = "admin" in statuses)
+            if "member" in statuses or "admin" in statuses
+              isAdmin = 'admin' in statuses
               @emit roleEventMap.member, isAdmin
             else
               @emit roleEventMap[statuses.first]
 
   setBackground:(url)->
-    console.log url
     @groupContentView.$().css backgroundColor : 'white'
     @utils.wait 200, =>
       @groupContentWrapperView.$().css backgroundImage : "url(#{url})"
@@ -253,13 +250,22 @@ class StaticGroupController extends KDController
 
     @buttonWrapper.addSubView open
 
-    dashboard = new KDButtonView
-      title    : "Go to Dashboard"
-      cssClass : "editor-button"
-      callback : =>
-        @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+    if isAdmin
+      dashboard = new KDButtonView
+        title    : "Go to Dashboard"
+        cssClass : "editor-button"
+        callback : =>
+          @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
-    @buttonWrapper.addSubView dashboard
+      @buttonWrapper.addSubView dashboard
+
+      @buttonWrapper.addSubView configButton = new KDButtonView
+        cssClass : 'editor-button'
+        title    : "Customize"
+        callback : =>
+          @groupContentWrapperView.setClass 'edit'
+
+
 
   decorateGuestStatus:->
 
