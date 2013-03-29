@@ -83,6 +83,7 @@ do ->
       log 'kd remote connected'
       firstLoad = no
     else
+      KD.remote.emit "reconnected"
       log 'kd remote re-connected'
       destroyModal yes
 
