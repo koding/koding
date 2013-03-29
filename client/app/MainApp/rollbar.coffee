@@ -1,7 +1,7 @@
 # Wrapper for pushing events to Rollbar.
 logToExternal = KD.rollbar = (args) ->
   args.user = KD.whoami?().profile
-  _rollbar.push(args)
+  _rollbar.push args
 
 # Push status events to Rollbar.
 connections     = []
