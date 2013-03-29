@@ -21,6 +21,11 @@ class LazyDomController extends KDController
     @mainController.on 'FrameworkIsReady', =>
       if @userEnteredFromGroup()
         @addGroupViews()
+
+        # FIXME this is just a wip snip for showing the banner
+        @utils.wait 3000, =>
+          @landingView?.show()
+
       else if @userEnteredFromProfile()
         @addProfileViews()
 
@@ -56,7 +61,7 @@ class LazyDomController extends KDController
             @landingView.unsetClass "down"
             @landingView.groupLogo.unsetClass "animate"
             @utils.wait 300, callback
-              
+
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
