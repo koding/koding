@@ -89,6 +89,26 @@ class MonitorStatus extends KDObject
     @on "sharedHostingDown", (channel) ->
       @emit "onlyChannelDown", "sharedHosting"
 
+    @on "internetDown", ->
+      notify "Internet Down"
+
+  notify: (reason) ->
+    notifications =
+      internetUp : "All systems go!"
+      internetDown: "Internet Down."
+      bongoDown: "Bongo Down"
+      brokerDown: "Broker Down."
+      undefined: "Something went wrong."
+
+    msg = notifications[reason] or "All systems go."
+
+    notification = new KDNotificationView
+      title     : "<span></span>#{msg}"
+      type      : "tray"
+      cssClass  : "mini realtime"
+      duration  : 3303
+      click     : noop
+
   reset: ->
     @finishedPings = []
     @failedPings = []
@@ -96,6 +116,7 @@ class MonitorStatus extends KDObject
   emitStatus: ->
     if _.size(@failedPings) is 0
       @internetUp()
+      @notify "internetUp"
     else
       @deductReasonForFailure()
 
@@ -112,6 +133,7 @@ class MonitorStatus extends KDObject
       intersection = _.intersection items, @failedPings
       if _.size(intersection) is _.size(items)
         @emit reason, _.first(@failedPings)
+        @notify reason
         console.log reason
         return reason
 
