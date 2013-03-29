@@ -89,14 +89,13 @@ class MonitorStatus extends KDObject
     @on "sharedHostingDown", (channel) ->
       @emit "onlyChannelDown", "sharedHosting"
 
-    @on "internetDown", ->
-      notify "Internet Down"
-
   notify: (reason) ->
     notifications =
       internetUp : "All systems go!"
-      internetDown: "Your internet is down or very slow."
-      kitesDown: "Kites are down"
+      internetDown: "Your internet is down."
+      kitesDown: "Kites are down."
+      sharedHostingDown: "SharedHosting is down."
+      webtermDown: "Webterm is down."
       bongoDown: "Bongo is down"
       brokerDown: "Broker is Down."
       undefined: "Sorry, something went wrong."
