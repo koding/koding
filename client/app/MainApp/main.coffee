@@ -82,8 +82,6 @@ do ->
     log 'kd remote re-connected'
     destroyModal yes
 
-    #appManager.getFrontApp().frontApp.fetchSomeActivities?()
-
   status.on 'disconnected', (reason) ->
     # to avoid modal to appear on page refresh
     __utils.wait 500, showModal(reason)
