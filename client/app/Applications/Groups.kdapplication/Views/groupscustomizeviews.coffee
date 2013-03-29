@@ -15,6 +15,11 @@ class StaticGroupCustomizeView extends KDView
       click :=>
         @getSingleton('lazyDomController')?.openPath "/#{@getDelegate().groupEntryPoint}/Activity"
 
+    @backButton = new KDButtonView
+      title : 'Back'
+      callback :=>
+        @getDelegate().groupContentWrapperView.unsetClass 'edit'
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -22,6 +27,7 @@ class StaticGroupCustomizeView extends KDView
 
   pistachio:->
     """
+    {{> @backButton}}
     <h1 class="customize-title">Customize this Group page</h1>
     {{> @bgSelectView}}
     {{> @bgUploadView}}
