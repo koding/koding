@@ -120,6 +120,9 @@ module.exports =
       sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web-dev.in.koding.com'
+    port        : 5672
+    apiAddress  : "web-dev.in.koding.com"
+    apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'

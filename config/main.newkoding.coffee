@@ -111,7 +111,10 @@ module.exports =
       sourceUri : "http://web-groups.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
-    login       : 'guest'
+    port        : 5672
+    apiAddress  : "web-prod.in.koding.com"
+    apiPort     : 55672
+    login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'superpass'
     heartbeat   : 10
