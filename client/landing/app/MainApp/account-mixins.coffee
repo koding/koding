@@ -56,7 +56,7 @@ AccountMixin = do ->
           callbacks   : {}
         )
         @once 'pong', ->
-          callback()  if callback
+          callback?()
 
       pong = ->
         @emit 'pong'
@@ -89,12 +89,14 @@ AccountMixin = do ->
 
       possibleUnresponsive = ->
         @unresponded ||= 0
-        @unresponded  += 1
+        @unresponded++
+        if @unresponded > 1 then @emit 'unresponsive' else @ping()
 
-        if @unresponded > 1
-          @emit 'unresponsive'
+        log 'possibleUnresponsive', @name, @unresponded
 
-      unresponsive = -> cycleChannel.bind this
+      unresponsive = ->
+        log 'unresponsive', @name
+        cycleChannel.bind this
 
       messageHandler =(kiteName, args) ->
         {method} = args
