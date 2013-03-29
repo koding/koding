@@ -40,20 +40,28 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
-
-      <div id="landing-page-sidebar" class=" profile-sidebar kdview">
-        <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
-            <a class="title"><span class="main-nav-icon home"></span>Home</a>
+        <div id="landing-page-sidebar" class=" profile-sidebar kdview">
+          <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">Home</span>
+              </button>
+            </div>
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">Activity</span>
+              </button>
+            </div>
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
+              <button type="button" class="kdbutton editor-button">
+                <span class="icon hidden"></span>
+                <span class="button-title">About</span>
+              </button>
+            </div>
           </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon activity"></span>Activity</a>
-          </div>
-          <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-            <a class="title"><span class="main-nav-icon about"></span>About</a></div>
         </div>
-       </div>
-
         <div class="profile-content-links links-hidden" id="profile-content-links">
           <h4>Show me</h4>
           <ul>
