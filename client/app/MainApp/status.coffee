@@ -49,12 +49,12 @@ class Status extends KDController
   registerBongoAndBroker: ->
     bongo = KD.remote
     broker = KD.remote.mq
-    monitorItems = KD.getSingleton("monitorItems")
+    monitorItems = KD.getSingleton "monitorItems"
     monitorItems.register {bongo, broker}
 
   registerKites: ->
-    kite = KD.getSingleton("kiteController")
-    monitorItems = KD.getSingleton("monitorItems")
+    kite = KD.getSingleton "kiteController"
+    monitorItems = KD.getSingleton "monitorItems"
     kite.on "channelAdded", (channel, name) ->
       monitorItems.getItems()[name] = channel
 
