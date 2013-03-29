@@ -106,7 +106,7 @@ module.exports =
   mq            :
     host        : 'localhost'
     port        : 5672
-    apiAdress   : "web-dev.in.koding.com"
+    apiAddress  : "web-dev.in.koding.com"
     apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
