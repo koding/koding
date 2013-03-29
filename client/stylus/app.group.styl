@@ -400,17 +400,68 @@
     height                              100%
 
 .custom-image-selectitemview
-  width 200px
-  height 100px
-  display inline-block
-  border 1px solid #e8e8e8
-  rounded 3px
-  padding 2px
-
+  cursor                                pointer
+  width                                 50%
+  height                                auto
+  display                               inline-block
+  rounded                               3px
+  padding                               5px 5px 2px
+  borderBox()
+  rel()
+  > span.title
+    display                             block
+    margin-bottom                       10px
+  span
+    abs()
+    borderBox()
+    top                                 5px
+    left                                5px
+    right                               5px
+    bg color,                           rgba(200,200,200,0.5)
+    padding                             5px 8px 3px
+    display                             block
+    text-shadow                         0 0 3px rgba(0,0,0,0.5)
+    color                               #ddd
+    border-bottom                       1px solid rgba(255,255,255,0.1)
+    // vendor transition,                  height 0.2s linear
+    // height                              0
+  // &:hover
+  //   span
+  //     height                            24px
+  &.selected
+    // border 1px solid #ff9200
+    bg color,                           #ff9200
+    span
+      // height                            24px
+      color                             white
 .custom-image-default
-  width:200px
+  width                                 100%
+  height                                auto
+  rounded                               3px
 
+.custom-select-background-view
+  width                                 100%
+  height                                auto
+  borderBox()
+  fl()
+  display                               inline-block
+  .listview-wrapper
+    height                              auto
 
+.custom-select-background-upload-view
+  // margin-left                           50%
+  // width                                 50%
+  // borderBox()
+  // display inline-block
+  hidden()
+
+.group-customize-view
+  h1.customize-title
+    display block
+    font-size 24px
+    font-weight 300
+    color #444
+    margin-bottom 20px
 
 // .group-loader
 //   width                   30px
