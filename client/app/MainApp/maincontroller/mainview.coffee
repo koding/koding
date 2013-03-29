@@ -2,6 +2,7 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -54,6 +55,13 @@ class MainView extends KDView
 
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
+
+  addServerStack:->
+    @addSubView @serverStack = new KDView
+      domId : "server-rack"
+      click : ->
+        $('body').removeClass 'server-stack'
+        $('.kdoverlay').remove()
 
   addHeader:()->
 
