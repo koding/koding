@@ -128,7 +128,7 @@ module.exports =
     keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
-    vhost       : '/new'
+    vhost       : 'new'
   email         :
     host        : 'koding.com'
     protocol    : 'https:'
