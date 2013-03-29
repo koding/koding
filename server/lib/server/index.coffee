@@ -124,7 +124,7 @@ app.get "/-/kite/login", (req, res) ->
       rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
         creds =
           protocol  : 'amqp'
-          host      : mq.host
+          host      : mq.apiAddress
           username  : data.username
           password  : data.password
         res.header "Content-Type", "application/json"

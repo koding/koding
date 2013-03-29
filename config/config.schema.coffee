@@ -185,6 +185,7 @@ config =
       host        : 1
       port        : 1
       apiPort     : 1
+      apiAddress  : 1
       login       : 1
       componentUser: 1
       password    : 1
