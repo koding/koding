@@ -61,8 +61,11 @@ class AccountEditSecurity extends KDView
       views    : [passwordInputs,nonPasswordInputs]
       cssClass : "clearfix"
 
-    @listenTo KDEventTypes : "click", listenedToInstance : passwordCancel, callback : passwordSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : passwordEdit,   callback : passwordSwappable.swapViews
+    passwordEdit.on 'click', ->
+      passwordSwappable.swapViews()
+
+    passwordCancel.on 'click', ->
+      passwordSwappable.swapViews()
 
   passwordDidUpdate:->
     @passwordSwappable.swapViews()
@@ -70,8 +73,8 @@ class AccountEditSecurity extends KDView
       type : "growl"
       title : "Password Updated!"
       duration : 1000
-  
-  saveNewPassword:(formData)->    
+
+  saveNewPassword:(formData)->
     KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
 
