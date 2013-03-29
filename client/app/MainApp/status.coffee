@@ -6,6 +6,8 @@ class Status extends KDController
   constructor: ->
     super
 
+    @registerSingleton "status", this
+
     @state = NOTSTARTED
     @connectionState = DOWN
 
@@ -62,6 +64,4 @@ class Status extends KDController
         KD.troubleshoot()
 
     kite.on "channelDeleted", (channel, name) ->
-      #delete monitorItems.getItems()[name]
-
-KD.registerSingleton "status", new Status
+      delete monitorItems.getItems()[name]
