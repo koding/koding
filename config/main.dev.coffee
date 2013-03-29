@@ -121,7 +121,7 @@ module.exports =
   mq            :
     host        : 'web-dev.in.koding.com'
     port        : 5672
-    apiAdress   : "web-dev.in.koding.com"
+    apiAddress  : "web-dev.in.koding.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
