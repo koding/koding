@@ -2,9 +2,10 @@ class LikeView extends KDView
 
   constructor:(options={}, data)->
 
-    options.tagName         or= 'span'
-    options.cssClass        or= 'like-view'
-    options.tooltipPosition or= 'se'
+    options.tagName            or= 'span'
+    options.cssClass           or= 'like-view'
+    options.tooltipPosition    or= 'se'
+    options.checkIfLikedBefore  ?= yes
 
     super options, data
 
@@ -34,9 +35,10 @@ class LikeView extends KDView
       #   super
     @setTemplate @pistachio()
 
-    data.checkIfLikedBefore (err, likedBefore)=>
-      @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
-      @_currentState = likedBefore
+    if options.checkIfLikedBefore
+      data.checkIfLikedBefore (err, likedBefore)=>
+        @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+        @_currentState = likedBefore
 
   fetchLikeInfo:->
 
