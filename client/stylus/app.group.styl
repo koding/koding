@@ -72,13 +72,6 @@
   position              fixed
   background-image      url('/images/logos/50.png')
 
-#landing-page-logo
-  bottom              15px
-  right               20px
-  size                50px,60px
-  bg                  position,-810px 0
-  sprite()
-  abs()
 
 .group-buttons
   min-height                27px
@@ -87,12 +80,7 @@
   bg color,             rgba(0,0,0,0.2)
   padding 0 5px 5px 0
   borderBox()
-.group-content-wrapper
-  margin-left           160px
-  height                100%
-  width                 auto
-  bg color,             white
-  borderBox()
+
 
 .group-title
   borderBox()
@@ -178,9 +166,35 @@
     right               26px
     top                 26px
     height              24px
+    width               auto
+
     button.kdbutton
-      margin-left       5px
+      margin            0 0 0 5px!important
       display           inline-block
+
+    #landing-page-sidebar
+      width                       auto
+      height                      auto
+      display                     inline-block
+      padding                     0
+      margin-right                -3px
+
+      .kdlistview-navigation
+        text-align                center
+        width                     100%
+        margin                    0px
+
+        .navigation-item
+          border                  none
+          width                   auto
+          min-width               10px
+          display                 inline-block
+          z-index                 1000
+          margin                  0 5px 0 0
+
+          &.selected
+            margin                0 5px 0 0
+            bg color,             transparent
 
 
 .group-nickname
@@ -230,9 +244,6 @@
     margin              20px 20px 10px 6px
     padding             0 11px
 
-.group-splitview
-  height 100%
-
 .group-content-links
   margin-right          0px
   width                 139px
@@ -259,6 +270,10 @@
     vertical-align      baseline
     margin-bottom       6px
 
+    &.selected
+      color:                #ff9200;
+      font-weight:          bold;
+
 .group-koding-logo
   height 100%
   .logo
@@ -278,18 +293,168 @@
 
   vertical-align bottom
 
+
+
+
+
+.group-content-wrapper
+  // margin-left           160px
+  height                        100%
+  width                         auto
+  bg color,                     white
+  borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+
+  &.edit
+    .group-splitview
+      .group-loading-content
+        .content-item.front
+          vendor transform,rotateY(-180deg)
+        .content-item.back
+          vendor transform, rotateY(0deg)
+
+.group-splitview
+  height 100%
+  borderBox()
+  margin-top: -120px
+  padding-top 120px
+
+  // vendor perspective, 800px
+  vendor perspective-origin-x, 50%
+  vendor perspective-origin-y, 50%
+
 .kdlistview.kdview.group-loading-content
 .group-loading-content
-  overflow auto
-  // margin-left 125px
+  vendor transition, background-color 0.2s linear
+  vendor perspective, 800px
+  // vendor perspective-origin-x, 50%
+  // vendor perspective-origin-y, 50%
+
   borderBox()
-  height 100%
-  width auto
+
+  overflow                              auto
+  height                                100%
+  width                                 auto
+  padding-top                           50px
+  // bg color, rgba(255,255,255,0.5)
+  gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
+  // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
+
+  rel()
+
+  // vendor transform-style, preserve-3d
+  // vendor transition ,all .4s ease-in;
+
+  .content-item
+    vendor transform-style, preserve-3d
+    vendor transition ,all .4s ease-in;
+    vendor backface-visibility, hidden
+    // vendor transform-origin, 50% 0px;
+
+    abs()
+    left 0
+    right 0
+    top 0
+    bottom 0
+    padding                      50px
+    borderBox()
+
+    &.front
+      // vendor transform, translateY(0px) rotateY(0deg);
+      // .has-markdown
+      //   bg color, red
+      z-index 2
+    &.back
+      vendor transform, rotateY(180deg);
+      // .has-markdown
+      //   bg color, green
+      // vendor transform, rotateY(180deg)
+
+  .content-item-scroll-wrapper
+    padding                             40px
+    // max-width                           600px
+    max-width                           61.803398875%
+    margin                              0px auto
+    rounded                             5px
+    border                              1px solid #e3e3e3
+    bg                                  color, #f5f5f5
+    shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
+    borderBox()
+    height                              100%
 
   .has-markdown
-    padding 30px
-    max-width 600px
+    borderBox()
+    // padding                             30px
+    overflow                            auto
+    height                              100%
 
+.custom-image-selectitemview
+  cursor                                pointer
+  width                                 50%
+  height                                auto
+  display                               inline-block
+  rounded                               3px
+  padding                               5px 5px 2px
+  borderBox()
+  rel()
+  > span.title
+    display                             block
+    margin-bottom                       10px
+  span
+    abs()
+    borderBox()
+    top                                 5px
+    left                                5px
+    right                               5px
+    bg color,                           rgba(200,200,200,0.5)
+    padding                             5px 8px 3px
+    display                             block
+    text-shadow                         0 0 3px rgba(0,0,0,0.5)
+    color                               #ddd
+    border-bottom                       1px solid rgba(255,255,255,0.1)
+    // vendor transition,                  height 0.2s linear
+    // height                              0
+  // &:hover
+  //   span
+  //     height                            24px
+  &.selected
+    // border 1px solid #ff9200
+    bg color,                           #ff9200
+    span
+      // height                            24px
+      color                             white
+.custom-image-default
+  width                                 100%
+  height                                auto
+  rounded                               3px
+
+.custom-select-background-view
+  width                                 100%
+  height                                auto
+  borderBox()
+  fl()
+  display                               inline-block
+  .listview-wrapper
+    height                              auto
+
+.custom-select-background-upload-view
+  // margin-left                           50%
+  // width                                 50%
+  // borderBox()
+  // display inline-block
+  hidden()
+
+.group-customize-view
+  h1.customize-title
+    display block
+    font-size 24px
+    font-weight 300
+    color #444
+    margin-bottom 20px
 
 // .group-loader
 //   width                   30px
@@ -1206,18 +1371,20 @@
   .group-content
     borderBox()
     height auto
-    padding 0px 20px
+
+    .kdtabpaneview
+      padding 0px 20px
 
     .kdtabhandlecontainer
       padding-top           0
-      margin-top            29px
+      margin-top            28px
       // background            linear-gradient(top, #555 0%,#666 93.7%)
       height                27px
       padding               0px 10px 0px 10px
       // shadow                inset 0 2px 5px rgba(0,0,0,.1)
-      bg color,             #f5f5f5
+      bg color,             #f8f8f8
       borderBox()
-      border none
+      border-bottom         1px solid #e8e8e8
       .kdtabhandle
         border-width        0
         height              27px
