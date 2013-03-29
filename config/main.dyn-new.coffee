@@ -115,6 +115,7 @@ module.exports =
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
+    apiAdress   : "web-prod.in.koding.com"
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
