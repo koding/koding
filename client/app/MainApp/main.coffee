@@ -3,6 +3,7 @@
 
 do ->
   mainController             = new MainController
+  status                     = KD.getSingleton "status"
   firstLoad                  = yes
   connectionLostModal        = null
   connectionLostNotification = null
@@ -34,18 +35,24 @@ do ->
         duration      : 0
       connectionLostModal = null
 
-  showModal = ->
+  disconnectionText = (reason) ->
+    text = {}
+    text.internetDown = "Your internet connection is down.<br/><br/>"
+    text.kodingDown = "Our server is down.<br/><br/>"
+
+    return text[reason] or "Something went wrong."
+
+  showModal = (reason) ->
     return if connectionLostModal or manuallyClosed
     destroyNotification()
     connectionLostModal = new KDBlockingModalView
-      title   : "Server connection lost"
+      title   : disconnectionText(reason)
       content : """
-        <div class='modalformline'>
-          Your internet connection may be down, or our server is.<br/><br/>
-          If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-          <span class='small-loader fade in'></span> Trying to reconnect...
-        </div>
-        """
+      <div class='modalformline'>
+        If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
+        <span class='small-loader fade in'></span> Trying to reconnect...
+      </div>
+      """
       height  : "auto"
       overlay : yes
       buttons :
@@ -61,35 +68,25 @@ do ->
   # CONNECTIVITY EVENTS
   ###
 
-  KD.remote.on 'loggedInStateChanged', (account)->
+  status.on 'bongoConnected', (account)->
     KD.socketConnected()
     mainController.accountChanged account
     AccountMixin.init(KD.remote.api)
 
-    bongo = KD.remote
-    broker = KD.remote.mq
-    monitorItems = KD.getSingleton("monitorItems")
-    monitorItems.register {bongo, broker}
+  status.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
 
-    kite = KD.getSingleton("kiteController")
-    kite.on "channelAdded", (channel, name) ->
-      monitorItems.getItems()[name] = channel
+  status.on 'connected', ->
+    log 'kd remote connected'
 
-  KD.remote.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token
+  status.on 'reconnected', ->
+    log 'kd remote re-connected'
+    destroyModal yes
 
-  KD.remote.on 'connected', ->
-    manuallyClosed = no
-    if firstLoad
-      log 'kd remote connected'
-      firstLoad = no
-    else
-      KD.remote.emit "reconnected"
-      log 'kd remote re-connected'
-      destroyModal yes
+    #appManager.getFrontApp().frontApp.fetchSomeActivities?()
 
-  KD.remote.on 'disconnected', ->
+  status.on 'disconnected', (reason) ->
     # to avoid modal to appear on page refresh
-    __utils.wait 500, showModal
+    __utils.wait 500, showModal(reason)
 
   KD.remote.connect()
 
