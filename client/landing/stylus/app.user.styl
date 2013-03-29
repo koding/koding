@@ -80,26 +80,75 @@
 
 
 .profile-sidebar
-  height                    auto
-  width                     auto
+#landing-page-sidebar
+  width                       100%
+  height                      auto
+  display                     inline-block
+  // padding                     0
+  margin-right                -3px
 
   .kdlistview-navigation
-    text-align              center
-    width                   100%
-    margin                  0px
+    text-align                center
+    width                     100%
+    margin                    0px
 
     .navigation-item
-      width                 auto
-      display               inline-block
+      border                  none
+      width                   auto
+      min-width               10px
+      display                 inline-block
+      z-index                 1000
+      margin                  0 5px 0 0
 
-      .title
-        text-align          center
-        span.main-nav-icon
-          hidden()
       &.selected
-        a.title
-          color             #444!important
-        bg color,           transparent
+        bg color,             transparent
+        margin                0 5px 0 0
+
+    // height                    auto
+    // width                     auto
+
+    // .kdlistview-navigation
+    //   text-align              center
+    //   width                   100%
+    //   margin                  0px
+
+    //   .navigation-item
+    //     width                   auto
+    //     display                 inline-block
+    //     bg color,               #fbfbfb
+    //     border                  1px solid #eee
+    //     rounded                 3px
+    //     z-index                 1000
+    //     margin                  5px
+    //     // shadow                  0px 5px 5px -5px rgba(0,0,0,0.1)
+    //     // vendor transition,      box-shadow 0.2s linear
+    //     .title
+    //       text-align            center
+    //       padding               0px
+    //       color                 #888!important
+    //       font-weight           400
+
+    //       span.main-nav-icon
+    //         hidden()
+
+    //     // &:hover
+    //     //   shadow                  0px 5px 5px -5px rgba(0,0,0,0.35)
+    //     &.selected
+    //       a.title
+    //         color               #444!important
+
+    // .navigation-item
+    //   width                 auto
+    //   display               inline-block
+
+    //   .title
+    //     text-align          center
+    //     span.main-nav-icon
+    //       hidden()
+    //   &.selected
+    //     a.title
+    //       color             #444!important
+    //     bg color,           transparent
 
 .profile-header
   width                     100%
