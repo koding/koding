@@ -644,7 +644,7 @@ class KDView extends KDObject
     cssClass    ?= "transparent"
     parent      ?= "body"           #body or a KDView instance
 
-    @$overlay = $ "<div />", class : "kdoverlay #{cssClass} #{if animated then "animated"}"
+    @$overlay = $ "<div />", class : "kdoverlay #{cssClass}#{if animated then " animated" else ''}"
 
     if color
       @$overlay.css "background-color" : color
