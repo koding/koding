@@ -395,15 +395,14 @@
 .custom-image-selectitemview
   cursor                                pointer
   width                                 50%
+  vendor transition,                    width 0.2s linear
   height                                auto
   display                               inline-block
   rounded                               3px
   padding                               5px 5px 2px
   borderBox()
   rel()
-  > span.title
-    display                             block
-    margin-bottom                       10px
+
   span
     abs()
     borderBox()
@@ -414,19 +413,27 @@
     padding                             5px 8px 3px
     display                             block
     text-shadow                         0 0 3px rgba(0,0,0,0.5)
-    color                               #ddd
+    color                               #fbfbfb
     border-bottom                       1px solid rgba(255,255,255,0.1)
-    // vendor transition,                  height 0.2s linear
-    // height                              0
-  // &:hover
-  //   span
-  //     height                            24px
+
   &.selected
-    // border 1px solid #ff9200
     bg color,                           #ff9200
+
     span
-      // height                            24px
       color                             white
+
+@media (min-height: 800px)
+  .custom-image-selectitemview
+    width                               33.333%
+
+@media (min-height: 500px) and (max-height: 799px)
+  .custom-image-selectitemview
+    width                               25%
+
+@media (max-height: 499px)
+  .custom-image-selectitemview
+    width                               25%
+
 .custom-image-default
   width                                 100%
   height                                auto
@@ -438,23 +445,36 @@
   borderBox()
   fl()
   display                               inline-block
+  span.title
+    display                             block
+    margin-bottom                       10px
   .listview-wrapper
     height                              auto
 
 .custom-select-background-upload-view
-  // margin-left                           50%
-  // width                                 50%
-  // borderBox()
-  // display inline-block
   hidden()
 
 .group-customize-view
+  overflow-y                            auto
+
   h1.customize-title
-    display block
-    font-size 24px
-    font-weight 300
-    color #444
-    margin-bottom 20px
+    display                             block
+    font-size                           24px
+    font-weight                         300
+    color                               #444
+    margin-bottom                       20px
+    span
+      font-size                         14px
+      .settings-link
+        margin                          2px
+
+  .back-button
+    fr()
+    margin-right                        5px
+
+
+  .save-button
+    margin                              10px 5px
 
 // .group-loader
 //   width                   30px

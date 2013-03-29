@@ -1,5 +1,6 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description, customize})->
   content ?= getDefaultGroupContents(title)
+
   """
 
   <!DOCTYPE html>
@@ -14,7 +15,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
 
     <div id="static-landing-page">
 
-      <div class="group-content-wrapper" id="group-content-wrapper">
+      <div class="group-content-wrapper" id="group-content-wrapper" #{applyCustomBackground customize}>
         <div class="group-title" id="group-title">
           <div class="group-title-wrapper" id="group-title-wrapper">
             <div class="group-name">#{title}</div>
@@ -58,6 +59,23 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
   </body>
   </html>
   """
+
+applyCustomBackground = (customize={})->
+
+  defaultImages = ['/images/bg/bg01.jpg','/images/bg/bg02.jpg',
+   '/images/bg/bg03.jpg','/images/bg/bg04.jpg','/images/bg/bg05.jpg',]
+
+  if customize.background?.imageType is 'default' \
+  and customize.background?.defaultImage <= defaultImages.length
+    url = defaultImages[(customize.background.defaultImage or 0)]
+    """ style='background-image:url("#{url}")'"""
+  else if customize.background?.imageType is 'none'
+    """ style='background-image:none'"""
+  else
+    """ style='background-image:url("#{defaultImages[0]}")'"""
+
+
+
 
 getLoader = (roles)->
   if 'member' in roles or 'admin' in roles

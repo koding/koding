@@ -62,7 +62,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses'
+        'fetchMembershipStatuses', 'setBackgroundImage'
       ]
     schema          :
       title         :
@@ -83,6 +83,14 @@ module.exports = class JGroup extends Module
       parent        : ObjectRef
       counts        :
         members     : Number
+      customize     :
+        background  :
+          customImages    : [String]
+          imageType       :
+            type          : String
+            default       : 'default'
+            enum          : ['Invalid type', ['default', 'custom', 'none']]
+          defaultImage    : Number
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -148,6 +156,18 @@ module.exports = class JGroup extends Module
                   process.nextTick ->
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
+
+
+  setBackgroundImage: permit 'edit groups',
+    success:(client, type, value, callback=->)->
+      operation = $set: {}
+      operation.$set["customize.background.imageType"] = type
+
+      if type is 'default'
+        operation.$set["customize.background.defaultImage"] = value
+
+      @update operation, callback
+
 
   @renderHomepage: require './render-homepage'
 
@@ -424,6 +444,7 @@ module.exports = class JGroup extends Module
             @counts
             content : readme?.html ? readme?.content
             roles
+            @customize
           }
 
   fetchHomepageView:(clientId, callback)->
