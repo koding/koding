@@ -84,6 +84,13 @@ class StaticGroupController extends KDController
       cssClass : "button-wrapper"
       lazyDomId : "group-button-wrapper"
 
+    @buttonWrapper.addSubView configButton = new KDButtonView
+      cssClass : 'clean-gray'
+      title : "Config"
+      callback :=>
+        groupContentWrapperView.setClass 'edit'
+
+
     groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
