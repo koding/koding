@@ -43,7 +43,6 @@ AccountMixin = do ->
 
       ready =(resourceName)->
         @exchange = resourceName
-        console.log "ready"
         @emit "ready"
 
       error =(err)->
@@ -73,8 +72,6 @@ AccountMixin = do ->
         kite.deleteKite(@name)
 
       messageArrived = (msg) ->
-        console.log msg
-
         clearTimeout @unresponsiveTimeout
         @unresponded = 0
 
@@ -83,8 +80,6 @@ AccountMixin = do ->
         , 5000
 
       messageSent = (msg) ->
-        console.log msg
-
         clearTimeout @pingTimeout
         clearTimeout @unresponsiveTimeout
 
@@ -158,7 +153,6 @@ AccountMixin = do ->
           serviceType : 'kite'
           name        : "kite-#{kiteName}"
           clientId    : KD.remote.getSessionToken()
-
 
       tellKite =(options, callback=->)->
         scrubber = new Scrubber localStore

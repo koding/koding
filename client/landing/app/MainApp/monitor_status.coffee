@@ -1,5 +1,5 @@
 class Ping extends KDObject
-  [NOTSTARTED, WAITING, SUCCESS, FAILED] = [0,1,2,3]
+  [NOTSTARTED, WAITING, SUCCESS, FAILED] = [1...4]
 
   constructor: (item, name, options={}) ->
     super options
@@ -135,16 +135,16 @@ class MonitorStatus extends KDObject
       if _.size(intersection) is _.size(items)
         @emit reason, _.first(@failedPings)
         @notify reason
-        console.log reason
+        log reason
         return reason
 
   internetUp: ->
-    console.log  "all's well on western front"
+    log  "all's well on western front"
     @emit 'internetUp'
 
   printReport: ->
     for name, item of @itemsToMonitor
-      console.log name, item.getResponseTime()
+      log name, item.getResponseTime()
 
   run: ->
     for name, item of @itemsToMonitor
