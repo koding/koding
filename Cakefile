@@ -500,7 +500,7 @@ task 'switchProxy', (options) ->
           timeout client 50000ms
           timeout server 50000ms
 
-      listen stats :1234
+      listen stats :1235
           mode http
           stats enable
           stats hide-version
