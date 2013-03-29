@@ -89,6 +89,10 @@ class MonitorStatus extends KDObject
     @on "sharedHostingDown", (channel) ->
       @emit "onlyChannelDown", "sharedHosting"
 
+    @on "internetDown", ->
+      status = KD.getSingleton "status"
+      status.internetDown()
+
   notify: (reason) ->
     notifications =
       internetUp : "All systems go!"
