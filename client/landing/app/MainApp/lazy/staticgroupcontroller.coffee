@@ -169,6 +169,9 @@ class StaticGroupController extends KDController
             else
               @emit roleEventMap[statuses.first]
 
+  removeBackground:->
+    @groupContentWrapperView.$().css backgroundImage : "none"
+
   setBackground:(url)->
     @groupContentView.$().css backgroundColor : 'white'
     @utils.wait 200, =>
