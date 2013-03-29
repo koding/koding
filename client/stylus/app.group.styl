@@ -89,19 +89,6 @@
   borderBox()
 
 
-.group-content-wrapper
-  // margin-left           160px
-  height                        100%
-  width                         auto
-  bg color,                     white
-  borderBox()
-
-  bg size,                      cover
-  bg repeat,                    no-repeat
-  bg position,                  center center
-  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
-
-
 .group-title
   borderBox()
   rel()
@@ -264,12 +251,6 @@
     margin              20px 20px 10px 6px
     padding             0 11px
 
-.group-splitview
-  height 100%
-  borderBox()
-  margin-top: -120px
-  padding-top 120px
-
 .group-content-links
   margin-right          0px
   width                 139px
@@ -319,9 +300,49 @@
 
   vertical-align bottom
 
+
+
+
+
+.group-content-wrapper
+  // margin-left           160px
+  height                        100%
+  width                         auto
+  bg color,                     white
+  borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+
+  &.edit
+    .group-splitview
+      .group-loading-content
+        // vendor transform, rotateY(180deg)
+        .content-item.front
+          vendor transform, rotateY(-180deg)
+        .content-item.back
+          vendor transform, rotateY(0deg)
+
+.group-splitview
+  height 100%
+  borderBox()
+  margin-top: -120px
+  padding-top 120px
+
+  // vendor perspective, 800px
+  vendor perspective-origin-x, 50%
+  vendor perspective-origin-y, 50%
+
 .kdlistview.kdview.group-loading-content
 .group-loading-content
+  vendor perspective, 800px
+  // vendor perspective-origin-x, 50%
+  // vendor perspective-origin-y, 50%
+
   borderBox()
+
   overflow                              auto
   height                                100%
   width                                 auto
@@ -330,9 +351,35 @@
   gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
   // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
 
+  rel()
+
+  // vendor transform-style, preserve-3d
+  // vendor transition ,all .4s ease-in;
+
   .content-item
+    vendor transform-style, preserve-3d
+    vendor transition ,all .4s ease-in;
+    vendor backface-visibility, hidden
+    // vendor transform-origin, 50% 0px;
+
+    abs()
+    left 0
+    right 0
+    top 0
+    bottom 0
+    padding                      50px
     borderBox()
-    padding-bottom                      50px
+
+    &.front
+      // vendor transform, translateY(0px) rotateY(0deg);
+      // .has-markdown
+      //   bg color, red
+      z-index 2
+    &.back
+      vendor transform, rotateY(180deg);
+      // .has-markdown
+      //   bg color, green
+      // vendor transform, rotateY(180deg)
 
   .content-item-scroll-wrapper
     padding                             40px

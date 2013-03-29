@@ -26,13 +26,21 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
         </div>
         <div class="group-splitview" id="group-splitview">
           <div class="group-loading-content" id="group-loading-content">
-           <div class="content-item kdview" id='group-readme'>
+           <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
-             <div class="has-markdown">
-               <span class="data">#{content}</span>
-             </div>
+               <div class="has-markdown">
+                 <span class="data">#{content}</span>
+               </div>
              </div>
            </div>
+           <div class="content-item kdview back" id='group-config'>
+             <div class="content-item-scroll-wrapper">
+               <div class="has-markdown">
+                 <span class="data">OMG OMG OMG</span>
+               </div>
+             </div>
+           </div>
+
          </div>
         </div>
       </div>
