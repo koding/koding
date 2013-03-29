@@ -65,7 +65,7 @@ class AccountsSwappable extends KDView
     @addSubView(@view1 = @options.views[0]).hide()
     @addSubView @view2 = @options.views[1]
 
-  swapViews:()->
+  swapViews:->
     if @view1.$().is(":visible")
       @view1.hide()
       @view2.show()
