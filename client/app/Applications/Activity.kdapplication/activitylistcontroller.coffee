@@ -75,8 +75,12 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
 
+    activityIds = []
     for activity in activities when activity
       @addItem activity
+      activityIds.push activity._id
+
+    @checkIfLikedBefore activityIds
 
     @emit "teasersLoaded"
 
@@ -84,6 +88,7 @@ class ActivityListController extends KDListViewController
 
     return @showNoItemWidget() unless cache.overview?
 
+    activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1
         @addItem new NewMemberBucketData
@@ -96,9 +101,20 @@ class ActivityListController extends KDListViewController
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           @addItem activity.teaser
+          activityIds.push activity.teaser._id
+
+    @checkIfLikedBefore activityIds
 
     @emit "teasersLoaded"
 
+  checkIfLikedBefore:(activityIds)->
+
+    KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
+      for activity in @getListView().items when activity.data._id.toString() in likedIds
+        likeView = activity.subViews.first.actionLinks?.likeView
+        if likeView
+          likeView.likeLink.updatePartial 'Unlike'
+          likeView._currentState = yes
 
   followedActivityArrived: (activity) ->
 

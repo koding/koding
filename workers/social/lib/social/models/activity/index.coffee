@@ -32,7 +32,8 @@ module.exports = class CActivity extends jraphical.Capsule
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchFacets'
+        'captureSortCounts','addGlobalListener','fetchFacets',
+        'checkIfLikedBefore'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -245,3 +246,19 @@ module.exports = class CActivity extends jraphical.Capsule
     @update
       $addToSet: readBy: delegate.getId()
     , callback
+
+  @checkIfLikedBefore: secure ({connection}, idsToCheck, callback)->
+    {delegate} = connection
+    if not delegate
+      callback null, no
+    else
+      Relationship.some
+        sourceId: {$in: idsToCheck}
+        targetId: delegate.getId()
+        as: 'like'
+      , {}, (err, likedRels)=>
+        likedIds = []
+        for likedRel in likedRels
+          likedIds.push likedRel.sourceId
+
+        callback err, likedIds
