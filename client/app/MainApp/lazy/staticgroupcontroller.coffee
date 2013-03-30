@@ -63,16 +63,6 @@ class StaticGroupController extends KDController
         else
           @mainController.loginScreen.animateToForm 'login'
 
-    @landingView.groupLogo = groupLogo = new KDCustomHTMLView
-      tagName     : "h3"
-      lazyDomId   : "group-logo"
-      bind        : "mouseenter mouseleave"
-      click       : => @getSingleton('lazyDomController').showLandingPage()
-      mouseenter  : =>
-        groupLogo.$().css marginTop : 13
-      mouseleave  : =>
-        groupLogo.$().css marginTop : 8
-
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
       click     : =>

@@ -345,6 +345,10 @@ __utils =
     other   = permissions.substr 6, 3
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
 
+  getFullnameFromAccount:(account)->
+    {firstName, lastName} = account.profile
+    return "#{firstName} #{lastName}"
+
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 

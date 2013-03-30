@@ -47,11 +47,6 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
         <div id="koding-landing-logo-wrapper">
           <h3 id="koding-landing-logo"><a href='#'>Koding</a></h3>
         </div>
-        <div id="group-splash"></div>
-        <div id="group-logo-wrapper">
-          <i></i><i></i>
-          <h3 id="group-logo"><a href='#'>#{title}</a></h3>
-        </div>
       </div>
     </div>
     #{KONFIG.getConfigScriptTag {groupEntryPoint: slug, roles: roles}}
