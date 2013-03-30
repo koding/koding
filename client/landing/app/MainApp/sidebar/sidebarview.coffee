@@ -96,7 +96,7 @@ class Sidebar extends JView
     @serverStackPin = new KDButtonView
       cssClass     : "server-pin-button"
       iconOnly     : yes
-      iconClass    : "up"
+      iconClass    : "cog"
       callback     : =>
         $('body').addClass 'server-stack'
         @putOverlay
