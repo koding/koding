@@ -6,12 +6,15 @@ class FollowButton extends KDToggleButton
     options.dataPath     or= "followee"
     options.defaultState or= "Follow"
     options.loader       or=
-      color              : "#333333"
-      diameter           : 18
-      top                : 11
+      color                : "#333333"
+      diameter             : 18
+      top                  : 11
     options.states       or= [
-      "Follow",     @createStateCallback "follow"
-      "Following",  @createStateCallback "unfollow"
+      title    : "Follow"
+      callback : @createStateCallback "follow"
+    ,
+      title    : "Following"
+      callback : @createStateCallback "unfollow"
     ]
     super
 
@@ -33,7 +36,7 @@ class FollowButton extends KDToggleButton
   decorateState:(name)->
 
   redecorateState:->
-    @setTitle @state
+    @setTitle @state.title
 
     if @state is 'Follow'
       @unsetClass 'following-btn'
