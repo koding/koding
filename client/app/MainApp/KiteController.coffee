@@ -53,6 +53,7 @@ class KiteController extends KDController
   deleteKite: (name) ->
     @emit "channelDeleted", @kites[name], name
     delete @kites[name]
+    delete @channels[name]
 
   run:(options = {}, callback)->
 
