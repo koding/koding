@@ -126,6 +126,7 @@ class StaticGroupBackgroundSelectView extends KDView
         url       : '/images/bg/no.jpg'
         thumbUrl  : '/images/bg/th/no.png'
         dataIndex : -1
+        type      : 'none'
       }
     ]
     for i in [1..5]
@@ -134,6 +135,7 @@ class StaticGroupBackgroundSelectView extends KDView
         url       : "/images/bg/bg0#{i}.jpg"
         thumbUrl  : "/images/bg/th/bg0#{i}.png"
         dataIndex : i-1
+        type      : 'default'
 
     @thumbsController.instantiateListItems items
     @attachListeners()
@@ -186,12 +188,13 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
 
   click: ->
     # preview live
-    if @getData().dataIndex >= 0
+    if @getData().type is 'default'
       @getDelegate().emit 'DefaultImageSelected', @
       @getSingleton('staticGroupController').setBackground @getData().url
-    else
+    else if @getData().type is 'none'
       @getDelegate().emit 'NoImageSelected', @
       @getSingleton('staticGroupController').removeBackground()
+    else log 'Something weird happened'
   viewAppended:->
       super
       @setTemplate @pistachio()
