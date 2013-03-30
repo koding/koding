@@ -108,7 +108,7 @@ module.exports =
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
-      # authResourceName: authResourceName
+      authResourceName: authResourceName
       suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
