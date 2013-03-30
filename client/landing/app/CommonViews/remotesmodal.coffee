@@ -324,7 +324,8 @@ class RemoteListItem extends KDListItemView
         color      : "#666"
         diameter   : 16
       states       : [
-        "Mount", (callback)=>
+        title      : "Mount"
+        callback   : (callback)=>
           unless data.haspass
             @mountToggle.hideLoader()
             new AskForPassword \
@@ -334,7 +335,9 @@ class RemoteListItem extends KDListItemView
               @changeMountState {state : 'mount', data}, callback
           else
             @changeMountState {state : 'mount', data}, callback
-        "Unmount", (callback)=>
+      ,
+        title      : "Unmount"
+        callback   : (callback)=>
           @changeMountState {state : 'umount', data}, callback
       ]
       defaultState : if data.mounted then "Unmount" else "Mount"
