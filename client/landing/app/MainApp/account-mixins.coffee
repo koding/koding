@@ -63,13 +63,13 @@ AccountMixin = do ->
         @lastPong = Date.now()
 
       cycleChannel =->
+        @stopPinging = true
         @off()
-        @stopPinging?()
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
         kite = KD.getSingleton "kiteController"
-        kite.deleteKite(@name)
+        kite.deleteKite(@shortName)
 
       messageArrived = (msg) ->
         clearTimeout @unresponsiveTimeout
@@ -96,7 +96,7 @@ AccountMixin = do ->
 
       unresponsive = ->
         log 'unresponsive', @name
-        cycleChannel.bind this
+        @cycleChannel()
 
       messageHandler =(kiteName, args) ->
         {method} = args
@@ -133,12 +133,14 @@ AccountMixin = do ->
         channelName = getChannelName "kite-#{kiteName}"
         return callback readyChannels[channelName]  if readyChannels[channelName]
         channel = KD.remote.mq.subscribe channelName
+        channel.shortName = kiteName
         kiteController = KD.getSingleton 'kiteController'
         kiteController.addKite(kiteName, channel)
 
         unless channels[channelName]?
           channel.cycleChannel = -> cycleChannel.call this
-          channel.ping = (callback) -> ping.call this, callback
+          channel.ping = (callback) ->
+            ping.call this, callback  unless @stopPinging
 
           channel.on "message", messageHandler.bind channel, kiteName
           channel.on "publish", messageSent.bind channel
