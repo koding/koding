@@ -62,7 +62,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses'
+        'fetchMembershipStatuses','fetchAdmin'
       ]
     schema          :
       title         :
