@@ -23,8 +23,8 @@ class ActivityActionsView extends KDView
         placement : "above"
       click:(event)=>
         event.preventDefault()
-
-    @likeView     = new LikeView {}, activity
+    
+    @likeView     = new LikeView {checkIfLikedBefore: no}, activity
     @loader       = new KDLoaderView size : width : 14
 
   viewAppended:->
