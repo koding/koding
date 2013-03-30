@@ -36,7 +36,7 @@ module.exports =
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : yes
+  runOsKite     : no
   runLdapServer : yes
   runProxy      : yes
   misc          :

@@ -61,7 +61,7 @@ module.exports = class Builder
 
       setTimeout =>
         @compileChanged options, false
-      , 250
+      , 2250
 
   readIncludesFile: ->
     includesFile = @config.client.includesPath + "/includes.coffee"

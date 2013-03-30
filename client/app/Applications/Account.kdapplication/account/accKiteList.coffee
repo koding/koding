@@ -40,7 +40,7 @@ class AccountKiteListController extends KDListViewController
       list.addItem itemData, null, {type : "slideDown", duration : 100}
       new KDModalView
         title   : "New Kite Information"
-        width   : 550
+        width   : 580
         overlay : yes
         content : """
                   <div class='modalformline'>
