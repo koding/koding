@@ -7,7 +7,7 @@ class FSFolder extends FSFile
     @emit "fs.fetchContents.started"
     @kiteController.run
       kiteName   : 'os'
-      method     : 'watch'
+      method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
           FSHelper.folderOnChange @path, change, @treeController
