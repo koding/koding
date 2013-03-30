@@ -90,7 +90,7 @@ module.exports = class JGroup extends Module
             type          : String
             default       : 'default'
             enum          : ['Invalid type', ['default', 'custom', 'none']]
-          defaultImage    : Number
+          defaultImage    : String
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -163,7 +163,7 @@ module.exports = class JGroup extends Module
       operation = $set: {}
       operation.$set["customize.background.imageType"] = type
 
-      if type is 'default'
+      if type in ['default','color']
         operation.$set["customize.background.defaultImage"] = value
 
       @update operation, callback

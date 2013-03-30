@@ -171,13 +171,18 @@ class StaticGroupController extends KDController
 
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
+    @groupContentWrapperView.$().css backgroundColor : "#ffffff"
 
-  setBackground:(url)->
-    @groupContentView.$().css backgroundColor : 'white'
-    @utils.wait 200, =>
-      @groupContentWrapperView.$().css backgroundImage : "url(#{url})"
+  setBackground:(type,val)->
+    if type in ['default','custom']
+      @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
-        @groupContentView.$().css backgroundColor : 'transparent'
+        @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @utils.wait 200, =>
+          @groupContentView.$().css backgroundColor : 'transparent'
+    else
+      @groupContentWrapperView.$().css backgroundImage : "none"
+      @groupContentWrapperView.$().css backgroundColor : "##{val}"
 
   attachListeners:->
 

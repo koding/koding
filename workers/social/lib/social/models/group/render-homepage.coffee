@@ -68,7 +68,9 @@ applyCustomBackground = (customize={})->
   if customize.background?.imageType is 'default' \
   and customize.background?.defaultImage <= defaultImages.length
     url = defaultImages[(customize.background.defaultImage or 0)]
-    """ style='background-image:url("#{url}")'"""
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.imageType is 'color'
+    """ style='background-image:none;background-color:##{customize.background.defaultImage or "ffffff"}'"""
   else if customize.background?.imageType is 'none'
     """ style='background-image:none'"""
   else
