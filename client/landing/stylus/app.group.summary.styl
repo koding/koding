@@ -1,0 +1,54 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib"
+@import "nib/gradients"
+@import "nib/vendor"
+
+/*
+
+  Group Summary
+
+*/
+
+#group-summary
+  abs()
+  top                   -200px
+  size                  100%, 200px
+  bg                    color, rgba(0,0,0,.6)
+  z-index               10
+  transition            top .3s ease-in
+  border-bottom         1px solid rgba(0,0,0,.1)
+  shadow                0 5px 15px rgba(0,0,0,0.5)
+  &.down
+    top                 0
+  &.up
+    top                 -200px
+  .kdloader
+    display             block
+    margin              70px auto 0
+
+  header
+    padding             30px
+    margin-right        250px
+    width               auto
+  .avatar-wrapper
+    padding             2px
+    bg                  color, #fff
+    fl()
+
+  h2
+    color               white
+    text-shadow         0 -1px 0 rgba(0,0,0,.4)
+    border-bottom       none
+
+  aside
+    abs()
+    top                 0
+    right               0
+    width               250px
+
+  .public-page-link
+    abs()
+    top                 30px
+    right               30px
+    color               white
