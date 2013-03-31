@@ -60,14 +60,12 @@ applyCustomBackground = (customize={})->
   defaultImages = ['/images/bg/bg01.jpg','/images/bg/bg02.jpg',
    '/images/bg/bg03.jpg','/images/bg/bg04.jpg','/images/bg/bg05.jpg',]
 
-  if customize.background?.imageType is 'default' \
-  and customize.background?.defaultImage <= defaultImages.length
-    url = defaultImages[(customize.background.defaultImage or 0)]
+  if customize.background?.customType is 'defaultImage' \
+  and customize.background?.customValue <= defaultImages.length
+    url = defaultImages[(customize.background.customValue or 0)]
     """ style='background-color:transparent;background-image:url("#{url}")'"""
-  else if customize.background?.imageType is 'color'
-    """ style='background-image:none;background-color:##{customize.background.defaultImage or "ffffff"}'"""
-  else if customize.background?.imageType is 'none'
-    """ style='background-image:none'"""
+  else if customize.background?.customType in ['defaultColor','customColor']
+    """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""
   else
     """ style='background-image:url("#{defaultImages[0]}")'"""
 

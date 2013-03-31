@@ -86,11 +86,14 @@ module.exports = class JGroup extends Module
       customize     :
         background  :
           customImages    : [String]
-          imageType       :
+          customType      :
             type          : String
-            default       : 'default'
-            enum          : ['Invalid type', ['default', 'custom', 'none']]
-          defaultImage    : String
+            default       : 'defaultImage'
+            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+          customValue     :
+            type          : String
+            default       : '1'
+          customOptions   : Object
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -161,10 +164,10 @@ module.exports = class JGroup extends Module
   setBackgroundImage: permit 'edit groups',
     success:(client, type, value, callback=->)->
       operation = $set: {}
-      operation.$set["customize.background.imageType"] = type
+      operation.$set["customize.background.customType"] = type
 
-      if type in ['default','color']
-        operation.$set["customize.background.defaultImage"] = value
+      if type in ['defaultImage','defaultColor','customColor']
+        operation.$set["customize.background.customValue"] = value
 
       @update operation, callback
 

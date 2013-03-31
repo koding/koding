@@ -382,27 +382,29 @@
     height                              100%
 
 .custom-image-selectitemview
+  borderBox()
+  rel()
+  vendor transition,                    width 0.2s linear
+  rounded                               3px
   cursor                                pointer
   width                                 50%
-  vendor transition,                    width 0.2s linear
   height                                auto
   min-height                            100px
   display                               inline-block
-  rounded                               3px
   padding                               5px //5px 2px
-  borderBox()
   border                                1px solid transparent
-  rel()
+  vertical-align                        top
+  text-align                            center
   &.color
     width 25%
 
   span
     abs()
     borderBox()
+    bg color,                           rgba(200,200,200,0.5)
     top                                 5px
     left                                5px
     right                               5px
-    bg color,                           rgba(200,200,200,0.5)
     padding                             5px 8px 3px
     display                             block
     text-shadow                         0 0 3px rgba(0,0,0,0.5)
@@ -411,8 +413,8 @@
 
   &.selected
     bg color,                           rgba(0,0,0,0.2)
-    border 1px solid                    rgba(0,0,0,0.1)
     shadow                              inset 0 0 5px 0px rgba(0,0,0,0.2)
+    border 1px solid                    rgba(0,0,0,0.1)
 
     span
       color                             white
@@ -434,6 +436,26 @@
     width                               25%
     &.color
       width                             25%
+
+@media (max-width: 800px)
+  .custom-image-selectitemview
+    width                               50%
+    &.color
+      width                             50%
+
+@media (max-width: 1600px) and (min-width:801px)
+  .custom-image-selectitemview
+    width                               33.33333%
+    &.color
+      width                             33.33333%
+
+@media (min-width: 1601px)
+  .custom-image-selectitemview
+    width                               20%
+    &.color
+      width                             16.6666667%
+
+
 
 .custom-image-default
   borderBox()
@@ -461,6 +483,28 @@
 
 .custom-select-background-upload-view
   hidden()
+
+.custom-color-picker
+  borderBox()
+  width                                 100%
+  height                                100px
+  rounded                               3px
+  padding-top                           35px
+  text-align                            center
+
+  .kdinput.text.color-picker
+    width                               80%
+    height                              auto
+    text-align                          center
+    margin                              auto auto
+    bg color,                           rgba(255,255,255,0.5)
+    shadow                              0 1px 0 rgba(255,255,255,0.5)
+    &:hover
+      border                            1px solid rgba(0,0,0,0.2)
+      shadow                            none //0 1px 0 rgba(0,0,0,0.2)
+    &:focus
+      border                            1px solid rgba(0,0,0,0.5)
+      shadow                            none //0 1px 0 rgba(0,0,0,0.5)
 
 .group-customize-view
   overflow-y                            auto
