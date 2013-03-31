@@ -110,7 +110,7 @@ class StaticGroupCustomizeView extends KDView
     """
     {{> @backButton}}
     <h1 class="customize-title">Customize this Group page
-    <span>({{> @settingsLink}})</span>
+    <span class="settings-span">({{> @settingsLink}})</span>
     </h1>
     {{> @bgSelectView}}
     {{> @bgColorView}}
