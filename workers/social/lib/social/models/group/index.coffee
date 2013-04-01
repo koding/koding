@@ -163,11 +163,19 @@ module.exports = class JGroup extends Module
 
   setBackgroundImage: permit 'edit groups',
     success:(client, type, value, callback=->)->
-      operation = $set: {}
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customImages'] = value
+      else
+        operation = $set : {}
+
       operation.$set["customize.background.customType"] = type
 
-      if type in ['defaultImage','defaultColor','customColor']
+      if type in ['defaultImage','defaultColor','customColor','customImage']
         operation.$set["customize.background.customValue"] = value
+
 
       @update operation, callback
 

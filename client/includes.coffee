@@ -91,6 +91,7 @@ module.exports = [
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
   "Framework/components/upload/KDImageUploadView.coffee",
+  "Framework/components/upload/kdmultipartuploader.coffee",
 
   # buttons
   "Framework/components/buttons/KDButtonView.coffee",
