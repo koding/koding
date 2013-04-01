@@ -164,6 +164,7 @@ class StaticGroupController extends KDController
     @groupContentWrapperView.$().css backgroundColor : "#ffffff"
 
   setBackground:(type,val)->
+    log 'setting',val
     if type in ['defaultImage','customImage']
       @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
