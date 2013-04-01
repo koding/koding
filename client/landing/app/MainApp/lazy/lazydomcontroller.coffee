@@ -41,7 +41,7 @@ class LazyDomController extends KDController
         @landingView.setClass "down"
         @utils.wait 300, =>
           @landingView.setClass "out"
-          groupSummary.sign.setClass "swing-in"
+          groupSummary?.sign.setClass "swing-in"
 
           # @utils.wait 1200, =>
           #   log "ever here"
@@ -62,8 +62,8 @@ class LazyDomController extends KDController
             @landingView.unsetClass "out"
             @utils.wait 600, =>
               @landingView.unsetClass "down"
-              groupSummary.sign.unsetClass "swing-in"
-              groupSummary.sign.unsetClass "swing-out"
+              groupSummary?.sign.unsetClass "swing-in"
+              groupSummary?.sign.unsetClass "swing-out"
               @utils.wait 300, callback
 
 
