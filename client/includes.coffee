@@ -97,6 +97,7 @@ module.exports = [
   "Framework/components/buttons/KDButtonViewWithMenu.coffee",
   "Framework/components/buttons/KDButtonMenu.coffee",
   "Framework/components/buttons/KDButtonGroupView.coffee",
+  "Framework/components/buttons/KDToggleButton.coffee",
 
   # forms
   "Framework/components/forms/KDFormView.coffee",
@@ -531,6 +532,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -707,7 +709,10 @@ module.exports = [
   "stylus/app.viewer.styl",
   "stylus/app.book.styl",
   "stylus/app.codeshare.styl",
-  "stylus/app.group.styl",
+  "stylus/app.group.general.styl",
+  "stylus/app.group.dashboard.styl",
+  "stylus/app.group.landing.styl",
+  "stylus/app.group.summary.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   "stylus/temp.styl",

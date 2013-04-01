@@ -9,6 +9,7 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -86,10 +87,19 @@ class MainView extends KDView
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
-    @contentPanel.on "webkitTransitionEnd", (e) =>
-      @emit "mainViewTransitionEnd", e
+  addServerStack:->
+    @addSubView @serverStack = new KDView
+      domId : "server-rack"
+      click : ->
+        $('body').removeClass 'server-stack'
+        $('.kdoverlay').remove()
+
+  addHeader:()->
 
   addHeader:->
+
+    if KD.config.groupEntryPoint
+      @addSubView @groupSummary = new GroupSummaryView
 
     @addSubView @header = new KDView
       tagName : "header"
