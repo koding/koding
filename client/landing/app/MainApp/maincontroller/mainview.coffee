@@ -91,6 +91,9 @@ class MainView extends KDView
 
   addHeader:->
 
+    if KD.config.groupEntryPoint
+      @addSubView @groupSummary = new GroupSummaryView
+
     @addSubView @header = new KDView
       tagName : "header"
 
