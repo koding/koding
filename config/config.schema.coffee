@@ -181,6 +181,7 @@ config =
         apiUri    : 1
         appsUri   : 1
         sourceUri : 1
+        authResourceName : 1
     mq            :
       host        : 1
       port        : 1

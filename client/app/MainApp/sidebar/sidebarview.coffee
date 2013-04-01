@@ -67,6 +67,35 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
+    @serverStackPin = new KDButtonView
+      cssClass     : "server-pin-button"
+      iconOnly     : yes
+      iconClass    : "cog"
+      callback     : =>
+        $('body').addClass 'server-stack'
+        @putOverlay
+          animated    : yes
+          isRemovable : no
+          color       : 'rgba(0,0,0,.3)'
+
+    @finderBottomControlPin = new KDToggleButton
+      cssClass     : "finder-bottom-pin"
+      iconOnly     : yes
+      defaultState : "hide"
+      states       : [
+        title      : "show"
+        iconClass  : "up"
+        callback   : (callback)=>
+          @showBottomControls()
+          callback?()
+      ,
+        title      : "hide"
+        iconClass  : "down"
+        callback   : (callback)=>
+          @hideBottomControls()
+          callback?()
+      ]
+
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
@@ -142,10 +171,6 @@ class Sidebar extends JView
       $fp.css "width", newFpWidth
       cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
-    KD.utils.wait 8000, =>
-      @$('#finder-bottom-controls').addClass 'go-down'
-      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
     @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
@@ -172,12 +197,14 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @serverStackPin}}
         {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
+        {{> @finderBottomControlPin}}
         <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
@@ -237,6 +264,18 @@ class Sidebar extends JView
     @utils.wait 300, =>
       @_finderExpanded = no
       callback?()
+
+  showEnvironmentPanel:->
+
+    @showFinderPanel()
+
+  hideBottomControls:->
+    @$('#finder-bottom-controls').addClass 'go-down'
+    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
+
+  showBottomControls:->
+    @$('#finder-bottom-controls').removeClass 'go-down'
+    # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
   showFinderPanel:->
 

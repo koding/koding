@@ -24,7 +24,8 @@ class GroupView extends ActivityContentDisplay
         diameter      : 18
         top           : 11
       states          : [
-        "Join", (callback)->
+        title         : "Join"
+        callback      : (callback)->
           data.join (err, response)=>
             console.log arguments
             @hideLoader()
@@ -32,7 +33,9 @@ class GroupView extends ActivityContentDisplay
               @emit 'Joined'
               @setClass 'following-btn following-topic'
               callback? null
-        "Leave", (callback)->
+      ,
+        title          : "Leave"
+        callback       : (callback)->
           data.leave (err, response)=>
             console.log arguments
             @hideLoader()

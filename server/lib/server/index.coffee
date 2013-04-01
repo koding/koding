@@ -127,6 +127,7 @@ app.get "/-/kite/login", (req, res) ->
           host      : mq.apiAddress
           username  : data.username
           password  : data.password
+          vhost     : mq.vhost
         res.header "Content-Type", "application/json"
         res.send JSON.stringify creds
 
