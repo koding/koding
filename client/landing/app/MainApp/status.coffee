@@ -1,7 +1,7 @@
 # Responsible for emitting connection related events.
 class Status extends KDController
   [NOTSTARTED, CONNECTED, RECONNECTED, DISCONNECTED] = [1..4]
-  [UP, DOWN] = [1..2]
+  [NOTSTARTED, UP, DOWN] = [1..3]
 
   constructor: ->
     super
@@ -18,35 +18,47 @@ class Status extends KDController
     @remote.on "sessionTokenChanged", @bound "sessionTokenChanged"
     @remote.on "loggedInStateChanged", @bound "loggedInStateChanged"
 
+  connect: ->
+    @remote.connect()
+
+  disconnect: (options={}) ->
+    if "string" is typeof options
+      options = autoReconnect : options
+
+    autoReconnect = options.autoReconnect or true
+    reason = options.reason or "internetDown"
+
+    @remote.disconnect(autoReconnect)
+    @disconnected(reason)
+
   connected: ->
+    @connectionState = UP
+
     if @state is NOTSTARTED
-      @connectionState = UP
       @state = CONNECTED
       @emit "connected"
     else
-      @connectionState = UP
       @state = RECONNECTED
       @emit "reconnected"
 
-  disconnected: (reason) ->
+  disconnected: () ->
+    return "already disconnected"  if @connectionState is DOWN
+
     @connectionState = DOWN
     @state = DISCONNECTED
-    @emit "disconnected", reason
-    @remote.disconnect()
+    @emit "disconnected", "internetDown"
 
   internetUp: ->
     @connected()  if @connectionState is DOWN
 
   internetDown: ->
-    @disconnected "internetDown"  if @connectionState is UP
+    if @connectionState is UP
+      @disconnect autoReconnect:true
 
   loggedInStateChanged: (account) ->
     @emit "bongoConnected", account
     @registerBongoAndBroker()
     @registerKites()
-
-  sessionTokenChanged: (token) ->
-    @emit "sessionTokenChanged", token
 
   registerBongoAndBroker: ->
     bongo = KD.remote
@@ -55,8 +67,9 @@ class Status extends KDController
     monitorItems.register {bongo, broker}
 
   registerKites: ->
-    kite = KD.getSingleton "kiteController"
     monitorItems = KD.getSingleton "monitorItems"
+    kite = KD.getSingleton "kiteController"
+
     kite.on "channelAdded", (channel, name) ->
       monitorItems.getItems()[name] = channel
 
@@ -65,3 +78,6 @@ class Status extends KDController
 
     kite.on "channelDeleted", (channel, name) ->
       delete monitorItems.getItems()[name]
+
+  sessionTokenChanged: (token) ->
+    @emit "sessionTokenChanged", token

@@ -1,5 +1,6 @@
 class ActivityListController extends KDListViewController
 
+  lastItemTimeStamp         = null
   hiddenItems               = []
   hiddenNewMemberItemGroups = [[]]
   hiddenItemCount           = 0
@@ -9,7 +10,7 @@ class ActivityListController extends KDListViewController
     # this is a bit tricky here
     # if the previous member group isn't empty
     # create a new group for later new member items
-    if hiddenNewMemberItemGroups[hiddenNewMemberItemGroups.length-1].length isnt 0
+    if hiddenNewMemberItemGroups.last.length isnt 0
       hiddenNewMemberItemGroups.push []
 
   resetNewMemberGroups = -> hiddenNewMemberItemGroups = [[]]
@@ -68,6 +69,12 @@ class ActivityListController extends KDListViewController
     for activity in activities when activity
       @addItem activity
 
+    modifiedAt = activities.first.meta.modifiedAt
+    unless lastItemTimeStamp > modifiedAt
+      # HACK: activity timestamp is off -200 ms on first get
+      time = new Date(modifiedAt).getTime()
+      lastItemTimeStamp = new Date(time+1000).toString()
+
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
@@ -87,8 +94,20 @@ class ActivityListController extends KDListViewController
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           @addItem activity.teaser
 
+    sortedActivities = _.sortBy cache.activities, (activity) ->
+      activity.modifiedAt
+
+    modifiedAt = sortedActivities.last.modifiedAt
+    lastItemTimeStamp = modifiedAt  unless lastItemTimeStamp > modifiedAt
+
     @emit "teasersLoaded"
 
+  getLastItemTimeStamp: ->
+
+    if item = hiddenItems.first
+      item.getData().createdAt or item.getData().createdAtTimestamps.last
+    else
+      lastItemTimeStamp
 
   followedActivityArrived: (activity) ->
 
@@ -144,13 +163,16 @@ class ActivityListController extends KDListViewController
 
   ownActivityArrived:(activity)->
 
+    lastItemTimeStamp = activity.createdAt
     if fakeItems.length > 0
       itemToBeRemoved = fakeItems.shift()
       @removeItem null, itemToBeRemoved
       @getListView().addItem activity, 0
     else
       view = @addHiddenItem activity, 0
-      @utils.defer -> view.slideIn()
+      @utils.defer ->
+        view.slideIn ->
+          hiddenItems.splice hiddenItems.indexOf(view), 1
 
   fakeActivityArrived:(activity)->
 
@@ -161,7 +183,9 @@ class ActivityListController extends KDListViewController
 
     instance = @getListView().addHiddenItem activity, index, animation
     hiddenItems.push instance
-    instance
+    lastItemTimeStamp = activity.createdAt
+
+    return instance
 
   unhideNewHiddenItems = (hiddenItems)->
 
