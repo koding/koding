@@ -89,7 +89,7 @@ class Status extends KDController
       monitorItems.getItems()[name] = channel
 
       channel.on "unresponsive", ->
-        KD.troubleshoot()
+        KD.troubleshoot(false)
 
     kite.on "channelDeleted", (channel, name) ->
       delete monitorItems.getItems()[name]
