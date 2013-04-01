@@ -155,8 +155,7 @@ class ActivityListController extends KDListViewController
 
     if dataId?
       if @itemsIndexed[dataId]
-        console.log "duplicate entry", activity.bongo_?.constructorName, dataId
-        _rollbar.push msg:"duplicate entry", type:activity.bongo_?.constructorName, id:dataId
+        log "duplicate entry", activity.bongo_?.constructorName, dataId
       else
         @itemsIndexed[dataId] = activity
         super(activity, index, animation)
