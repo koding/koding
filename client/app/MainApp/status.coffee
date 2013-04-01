@@ -22,14 +22,14 @@ class Status extends KDController
     @remote.connect()
 
   disconnect: (options={}) ->
-    if "string" is typeof options
+    if "boolean" is typeof options
       options = autoReconnect : options
 
-    autoReconnect = options.autoReconnect or true
-    reason = options.reason or "internetDown"
+    autoReconnect = options.autoReconnect
+    @reason = options.reason or undefined
 
     @remote.disconnect(autoReconnect)
-    @disconnected(reason)
+    @disconnected()
 
   connected: ->
     @connectionState = UP
@@ -40,20 +40,35 @@ class Status extends KDController
     else
       @state = RECONNECTED
       @emit "reconnected"
+      @startPingingKites()
+
+  startPingingKites: ->
+    @eachKite (channel) ->
+      channel.setStartPinging()
 
   disconnected: () ->
     return "already disconnected"  if @connectionState is DOWN
 
+    @stopPingingKites()
     @connectionState = DOWN
     @state = DISCONNECTED
-    @emit "disconnected", "internetDown"
+    @emit "disconnected", @reason
+
+  stopPingingKites: ->
+    @eachKite (channel) ->
+      channel.setStopPinging()
+
+  eachKite: (callback) ->
+    kiteChannels = KD.getSingleton("kiteController").channels
+    for channelName, channel of kiteChannels
+      callback(channel)
 
   internetUp: ->
     @connected()  if @connectionState is DOWN
 
   internetDown: ->
     if @connectionState is UP
-      @disconnect autoReconnect:true
+      @disconnect autoReconnect:true, reason:"internetDown"
 
   loggedInStateChanged: (account) ->
     @emit "bongoConnected", account

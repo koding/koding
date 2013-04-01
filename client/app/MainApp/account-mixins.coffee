@@ -62,9 +62,13 @@ AccountMixin = do ->
         @emit 'pong'
         @lastPong = Date.now()
 
+      setStopPinging = -> @stopPinging = true
+      setStartPinging = -> @stopPinging = false
+
       cycleChannel =->
-        @stopPinging = true
+        @setStopPinging()
         @off()
+
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
@@ -141,6 +145,8 @@ AccountMixin = do ->
           channel.cycleChannel = -> cycleChannel.call this
           channel.ping = (callback) ->
             ping.call this, callback  unless @stopPinging
+          channel.setStopPinging = -> setStopPinging.call this
+          channel.setStartPinging = -> setStartPinging.call this
 
           channel.on "message", messageHandler.bind channel, kiteName
           channel.on "publish", messageSent.bind channel
