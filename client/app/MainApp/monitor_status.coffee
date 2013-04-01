@@ -94,6 +94,8 @@ class MonitorStatus extends KDObject
       status.internetDown()
 
   notify: (reason) ->
+    return  unless @showNotifications
+
     notifications =
       internetUp : "All systems go!"
       internetDown: "Your internet is down."
@@ -181,9 +183,10 @@ external = new ExternalPing url
 monitorItems = new MonitorItems
 monitorItems.register {external}
 
-KD.troubleshoot = ->
+KD.troubleshoot = (showNotifications=true)->
   monitorItems = KD.getSingleton("monitorItems").items
   monitor = new MonitorStatus monitorItems
+  monitor.showNotifications = showNotifications
   monitor.run()
 
 window.jsonp = ->

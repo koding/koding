@@ -69,7 +69,7 @@ class ActivityListController extends KDListViewController
     for activity in activities when activity
       @addItem activity
 
-    modifiedAt = activities.first.meta.modifiedAt
+    modifiedAt = _.compact(activities).first.meta.modifiedAt
     unless lastItemTimeStamp > modifiedAt
       # HACK: activity timestamp is off -200 ms on first get
       time = new Date(modifiedAt).getTime()
