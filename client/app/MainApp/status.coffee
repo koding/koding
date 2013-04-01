@@ -26,7 +26,7 @@ class Status extends KDController
       options = autoReconnect : options
 
     autoReconnect = options.autoReconnect
-    @reason = options.reason or undefined
+    @reason = options.reason
 
     @remote.disconnect(autoReconnect)
     @disconnected()
@@ -43,7 +43,7 @@ class Status extends KDController
       @startPingingKites()
 
   startPingingKites: ->
-    @eachKite (channel) ->
+    @eachKite (channel)->
       channel.setStartPinging()
 
   disconnected: () ->
@@ -55,7 +55,7 @@ class Status extends KDController
     @emit "disconnected", @reason
 
   stopPingingKites: ->
-    @eachKite (channel) ->
+    @eachKite (channel)->
       channel.setStopPinging()
 
   eachKite: (callback) ->
