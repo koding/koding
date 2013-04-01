@@ -123,11 +123,10 @@ class LandingNavigationLink extends NavigationLink
 
     super options, data
     @loader = new KDLoaderView
-      size          :
-        width       : 20
-        height      : 20
+      diameter      : 16
       loaderOptions :
         color       : "#444444"
+
     @loader.hide()
 
   viewAppended:->
@@ -141,11 +140,8 @@ class LandingNavigationLink extends NavigationLink
       <span class="icon hidden"></span>
       <span class="button-title">#{@getData().title}</span>
     </button>
+    {{> @loader}}
     """
-   # "<button class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
-
-  # pistachio:->
-  #   "<a class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
 
   click:->
     @loader.show() if @getData().type is 'user'

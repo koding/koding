@@ -1,7 +1,8 @@
 class StaticProfileController extends KDController
 
   CONTENT_TYPES = [
-    'CBlogPostActivity','CStatusActivity','CCodeSnipActivity',
+    # 'CBlogPostActivity',
+    'CStatusActivity','CCodeSnipActivity',
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
@@ -105,8 +106,9 @@ class StaticProfileController extends KDController
 
 
     @on 'ActivityLinkClicked', (callback=->)=>
+      if @controllers['activity'] then @displaySidebar yes
       @addLogic 'activity'
-      @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'activity', =>
+      @emit 'StaticProfileNavLinkClicked', 'CStatusActivity', 'activity', =>
         @showWrapper @wrappers['activity']
         @displaySidebar yes
         @staticPageSettingsButton?.show()

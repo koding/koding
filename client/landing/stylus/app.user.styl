@@ -48,7 +48,9 @@
 
       .kdloader
         fr()
-        margin-right        5px
+        // margin-right        5px
+        display             inline-block!important
+        margin-top          6px
 
       &.invisible
         border              none
@@ -80,6 +82,7 @@
 
 
 .profile-sidebar#landing-page-sidebar
+  abs()
   width                       100%
   height                      auto
   display                     inline-block
@@ -94,10 +97,11 @@
     .navigation-item
       border                  none
       width                   auto
-      min-width               10px
+      min-width               85px
       display                 inline-block
       z-index                 1000
       margin                  0 5px 0 0
+      vertical-align          top
 
       &.selected
         bg color,             transparent
@@ -110,6 +114,8 @@
         border                none
         bg color,             transparent
         bg image,             none
+        fl()
+        // display               inline-block
 
         &:active
           shadow              none
@@ -284,7 +290,11 @@ textarea.profile-handle-customize.kdinput
   line-height               16px
   vertical-align            top
 
+.kdview.kdlistview.kdlistview-default.static-content.activity-related
+  padding-top               50px
 
+  .kdlistitemview-activity:first-child
+    border-top              1px solid rgba(0,0,0,0.075)
 
 .static-link-container
 
@@ -392,6 +402,7 @@ textarea.profile-handle-customize.kdinput
   borderBox()
   fl()
   vendor transition,        width 0.2s linear //\, padding-left 0.2s linear
+  padding-top               25px
   width                     139px
   overflow                  hidden
   height                    100%
