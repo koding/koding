@@ -201,11 +201,9 @@ class StaticGroupBackgroundSelectView extends KDView
         dataIndex : i-1
         type      : 'defaultImage'
 
-    log '',@getData()
-
     items.push
       title       : 'Upload an Image'
-      url         : '/images/bg/no.jpg'
+      url         : ''
       thumbUrl    : '/images/bg/th/no.png'
       dataIndex   : -1
       type        : 'customImage'
@@ -236,8 +234,6 @@ class StaticGroupBackgroundSelectView extends KDView
         if item.getData().dataIndex is group.customize.background.customValue
           @thumbsController.selectItem item
 
-
-
     else @thumbsController.deselectAllItems()
 
   viewAppended:->
@@ -262,7 +258,7 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
 
     @type = @getData().type or 'defaultImage'
 
-    if @type is 'defaultImage'
+    if @type is 'defaultImage' or (@type is 'customImage' and @getData().url?.length>0)
       @image = new KDCustomHTMLView
         tagName     : 'img'
         cssClass    : 'custom-image-default'
@@ -369,32 +365,34 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
 
+    {@type,colorValue,title} = data = @getData()
+
     @setClass 'custom-image-selectitemview color'
     @title = new KDView
-      partial : @getData().title
+      partial : title
 
-    @type = @getData().type or 'defaultImage'
+    @type ?= 'defaultImage'
 
     if @type is 'defaultColor'
       @color = new KDView
         cssClass : 'custom-color-default'
-      @color.$().css backgroundColor : "#{@getData().colorValue}"
+      @color.$().css backgroundColor : "#{colorValue}"
 
     else if @type is 'customColor'
       @color = new StaticGroupBackgroundColorPickerView
         cssClass : 'custom-color-picker'
-      ,@getData()
+      ,data
 
   click: ->
     {type,colorValue} = @getData()
 
-    if @getData().type is 'defaultColor'
+    if type is 'defaultColor'
       @getDelegate().emit 'DefaultColorSelected', @
-      @getSingleton('staticGroupController').setBackground @type, @getData().colorValue
+      @getSingleton('staticGroupController').setBackground type, colorValue
 
-    else if @getData().type is 'customColor'
+    else if type is 'customColor'
       @getDelegate().emit 'CustomColorSelected', @
-      @getSingleton('staticGroupController').setBackground @type, @color.picker.getValue()
+      @getSingleton('staticGroupController').setBackground type, @color.picker.getValue()
     else log 'Something weird happened'
 
   decorateCustomColor:(color)->
