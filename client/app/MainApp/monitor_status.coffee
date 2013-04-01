@@ -97,6 +97,7 @@ class MonitorStatus extends KDObject
     notifications =
       internetUp : "All systems go!"
       internetDown: "Your internet is down."
+      kodingDown: "Koding is down."
       kitesDown: "Kites are down."
       sharedHostingDown: "SharedHosting is down."
       webtermDown: "Webterm is down."
@@ -104,7 +105,7 @@ class MonitorStatus extends KDObject
       brokerDown: "Broker is Down."
       undefined: "Sorry, something went wrong."
 
-    msg = notifications[reason] or "All systems go."
+    msg = notifications[reason] or notifications["undefined"]
 
     notification = new KDNotificationView
       title     : "<span></span>#{msg}"
