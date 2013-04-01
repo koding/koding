@@ -98,6 +98,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
             left : -5
         click    : =>
           @showLoader()
+          @utils.stopLoggingToRollbar()
           @getSingleton("kodingAppsController").compileApp \
             manifest.name, (err)=>
               @hideLoader()
