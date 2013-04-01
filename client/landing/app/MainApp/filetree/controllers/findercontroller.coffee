@@ -81,7 +81,7 @@ class NFinderController extends KDViewController
     {nickname} = KD.whoami().profile
     kiteController.run
       kiteName   : 'os'
-      method     : 'watch'
+      method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
           FSHelper.folderOnChange "/home/#{nickname}", change, @treeController

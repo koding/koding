@@ -76,14 +76,6 @@ class StaticGroupController extends KDController
       cssClass : "button-wrapper"
       lazyDomId : "group-button-wrapper"
 
-
-    groupConfigView = new KDView
-      lazyDomId : 'group-config'
-
-    groupConfigView.addSubView new StaticGroupCustomizeView
-      delegate : @
-    ,@getData()
-
     @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
@@ -167,12 +159,20 @@ class StaticGroupController extends KDController
             else
               @emit roleEventMap[statuses.first]
 
-  setBackground:(url)->
-    @groupContentView.$().css backgroundColor : 'white'
-    @utils.wait 200, =>
-      @groupContentWrapperView.$().css backgroundImage : "url(#{url})"
+  removeBackground:->
+    @groupContentWrapperView.$().css backgroundImage : "none"
+    @groupContentWrapperView.$().css backgroundColor : "#ffffff"
+
+  setBackground:(type,val)->
+    if type in ['defaultImage','customImage']
+      @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
-        @groupContentView.$().css backgroundColor : 'transparent'
+        @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @utils.wait 200, =>
+          @groupContentView.$().css backgroundColor : 'transparent'
+    else
+      @groupContentWrapperView.$().css backgroundImage : "none"
+      @groupContentWrapperView.$().css backgroundColor : "#{val}"
 
   attachListeners:->
 
@@ -253,7 +253,16 @@ class StaticGroupController extends KDController
         cssClass : 'editor-button'
         title    : "Customize"
         callback : =>
-          @groupContentWrapperView.setClass 'edit'
+          if @groupContentWrapperView.$().hasClass 'edit'
+            @groupContentWrapperView.unsetClass 'edit'
+          else @groupContentWrapperView.setClass 'edit'
+
+      groupConfigView = new KDView
+        lazyDomId : 'group-config'
+
+      groupConfigView.addSubView new StaticGroupCustomizeView
+        delegate : @
+      ,@getData()
 
 
 

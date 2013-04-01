@@ -264,6 +264,7 @@ dimmedNeighbor()
       top             0
       right           0
       sprite()
+
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
     rounded             2px
@@ -276,6 +277,14 @@ dimmedNeighbor()
       padding           0 10px
     &.clickable
       cursor pointer
+
+  .server-pin-button
+    border          none
+    background      none
+    right           -5px
+    margin-top      2px
+    z-index         10
+    abs()
 
   // .finder-settings-border
   //   rel()
@@ -300,7 +309,6 @@ dimmedNeighbor()
     border-bottom   1px solid #f2f2f2
     margin          0 20px
 
-
 #finder-header-holder
   size              auto, 66px
   h2
@@ -316,10 +324,6 @@ dimmedNeighbor()
     min-width       208px
     span
       margin-left   5px
-
-  .virt-controls
-    margin          4px
-    margin-left     26px
 
 #finder-bottom-controls
   abs()
@@ -340,11 +344,16 @@ dimmedNeighbor()
     sprite()
     bg                      position,-60px -160px
 
+  .finder-bottom-pin
+    right           0
+    top             2px
+    border          none
+    background      none
+    opacity         .4
+    abs()
+
   &.go-down
     size                    100%, 27px
-
-  &:hover
-    height                  180px
 
   ul
     min-width               208px
