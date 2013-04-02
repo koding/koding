@@ -33,7 +33,7 @@ wrapErr = (err)->
 
 # this.Error = KodingError
 
-module.exports = new Kite 'databases'
+module.exports = new Kite 'databases',
 
   #**********************************************#
   #***************** MySQL **********************#
