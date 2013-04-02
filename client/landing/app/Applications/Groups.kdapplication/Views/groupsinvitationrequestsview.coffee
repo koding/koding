@@ -170,6 +170,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           @inviteMember.buttons['Send invite'].hideLoader()
           if err then console.warn err
           else
+            @refresh()
             console.log 'done'
 
   pistachio:->
