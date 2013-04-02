@@ -423,7 +423,6 @@ textarea.profile-handle-customize.kdinput
   margin-right              0px
   border-right              1px solid #e8e8e8
 
-
   &.links-hidden
     width                   0
 
@@ -540,6 +539,10 @@ textarea.profile-handle-customize.kdinput
   width                     auto
   margin-left               0px
 
+  vendor transition, background-color 0.2s linear
+  vendor perspective, 800px
+
+
   &.has-links
     margin-left             125px
 
@@ -589,6 +592,15 @@ textarea.profile-handle-customize.kdinput
 // CONTENT
 // ############################################################################
 
+
+.profile-content-wrapper
+  &.edit
+    .profile-content-list
+      .profile-content.front
+        vendor transform,rotateY(-180deg)
+      .profile-content.back
+        vendor transform, rotateY(0deg)
+
 .kdlistview.kdview.profile-content
 .profile-content
   borderBox()
@@ -596,15 +608,27 @@ textarea.profile-handle-customize.kdinput
   height                    100%
   width                     auto
   abs()
-  top                       170px
+  top                       50px
   right                     0
   left                      0
-  bottom                    50px
+  bottom                    170px
   width                     800px
   margin                    auto
   rounded                   10px
   height                    auto
   bg color,                 white
+
+  vendor transform-style,   preserve-3d
+  vendor backface-visibility, hidden
+
+  &.allow-transitions
+    vendor transition ,     all .4s ease-in;
+
+  &.front
+    z-index 2
+
+  &.back
+    vendor transform, rotateY(180deg);
 
   &.kdview
     top                     50px
@@ -620,7 +644,7 @@ textarea.profile-handle-customize.kdinput
 
     &.static
       borderBox()
-      bg color,             white
+      // bg color,             white
       width                 800px
 
     height                  auto

@@ -189,6 +189,15 @@ class StaticProfileController extends KDController
 
       # reviving ADMIN views (inline edits, feeder checkboxes)
 
+      @profileContentView.setClass 'allow-transitions'
+
+      @profileConfigView = new KDView
+        lazyDomId : 'profile-config'
+
+      profileConfigWrapper = new KDView
+        lazyDomId : 'back-wrapper'
+        cssClass : 'allow-transitions'
+
       @profileTitleNameView = new KDView
         lazyDomId : 'profile-name'
 
@@ -354,7 +363,13 @@ class StaticProfileController extends KDController
           type            : "contextmenu"
           delegate        : @
           itemClass       : StaticProfileSettingsView
-          callback        : (event)-> @contextMenu event
+          callback        : (event)=>
+            log 'callback'
+            if @profileContentWrapperView.$().hasClass 'edit'
+              @profileContentWrapperView.unsetClass 'edit'
+            else  @profileContentWrapperView.setClass 'edit'
+
+            @advancedSettings.contextMenu event
           menu            : @getAdvancedSettingsMenuItems.bind @
 
       profileAdminMessageView.addSubView @advancedSettings

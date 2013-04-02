@@ -75,13 +75,17 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         <div class="profile-loading-bar" id="profile-loading-bar"></div>
 
          <div class="profile-content-list" id="profile-content-list">
-          <div class="profile-content" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
+          <div class="profile-content front" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
             #{getBlogPosts(lastBlogPosts,firstName,lastName)}
             <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
              <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more
              </button>
             </div>
           </div>
+          <div class="profile-content back" id='back-wrapper'>
+            <div class="content-item-scroll-wrapper" id='profile-config'>
+            </div>
+           </div>
         </div>
 
       <div id="landing-page-logo"></div>
