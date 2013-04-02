@@ -226,9 +226,14 @@ module.exports = class Builder
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
+    index = index.replace "production", @getEnvForRollbar()
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""
       # log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.index, index
     log.info "Build complete: #{@config.client.index}"
+
+  getEnvForRollbar: ->
+    version = @config.client.version
+    return if version == "0.0.1" then "dev" else version+Date.now()
