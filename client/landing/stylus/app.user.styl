@@ -625,14 +625,23 @@ textarea.profile-handle-customize.kdinput
     vendor transition ,     all .4s ease-in;
 
   &.front
-    z-index 2
+    z-index                 2
 
   &.back
-    vendor transform, rotateY(180deg);
+    vendor transform,       rotateY(180deg);
 
   &.kdview
     top                     50px
     bottom                  170px
+
+  .flip-button
+    bg image,               none
+    bg color,               transparent
+    border                  none
+    z-index                 2
+    abs()
+    top                     5px
+    right                   5px
 
   .new-blogpost
     abs()
@@ -1120,3 +1129,15 @@ textarea.profile-handle-customize.kdinput
       bg position,          -39px -340px
       size                  26px 26px
       display               inline-block
+
+.profile-config
+
+  .flip-button
+    bg image,               none
+    bg color,               transparent
+    border                  none
+    // z-index                 2
+    abs()
+    top                     5px
+    right                   5px
+
