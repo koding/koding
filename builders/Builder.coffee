@@ -226,7 +226,7 @@ module.exports = class Builder
     index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
-    index = index.replace "production", @getEnvForRollbar()
+    index = index.replace "rollbar-env", @getEnvForRollbar()
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""
