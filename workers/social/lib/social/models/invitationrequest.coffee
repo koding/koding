@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
-  {daisy}   = require 'bongo'
+  {ObjectRef, daisy}   = require 'bongo'
 
   {permit} = require './group/permissionset'
 
@@ -109,7 +109,6 @@ module.exports = class JInvitationRequest extends Model
 
   approveInvitation: permit 'send invitations',
     success: (client, callback=->)->
-      console.trace()
       JGroup = require './group'
       JGroup.one { slug: @group }, (err, group)=>
         if err then callback err
@@ -120,7 +119,7 @@ module.exports = class JInvitationRequest extends Model
             if err then callback err
             else
               # send the invitation in any case:
-              @sendInvitation()
+              @sendInvitation client, group
               if account?
                 group.approveMember account, (err)=>
                   if err then callback err
@@ -131,18 +130,42 @@ module.exports = class JInvitationRequest extends Model
   deleteInvitation: permit 'send invitations',
     success:(client, rest...)-> @remove rest...
 
-  sendInvitation:(callback=->)->
-    JUser         = require './user'
-    JInvitation   = require './invitation'
-    JUser.someData username: @koding.username, { email: 1 }, (err, cursor)=>
+  sendInvitation:(client, callback=->)->
+    JUser       = require './user'
+    JInvitation = require './invitation'
+    JGroup      = require './group'
+
+    JGroup.one slug: @group, (err, group)=>
       if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
       else
-        cursor.nextObject (err, obj)=>
+        JUser.one email: @email, (err, user)=>
           if err then callback err
-          else unless obj?
-            callback new KodingError "Unknown username: #{@koding.username}"
+          else if not user
+            # send invite to non koding user
           else
-            JInvitation.sendBetaInvite obj, callback
+            # send invite to existing koding user
+            @sendInviteToKodingUser client, user, group, callback
 
   sendInvitation$: permit 'send invitations',
-    success: (client, callback)-> @sendInvitation callback
+    success: (client, callback)-> @sendInvitation client, callback
+
+  sendInviteToKodingUser:(client, user, group, callback)->
+    JMailNotification = require './emailnotification'
+
+    data =
+      actor        : client
+      receiver     : user
+      event        : 'Invited'
+      contents     :
+        subject    : ObjectRef(@).data
+        actionType : 'group'
+        actorType  : 'admin'
+        group      : ObjectRef(group).data
+        admin      : ObjectRef(client).data
+
+    JMailNotification.create data, (err)->
+      if err then callback new KodingError "Could not send"
+      else
+        callback null

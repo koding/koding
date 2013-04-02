@@ -62,7 +62,7 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin'
+        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember'
       ]
     schema          :
       title         :
@@ -618,10 +618,24 @@ module.exports = class JGroup extends Module
   inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
-      invitationRequest = new JInvitationRequest {email}
-      invitationRequest.save (err)->
-        if err then callback err
-        else invitationRequest.sendInvitation client, callback
+      invitationRequest = new JInvitationRequest
+        email          : email,
+        invitationType : 'invitation',
+        group          : @slug,
+        status         : 'sent'
+
+      invitationRequest.save (err)=>
+        if err
+          if err.code is 11000
+            callback new KodingError """
+              You've already invited #{email} to join this group.
+              """
+          else
+            callback err
+        else
+          @addInvitationRequest invitationRequest, (err)->
+            if err then callback err
+            else invitationRequest.sendInvitation client, callback
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...

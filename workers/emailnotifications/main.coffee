@@ -41,6 +41,15 @@ flags =
   privateMessage    :
     template        : template.instantMail
     definition      : "private messages"
+  groupInvite       :
+    template        : template.instantMail
+    definition      : "group invitation"
+  groupRequest      :
+    template        : template.instantMail
+    definition      : "group membership request"
+  groupApproval     :
+    template        : template.instantMail
+    definition      : "group membership request approved"
 
 sendDailyEmail = (details, content)->
   unless content or details.email

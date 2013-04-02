@@ -7,18 +7,24 @@ class AccountEmailNotifications extends KDView
   putContents:(account, user)->
 
     fields =
-      global         :
-        title        : 'Email notifications'
-      daily          :
-        title        : 'Send me a daily email about everything below'
-      privateMessage :
-        title        : 'Someone sends me a private message'
-      followActions  :
-        title        : 'Someone follows me'
-      comment        :
-        title        : 'My post receives a comment'
-      likeActivities :
-        title        : 'When I receive likes'
+      global           :
+        title          : 'Email notifications'
+      daily            :
+        title          : 'Send me a daily email about everything below'
+      privateMessage   :
+        title          : 'Someone sends me a private message'
+      followActions    :
+        title          : 'Someone follows me'
+      comment          :
+        title          : 'My post receives a comment'
+      likeActivities   :
+        title          : 'When I receive likes'
+      groupInvite      :
+        title          : 'Someone invites me to their group'
+      groupRequest     :
+        title          : 'Someone requests membership to your group'
+      groupApproval    :
+        title          : 'Group admin approves your membership request'
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView

@@ -56,6 +56,18 @@ module.exports = class JMailNotification extends Model
       eventType      : ['ReplyIsAdded', 'PrivateMessageSent']
       contentTypes   : ['JPrivateMessage']
       definition     : 'about private messages'
+    groupInvite      :
+      eventType      : ['Invited']
+      contentTypes   : ['JGroup'],
+      definition     : "when someone invites you to their group"
+    groupRequest     :
+      eventType      : ['ApprovalRequested']
+      contentTypes   : ['JGroup'],
+      definition     : "when someone requests membership to user's group"
+    groupApproval    :
+      eventType      : ['Approved']
+      contentTypes   : ['JGroup'],
+      definition     : "when user's group membership has been approved"
 
   @checkEmailChoice = (options, callback)->
 
@@ -122,6 +134,8 @@ module.exports = class JMailNotification extends Model
         # console.log "OK good to go."
         notification.save (err)->
           if err then console.error err
+          else
+            callback null
           # else console.log "Saved to queue."
       # else
       #   console.log "Already exists"
