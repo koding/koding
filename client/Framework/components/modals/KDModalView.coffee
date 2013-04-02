@@ -36,7 +36,7 @@ class KDModalView extends KDView
 
     KDView.appendToDOMBody @
 
-    @setModalWidth options.width
+    @setModalWidth  options.width
     @setModalHeight options.height                if options.height
 
     if options.buttons
@@ -149,7 +149,7 @@ class KDModalView extends KDView
     @setPositions()
     {winHeight} = @getSingleton('windowController')
     @$('.kdmodal-content').css 'max-height', winHeight - 200
-    @setY (winHeight - @getHeight())/2
+    @setY (winHeight - @getHeight()) / 2 unless @getOptions().position.top
 
   putOverlay:->
     @$overlay = $ "<div/>",
