@@ -40,7 +40,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
-        <div id="landing-page-sidebar" class=" profile-sidebar kdview">
+        <div id="landing-page-sidebar" class="profile-sidebar kdview">
           <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
               <button type="button" class="kdbutton editor-button">
