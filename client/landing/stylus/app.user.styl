@@ -88,13 +88,14 @@
   display                     inline-block
   // padding                     0
   // margin-right                -3px
-  margin-top                  -1px
+  margin-top                  -28px
   z-index                     1
 
   .kdlistview-navigation
     text-align                center
     width                     100%
     margin                    0px
+    height                    40px
 
     .navigation-item
       border                  1px solid white
@@ -104,6 +105,7 @@
       z-index                 1000
       margin                  0
       // margin                  0 5px 0 0
+      height                  25px
       vertical-align          top
       bg color,               white
       padding-left:20px
@@ -307,7 +309,7 @@ textarea.profile-handle-customize.kdinput
   vertical-align            top
 
 .kdview.kdlistview.kdlistview-default.static-content.activity-related
-  padding-top               50px
+  // padding-top               50px
 
   .kdlistitemview-activity:first-child
     border-top              1px solid rgba(0,0,0,0.075)
@@ -417,8 +419,10 @@ textarea.profile-handle-customize.kdinput
 .profile-content-links
   borderBox()
   fl()
+  bg color,                 transparent
+  // bg color,                 rgba(255,255,255,0.85)
   vendor transition,        width 0.2s linear //\, padding-left 0.2s linear
-  padding-top               25px
+  // padding-top               25px
   width                     139px
   overflow                  hidden
   height                    100%
@@ -427,6 +431,7 @@ textarea.profile-handle-customize.kdinput
 
   &.links-hidden
     width                   0
+    border                  none
 
   li
     borderBox()
@@ -533,6 +538,12 @@ textarea.profile-handle-customize.kdinput
 .profile-splitview
   height                    100%
 
+.profile-content-wrapper.activity
+   .profile-content-list > .profile-content > .listview-wrapper
+     margin-left 139px
+     width auto
+
+
 .profile-content-list
   vendor transition,        margin-left 0.2s linear
   vendor transition,        margin-left 0.2s linear
@@ -541,26 +552,29 @@ textarea.profile-handle-customize.kdinput
   width                     auto
   margin-left               0px
 
-  vendor transition, background-color 0.2s linear
-  vendor perspective, 800px
+  vendor transition,        background-color 0.2s linear
+  vendor perspective,       800px
 
 
-  &.has-links
-    margin-left             125px
+  // &.has-links
+  //   margin-left             125px
 
-  > .profile-content > .listview-wrapper > .kdscrollview
-    abs()
-    borderBox()
-    top                     0
-    left                    0
-    right                   0
-    bottom                  0
-    margin-bottom           100px
-    rounded                 10px
-    bg color,               white
-    height                  auto
-    width                   800px
-    margin                  auto
+  > .profile-content > .listview-wrapper
+    vendor transition,      margin-left 0.2s linear
+    > .kdscrollview
+      abs()
+      borderBox()
+      vendor transition,    left 0.2s linear
+      top                     0
+      left                    0
+      right                   0
+      bottom                  0
+      margin-bottom           100px
+      rounded                 10px
+      bg color,               white
+      height                  auto
+      width                   auto
+      margin                  auto
 
 
 .profile-admin-customize
