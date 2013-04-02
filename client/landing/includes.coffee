@@ -515,6 +515,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee",
