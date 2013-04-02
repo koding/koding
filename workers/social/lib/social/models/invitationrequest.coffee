@@ -119,7 +119,7 @@ module.exports = class JInvitationRequest extends Model
             if err then callback err
             else
               # send the invitation in any case:
-              @sendInvitation client, group
+              @sendInvitation client
               if account?
                 group.approveMember account, (err)=>
                   if err then callback err
@@ -152,20 +152,29 @@ module.exports = class JInvitationRequest extends Model
     success: (client, callback)-> @sendInvitation client, callback
 
   sendInviteToKodingUser:(client, user, group, callback)->
+    JAccount    = require './account'
     JMailNotification = require './emailnotification'
 
-    data =
-      actor        : client
-      receiver     : user
-      event        : 'Invited'
-      contents     :
-        subject    : ObjectRef(@).data
-        actionType : 'group'
-        actorType  : 'admin'
-        group      : ObjectRef(group).data
-        admin      : ObjectRef(client).data
-
-    JMailNotification.create data, (err)->
-      if err then callback new KodingError "Could not send"
+    JAccount.one 'profile.nickname': user.username, (err, receiver)=>
+      if err then callback err
       else
-        callback null
+        {delegate} = client.connection
+        JAccount.one _id: delegate.getId(), (err, actor)=>
+          if err then callback err
+          else
+            console.log actor
+            data =
+              actor        : actor
+              receiver     : receiver
+              event        : 'Invited'
+              contents     :
+                subject    : ObjectRef(group).data
+                actionType : 'invite'
+                actorType  : 'admin'
+                invite     : ObjectRef(@).data
+                admin      : ObjectRef(client).data
+
+            JMailNotification.create data, (err)->
+              if err then callback new KodingError "Could not send"
+              else
+                callback null

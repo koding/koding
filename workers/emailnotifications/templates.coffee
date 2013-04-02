@@ -12,6 +12,12 @@ flags =
     definition      : "follow"
   privateMessage    :
     definition      : "private message"
+  groupInvite       :
+    definition      : "group invite"
+  groupRequest      :
+    definition      : "group membership request"
+  groupApproval     :
+    fullDefinition  : "Your group membership has been approved"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
@@ -157,8 +163,10 @@ Templates =
     Templates.mainTemplate m, content, Templates.footerTemplate(turnOffLink), description
 
   commonHeader : (m)->
-    eventName   = flags[m.notification.eventFlag].definition
+    if flags[m.notification.eventFlag].fullDefinition?
+      return flags[m.notification.eventFlag].fullDefinition
 
+    eventName   = flags[m.notification.eventFlag].definition
     return """You have a new #{eventName}"""
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"

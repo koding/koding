@@ -97,9 +97,9 @@ module.exports = class JMailNotification extends Model
     {actor, receiver, event, contents} = data
 
     username = receiver.getAt 'profile.nickname'
-    sender   = actor.id
+    sender   = actor._id
     receiver = receiver._id
-
+    
     activity =
       subject    : contents.subject
       actionType : contents.actionType
