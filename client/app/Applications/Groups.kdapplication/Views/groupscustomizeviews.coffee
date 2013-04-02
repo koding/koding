@@ -241,8 +241,6 @@ class StaticGroupBackgroundSelectView extends KDView
   decorateList:(group={})->
     backgroundData = @getDelegate().getBackgroundData group
 
-    log backgroundData,group
-
     if backgroundData.customImages
 
       for customImage in backgroundData.customImages

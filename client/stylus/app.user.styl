@@ -308,11 +308,11 @@ textarea.profile-handle-customize.kdinput
   line-height               16px
   vertical-align            top
 
-.kdview.kdlistview.kdlistview-default.static-content.activity-related
-  // padding-top               50px
+// .kdview.kdlistview.kdlistview-default.static-content.activity-related
+//   // padding-top               50px
 
-  .kdlistitemview-activity:first-child
-    border-top              1px solid rgba(0,0,0,0.075)
+//   .kdlistitemview-activity:first-child
+//     border-top              1px solid rgba(0,0,0,0.075)
 
 .static-link-container
 
@@ -632,7 +632,10 @@ textarea.profile-handle-customize.kdinput
   margin                    auto
   rounded                   10px
   height                    auto
-  bg color,                 white
+  bg color,                 #fbfbfb
+  shadow                    0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
+  border                    1px solid #e8e8e8
+
 
   vendor transform-style,   preserve-3d
   vendor backface-visibility, hidden
@@ -654,10 +657,10 @@ textarea.profile-handle-customize.kdinput
     bg image,               none
     bg color,               transparent
     border                  none
-    z-index                 2
+    z-index                 2000
     abs()
     top                     5px
-    right                   5px
+    right                   0px
 
   .new-blogpost
     abs()
@@ -770,7 +773,7 @@ textarea.profile-handle-customize.kdinput
     // bg color,               #fbfbfb
     line-height             20px
     min-height              50px
-    height                  auto
+    height                  100%
     border-bottom           none
 
 #profile-placeholder

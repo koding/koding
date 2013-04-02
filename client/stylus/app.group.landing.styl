@@ -283,11 +283,7 @@
   vertical-align bottom
 
 
-
-
-
 .group-content-wrapper
-  // margin-left           160px
   height                        100%
   width                         auto
   bg color,                     white
@@ -312,7 +308,6 @@
   margin-top: -120px
   padding-top 120px
 
-  // vendor perspective, 800px
   vendor perspective-origin-x, 50%
   vendor perspective-origin-y, 50%
 
@@ -320,29 +315,19 @@
 .group-loading-content
   vendor transition, background-color 0.2s linear
   vendor perspective, 800px
-  // vendor perspective-origin-x, 50%
-  // vendor perspective-origin-y, 50%
-
   borderBox()
-
   overflow                              auto
   height                                100%
   width                                 auto
   padding-top                           50px
-  // bg color, rgba(255,255,255,0.5)
   gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
-  // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
 
   rel()
-
-  // vendor transform-style, preserve-3d
-  // vendor transition ,all .4s ease-in;
 
   .content-item
     vendor transform-style, preserve-3d
     vendor transition ,all .4s ease-in;
     vendor backface-visibility, hidden
-    // vendor transform-origin, 50% 0px;
 
     abs()
     left 0
@@ -353,31 +338,24 @@
     borderBox()
 
     &.front
-      // vendor transform, translateY(0px) rotateY(0deg);
-      // .has-markdown
-      //   bg color, red
       z-index 2
+
     &.back
       vendor transform, rotateY(180deg);
-      // .has-markdown
-      //   bg color, green
-      // vendor transform, rotateY(180deg)
 
   .content-item-scroll-wrapper
     padding                             40px
-    // max-width                           600px
     max-width                           61.803398875%
     margin                              0px auto
     rounded                             5px
-    border                              1px solid #e3e3e3
-    bg                                  color, #f5f5f5
+    border                              1px solid #e8e8e8
+    bg                                  color, #fbfbfb
     shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
     borderBox()
     height                              100%
 
   .has-markdown
     borderBox()
-    // padding                             30px
     overflow                            auto
     height                              100%
 
@@ -398,7 +376,7 @@
   text-align                            center
 
   &.color
-    width 25%
+    width                               25%
 
   span.data
     abs()
@@ -546,7 +524,7 @@
     margin                              10px 5px
 
 .custom-image-upload + span.data
-  border-bottom                       1px dashed rgba(125,190,241,0.5)
+  border-bottom                         1px dashed rgba(125,190,241,0.5)
 
 .custom-image-upload
   borderBox()

@@ -63,21 +63,19 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
          <div class="profile-content-list" id="profile-content-list">
           <div class="profile-content front" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
-       <div class="profile-content-links links-hidden" id="profile-content-links">
-          <h4>Show me</h4>
-          <ul>
-            <!--<li class="" id="CBlogPostActivity">Blog Posts</li>-->
-            <li class="disabled" id="CStatusActivity">Status Updates</li>
-            <li class="disabled" id="CCodeSnipActivity">Code Snippets</li>
-            <li class="disabled" id="CDiscussionActivity">Discussions</li>
-            <li class="disabled" id="CTutorialActivity">Tutorials</li>
-          </ul>
-        </div>
-
+            <div class="profile-content-links links-hidden" id="profile-content-links">
+              <h4>Show me</h4>
+              <ul>
+                <!--<li class="" id="CBlogPostActivity">Blog Posts</li>-->
+                <li class="disabled" id="CStatusActivity">Status Updates</li>
+                <li class="disabled" id="CCodeSnipActivity">Code Snippets</li>
+                <li class="disabled" id="CDiscussionActivity">Discussions</li>
+                <li class="disabled" id="CTutorialActivity">Tutorials</li>
+              </ul>
+            </div>
             #{getBlogPosts(lastBlogPosts,firstName,lastName)}
             <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
-             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more
-             </button>
+             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more</button>
             </div>
           </div>
           <div class="profile-content back" id='back-wrapper'>
