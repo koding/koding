@@ -168,7 +168,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 			DoNotOverwrite bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
 		}
 
 		user, vm := findSession(session)
@@ -211,19 +211,26 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 	k.Handle("fs.remove", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
-			Path string
+			Path      string
+			Recursive bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 		}
 
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
+		if params.Recursive {
+			if err := vos.RemoveAll(params.Path); err != nil {
+				return nil, err
+			}
+			return true, nil
+		}
+
 		if err := vos.Remove(params.Path); err != nil {
 			return nil, err
 		}
-
 		return true, nil
 	})
 

@@ -181,6 +181,12 @@ func (vos *VOS) Remove(name string) error {
 	})
 }
 
+func (vos *VOS) RemoveAll(name string) error {
+	return vos.inVosContext(name, func(resolved string) error {
+		return os.RemoveAll(resolved)
+	})
+}
+
 func (vos *VOS) Rename(oldname, newname string) error {
 	return vos.inVosContext(oldname, func(oldnameResolved string) error {
 		return vos.inVosContext(newname, func(newnameResolved string) error {
