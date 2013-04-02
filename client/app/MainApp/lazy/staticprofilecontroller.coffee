@@ -356,23 +356,42 @@ class StaticProfileController extends KDController
                 title   : 'Description updated.'
 
       @advancedSettings   = new KDButtonViewWithMenu
-          style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
+        style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
+        icon            : yes
+        iconOnly        : yes
+        iconClass       : "cog"
+        type            : "contextmenu"
+        delegate        : @
+        itemClass       : StaticProfileSettingsView
+        callback        : (event)=>
+          if @profileContentWrapperView.$().hasClass 'edit'
+            @profileContentWrapperView.unsetClass 'edit'
+          else  @profileContentWrapperView.setClass 'edit'
+
+          @advancedSettings.contextMenu event
+        menu            : @getAdvancedSettingsMenuItems.bind @
+
+      profileAdminMessageView.addSubView @advancedSettings
+
+      @flipButtonFront   = new KDButtonView
+          style           : 'flip-button editor-advanced-settings-menu'
           icon            : yes
           iconOnly        : yes
           iconClass       : "cog"
-          type            : "contextmenu"
-          delegate        : @
-          itemClass       : StaticProfileSettingsView
           callback        : (event)=>
-            log 'callback'
-            if @profileContentWrapperView.$().hasClass 'edit'
-              @profileContentWrapperView.unsetClass 'edit'
-            else  @profileContentWrapperView.setClass 'edit'
+            @profileContentWrapperView.setClass 'edit'
 
-            @advancedSettings.contextMenu event
-          menu            : @getAdvancedSettingsMenuItems.bind @
+      @flipButtonBack  = new KDButtonView
+          style           : 'flip-button editor-advanced-settings-menu'
+          icon            : yes
+          iconOnly        : yes
+          iconClass       : "cog"
+          callback        : (event)=>
+            @profileContentWrapperView.unsetClass 'edit'
 
-      profileAdminMessageView.addSubView @advancedSettings
+      @profileContentView.addSubView @flipButtonFront
+      profileConfigWrapper.addSubView @flipButtonBack
+
 
 
   getAdvancedSettingsMenuItems:->

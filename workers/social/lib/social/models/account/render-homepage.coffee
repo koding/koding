@@ -83,7 +83,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
             </div>
           </div>
           <div class="profile-content back" id='back-wrapper'>
-            <div class="content-item-scroll-wrapper" id='profile-config'>
+            <div class="profile-config" id='profile-config'>
             </div>
            </div>
         </div>
