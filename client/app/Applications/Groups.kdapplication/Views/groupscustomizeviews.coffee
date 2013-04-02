@@ -424,7 +424,8 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
     else log 'Something weird happened'
 
   decorateCustomColor:(color)->
-    @getDelegate().staticController.setBackground @type, color
+    @utils.defer =>
+      @getDelegate().getDelegate().staticController.setBackground @type, color
     @color.decorateCustomColor color or '#ff9200'
 
   viewAppended:->
