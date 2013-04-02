@@ -14,7 +14,6 @@ class KDModalView extends KDView
     options.fx           or= no            # a Boolean
     options.view         or= null          # a KDView instance
     options.draggable    or= handle : ".kdmodal-title"
-    options.sticky       or= no
     # TO BE IMPLEMENTED
     options.resizable    or= no            # a Boolean
 
@@ -56,11 +55,9 @@ class KDModalView extends KDView
     $(window).one "keydown.modal",(e)=>
       @cancel() if e.which is 27
 
-    unless @getOptions().sticky
-      @on "childAppended", @setPositions.bind @
-      @listenWindowResize()
+    @on "childAppended", @setPositions.bind @
 
-    @setPositions()
+    @listenWindowResize()
 
   setDomElement:(cssClass)->
 
@@ -149,7 +146,6 @@ class KDModalView extends KDView
       @$().css opacity : 1
 
   _windowDidResize:->
-    return unless @getOptions().sticky
     @setPositions()
     {winHeight} = @getSingleton('windowController')
     @$('.kdmodal-content').css 'max-height', winHeight - 200
