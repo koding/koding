@@ -46,6 +46,21 @@ class StaticProfileController extends KDController
         @reviveViewsOnUserLoad user
 
 
+  removeBackground:->
+    @profileContentWrapperView.$().css backgroundImage : "none"
+    @profileContentWrapperView.$().css backgroundColor : "#ffffff"
+
+  setBackground:(type,val)->
+    if type in ['defaultImage','customImage']
+      @profileContentList.$().css backgroundColor : 'white'
+      @utils.wait 200, =>
+        @profileContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @utils.wait 200, =>
+          @profileContentList.$().css backgroundColor : 'transparent'
+    else
+      @profileContentWrapperView.$().css backgroundImage : "none"
+      @profileContentWrapperView.$().css backgroundColor : "#{val}"
+
   attachListeners:->
 
     @on 'CommentLinkReceivedClick', (view)=>
@@ -355,23 +370,23 @@ class StaticProfileController extends KDController
               new KDNotificationView
                 title   : 'Description updated.'
 
-      @advancedSettings   = new KDButtonViewWithMenu
-        style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
-        icon            : yes
-        iconOnly        : yes
-        iconClass       : "cog"
-        type            : "contextmenu"
-        delegate        : @
-        itemClass       : StaticProfileSettingsView
-        callback        : (event)=>
-          if @profileContentWrapperView.$().hasClass 'edit'
-            @profileContentWrapperView.unsetClass 'edit'
-          else  @profileContentWrapperView.setClass 'edit'
+      # @advancedSettings   = new KDButtonViewWithMenu
+      #   style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
+      #   icon            : yes
+      #   iconOnly        : yes
+      #   iconClass       : "cog"
+      #   type            : "contextmenu"
+      #   delegate        : @
+      #   itemClass       : StaticProfileSettingsView
+      #   callback        : (event)=>
+      #     if @profileContentWrapperView.$().hasClass 'edit'
+      #       @profileContentWrapperView.unsetClass 'edit'
+      #     else  @profileContentWrapperView.setClass 'edit'
 
-          @advancedSettings.contextMenu event
-        menu            : @getAdvancedSettingsMenuItems.bind @
+      #     @advancedSettings.contextMenu event
+      #   menu            : @getAdvancedSettingsMenuItems.bind @
 
-      profileAdminMessageView.addSubView @advancedSettings
+      # profileAdminMessageView.addSubView @advancedSettings
 
       @flipButtonFront   = new KDButtonView
           style           : 'flip-button editor-advanced-settings-menu'
@@ -392,13 +407,17 @@ class StaticProfileController extends KDController
       @profileContentView.addSubView @flipButtonFront
       profileConfigWrapper.addSubView @flipButtonBack
 
+      @profileConfigView.addSubView new StaticProfileCustomizeView
+        delegate : @
+      ,@profileUser
 
 
-  getAdvancedSettingsMenuItems:->
-    settings      :
-      type        : 'customView'
-      view        : new StaticProfileSettingsView
-        delegate  : @
+
+  # getAdvancedSettingsMenuItems:->
+  #   settings      :
+  #     type        : 'customView'
+  #     view        : new StaticProfileSettingsView #StaticProfileSettingsView
+  #       delegate  : @
 
 
   reviveViewsOnPageLoad:->
@@ -756,59 +775,58 @@ class StaticHandleInput extends KDHitEnterInputView
 
 
 
-class StaticProfileSettingsView extends JView
-  constructor:(options,data)->
-    super options,data
+# class StaticProfileSettingsView extends JView
+#   constructor:(options,data)->
+#     super options,data
 
-    @setClass 'settings-view ace-settings-view'
+#     @setClass 'settings-view ace-settings-view'
 
-    user = @getDelegate().profileUser
+#     user = @getDelegate().profileUser
 
-    if user.profile.staticPage
-      {show} = user.profile.staticPage
-    else show = yes
+#     if user.profile.staticPage
+#       {show} = user.profile.staticPage
+#     else show = yes
 
-    @visibilityView = new KDOnOffSwitch
-      size                  : 'tiny'
-      defaultValue          : show
-      callback              : (value)=>
-          if show is yes
-            modal           = new KDModalView
-              cssClass      : 'disable-static-page-modal'
-              title         : 'Do you really want to disable your Public Page?'
-              content       : """
-                <div class="modalformline">
-                  <p>Disabling this feature will disable other people
-                  from publicly viewing your profile. You will still be
-                  able to access the page yourself.</p>
-                  <p>Do you want to continue?</p>
-                </div>
-                """
-              buttons       :
-                "Disable the Public Page" :
-                  cssClass  : 'modal-clean-red'
-                  callback  : =>
-                    modal.destroy()
-                    user.setStaticPageVisibility no, (err,res)=>
-                      if err then log err
-                Cancel      :
-                  cssClass  : 'modal-cancel'
-                  callback  : =>
-                    @visibilityView.setValue off
-                    modal.destroy()
-          else
-            user.setStaticPageVisibility yes, (err,res)=>
-              if err then log err
+#     @visibilityView = new KDOnOffSwitch
+#       size                  : 'tiny'
+#       defaultValue          : show
+#       callback              : (value)=>
+#           if show is yes
+#             modal           = new KDModalView
+#               cssClass      : 'disable-static-page-modal'
+#               title         : 'Do you really want to disable your Public Page?'
+#               content       : """
+#                 <div class="modalformline">
+#                   <p>Disabling this feature will disable other people
+#                   from publicly viewing your profile. You will still be
+#                   able to access the page yourself.</p>
+#                   <p>Do you want to continue?</p>
+#                 </div>
+#                 """
+#               buttons       :
+#                 "Disable the Public Page" :
+#                   cssClass  : 'modal-clean-red'
+#                   callback  : =>
+#                     modal.destroy()
+#                     user.setStaticPageVisibility no, (err,res)=>
+#                       if err then log err
+#                 Cancel      :
+#                   cssClass  : 'modal-cancel'
+#                   callback  : =>
+#                     @visibilityView.setValue off
+#                     modal.destroy()
+#           else
+#             user.setStaticPageVisibility yes, (err,res)=>
+#               if err then log err
+
+#   pistachio:->
+#     """
+#     <p>Make this page Public   {{> @visibilityView}}</p>
+#     """
 
 
-  pistachio:->
-    """
-    <p>Make this page Public   {{> @visibilityView}}</p>
-    """
+#   click:(event)->
 
-
-  click:(event)->
-
-    event.preventDefault()
-    event.stopPropagation()
-    return no
+#     event.preventDefault()
+#     event.stopPropagation()
+#     return no

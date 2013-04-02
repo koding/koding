@@ -534,6 +534,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
