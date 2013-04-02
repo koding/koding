@@ -1,7 +1,7 @@
 class StaticProfileController extends KDController
 
   CONTENT_TYPES = [
-    # 'CBlogPostActivity',
+    'CBlogPostActivity',
     'CStatusActivity','CCodeSnipActivity',
     'CDiscussionActivity', 'CTutorialActivity'
   ]
@@ -116,7 +116,8 @@ class StaticProfileController extends KDController
 
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
         @profileContentWrapperView.unsetClass 'activity'
-        @showWrapper @wrappers['static']
+        unless @controllers['static'].itemsOrdered.length is 0
+          @showWrapper @wrappers['static']
         @staticDefaultItem.show()
         @staticPageSettingsButton?.hide()
         callback()
@@ -181,7 +182,6 @@ class StaticProfileController extends KDController
         , []
 
         @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
-
         if blockedTypes.length is 0
           @currentFacets = facets
           appManager.tell 'Activity', 'fetchActivity',
@@ -192,7 +192,9 @@ class StaticProfileController extends KDController
           , (err, activities=[])=>
             @refreshActivities err, activities, type
             callback()
-        else @emit 'BlockedTypesRequested', blockedTypes
+        else
+          @emit 'BlockedTypesRequested', blockedTypes
+          @controllers[type].hideLazyLoader()
 
     @on "LogoClicked", =>
         @profileLogoInfo.unsetClass 'in'
@@ -563,7 +565,13 @@ class StaticProfileController extends KDController
       if activities.length > 0
         controller.listActivities activities
       else
-        controller.showNoItemWidget() unless type in ['static']
+        unless type in ['static']
+          controller.showNoItemWidget()
+          @showWrapper @wrappers[type]
+        else
+          @hideWrappers()
+    else
+      @controllers[type]?.hideLazyLoader()
 
 
   reviveVisitorViews:-> # put onboarding stuff here
