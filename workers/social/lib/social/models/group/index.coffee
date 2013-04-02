@@ -160,7 +160,6 @@ module.exports = class JGroup extends Module
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
 
-
   setBackgroundImage: permit 'edit groups',
     success:(client, type, value, callback=->)->
       if type is 'customImage'
@@ -175,7 +174,6 @@ module.exports = class JGroup extends Module
 
       if type in ['defaultImage','defaultColor','customColor','customImage']
         operation.$set["customize.background.customValue"] = value
-
 
       @update operation, callback
 
