@@ -112,8 +112,10 @@ class StaticProfileController extends KDController
 
       @staticDefaultItem.show()
       @displaySidebar no
+      @profileContentWrapperView.unsetClass 'activity'
 
       @emit 'StaticProfileNavLinkClicked', 'CBlogPostActivity', 'static', =>
+        @profileContentWrapperView.unsetClass 'activity'
         @showWrapper @wrappers['static']
         @staticDefaultItem.show()
         @staticPageSettingsButton?.hide()
@@ -121,18 +123,22 @@ class StaticProfileController extends KDController
 
 
     @on 'ActivityLinkClicked', (callback=->)=>
-      if @controllers['activity'] then @displaySidebar yes
+      if @controllers['activity']
+        @displaySidebar yes
+        @profileContentWrapperView.setClass 'activity'
       @addLogic 'activity'
       @emit 'StaticProfileNavLinkClicked', 'CStatusActivity', 'activity', =>
         @showWrapper @wrappers['activity']
         @displaySidebar yes
         @staticPageSettingsButton?.show()
+        @profileContentWrapperView.setClass 'activity'
         callback()
 
 
     @on 'AboutLinkClicked', (callback=->)=>
       @addLogic 'about', =>
         callback()
+      @profileContentWrapperView.unsetClass 'activity'
       @displaySidebar no
       @staticPageSettingsButton?.hide()
 
@@ -625,7 +631,7 @@ class StaticProfileController extends KDController
       appManager.tell 'Activity', 'fetchActivity',
         originId  : @profileUser.getId()
         facets    : @currentFacets
-        to        : @activityController.itemsOrdered.last.getData().meta.createdAt
+        to        : activityController.itemsOrdered.last.getData().meta.createdAt
         bypass    : yes
       , (err,activities)=>
         @appendActivities err,activities,'activity'
