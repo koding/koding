@@ -21,6 +21,7 @@ func main() {
 
 		if vm.IP == nil {
 			req.Redirect("http://www.koding.com/notactive.html")
+			return
 		}
 
 		if err := req.Relay(&net.TCPAddr{IP: vm.IP, Port: 80}); err != nil {
