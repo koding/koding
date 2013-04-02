@@ -23,6 +23,8 @@ class WebTermAppView extends JView
 
   addNewTab: ->
     webTermView = new WebTermView
+      delegate: @
+
     pane = new KDTabPaneView
       name: 'Terminal'
       webTermView: webTermView
