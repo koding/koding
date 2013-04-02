@@ -389,7 +389,7 @@ class StaticProfileController extends KDController
     @landingView.listenWindowResize()
     @landingView._windowDidResize = =>
       @landingView.setHeight window.innerHeight
-      @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+      # @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
 
 
     groupKodingLogo = new KDView

@@ -95,17 +95,26 @@
     margin                    0px
 
     .navigation-item
-      border                  none
+      border                  1px solid white
       width                   auto
       min-width               85px
       display                 inline-block
       z-index                 1000
-      margin                  0 5px 0 0
+      margin                  0
+      // margin                  0 5px 0 0
       vertical-align          top
+      bg color,               white
+      padding-left:20px
+
+      &:first-child
+        rounded 0 0 0 3px
+
+      &:last-child
+        rounded 0 0 3px 0
 
       &.selected
-        bg color,             transparent
-        margin                0 5px 0 0
+        bg color,             white
+        // margin                0 5px 0 0
 
         button.editor-button
           font-weight         bold
@@ -167,6 +176,11 @@
   // margin-left               50px
   height                    100%
   width                     auto
+  // bg color,                 white
+  bg size, cover
+  bg image, url('/images/bg/bg01.jpg')
+  bg repeat, no-repeat
+  bg position, center center
 
 .profile-title
   borderBox()
@@ -517,7 +531,6 @@ textarea.profile-handle-customize.kdinput
 
 .profile-splitview
   height                    100%
-  bg color,                 white
 
 .profile-content-list
   vendor transition,        margin-left 0.2s linear
@@ -530,6 +543,21 @@ textarea.profile-handle-customize.kdinput
   &.has-links
     margin-left             125px
 
+  .kdscrollview
+    abs()
+    borderBox()
+    top                     0
+    left                    0
+    right                   0
+    bottom                  0
+    margin-bottom           100px
+    rounded                 10px
+    bg color,               white
+    height                  auto
+    width                   800px
+    margin                  auto
+
+
 .profile-admin-customize
 .profile-admin-message
   abs()
@@ -539,6 +567,7 @@ textarea.profile-handle-customize.kdinput
   width                     auto
   height                    auto
   borderBox()
+
   a span.title
     borderBox()
     noTextDeco()
@@ -566,6 +595,20 @@ textarea.profile-handle-customize.kdinput
   overflow                  auto
   height                    100%
   width                     auto
+  abs()
+  top                       170px
+  right                     0
+  left                      0
+  bottom                    50px
+  width                     800px
+  margin                    auto
+  rounded                   10px
+  height                    auto
+  bg color,                 white
+
+  &.kdview
+    top                     50px
+    bottom                  170px
 
   .new-blogpost
     abs()
@@ -573,7 +616,13 @@ textarea.profile-handle-customize.kdinput
     top                     10px
 
   .content-item
-    // border-bottom           1px solid #e8e8e8
+    bg color,               transparent
+
+    &.static
+      borderBox()
+      bg color,             white
+      width                 800px
+
     height                  auto
     border-bottom           1px solid rgba(0,0,0,0.1)
     padding                 50px
@@ -583,10 +632,7 @@ textarea.profile-handle-customize.kdinput
     text-align              center
 
     > .title
-      // bg color,             #fbfbfb
       padding               20px 40px 0px
-      // border-bottom         1px solid #e8e8e8
-      // height                16px
 
       a
         noTextDeco()
@@ -604,7 +650,6 @@ textarea.profile-handle-customize.kdinput
         font-size           32px
         width               auto
         line-height         100%
-        // margin-top          -7px
         vendor transition,  color .1s linear
         a
           line-height       100%
@@ -663,7 +708,6 @@ textarea.profile-handle-customize.kdinput
       borderBox()
       max-width             780px
       padding               20px 40px 20px
-      // margin-bottom         30px
       text-align            left
       text-rendering        geometricPrecision
 
