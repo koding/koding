@@ -236,4 +236,4 @@ module.exports = class Builder
 
   getEnvForRollbar: ->
     version = @config.client.version
-    return if version == "0.0.1" then "dev" else version+Date.now()
+    return if version == "0.0.1" then "dev" else version
