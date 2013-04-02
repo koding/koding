@@ -410,6 +410,7 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
     else if @type is 'customColor'
       @color = new StaticGroupBackgroundColorPickerView
         cssClass : 'custom-color-picker'
+        delegate : @getDelegate()
       ,data
 
   click: ->
