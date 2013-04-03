@@ -10,28 +10,57 @@
 
 */
 
+body.landing
+  #group-summary
+    bottom              -1000px
+    transition          bottom .3s ease-in
+    &.shown
+      bottom            0!important
+    a.open-in-koding
+      visible()
+    a.public-page-link
+      hidden()
+
+body.koding
+  #group-summary
+    top                 -1000px
+    transition          top .3s ease-in
+    &.shown
+      top               0!important
+
+
 #group-summary
   abs()
-  top                   -200px
-  size                  100%, 200px
-  bg                    color, rgba(0,0,0,.6)
-  z-index               10
-  transition            top .3s ease-in
+  // left                  -10000px
+  size                  100%, auto
+  min-height            200px
+  bg                    color, rgba(0,0,0,.8)
+  z-index               100
   border-bottom         1px solid rgba(0,0,0,.1)
   shadow                0 5px 15px rgba(0,0,0,0.5)
-  &.down
-    top                 0
-  &.up
-    top                 -200px
+  &.shown
+      left              0
+
+  .summary-koding-logo
+    abs()
+    top                 -34px
+    left                50%
+    bg                  position, -240px -40px
+    size                120px, 30px
+    margin-left         -60px
+    cursor              pointer
+    sprite()
+
   .kdloader
     display             block
     margin              70px auto 0
 
   header
-    padding             30px
+    padding             50px 30px 30px
     margin-right        250px
     width               auto
   .avatar-wrapper
+    margin-right        20px
     padding             2px
     bg                  color, #fff
     fl()
@@ -40,15 +69,76 @@
     color               white
     text-shadow         0 -1px 0 rgba(0,0,0,.4)
     border-bottom       none
+    margin-top          -7px
+    span
+      margin            0
+  p
+    color               rgba(255,255,255,.7)
+    line-height         18px
+    font-size           12px
 
   aside
     abs()
-    top                 0
-    right               0
-    width               250px
-
-  .public-page-link
-    abs()
-    top                 30px
+    top                 50px
     right               30px
-    color               white
+    width               250px
+    .kdlistview.kdlistview-members
+      .kdlistitemview.kdlistitemview-member
+        margin          5px 0 0 5px
+        clear           none
+        size            40px, 40px
+        fr()
+
+
+  a.close-link
+    abs()
+    top                 10px
+    right               10px
+    .icon
+      bg                position, -60px -220px
+    &:hover
+      .icon
+        bg              position, -60px -240px
+
+  a.open-in-koding
+  a.public-page-link
+    abs()
+    size              200px, 30px
+    line-height       20px
+    margin-left       -100px
+    left              50%
+    text-align        center
+    .title
+      color           rgba(255,255,255,.7)
+      font-size       10px
+      font-weight     600
+      text-transform  uppercase
+      padding         0 15px
+      vendor          transition, color .1s ease-in
+    .icon
+      opacity         .7
+      size            40px, 10px
+      bg              position, -200px -140px
+      display         block
+      margin          0 auto
+    &:hover
+      .title
+        color         linkColor1
+      .icon
+        opacity       1
+        bg            position, -200px -160px
+  a.public-page-link
+    vendor            transition, top .1s ease-in
+    top               0
+    &:hover
+      top             3px
+  a.open-in-koding
+    bottom            0
+    vendor            transition, bottom .1s ease-in
+    hidden()
+    .icon
+      bg              position, -200px -150px
+    &:hover
+      bottom          3px
+      .icon
+        bg            position, -200px -170px
