@@ -102,6 +102,22 @@ module.exports = class JMemberKite extends jraphical.Module
       else
         callback null, data
 
+  @fetchActivesByOwnerId = ( ownerId, callback) ->
+
+    selector = {
+      targetId   : ownerId
+      sourceName : 'JMemberKite'
+      as         : 'owner'
+    }
+
+    targetSelector ={ }
+    targetSelector.status = 'active'
+
+    options   =
+      targetOptions : { selector: targetSelector }
+
+    @fetcher selector, options, callback
+
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
 
@@ -112,6 +128,12 @@ module.exports = class JMemberKite extends jraphical.Module
     }
 
     options or= {}
+
+    @fetcher selector, options, callback
+
+
+
+  @fetcher = (selector, options, callback)->
 
     Relationship.some selector, options, (err, relationships)=>
       if err then callback err
