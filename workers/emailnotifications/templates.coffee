@@ -14,9 +14,9 @@ flags =
     definition         : "private message"
   groupInvite          :
     definition         : "group invite"
-  groupRequest   :
-    definition         : "group invitation request"
-  groupApproval        :
+  groupRequest         :
+    fullDefinition     : "Membership request to your group"
+  groupApproved        :
     fullDefinition     : "Your group membership has been approved"
 
 link      = (addr, text)   ->

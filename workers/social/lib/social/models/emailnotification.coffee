@@ -61,10 +61,10 @@ module.exports = class JMailNotification extends Model
       contentTypes       : ['JGroup'],
       definition         : "when someone invites you to their group"
     groupRequest         :
-      eventType          : ['InviteRequested', 'ApprovalRequested']
+      eventType          : ['ApprovalRequested']
       contentTypes       : ['JGroup'],
-      definition         : "when someone requests invitation to user's group"
-    groupApproval        :
+      definition         : "when someone requests membership to group"
+    groupApproved        :
       eventType          : ['Approved']
       contentTypes       : ['JGroup'],
       definition         : "when user's group membership has been approved"

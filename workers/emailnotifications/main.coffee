@@ -46,8 +46,8 @@ flags =
     definition         : "group invitation"
   groupRequest         :
     template           : template.instantMail
-    definition         : "group invite request"
-  groupApproval        :
+    definition         : "group membership request"
+  groupApproved        :
     template           : template.instantMail
     definition         : "group membership request approved"
 
@@ -160,7 +160,7 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
           callback err
         else
           if not daily and state isnt true
-            # log 'User disabled e-mails, ignored for now.'
+            log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else

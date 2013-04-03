@@ -656,7 +656,8 @@ module.exports = class JGroup extends Module
         @addInvitationRequest invitationRequest, (err)=>
           if err then callback err
           else
-            invitationRequest.sendInviteRequestNotification client, callback
+            if invitationType is 'basic approval'
+              invitationRequest.sendRequestNotification client, callback
             @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
@@ -684,35 +685,13 @@ module.exports = class JGroup extends Module
   requestAccess: secure (client, callback)->
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
-      else if policy?.invitationsEnabled
-        @requestInvitation client, 'invitation', callback
       else
-        @requestApproval client, callback
+        if policy?.invitationsEnabled
+          invitationType = 'invitation'
+        else
+          invitationType = 'basic approval'
 
-  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
-    JMail = require '../email'
-    (new JMail
-      email   : adminUser.email
-      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
-      content : """
-        This will be the content for the approval request email.
-        """
-    ).save callback
-
-  requestApproval: secure (client, callback)->
-    {delegate} = client.connection
-    @requestInvitation client, 'basic approval', (err)=>
-      if err then callback err
-      else @fetchAdmin (err, admin)=>
-        if err then callback err
-        else delegate.fetchUser (err, delegateUser)=>
-          if err then callback err
-          else admin.fetchUser (err, adminUser)=>
-            if err then callback err
-            else
-              @sendApprovalRequestEmail(
-                delegate, delegateUser, admin, adminUser, callback
-              )
+        @requestInvitation client, invitationType, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback

@@ -123,7 +123,10 @@ module.exports = class JInvitationRequest extends Model
               if account?
                 group.approveMember account, (err)=>
                   if err then callback err
-                  else @update $set:{ status: 'approved' }, callback
+                  else @update $set:{ status: 'approved' }, (err)=>
+                    if err then callback err
+                    else
+                      @sendRequestApprovedNotification client, group, account, callback
               else
                 @update $set:{ status: 'sent' }, callback
 
@@ -145,13 +148,13 @@ module.exports = class JInvitationRequest extends Model
             # send invite to non koding user
           else
             # send invite to existing koding user
-            @sendInviteToKodingUser client, user, group, callback
+            @sendInviteMailToKodingUser client, user, group, callback
 
   sendInvitation$: permit 'send invitations',
     success: (client, callback)-> @sendInvitation client, callback
 
-  sendInviteToKodingUser:(client, user, group, callback)->
-    JAccount    = require './account'
+  sendInviteMailToKodingUser:(client, user, group, callback)->
+    JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
     JAccount.one 'profile.nickname': user.username, (err, receiver)=>
@@ -177,7 +180,7 @@ module.exports = class JInvitationRequest extends Model
               else
                 callback null
 
-  sendInviteRequestNotification:(client, callback)->
+  sendRequestNotification:(client, callback)->
     JUser             = require './user'
     JAccount          = require './account'
     JGroup            = require './group'
@@ -197,17 +200,41 @@ module.exports = class JInvitationRequest extends Model
 
               for account in accounts when account
                 data =
-                  actor           : actor
-                  receiver        : account
-                  event           : 'InviteRequested'
-                  contents        :
-                    subject       : ObjectRef(group).data
-                    actionType    : 'inviteRequest'
-                    actorType     : 'requester'
-                    inviteRequest : ObjectRef(@).data
-                    requester     : ObjectRef(actor).data
+                  actor             : actor
+                  receiver          : account
+                  event             : 'ApprovalRequested'
+                  contents          :
+                    subject         : ObjectRef(group).data
+                    actionType      : 'approvalRequest'
+                    actorType       : 'requester'
+                    approvalRequest : ObjectRef(@).data
+                    requester       : ObjectRef(actor).data
 
                 JMailNotification.create data, (err)->
                   if err then callback new KodingError "Could not send"
                   else
                     callback null
+
+  sendRequestApprovedNotification:(client, group, account, callback)->
+    JAccount          = require './account'
+    JMailNotification = require './emailnotification'
+
+    {delegate} = client.connection
+    JAccount.one _id: delegate.getId(), (err, actor)=>
+      if err then callback err
+      else
+        data =
+          actor             : actor
+          receiver          : account
+          event             : 'Approved'
+          contents          :
+            subject         : ObjectRef(group).data
+            actionType      : 'approved'
+            actorType       : 'requester'
+            approved        : ObjectRef(@).data
+            requester       : ObjectRef(actor).data
+
+        JMailNotification.create data, (err)->
+          if err then callback new KodingError "Could not send"
+          else
+            callback null
