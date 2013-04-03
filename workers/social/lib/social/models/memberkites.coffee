@@ -1,10 +1,8 @@
-
 jraphical = require 'jraphical'
-CActivity = require './activity'
 JAccount  = require './account'
 KodingError = require '../error'
-
-module.exports = class JKite extends jraphical.Module
+JKite     = require './kites'
+module.exports = class JMemberKite extends jraphical.Module
 
   {Relationship} = jraphical
 
@@ -25,23 +23,12 @@ module.exports = class JKite extends jraphical.Module
           'delete'
         ]
       static        : [
-          'create', 'get', 'fetchAll', 'control', 'fetchKites'
+          'create', 'get', 'fetchAll', 'control'
         ]
     schema          :
       description   :
         type        : String
         required    : no
-      kiteName      :
-        type        : String
-        required    : yes
-      privacy       :
-        type        : String
-        required    : yes
-        default     : "public"
-      type          :
-        type        : String
-        required    : yes
-        default     : "free"
       status        :
         type        : String
         required    : no
@@ -53,31 +40,42 @@ module.exports = class JKite extends jraphical.Module
       key           :
         type        : String
         required    : no
-
     relationships   :->
       creator       :
         targetType  : JAccount
         as          : 'owner'
+      parent        :
+        targetType  : JKite
+        as          : 'parent'
 
   @create = secure (client, data, callback)->
     {delegate} = client.connection
 
+    description  : data.description
+    callCount    : data.callCount
+    kiteId = data.kites
+    delete data.kites
+
     crypto = require 'crypto'
 
     crypto.randomBytes 32, (ex1, key) ->
-      apiKey   = key.toString 'hex'
-      data.key = apiKey
+      data.key = key.toString 'hex'
 
-      kite = new JKite data
-      kite.save (err)=>
+      memberKite = new JMemberKite data
+      memberKite.save (err)=>
         if err
           callback err
         else
-          kite.addCreator delegate, (err)=>
+          memberKite.addCreator delegate, (err)=>
             if err
               callback err
             else
-              callback null, kite
+              JKite.one {_id: kiteId}, (err, kite) =>
+                memberKite.addParent kite, (err)=>
+                  if err
+                    callback err
+                  else
+                    callback null, memberKite
 
 
   @get = secure ({connection:{delegate}}, data, callback)->
@@ -95,11 +93,9 @@ module.exports = class JKite extends jraphical.Module
           callback null, result
 
   @control = (data, callback)->
-    {limit, skip, sort}  = data
 
     @one {
       key      : data.key
-      kiteName : data.kiteName
     }, (err, data)=>
       if err
         callback err
@@ -111,48 +107,30 @@ module.exports = class JKite extends jraphical.Module
 
     selector = {
       targetId   : delegate._id
-      sourceName : 'JKite'
+      sourceName : 'JMemberKite'
       as         : 'owner'
     }
 
     options or= {}
 
-    @fetcher selector, options, callback
-
-
-  @fetchKites = (options, callback)->
-
-    selector = {
-      sourceName : 'JKite'
-    }
-
-    options or= {}
-
-    @fetcher selector, options, callback
-
-
-  @fetcher = (selector, options, callback)->
-
     Relationship.some selector, options, (err, relationships)=>
       if err then callback err
-      else if relationships.length is 0 then callback null, []
+      else if relationships.length is 0 then callback null
       else
         teasers = []
         collectTeasers = race (i, root, fin)->
-          root.fetchSource (err, kite)->
+          root.fetchSource (err, memberKite)->
             if err
               callback err
               fin()
-            else if not kite
+            else if not memberKite
               # if relation found but source is not found
               fin()
             else
-              teasers.push(kite)
+              teasers.push(memberKite)
               fin()
         , -> callback null, teasers
         collectTeasers relationship for relationship in relationships
 
-
-  delete: secure ({connection:{delegate}}, callback)->
-
+  delete: secure ( {connection: {delegate} }, callback)->
     @remove callback

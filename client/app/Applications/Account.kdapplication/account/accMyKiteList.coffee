@@ -1,4 +1,4 @@
-class AccountKiteListController extends KDListViewController
+class AccountMyKiteListController extends KDListViewController
 
   constructor:(options,data)->
     options.cssClass = "kites"
@@ -7,13 +7,13 @@ class AccountKiteListController extends KDListViewController
   loadView:->
     super
 
-    KD.remote.api.JMemberKite.fetchAll {}, (err, kites) =>
+    KD.remote.api.JKite.fetchAll {}, (err, kites) =>
       if err then warn err
-      else 
+      else
         @instantiateListItems kites
 
     list = @getListView()
-    @getView().parent.addSubView addKiteButton = new KDButtonView
+    @getView().parent.addSubView addButton = new KDButtonView
       style     : "clean-gray account-header-button"
       title     : "Add new Kite"
       icon      : yes
@@ -27,9 +27,9 @@ class AccountKiteListController extends KDListViewController
 
     ##################### Events ############################
     list.on "DeleteKiteSubmitted", @bound "deleteKite"
-    
+
     list.on "UpdateKiteSubmitted", @bound "updateDatabase"
-    
+
     list.on "CreateKiteSubmitted", @bound "createKite"
 
     @on "KiteDeleted", list.bound "removeItem"
@@ -47,14 +47,17 @@ class AccountKiteListController extends KDListViewController
                     <p><label>Decription:  </label> <i>#{itemData.description}</i></p>
                     <p><label>Kite Name :  </label> <i>#{itemData.kiteName}</i></p>
                     <p><label>Kite Key  :  </label> <b>#{itemData.key}</b></p>
+                    <p><label>Status    :  </label> <b>#{itemData.status}</b></p>
+                    <p><label>Privacy   :  </label> <b>#{itemData.privacy}</b></p>
+                    <p><label>Type      :  </label> <b>#{itemData.type}</b></p>
                   </div>
                   """
 
-  deleteKite:(listItem)->
+  deleteKite: (listItem)->
     data = listItem.getData()
     KD.remote.api.JKite.get
-      id   : data.id
-      (err, kite) => 
+      id: data.id
+      (err, kite) =>
         if err
           @notify err.message, "fail"
         else
@@ -70,12 +73,13 @@ class AccountKiteListController extends KDListViewController
     @emit "KiteUpdated", kite
 
   createKite : (form)->
-    {description, callCount, kites} = form.modal.modalTabs.forms.Kites.inputs
+    {description, kiteName, privacy, type} = form.modal.modalTabs.forms.MyKites.inputs
 
-    KD.remote.api.JMemberKite.create
+    KD.remote.api.JKite.create
       description  : description.getValue()
-      callCount    : callCount.getValue()
-      kites        : kites.getValue()
+      kiteName     : kiteName.getValue()
+      privacy      : privacy.getValue()
+      type         : type.getValue()
     ,(err, kite) =>
       if err
         @notify err.message, "fail"
@@ -84,7 +88,6 @@ class AccountKiteListController extends KDListViewController
         @emit "KiteCreated", kite
         form.modal.destroy()
 
-          
   notify:(title, type)->
     {modal} = @getListView()
     new KDNotificationView
@@ -94,17 +97,18 @@ class AccountKiteListController extends KDListViewController
       duration  : 3000
 
 
-class AccountKiteList extends KDListView
+class AccountMyKiteList extends KDListView
 
   constructor:(options,data)->
     options = $.extend
       tagName   : "ul"
-      itemClass : AccountKiteListItem
+      itemClass : AccountMyKiteListItem
     ,options
     super options,data
+
   showModal:->
     modal = @modal = new KDModalViewWithForms
-      title                   : "Create a third party kite"
+      title                   : "Create a new Kite"
       content                 : ""
       overlay                 : yes
       cssClass                : "new-kdmodal"
@@ -112,8 +116,8 @@ class AccountKiteList extends KDListView
       height                  : "auto"
       tabs                    :
         forms                 :
-          "Kites"         :
-            callback          : => @emit "CreateKiteSubmitted", @
+          MyKites             :
+#            callback          : => @emit "CreateKiteSubmitted", @
             buttons           :
               create          :
                 title         : "Create"
@@ -122,43 +126,48 @@ class AccountKiteList extends KDListView
                 loader        :
                   color       : "#444444"
                   diameter    : 12
+                callback      : => @emit "CreateKiteSubmitted", @
               cancel          :
                 title         : "Cancel"
                 style         : "modal-cancel"
                 callback      : (event)-> modal.destroy()
             fields            :
+              type            :
+                label         : "Type"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "type"
+                defaultValue  : "free"
+                selectOptions : [
+                  { title : "Free",    value : "free" }
+                  { title : "Paid",    value : "paid" }
+                ]
+              privacy         :
+                label         : "Privacy"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "privacy"
+                defaultValue  : "public"
+                selectOptions: [
+                  { title: "Public", value: "public" }
+                  { title: "Private", value: "private" }
+                ]
               description     :
                 label         : "Description"
                 itemClass     : KDInputView
                 name          : "description"
                 placeholder   : "Description (optional)..."
-              callCount       :
-                label         : "API Call Count"
+              kiteName        :
+                label         : "Name"
                 itemClass     : KDInputView
-                name          : "apiCallCount"
-                placeholder   : "100"
-              kites            :
-                label         : "Select a kite"
-                itemClass     : KDSelectBox
-                type          : "select"
-                name          : "kite"
-                validate      :
-                  rules       :
-                    required  : yes
-                  messages    :
-                    required  : "Hop kite gir!"
-                selectOptions : (cb)->
-                  KD.remote.api.JKite.fetchKites {}, (err, kites) =>
-                    if err then warn err
-                    else
-                      options = ( title : kite.kiteName, value : kite._id for kite in kites)
-                      options.unshift title : "Kite name", value : "default"
-                      cb options
+                name          : "name"
+                placeholder   : "Name..."
 
-class AccountKiteListItem extends KDListItemView
+
+class AccountMyKiteListItem extends KDListItemView
   constructor:(options,@data)->
     options = tagName : "li"
-    options.cssClass = "kite-list-item"
+    options.cssClass = "my-kite-list-item"
     super options,data
 
   # viewAppended:()->
@@ -178,9 +187,25 @@ class AccountKiteListItem extends KDListItemView
           <span class='label'>Description:</span>
           <span class='value'>#{data.description}</span>
         </div>
-        <div class='kiteKey'> 
-          <span class='label'>Kite Key:</span>
-          <span class='value'>#{data.key}</span>
+        <div class='kiteName'>
+          <span class='label'>Used Kite Name:</span>
+          <span class='value'>#{data.kiteName}</span>
+        </div>
+        <div class='kiteKey'>
+        <span class='label'>Kite Key:</span>
+        <span class='value'>#{data.key}</span>
+        </div>
+        <div class='status'>
+          <span class='label'>Status:</span>
+          <span class='value'>#{data.status}</span>
+        </div>
+        <div class='privacy'>
+          <span class='label'>Privacy:</span>
+          <span class='value'>#{data.privacy}</span>
+        </div>
+        <div class='type'>
+          <span class='label'>Type:</span>
+          <span class='value'>#{data.type}</span>
         </div>
       </div>
     """
