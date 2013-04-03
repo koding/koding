@@ -13,7 +13,10 @@ class GroupGeneralSettingsView extends JView
       isNewGroup = yes
     isPrivateGroup = 'private' is group.privacy
 
-    _updateGroupHandler =(group, formData)->
+    _updateGroupHandler =(group, formData)=>
+      log formData
+      formData.avatar = @customUrl if @customUrl
+      log formData
       group.modify formData, (err)->
         if err
           new KDNotificationView
@@ -47,10 +50,16 @@ class GroupGeneralSettingsView extends JView
       fields:
         "Avatar"              :
           label             : "Avatar"
-          itemClass         : KDImageUploadSingleView
-          name              : "avatar"
-          limit             : 1
-          preview           : 'thumbs'
+          cssClass        : 'avatar'
+          limit           : 1
+          preview         : "thumbs"
+          extensions      : null
+          fileMaxSize     : 2048
+          totalMaxSize    : 2048
+          fieldName       : "thumbnails"
+          convertToBlob   : yes
+          title           : ""
+          itemClass         : KDImageUploadView
           actions         : {
             big    :
               [
@@ -133,15 +142,20 @@ class GroupGeneralSettingsView extends JView
     @settingsForm = new KDFormViewWithFields formOptions, @getData()
 
     avatarUploadView = @settingsForm.inputs["Avatar"]
-
     avatarUploadView.on 'FileReadComplete', ({file, progressEvent})->
+      log 'read'
       avatarUploadView.$('.kdfileuploadarea').css
         backgroundImage : "url(#{file.data})"
       avatarUploadView.$('span').addClass 'hidden'
 
-    avatarUploadView.on 'FileUploadComplete', (files)->
-      for {filename, resource} in files
-        console.log {filename, resource}
+    avatarUploadView.on 'FileUploadComplete', (res)=>
+      log 'upload',res
+      if res.length and res[0].resource
+        @customUrl = res[0].resource
+
+    # avatarUploadView.on 'FileUploadComplete', (files)->
+    #   for {filename, resource} in files
+    #     console.log {filename, resource}
 
 
 
