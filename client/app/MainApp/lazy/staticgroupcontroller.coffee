@@ -53,15 +53,15 @@ class StaticGroupController extends KDController
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
-    groupKodingLogo = new KDView
-      lazyDomId : 'landing-page-logo'
-      tooltip   :
-        title   : "Click here to see this group on Koding"
-      click     : =>
-        if KD.isLoggedIn()
-          @lazyDomController.hideLandingPage()
-        else
-          @mainController.loginScreen.animateToForm 'login'
+    # groupKodingLogo = new KDView
+    #   lazyDomId : 'landing-page-logo'
+    #   tooltip   :
+    #     title   : "Click here to see this group on Koding"
+    #   click     : =>
+    #     if KD.isLoggedIn()
+    #       @lazyDomController.hideLandingPage()
+    #     else
+    #       @mainController.loginScreen.animateToForm 'login'
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
