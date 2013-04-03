@@ -227,6 +227,7 @@ module.exports = class Builder
     index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
     index = index.replace "rollbar-env", @getEnvForRollbar()
+    index = index.replace "rollbar-branch", @config.client.version
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""
@@ -235,5 +236,4 @@ module.exports = class Builder
     log.info "Build complete: #{@config.client.index}"
 
   getEnvForRollbar: ->
-    version = @config.client.version
-    return if version == "0.0.1" then "dev" else version
+    return if @config.client.version is "0.0.1" then "development" else "production"
