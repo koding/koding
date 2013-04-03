@@ -64,8 +64,8 @@ module.exports = class JKiteCall extends jraphical.Module
       else
         if appData instanceof JKiteCall
 
-          appData.update {$inc: 'count': 1} , (err) ->  
-          callback null, appData        
+          appData.update {$inc: 'count': 1} , (err) =>
+            callback null, appData
         else 
           @create data, callback
 
