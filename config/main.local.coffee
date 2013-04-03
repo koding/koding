@@ -1,12 +1,8 @@
 fs = require 'fs'
 nodePath = require 'path'
-
 deepFreeze = require 'koding-deep-freeze'
 
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
-
-mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-
 projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = ((
@@ -14,7 +10,6 @@ rabbitPrefix = ((
   catch e then require("os").hostname()
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
-
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
 webPort         = 3000
@@ -40,7 +35,7 @@ module.exports = deepFreeze
   sourceServer  :
     enabled     : no
     port        : 1337
-  mongo         : mongo
+  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : yes
   watchGoBroker : no
   compileGo     : yes
