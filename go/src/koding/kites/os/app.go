@@ -73,7 +73,7 @@ func registerAppMethods(k *kite.Kite) {
 		}
 		defer gzr.Close()
 
-		if _, err := vos.Lstat(appPath); err == nil {
+		if _, err := vos.Stat(appPath); err == nil {
 			if err := vos.Rename(appPath, appPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
 				return nil, err
 			}
@@ -165,7 +165,7 @@ func registerAppMethods(k *kite.Kite) {
 		var readPath func(name string) error
 		readPath = func(name string) error {
 			fullPath := params.AppPath + "/" + name
-			fi, err := vos.Lstat(fullPath)
+			fi, err := vos.Stat(fullPath)
 			if err != nil {
 				return err
 			}
@@ -260,7 +260,7 @@ func registerAppMethods(k *kite.Kite) {
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
-		if _, err := vos.Lstat(params.AppPath); err == nil {
+		if _, err := vos.Stat(params.AppPath); err == nil {
 			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
 				return nil, err
 			}
@@ -309,7 +309,7 @@ func downloadFile(url string, vos *virt.VOS, path string) error {
 }
 
 func recursiveCopy(srcPath string, vos *virt.VOS, appPath string) error {
-	fi, err := os.Lstat(srcPath)
+	fi, err := os.Stat(srcPath)
 	if err != nil {
 		return err
 	}

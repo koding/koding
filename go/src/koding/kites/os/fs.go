@@ -79,61 +79,6 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
-	k.Handle("fs.readFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		var params struct {
-			Path string
-		}
-		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
-		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
-
-		file, err := vos.Open(params.Path)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		fi, err := file.Stat()
-		if err != nil {
-			return nil, err
-		}
-
-		if fi.Size() > 10*1024*1024 {
-			return nil, fmt.Errorf("File larger than 10MiB.")
-		}
-
-		buf := make([]byte, fi.Size())
-		if _, err := io.ReadFull(file, buf); err != nil {
-			return nil, err
-		}
-
-		return map[string]interface{}{"content": buf}, nil
-	})
-
-	k.Handle("fs.writeFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		var params struct {
-			Path    string
-			Content []byte
-		}
-		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64] }"}
-		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
-
-		file, err := vos.Create(params.Path)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		return file.Write(params.Content)
-	})
-
 	k.Handle("fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
 			Path     string
@@ -181,6 +126,150 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 		return response, nil
 	})
+
+	k.Handle("fs.readFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		file, err := vos.Open(params.Path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		fi, err := file.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		if fi.Size() > 10*1024*1024 {
+			return nil, fmt.Errorf("File larger than 10MiB.")
+		}
+
+		buf := make([]byte, fi.Size())
+		if _, err := io.ReadFull(file, buf); err != nil {
+			return nil, err
+		}
+
+		return map[string]interface{}{"content": buf}, nil
+	})
+
+	k.Handle("fs.writeFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path           string
+			Content        []byte
+			DoNotOverwrite bool
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+		if params.DoNotOverwrite {
+			flags |= os.O_EXCL
+		}
+		file, err := vos.OpenFile(params.Path, flags, 0666)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		return file.Write(params.Content)
+	})
+
+	k.Handle("fs.getInfo", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		fi, err := vos.Stat(params.Path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
+	})
+
+	k.Handle("fs.remove", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path      string
+			Recursive bool
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if params.Recursive {
+			if err := vos.RemoveAll(params.Path); err != nil {
+				return nil, err
+			}
+			return true, nil
+		}
+
+		if err := vos.Remove(params.Path); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
+	k.Handle("fs.rename", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			OldPath string
+			NewPath string
+		}
+		if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+			return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Rename(params.OldPath, params.NewPath); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
+
+	k.Handle("fs.createDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Mkdir(params.Path, 0755); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
 }
 
 func (watch *Watch) Close() error {
@@ -204,17 +293,17 @@ func (watch *Watch) Close() error {
 	return nil
 }
 
-func makeFileEntry(vos *virt.VOS, dir string, info os.FileInfo) FileEntry {
+func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
-		Name:  info.Name(),
-		IsDir: info.IsDir(),
-		Size:  info.Size(),
-		Mode:  info.Mode(),
-		Time:  info.ModTime(),
+		Name:  fi.Name(),
+		IsDir: fi.IsDir(),
+		Size:  fi.Size(),
+		Mode:  fi.Mode(),
+		Time:  fi.ModTime(),
 	}
 
-	if info.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := vos.Lstat(dir + "/" + info.Name())
+	if fi.Mode()&os.ModeSymlink != 0 {
+		symlinkInfo, err := vos.Stat(dir + "/" + fi.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry

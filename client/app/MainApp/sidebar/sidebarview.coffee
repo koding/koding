@@ -21,8 +21,6 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # @groupAvatar = new GroupAvatar
-
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -52,7 +50,6 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners       : yes
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
@@ -181,6 +178,7 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
+
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -342,12 +340,24 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",  appPath: 'WebTerm' }
-      { title : "Manage Remotes",     icon : "remotes",   action: 'manageRemotes'}
-      { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
-      { title : "Add Resources",      icon : "resources" }
-      { title : "Settings",           icon : "cog" }
-      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
+      {
+        title   : "Launch Terminal", icon : "terminal",
+        appPath : "WebTerm", isWebTerm : yes
+      }
+      {
+        title   : "Manage Remotes", icon : "remotes",
+        action  : "manageRemotes"
+      }
+      {
+        title   : "Manage Databases", icon : "databases",
+        action  : "manageDatabases"
+      }
+      { title   : "Add Resources",      icon : "resources" }
+      { title   : "Settings",           icon : "cog" }
+      {
+        title   : "Keyboard Shortcuts", icon : "shortcuts",
+        action  : "showShortcuts"
+      }
     ]
 
   adminNavItems =
@@ -355,18 +365,32 @@ class Sidebar extends JView
     title : "admin-navigation"
     items : [
       # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
+      {
+        title    : "Admin Panel",
+        loggedIn : yes,
+        callback : -> new AdminModal
+      }
     ]
 
   footerMenuItems =
     id    : "footer-menu"
     title : "footer-menu"
     items : [
-      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
-      { title : "About", callback : -> @showAboutDisplay() }
-      { title : "Chat",  loggedIn : yes, callback : ->
-        # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-        # unless location.hostname is "localhost"
-        new KDNotificationView title : "Coming soon..."
+      {
+        title    : "Help",
+        callback : ->
+          @getSingleton('mainController').emit "ShowInstructionsBook"
+      }
+      {
+        title    : "About",
+        callback : -> @showAboutDisplay()
+      }
+      {
+        title    : "Chat",
+        loggedIn : yes,
+        callback : ->
+          # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
+          # unless location.hostname is "localhost"
+          new KDNotificationView title : "Coming soon..."
       }
     ]

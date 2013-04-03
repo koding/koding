@@ -2,29 +2,38 @@ class FSFile extends FSItem
 
   constructor:->
     super
-    @modified = no
-    @_savedContents = ''
 
-    @on "file.requests.saveAs", (contents, name, parentPath)=> @saveAs contents, name, parentPath
-    @on "file.requests.save", (contents)=> @save contents
+    @on "file.requests.saveAs", (contents, name, parentPath)=>
+      @saveAs contents, name, parentPath
+
+    @on "file.requests.save", (contents)=>
+      @save contents
 
   fetchContents:(callback)->
 
     @emit "fs.fetchContents.started"
     @kiteController.run
-      withArgs  :
-        command : "cat #{FSHelper.escapeFilePath @path}"
+      kiteName  : 'os'
+      method    : 'fs.readFile'
+      withArgs  : {@path}
     , (err, response)=>
-      if err then warn err
-      callback.call @, err, response
-      @emit "fs.fetchContents.finished", err, response
 
+      if err then warn err
+      else
+        {content} = response
+
+        # Convert to String
+        content = atob content
+
+      callback.call @, err, content
+      @emit "fs.fetchContents.finished", err, content
 
   saveAs:(contents, name, parentPath, callback)->
 
     oldPath = @path
     newPath = "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
+
     FSItem.getSafePath "#{newPath}", (err, response)=>
       if err
         callback? err, response
@@ -37,17 +46,21 @@ class FSFile extends FSItem
             @emit "fs.saveAs.finished", newFile, @
 
   save:(contents, callback)->
-    if FSHelper.isEscapedPath @path
-      @path = FSHelper.unescapeFilePath @path
+
+    # if FSHelper.isEscapedPath @path
+    #   @path = FSHelper.unescapeFilePath @path
 
     @emit "fs.save.started"
+
+    # Convert to base64
+    content = btoa contents
+
     @kiteController.run
-      method        : "uploadFile"
-      withArgs    : {
-        path      : FSHelper.escapeFilePath @path
-        contents
-      }
+      kiteName  : 'os'
+      method    : 'fs.writeFile'
+      withArgs  : {@path, content}
     , (err, res)=>
-      @emit "fs.save.finished", err, res
+
       if err then warn err
+      @emit "fs.save.finished", err, res
       callback? err,res
