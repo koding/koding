@@ -6,6 +6,8 @@ class GroupSummaryView extends KDCustomHTMLView
 
     super options, data
 
+    @lazyDomController = @getSingleton("lazyDomController")
+
     @loader = new KDLoaderView
       size          :
         width       : 60
@@ -26,10 +28,35 @@ class GroupSummaryView extends KDCustomHTMLView
       click       : @bound "showSummary"
     , {}
 
+    @kodingLogo = new KDCustomHTMLView
+      tagName     : "div"
+      cssClass    : "summary-koding-logo"
+      click       : @bound "showSummary"
+
     @landingPageLink = new CustomLinkView
-      cssClass : "public-page-link"
-      title    : "Go to public page of this group"
-      click    : @bound "goToPublicPage"
+      cssClass    : "public-page-link"
+      title       : "Pull up the public page"
+      icon        :
+        placement : "right"
+      click       : @bound "showLandingPage"
+
+    @openInKodingLink = new CustomLinkView
+      cssClass    : "open-in-koding"
+      title       : "Open the group in Koding"
+      icon        : {}
+      click       : @bound "hideLandingPage"
+
+    @closeLink = new CustomLinkView
+      cssClass    : "close-link"
+      title       : ""
+      icon        :
+        placement : "right"
+      click       : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        @unsetClass "shown"
+        @utils.wait 400, =>
+          @sign.setClass "swing-in"
 
     @once "viewAppended", @loader.bound "show"
     @once "viewAppended", @bound "decorateSummary"
@@ -38,6 +65,7 @@ class GroupSummaryView extends KDCustomHTMLView
 
   pistachio:->
     """
+      {{> @kodingLogo}}
       {{> @loader}}
       <header>
         <div class='avatar-wrapper'></div>
@@ -45,26 +73,32 @@ class GroupSummaryView extends KDCustomHTMLView
       </header>
       <aside></aside>
       {{> @landingPageLink}}
+      {{> @closeLink}}
+      {{> @openInKodingLink}}
       {{> @sign}}
     """
-  click:->
-    @unsetClass "down"
-    @utils.wait 400, =>
-      @sign.setClass "swing-in"
 
   showSummary:(event)->
-    event.stopPropagation()
+    if event
+      event.stopPropagation()
+      event.preventDefault()
     @sign.setClass "swing-out"
     @sign.unsetClass "swing-in"
     @utils.wait 400, =>
       @sign.unsetClass "swing-out"
-      @setClass "down"
+      @setClass "shown"
 
-  hideSummary:->
-    @unsetClass "down"
+  hideSummary:(event)->
+    if event
+      event.stopPropagation()
+      event.preventDefault()
+    @unsetClass "shown"
     @utils.wait 400, =>
       @sign.unsetClass "swing-out"
       @sign.unsetClass "swing-in"
+      @$().css
+        top    : ""
+        bottom : ""
 
   decorateSummary:->
 
@@ -80,11 +114,13 @@ class GroupSummaryView extends KDCustomHTMLView
           else
             @loader.hide()
             @putOwner owner
+            @putGroupBio group
+            @positionSummary()
 
         group.fetchMembers (err, members)=>
           if err then warn err
-          else
-            log members
+          else if members.length
+            @putList members
 
   putOwner:(owner)->
 
@@ -103,10 +139,55 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @addSubView title, '.right-overflow'
 
-  goToPublicPage:(event)->
+  putGroupBio:(group)->
+
+    bio = new KDCustomHTMLView
+      tagName   : "p"
+      cssClass  : "bio"
+      partial   : group.body or "This is a group created within Koding, group admins decide wether to share members/activities/topics of this group. Unless it is wanted Koding members won't be able to see the content shared in this group."
+
+    @addSubView bio, '.right-overflow'
+
+  putList:(members)->
+    log members
+    controller = new KDListViewController
+      view         : @members = new KDListView
+        wrapper    : no
+        scrollView : no
+        type       : "members"
+        itemClass  : GroupItemMemberView
+
+    @addSubView @members, 'aside'
+    controller.instantiateListItems members
+
+  positionSummary:->
+    if @lazyDomController.isLandingPageVisible()
+      @$().css
+        top    : ""
+        bottom : -@getHeight()
+    else
+      @$().css
+        top    : -@getHeight()
+        bottom : ""
+
+  showLandingPage:(event)->
 
     event.stopPropagation()
     event.preventDefault()
     @hideSummary()
     @utils.wait 300, =>
-      @getSingleton("lazyDomController").showLandingPage()
+      @hide()
+      @lazyDomController.showLandingPage =>
+        @show()
+        @positionSummary()
+
+  hideLandingPage:(event)->
+
+    event.stopPropagation()
+    event.preventDefault()
+    @hideSummary()
+    @utils.wait 300, =>
+      @hide()
+      @lazyDomController.hideLandingPage =>
+        @show()
+        @positionSummary()

@@ -33,7 +33,9 @@ class LazyDomController extends KDController
 
       landingPageSideBar.on "navItemIsClicked", @bound "handleNavigationItemClick"
 
-  hideLandingPage:->
+  isLandingPageVisible:-> $('body').is('.landing')
+
+  hideLandingPage:(callback)->
 
     if @landingView
       {groupSummary} = @mainController.mainViewController.getView()
@@ -42,6 +44,9 @@ class LazyDomController extends KDController
         @utils.wait 300, =>
           @landingView.setClass "out"
           groupSummary?.sign.setClass "swing-in"
+          $('body').removeClass 'landing'
+          $('body').addClass 'koding'
+          callback?()
 
           # @utils.wait 1200, =>
           #   log "ever here"
@@ -60,6 +65,8 @@ class LazyDomController extends KDController
           @landingView.show()
           @utils.defer =>
             @landingView.unsetClass "out"
+            $('body').addClass 'landing'
+            $('body').removeClass 'koding'
             @utils.wait 600, =>
               @landingView.unsetClass "down"
               groupSummary?.sign.unsetClass "swing-in"
