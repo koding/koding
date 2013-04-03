@@ -3,6 +3,7 @@ package fastproxy
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"io"
 	"net"
@@ -16,10 +17,18 @@ type Request struct {
 	buffer *bytes.Buffer
 }
 
-func Listen(laddr *net.TCPAddr, handler func(Request)) error {
+func Listen(laddr *net.TCPAddr, cert *tls.Certificate, handler func(Request)) error {
+	var listener net.Listener
 	listener, err := net.ListenTCP("tcp", laddr)
 	if err != nil {
 		return err
+	}
+
+	if cert != nil {
+		listener = tls.NewListener(listener, &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{*cert},
+		})
 	}
 
 	for {
