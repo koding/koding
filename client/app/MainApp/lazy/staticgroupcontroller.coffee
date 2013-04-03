@@ -79,6 +79,9 @@ class StaticGroupController extends KDController
     @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
+    @groupSplitView = new KDView
+      lazyDomId : 'group-splitview'
+
     groupPersonalWrapperView = new KDView
       lazyDomId : 'group-personal-wrapper'
       cssClass  : 'slideable'
@@ -165,12 +168,14 @@ class StaticGroupController extends KDController
 
   setBackground:(type,val)->
     if type in ['defaultImage','customImage']
+      @groupSplitView.unsetClass 'vignette'
       @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
         @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
         @utils.wait 200, =>
           @groupContentView.$().css backgroundColor : 'transparent'
     else
+      @groupSplitView.setClass 'vignette'
       @groupContentWrapperView.$().css backgroundImage : "none"
       @groupContentWrapperView.$().css backgroundColor : "#{val}"
 

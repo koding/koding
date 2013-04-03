@@ -52,12 +52,14 @@ class StaticProfileController extends KDController
 
   setBackground:(type,val)->
     if type in ['defaultImage','customImage']
+      @profileContentList.unsetClass 'vignette'
       @profileContentList.$().css backgroundColor : 'white'
       @utils.wait 200, =>
         @profileContentWrapperView.$().css backgroundImage : "url(#{val})"
         @utils.wait 200, =>
           @profileContentList.$().css backgroundColor : 'transparent'
     else
+      @profileContentList.setClass 'vignette'
       @profileContentWrapperView.$().css backgroundImage : "none"
       @profileContentWrapperView.$().css backgroundColor : "#{val}"
 
@@ -118,6 +120,7 @@ class StaticProfileController extends KDController
         @profileContentWrapperView.unsetClass 'activity'
         unless @controllers['static'].itemsOrdered.length is 0
           @showWrapper @wrappers['static']
+
         @staticDefaultItem.show()
         @staticPageSettingsButton?.hide()
         callback()
@@ -182,7 +185,7 @@ class StaticProfileController extends KDController
         , []
 
         @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
-        if blockedTypes.length is 0
+        if blockedTypes.length is 0 or type is 'static'
           @currentFacets = facets
           appManager.tell 'Activity', 'fetchActivity',
             originId : @profileUser.getId()
@@ -195,6 +198,7 @@ class StaticProfileController extends KDController
         else
           @emit 'BlockedTypesRequested', blockedTypes
           @controllers[type].hideLazyLoader()
+          callback()
 
     @on "LogoClicked", =>
         @profileLogoInfo.unsetClass 'in'
@@ -567,9 +571,9 @@ class StaticProfileController extends KDController
       else
         unless type in ['static']
           controller.showNoItemWidget()
-          @showWrapper @wrappers[type]
-        else
-          @hideWrappers()
+        #   @showWrapper @wrappers[type]
+        # else
+        #   @hideWrappers()
     else
       @controllers[type]?.hideLazyLoader()
 

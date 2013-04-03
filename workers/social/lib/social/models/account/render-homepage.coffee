@@ -11,7 +11,6 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   nickname  ?= ''
   about     ?= ''
 
-
   """
   <!DOCTYPE html>
   <html>
@@ -61,7 +60,7 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
 
         <div class="profile-loading-bar" id="profile-loading-bar"></div>
 
-         <div class="profile-content-list" id="profile-content-list">
+         <div class="profile-content-list #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="profile-content-list">
           <div class="profile-content front" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
             <div class="profile-content-links links-hidden" id="profile-content-links">
               <h4>Show me</h4>
@@ -267,7 +266,7 @@ getDefaultUserContents =(firstName, lastName)->
       <div class="title"><span class="text">Hello!</span></div>
       <div class="has-markdown"><span class="data">
         <p>
-          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activities' on the left to see #{firstName}'s posts on Koding.</span></div>
+          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activitiy' on top to see #{firstName}'s posts on Koding.</span></div>
         </p>
     </div>
   """

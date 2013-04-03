@@ -25,7 +25,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
             </div>
           </div>
         </div>
-        <div class="group-splitview" id="group-splitview">
+        <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
           <div class="group-loading-content" id="group-loading-content">
            <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
