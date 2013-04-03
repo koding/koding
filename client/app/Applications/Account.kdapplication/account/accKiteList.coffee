@@ -79,6 +79,7 @@ class AccountKiteListController extends KDListViewController
     ,(err, kite) =>
       if err
         @notify err.message, "fail"
+        form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
       else
         @notify 'Your kite is created', "success"
         @emit "KiteCreated", kite
@@ -112,8 +113,10 @@ class AccountKiteList extends KDListView
       height                  : "auto"
       tabs                    :
         forms                 :
-          "Kites"         :
-            callback          : => @emit "CreateKiteSubmitted", @
+          Kites               :
+            callback          : =>
+              @modal.modalTabs.forms.Kites.buttons.Create.showLoader()
+              @emit "CreateKiteSubmitted", @
             buttons           :
               create          :
                 title         : "Create"
@@ -122,6 +125,7 @@ class AccountKiteList extends KDListView
                 loader        :
                   color       : "#444444"
                   diameter    : 12
+                callback      : -> @hideLoader()
               cancel          :
                 title         : "Cancel"
                 style         : "modal-cancel"
@@ -137,7 +141,12 @@ class AccountKiteList extends KDListView
                 itemClass     : KDInputView
                 name          : "apiCallCount"
                 placeholder   : "100"
-              kites            :
+                validate      :
+                  rules       :
+                    regExp    : /\d+/i
+                  messages    :
+                    regExp    : "Only numbers for Api Call Count"
+              kites           :
                 label         : "Select a kite"
                 itemClass     : KDSelectBox
                 type          : "select"
@@ -146,13 +155,12 @@ class AccountKiteList extends KDListView
                   rules       :
                     required  : yes
                   messages    :
-                    required  : "Hop kite gir!"
+                    required  : "You must select a Kite!"
                 selectOptions : (cb)->
                   KD.remote.api.JKite.fetchKites {}, (err, kites) =>
                     if err then warn err
                     else
                       options = ( title : kite.kiteName, value : kite._id for kite in kites)
-                      options.unshift title : "Kite name", value : "default"
                       cb options
 
 class AccountKiteListItem extends KDListItemView

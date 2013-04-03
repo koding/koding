@@ -83,6 +83,7 @@ class AccountMyKiteListController extends KDListViewController
     ,(err, kite) =>
       if err
         @notify err.message, "fail"
+        form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
       else
         @notify 'Your kite is created', "success"
         @emit "KiteCreated", kite
@@ -117,7 +118,9 @@ class AccountMyKiteList extends KDListView
       tabs                    :
         forms                 :
           MyKites             :
-#            callback          : => @emit "CreateKiteSubmitted", @
+            callback          : =>
+              @modal.modalTabs.forms.MyKites.buttons.Create.showLoader()
+              @emit "CreateKiteSubmitted", @
             buttons           :
               create          :
                 title         : "Create"
@@ -126,7 +129,7 @@ class AccountMyKiteList extends KDListView
                 loader        :
                   color       : "#444444"
                   diameter    : 12
-                callback      : => @emit "CreateKiteSubmitted", @
+                callback      : -> @hideLoader()
               cancel          :
                 title         : "Cancel"
                 style         : "modal-cancel"
@@ -162,6 +165,11 @@ class AccountMyKiteList extends KDListView
                 itemClass     : KDInputView
                 name          : "name"
                 placeholder   : "Name..."
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "You must write a name for your Kite!"
 
 
 class AccountMyKiteListItem extends KDListItemView
