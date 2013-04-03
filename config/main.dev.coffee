@@ -15,7 +15,7 @@ rabbitPrefix = (
 socialQueueName = "koding-social-#{rabbitPrefix}"
 authResourceName = "koding-auth-#{rabbitPrefix}"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
