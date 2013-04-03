@@ -72,8 +72,8 @@ AccountMixin = do ->
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
-        kite = KD.getSingleton "kiteController"
-        kite.deleteKite(@shortName)
+        # kite = KD.getSingleton "kiteController"
+        # kite.deleteKite(@shortName)
 
       messageArrived = (msg) ->
         clearTimeout @unresponsiveTimeout
