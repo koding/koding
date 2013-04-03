@@ -23,7 +23,7 @@ class AccountEmailNotifications extends KDView
         title          : 'Someone invites me to their group'
       groupRequest     :
         title          : 'Someone requests membership to your group'
-      groupApproval    :
+      groupApproved    :
         title          : 'Group admin approves your membership request'
 
     for flag, field of fields
