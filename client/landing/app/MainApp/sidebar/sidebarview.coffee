@@ -21,13 +21,6 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # currentGroupData = @getSingleton('groupsController').getCurrentGroupData()
-
-    # @currentGroup = new KDCustomHTMLView
-    #   cssClass    : 'current-group-indicator'
-    #   pistachio   : "{{#(title)}}"
-    # , currentGroupData
-
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -78,7 +71,6 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners       : yes
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
@@ -163,7 +155,8 @@ class Sidebar extends JView
       else
         fpLastWidth = 208 if fpLastWidth < 100
         $fp.css "width", fpLastWidth
-        cp.$().css left : 52 + fpLastWidth, width : @wc.winWidth - 52 - fpLastWidth
+        cp.$().css left : 52 + fpLastWidth, \
+                  width : @wc.winWidth - 52 - fpLastWidth
         fpLastWidth = null
 
     @finderResizeHandle.on "DragStarted", (e, dragState)=>
@@ -359,20 +352,32 @@ class Sidebar extends JView
     title : "acc-navigation"
     items : [
       { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes, path   : '/Account' }
-      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
-      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
+      { title : "Account", loggedIn  : yes, path   : '/Account' }
+      { title : "Logout", loggedIn  : yes, action : "logout", path: "/Logout" }
+      { title : "Login", loggedOut : yes, action : "login",  path: "/Login" }
     ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
-      { title : "Manage Remotes",     icon : "remotes", action: 'manageRemotes'}
-      { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
-      { title : "Add Resources",      icon : "resources" }
-      { title : "Settings",           icon : "cog" }
-      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
+      {
+        title   : "Launch Terminal", icon : "terminal",
+        appPath : "WebTerm", isWebTerm : yes
+      }
+      {
+        title   : "Manage Remotes", icon : "remotes",
+        action  : "manageRemotes"
+      }
+      {
+        title   : "Manage Databases", icon : "databases",
+        action  : "manageDatabases"
+      }
+      { title   : "Add Resources",      icon : "resources" }
+      { title   : "Settings",           icon : "cog" }
+      {
+        title   : "Keyboard Shortcuts", icon : "shortcuts",
+        action  : "showShortcuts"
+      }
     ]
 
   adminNavItems =
@@ -380,18 +385,32 @@ class Sidebar extends JView
     title : "admin-navigation"
     items : [
       # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
+      {
+        title    : "Admin Panel",
+        loggedIn : yes,
+        callback : -> new AdminModal
+      }
     ]
 
   footerMenuItems =
     id    : "footer-menu"
     title : "footer-menu"
     items : [
-      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
-      { title : "About", callback : -> @showAboutDisplay() }
-      { title : "Chat",  loggedIn : yes, callback : ->
-        # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-        # unless location.hostname is "localhost"
-        new KDNotificationView title : "Coming soon..."
+      {
+        title    : "Help",
+        callback : ->
+          @getSingleton('mainController').emit "ShowInstructionsBook"
+      }
+      {
+        title    : "About",
+        callback : -> @showAboutDisplay()
+      }
+      {
+        title    : "Chat",
+        loggedIn : yes,
+        callback : ->
+          # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
+          # unless location.hostname is "localhost"
+          new KDNotificationView title : "Coming soon..."
       }
     ]

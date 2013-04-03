@@ -95,7 +95,7 @@ class KodingAppsController extends KDController
       KD.utils.getTimedOutCallback (err, response)=>
         if err
           @putAppsToAppStorage {}
-          warn err
+          warn err, response
           callback err
         else
           files = FSHelper.parseLsOutput [path], response
