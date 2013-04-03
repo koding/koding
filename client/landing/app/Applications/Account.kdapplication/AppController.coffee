@@ -130,7 +130,8 @@ class AccountAppController extends AppController
     kites :
       title : "Kites"
       items : [
-        { title : "List Kites",           listHeader: "Your Kites",                 listType: "kiteList",        id : 10,      parentId : null }
+        { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
+        { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
       ]
 
 
