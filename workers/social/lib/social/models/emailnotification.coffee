@@ -40,34 +40,34 @@ module.exports = class JMailNotification extends Model
                         'JReview']
 
   flags =
-    comment          :
-      eventType      : ['ReplyIsAdded']
-      contentTypes   : @commonActivities
-      definition     : 'about comments'
-    likeActivities   :
-      eventType      : ['LikeIsAdded']
-      contentTypes   : @commonActivities
-      definition     : 'about likes'
-    followActions    :
-      eventType      : ['FollowHappened']
-      contentTypes   : ['JAccount']
-      definition     : 'about follows'
-    privateMessage   :
-      eventType      : ['ReplyIsAdded', 'PrivateMessageSent']
-      contentTypes   : ['JPrivateMessage']
-      definition     : 'about private messages'
-    groupInvite      :
-      eventType      : ['Invited']
-      contentTypes   : ['JGroup'],
-      definition     : "when someone invites you to their group"
-    groupRequest     :
-      eventType      : ['ApprovalRequested']
-      contentTypes   : ['JGroup'],
-      definition     : "when someone requests membership to user's group"
-    groupApproval    :
-      eventType      : ['Approved']
-      contentTypes   : ['JGroup'],
-      definition     : "when user's group membership has been approved"
+    comment              :
+      eventType          : ['ReplyIsAdded']
+      contentTypes       : @commonActivities
+      definition         : 'about comments'
+    likeActivities       :
+      eventType          : ['LikeIsAdded']
+      contentTypes       : @commonActivities
+      definition         : 'about likes'
+    followActions        :
+      eventType          : ['FollowHappened']
+      contentTypes       : ['JAccount']
+      definition         : 'about follows'
+    privateMessage       :
+      eventType          : ['ReplyIsAdded', 'PrivateMessageSent']
+      contentTypes       : ['JPrivateMessage']
+      definition         : 'about private messages'
+    groupInvite          :
+      eventType          : ['Invited']
+      contentTypes       : ['JGroup'],
+      definition         : "when someone invites you to their group"
+    groupRequest         :
+      eventType          : ['InviteRequested', 'ApprovalRequested']
+      contentTypes       : ['JGroup'],
+      definition         : "when someone requests invitation to user's group"
+    groupApproval        :
+      eventType          : ['Approved']
+      contentTypes       : ['JGroup'],
+      definition         : "when user's group membership has been approved"
 
   @checkEmailChoice = (options, callback)->
 
@@ -99,7 +99,7 @@ module.exports = class JMailNotification extends Model
     username = receiver.getAt 'profile.nickname'
     sender   = actor._id
     receiver = receiver._id
-    
+
     activity =
       subject    : contents.subject
       actionType : contents.actionType

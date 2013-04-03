@@ -4,20 +4,20 @@
 dateFormat  = require 'dateformat'
 
 flags =
-  comment           :
-    definition      : "comment"
-  likeActivities    :
-    definition      : "like"
-  followActions     :
-    definition      : "follow"
-  privateMessage    :
-    definition      : "private message"
-  groupInvite       :
-    definition      : "group invite"
-  groupRequest      :
-    definition      : "group membership request"
-  groupApproval     :
-    fullDefinition  : "Your group membership has been approved"
+  comment              :
+    definition         : "comment"
+  likeActivities       :
+    definition         : "like"
+  followActions        :
+    definition         : "follow"
+  privateMessage       :
+    definition         : "private message"
+  groupInvite          :
+    definition         : "group invite"
+  groupRequest   :
+    definition         : "group invitation request"
+  groupApproval        :
+    fullDefinition     : "Your group membership has been approved"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""

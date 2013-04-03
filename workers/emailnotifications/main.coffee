@@ -29,27 +29,27 @@ log = ->
 log "E-Mail Notification Worker has started with PID #{process.pid}"
 
 flags =
-  comment           :
-    template        : template.instantMail
-    definition      : "comments"
-  likeActivities    :
-    template        : template.instantMail
-    definition      : "likes"
-  followActions     :
-    template        : template.instantMail
-    definition      : "follows"
-  privateMessage    :
-    template        : template.instantMail
-    definition      : "private messages"
-  groupInvite       :
-    template        : template.instantMail
-    definition      : "group invitation"
-  groupRequest      :
-    template        : template.instantMail
-    definition      : "group membership request"
-  groupApproval     :
-    template        : template.instantMail
-    definition      : "group membership request approved"
+  comment              :
+    template           : template.instantMail
+    definition         : "comments"
+  likeActivities       :
+    template           : template.instantMail
+    definition         : "likes"
+  followActions        :
+    template           : template.instantMail
+    definition         : "follows"
+  privateMessage       :
+    template           : template.instantMail
+    definition         : "private messages"
+  groupInvite          :
+    template           : template.instantMail
+    definition         : "group invitation"
+  groupRequest         :
+    template           : template.instantMail
+    definition         : "group invite request"
+  groupApproval        :
+    template           : template.instantMail
+    definition         : "group membership request approved"
 
 sendDailyEmail = (details, content)->
   unless content or details.email

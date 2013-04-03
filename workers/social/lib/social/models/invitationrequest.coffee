@@ -132,7 +132,6 @@ module.exports = class JInvitationRequest extends Model
 
   sendInvitation:(client, callback=->)->
     JUser       = require './user'
-    JInvitation = require './invitation'
     JGroup      = require './group'
 
     JGroup.one slug: @group, (err, group)=>
@@ -162,7 +161,6 @@ module.exports = class JInvitationRequest extends Model
         JAccount.one _id: delegate.getId(), (err, actor)=>
           if err then callback err
           else
-            console.log actor
             data =
               actor        : actor
               receiver     : receiver
@@ -178,3 +176,38 @@ module.exports = class JInvitationRequest extends Model
               if err then callback new KodingError "Could not send"
               else
                 callback null
+
+  sendInviteRequestNotification:(client, callback)->
+    JUser             = require './user'
+    JAccount          = require './account'
+    JGroup            = require './group'
+    JMailNotification = require './emailnotification'
+
+    JGroup.one slug: @group, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else
+        {delegate} = client.connection
+        JAccount.one _id: delegate.getId(), (err, actor)=>
+          if err then callback err
+          else
+            group.fetchAdmins (err, accounts)=>
+              if err then callback err
+
+              for account in accounts when account
+                data =
+                  actor           : actor
+                  receiver        : account
+                  event           : 'InviteRequested'
+                  contents        :
+                    subject       : ObjectRef(group).data
+                    actionType    : 'inviteRequest'
+                    actorType     : 'requester'
+                    inviteRequest : ObjectRef(@).data
+                    requester     : ObjectRef(actor).data
+
+                JMailNotification.create data, (err)->
+                  if err then callback new KodingError "Could not send"
+                  else
+                    callback null

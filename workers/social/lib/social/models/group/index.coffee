@@ -618,28 +618,46 @@ module.exports = class JGroup extends Module
   inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
-      JAccount = require '../account'
-      JAccount.one {email}, (err, account)=>
-        if err then callback err
-        else
-          invitationRequest = new JInvitationRequest
-            email          : email,
-            invitationType : 'invitation',
-            group          : @slug,
-            status         : 'sent'
+      invitationRequest = new JInvitationRequest
+        email          : email,
+        invitationType : 'invitation',
+        group          : @slug,
+        status         : 'sent'
 
-          invitationRequest.save (err)=>
-            if err
-              if err.code is 11000
-                callback new KodingError """
-                  You've already invited #{email} to join this group.
-                  """
-              else
-                callback err
-            else
-              @addInvitationRequest invitationRequest, (err)->
-                if err then callback err
-                else invitationRequest.sendInvitation client, callback
+      invitationRequest.save (err)=>
+        if err
+          if err.code is 11000
+            callback new KodingError """
+              You've already invited #{email} to join this group.
+              """
+          else
+            callback err
+        else
+          @addInvitationRequest invitationRequest, (err)->
+            if err then callback err
+            else invitationRequest.sendInvitation client, callback
+
+  requestInvitation: secure (client, invitationType, callback)->
+    {delegate} = client.connection
+    JInvitationRequest = require '../invitationrequest'
+
+    invitationRequest = new JInvitationRequest {
+      invitationType
+      koding  : { username: delegate.profile.nickname }
+      group   : @slug,
+      status  : 'pending'
+    }
+    invitationRequest.save (err)=>
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
+      else
+        @addInvitationRequest invitationRequest, (err)=>
+          if err then callback err
+          else
+            invitationRequest.sendInviteRequestNotification client, callback
+            @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
@@ -695,24 +713,6 @@ module.exports = class JGroup extends Module
               @sendApprovalRequestEmail(
                 delegate, delegateUser, admin, adminUser, callback
               )
-
-  requestInvitation: secure (client, invitationType, callback)->
-    JInvitationRequest = require '../invitationrequest'
-    {delegate} = client.connection
-    invitationRequest = new JInvitationRequest {
-      invitationType
-      koding  : { username: delegate.profile.nickname }
-      group   : @slug
-    }
-    invitationRequest.save (err)=>
-      if err?.code is 11000
-        callback new KodingError """
-          You've already requested an invitation to this group.
-          """
-      else
-        @addInvitationRequest invitationRequest, (err)=>
-          callback err
-          @emit 'NewInvitationRequest'
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
