@@ -49,43 +49,19 @@ class KiteController extends KDController
       command = options
       options = {}
 
-    options.kiteName or= "sharedHosting"
-    options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.method   or= "executeCommand"
+    options.kiteName or= "os"
+    options.method   or= "exec"
     if command
-      options.withArgs = {command}
-    # else if options.withArgs?.command
-      # options.withArgs = options.withArgs.command
+      options.withArgs = command
     else
       options.withArgs or= {}
 
-    # notify "Talking to #{options.kiteName} asking #{options.withArgs.command}, #{options.toDo}"
+    notify "Talking to #{options.kiteName} kite."
+    log "Asking for", options
+
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
-    ###
-    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
 
-      run:(options = {}, callback)->
-
-        if "string" is typeof options
-          command = options
-          options = {}
-
-        options.kiteName or= "os"
-        options.method   or= "exec"
-        if command
-          options.withArgs = {command}
-        else if options.withArgs?.command
-          options.withArgs = options.withArgs.command
-        else
-          options.withArgs or= {}
-
-        # notify "Talking to #{options.kiteName} asking #{options.toDo}"
-        KD.whoami().tellKite options, (err, response)=>
-          @parseKiteResponse {err, response}, options, callback
-
-    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
-    ###
   setListeners:->
 
     mainController = @getSingleton "mainController"
