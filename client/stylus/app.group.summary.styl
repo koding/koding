@@ -12,25 +12,19 @@
 
 body.landing
   #group-summary
-    bottom              -1000px
-    transition          bottom .3s ease-in
-    &.shown
-      bottom            0!important
     a.open-in-koding
       visible()
     a.public-page-link
       hidden()
 
-body.koding
-  #group-summary
-    top                 -1000px
-    transition          top .3s ease-in
-    &.shown
-      top               0!important
+// body.koding
+//   #group-summary
+//     top                 -200px
 
 
 #group-summary
   abs()
+  transition            top .3s ease-in
   // left                  -10000px
   size                  100%, auto
   min-height            200px
@@ -38,8 +32,6 @@ body.koding
   z-index               100
   border-bottom         1px solid rgba(0,0,0,.1)
   shadow                0 5px 15px rgba(0,0,0,0.5)
-  &.shown
-      left              0
 
   .summary-koding-logo
     abs()

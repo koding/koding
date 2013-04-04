@@ -26,22 +26,23 @@ class KDView extends KDObject
     ///
 
   eventToMethodMap = ->
-    dblclick    : "dblClick"
-    keyup       : "keyUp"
-    keydown     : "keyDown"
-    keypress    : "keyPress"
-    mouseup     : "mouseUp"
-    mousedown   : "mouseDown"
-    mouseenter  : "mouseEnter"
-    mouseleave  : "mouseLeave"
-    mousemove   : "mouseMove"
-    mousewheel  : "mouseWheel"
-    contextmenu : "contextMenu"
-    dragstart   : "dragStart"
-    dragenter   : "dragEnter"
-    dragleave   : "dragLeave"
-    dragover    : "dragOver"
-    paste       : "paste"
+    dblclick      : "dblClick"
+    keyup         : "keyUp"
+    keydown       : "keyDown"
+    keypress      : "keyPress"
+    mouseup       : "mouseUp"
+    mousedown     : "mouseDown"
+    mouseenter    : "mouseEnter"
+    mouseleave    : "mouseLeave"
+    mousemove     : "mouseMove"
+    mousewheel    : "mouseWheel"
+    contextmenu   : "contextMenu"
+    dragstart     : "dragStart"
+    dragenter     : "dragEnter"
+    dragleave     : "dragLeave"
+    dragover      : "dragOver"
+    paste         : "paste"
+    transitionend : "transitionEnd"
 
 
   overrideAndMergeObjects = (objects)->
@@ -480,6 +481,8 @@ class KDView extends KDObject
           @emit 'LazyLoadThresholdReached', {ratio}
         lastRatio = ratio
 
+
+
   bindEvents:($elm)->
     $elm or= @getDomElement()
     defaultEvents = "mousedown mouseup click dblclick paste"
@@ -500,6 +503,27 @@ class KDView extends KDObject
       yes
 
     eventsToBeBound
+
+  # until we find a better way of handling
+  # vendor specific events - SY
+  bindTransitionEnd:->
+
+    el          = document.createElement 'fakeelement'
+    transitions =
+      'OTransition'     : 'oTransitionEnd'
+      'MozTransition'   : 'transitionend'
+      'webkitTransition': 'webkitTransitionEnd'
+
+    transitionEvent = 'transitionend'
+    for key, val of transitions when el.style[key]?
+      transitionEvent = val
+      break
+
+    @bindEvent transitionEvent
+
+    # redirect event if it has vendor specific
+    unless transitionEvent is "transitionend"
+      @on transitionEvent, @emit.bind @, "transitionend"
 
   bindEvent:($elm, eventName)->
     [eventName, $elm] = [$elm, @$()] unless eventName

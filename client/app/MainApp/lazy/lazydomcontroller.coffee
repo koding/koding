@@ -29,49 +29,45 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
-      landingPageSideBar = new LandingPageSideBar
+      if @landingView
+        @landingView.bindTransitionEnd()
 
-      landingPageSideBar.on "navItemIsClicked", @bound "handleNavigationItemClick"
+    @on "landingViewIsHidden", ->
+      $('body').removeClass 'landing'
+      $('body').addClass 'koding'
+
+    @on "landingViewIsShown", ->
+      $('body').addClass 'landing'
+      $('body').removeClass 'koding'
+
 
   isLandingPageVisible:-> $('body').is('.landing')
 
   hideLandingPage:(callback)->
 
     if @landingView
-      {groupSummary} = @mainController.mainViewController.getView()
-      @utils.defer =>
-        @landingView.setClass "down"
-        @utils.wait 300, =>
-          @landingView.setClass "out"
-          groupSummary?.sign.setClass "swing-in"
-          $('body').removeClass 'landing'
-          $('body').addClass 'koding'
-          callback?()
+      @landingView.once "transitionend", (event)=>
+        # @landingView.hide()
+        @emit "landingViewIsHidden"
+        callback? event
 
-          # @utils.wait 1200, =>
-          #   log "ever here"
-          #   @landingView.hide()
-      # FIXME: GG
-      # @landingView.on "transtionEnd", @landingView.bound "hide"
+      {groupSummary} = @mainController.mainViewController.getView()
+      @landingView.$().css marginTop : -window.innerHeight
 
   showLandingPage:(callback = noop)->
     if @landingView
       {contentPanel, groupSummary} = @mainController.mainViewController.getView()
-      @utils.wait 300, =>
-        contentPanel.setClass "no-anim"
-        contentPanel.setClass "social"
-        @utils.defer =>
-          contentPanel.unsetClass "no-anim"
-          @landingView.show()
-          @utils.defer =>
-            @landingView.unsetClass "out"
-            $('body').addClass 'landing'
-            $('body').removeClass 'koding'
-            @utils.wait 600, =>
-              @landingView.unsetClass "down"
-              groupSummary?.sign.unsetClass "swing-in"
-              groupSummary?.sign.unsetClass "swing-out"
-              @utils.wait 300, callback
+
+      @landingView.once "transitionend", (event)=>
+        contentPanel.unsetClass "no-anim"
+        @emit "landingViewIsShown"
+        callback? event
+
+      # @landingView.show()
+      @landingView.$().css marginTop : 0
+      contentPanel.setClass "no-anim"
+      contentPanel.setClass "social"
+
 
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
