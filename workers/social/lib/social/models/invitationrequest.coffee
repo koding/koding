@@ -136,6 +136,7 @@ module.exports = class JInvitationRequest extends Model
   sendInvitation:(client, callback=->)->
     JUser       = require './user'
     JGroup      = require './group'
+    JInvitation = require './invitation'
 
     JGroup.one slug: @group, (err, group)=>
       if err then callback err
@@ -146,6 +147,7 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else if not user
             # send invite to non koding user
+            JInvitation.createViaGroup client, group, [@email], callback
           else
             # send invite to existing koding user
             @sendInviteMailToKodingUser client, user, group, callback
