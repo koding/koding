@@ -221,6 +221,7 @@ class AceView extends JView
       nodeParentIdPath  : "parentPath"
       foldersOnly       : yes
       contextMenu       : no
+      loadFilesOnInit   : yes
 
     finder = @finderController.getView()
 

@@ -16,35 +16,32 @@ class NFinderController extends KDViewController
     treeOptions.putDepthInfo      = options.putDepthInfo       ?= yes
     treeOptions.contextMenu       = options.contextMenu        ?= yes
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
-    treeOptions.initDelay         = options.initDelay         or= 0
     treeOptions.useStorage        = options.useStorage         ?= no
+    treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
     treeOptions.delegate          = @
 
     super options, data
 
     @kiteController = @getSingleton('kiteController')
-    @appStorage     = @getSingleton('mainController').\
-                        getAppStorageSingleton 'Finder', '1.0'
-
     @treeController = new NFinderTreeController treeOptions, []
 
-    @treeController.on "file.opened", (file)=>
-      @setRecentFile file.path
+    if options.useStorage
 
-    @treeController.on "folder.expanded", (folder)=>
-      @setRecentFolder folder.path
+      @treeController.on "file.opened", (file)=>
+        @setRecentFile file.path
 
-    @treeController.on "folder.collapsed", (folder)=>
-      @unsetRecentFolder folder.path
+      @treeController.on "folder.expanded", (folder)=>
+        @setRecentFolder folder.path
+
+      @treeController.on "folder.collapsed", (folder)=>
+        @unsetRecentFolder folder.path
 
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
     @viewLoaded = yes
 
-    @utils.killWait @loadDefaultStructureTimer
-
-    @reset()
+    @reset() if @getOptions().loadFilesOnInit
 
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
@@ -56,27 +53,23 @@ class NFinderController extends KDViewController
     @initialPath = @expandInitialPath initialPath
 
   reset:->
+    if @getOptions().useStorage
+      @appStorage = @getSingleton('mainController').\
+                      getAppStorageSingleton 'Finder', '1.0'
+      @appStorage.once "storageFetched", => @createRootStructure()
+    else
+      @createRootStructure()
 
-    @appStorage = @getSingleton('mainController').\
-                    getAppStorageSingleton 'Finder', '1.0'
+  createRootStructure:->
+    {nickname} = KD.whoami().profile
+    @mount     = FSHelper.createFile
+      name: nickname.toLowerCase()
+      path: "/home/#{nickname}"
+      type: "mount"
 
-    @appStorage.once "storageFetched", =>
-      {nickname} = KD.whoami().profile
-      @mount     = FSHelper.createFile
-        name: nickname.toLowerCase()
-        path: "/home/#{nickname}"
-        type: "mount"
-
-      @defaultStructureLoaded = no
-      @treeController.initTree [@mount]
-
-      if @treeController.getOptions().useStorage
-        unless @viewLoaded
-          @loadDefaultStructureTimer = @utils.wait \
-            @treeController.getOptions().initDelay, =>
-              @loadDefaultStructure()
-        else
-          @loadDefaultStructure()
+    @defaultStructureLoaded = no
+    @treeController.initTree [@mount]
+    @loadDefaultStructure()
 
   loadDefaultStructure:->
 
