@@ -31,6 +31,8 @@ class GroupSummaryView extends KDCustomHTMLView
       click       : @bound "showSummary"
     , {}
 
+    @sign.bindTransitionEnd()
+
     @kodingLogo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "summary-koding-logo"
@@ -86,26 +88,28 @@ class GroupSummaryView extends KDCustomHTMLView
     if event
       event.stopPropagation()
       event.preventDefault()
-    @sign.setClass "swing-out"
-    @sign.unsetClass "swing-in"
-    @utils.wait 400, =>
-      @sign.unsetClass "swing-out"
-      if @lazyDomController.isLandingPageVisible()
-        @$().css top : -@getHeight()
-      else
-        @$().css top : 0
+    if @lazyDomController.isLandingPageVisible()
+      @$().css top : -@getHeight()
+    else
+      @sign.once "transitionend", =>
+        @sign.unsetClass "swing-out"
+
+      @$().css top : 0
+      @setClass "swing-out"
+      @unsetClass "swing-in"
+
 
   hideSummary:(event)->
     if event
       event.stopPropagation()
       event.preventDefault()
-    @utils.wait 400, =>
-      @sign.unsetClass "swing-out"
-      @sign.unsetClass "swing-in"
-      if @lazyDomController.isLandingPageVisible()
-        @$().css top : 0
-      else
-        @$().css top : -@getHeight()
+    if @lazyDomController.isLandingPageVisible()
+      @$().css top : 0
+    else
+      @once "transitionend", =>
+        @sign.unsetClass "swing-out"
+        @sign.unsetClass "swing-in"
+      @$().css top : -@getHeight()
 
   landingViewIsHidden:->
 
