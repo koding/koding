@@ -20,21 +20,31 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @sign = new KDCustomHTMLView
       tagName     : "div"
-      cssClass    : "group-logo-wrapper"
+      cssClass    : "group-sign-wrapper"
       bind        : "mouseenter mouseleave"
       pistachio   : """
         <i></i><i></i>
-        <h3 id="group-logo">{{#(title)}}</h3>
+        <h3 id="group-sign">{{#(title)}}</h3>
         """
       mouseenter  : -> @$().css marginTop : 13
       mouseleave  : -> @$().css marginTop : 8
       click       : @bound "showSummary"
     , {}
 
+    @sign.bindTransitionEnd()
+
     @kodingLogo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "summary-koding-logo"
-      click       : @bound "showSummary"
+      click       : (event)=>
+        @kodingLogo.unsetClass "in"
+        @kodingLogo.once "transitionend", =>
+          @showSummary event
+
+
+    @kodingLogo.bindTransitionEnd()
+
+    @utils.wait 1500, => @kodingLogo.setClass "in"
 
     @landingPageLink = new CustomLinkView
       cssClass    : "public-page-link"
@@ -86,26 +96,30 @@ class GroupSummaryView extends KDCustomHTMLView
     if event
       event.stopPropagation()
       event.preventDefault()
-    @sign.setClass "swing-out"
-    @sign.unsetClass "swing-in"
-    @utils.wait 400, =>
-      @sign.unsetClass "swing-out"
-      if @lazyDomController.isLandingPageVisible()
-        @$().css top : -@getHeight()
-      else
-        @$().css top : 0
+    if @lazyDomController.isLandingPageVisible()
+      @$().css top : -@getHeight()
+    else
+      @sign.once "transitionend", =>
+        @sign.unsetClass "swing-out"
+
+      @$().css top : 0
+      @setClass "swing-out"
+      @unsetClass "swing-in"
+
 
   hideSummary:(event)->
     if event
       event.stopPropagation()
       event.preventDefault()
-    @utils.wait 400, =>
-      @sign.unsetClass "swing-out"
-      @sign.unsetClass "swing-in"
-      if @lazyDomController.isLandingPageVisible()
-        @$().css top : 0
-      else
-        @$().css top : -@getHeight()
+    if @lazyDomController.isLandingPageVisible()
+      @$().css top : 0
+      @once "transitionend", =>
+        @kodingLogo.setClass "in"
+    else
+      @once "transitionend", =>
+        @sign.unsetClass "swing-out"
+        @sign.unsetClass "swing-in"
+      @$().css top : -@getHeight()
 
   landingViewIsHidden:->
 

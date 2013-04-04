@@ -32,43 +32,44 @@ class LazyDomController extends KDController
       if @landingView
         @landingView.bindTransitionEnd()
 
-    @on "landingViewIsHidden", ->
-      $('body').removeClass 'landing'
-      $('body').addClass 'koding'
+        @on "landingViewIsHidden", ->
+          $('body').removeClass 'landing'
+          $('body').addClass 'koding'
 
-    @on "landingViewIsShown", ->
-      $('body').addClass 'landing'
-      $('body').removeClass 'koding'
+        @on "landingViewIsShown", ->
+          $('body').addClass 'landing'
+          $('body').removeClass 'koding'
 
 
   isLandingPageVisible:-> $('body').is('.landing')
 
   hideLandingPage:(callback)->
 
-    if @landingView
-      @landingView.once "transitionend", (event)=>
-        # @landingView.hide()
-        @emit "landingViewIsHidden"
-        callback? event
+    return unless @landingView
 
-      {groupSummary} = @mainController.mainViewController.getView()
-      @landingView.$().css marginTop : -window.innerHeight
+    @landingView.once "transitionend", (event)=>
+      # @landingView.hide()
+      @emit "landingViewIsHidden"
+      callback? event
+
+    {groupSummary} = @mainController.mainViewController.getView()
+    @landingView.$().css marginTop : -window.innerHeight
 
   showLandingPage:(callback = noop)->
-    if @landingView
-      {contentPanel, groupSummary} = @mainController.mainViewController.getView()
 
-      @landingView.once "transitionend", (event)=>
-        contentPanel.unsetClass "no-anim"
-        @emit "landingViewIsShown"
-        callback? event
+    return unless @landingView
 
-      # @landingView.show()
-      @landingView.$().css marginTop : 0
-      contentPanel.setClass "no-anim"
-      contentPanel.setClass "social"
+    {contentPanel, groupSummary} = @mainController.mainViewController.getView()
 
+    @landingView.once "transitionend", (event)=>
+      contentPanel.unsetClass "no-anim"
+      @emit "landingViewIsShown"
+      callback? event
 
+    # @landingView.show()
+    @landingView.$().css marginTop : 0
+    contentPanel.setClass "no-anim"
+    contentPanel.setClass "social"
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
