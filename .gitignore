@@ -5,7 +5,7 @@
 website/js/kd*.js
 website/js/kd*.js.map
 website/css/kd*.css
-website/index.html
+website/default.html
 v8.log
 /kd-server.js
 /website/js/requiresReload.txt
