@@ -27,30 +27,35 @@ body.landing
   z-index               100
   border-bottom         1px solid rgba(0,0,0,.1)
   shadow                0 5px 15px rgba(0,0,0,0.5)
+  perspective           800px
 
   .summary-koding-logo
     abs()
-    top                 -34px
+    top                 -30px
     left                50%
     bg                  position, -240px -40px
     size                120px, 30px
     margin-left         -60px
     cursor              pointer
+    opacity             .3
+    z-index             0
     sprite()
-    vendor              transition-property, transform
+    // transition          opacity .1s ease
+    vendor              transition-property, transform\, opacity
     vendor              transition-duration, .3s
     vendor              transition-easing, ease
-
     vendor              transform-origin-x, 0
     vendor              transform-origin-y, 100%
     transform           translateX(0px)\
                         translateY(0px)\
                         translateZ(0px)\
-                        rotateX(-90deg)\
+                        rotateX(90deg)\
                         rotateY(0deg)\
                         rotateZ(0deg)
     &.in
       transform         rotateX(0deg)
+      opacity           1
+      z-index           1000
 
   .kdloader
     display             block
