@@ -17,11 +17,6 @@ body.landing
     a.public-page-link
       hidden()
 
-// body.koding
-//   #group-summary
-//     top                 -200px
-
-
 #group-summary
   abs()
   transition            top .3s ease-in
@@ -42,6 +37,20 @@ body.landing
     margin-left         -60px
     cursor              pointer
     sprite()
+    vendor              transition-property, transform
+    vendor              transition-duration, .3s
+    vendor              transition-easing, ease
+
+    vendor              transform-origin-x, 0
+    vendor              transform-origin-y, 100%
+    transform           translateX(0px)\
+                        translateY(0px)\
+                        translateZ(0px)\
+                        rotateX(-90deg)\
+                        rotateY(0deg)\
+                        rotateZ(0deg)
+    &.in
+      transform         rotateX(0deg)
 
   .kdloader
     display             block

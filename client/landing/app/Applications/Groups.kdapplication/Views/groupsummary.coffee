@@ -36,7 +36,15 @@ class GroupSummaryView extends KDCustomHTMLView
     @kodingLogo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "summary-koding-logo"
-      click       : @bound "showSummary"
+      click       : (event)=>
+        @kodingLogo.unsetClass "in"
+        @kodingLogo.once "transitionend", =>
+          @showSummary event
+
+
+    @kodingLogo.bindTransitionEnd()
+
+    @utils.wait 1500, => @kodingLogo.setClass "in"
 
     @landingPageLink = new CustomLinkView
       cssClass    : "public-page-link"
@@ -105,6 +113,8 @@ class GroupSummaryView extends KDCustomHTMLView
       event.preventDefault()
     if @lazyDomController.isLandingPageVisible()
       @$().css top : 0
+      @once "transitionend", =>
+        @kodingLogo.setClass "in"
     else
       @once "transitionend", =>
         @sign.unsetClass "swing-out"
