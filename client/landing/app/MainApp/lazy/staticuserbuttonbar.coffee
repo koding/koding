@@ -7,6 +7,11 @@ class StaticUserButtonBar extends JView
     @ldc = @getSingleton 'lazyDomController'
     @mc  = @getSingleton 'mainController'
 
+    @prefix =
+      if @ldc.userEnteredFromGroup() and KD.config.groupEntryPoint isnt 'koding'
+          "/#{KD.config.groupEntryPoint}"
+      else ""
+
     @buttonGroup = new KDView
 
     @refreshButtons()
@@ -43,7 +48,7 @@ class StaticUserButtonBar extends JView
       callback    : =>
         @ldc.handleNavigationItemClick
           action  : 'login'
-          path    : '/Login'
+          path    : "#{@prefix}/Login"
 
 
   addLogoutButton:->
@@ -53,7 +58,7 @@ class StaticUserButtonBar extends JView
       callback    : =>
         @ldc.handleNavigationItemClick
           action  : 'logout'
-          path    : '/Logout'
+          path    : "/Logout"
 
 
   addRegisterButton:->
@@ -63,7 +68,7 @@ class StaticUserButtonBar extends JView
       callback    : =>
         @ldc.handleNavigationItemClick
           action  : 'register'
-          path    : '/Register'
+          path    : "#{@prefix}/Register"
 
 
   pistachio:->
