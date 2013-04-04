@@ -589,6 +589,7 @@ class GroupsAppController extends AppController
           pane.tabHandle.markDirty no
 
     group.on 'NewInvitationRequest', ->
+      pane.emit 'NewInvitationActionArrived'
       pane.tabHandle.markDirty()
 
     return pane
