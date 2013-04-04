@@ -101,7 +101,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 			watchMutex.Lock()
 			defer watchMutex.Unlock()
 
-			watch := &Watch{vos, params.Path, params.OnChange}
+			watch := &Watch{vos, watchedPath, params.OnChange}
 			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
 			session.OnDisconnect(func() { watch.Close() })
 			response["stopWatching"] = func() { watch.Close() }
@@ -284,10 +284,11 @@ func (watch *Watch) Close() error {
 			break
 		}
 	}
+
 	watchMap[watch.Path] = watches
 
 	if len(watches) == 0 {
-		watcher.RemoveWatch(watch.Path)
+		return watcher.RemoveWatch(watch.Path)
 	}
 
 	return nil
