@@ -107,70 +107,127 @@ class AccountMyKiteList extends KDListView
     ,options
     super options,data
 
-  showModal:->
+  showModal:=>
     modal = @modal = new KDModalViewWithForms
-      title                   : "Create a new Kite"
-      content                 : ""
-      overlay                 : yes
-      cssClass                : "new-kdmodal"
-      width                   : 500
-      height                  : "auto"
-      tabs                    :
-        forms                 :
-          MyKites             :
-            callback          : =>
+      title                           : "Create a new Kite"
+      content                         : ""
+      overlay                         : yes
+      cssClass                        : "new-kdmodal"
+      width                           : 500
+      height                          : "auto"
+      tabs                            :
+        forms                         :
+          MyKites                     :
+            callback                  : =>
               @modal.modalTabs.forms.MyKites.buttons.Create.showLoader()
               @emit "CreateKiteSubmitted", @
-            buttons           :
-              create          :
-                title         : "Create"
-                style         : "modal-clean-gray"
-                type          : "submit"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-                callback      : -> @hideLoader()
-              cancel          :
-                title         : "Cancel"
-                style         : "modal-cancel"
-                callback      : (event)-> modal.destroy()
-            fields            :
-              type            :
-                label         : "Type"
-                itemClass     : KDSelectBox
-                type          : "select"
-                name          : "type"
-                defaultValue  : "free"
-                selectOptions : [
+            buttons                   :
+              create                  :
+                title                 : "Create"
+                style                 : "modal-clean-gray"
+                type                  : "submit"
+                loader                :
+                  color               : "#444444"
+                  diameter            : 12
+                callback              : -> @hideLoader()
+              cancel                  :
+                title                 : "Cancel"
+                style                 : "modal-cancel"
+                callback              : (event)-> modal.destroy()
+            fields                    :
+              kiteName               :
+                label                : "Name"
+                itemClass            : KDInputView
+                name                 : "name"
+                placeholder          : "Name..."
+                validate             :
+                  rules              :
+                    required         : yes
+                    rangeLength      : [4,25]
+                    regExp           : /^[a-z\d]+([-][a-z\d]+)*$/i
+                    kiteNameCheck    : (input, event) => @kiteNameCheck input, event
+                    finalCheck       : (input, event) => @kiteNameCheck input, event
+                  messages           :
+                    required         : "Please enter a kite name"
+                    regExp           : "For kite name only lowercase letters and numbers are allowed!"
+                    rangeLength      : "kite name should be minimum 4 maximum 25 chars!"
+                  events             :
+                    required         : "blur"
+                    rangeLength      : "keyup"
+                    regExp           : "keyup"
+                    usernameCheck    : "keyup"
+                    finalCheck       : "blur"
+                iconOptions          :
+                  tooltip            :
+                    placement        : "right"
+                    offset           : 2
+                    title            : """
+                                       Only lowercase letters and numbers are allowed,
+                                       max 25 characters.
+                                       """
+              type                    :
+                label                 : "Type"
+                itemClass             : KDSelectBox
+                type                  : "select"
+                name                  : "type"
+                defaultValue          : "free"
+                selectOptions         : [
                   { title : "Free",    value : "free" }
                   { title : "Paid",    value : "paid" }
                 ]
-              privacy         :
-                label         : "Privacy"
-                itemClass     : KDSelectBox
-                type          : "select"
-                name          : "privacy"
-                defaultValue  : "public"
-                selectOptions: [
+              privacy                :
+                label                : "Privacy"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "privacy"
+                defaultValue         : "public"
+                selectOptions        : [
                   { title: "Public", value: "public" }
                   { title: "Private", value: "private" }
                 ]
-              description     :
-                label         : "Description"
-                itemClass     : KDInputView
-                name          : "description"
-                placeholder   : "Description (optional)..."
-              kiteName        :
-                label         : "Name"
-                itemClass     : KDInputView
-                name          : "name"
-                placeholder   : "Name..."
-                validate      :
-                  rules       :
-                    required  : yes
-                  messages    :
-                    required  : "You must write a name for your Kite!"
+              description            :
+                label                : "Description"
+                itemClass            : KDInputView
+                name                 : "description"
+                placeholder          : "Description (optional)..."
 
+
+
+  kiteNameCheckTimer = null
+
+  kiteNameCheck:(input, event)->
+
+    if event then console.log event
+
+    clearTimeout kiteNameCheckTimer
+
+    input.setValidationResult "kiteNameCheck", null
+
+    name = input.getValue()
+
+    if input.valid
+      kiteNameCheckTimer = setTimeout =>
+        KD.remote.api.JKite.checkKiteName kiteName : name, (err, response)=>
+          if err
+            @notify err.message, "fail"
+          else
+            if response
+              input.setValidationResult "usernameCheck", null
+            else
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+      ,800
+#    if input.valid
+#      KD.remote.api.JKite.checkKiteName kiteName : name, (err, response)=>
+#        if err
+#          @notify err.message, "fail"
+#        else
+#          if response
+#            input.setValidationResult "kiteNameCheck", null
+#          else
+#            input.valid = false
+#            input.setValidationResult "kiteNameCheck", "Sorry, \"#{name}\" is already taken!"
+
+    return
 
 class AccountMyKiteListItem extends KDListItemView
   constructor:(options,@data)->
