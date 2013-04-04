@@ -85,18 +85,21 @@ class NFinderController extends KDViewController
     log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
     kiteController.run
-      kiteName   : 'os'
       method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
           FSHelper.folderOnChange "/home/#{nickname}", change, @treeController
         path     : '.'
     , (err, response)=>
+      @lastSuccessfulResponse?.stopWatching?()
+
       if response
         files = FSHelper.parseWatcher "/home/#{nickname}", response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
         @treeController.hideNotification()
+
+        @lastSuccessfulResponse = response
 
       log "#{(Date.now()-timer)/1000}sec !"
       @mount.emit "fs.fetchContents.finished"

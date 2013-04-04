@@ -193,9 +193,11 @@ class AceView extends JView
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
             @ace.emit "AceDidSaveAs", name, parent.path
-        Cancel :
+        Cancel      :
           style     : "modal-cancel"
-          callback  : ->
+          callback  : =>
+            @finderController.lastSuccessfulResponse?.stopWatching?()
+            delete @finderController
             saveDialog.hide()
 
     saveDialog.addSubView wrapper = new KDView
