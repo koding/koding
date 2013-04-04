@@ -18,6 +18,7 @@ class LinkView extends KDCustomHTMLView
 
     callback = (data)=>
       @setData data
+      data.on? 'update', @bound 'render'
       @render()
       @emit "OriginLoadComplete", data
 
