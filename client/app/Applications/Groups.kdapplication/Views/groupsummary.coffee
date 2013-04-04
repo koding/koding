@@ -100,11 +100,12 @@ class GroupSummaryView extends KDCustomHTMLView
       @$().css top : -@getHeight()
     else
       @sign.once "transitionend", =>
+        @sign.once "transitionend", =>
+          @$().css top : 0
         @sign.unsetClass "swing-out"
 
-      @$().css top : 0
-      @setClass "swing-out"
-      @unsetClass "swing-in"
+      @sign.setClass "swing-out"
+      @sign.unsetClass "swing-in"
 
 
   hideSummary:(event)->
@@ -128,6 +129,7 @@ class GroupSummaryView extends KDCustomHTMLView
   landingViewIsShown:->
 
     @sign.unsetClass "swing-in swing-out"
+    @kodingLogo.setClass "in"
 
   decorateSummary:->
 
