@@ -31,7 +31,7 @@ module.exports = class JInvitation extends jraphical.Module
     schema          :
       code          : String
       inviteeEmail  : String
-      group         : ObjectRef
+      group         : String
       customMessage :
         subject     : String
         body        : String
@@ -365,7 +365,7 @@ module.exports = class JInvitation extends jraphical.Module
     options =
       group    : group.title
       inviter  : delegate.getFullName()
-      url      : "#{protocol}//#{host}/Invitation/#{encodeURIComponent invite.code}"
+      url      : "#{protocol}//#{host}/#{group.slug}/Invitation/#{encodeURIComponent invite.code}"
       isPublic : if group.privacy == 'public' then true else false
 
     JUser.fetchUser client, (err, inviter)=>
@@ -426,7 +426,7 @@ module.exports = class JInvitation extends jraphical.Module
               maxUses      : 1
               inviteeEmail : email
               origin       : ObjectRef(delegate)
-              group        : ObjectRef(group)
+              group        : group.slug
 
             invite.save (err)=>
               if err then callback err

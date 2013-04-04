@@ -13,7 +13,8 @@ module.exports = class JInvitationRequest extends Model
 
   @set
     indexes           :
-      email           : ['unique','sparse']
+      #email           : ['unique','sparse']
+      email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']

@@ -290,8 +290,8 @@ module.exports = class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
-  @addToGroup = (account, selector, callback)->
-    JGroup.one selector, (err, group)->
+  @addToGroup = (account, slug, callback)->
+    JGroup.one {slug}, (err, group)->
       if err or not group then callback err
       else
         group.addMember account, 'member', (err)->
@@ -301,10 +301,10 @@ module.exports = class JUser extends jraphical.Module
             callback null
 
   @addToGroups = (account, invite, callback)->
-    @addToGroup account, slug:'koding', (err)=>
+    @addToGroup account, 'koding', (err)=>
       if err then callback err
       else if invite.group
-        @addToGroup account, _id:invite.group.id, (err)->
+        @addToGroup account, invite.group, (err)->
           if err then callback err
           else callback null
       else

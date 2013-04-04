@@ -618,24 +618,26 @@ module.exports = class JGroup extends Module
   inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
-      invitationRequest = new JInvitationRequest
-        email          : email,
-        invitationType : 'invitation',
-        group          : @slug,
-        status         : 'sent'
 
-      invitationRequest.save (err)=>
-        if err
-          if err.code is 11000
-            callback new KodingError """
-              You've already invited #{email} to join this group.
-              """
-          else
-            callback err
+      params =
+        email: email,
+        group: @slug
+
+      JInvitationRequest.one params, (err, invitationRequest)=>
+        if invitationRequest
+          callback new KodingError """
+            You've already invited #{email} to join this group.
+            """
         else
-          @addInvitationRequest invitationRequest, (err)->
+          params['invitationType'] = 'invitation'
+          params['status']         = 'sent'
+
+          invitationRequest = new JInvitationRequest params
+          invitationRequest.save (err)=>
             if err then callback err
-            else invitationRequest.sendInvitation client, callback
+            else @addInvitationRequest invitationRequest, (err)->
+              if err then callback err
+              else invitationRequest.sendInvitation client, callback
 
   requestInvitation: secure (client, invitationType, callback)->
     {delegate} = client.connection
