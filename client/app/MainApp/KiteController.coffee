@@ -56,8 +56,8 @@ class KiteController extends KDController
     else
       options.withArgs or= {}
 
-    notify "Talking to #{options.kiteName} kite."
-    log "Asking for", options
+    notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
+    log "Kite Request:", options
 
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
