@@ -25,7 +25,7 @@ module.exports = class JKite extends jraphical.Module
           'delete'
         ]
       static        : [
-          'create', 'get', 'fetchAll', 'control', 'fetchKites'
+          'create', 'get', 'fetchAll', 'control', 'fetchKites', 'checkKiteName'
         ]
     schema          :
       description   :
@@ -105,6 +105,20 @@ module.exports = class JKite extends jraphical.Module
         callback err
       else
         callback null, data
+
+  @checkKiteName = (data, callback)->
+
+    @one {
+      kiteName : data.kiteName
+    }, (err, data)=>
+      if err
+        callback err
+      else
+        console.log data
+        result = true
+        result = false if data
+
+        callback null, result
 
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
