@@ -20,11 +20,11 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @sign = new KDCustomHTMLView
       tagName     : "div"
-      cssClass    : "group-logo-wrapper"
+      cssClass    : "group-sign-wrapper"
       bind        : "mouseenter mouseleave"
       pistachio   : """
         <i></i><i></i>
-        <h3 id="group-logo">{{#(title)}}</h3>
+        <h3 id="group-sign">{{#(title)}}</h3>
         """
       mouseenter  : -> @$().css marginTop : 13
       mouseleave  : -> @$().css marginTop : 8
