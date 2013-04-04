@@ -59,7 +59,6 @@ AccountMixin = do ->
 
       messageHandler =(kiteName, args) ->
         {method} = args
-        log "Working on these:", arguments
         callback =
           if method is 'ready'
             ready.bind this

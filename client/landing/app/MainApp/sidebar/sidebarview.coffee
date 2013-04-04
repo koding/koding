@@ -50,7 +50,6 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
 
