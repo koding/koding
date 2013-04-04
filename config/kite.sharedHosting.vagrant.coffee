@@ -42,7 +42,7 @@ module.exports =
     configFilePath      : '/opt/lsws/conf/httpd_config.xml'
     minRestartInterval  : '10000' # 10 sec
   ldap                  :
-    ldapUrl             : 'ldap://ldap0-prod.in.koding.com'
+    ldapUrl             : 'ldap://ldap0-dev.in.koding.com'
     rootUser            : "uid=KAdmin,ou=Special Users,dc=koding,dc=com"
     rootPass            : 'sOg4:L]iM7!_UV-H'
     groupDN             : 'ou=Beta,ou=Groups,dc=koding,dc=com'
