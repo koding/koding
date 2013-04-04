@@ -130,7 +130,6 @@ class GroupSummaryView extends KDCustomHTMLView
             @loader.hide()
             @putOwner owner
             @putGroupBio group
-            @positionSummary()
 
         group.fetchMembers (err, members)=>
           if err then warn err
