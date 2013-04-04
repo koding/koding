@@ -122,7 +122,6 @@ class StaticProfileController extends KDController
           @showWrapper @wrappers['static']
 
         @staticDefaultItem.show()
-        @staticPageSettingsButton?.hide()
         callback()
 
 
@@ -134,7 +133,6 @@ class StaticProfileController extends KDController
       @emit 'StaticProfileNavLinkClicked', 'CStatusActivity', 'activity', =>
         @showWrapper @wrappers['activity']
         @displaySidebar yes
-        @staticPageSettingsButton?.show()
         @profileContentWrapperView.setClass 'activity'
         callback()
 
@@ -144,7 +142,6 @@ class StaticProfileController extends KDController
         callback()
       @profileContentWrapperView.unsetClass 'activity'
       @displaySidebar no
-      @staticPageSettingsButton?.hide()
 
 
     @on 'CustomizeLinkClicked',=>
@@ -231,21 +228,6 @@ class StaticProfileController extends KDController
       @profileTitleBioView = new KDView
         lazyDomId : 'profile-bio'
 
-      profileAdminCustomizeView = new KDView
-        lazyDomId : 'profile-admin-customize'
-
-      profileAdminCustomizeView.addSubView @staticPageSettingsButton = new CustomLinkView
-        title : 'Customize'
-        cssClass : 'static-page-settings-button clean-gray hidden'
-        click :(event)=>
-          @emit 'CustomizeLinkClicked'
-          event.stopPropagation()
-          event.preventDefault()
-
-      profileAdminCustomizeView.show()
-
-      profileAdminMessageView = new KDView
-        lazyDomId : 'profile-admin-message'
 
       handleLinks = {}
 
@@ -382,24 +364,6 @@ class StaticProfileController extends KDController
               new KDNotificationView
                 title   : 'Description updated.'
 
-      # @advancedSettings   = new KDButtonViewWithMenu
-      #   style           : 'profile-advanced-settings-menu editor-advanced-settings-menu'
-      #   icon            : yes
-      #   iconOnly        : yes
-      #   iconClass       : "cog"
-      #   type            : "contextmenu"
-      #   delegate        : @
-      #   itemClass       : StaticProfileSettingsView
-      #   callback        : (event)=>
-      #     if @profileContentWrapperView.$().hasClass 'edit'
-      #       @profileContentWrapperView.unsetClass 'edit'
-      #     else  @profileContentWrapperView.setClass 'edit'
-
-      #     @advancedSettings.contextMenu event
-      #   menu            : @getAdvancedSettingsMenuItems.bind @
-
-      # profileAdminMessageView.addSubView @advancedSettings
-
       @flipButtonFront   = new KDButtonView
           style           : 'flip-button editor-advanced-settings-menu'
           icon            : yes
@@ -424,14 +388,6 @@ class StaticProfileController extends KDController
       ,@profileUser
 
 
-
-  # getAdvancedSettingsMenuItems:->
-  #   settings      :
-  #     type        : 'customView'
-  #     view        : new StaticProfileSettingsView #StaticProfileSettingsView
-  #       delegate  : @
-
-
   reviveViewsOnPageLoad:->
 
     allowedTypes  = ['CBlogPostActivity']
@@ -454,7 +410,7 @@ class StaticProfileController extends KDController
     @landingView.listenWindowResize()
     @landingView._windowDidResize = =>
       @landingView.setHeight window.innerHeight
-      # @profileContentView.setHeight window.innerHeight-profileTitleView.getHeight()
+      # @profileContentView.setHeight window.innerHeight-@profileTitleView.getHeight()
 
 
     groupKodingLogo = new KDView
@@ -467,7 +423,7 @@ class StaticProfileController extends KDController
         else
           @mainController.loginScreen.animateToForm 'login'
 
-    profileTitleView = new KDView
+    @profileTitleView = new KDView
       lazyDomId : 'profile-title'
 
     @profileShowMoreView = new KDView
@@ -529,6 +485,18 @@ class StaticProfileController extends KDController
         color       : '#444'
     @profileLoaderView.hide()
 
+    @homeButton = new KDButtonView
+      lazyDomId : 'profile-home-button'
+      title     : 'Home'
+      callback  : => @emit 'HomeLinkClicked'
+    @activityButton = new KDButtonView
+      title     : 'Activity'
+      lazyDomId : 'profile-activity-button'
+      callback  : => @emit 'ActivityLinkClicked'
+    @aboutButton = new KDButtonView
+      title     : 'About'
+      lazyDomId : 'profile-about-button'
+      callback  : => @emit 'AboutLinkClicked'
 
   reviveViewsOnUserLoad:(user)->
 
@@ -536,6 +504,8 @@ class StaticProfileController extends KDController
 
     @profileUser = user
     @emit 'DecorateStaticNavLinks', @getAllowedTypes(@profileUser), 'CBlogPostActivity'
+
+    @profileTitleView.addSubView (new StaticUserButtonBar), null, yes
 
     unless user.getId() is KD.whoami().getId()
       @reviveVisitorViews() if KD.isLoggedIn()

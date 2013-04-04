@@ -144,6 +144,8 @@ class StaticGroupController extends KDController
     #     delegate  : @
     #     lazyDomId : type
 
+    @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
+
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()

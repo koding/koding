@@ -96,7 +96,7 @@ class LazyDomController extends KDController
   handleNavigationItemClick:(item, event)->
 
     mc = @getSingleton 'mainController'
-    {action, appPath, title, path, type} = item.getData()
+    {action, path} = item
     {loginScreen, mainViewController}    = mc
     {groupEntryPoint, profileEntryPoint} = KD.config
 
