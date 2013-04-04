@@ -8,6 +8,9 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @lazyDomController = @getSingleton("lazyDomController")
 
+    @lazyDomController.on "landingViewIsShown",  @bound "landingViewIsShown"
+    @lazyDomController.on "landingViewIsHidden", @bound "landingViewIsHidden"
+
     @loader = new KDLoaderView
       size          :
         width       : 60
@@ -54,12 +57,13 @@ class GroupSummaryView extends KDCustomHTMLView
       click       : (event)=>
         event.stopPropagation()
         event.preventDefault()
-        @unsetClass "shown"
+        @hideSummary()
         @utils.wait 400, =>
           @sign.setClass "swing-in"
 
     @once "viewAppended", @loader.bound "show"
     @once "viewAppended", @bound "decorateSummary"
+    @bindTransitionEnd()
 
   viewAppended: JView::viewAppended
 
@@ -86,19 +90,30 @@ class GroupSummaryView extends KDCustomHTMLView
     @sign.unsetClass "swing-in"
     @utils.wait 400, =>
       @sign.unsetClass "swing-out"
-      @setClass "shown"
+      if @lazyDomController.isLandingPageVisible()
+        @$().css top : -@getHeight()
+      else
+        @$().css top : 0
 
   hideSummary:(event)->
     if event
       event.stopPropagation()
       event.preventDefault()
-    @unsetClass "shown"
     @utils.wait 400, =>
       @sign.unsetClass "swing-out"
       @sign.unsetClass "swing-in"
-      @$().css
-        top    : ""
-        bottom : ""
+      if @lazyDomController.isLandingPageVisible()
+        @$().css top : 0
+      else
+        @$().css top : -@getHeight()
+
+  landingViewIsHidden:->
+
+    @sign.setClass "swing-in"
+
+  landingViewIsShown:->
+
+    @sign.unsetClass "swing-in swing-out"
 
   decorateSummary:->
 
@@ -149,7 +164,7 @@ class GroupSummaryView extends KDCustomHTMLView
     @addSubView bio, '.right-overflow'
 
   putList:(members)->
-    log members
+
     controller = new KDListViewController
       view         : @members = new KDListView
         wrapper    : no
@@ -160,34 +175,15 @@ class GroupSummaryView extends KDCustomHTMLView
     @addSubView @members, 'aside'
     controller.instantiateListItems members
 
-  positionSummary:->
-    if @lazyDomController.isLandingPageVisible()
-      @$().css
-        top    : ""
-        bottom : -@getHeight()
-    else
-      @$().css
-        top    : -@getHeight()
-        bottom : ""
-
   showLandingPage:(event)->
 
     event.stopPropagation()
     event.preventDefault()
-    @hideSummary()
-    @utils.wait 300, =>
-      @hide()
-      @lazyDomController.showLandingPage =>
-        @show()
-        @positionSummary()
+    @lazyDomController.showLandingPage =>
+      @hideSummary()
 
   hideLandingPage:(event)->
 
     event.stopPropagation()
     event.preventDefault()
-    @hideSummary()
-    @utils.wait 300, =>
-      @hide()
-      @lazyDomController.hideLandingPage =>
-        @show()
-        @positionSummary()
+    @lazyDomController.hideLandingPage()
