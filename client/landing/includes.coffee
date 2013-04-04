@@ -315,7 +315,7 @@ module.exports = [
   "app/MainApp/maincontroller/mainview.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/maincontroller/landingpageviews.coffee",
+  # "app/MainApp/maincontroller/landingpageviews.coffee",
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",

@@ -1,147 +1,151 @@
-class LandingPageSideBar extends KDView
+# class LandingPageSideBar extends KDView
 
-  constructor:(isLoggedIn = no)->
+#   constructor:(isLoggedIn = no)->
 
-    options = lazyDomId : 'landing-page-sidebar'
+#     options = lazyDomId : 'landing-page-sidebar'
 
-    super options
+#     super options
 
-    @mainController = @getSingleton "mainController"
-    @navController  = new LandingPageNavigationController
-      view         : new NavigationList
-        itemClass  : LandingNavigationLink
-        type       : "navigation"
-      scrollView   : no
-      wrapper      : no
-      delegate     : @
-    ,
-      items : [
-        { title : "Register", action : "register", loggedOut : yes }
-        # { type  : "separator" }
-        { title : "Logout",   action : "logout",   loggedIn  : yes }
-        { title : "Login",    action : "login",    loggedOut : yes }
-      ]
+#     @mainController = @getSingleton "mainController"
+#     @navController  = new LandingPageNavigationController
+#       view         : new NavigationList
+#         itemClass  : LandingNavigationLink
+#         type       : "navigation"
+#       scrollView   : no
+#       wrapper      : no
+#       delegate     : @
+#     ,
+#       items : [
+#         { title : "Register", action : "register", loggedOut : yes }
+#         # { type  : "separator" }
+#         { title : "Logout",   action : "logout",   loggedIn  : yes }
+#         { title : "Login",    action : "login",    loggedOut : yes }
+#       ]
 
-    @on 'ListItemsInstantiated' , =>
-      $("#profile-static-nav").remove()
-      @mainController.emit "AppIsReady"
+#     @on 'ListItemsInstantiated' , =>
+#       $("#profile-static-nav").remove()
+#       @mainController.emit "AppIsReady"
 
-    @addSubView @nav = @navController.getView()
+#     @addSubView @nav = @navController.getView()
 
-    @mainController.on "accountChanged.to.*", => @navController.reset()
-    @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
-
-
-class LandingPageNavigationController extends NavigationController
-
-  reset:->
-    view = @getView()
-    view.setClass "out"
-    @utils.wait 200, =>
-      @removeAllItems()
-      @instantiateListItems @getData().items
-      view.unsetClass "out"
-
-  constructor: ->
-
-    super
-
-    @lc = @getSingleton 'lazyDomController'
-    landingPageSideBar = @getDelegate()
-
-    @getListView().on "ItemWasAdded", (item)->
-      item.on "click", (event)->
-        landingPageSideBar.emit "navItemIsClicked", item, event
-
-  instantiateListItems:(items)->
-
-    items = items.slice()
-
-    # Build groups menu
-    if @lc.userEnteredFromGroup()
-
-      {groupEntryPoint} = KD.config
-
-      if KD.isLoggedIn()
-        KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
-          if err then console.warn err
-          else if roles.length
-            @lc.landingView.hide()
-            @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
-            # items.unshift \
-            #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
-            @_instantiateListItems items
-          else
-            KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
-              (err, policy)=>
-                if err then console.warn err
-                # else if policy?.approvalEnabled
-                #   items.unshift \
-                #     { title: 'Request access', action: 'request'}
-                # else
-                #   items.unshift \
-                #     { title: 'Join Group', action: 'join-group'}
-                @_instantiateListItems items
-
-      else
-        # items.unshift { title: 'Request access', action: 'request'}
-
-        # if groupEntryPoint is "koding" then items.first.title = "Request Invite"
-
-        @_instantiateListItems items
-
-    else if @lc.userEnteredFromProfile()
-
-      profileItems = [
-        { title : 'Home',     action : 'home',      type : 'user', selected : yes}
-        { title : 'Activity', action : 'activity',  type : 'user'}
-        { title : 'About',    action : 'about',     type : 'user'}
-      ]
-
-      items = [].concat.apply profileItems, items
-
-      @_instantiateListItems items
-    else
-      @_instantiateListItems items
-
-  _instantiateListItems:(items)->
-    newItems = for itemData in items
-      if KD.isLoggedIn()
-        continue if itemData.loggedOut
-      else
-        continue if itemData.loggedIn
-      item = @getListView().addItem itemData
-    @getDelegate().emit 'ListItemsInstantiated'
-    @selectItemByName 'Home'
+#     @mainController.on "accountChanged.to.*", => @navController.reset()
+#     @mainController.on "landingSidebarClicked", => @navController.deselectAllItems()
 
 
-class LandingNavigationLink extends NavigationLink
+# class LandingPageNavigationController extends NavigationController
 
-  constructor:(options = {}, data)->
+#   reset:->
+#     view = @getView()
+#     view.setClass "out"
+#     @utils.wait 200, =>
+#       @removeAllItems()
+#       @instantiateListItems @getData().items
+#       view.unsetClass "out"
 
-    data.type or= "account"
+#   constructor: ->
 
-    super options, data
-    @loader = new KDLoaderView
-      diameter      : 16
-      loaderOptions :
-        color       : "#444444"
+#     super
 
-    @loader.hide()
+#     @lc = @getSingleton 'lazyDomController'
+#     landingPageSideBar = @getDelegate()
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
+#     @getListView().on "ItemWasAdded", (item)->
+#       item.on "click", (event)->
+#         landingPageSideBar.emit "navItemIsClicked", item, event
 
-  pistachio:->
-    """
-    <button type="button" class="kdbutton editor-button">
-      <span class="icon hidden"></span>
-      <span class="button-title">#{@getData().title}</span>
-    </button>
-    {{> @loader}}
-    """
+#   instantiateListItems:(items)->
 
-  click:->
-    @loader.show() if @getData().type is 'user'
+#     items = items.slice()
+
+#     # Build groups menu
+#     if @lc.userEnteredFromGroup()
+
+#       {groupEntryPoint} = KD.config
+
+#       if KD.isLoggedIn()
+#         KD.whoami().fetchGroupRoles groupEntryPoint, (err, roles)=>
+#           if err then console.warn err
+#           else if roles.length
+#             @lc.landingView.hide()
+#             @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
+#             # items.unshift \
+#             #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+#             @_instantiateListItems items
+#           else
+#             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
+#               (err, policy)=>
+#                 if err then console.warn err
+#                 # else if policy?.approvalEnabled
+#                 #   items.unshift \
+#                 #     { title: 'Request access', action: 'request'}
+#                 # else
+#                 #   items.unshift \
+#                 #     { title: 'Join Group', action: 'join-group'}
+#                 @_instantiateListItems items
+
+#       else
+#         # items.unshift { title: 'Request access', action: 'request'}
+
+#         # if groupEntryPoint is "koding" then items.first.title = "Request Invite"
+
+#         @_instantiateListItems items
+
+#     else if @lc.userEnteredFromProfile()
+
+#       profileItems = [
+#         { title : 'Home',     action : 'home',      type : 'user', selected : yes}
+#         { title : 'Activity', action : 'activity',  type : 'user'}
+#         { title : 'About',    action : 'about',     type : 'user'}
+#       ]
+
+#       items = [].concat.apply profileItems, items
+
+#       @_instantiateListItems items
+#     else
+#       @_instantiateListItems items
+
+#   _instantiateListItems:(items)->
+#     newItems = for itemData in items
+#       if KD.isLoggedIn()
+#         continue if itemData.loggedOut
+#       else
+#         continue if itemData.loggedIn
+#       item = @getListView().addItem itemData
+#     @getDelegate().emit 'ListItemsInstantiated'
+#     @selectItemByName 'Home'
+
+
+# class LandingNavigationLink extends NavigationLink
+
+#   constructor:(options = {}, data)->
+
+#     data.type or= "account"
+
+#     super options, data
+#     @loader = new KDLoaderView
+#       size          :
+#         width       : 20
+#         height      : 20
+#       loaderOptions :
+#         color       : "#444444"
+#     @loader.hide()
+
+#   viewAppended:->
+#     super
+#     @setTemplate @pistachio()
+#     @template.update()
+
+#   pistachio:->
+#     """
+#     <button type="button" class="kdbutton editor-button">
+#       <span class="icon hidden"></span>
+#       <span class="button-title">#{@getData().title}</span>
+#     </button>
+#     """
+#    # "<button class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
+
+#   # pistachio:->
+#   #   "<a class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
+
+#   click:->
+#     @loader.show() if @getData().type is 'user'

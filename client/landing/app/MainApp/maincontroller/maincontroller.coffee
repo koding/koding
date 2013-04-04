@@ -77,6 +77,7 @@ class MainController extends KDController
         listener() for listener in queue
         queue.length = 0
 
+        @emit 'AppIsReady'
         @emit 'FrameworkIsReady'
         @appIsReady = yes
 
