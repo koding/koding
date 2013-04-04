@@ -291,23 +291,24 @@ module.exports = class JUser extends jraphical.Module
           if data.error then callback yes else callback null
 
   @addToGroup = (account, selector, callback)->
-    JGroup.one selector, (err, group)=>
-      if err then callback err
+    JGroup.one selector, (err, group)->
+      if err or not group then callback err
       else
         group.addMember account, 'member', (err)->
-          group.updateCounts() unless err
           if err then callback err
-          else callback
+          else
+            group.updateCounts()
+            callback null
 
   @addToGroups = (account, invite, callback)->
-    queue = [
-      ->
-        @addToGroup account, slug:'koding', -> queue.next()
-      ->
-        if invite.group
-          @addToGroup account, _id:invite.group, -> queue.next()
-    ]
-    daisy queue, callback
+    @addToGroup account, slug:'koding', (err)=>
+      if err then callback err
+      else if invite.group
+        @addToGroup account, _id:invite.group.id, (err)->
+          if err then callback err
+          else callback null
+      else
+        callback null
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
@@ -347,12 +348,12 @@ module.exports = class JUser extends jraphical.Module
             else if not username? or not email?
               return callback createKodingError 'Username and email are required fields'
 
-            @verifyKodingenPassword {username, password, kodingenUser}, (err)->
+            @verifyKodingenPassword {username, password, kodingenUser}, (err)=>
               if err
                 return callback createKodingError 'Wrong password'
               else
                 nickname = username
-                JSession.one {clientId: client.sessionToken}, (err, session)->
+                JSession.one {clientId: client.sessionToken}, (err, session)=>
                   if err
                     callback err
                   else unless session
@@ -364,7 +365,7 @@ module.exports = class JUser extends jraphical.Module
                       usedAsPath: 'username',
                       collectionName: 'jUsers'
                     }
-                    JName.claim username, [slug], 'JUser', (err)->
+                    JName.claim username, [slug], 'JUser', (err)=>
                       if err then callback err
                       else
                         salt = createSalt()
@@ -382,7 +383,7 @@ module.exports = class JUser extends jraphical.Module
                             likeActivities : off
                           }
                         }
-                        user.save (err)->
+                        user.save (err)=>
                           if err
                             if err.code is 11000
                               callback createKodingError "Sorry, \"#{email}\" is already in use!"
@@ -396,9 +397,9 @@ module.exports = class JUser extends jraphical.Module
                                 lastName
                                 hash
                               }
-                            account.save (err)->
+                            account.save (err)=>
                               if err then callback err
-                              else user.addOwnAccount account, (err)->
+                              else user.addOwnAccount account, (err)=>
                                 if err then callback err
                                 else @addToGroups account, invite, (err)->
                                   if err then callback err
