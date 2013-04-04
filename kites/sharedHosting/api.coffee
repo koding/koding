@@ -135,24 +135,29 @@ module.exports = new Kite 'sharedHosting',
     #   uid : Number # user's UID
 
     {username, uid} = options
-    home = nodePath.join(config.usersPath,username)
-    fs.mkdir home, 0o0755,(error)=>
+    home = nodePath.join(config.usersPath, username)
+    fs.mkdir home, 0o0750, (error)=>
       if error?
         log.error "[ERROR] can't make homedir for user #{username} in the #{config.usersPath}: #{error}"
       else
         # make default virtual host
-        fs.chown home,uid,uid,(err)=>
+        fs.chown home, uid, uid, (err)=>
           if err?
             log.error error = "[ERROR] can't change owner of home directory to UID/GID #{uid} for user #{username}: #{err}"
             callback error
           else
-            @createVhost username:username,uid:uid,(err,res)->
-              unless err
-                log.info info = "[OK] default vhost and hosmedir for user #{username} is created"
-                callback? null,info
+            exec "setfacl -m user:apache:r-x #{home}", (err, stdout, stderr)=>
+              if err?
+                log.error error = "[ERROR] setting apache ACL Rules for user #{username} failed."
+                callback error
               else
-                log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
-                callback? error
+                @createVhost username:username,uid:uid,(err,res)->
+                  unless err
+                    log.info info = "[OK] default vhost and hosmedir for user #{username} is created"
+                    callback? null,info
+                  else
+                    log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
+                    callback? error
 
   createSystemUser : (options,callback)->
     #
