@@ -63,7 +63,11 @@ class AccountEditSecurity extends KDView
       views    : [passwordInputs, nonPasswordInputs]
       cssClass : "clearfix"
 
-    passwordForm.addSubView @passwordSwappable
+    passwordEdit.on 'click', ->
+      passwordSwappable.swapViews()
+
+    passwordCancel.on 'click', ->
+      passwordSwappable.swapViews()
 
   passwordDidUpdate:->
     @passwordSwappable.swapViews()
