@@ -167,6 +167,7 @@ class StaticGroupController extends KDController
         groups.first.on 'NewMember', (member={})=>
           if member.profile?.nickname is KD.whoami().profile.nickname
             @pendingButton?.hide()
+            @requestButton?.hide()
             @decorateMemberStatus no
 
 
@@ -282,18 +283,18 @@ class StaticGroupController extends KDController
 
   decorateGuestStatus:->
 
-    button = new KDButtonView
+    @requestButton = new KDButtonView
       title    : "Request Access"
       cssClass : "editor-button"
       callback : =>
         @lazyDomController.requestAccess()
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView @requestButton
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
-          button.setTitle "Join Group"
-          button.setCallback =>
+          @requestButton.setTitle "Join Group"
+          @requestButton.setCallback =>
             @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
