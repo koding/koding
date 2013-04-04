@@ -344,7 +344,8 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl", "testdude"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "arvidkahl", "testdude",
+                 "sent-hil", "blum"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

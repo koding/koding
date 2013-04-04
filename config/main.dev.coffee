@@ -113,6 +113,8 @@ module.exports = deepFreeze
       sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web-dev.in.koding.com'
+    port        : 5672
+    apiPort     : 15672
     login       : 'amqp_user'
     componentUser: "amqp_user"
     password    : 's486auEkPzvUjYfeFTMQ'
