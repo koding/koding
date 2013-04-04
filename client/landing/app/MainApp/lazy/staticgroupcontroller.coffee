@@ -164,6 +164,13 @@ class StaticGroupController extends KDController
             else
               @emit roleEventMap[statuses.first]
 
+        groups.first.on 'NewMember', (member={})=>
+          if member.profile?.nickname is KD.whoami().profile.nickname
+            @pendingButton?.hide()
+            @decorateMemberStatus no
+
+
+
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
     @groupContentWrapperView.$().css backgroundColor : "#ffffff"
@@ -231,11 +238,11 @@ class StaticGroupController extends KDController
 
   decoratePendingStatus:->
 
-    button = new KDButtonView
+    @pendingButton = new KDButtonView
       title    : "REQUEST PENDING"
       cssClass : "editor-button"
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView @pendingButton
 
   decorateMemberStatus:(isAdmin)->
 
