@@ -49,9 +49,6 @@ class AceFindAndReplaceView extends JView
       cssClass     : "close-icon"
       click        : => @close()
 
-    @findInput.on "keyup", (e) =>
-      @findNext() unless e.keyCode is 13
-
     @choices = new KDMultipleChoice
       cssClass     : "clean-gray editor-button control-button"
       labels       : ["case-sensitive", "whole-word", "regex"]
@@ -69,12 +66,14 @@ class AceFindAndReplaceView extends JView
   close: ->
     @hide()
     @resizeAceEditor 0
+    @findInput.setValue    ""
+    @replaceInput.setValue ""
+    @emit "FindAndReplaceViewClosed"
 
   setViewHeight: (isReplaceMode) ->
     height = if isReplaceMode then 60 else 32
     @$().css { height }
     @resizeAceEditor height
-    @findInput.setFocus()
     @show()
 
   resizeAceEditor: (height) ->
@@ -88,7 +87,7 @@ class AceFindAndReplaceView extends JView
   setTextIntoFindInput: (text) ->
     return if text.indexOf("\n") > 0
     @findInput.setValue text
-    @findInput.focus()
+    @findInput.setFocus()
 
   getSearchOptions: ->
     @selections   = @choices.getValue()

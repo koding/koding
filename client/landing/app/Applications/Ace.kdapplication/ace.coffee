@@ -98,6 +98,7 @@ class Ace extends KDView
     selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
     findAndReplaceView.setViewHeight openReplaceView
     findAndReplaceView.setTextIntoFindInput selectedText
+    findAndReplaceView.on "FindAndReplaceViewClosed", => @focus()
 
   ###
   FS REQUESTS
