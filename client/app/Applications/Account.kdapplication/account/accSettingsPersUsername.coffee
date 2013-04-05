@@ -77,8 +77,11 @@ class AccountEditUsername extends KDView
       views    : [emailInputs,nonEmailInputs]
       cssClass : "clearfix"
 
-    @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
+    emailEdit.on 'click', ->
+      emailSwappable.swapViews()
+
+    emailCancel.on 'click', ->
+      emailSwappable.swapViews()
 
     # #
     # ADDING USERNAME FORM
@@ -124,5 +127,8 @@ class AccountEditUsername extends KDView
       views    : [usernameInputs,usernameNonInputs]
       cssClass : "clearfix"
 
-    @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
-    @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews
+    usernameEdit.on 'click', ->
+      usernameSwappable.swapViews()
+
+    usernameCancel.on 'click', ->
+      usernameSwappable.swapViews()
