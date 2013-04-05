@@ -113,6 +113,35 @@ class FSHelper
             treeController.removeNodeView node
             break
 
+  @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
+    command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
+    KD.getSingleton('kiteController').run command, (err, res) =>
+      result = {}
+
+      if res
+        chunks = res.split "--\n"
+
+        for chunk in chunks
+          lines = chunk.split "\n"
+
+          for line in lines when line
+            [lineNumberWithPath, line] = line.split "\t"
+            [lineNumber]               = lineNumberWithPath.match /\d+$/
+            path                       = lineNumberWithPath.split(lineNumber)[0].trim()
+            path                       = path.substring 0, path.length - 1
+            isMatchedLine              = line.charAt(1) is ":"
+            line                       = line.substring 2, line.length
+
+            result[path] = {} unless result[path]
+            result[path][lineNumber] = {
+              lineNumber
+              line
+              isMatchedLine
+              path
+            }
+
+      callback? result
+
   @registry = {}
 
   @register = (file)->
