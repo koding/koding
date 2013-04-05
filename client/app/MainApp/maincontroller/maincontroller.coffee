@@ -122,20 +122,25 @@ class MainController extends KDController
 
     @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
+  handleLoginScreenRoute:(action, path)->
+    ldc = @getSingleton 'lazyDomController'
+    ldc.hideLandingPage() if path and path != 'Logout'
+    @loginScreen.animateToForm action
+
   doJoin:->
-    @loginScreen.animateToForm 'lr'
+    @handleLoginScreenRoute 'lr', 'Join'
 
   doRegister:->
-    @loginScreen.animateToForm 'register'
+    @handleLoginScreenRoute 'register', 'Register'
 
   doGoHome:->
-    @loginScreen.animateToForm 'home'
+    @handleLoginScreenRoute 'home'
 
   doLogin:->
-    @loginScreen.animateToForm 'login'
+    @handleLoginScreenRoute 'login', 'Login'
 
   doRecover:->
-    @loginScreen.animateToForm 'recover'
+    @handleLoginScreenRoute 'recover', 'Recover'
 
   doLogout:->
 
