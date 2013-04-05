@@ -44,7 +44,7 @@ incrementCallCount = (deliveryKey, info) =>
     },(err, kiteCall) =>
       if err then console.log e.message
       else
-        controlCallCount(info, kiteCall)
+        #controlCallCount(info, kiteCall)
         console.log 'incremented count\n'
 
 accountant = (message, headers, deliveryInfo) =>

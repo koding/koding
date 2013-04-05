@@ -14,15 +14,15 @@ class AccountKiteListController extends KDListViewController
 
     list = @getListView()
     @getView().parent.addSubView addKiteButton = new KDButtonView
-      style     : "clean-gray account-header-button"
-      title     : "Add new Kite"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "plus"
+      style       : "clean-gray account-header-button"
+      title       : "Add new Kite"
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : "plus"
       tooltip     :
         title     : "Add new Kite"
         placement : "left"
-      callback  : =>
+      callback    : =>
         list.showModal()
 
     ##################### Events ############################
@@ -108,7 +108,7 @@ class AccountKiteList extends KDListView
       title                   : "Create a third party kite"
       content                 : ""
       overlay                 : yes
-      cssClass                : "new-kdmodal"
+      cssClass                : "createThirdPartyKiteModal"
       width                   : 500
       height                  : "auto"
       tabs                    :
@@ -169,19 +169,23 @@ class AccountKiteList extends KDListView
                         {type, kiteName} = kite
                         if type == 'paid' then kiteName += " $$"
                         ( title : kiteName, value : kite._id)
+
+                      showTotalPrice options.first.value
                       cb options
                 change        : ->
-                  id = @getValue()
-                  KD.remote.api.JKite.fetchKites {sourceId : id}, {}, (err, kite) =>
-                    if err then warn err
-                    else
-                      if kite?.first?.type == 'paid'
-                        totalAmountView.show()
-                        {count, purchaseAmount} = kite.first
-                        purchasingCallCount = modal.modalTabs.forms.Kites.inputs.apiCallLimit.getValue()
-                        totalAmountView.$('span').text  (purchasingCallCount / count) * purchaseAmount
-                      else
-                        totalAmountView.hide()
+                  showTotalPrice @getValue()
+
+    showTotalPrice = (kiteId) =>
+      KD.remote.api.JKite.fetchKites {sourceId : kiteId}, {}, (err, kite) =>
+        if err then warn err
+        else
+          if kite?.first?.type == 'paid'
+            totalAmountView.show()
+            {count, purchaseAmount} = kite.first
+            purchasingCallCount = modal.modalTabs.forms.Kites.inputs.apiCallLimit.getValue()
+            totalAmountView.$('span').text  (purchasingCallCount / count) * purchaseAmount
+          else
+            totalAmountView.hide()
 
     totalAmountView = new KDView
       partial      : "Total Amount <span>0<span>"
