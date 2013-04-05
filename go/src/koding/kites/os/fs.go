@@ -209,6 +209,25 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
 	})
 
+	k.Handle("fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+			Mode os.FileMode
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Chmod(params.Path, params.Mode); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
+
 	k.Handle("fs.remove", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
 			Path      string
