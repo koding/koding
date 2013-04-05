@@ -246,6 +246,7 @@ class KDWindowController extends KDController
     # if Object.keys(@currentCombos).length > 0
     #   return yes
     # else
+    @emit event.type, event
     @keyView?.handleEvent event
 
   enableScroll:->

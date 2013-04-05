@@ -5,6 +5,7 @@ class KDTabHandleView extends KDView
     options.pane     ?= null      # a KDTabPaneView instance
     options.view     ?= null      # a KDView instance to put in the tab handle
     options.sortable ?= no        # yes or no
+    options.closable ?= yes       # yes or no
 
     if options.sortable
       options.draggable  = axis: "x"
@@ -22,9 +23,12 @@ class KDTabHandleView extends KDView
       @handleDragFinished event
 
   setDomElement:()->
-    c = if @getOptions().hidden then "hidden" else ""
-    @domElement = $ "<div class='kdtabhandle #{c}'>
-                      <span class='close-tab'></span>
+    options     = @getOptions()
+    className   = if options.hidden   then "hidden" else ""
+    closeHandle = if options.closable then "<span class='close-tab'></span>" else ""
+
+    @domElement = $ "<div class='kdtabhandle #{className}'>
+                      #{closeHandle}
                     </div>"
 
   viewAppended:()->
