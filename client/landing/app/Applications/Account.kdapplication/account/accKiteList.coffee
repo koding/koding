@@ -70,11 +70,11 @@ class AccountKiteListController extends KDListViewController
     @emit "KiteUpdated", kite
 
   createKite : (form)->
-    {description, callCount, kites} = form.modal.modalTabs.forms.Kites.inputs
+    {description, apiCallLimit, kites} = form.modal.modalTabs.forms.Kites.inputs
 
     KD.remote.api.JMemberKite.create
       description  : description.getValue()
-      callCount    : callCount.getValue()
+      count        : apiCallLimit.getValue()
       kites        : kites.getValue()
     ,(err, kite) =>
       if err
@@ -103,7 +103,7 @@ class AccountKiteList extends KDListView
       itemClass : AccountKiteListItem
     ,options
     super options,data
-  showModal:->
+  showModal:=>
     modal = @modal = new KDModalViewWithForms
       title                   : "Create a third party kite"
       content                 : ""
@@ -136,32 +136,61 @@ class AccountKiteList extends KDListView
                 itemClass     : KDInputView
                 name          : "description"
                 placeholder   : "Description (optional)..."
-              callCount       :
+              apiCallLimit    :
                 label         : "API Call Count"
-                itemClass     : KDInputView
-                name          : "apiCallCount"
-                placeholder   : "100"
-                validate      :
-                  rules       :
-                    regExp    : /\d+/i
-                  messages    :
-                    regExp    : "Only numbers for Api Call Count"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "apiCallLimit"
+                defaultValue  : 1000
+                selectOptions : [
+                  { title : "1K Call"   ,    value : 1000   }
+                  { title : "10K Call"  ,    value : 10000  }
+                  { title : "100K Call" ,    value : 100000 }
+                ]
               kites           :
                 label         : "Select a kite"
                 itemClass     : KDSelectBox
                 type          : "select"
                 name          : "kite"
+                nextElement   :
+                  totalAmount :
+                    itemClass : KDView
                 validate      :
                   rules       :
                     required  : yes
                   messages    :
                     required  : "You must select a Kite!"
                 selectOptions : (cb)->
-                  KD.remote.api.JKite.fetchKites {}, (err, kites) =>
+                  KD.remote.api.JKite.fetchKites { sourceName : 'JKite' }, {}, (err, kites) =>
+                    console.log arguments
                     if err then warn err
                     else
-                      options = ( title : kite.kiteName, value : kite._id for kite in kites)
+                      options = for kite in kites
+                        {type, kiteName} = kite
+                        if type == 'paid' then kiteName += " $$"
+                        ( title : kiteName, value : kite._id)
                       cb options
+                change        : ->
+                  id = @getValue()
+                  KD.remote.api.JKite.fetchKites {sourceId : id}, {}, (err, kite) =>
+                    if err then warn err
+                    else
+                      if kite?.first?.type == 'paid'
+                        totalAmountView.show()
+                        {count, purchaseAmount} = kite.first
+                        purchasingCallCount = modal.modalTabs.forms.Kites.inputs.apiCallLimit.getValue()
+                        totalAmountView.$('span').text  (purchasingCallCount / count) * purchaseAmount
+                      else
+                        totalAmountView.hide()
+
+    totalAmountView = new KDView
+      partial      : "Total Amount <span>0<span>"
+      cssClass     : "hidden totalAmount"
+      click        : => @emit "FormCancelled"
+
+    field = modal.modalTabs.forms.Kites.inputs.totalAmount
+    field.addSubView totalAmountView
+
 
 class AccountKiteListItem extends KDListItemView
   constructor:(options,@data)->
@@ -180,15 +209,21 @@ class AccountKiteListItem extends KDListItemView
   #   @emit "DeleteKiteSubmitted", @
 
   partial:(data)->
-    """
-      <div class='kite-item'>
-        <div class='description'>
-          <span class='label'>Description:</span>
-          <span class='value'>#{data.description}</span>
-        </div>
-        <div class='kiteKey'> 
-          <span class='label'>Kite Key:</span>
-          <span class='value'>#{data.key}</span>
-        </div>
-      </div>
-    """
+
+    @addSubView description  =  new KDLabelView
+      title        : "Description"
+      cssClass     : "main-label"
+
+    @addSubView descriptionValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.description}"
+      cssClass     : "static-text"
+
+    @addSubView kiteKey  =  new KDLabelView
+      title        : "Kite Key"
+      cssClass     : "main-label"
+
+    @addSubView kiteKeyValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.key}"
+      cssClass     : "static-text"

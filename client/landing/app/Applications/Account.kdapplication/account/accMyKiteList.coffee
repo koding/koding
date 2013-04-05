@@ -73,14 +73,22 @@ class AccountMyKiteListController extends KDListViewController
     @emit "KiteUpdated", kite
 
   createKite : (form)->
-    {description, kiteName, privacy, type} = form.modal.modalTabs.forms.MyKites.inputs
+    {description, kiteName, purchaseAmount, callCount, privacy, type} = form.modal.modalTabs.forms.MyKites.inputs
+    console.log form.modal.modalTabs.forms.MyKites.inputs
 
-    KD.remote.api.JKite.create
+
+    data = {
       description  : description.getValue()
       kiteName     : kiteName.getValue()
       privacy      : privacy.getValue()
       type         : type.getValue()
-    ,(err, kite) =>
+    }
+
+    if type.getValue() == 'paid'
+      data.purchaseAmount = purchaseAmount.getValue()
+      data.count          = callCount.getValue()
+
+    KD.remote.api.JKite.create data,(err, kite) =>
       if err
         @notify err.message, "fail"
         form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
@@ -168,6 +176,7 @@ class AccountMyKiteList extends KDListView
               type                    :
                 label                 : "Type"
                 itemClass             : KDSelectBox
+                cssClass              : "kiteType"
                 type                  : "select"
                 name                  : "type"
                 defaultValue          : "free"
@@ -175,12 +184,46 @@ class AccountMyKiteList extends KDListView
                   { title : "Free",    value : "free" }
                   { title : "Paid",    value : "paid" }
                 ]
+                change        : ->
+                  if @getValue() is "paid"
+                    modal.modalTabs.forms.MyKites.inputs.callCount.show()
+                    modal.modalTabs.forms.MyKites.inputs.purchaseAmount.show()
+                  else
+                    modal.modalTabs.forms.MyKites.inputs.callCount.hide()
+                    modal.modalTabs.forms.MyKites.inputs.purchaseAmount.hide()
+                nextElement :
+                  callCount               :
+                    itemClass             : KDSelectBox
+                    cssClass              : "hidden callCount"
+                    type                  : "select"
+                    name                  : "type"
+                    defaultValue          : 1000
+                    selectOptions         : [
+                      { title : "1K Call"   ,    value : 1000   }
+                      { title : "10K Call"  ,    value : 10000  }
+                      { title : "100K Call" ,    value : 100000 }
+                    ]
+                    nextElement               :
+                      purchaseAmount          :
+                        itemClass             : KDSelectBox
+                        cssClass              : "hidden purchaseBox"
+                        type                  : "select"
+                        name                  : "type"
+                        defaultValue          : 10
+                        selectOptions         : [
+                          { title : "$10" ,    value : 10 }
+                          { title : "$30",     value : 30 }
+                          { title : "$100",    value : 100 }
+                        ]
               privacy                :
                 label                : "Privacy"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "privacy"
                 defaultValue         : "public"
+                tooltip              :
+                  title              : "Public Kites can be used everyone"
+                  placement          : "right"
                 selectOptions        : [
                   { title: "Public", value: "public" }
                   { title: "Private", value: "private" }
@@ -196,8 +239,6 @@ class AccountMyKiteList extends KDListView
   kiteNameCheckTimer = null
 
   kiteNameCheck:(input, event)->
-
-    if event then console.log event
 
     clearTimeout kiteNameCheckTimer
 
@@ -216,16 +257,6 @@ class AccountMyKiteList extends KDListView
             else
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
       ,800
-#    if input.valid
-#      KD.remote.api.JKite.checkKiteName kiteName : name, (err, response)=>
-#        if err
-#          @notify err.message, "fail"
-#        else
-#          if response
-#            input.setValidationResult "kiteNameCheck", null
-#          else
-#            input.valid = false
-#            input.setValidationResult "kiteNameCheck", "Sorry, \"#{name}\" is already taken!"
 
     return
 
@@ -246,31 +277,57 @@ class AccountMyKiteListItem extends KDListItemView
   #   @emit "DeleteKiteSubmitted", @
 
   partial:(data)->
-    """
-      <div class='kite-item'>
-        <div class='description'>
-          <span class='label'>Description:</span>
-          <span class='value'>#{data.description}</span>
-        </div>
-        <div class='kiteName'>
-          <span class='label'>Used Kite Name:</span>
-          <span class='value'>#{data.kiteName}</span>
-        </div>
-        <div class='kiteKey'>
-        <span class='label'>Kite Key:</span>
-        <span class='value'>#{data.key}</span>
-        </div>
-        <div class='status'>
-          <span class='label'>Status:</span>
-          <span class='value'>#{data.status}</span>
-        </div>
-        <div class='privacy'>
-          <span class='label'>Privacy:</span>
-          <span class='value'>#{data.privacy}</span>
-        </div>
-        <div class='type'>
-          <span class='label'>Type:</span>
-          <span class='value'>#{data.type}</span>
-        </div>
-      </div>
-    """
+
+    @addSubView description  =  new KDLabelView
+      title        : "Description"
+      cssClass     : "main-label"
+
+    @addSubView descriptionValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.description}"
+      cssClass     : "static-text"
+
+    @addSubView kiteName  =  new KDLabelView
+      title        : "Kite Name"
+      cssClass     : "main-label"
+
+    @addSubView kiteNameValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.kiteName}"
+      cssClass     : "static-text"
+
+    @addSubView kiteKey  =  new KDLabelView
+      title        : "Kite Key"
+      cssClass     : "main-label"
+
+    @addSubView kiteKeyValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.key}"
+      cssClass     : "static-text"
+
+    @addSubView status  =  new KDLabelView
+      title        : "Status"
+      cssClass     : "main-label"
+
+    @addSubView statusValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.status}"
+      cssClass     : "static-text"
+
+    @addSubView privacy  =  new KDLabelView
+      title        : "Privacy"
+      cssClass     : "main-label"
+
+    @addSubView privacyValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.privacy}"
+      cssClass     : "static-text"
+
+    @addSubView type  =  new KDLabelView
+      title        : "Type"
+      cssClass     : "main-label"
+
+    @addSubView typeValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.type}"
+      cssClass     : "static-text"
