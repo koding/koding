@@ -74,9 +74,14 @@ class FSHelper
     createdAt          = file.time
     type               = if file.isBroken then 'brokenLink' else \
                          if file.isDir then 'folder' else 'file'
-    mode               = KD.utils.decimalToAnother mode, 8
     path               = parentPath + '/' + name
     group              = user
+
+    # Fix that when we implemented RemoteDrives
+    # if type is 'folder'
+    #   if /^\/home\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
+    #     type = 'mount'
+
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
 
   @parseWatcher = (parentPath, files)->
@@ -111,32 +116,25 @@ class FSHelper
   @registry = {}
 
   @register = (file)->
-
     @setFileListeners file
     @registry[file.path] = file
 
   @deregister = (file)->
-
     delete @registry[file.path]
 
   @updateInstance = (fileData)->
-
     for prop, value of fileData
       @registry[fileData.path][prop] = value
 
   @setFileListeners = (file)->
-
     file.on "fs.rename.finished", =>
 
-
   @getFileNameFromPath = getFileName = (path)->
-
-    path.split('/').pop()
+    return path.split('/').pop()
 
   @trimExtension = (path)->
-
     name = getFileName path
-    name.split('.').shift()
+    return name.split('.').shift()
 
   @getParentPath = (path)->
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
@@ -145,14 +143,12 @@ class FSHelper
     return parentPath.join('/')
 
   @createFileFromPath = (path, type = "file")->
-
     return warn "pass a path to create a file instance" unless path
     parentPath = @getParentPath path
     name       = @getFileNameFromPath path
     return @createFile { path, parentPath, name, type }
 
   @createFile = (data)->
-
     unless data and data.type and data.path
       return warn "pass a path and type to create a file instance"
 
@@ -173,7 +169,6 @@ class FSHelper
     return instance
 
   @isValidFileName = (name) ->
-
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 
   @isEscapedPath = (path) ->
