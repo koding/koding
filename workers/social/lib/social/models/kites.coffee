@@ -27,37 +27,41 @@ module.exports = class JKite extends jraphical.Module
       static        : [
           'create', 'get', 'fetchAll', 'control', 'fetchKites', 'checkKiteName'
         ]
-    schema          :
-      description   :
-        type        : String
-        required    : no
-      kiteName      :
-        type        : String
-        required    : yes
-      privacy       :
-        type        : String
-        required    : yes
-        default     : "public"
-      type          :
-        type        : String
-        required    : yes
-        default     : "free"
-      status        :
-        type        : String
-        required    : no
-        default     : "active"
-      count         :
-        type        : Number
-        required    : no
-        default     : 1
-      key           :
-        type        : String
-        required    : no
+    schema                :
+      description         :
+        type              : String
+        required          : no
+      kiteName            :
+        type              : String
+        required          : yes
+      privacy             :
+        type              : String
+        required          : yes
+        default           : "public"
+      type                :
+        type              : String
+        required          : yes
+        default           : "free"
+      status              :
+        type              : String
+        required          : no
+        default           : "active"
+      count               :
+        type              : Number
+        required          : no
+        default           : 0
+      purchaseAmount      :
+        type              : Number
+        required          : no
+        default           : 0
+      key                 :
+        type              : String
+        required          : no
 
-    relationships   :->
-      creator       :
-        targetType  : JAccount
-        as          : 'owner'
+    relationships         :->
+      creator             :
+        targetType        : JAccount
+        as                : 'owner'
 
   @create = secure (client, data, callback)->
     {delegate} = client.connection
@@ -134,13 +138,10 @@ module.exports = class JKite extends jraphical.Module
     @fetcher selector, options, callback
 
 
-  @fetchKites = (options, callback)->
+  @fetchKites = (selector, options, callback)->
 
-    selector = {
-      sourceName : 'JKite'
-    }
-
-    options or= {}
+    selector or= {}
+    options  or= {}
 
     @fetcher selector, options, callback
 
