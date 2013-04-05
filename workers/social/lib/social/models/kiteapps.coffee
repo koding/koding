@@ -49,9 +49,9 @@ module.exports = class JKiteCall extends jraphical.Module
   @get = secure (data, callback)->
 
     @one {
-     username : data.username,
-     kiteName : data.kiteName,
-     methodName : data.method
+     username : data.username
+     kiteName : data.kiteName
+     methodName : data.methodName
     }, (err, appData)=>
       if err
         callback err
