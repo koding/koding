@@ -1,5 +1,5 @@
 # Wrapper for pushing events to Rollbar.
-logToExternal = KD.rollbar = (args) ->
+logToExternal = KD.logToExternal = (args) ->
   _rollbar.push args
 
 # Push status events to Rollbar.
