@@ -195,6 +195,8 @@ class StaticGroupController extends KDController
     @on "status.member",  @bound "decorateMemberStatus"
     @on "status.guest",   @bound "decorateGuestStatus"
 
+    @on "AccessIsRequested", @bound "decoratePendingStatus"
+
     @mainController.on "accountChanged.to.loggedOut", =>
       @buttonWrapper.destroySubViews()
 
@@ -239,6 +241,7 @@ class StaticGroupController extends KDController
 
   decoratePendingStatus:->
 
+    @requestButton?.hide()
     @pendingButton = new KDButtonView
       title    : "REQUEST PENDING"
       cssClass : "editor-button"
