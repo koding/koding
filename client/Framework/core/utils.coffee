@@ -577,6 +577,12 @@ __utils =
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
+  stopLoggingToRollbar: ->
+    KD.getSingleton("mainController").old_rollbar = _rollbar
+    window._rollbar = push:()->
+
+  startLoggingToRollbar: ->
+    window._rollbar = KD.getSingleton("mainController").old_rollbar
 
 ###
 //     Underscore.js 1.3.1
