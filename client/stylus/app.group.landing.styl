@@ -283,11 +283,7 @@
   vertical-align bottom
 
 
-
-
-
 .group-content-wrapper
-  // margin-left           160px
   height                        100%
   width                         auto
   bg color,                     white
@@ -312,37 +308,31 @@
   margin-top: -120px
   padding-top 120px
 
-  // vendor perspective, 800px
   vendor perspective-origin-x, 50%
   vendor perspective-origin-y, 50%
+
+  &.vignette
+    gradient2               50% 35%, circle farthest-corner, rgba(0,0,0,0.25) 15%, rgba(255,255,255,0.5) 100%
+
+
 
 .kdlistview.kdview.group-loading-content
 .group-loading-content
   vendor transition, background-color 0.2s linear
   vendor perspective, 800px
-  // vendor perspective-origin-x, 50%
-  // vendor perspective-origin-y, 50%
-
   borderBox()
-
   overflow                              auto
   height                                100%
   width                                 auto
   padding-top                           50px
-  // bg color, rgba(255,255,255,0.5)
   gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
-  // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
 
   rel()
-
-  // vendor transform-style, preserve-3d
-  // vendor transition ,all .4s ease-in;
 
   .content-item
     vendor transform-style, preserve-3d
     vendor transition ,all .4s ease-in;
     vendor backface-visibility, hidden
-    // vendor transform-origin, 50% 0px;
 
     abs()
     left 0
@@ -353,31 +343,24 @@
     borderBox()
 
     &.front
-      // vendor transform, translateY(0px) rotateY(0deg);
-      // .has-markdown
-      //   bg color, red
       z-index 2
+
     &.back
       vendor transform, rotateY(180deg);
-      // .has-markdown
-      //   bg color, green
-      // vendor transform, rotateY(180deg)
 
   .content-item-scroll-wrapper
     padding                             40px
-    // max-width                           600px
     max-width                           61.803398875%
     margin                              0px auto
     rounded                             5px
-    border                              1px solid #e3e3e3
-    bg                                  color, #f5f5f5
+    border                              1px solid #e8e8e8
+    bg                                  color, #fbfbfb
     shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
     borderBox()
     height                              100%
 
   .has-markdown
     borderBox()
-    // padding                             30px
     overflow                            auto
     height                              100%
 
@@ -386,19 +369,21 @@
   rel()
   vendor transition,                    width 0.2s linear
   rounded                               3px
+  bg size,                              cover
   cursor                                pointer
   width                                 50%
-  height                                auto
+  height                                100px
   min-height                            100px
   display                               inline-block
   padding                               5px //5px 2px
   border                                1px solid transparent
   vertical-align                        top
   text-align                            center
-  &.color
-    width 25%
 
-  span
+  &.color
+    width                               25%
+
+  span.data
     abs()
     borderBox()
     bg color,                           rgba(200,200,200,0.5)
@@ -422,59 +407,73 @@
 @media (min-height: 800px)
   .custom-image-selectitemview
     width                               33.333%
+    height                              100px
     &.color
       width                             20%
 
 @media (min-height: 500px) and (max-height: 799px)
   .custom-image-selectitemview
     width                               20%
+    height                              100px
     &.color
       width                             16.6666667%
 
 @media (max-height: 499px)
   .custom-image-selectitemview
     width                               25%
+    height                              100px
     &.color
       width                             25%
 
 @media (max-width: 800px)
   .custom-image-selectitemview
     width                               50%
-    &.color
-      width                             50%
-
-@media (max-width: 1600px) and (min-width:801px)
-  .custom-image-selectitemview
-    width                               33.33333%
+    height                              100px
     &.color
       width                             33.33333%
 
-@media (min-width: 1601px)
+@media (max-width: 1200px) and (min-width:801px)
+  .custom-image-selectitemview
+    width                               33.33333%
+    height                              100px
+    &.color
+      width                             25%
+
+@media (min-width: 1201px)
   .custom-image-selectitemview
     width                               20%
+    height                              100px
     &.color
       width                             16.6666667%
+@media (min-width: 1601px)
+  .custom-image-selectitemview
+    width                               16.6666667%
+    height                              100px
+    &.color
+      width                             10%
 
 
 
 .custom-image-default
   borderBox()
   width                                 100%
-  height                                auto
+  height                                90px
   rounded                               3px
+  display                               block
 
 .custom-color-default
   borderBox()
   width                                 100%
-  height                                100px
+  height                                90px
   rounded                               3px
+  border                                1px solid rgba(0,0,0,0.05)
 
 .custom-select-background-view
   width                                 100%
   height                                auto
   borderBox()
-  fl()
-  display                               inline-block
+  margin                                10px 0 20px 0
+
   span.title
     display                             block
     margin-bottom                       10px
@@ -487,7 +486,7 @@
 .custom-color-picker
   borderBox()
   width                                 100%
-  height                                100px
+  height                                90px
   rounded                               3px
   padding-top                           35px
   text-align                            center
@@ -528,3 +527,27 @@
 
   .save-button
     margin                              10px 5px
+
+.custom-image-upload + span.data
+  border-bottom                         1px dashed rgba(125,190,241,0.5)
+
+.custom-image-upload
+  borderBox()
+  bg size,                              cover
+  rounded                               3px
+  height                                90px
+  border                                1px dashed rgba(125,190,241,0.5)
+  width                                 100%
+
+
+  .image-uploader
+    min-width                           100%
+    height                              93px
+    border                              1px solid transparent
+
+  .kdview.kdfileupload
+
+    .kdfileuploadarea
+      height                            100%
+      shadow                            none
+      border                            none

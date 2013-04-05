@@ -160,13 +160,19 @@ module.exports = class JGroup extends Module
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
 
-
   setBackgroundImage: permit 'edit groups',
     success:(client, type, value, callback=->)->
-      operation = $set: {}
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customImages'] = value
+      else
+        operation = $set : {}
+
       operation.$set["customize.background.customType"] = type
 
-      if type in ['defaultImage','defaultColor','customColor']
+      if type in ['defaultImage','defaultColor','customColor','customImage']
         operation.$set["customize.background.customValue"] = value
 
       @update operation, callback
@@ -698,7 +704,7 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
-      @emit 'NewMember'
+      @emit 'NewMember', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'

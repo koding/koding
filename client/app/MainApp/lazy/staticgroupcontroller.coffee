@@ -79,6 +79,9 @@ class StaticGroupController extends KDController
     @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
+    @groupSplitView = new KDView
+      lazyDomId : 'group-splitview'
+
     groupPersonalWrapperView = new KDView
       lazyDomId : 'group-personal-wrapper'
       cssClass  : 'slideable'
@@ -141,6 +144,8 @@ class StaticGroupController extends KDController
     #     delegate  : @
     #     lazyDomId : type
 
+    @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
+
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
@@ -159,18 +164,28 @@ class StaticGroupController extends KDController
             else
               @emit roleEventMap[statuses.first]
 
+        groups.first.on 'NewMember', (member={})=>
+          if member.profile?.nickname is KD.whoami().profile.nickname
+            @pendingButton?.hide()
+            @requestButton?.hide()
+            @decorateMemberStatus no
+
+
+
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
     @groupContentWrapperView.$().css backgroundColor : "#ffffff"
 
   setBackground:(type,val)->
     if type in ['defaultImage','customImage']
+      @groupSplitView.unsetClass 'vignette'
       @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
         @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
         @utils.wait 200, =>
           @groupContentView.$().css backgroundColor : 'transparent'
     else
+      @groupSplitView.setClass 'vignette'
       @groupContentWrapperView.$().css backgroundImage : "none"
       @groupContentWrapperView.$().css backgroundColor : "#{val}"
 
@@ -224,11 +239,11 @@ class StaticGroupController extends KDController
 
   decoratePendingStatus:->
 
-    button = new KDButtonView
+    @pendingButton = new KDButtonView
       title    : "REQUEST PENDING"
       cssClass : "editor-button"
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView @pendingButton
 
   decorateMemberStatus:(isAdmin)->
 
@@ -268,18 +283,18 @@ class StaticGroupController extends KDController
 
   decorateGuestStatus:->
 
-    button = new KDButtonView
+    @requestButton = new KDButtonView
       title    : "Request Access"
       cssClass : "editor-button"
       callback : =>
         @lazyDomController.requestAccess()
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView @requestButton
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
-          button.setTitle "Join Group"
-          button.setCallback =>
+          @requestButton.setTitle "Join Group"
+          @requestButton.setCallback =>
             @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"

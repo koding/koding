@@ -25,7 +25,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
             </div>
           </div>
         </div>
-        <div class="group-splitview" id="group-splitview">
+        <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
           <div class="group-loading-content" id="group-loading-content">
            <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
@@ -34,7 +34,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
                </div>
              </div>
            </div>
-           <div class="content-item kdview back" >
+           <div class="content-item kdview back">
              <div class="content-item-scroll-wrapper" id='group-config'>
              </div>
            </div>
@@ -57,6 +57,9 @@ applyCustomBackground = (customize={})->
   if customize.background?.customType is 'defaultImage' \
   and customize.background?.customValue <= defaultImages.length
     url = defaultImages[(customize.background.customValue or 0)]
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType is 'customImage'
+    url = customize.background?.customValue
     """ style='background-color:transparent;background-image:url("#{url}")'"""
   else if customize.background?.customType in ['defaultColor','customColor']
     """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""

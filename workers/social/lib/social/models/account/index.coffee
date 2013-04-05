@@ -64,7 +64,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
         'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground'
+        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage'
       ]
     schema                  :
       skillTags             : [String]
@@ -115,7 +115,18 @@ module.exports = class JAccount extends jraphical.Module
           showTypes         : [String]
           title             : String
           about             : String
-          backgrounds       : [String]
+          # backgrounds       : [String]
+          customize         :
+            background       :
+              customImages    : [String]
+              customType      :
+                type          : String
+                default       : 'defaultImage'
+                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+              customValue     :
+                type          : String
+                default       : '1'
+              customOptions   : Object
         avatar              : String
         status              : String
         experience          : String
@@ -179,6 +190,27 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+
+  setBackgroundImage: secure (client, type, value, callback=->)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['profile.staticPage.customize.background.customImages'] = value
+      else
+        operation = $set : {}
+
+      operation.$set["profile.staticPage.customize.background.customType"] = type
+
+      if type in ['defaultImage','defaultColor','customColor','customImage']
+        operation.$set["profile.staticPage.customize.background.customValue"] = value
+
+
+      @update operation, callback
 
   setAbout: secure (client, text, callback)->
     {delegate}    = client.connection
@@ -284,13 +316,13 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback? new KodingError 'Access denied!'
 
-  addStaticBackground: secure (client, url, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
-    if isMine
-      @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
-    else
-      callback? new KodingError 'Access denied!'
+  # addStaticBackground: secure (client, url, callback)->
+  #   {delegate}    = client.connection
+  #   isMine        = this.equals delegate
+  #   if isMine
+  #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
+  #   else
+  #     callback? new KodingError 'Access denied!'
 
   removeStaticPageType: secure (client, type, callback)->
     {delegate}    = client.connection

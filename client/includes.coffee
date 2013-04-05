@@ -91,6 +91,7 @@ module.exports = [
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
   "Framework/components/upload/KDImageUploadView.coffee",
+  "Framework/components/upload/kdmultipartuploader.coffee",
 
   # buttons
   "Framework/components/buttons/KDButtonView.coffee",
@@ -320,6 +321,7 @@ module.exports = [
   "app/MainApp/lazy/staticprofilecontroller.coffee",
   "app/MainApp/lazy/staticprofileconfigviews.coffee",
   "app/MainApp/lazy/staticprofileaboutview.coffee",
+  "app/MainApp/lazy/staticuserbuttonbar.coffee",
   "app/MainApp/lazy/staticgroupcontroller.coffee",
   "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
@@ -533,6 +535,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",

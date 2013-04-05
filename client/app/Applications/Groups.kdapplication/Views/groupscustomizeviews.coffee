@@ -1,4 +1,4 @@
-class StaticGroupCustomizeView extends KDView
+class StaticPageCustomizeView extends KDView
   constructor:(options,data)->
     super options,data
     @setClass 'group-customize-view'
@@ -6,24 +6,25 @@ class StaticGroupCustomizeView extends KDView
     @bgSelectView = new StaticGroupBackgroundSelectView
       cssClass  : 'custom-select-background-view'
       delegate  : @
+
     @bgColorView = new StaticGroupBackgroundColorSelectView
       cssClass  : 'custom-select-background-view'
       delegate  : @
-    @bgUploadView = new StaticGroupBackgroundUploadView
-      cssClass  : 'custom-select-background-upload-view'
 
     @settingsLink = new CustomLinkView
       title     : 'Looking for Group Settings?'
       href      : '#'
       cssClass  : 'settings-link'
       click     : =>
-        @getSingleton('lazyDomController')?.openPath "/#{@getDelegate().groupEntryPoint}/Activity"
+        entrypoint = @getDelegate().groupEntryPoint or @getDelegate().profileEntryPoint
+        @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
 
     @backButton = new KDButtonView
       title     : 'Back'
       cssClass  : 'back-button modal-cancel'
       callback  : =>
-        @getDelegate().groupContentWrapperView.unsetClass 'edit'
+        contentWrapper = @getDelegate().groupContentWrapperView or @getDelegate().profileContentWrapperView
+        contentWrapper.unsetClass 'edit'
 
     @saveButton = new KDButtonView
       title     : 'Save Changes'
@@ -48,6 +49,17 @@ class StaticGroupCustomizeView extends KDView
                   new KDNotificationView
                     title : "Background updated with custom color"
                   @customColorChanged = no
+
+          else if @customImageChanged
+            url = @bgSelectView.thumbsController.selectedItems.first.customUrl \
+            or @bgSelectView.thumbsController.selectedItems.first.getData().url
+            if url
+              @group.setBackgroundImage 'customImage', url, (err,res)=>
+                @saveButton.hideLoader()
+                unless err
+                  new KDNotificationView
+                    title : "Background updated with custom image"
+                  @customImageChanged = no
 
           else if @defaultImageChanged
               defaultIndexItem = @bgSelectView.thumbsController.selectedItems.first
@@ -78,30 +90,53 @@ class StaticGroupCustomizeView extends KDView
             @saveButton.hideLoader()
 
     @attachListeners()
+    @addSettingsButton()
 
-    @fetchGroupData =>
+    @fetchStaticPageData =>
       @bgSelectView.decorateList @group
       @bgColorView.decorateList @group
 
-  fetchGroupData:(callback =->)->
+    @staticController = @getSingleton('staticGroupController') ? @getSingleton('staticProfileController')
+
+  addSettingsButton:->
+    @settingsLink = new CustomLinkView
+      title     : 'Looking for Group Settings?'
+      href      : '#'
+      cssClass  : 'settings-link'
+      click     : =>
+        entrypoint = @getDelegate().groupEntryPoint or @getDelegate().profileEntryPoint
+        @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
+
+
+  fetchStaticPageData:(callback =->)->
     KD.remote.cacheable @getDelegate().groupEntryPoint, (err,[group],name)=>
       @group = group
       callback group
 
   attachListeners:->
     @on 'DefaultColorSelected',=>
+      @customImageChanged = no
       @defaultColorChanged = yes
       @customColorChanged = no
       @defaultImageChanged = no
       @bgSelectView.thumbsController.deselectAllItems()
 
     @on 'DefaultImageSelected',=>
+      @customImageChanged = no
       @defaultImageChanged = yes
       @customColorChanged = no
       @defaultColorChanged = no
       @bgColorView.thumbsController.deselectAllItems()
 
+    @on 'CustomImageSelected',=>
+      @customImageChanged = yes
+      @defaultImageChanged = no
+      @customColorChanged = no
+      @defaultColorChanged = no
+      @bgColorView.thumbsController.deselectAllItems()
+
     @on 'CustomColorSelected',=>
+      @customImageChanged = no
       @customColorChanged = yes
       @defaultImageChanged = no
       @defaultColorChanged = no
@@ -112,6 +147,13 @@ class StaticGroupCustomizeView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+  getBackgroundData:(data={})->
+      if data.customize?.background?
+        data.customize.background
+      else if data.profile.staticPage?.customize?.background?
+        data.profile.staticPage.customize.background
+      else {}
+
   pistachio:->
     """
     {{> @backButton}}
@@ -120,7 +162,6 @@ class StaticGroupCustomizeView extends KDView
     </h1>
     {{> @bgSelectView}}
     {{> @bgColorView}}
-    {{> @bgUploadView}}
     {{> @saveButton}}
     """
 
@@ -130,6 +171,24 @@ class StaticGroupBackgroundUploadView extends KDView
   constructor:(options,data)->
     super options,data
 
+    @uploader = new KDImageUploadView
+      cssClass        : 'image-uploader'
+      limit           : 1
+      preview         : "thumbs"
+      extensions      : null
+      fileMaxSize     : 2048
+      totalMaxSize    : 2048
+      fieldName       : "thumbnails"
+      convertToBlob   : yes
+      title           : ""
+
+    @uploader.on 'FileUploadComplete', (res)=>
+      if res.length and res[0].resource
+        # log @getDelegate().getDelegate()
+        @getDelegate().getDelegate().getDelegate().staticController.setBackground 'customImage', res[0].resource
+        @$().css backgroundImage : "url(#{res[0].resource})"
+        @getDelegate().customUrl = res[0].resource
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -137,7 +196,7 @@ class StaticGroupBackgroundUploadView extends KDView
 
   pistachio:->
     """
-    <span class="title">Upload a Background</span>
+    {{> @uploader}}
     """
 
 
@@ -148,20 +207,12 @@ class StaticGroupBackgroundSelectView extends KDView
 
     @thumbsController  = new KDListViewController
       itemClass       : StaticGroupBackgroundSelectItemView
-      delegate        : @
-
+      viewOptions     :
+        delegate      : @getDelegate()
     @thumbsView = @thumbsController.getView()
 
     # default items
-    items = [
-      {
-        title     : 'Upload an Image'
-        url       : '/images/bg/no.jpg'
-        thumbUrl  : '/images/bg/th/no.png'
-        dataIndex : -1
-        type      : 'customImage'
-      }
-    ]
+    items = []
     for i in [1..5]
       items.push
         title     : "Template ##{i}"
@@ -170,6 +221,13 @@ class StaticGroupBackgroundSelectView extends KDView
         dataIndex : i-1
         type      : 'defaultImage'
 
+    items.push
+      title       : 'Upload an Image'
+      url         : ''
+      thumbUrl    : '/images/bg/th/no.png'
+      dataIndex   : -1
+      type        : 'customImage'
+
     @thumbsController.instantiateListItems items
     @attachListeners()
 
@@ -177,13 +235,26 @@ class StaticGroupBackgroundSelectView extends KDView
     @thumbsController.listView.on 'DefaultImageSelected', (view)=>
       @getDelegate().emit 'DefaultImageSelected', view
 
-    @thumbsController.listView.on 'NoImageSelected', (view)=>
-      @getDelegate().emit 'NoImageSelected', view
+    @thumbsController.listView.on 'CustomImageSelected', (view)=>
+      @getDelegate().emit 'CustomImageSelected', view
 
   decorateList:(group={})->
-    if group.customize?.background?.customType is 'defaultImage'
+    backgroundData = @getDelegate().getBackgroundData group
+
+    if backgroundData.customImages
+
+      for customImage in backgroundData.customImages
+        @thumbsController.addItem
+          title : 'User Image'
+          url : customImage
+          thumbUrl : customImage
+          dataIndex : -1
+          type : 'customImage'
+        , 0
+
+    if backgroundData.customType is 'defaultImage'
       for item in @thumbsController.itemsOrdered
-        if item.getData().dataIndex is group.customize.background.customValue
+        if item.getData().dataIndex is backgroundData.customValue
           @thumbsController.selectItem item
 
     else @thumbsController.deselectAllItems()
@@ -210,18 +281,31 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
 
     @type = @getData().type or 'defaultImage'
 
-    @img = new KDCustomHTMLView
-      tagName     : 'img'
-      cssClass    : 'custom-image-default'
-      attributes  :
-        src       : @getData().thumbUrl
-        alt       : @getData().title
+    if @type is 'defaultImage' or (@type is 'customImage' and @getData().url?.length>0)
+      @image = new KDCustomHTMLView
+        tagName     : 'img'
+        cssClass    : 'custom-image-default'
+        attributes  :
+          src       : @getData().thumbUrl
+          alt       : @getData().title
+    else if @type is 'customImage'
+      @image = new  StaticGroupBackgroundUploadView
+        cssClass : 'custom-image-upload'
+        delegate : @
+      @image.$().css backgroundImage : "url(#{@getData().thumbUrl})" if @getData().thumbUrl
+
+    @customUrl = null
 
   click: ->
     # preview live
+
     if @getData().type is 'defaultImage'
       @getDelegate().emit 'DefaultImageSelected', @
-      @getSingleton('staticGroupController').setBackground @type, @getData().url
+      @getDelegate().getDelegate().staticController.setBackground @type, @getData().url
+
+    else if  @getData().type is 'customImage'
+      @getDelegate().emit 'CustomImageSelected', @
+      @getDelegate().getDelegate().staticController.setBackground @type, @customUrl or @getData().url
 
     else log 'Something weird happened'
   viewAppended:->
@@ -231,13 +315,13 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
 
   pistachio:->
     """
-    {{> @img}}
+    {{> @image}}
     {{#(title)}}
     """
 
-##
+## *************************
 # COLOR SELECT
-##
+## *************************
 
 class StaticGroupBackgroundColorSelectView extends KDView
 
@@ -246,7 +330,8 @@ class StaticGroupBackgroundColorSelectView extends KDView
 
     @thumbsController = new KDListViewController
       itemClass       : StaticGroupBackgroundColorSelectItemView
-      delegate        : @
+      viewOptions     :
+        delegate      : @getDelegate()
 
     @thumbsView = @thumbsController.getView()
 
@@ -275,16 +360,18 @@ class StaticGroupBackgroundColorSelectView extends KDView
       @getDelegate().emit 'CustomColorSelected', view
 
   decorateList:(group={})->
-    if group.customize?.background?.customType is 'defaultColor'
+    backgroundData = @getDelegate().getBackgroundData group
+
+    if backgroundData.customType is 'defaultColor'
       for item in @thumbsController.itemsOrdered
-        if item.getData().colorValue is group.customize.background.customValue
+        if item.getData().colorValue is backgroundData.customValue
           @thumbsController.selectItem item
 
-    if group.customize?.background?.customType is 'customColor'
+    if backgroundData.customType is 'customColor'
       for item in @thumbsController.itemsOrdered
         if item.getData().type is 'customColor'
           @thumbsController.selectItem item
-          item.decorateCustomColor group.customize.background.customValue
+          item.decorateCustomColor backgroundData.customValue
 
     else @thumbsController.deselectAllItems()
 
@@ -305,35 +392,40 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
 
+    {@type,colorValue,title} = data = @getData()
+
     @setClass 'custom-image-selectitemview color'
     @title = new KDView
-      partial : @getData().title
+      partial : title
 
-    @type = @getData().type or 'defaultImage'
+    @type ?= 'defaultImage'
 
     if @type is 'defaultColor'
       @color = new KDView
         cssClass : 'custom-color-default'
-      @color.$().css backgroundColor : "#{@getData().colorValue}"
+      @color.$().css backgroundColor : "#{colorValue}"
 
     else if @type is 'customColor'
       @color = new StaticGroupBackgroundColorPickerView
         cssClass : 'custom-color-picker'
-      ,@getData()
+        delegate : @getDelegate()
+      ,data
 
   click: ->
-    # preview live
-    if @getData().type is 'defaultColor'
-      @getDelegate().emit 'DefaultColorSelected', @
-      @getSingleton('staticGroupController').setBackground @type, @getData().colorValue
+    {type,colorValue} = @getData()
 
-    else if @getData().type is 'customColor'
+    if type is 'defaultColor'
+      @getDelegate().emit 'DefaultColorSelected', @
+      @getDelegate().getDelegate().staticController.setBackground type, colorValue
+
+    else if type is 'customColor'
       @getDelegate().emit 'CustomColorSelected', @
-      @getSingleton('staticGroupController').setBackground @type, @color.picker.getValue()
+      @getDelegate().getDelegate().staticController.setBackground type, @color.picker.getValue()
     else log 'Something weird happened'
 
   decorateCustomColor:(color)->
-    @getSingleton('staticGroupController').setBackground @type, color
+    @utils.defer =>
+      @getDelegate().getDelegate().staticController.setBackground @type, color
     @color.decorateCustomColor color or '#ff9200'
 
   viewAppended:->
@@ -363,7 +455,7 @@ class StaticGroupBackgroundColorPickerView extends KDView
 
   updateColor:->
     @$().css backgroundColor : @picker.getValue()
-    @getSingleton('staticGroupController').setBackground @type, @picker.getValue()
+    @getDelegate().getDelegate().staticController.setBackground @type, @picker.getValue()
 
   viewAppended:->
     super
