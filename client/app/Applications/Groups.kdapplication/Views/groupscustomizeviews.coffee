@@ -26,69 +26,6 @@ class StaticPageCustomizeView extends KDView
         contentWrapper = @getDelegate().groupContentWrapperView or @getDelegate().profileContentWrapperView
         contentWrapper.unsetClass 'edit'
 
-    @saveButton = new KDButtonView
-      title     : 'Save Changes'
-      cssClass  : 'save-button clean-gray'
-      loader    :
-        color   : '#444'
-        diameter : 12
-      callback :=>
-        if @group
-
-          @saveButton.showLoader()
-
-          if @customColorChanged
-            defaultIndexItem = @bgColorView.thumbsController.selectedItems.first
-
-            if defaultIndexItem
-              pickedColor = defaultIndexItem.color.picker.getValue() or 'fff'
-              log pickedColor
-              @group.setBackgroundImage 'customColor', pickedColor, (err,res)=>
-                @saveButton.hideLoader()
-                unless err
-                  new KDNotificationView
-                    title : "Background updated with custom color"
-                  @customColorChanged = no
-
-          else if @customImageChanged
-            url = @bgSelectView.thumbsController.selectedItems.first.customUrl \
-            or @bgSelectView.thumbsController.selectedItems.first.getData().url
-            if url
-              @group.setBackgroundImage 'customImage', url, (err,res)=>
-                @saveButton.hideLoader()
-                unless err
-                  new KDNotificationView
-                    title : "Background updated with custom image"
-                  @customImageChanged = no
-
-          else if @defaultImageChanged
-              defaultIndexItem = @bgSelectView.thumbsController.selectedItems.first
-
-              if defaultIndexItem
-                defaultIndex = defaultIndexItem.getData().dataIndex or 0
-                @group.setBackgroundImage 'defaultImage', defaultIndex, (err,res)=>
-                  @saveButton.hideLoader()
-                  unless err
-                    new KDNotificationView
-                      title : "Background updated to #{defaultIndexItem.getData().title}"
-                    @defaultImageChanged = no
-
-          else if @defaultColorChanged
-              defaultIndexItem = @bgColorView.thumbsController.selectedItems.first
-
-              if defaultIndexItem
-                defaultHex = defaultIndexItem.getData().colorValue or 0
-                @group.setBackgroundImage 'defaultColor', defaultHex, (err,res)=>
-                  @saveButton.hideLoader()
-                  unless err
-                    new KDNotificationView
-                      title : "Background updated to color #{defaultIndexItem.getData().title}"
-                    @defaultColorChanged = no
-
-          else
-            # no changes
-            @saveButton.hideLoader()
-
     @attachListeners()
     @addSettingsButton()
 
@@ -120,13 +57,16 @@ class StaticPageCustomizeView extends KDView
       @customColorChanged = no
       @defaultImageChanged = no
       @bgSelectView.thumbsController.deselectAllItems()
+      @utils.defer => @emit 'OptionChanged'
 
     @on 'DefaultImageSelected',=>
+      # @emit 'OptionChanged'
       @customImageChanged = no
       @defaultImageChanged = yes
       @customColorChanged = no
       @defaultColorChanged = no
       @bgColorView.thumbsController.deselectAllItems()
+      @utils.defer => @emit 'OptionChanged'
 
     @on 'CustomImageSelected',=>
       @customImageChanged = yes
@@ -134,6 +74,7 @@ class StaticPageCustomizeView extends KDView
       @customColorChanged = no
       @defaultColorChanged = no
       @bgColorView.thumbsController.deselectAllItems()
+      @utils.defer => @emit 'OptionChanged'
 
     @on 'CustomColorSelected',=>
       @customImageChanged = no
@@ -141,6 +82,55 @@ class StaticPageCustomizeView extends KDView
       @defaultImageChanged = no
       @defaultColorChanged = no
       @bgSelectView.thumbsController.deselectAllItems()
+      @utils.defer => @emit 'OptionChanged'
+
+    @on 'OptionChanged',=>
+
+        if @group
+
+          if @customColorChanged
+            defaultIndexItem = @bgColorView.thumbsController.selectedItems.first
+
+            if defaultIndexItem
+              pickedColor = defaultIndexItem.color.picker.getValue() or 'fff'
+              log pickedColor
+              @group.setBackgroundImage 'customColor', pickedColor, (err,res)=>
+                unless err
+                  new KDNotificationView
+                    title : "Background updated with custom color"
+                  @customColorChanged = no
+
+          else if @customImageChanged
+            url = @bgSelectView.thumbsController.selectedItems.first.customUrl \
+            or @bgSelectView.thumbsController.selectedItems.first.getData().url
+            if url
+              @group.setBackgroundImage 'customImage', url, (err,res)=>
+                unless err
+                  new KDNotificationView
+                    title : "Background updated with custom image"
+                  @customImageChanged = no
+
+          else if @defaultImageChanged
+              defaultIndexItem = @bgSelectView.thumbsController.selectedItems.first
+
+              if defaultIndexItem
+                defaultIndex = defaultIndexItem.getData().dataIndex or 0
+                @group.setBackgroundImage 'defaultImage', defaultIndex, (err,res)=>
+                  unless err
+                    new KDNotificationView
+                      title : "Background updated to #{defaultIndexItem.getData().title}"
+                    @defaultImageChanged = no
+
+          else if @defaultColorChanged
+              defaultIndexItem = @bgColorView.thumbsController.selectedItems.first
+
+              if defaultIndexItem
+                defaultHex = defaultIndexItem.getData().colorValue or 0
+                @group.setBackgroundImage 'defaultColor', defaultHex, (err,res)=>
+                  unless err
+                    new KDNotificationView
+                      title : "Background updated to color #{defaultIndexItem.getData().title}"
+                    @defaultColorChanged = no
 
   viewAppended:->
     super
@@ -162,7 +152,6 @@ class StaticPageCustomizeView extends KDView
     </h1>
     {{> @bgSelectView}}
     {{> @bgColorView}}
-    {{> @saveButton}}
     """
 
 
@@ -184,10 +173,11 @@ class StaticGroupBackgroundUploadView extends KDView
 
     @uploader.on 'FileUploadComplete', (res)=>
       if res.length and res[0].resource
-        # log @getDelegate().getDelegate()
         @getDelegate().getDelegate().getDelegate().staticController.setBackground 'customImage', res[0].resource
         @$().css backgroundImage : "url(#{res[0].resource})"
         @getDelegate().customUrl = res[0].resource
+
+        @getDelegate().emit 'FileUploaded',@
 
   viewAppended:->
     super
@@ -237,6 +227,12 @@ class StaticGroupBackgroundSelectView extends KDView
 
     @thumbsController.listView.on 'CustomImageSelected', (view)=>
       @getDelegate().emit 'CustomImageSelected', view
+
+    @thumbsController.listView.on 'FileUploaded', (view)=>
+      log 'selecting item',view.getDelegate()
+      @thumbsController.selectItem view.getDelegate()
+      @getDelegate().emit 'CustomImageSelected', view
+
 
   decorateList:(group={})->
     backgroundData = @getDelegate().getBackgroundData group
@@ -296,9 +292,10 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
 
     @customUrl = null
 
+    @on 'FileUploaded', (view)=>
+      @getDelegate().emit 'FileUploaded', view
   click: ->
     # preview live
-
     if @getData().type is 'defaultImage'
       @getDelegate().emit 'DefaultImageSelected', @
       @getDelegate().getDelegate().staticController.setBackground @type, @getData().url
