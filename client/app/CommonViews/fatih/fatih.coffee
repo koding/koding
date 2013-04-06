@@ -118,9 +118,11 @@ class Fatih extends KDModalView
       return plugin
 
   updatePluginsKeyword: (prefs) ->
+    return unless prefs
     for plugin of @plugins
-      @plugins[plugin].setOption "keyword", prefs.aliases[plugin]
-      log "#{plugin}'s keyword set to #{prefs.aliases[plugin]}"
+      keyword = prefs.aliases?[plugin]
+      @plugins[plugin].setOption "keyword", keyword if keyword
+      # log "#{plugin}'s keyword set to #{prefs.aliases[plugin]}"
 
   runDefaultPlugins: (keyword) ->
     @defaultPluginsRunning = yes
