@@ -555,9 +555,7 @@ class KDView extends KDObject
 
   dblClick:(event)->   yes
 
-  click:(event)->
-    @hideTooltip()
-    yes
+  click:(event)->      yes
 
   contextMenu:(event)->yes
 
@@ -811,73 +809,15 @@ class KDView extends KDObject
     o.fallback  or= o.title
     o.view      or= null
     o.delegate  or= @
+    o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null
     o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
     isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
     if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
-      @bindTooltipEvents o
+      @tooltip ?= new KDTooltip o, {}
 
-  bindTooltipEvents:(o)->
-    @bindEvent name for name in ['mouseenter','mouseleave']
-
-    @on 'mouseenter',(event)=>
-      if o.selector
-        selectorEntered = no
-        @bindEvent 'mousemove'
-
-        @on 'mousemove', (mouseEvent)=>
-          if $(mouseEvent.target).is(o.selector) and selectorEntered is no
-            selectorEntered = yes
-            @createTooltip o
-            @tooltip?.emit 'MouseEnteredAnchor'
-          if not $(mouseEvent.target).is(o.selector) and selectorEntered
-            selectorEntered = no
-            @tooltip?.emit 'MouseLeftAnchor'
-      else
-        return if o.selector and not $(event.target).is o.selector
-        @createTooltip o
-        @tooltip?.emit 'MouseEnteredAnchor'
-
-    @on 'mouseleave', (event)=>
-      return if o.seletor and not $(event.target).is o.selector
-      @tooltip?.emit 'MouseLeftAnchor'
-      @off 'mousemove'
-
-  createTooltip:(o = {})->
-    @tooltip ?= new KDTooltip o, {}
-
-  getTooltip:(o = {})->
-    if @tooltip?
-      return @tooltip
-    else
-      o.selector or= null
-      return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
-
-  updateTooltip:(o = @getOptions().tooltip,view = null)->
-    unless view
-      o.selector or= null
-      o.title    or= ""
-      @getOptions().tooltip.title = o.title
-      if @tooltip?
-        @tooltip.setTitle o.title
-        @tooltip.display @getOptions().tooltip
-    else
-      if @tooltip?
-        @tooltip.setView view
-
-  hideTooltip:(o = {})->
-    o.selector or= null
-    @tooltip?.hide()
-
-  removeTooltip:(instance)->
-    if instance
-      @getSingleton('windowController').removeLayer instance
-      instance.destroy()
-      @tooltip = null
-      delete @tooltip
-    else
-      log 'There was nothing to remove.'
+  getTooltip:-> @tooltip
 
   _windowDidResize:->
 
