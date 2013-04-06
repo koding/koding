@@ -75,6 +75,11 @@ module.exports = class AuthWorker extends EventEmitter
     delete @clients.byRoutingKey[routingKey]
 
   addClient:(socketId, exchange, routingKey)->
+    @bongo.respondToClient routingKey, {
+      method    : 'authOk'
+      arguments : []
+      callbacks : {}
+    }
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
@@ -146,7 +151,7 @@ module.exports = class AuthWorker extends EventEmitter
                           @rejectClient routingKey
                         else
                           setSecretNameEvent = "#{routingKey}.setSecretName"
-                          message = JSON.stringify "group.#{secretName}"
+                          message = JSON.stringify "group.secret.#{secretName}"
                           @bongo.respondToClient setSecretNameEvent, message
 
     joinClient =(messageData, socketId)->
@@ -155,7 +160,11 @@ module.exports = class AuthWorker extends EventEmitter
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
         when 'group'
+          unless routingKey is "group.#{messageData.group}"
+            return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
+        when 'secret'
+          @addClient socketId, routingKey, routingKey
         else
           @rejectClient routingKey
 
