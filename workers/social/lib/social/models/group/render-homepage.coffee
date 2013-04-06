@@ -20,9 +20,6 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
           <div class="group-title-wrapper" id="group-title-wrapper">
             <div class="group-name">#{title}</div>
             <div class="group-bio">#{body}</div>
-            <div id="group-button-wrapper">
-             <div id="landing-page-sidebar"></div>
-            </div>
           </div>
         </div>
         <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">

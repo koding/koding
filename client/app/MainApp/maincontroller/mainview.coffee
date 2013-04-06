@@ -94,8 +94,6 @@ class MainView extends KDView
         $('body').removeClass 'server-stack'
         $('.kdoverlay').remove()
 
-  addHeader:()->
-
   addHeader:->
 
     if KD.config.groupEntryPoint
