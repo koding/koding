@@ -47,21 +47,10 @@ class StaticGroupController extends KDController
     @landingView._windowDidResize = =>
       {innerHeight} = window
       @landingView.setHeight innerHeight
-      @groupContentView.setHeight innerHeight - @groupTitleView.getHeight()
 
     @groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
-
-    # groupKodingLogo = new KDView
-    #   lazyDomId : 'landing-page-logo'
-    #   tooltip   :
-    #     title   : "Click here to see this group on Koding"
-    #   click     : =>
-    #     if KD.isLoggedIn()
-    #       @lazyDomController.hideLandingPage()
-    #     else
-    #       @mainController.loginScreen.animateToForm 'login'
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
@@ -72,7 +61,7 @@ class StaticGroupController extends KDController
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
 
-    @groupTitleView.addSubView @buttonWrapper = new KDCustomHTMLView
+    @buttonWrapper = new KDCustomHTMLView
       cssClass : "button-wrapper"
       lazyDomId : "group-button-wrapper"
 
@@ -100,49 +89,6 @@ class StaticGroupController extends KDController
         @utils.wait 1100, => @landingView.setClass 'group-hidden'
 
     groupLogoView.setY @landingView.getHeight()-42
-
-    # for type in CONTENT_TYPES
-    #   @navLinks[type] = new StaticNavLink
-    #     delegate  : @
-    #     lazyDomId : type
-
-    # @groupContentLinks = new KDView
-    #   lazyDomId : 'group-content-links'
-
-    # @activityController = new ActivityListController
-    #   delegate          : @
-    #   lazyLoadThreshold : .99
-    #   itemClass         : ActivityListItemView
-    #   viewOptions       :
-    #     cssClass        : 'group-activity-content activity-related'
-    #   showHeader        : no
-
-    #   noItemFoundWidget : new KDCustomHTMLView
-    #     cssClass : "lazy-loader"
-    #     partial  : "So far, this group does not have this kind of activity."
-
-    #   noMoreItemFoundWidget : new KDCustomHTMLView
-    #     cssClass : "lazy-loader"
-    #     partial  : "There is no more activity."
-
-    # @activityListWrapper = @activityController.getView()
-    # @groupContentView.addSubView @activityListWrapper
-
-    # @activityListWrapper.hide()
-
-    # @activityController.on 'LazyLoadThresholdReached', =>
-    #   appManager.tell 'Activity', 'fetchActivity',
-    #     group     : @groupEntryPoint
-    #     facets    : @currentFacets
-    #     to        : @activityController.itemsOrdered.last.getData().meta.createdAt
-    #     bypass    : yes
-    #   , (err,activities=[])=>
-    #     @appendActivities err, activities, =>
-
-    # for type in CONTENT_TYPES
-    #   @navLinks[type] = new StaticNavLink
-    #     delegate  : @
-    #     lazyDomId : type
 
     @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
 
@@ -231,35 +177,43 @@ class StaticGroupController extends KDController
 
   decoratePendingStatus:->
 
-    button = new KDButtonView
+    link = new CustomLinkView
       title    : "REQUEST PENDING"
-      cssClass : "editor-button"
+      cssClass : "request-pending"
+      icon     : {}
+      click    : (event)=> event.preventDefault()
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView link
 
   decorateMemberStatus:(isAdmin)->
 
-    open = new KDButtonView
+    open = new CustomLinkView
       title    : "Open group"
-      cssClass : "editor-button"
-      callback : =>
+      cssClass : "open"
+      icon     : {}
+      click    : (event)=>
+        event.preventDefault()
         @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
     @buttonWrapper.addSubView open
 
     if isAdmin
-      dashboard = new KDButtonView
-        title    : "Go to Dashboard"
-        cssClass : "editor-button"
-        callback : =>
-          @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+      # dashboard = new CustomLinkView
+      #   title    : "Go to Dashboard"
+      #   cssClass : "customize"
+      #   icon     : {}
+      #   click    : (event)=>
+      #     event.preventDefault()
+      #     @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
-      @buttonWrapper.addSubView dashboard
+      # @buttonWrapper.addSubView dashboard
 
-      @buttonWrapper.addSubView configButton = new KDButtonView
-        cssClass : 'editor-button'
+      @buttonWrapper.addSubView config = new CustomLinkView
         title    : "Customize"
-        callback : =>
+        cssClass : "customize"
+        icon     : {}
+        click    : (event)=>
+          event.preventDefault()
           if @groupContentWrapperView.$().hasClass 'edit'
             @groupContentWrapperView.unsetClass 'edit'
           else @groupContentWrapperView.setClass 'edit'
@@ -275,18 +229,27 @@ class StaticGroupController extends KDController
 
   decorateGuestStatus:->
 
-    button = new KDButtonView
+    link = new CustomLinkView
       title    : "Request Access"
-      cssClass : "editor-button"
-      callback : =>
+      cssClass : "request"
+      icon     : {}
+      click    : (event)=>
+        event.preventDefault()
         @lazyDomController.requestAccess()
 
-    @buttonWrapper.addSubView button
+    @buttonWrapper.addSubView link
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
-          button.setTitle "Join Group"
-          button.setCallback =>
-            @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+          link.destroy()
+          link = new CustomLinkView
+            title    : "Join Group"
+            cssClass : "join"
+            icon     : {}
+            click    : (event)=>
+              event.preventDefault()
+              @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+
+          @buttonWrapper.addSubView link

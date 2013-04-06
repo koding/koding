@@ -1,4 +1,4 @@
-class StaticUserButtonBar extends JView
+class StaticUserButtonBar extends KDView
   constructor:(options,data)->
     super options,data
 
@@ -6,8 +6,6 @@ class StaticUserButtonBar extends JView
 
     @ldc = @getSingleton 'lazyDomController'
     @mc  = @getSingleton 'mainController'
-
-    @buttonGroup = new KDView
 
     @refreshButtons()
     @attachListeners()
@@ -18,14 +16,8 @@ class StaticUserButtonBar extends JView
 
 
   refreshButtons:->
-    @removeButtons()
+    @destroySubViews()
     @addButtons()
-
-
-  removeButtons:->
-    @buttonGroup.removeSubView @loginButton
-    @buttonGroup.removeSubView @logoutButton
-    @buttonGroup.removeSubView @registerButton
 
 
   addButtons:->
@@ -37,36 +29,36 @@ class StaticUserButtonBar extends JView
 
 
   addLoginButton:->
-    @buttonGroup.addSubView @loginButton = new KDButtonView
+    @addSubView @loginButton = new CustomLinkView
       title       : 'Login'
-      cssClass    : 'clean-gray editor-button'
-      callback    : =>
+      cssClass    : 'login'
+      icon        : {}
+      click       : (event)=>
+        event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'login'
           path    : '/Login'
 
 
   addLogoutButton:->
-    @buttonGroup.addSubView @logoutButton = new KDButtonView
+    @addSubView @logoutButton = new CustomLinkView
       title       : 'Logout'
-      cssClass    : 'clean-gray editor-button'
-      callback    : =>
+      cssClass    : 'logout'
+      icon        : {}
+      click       : (event)=>
+        event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'logout'
           path    : '/Logout'
 
 
   addRegisterButton:->
-    @buttonGroup.addSubView @registerButton = new KDButtonView
+    @addSubView @registerButton = new CustomLinkView
       title       : 'Register'
-      cssClass    : 'clean-gray editor-button'
-      callback    : =>
+      cssClass    : 'register'
+      icon        : {}
+      click       : (event)=>
+        event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'register'
           path    : '/Register'
-
-
-  pistachio:->
-    """
-    {{> @buttonGroup}}
-    """

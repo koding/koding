@@ -18,29 +18,26 @@ body.landing
       hidden()
 
 #group-summary
-  abs()
   transition            top .3s ease-in
-  // left                  -10000px
   size                  100%, auto
   min-height            200px
-  bg                    color, rgba(0,0,0,.8)
   z-index               100
   border-bottom         1px solid rgba(0,0,0,.1)
+  perspective           200%
+  bg                    color, rgba(0,0,0,.8)
   shadow                0 5px 15px rgba(0,0,0,0.5)
-  perspective           800px
+  abs()
 
-  .summary-koding-logo
-    abs()
-    top                 -30px
-    left                50%
-    bg                  position, -240px -40px
-    size                120px, 30px
-    margin-left         -60px
-    cursor              pointer
+  > nav
+    size                120%, 50px
+    margin-left         -10%
+    top                 -50px
     opacity             .3
-    z-index             0
-    sprite()
-    // transition          opacity .1s ease
+    padding             10px 10%
+    shadow              0 0 15px rgba(0,0,0,0.4)
+    borderBox()
+    abs()
+    bg                  color, rgba(0,0,0,.8)
     vendor              transition-property, transform\, opacity
     vendor              transition-duration, .3s
     vendor              transition-easing, ease
@@ -56,6 +53,60 @@ body.landing
       transform         rotateX(0deg)
       opacity           1
       z-index           1000
+    .summary-koding-logo
+      bg                  position, -240px -38px
+      size                120px, 30px
+      margin-left         30px
+      cursor              pointer
+      z-index             0
+      sprite()
+
+    .button-wrapper
+      abs()
+      right               8%
+      top                 0
+      size                auto, 50px
+
+      .custom-link-view
+        display           inline-block
+        size              auto, 100%
+        padding           0 20px
+        line-height       49px
+        gradient          #666, #505050
+        border-right      1px solid rgba(255,255,255,.2)
+        border-top        1px solid rgba(255,255,255,.1)
+        border-left       1px solid rgba(0,0,0,.1)
+        text-shadow       0 1px 0 rgba(0,0,0,.9)
+        borderBox()
+        .title
+          color           rgba(255,255,255,.9)
+        .icon
+          margin          15px 1px 0 0
+        &:hover
+          .title
+            color         rgba(255,255,255,1)
+        &.customize
+          gradient        #68B43B, #5B9D33
+          border-right    1px solid rgba(255,255,255,.1)
+          .icon
+            bg            position, -200px -380px
+        &.open
+          .icon
+            bg            position, -200px -340px
+        &.request-access
+          .icon
+            bg            position, -200px -360px
+        &.logout
+          .icon
+            bg            position, -200px -320px
+        &.login
+          .icon
+            bg            position, -220px -320px
+        &.register
+          .icon
+            bg            position, -220px -340px
+
+
 
   .kdloader
     display             block
