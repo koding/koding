@@ -73,49 +73,24 @@
 
 .group-title
   borderBox()
-  rel()
-  bg                    color, white
-  height                77px
-  height                120px
-  width                 auto
-  // border-bottom         1px solid rgb(229,229,229)
-  // shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
-  // gradient              rgb(255,255,255),rgb(242,242,242)
-  // padding 20px 23px
-  border-bottom             1px solid rgb(229,229,229)
-  padding                   22px 10px 20px 40px
-  shadow                    0px -15px 50px rgba(0,0,0,0.4)
-  overflow                  hidden
-  z-index                   1
-
+  abs()
+  size                      100%, 250px
+  padding                   0 50px 30px
+  z-index                   10
 
   .group-title-wrapper
-    height auto
-    width auto
-    padding-right       75px
+    bg color,                 rgba(0,0,0,0.2)
+    padding                 30px 40px
+    height                  190px
 
   .group-name
-    // vendor              font-smoothing, antialiased
-    // vendor              text-rendering, geometricPrecision
-    // borderBox()
-    // max-width               700px
-    // font-size               32px
-    // width                   auto
-    // display                 inline-block
-    // color                   #444
-    // border-bottom           2px solid #ff9200
-    // margin-right            10px
-    // white-space             nowrap
-    // text-overflow           ellipsis
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    // max-width               700px
     font-size               42px
     width                   100%
     display                 inline-block
-    color                   #444
-    // border-bottom           2px solid #ff9200
+    color                   rgba(255,255,255,.9)
     margin-right            10px
     white-space             nowrap
     text-overflow           ellipsis
@@ -124,42 +99,16 @@
 
 
   .group-bio
-    // vendor              font-smoothing, antialiased
-    // vendor              text-rendering, geometricPrecision
-    // borderBox()
-    // color                   #888
-    // font-size               12px
-    // height                  29px
-    // overflow                hidden
-    // text-overflow           ellipsis
-    // white-space             nowrap
-    // width                   auto
-    // font-weight             300
-    // display                 inline
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    color                   #888
+    color                   rgba(255,255,255,.8)
     font-size               14px
-    height                  29px
-    overflow                hidden
     text-overflow           ellipsis
-    white-space             nowrap
-    width                   auto
+    max-width               800px
     font-weight             300
     display                 block
     headerFont()
-
-  .button-wrapper
-    abs()
-    right               26px
-    top                 26px
-    height              24px
-    width               auto
-
-    button.kdbutton
-      margin            0 0 0 5px!important
-      display           inline-block
 
     #landing-page-sidebar
       width                       auto
@@ -184,6 +133,84 @@
           &.selected
             margin                0 5px 0 0
             bg color,             transparent
+
+.group-content-wrapper
+  height                        100%
+  width                         auto
+  bg color,                     white
+  borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+
+  &.edit
+    .group-splitview
+      .group-loading-content
+        .content-item.front
+          vendor transform,rotateY(-180deg)
+        .content-item.back
+          vendor transform, rotateY(0deg)
+
+.group-splitview
+  overflow                     auto
+  size                         100%, 100%
+  borderBox()
+  vendor perspective-origin-x, 50%
+  vendor perspective-origin-y, 50%
+
+  // &.vignette
+  //   gradient2               50% 50%, circle farthest-corner, transparent 25%, rgba(0,0,0,.4) 100%
+
+
+
+.kdlistview.kdview.group-loading-content
+.group-loading-content
+  vendor                transition, background-color 0.2s linear
+  vendor                perspective, 800px
+  overflow              auto
+  height                100%
+  width                 auto
+  // padding-top           50px
+  // gradient2             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
+  borderBox()
+  rel()
+
+  .content-item
+    left                              0
+    right                             0
+    top                               0
+    bottom                            0
+    padding                           0 50px 100px
+    overflow                          visible
+    vendor transform-style,           preserve-3d
+    vendor transition,                all .4s ease-in;
+    vendor backface-visibility,       hidden
+    abs()
+    borderBox()
+
+    &.front
+      z-index 2
+
+    &.back
+      vendor transform, rotateY(180deg);
+
+  .content-item-scroll-wrapper
+    padding                             40px
+    margin                              250px auto 0
+    rounded                             0 0 5px 5px
+    bg                                  color, rgba(0,0,0,.2)
+    borderBox()
+
+  .has-markdown
+    overflow                            auto
+    height                              100%
+    color                               rgba(255,255,255,.9)
+    borderBox()
+    h1, h2, h3, h4, h5, h6
+      color                             rgba(255,255,255,.9)
+
 
 
 .group-nickname
@@ -263,106 +290,6 @@
       color:                #ff9200;
       font-weight:          bold;
 
-.group-koding-logo
-  height 100%
-  .logo
-    cursor pointer
-    sprite()
-    width 120px
-    height 30px
-    bg position, -240px -40px
-    position fixed
-    bottom 12px
-    left 15px
-    &.animate
-      vendor transition, top 0.5s ease-in-out
-    &.top
-      top 12px!important
-      bottom none
-
-  vertical-align bottom
-
-
-.group-content-wrapper
-  height                        100%
-  width                         auto
-  bg color,                     white
-  borderBox()
-
-  bg size,                      cover
-  bg repeat,                    no-repeat
-  bg position,                  center center
-  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
-
-  &.edit
-    .group-splitview
-      .group-loading-content
-        .content-item.front
-          vendor transform,rotateY(-180deg)
-        .content-item.back
-          vendor transform, rotateY(0deg)
-
-.group-splitview
-  height 100%
-  borderBox()
-  margin-top: -120px
-  padding-top 120px
-
-  vendor perspective-origin-x, 50%
-  vendor perspective-origin-y, 50%
-
-  &.vignette
-    gradient2               50% 35%, circle farthest-corner, rgba(0,0,0,0.25) 15%, rgba(255,255,255,0.5) 100%
-
-
-
-.kdlistview.kdview.group-loading-content
-.group-loading-content
-  vendor transition, background-color 0.2s linear
-  vendor perspective, 800px
-  borderBox()
-  overflow                              auto
-  height                                100%
-  width                                 auto
-  padding-top                           50px
-  gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
-
-  rel()
-
-  .content-item
-    vendor transform-style, preserve-3d
-    vendor transition ,all .4s ease-in;
-    vendor backface-visibility, hidden
-
-    abs()
-    left 0
-    right 0
-    top 0
-    bottom 0
-    padding                      50px
-    borderBox()
-
-    &.front
-      z-index 2
-
-    &.back
-      vendor transform, rotateY(180deg);
-
-  .content-item-scroll-wrapper
-    padding                             40px
-    max-width                           61.803398875%
-    margin                              0px auto
-    rounded                             5px
-    border                              1px solid #e8e8e8
-    bg                                  color, #fbfbfb
-    shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
-    borderBox()
-    height                              100%
-
-  .has-markdown
-    borderBox()
-    overflow                            auto
-    height                              100%
 
 .custom-image-selectitemview
   borderBox()
