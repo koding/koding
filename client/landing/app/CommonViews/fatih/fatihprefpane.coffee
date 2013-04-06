@@ -31,7 +31,7 @@ class FatihPrefPane extends JView
         @getDelegate().showStaticViews()
         @destroy()
 
-    @fetchUserPreferences (prefs) =>
+    @fetchUserPreferences (prefs = {}) =>
       @createSearchTargetsPane prefs.search
       @createAliasesPane       prefs.aliases
 
