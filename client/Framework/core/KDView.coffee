@@ -515,7 +515,7 @@ class KDView extends KDObject
       'webkitTransition': 'webkitTransitionEnd'
 
     transitionEvent = 'transitionend'
-    for key, val of transitions when el.style[key]?
+    for key, val of transitions when key of el.style
       transitionEvent = val
       break
 
