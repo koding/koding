@@ -110,7 +110,7 @@ module.exports = class Builder
     source = fs.readFileSync file.sourcePath, "utf-8"
     switch file.extension
       when ".coffee", ".js"
-        if file.extension == ".coffee"
+        if file.extension is ".coffee"
           try
             result = CoffeeScript.compile source,
               filename: file.includePath
