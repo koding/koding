@@ -33,14 +33,12 @@ class AccountEmailNotifications extends KDView
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
       field.current = user.getAt("emailFrequency.#{flag}")
-      labels = ['on', 'off']
 
       field.formView.addSubView field.switch = new KDMultipleChoice
         cssClass      : 'dark'
-        labels        : labels
-        defaultValue  : if field.current is on then 'on' else 'off'
+        defaultValue  : if field.current is on then 'ON' else 'OFF'
         callback      : (state)->
-          state = if state is 'on' then on else off
+          state = if state is 'ON' then on else off
           prefs = {}
 
           prefs[@getData()] = state
