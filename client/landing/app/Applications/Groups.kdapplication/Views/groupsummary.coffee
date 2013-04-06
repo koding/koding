@@ -33,18 +33,23 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @sign.bindTransitionEnd()
 
+
     @kodingLogo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "summary-koding-logo"
       click       : (event)=>
-        @kodingLogo.unsetClass "in"
-        @kodingLogo.once "transitionend", =>
-          @showSummary event
+        @summaryNavBar.once "transitionend", => @showSummary event
+        @summaryNavBar.unsetClass "in"
 
+    @summaryNavBar = new KDCustomHTMLView
+      tagName         : "nav"
+      pistachioParams :
+        logo          : @kodingLogo
+      pistachio       : "{{> logo}}"
 
-    @kodingLogo.bindTransitionEnd()
+    @summaryNavBar.bindTransitionEnd()
 
-    @utils.wait 1500, => @kodingLogo.setClass "in"
+    @utils.wait 1500, => @summaryNavBar.setClass "in"
 
     @landingPageLink = new CustomLinkView
       cssClass    : "public-page-link"
@@ -58,6 +63,9 @@ class GroupSummaryView extends KDCustomHTMLView
       title       : "Open the group in Koding"
       icon        : {}
       click       : @bound "hideLandingPage"
+
+    @openInKodingLink.on "viewAppended", =>
+      # set ToolTip here
 
     @closeLink = new CustomLinkView
       cssClass    : "close-link"
@@ -75,11 +83,15 @@ class GroupSummaryView extends KDCustomHTMLView
     @once "viewAppended", @bound "decorateSummary"
     @bindTransitionEnd()
 
+    @lazyDomController.on "staticControllerIsReady", =>
+      {buttonWrapper} = @lazyDomController.staticGroupController
+      @summaryNavBar.addSubView buttonWrapper
+
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-      {{> @kodingLogo}}
+      {{> @summaryNavBar}}
       {{> @loader}}
       <header>
         <div class='avatar-wrapper'></div>
@@ -115,7 +127,7 @@ class GroupSummaryView extends KDCustomHTMLView
     if @lazyDomController.isLandingPageVisible()
       @$().css top : 0
       @once "transitionend", =>
-        @kodingLogo.setClass "in"
+        @summaryNavBar.setClass "in"
     else
       @once "transitionend", =>
         @sign.unsetClass "swing-out"
@@ -129,7 +141,7 @@ class GroupSummaryView extends KDCustomHTMLView
   landingViewIsShown:->
 
     @sign.unsetClass "swing-in swing-out"
-    @kodingLogo.setClass "in"
+    @summaryNavBar.setClass "in"
 
   decorateSummary:->
 

@@ -119,9 +119,9 @@ class InboxNewMessageBar extends KDView
     toField.addSubView recipientsWrapper
 
   disableMessageActionButtons:->
-    @deleteMessageButton.hideTooltip()
+    @deleteMessageButton.getTooltip().hide()
     @deleteMessageButton.disable()
-    @markMessageAsReadButton.hideTooltip()
+    @markMessageAsReadButton.getTooltip().hide()
     @markMessageAsReadButton.disable()
 
   enableMessageActionButtons:->
