@@ -119,7 +119,7 @@ module.exports = class AuthWorker extends EventEmitter
               @addClient socketId, exchange.name, routingKey
 
     ensureGroupPermission =(group, account, roles, callback)->
-      {JPermissionSet, JName} = @bongo.models
+      {JPermissionSet, JGroup} = @bongo.models
       client = {context: group.slug, connection: delegate: account}
       JPermissionSet.checkPermission client, "read activities", group,
         (err, hasPermission)->
@@ -127,7 +127,7 @@ module.exports = class AuthWorker extends EventEmitter
           else unless hasPermission
             callback {message: 'Access denied!', code: 403}
           else
-            JName.fetchSecretName group.slug, callback
+            JGroup.fetchSecretChannelName group.slug, callback
 
     joinClientGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
@@ -146,12 +146,12 @@ module.exports = class AuthWorker extends EventEmitter
                   if err or not roles then fail err
                   else
                     ensureGroupPermission.call this, group, account, roles,
-                      (err, secretName)=>
-                        if err or not secretName
+                      (err, secretChannelName)=>
+                        if err or not secretChannelName
                           @rejectClient routingKey
                         else
                           setSecretNameEvent = "#{routingKey}.setSecretName"
-                          message = JSON.stringify "group.secret.#{secretName}"
+                          message = JSON.stringify secretChannelName
                           @bongo.respondToClient setSecretNameEvent, message
 
     joinClient =(messageData, socketId)->

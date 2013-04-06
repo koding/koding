@@ -249,6 +249,19 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
+  @fetchSecretChannelName =(groupSlug, callback)->
+    JName = require '../name'
+    JName.fetchSecretName groupSlug, (err, secretName)->
+      if err then callback err
+      else callback null, "group.secret.#{secretName}"
+
+  @broadcast =(groupSlug, message)->
+    @fetchSecretChannelName groupSlug, (err, secretChannelName)->
+      console.error err  if err?
+      console.log 'this should send a message to the channel', secretChannelName
+
+  broadcast:(message)-> @constructor.broadcast @slug, message
+
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
       group = this
