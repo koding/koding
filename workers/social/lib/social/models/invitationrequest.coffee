@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
-  {ObjectRef, daisy}   = require 'bongo'
+  {ObjectRef, daisy, secure}   = require 'bongo'
 
   {permit} = require './group/permissionset'
 
@@ -23,6 +23,8 @@ module.exports = class JInvitationRequest extends Model
         'deleteInvitation'
         'approveInvitation'
         'declineInvitation'
+        'acceptInvitationByInvitee'
+        'ignoreInvitationByInvitee'
       ]
     schema            :
       email           :
@@ -101,8 +103,13 @@ module.exports = class JInvitationRequest extends Model
 
   fetchAccount:(callback)->
     JAccount = require './account'
-    if @koding.username
+    if @koding?.username
       JAccount.one {'profile.nickname': @koding.username}, callback
+    else if @email
+      JUser = require './user'
+      JUser.one email:@email, (err, user)->
+        if err then callback err
+        else JAccount.one {'profile.nickname':user.username}, callback
     else
       callback new KodingError """
         Unimplemented: we can't fetch an account from this type of invitation
@@ -131,6 +138,39 @@ module.exports = class JInvitationRequest extends Model
               else
                 @update $set:{ status: 'sent' }, callback
 
+  fetchDataForAcceptOrIgnore: (client, callback)->
+    {delegate} = client.connection
+    JGroup = require './group'
+    JGroup.one slug:@group, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else @fetchAccount (err, account)=>
+        if err then callback err
+        else if not account
+          callback new KodingError "Account ID does not equal caller's ID"
+        else if not account._id.equals delegate.getId()
+          callback new KodingError "Account ID does not equal caller's ID"
+        else callback null, account, group
+
+  acceptInvitationByInvitee: secure (client, callback)->
+    @fetchDataForAcceptOrIgnore client, (err, account, group)=>
+      if err then callback err
+      else
+        group.approveMember account, (err)=>
+          if err then callback err
+          else @update $set:{status:'approved'}, (err)->
+            if err then callback err
+            else callback null
+
+  ignoreInvitationByInvitee: secure (client, callback)->
+    @fetchDataForAcceptOrIgnore client, (err, account, group)=>
+      if err then callback err
+      else
+        @update $set:{status:'declined'}, (err)->
+          if err then callback err
+          else callback null
+
   deleteInvitation: permit 'send invitations',
     success:(client, rest...)-> @remove rest...
 
@@ -150,8 +190,11 @@ module.exports = class JInvitationRequest extends Model
             # send invite to non koding user
             JInvitation.createViaGroup client, group, [@email], callback
           else
-            # send invite to existing koding user
-            @sendInviteMailToKodingUser client, user, group, callback
+            @update $set:{'koding.username':user.username}, (err)=>
+              if err then callback err
+              else
+                # send invite to existing koding user
+                @sendInviteMailToKodingUser client, user, group, callback
 
   sendInvitation$: permit 'send invitations',
     success: (client, callback)-> @sendInvitation client, callback
