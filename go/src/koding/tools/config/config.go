@@ -76,7 +76,7 @@ func init() {
 	}
 	if PillarProfile != "" {
 		Profile = PillarProfile
-		configCommand = exec.Command("salt-call", "pillar.get", "kodingConfig:"+PillarProfile, "--output=json", "--log-level=warning")
+		configCommand = exec.Command("salt-call", "pillar.get", PillarProfile, "--output=json", "--log-level=warning")
 	}
 
 	configJSON, err := configCommand.CombinedOutput()
