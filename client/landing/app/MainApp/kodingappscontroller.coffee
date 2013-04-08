@@ -439,7 +439,7 @@ class KodingAppsController extends KDController
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
 
-                  FSItem.doesExist appPath, (err, exists)=>
+                  FSHelper.exists appPath, (err, exists)=>
                     if exists
                       newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView
@@ -452,6 +452,7 @@ class KodingAppsController extends KDController
                         callback? err
                         newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                         newAppModal.destroy()
+
             fields                :
               type                :
                 label             : "Type"
