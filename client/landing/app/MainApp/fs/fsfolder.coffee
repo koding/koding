@@ -16,6 +16,7 @@ class FSFolder extends FSFile
     , (err, response)=>
       if not err and response?.files
         files = FSHelper.parseWatcher @path, response.files
+        {@stopWatching} = response
         @emit "fs.fetchContents.finished", files
         callback? files
       else

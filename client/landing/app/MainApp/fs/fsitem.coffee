@@ -13,13 +13,18 @@ class FSItem extends KDObject
         callback? err, response
         warn err
       else
-        KD.getSingleton('kiteController').run
-          method           : "fs.writeFile"
-          withArgs         :
-            path           : response
-            content        : ""
-            donotoverwrite : yes
-        , (err, res)->
+        options = switch type
+          when 'file'
+            method           : "fs.writeFile"
+            withArgs         :
+              path           : response
+              content        : ""
+              donotoverwrite : yes
+          when 'folder'
+            method           : "fs.createDirectory"
+            withArgs         :
+              path           : response
+        KD.getSingleton('kiteController').run options, (err, res)->
           if err then warn err
           else
             file = FSHelper.createFileFromPath response, type
@@ -159,7 +164,6 @@ class FSItem extends KDObject
   remove:(callback)->
 
     @emit "fs.delete.started"
-    log "HERE", "rm -r #{escapeFilePath @path}"
     @kiteController.run "rm -r #{escapeFilePath @path}", (err, response)=>
       callback err, response
       if err then warn err
