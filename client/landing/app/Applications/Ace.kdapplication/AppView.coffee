@@ -176,7 +176,7 @@ class AceView extends JView
       buttons       :
         Save        :
           style     : "modal-clean-gray"
-          callback  : ()=>
+          callback  : =>
             [node] = @finderController.treeController.selectedNodes
             name   = @inputFileName.getValue()
 
@@ -193,9 +193,11 @@ class AceView extends JView
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
             @ace.emit "AceDidSaveAs", name, parent.path
-        Cancel :
+        Cancel      :
           style     : "modal-cancel"
-          callback  : ()->
+          callback  : =>
+            @finderController.lastSuccessfulResponse?.stopWatching?()
+            delete @finderController
             saveDialog.hide()
 
     saveDialog.addSubView wrapper = new KDView
@@ -217,12 +219,11 @@ class AceView extends JView
     inputFileName.setFocus()
 
     @finderController = new NFinderController
-      treeItemClass     : NFinderItem
       nodeIdPath        : "path"
       nodeParentIdPath  : "parentPath"
-      dragdrop          : yes
       foldersOnly       : yes
       contextMenu       : no
+      loadFilesOnInit   : yes
 
     finder = @finderController.getView()
 
