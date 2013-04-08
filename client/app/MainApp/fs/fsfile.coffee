@@ -34,7 +34,7 @@ class FSFile extends FSItem
     newPath = "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
 
-    FSHelper.getSafePath "#{newPath}", (err, response)=>
+    FSHelper.ensureNonexistentPath "#{newPath}", (err, response)=>
       if err
         callback? err, response
         warn err
