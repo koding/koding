@@ -181,9 +181,9 @@ class FSHelper
       withArgs : {path}
     , callback
 
-  @getSafePath = (path, callback=noop)->
+  @ensureNonexistentPath = (path, callback=noop)->
     KD.getSingleton('kiteController').run
-      method   : "fs.getSafePath"
+      method   : "fs.ensureNonexistentPath"
       withArgs : {path}
     , callback
 
