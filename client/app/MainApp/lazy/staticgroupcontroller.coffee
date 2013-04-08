@@ -238,6 +238,7 @@ class StaticGroupController extends KDController
             icon     : {}
             click    : (event)=>
               event.preventDefault()
-              @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+              @lazyDomController.handleNavigationItemClick
+                action  : 'join-group'
 
           @buttonWrapper.addSubView @requestButton
