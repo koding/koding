@@ -315,7 +315,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainview.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  # "app/MainApp/maincontroller/landingpageviews.coffee",
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
@@ -515,9 +514,9 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
@@ -615,6 +614,7 @@ module.exports = [
 
   # ACCOUNT SETTINGS
 
+  "app/Applications/Account.kdapplication/account/accSettingsPersPendingInvites.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee",

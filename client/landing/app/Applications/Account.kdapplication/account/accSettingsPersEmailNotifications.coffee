@@ -7,18 +7,24 @@ class AccountEmailNotifications extends KDView
   putContents:(account, user)->
 
     fields =
-      global         :
-        title        : 'Email notifications'
-      daily          :
-        title        : 'Send me a daily email about everything below'
-      privateMessage :
-        title        : 'Someone sends me a private message'
-      followActions  :
-        title        : 'Someone follows me'
-      comment        :
-        title        : 'My post receives a comment'
-      likeActivities :
-        title        : 'When I receive likes'
+      global           :
+        title          : 'Email notifications'
+      daily            :
+        title          : 'Send me a daily email about everything below'
+      privateMessage   :
+        title          : 'Someone sends me a private message'
+      followActions    :
+        title          : 'Someone follows me'
+      comment          :
+        title          : 'My post receives a comment'
+      likeActivities   :
+        title          : 'When I receive likes'
+      groupInvite      :
+        title          : 'Someone invites me to their group'
+      groupRequest     :
+        title          : 'Someone requests membership to your group'
+      groupApproved    :
+        title          : 'Group admin approves your membership request'
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView
@@ -27,14 +33,12 @@ class AccountEmailNotifications extends KDView
         cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
 
       field.current = user.getAt("emailFrequency.#{flag}")
-      labels = ['on', 'off']
 
       field.formView.addSubView field.switch = new KDMultipleChoice
         cssClass      : 'dark'
-        labels        : labels
-        defaultValue  : if field.current is on then 'on' else 'off'
+        defaultValue  : if field.current is on then 'ON' else 'OFF'
         callback      : (state)->
-          state = if state is 'on' then on else off
+          state = if state is 'ON' then on else off
           prefs = {}
 
           prefs[@getData()] = state
