@@ -7,6 +7,11 @@ class StaticUserButtonBar extends KDView
     @ldc = @getSingleton 'lazyDomController'
     @mc  = @getSingleton 'mainController'
 
+    @prefix =
+      if @ldc.userEnteredFromGroup() and KD.config.groupEntryPoint isnt 'koding'
+          "/#{KD.config.groupEntryPoint}"
+      else ""
+
     @refreshButtons()
     @attachListeners()
 
@@ -37,7 +42,7 @@ class StaticUserButtonBar extends KDView
         event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'login'
-          path    : '/Login'
+          path    : "#{@prefix}/Login"
 
 
   addLogoutButton:->
@@ -49,7 +54,7 @@ class StaticUserButtonBar extends KDView
         event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'logout'
-          path    : '/Logout'
+          path    : "/Logout"
 
 
   addRegisterButton:->
@@ -61,4 +66,4 @@ class StaticUserButtonBar extends KDView
         event.preventDefault()
         @ldc.handleNavigationItemClick
           action  : 'register'
-          path    : '/Register'
+          path    : "#{@prefix}/Register"

@@ -110,6 +110,14 @@ class StaticGroupController extends KDController
             else
               @emit roleEventMap[statuses.first]
 
+        groups.first.on 'NewMember', (member={})=>
+          if member.profile?.nickname is KD.whoami().profile.nickname
+            @pendingButton?.hide()
+            @requestButton?.hide()
+            @decorateMemberStatus no
+
+
+
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
     @groupContentWrapperView.$().css backgroundColor : "#ffffff"
@@ -177,13 +185,13 @@ class StaticGroupController extends KDController
 
   decoratePendingStatus:->
 
-    link = new CustomLinkView
+    @pendingButton = new CustomLinkView
       title    : "REQUEST PENDING"
       cssClass : "request-pending"
       icon     : {}
       click    : (event)=> event.preventDefault()
 
-    @buttonWrapper.addSubView link
+    @buttonWrapper.addSubView @pendingButton
 
   decorateMemberStatus:(isAdmin)->
 
@@ -229,7 +237,7 @@ class StaticGroupController extends KDController
 
   decorateGuestStatus:->
 
-    link = new CustomLinkView
+    @requestButton = new CustomLinkView
       title    : "Request Access"
       cssClass : "request"
       icon     : {}
@@ -237,14 +245,14 @@ class StaticGroupController extends KDController
         event.preventDefault()
         @lazyDomController.requestAccess()
 
-    @buttonWrapper.addSubView link
+    @buttonWrapper.addSubView @requestButton
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
-          link.destroy()
-          link = new CustomLinkView
+          @requestButton.destroy()
+          @requestButton = new CustomLinkView
             title    : "Join Group"
             cssClass : "join"
             icon     : {}
@@ -252,4 +260,4 @@ class StaticGroupController extends KDController
               event.preventDefault()
               @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
-          @buttonWrapper.addSubView link
+          @buttonWrapper.addSubView @requestButton
