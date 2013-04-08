@@ -74,49 +74,23 @@
 .group-title
   borderBox()
   rel()
-  bg                    color, white
-  height                77px
-  height                120px
-  width                 auto
-  // border-bottom         1px solid rgb(229,229,229)
-  // shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
-  // gradient              rgb(255,255,255),rgb(242,242,242)
-  // padding 20px 23px
-  border-bottom             1px solid rgb(229,229,229)
-  padding                   22px 10px 20px 40px
-  shadow                    0px -15px 50px rgba(0,0,0,0.4)
-  overflow                  hidden
-  z-index                   1
-
+  size                      100%, 160px
+  // padding                   0 50px 0
+  z-index                   10
 
   .group-title-wrapper
-    height auto
-    width auto
-    padding-right       75px
+    // bg color,                 rgba(0,0,0,0.2)
+    // padding                 30px 40px
+    height                  100px
 
   .group-name
-    // vendor              font-smoothing, antialiased
-    // vendor              text-rendering, geometricPrecision
-    // borderBox()
-    // max-width               700px
-    // font-size               32px
-    // width                   auto
-    // display                 inline-block
-    // color                   #444
-    // border-bottom           2px solid #ff9200
-    // margin-right            10px
-    // white-space             nowrap
-    // text-overflow           ellipsis
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    // max-width               700px
     font-size               42px
     width                   100%
     display                 inline-block
-    color                   #444
-    // border-bottom           2px solid #ff9200
-    margin-right            10px
+    color                   rgba(255,255,255,.9)
     white-space             nowrap
     text-overflow           ellipsis
     font-weight             900
@@ -124,42 +98,16 @@
 
 
   .group-bio
-    // vendor              font-smoothing, antialiased
-    // vendor              text-rendering, geometricPrecision
-    // borderBox()
-    // color                   #888
-    // font-size               12px
-    // height                  29px
-    // overflow                hidden
-    // text-overflow           ellipsis
-    // white-space             nowrap
-    // width                   auto
-    // font-weight             300
-    // display                 inline
     borderBox()
     vendor                  font-smoothing, antialiased
     vendor                  text-rendering, geometricPrecision
-    color                   #888
+    color                   rgba(255,255,255,.8)
     font-size               14px
-    height                  29px
-    overflow                hidden
     text-overflow           ellipsis
-    white-space             nowrap
-    width                   auto
+    max-width               800px
     font-weight             300
     display                 block
     headerFont()
-
-  .button-wrapper
-    abs()
-    right               26px
-    top                 26px
-    height              24px
-    width               auto
-
-    button.kdbutton
-      margin            0 0 0 5px!important
-      display           inline-block
 
     #landing-page-sidebar
       width                       auto
@@ -185,6 +133,74 @@
             margin                0 5px 0 0
             bg color,             transparent
 
+.group-content-wrapper
+  height                        100%
+  width                         auto
+  bg color,                     white
+  borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+
+  &.edit
+    .group-splitview
+      .group-loading-content
+        .content-item.front
+          vendor transform,rotateY(-180deg)
+        .content-item.back
+          vendor transform, rotateY(0deg)
+
+.group-splitview
+  overflow                     auto
+  size                         100%, 100%
+  borderBox()
+  vendor perspective-origin-x, 50%
+  vendor perspective-origin-y, 50%
+
+  // &.vignette
+  //   gradient2               50% 50%, circle farthest-corner, transparent 25%, rgba(0,0,0,.4) 100%
+
+
+
+.kdlistview.kdview.group-loading-content
+.group-loading-content
+  vendor                transition, background-color 0.2s linear
+  vendor                perspective, 800px
+  overflow              auto
+  height                100%
+  width                 auto
+  borderBox()
+  rel()
+
+  .content-item
+    padding             0 50px 100px
+    height              auto
+    vendor              transform-style, preserve-3d
+    vendor              transition, all .4s ease-in;
+    vendor              backface-visibility, hidden
+    borderBox()
+
+    &.front
+      z-index           2
+
+    &.back
+      abs()
+      top               0
+      vendor            transform, rotateY(180deg);
+
+  .content-item-scroll-wrapper
+    padding                             40px
+    margin                              0 auto
+    rounded                             0 0 5px 5px
+    bg                                  color, rgba(0,0,0,.2)
+    borderBox()
+
+  .has-markdown
+    color                               rgba(255,255,255,.9)
+    borderBox()
+    h1, h2, h3, h4, h5, h6
 
 .group-nickname
   borderBox()
@@ -196,35 +212,32 @@
 
 .group-links
   margin                24px 0 27px 15px
-  ul
-    li
-      a
-        color             #adadad!important
-        noTextDeco()
-        font-size         14px
-        font-weight       300
-      line-height       20px
-      margin-bottom     4px
+  ul li
+    line-height       20px
+    margin-bottom     4px
+    a
+      color             #adadad!important
+      noTextDeco()
+      font-size         14px
+      font-weight       300
+    span.icon
+      sprite()
+      fl()
+      size            20px, 20px
+      margin-right    18px
+    &.blog
       span.icon
-        sprite()
-        fl()
-        size            20px, 20px
-        margin-right    18px
-      &.blog
-        span.icon
-          bg position,  0 -80px
-      &.twitter
-        span.icon
-          bg position,  0 -100px
-      &.github
-        span.icon
-          bg position,  0 -280px
+        bg position,  0 -80px
+    &.twitter
+      span.icon
+        bg position,  0 -100px
+    &.github
+      span.icon
+        bg position,  0 -280px
 
-  ul.admin
-    li
-      a
-        padding-top 3px
-        font-size         11px
+  ul.admin li a
+    padding-top 3px
+    font-size         11px
   hr
     border-top          1px solid rgba(44,41,36,0.5)
     border-bottom       1px solid rgba(255,255,255,0.07)
@@ -263,106 +276,6 @@
       color:                #ff9200;
       font-weight:          bold;
 
-.group-koding-logo
-  height 100%
-  .logo
-    cursor pointer
-    sprite()
-    width 120px
-    height 30px
-    bg position, -240px -40px
-    position fixed
-    bottom 12px
-    left 15px
-    &.animate
-      vendor transition, top 0.5s ease-in-out
-    &.top
-      top 12px!important
-      bottom none
-
-  vertical-align bottom
-
-
-.group-content-wrapper
-  height                        100%
-  width                         auto
-  bg color,                     white
-  borderBox()
-
-  bg size,                      cover
-  bg repeat,                    no-repeat
-  bg position,                  center center
-  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
-
-  &.edit
-    .group-splitview
-      .group-loading-content
-        .content-item.front
-          vendor transform,rotateY(-180deg)
-        .content-item.back
-          vendor transform, rotateY(0deg)
-
-.group-splitview
-  height 100%
-  borderBox()
-  margin-top: -120px
-  padding-top 120px
-
-  vendor perspective-origin-x, 50%
-  vendor perspective-origin-y, 50%
-
-  &.vignette
-    gradient2               50% 35%, circle farthest-corner, rgba(0,0,0,0.25) 15%, rgba(255,255,255,0.5) 100%
-
-
-
-.kdlistview.kdview.group-loading-content
-.group-loading-content
-  vendor transition, background-color 0.2s linear
-  vendor perspective, 800px
-  borderBox()
-  overflow                              auto
-  height                                100%
-  width                                 auto
-  padding-top                           50px
-  gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
-
-  rel()
-
-  .content-item
-    vendor transform-style, preserve-3d
-    vendor transition ,all .4s ease-in;
-    vendor backface-visibility, hidden
-
-    abs()
-    left 0
-    right 0
-    top 0
-    bottom 0
-    padding                      50px
-    borderBox()
-
-    &.front
-      z-index 2
-
-    &.back
-      vendor transform, rotateY(180deg);
-
-  .content-item-scroll-wrapper
-    padding                             40px
-    max-width                           61.803398875%
-    margin                              0px auto
-    rounded                             5px
-    border                              1px solid #e8e8e8
-    bg                                  color, #fbfbfb
-    shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
-    borderBox()
-    height                              100%
-
-  .has-markdown
-    borderBox()
-    overflow                            auto
-    height                              100%
 
 .custom-image-selectitemview
   borderBox()
@@ -372,16 +285,13 @@
   bg size,                              cover
   cursor                                pointer
   width                                 50%
-  height                                100px
-  min-height                            100px
+  height                                auto
+  // min-height                            100px
   display                               inline-block
   padding                               5px //5px 2px
   border                                1px solid transparent
   vertical-align                        top
   text-align                            center
-
-  &.color
-    width                               25%
 
   span.data
     abs()
@@ -404,68 +314,42 @@
     span
       color                             white
 
-@media (min-height: 800px)
+@media (min-width: 0)
   .custom-image-selectitemview
-    width                               33.333%
-    height                              100px
-    &.color
-      width                             20%
+    size                               100%
 
-@media (min-height: 500px) and (max-height: 799px)
+@media (min-width: 480px) and (max-width: 599px)
   .custom-image-selectitemview
-    width                               20%
-    height                              100px
-    &.color
-      width                             16.6666667%
+    size                               50%
 
-@media (max-height: 499px)
+@media (min-width: 600px) and (max-width: 799px)
   .custom-image-selectitemview
-    width                               25%
-    height                              100px
-    &.color
-      width                             25%
+    size                               33.33333%
 
-@media (max-width: 800px)
+@media (min-width: 800px) and (max-width: 1199px)
   .custom-image-selectitemview
-    width                               50%
-    height                              100px
-    &.color
-      width                             33.33333%
+    size                               25%
 
-@media (max-width: 1200px) and (min-width:801px)
+@media (min-width: 1200px) and (max-width: 1599px)
   .custom-image-selectitemview
-    width                               33.33333%
-    height                              100px
-    &.color
-      width                             25%
+    size                               16.6666667%
 
-@media (min-width: 1201px)
+@media (min-width: 1600px)
   .custom-image-selectitemview
-    width                               20%
-    height                              100px
-    &.color
-      width                             16.6666667%
-@media (min-width: 1601px)
-  .custom-image-selectitemview
-    width                               16.6666667%
-    height                              100px
-    &.color
-      width                             10%
+    size                               10%
 
 
-
+.custom-color-picker
 .custom-image-default
+.custom-color-default
+.custom-image-upload
   borderBox()
   width                                 100%
-  height                                90px
+  height                                120px
   rounded                               3px
   display                               block
 
 .custom-color-default
-  borderBox()
-  width                                 100%
-  height                                90px
-  rounded                               3px
   border                                1px solid rgba(0,0,0,0.05)
 
 .custom-select-background-view
@@ -484,10 +368,6 @@
   hidden()
 
 .custom-color-picker
-  borderBox()
-  width                                 100%
-  height                                90px
-  rounded                               3px
   padding-top                           35px
   text-align                            center
 
@@ -532,13 +412,8 @@
   border-bottom                         1px dashed rgba(125,190,241,0.5)
 
 .custom-image-upload
-  borderBox()
   bg size,                              cover
-  rounded                               3px
-  height                                90px
   border                                1px dashed rgba(125,190,241,0.5)
-  width                                 100%
-
 
   .image-uploader
     min-width                           100%

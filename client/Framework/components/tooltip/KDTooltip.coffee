@@ -23,6 +23,8 @@ class KDTooltip extends KDView
     super options,data
 
     @avoidDestroy = no
+    @visible      = yes
+    @view         = @getDelegate()
 
     # Container for positioning in the viewport
     @setClass 'kdtooltip'
@@ -36,22 +38,84 @@ class KDTooltip extends KDView
     @arrow = new KDView
       cssClass : 'arrow'
 
-    if @getOptions().animate
-      @setClass 'out'
-    else
-      @hide()
+    if @getOptions().animate then @setClass 'out' else @hide()
 
-    KDView.appendToDOMBody @
-    @getSingleton('windowController').addLayer @
     @addListeners()
+    KDView.appendToDOMBody @
+    @remove()
+
+  _show = (tooltip)->
+    return if tooltip.visible
+    document.body.appendChild tooltip.$()[0]
+    KD.getSingleton('windowController').addLayer tooltip
+    tooltip.emit 'MouseEnteredAnchor'
+    tooltip.visible = yes
+
+  show:(event)->
+
+    return if @visible
+    o = @getOptions()
+
+    if o.selector
+      selectorEntered = no
+
+      @view.on 'mousemove', (mouseEvent)=>
+
+        if $(mouseEvent.target).is(o.selector) and selectorEntered is no
+          selectorEntered = yes
+          _show @
+        if not $(mouseEvent.target).is(o.selector) and selectorEntered
+          return if $(mouseEvent.target).is @$()
+          selectorEntered = no
+          @emit 'MouseLeftAnchor'
+    else _show @
+
+    super
+
+  hide: (event)->
+
+    @utils.defer =>
+      o = @getOptions()
+
+      if event
+        return if o.selector and not $(event.target).is o.selector
+      @view.off 'mousemove'
+      # to throttle super need to call it explicitly
+      # KDView::show.call @
+      super
+      @emit 'MouseLeftAnchor'
+
+  update:(o = @getOptions(), view = null)->
+    unless view
+      o.selector or= null
+      o.title    or= ""
+      @getOptions().title = o.title
+      @setTitle o.title
+      @display @getOptions()
+    else
+      @setView view
 
   addListeners:->
+
+    o = @getOptions()
+
+    if o.events
+      @view.bindEvent name for name in o.events
+
+    @view.on 'mouseenter', @bound "show"
+
+    unless o.selector
+      @view.on 'mouseleave', @bound "hide"
+
+    # @view.on 'click',      @bound "hide"
+
     @on 'mouseenter', =>
       @avoidDestroy = yes
 
-    @on 'mouseleave', =>
+    @on 'mouseleave', (event)=>
+      return if $(event.target).is @view.$()
       @avoidDestroy = no
-      @delayedDestroy()
+      @delayedRemove()
 
     @on 'MouseEnteredAnchor', =>
       @avoidDestroy = yes
@@ -59,11 +123,12 @@ class KDTooltip extends KDView
 
     @on 'MouseLeftAnchor', =>
       @avoidDestroy = no
-      @delayedDestroy()
+      @delayedRemove()
 
     @on 'ReceivedClickElsewhere', =>
-      @delayedDestroy 0
+      @delayedRemove 0
 
+  isCurrentlyRemovable:-> @avoidDestroy
 
   setView:(newView)->
     return unless newView
@@ -73,7 +138,6 @@ class KDTooltip extends KDView
 
     {options, data, constructorName} = newView
 
-    options.delegate ?= @getDelegate()
     @view = new constructorName options, data
     @wrapper.addSubView @view
 
@@ -82,28 +146,39 @@ class KDTooltip extends KDView
   delayedDisplay:(timeout = @getOptions().delayIn)->
     @utils.killWait @displayTimer
     @displayTimer = @utils.wait timeout, =>
-      if @avoidDestroy
+      if @isCurrentlyRemovable()
         @display()
       else
-        @delayedDestroy()
+        @delayedRemove()
 
-  delayedDestroy:(timeout = @getOptions().delayOut)->
+  remove:->
+
+    return unless @visible
+
+    @getSingleton('windowController').removeLayer @
+    document.body.removeChild @$()[0]
+    @visible = no
+
+  destroy:->
+
+    @visible = no
+    @view.tooltip = null
+    delete @view.tooltip
+    super
+
+  delayedRemove:(timeout = @getOptions().delayOut)->
+
     @utils.killWait @deleteTimer
     @deleteTimer = @utils.wait timeout, =>
-      unless @avoidDestroy
-        # return 1
+      unless @isCurrentlyRemovable()
         if @getOptions().animate
           @unsetClass 'in'
           @getSingleton('windowController').enableScroll()
-
           @utils.killWait @animatedDeleteTimer
-          @animatedDeleteTimer = @utils.wait 2000, =>
-
-            @getDelegate().removeTooltip @
-
+          @animatedDeleteTimer = @utils.wait 2000, @bound "remove"
         else
           @getSingleton('windowController').enableScroll()
-          @getDelegate().removeTooltip @
+          @remove()
 
   translateCompassDirections:(o)->
 
@@ -121,13 +196,14 @@ class KDTooltip extends KDView
 
     @setClass 'in' if o.animate
     @show()
+    @visible = yes
     @getSingleton('windowController').disableScroll()
     @setPosition(o)
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
     # values that can/will be used in all the submethods
     container       = @$()
-    selector        = @getDelegate().$(o.selector)
+    selector        = @view.$(o.selector)
     d = # dimensions
       container :
         height  : container.height()
@@ -235,19 +311,20 @@ class KDTooltip extends KDView
       @setClass 'just-text'
       @setTitle o.title, o
 
-    @setTemplate @pistachio()
-    @template.update()
+    # @setTemplate @pistachio()
+    # @template.update()
 
-    if @getDelegate()?
-      @getDelegate().emit 'TooltipReady'
-    else
-      @parent?.emit 'TooltipReady'
+    @view.emit 'TooltipReady'
 
-  pistachio:->
-    """
-     {{> @arrow}}
-     {{> @wrapper}}
-    """
+    @addSubView @arrow
+    @addSubView @wrapper
+
+
+  # pistachio:->
+  #   """
+  #    {{> @arrow}}
+  #    {{> @wrapper}}
+  #   """
 
   directionMap = (placement, gravity)->
     if placement in ["top", "bottom"]
