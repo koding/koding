@@ -17,7 +17,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @invitationTypeFilter =
       options.invitationTypeFilter ? ['basic approval','invitation']
-    
+
     @statusFilter =
       options.statusFilter ? ['pending','sent','approved', 'declined']
 
@@ -74,27 +74,31 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @refresh()
 
+    @utils.defer =>
+      @parent.on 'NewInvitationActionArrived', =>
+        @refresh()
+
   getControllers:->
     (@["#{controllerName}Controller"] for controllerName in controllerNames)
 
   refresh:->
-    
+
     @fetchSomeRequests @invitationTypeFilter, @statusFilter, (err, requests)=>
       if err then console.error err
       else
-        
+
         groupedRequests = {}
-        
+
         requests.reverse().forEach (request)->
-          
-          requestGroup = 
+
+          requestGroup =
             if request.status in ['approved','declined']
               groupedRequests.resolved ?= []
             else
               groupedRequests[request.status] ?= []
-          
+
           requestGroup.push request
-        
+
         {pending, sent, resolved} = groupedRequests
 
         # clear out any items that may be there already:

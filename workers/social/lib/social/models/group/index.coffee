@@ -704,7 +704,7 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
-      @emit 'NewMember'
+      @emit 'NewMember', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
