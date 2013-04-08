@@ -39,7 +39,7 @@ class AvatarView extends LinkView
   # click:(event)->
   #   event.stopPropagation()
   #   event.preventDefault()
-  #   @hideTooltip()
+  #   @getTooltip().hide()
   #   @utils.defer => @emit 'LinkClicked'
   #   return no
 
@@ -172,7 +172,7 @@ class AvatarTooltipView extends KDView
     @template.update()
 
   click:(event)->
-    # @getDelegate()?.hideTooltip()
+    # @getDelegate()?.getTooltip().hide()
 
   decorateFollowButton:(data)->
 
