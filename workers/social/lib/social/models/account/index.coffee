@@ -50,7 +50,7 @@ module.exports = class JAccount extends jraphical.Module
         'one', 'some', 'cursor', 'each', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
         'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate', 'fetchPendingGroupInvitations'
+        'impersonate'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -64,7 +64,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
         'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage'
+        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
+        'fetchPendingGroupInvitations', 'fetchGroupsIncludingPending'
       ]
     schema                  :
       skillTags             : [String]
@@ -372,6 +373,14 @@ module.exports = class JAccount extends jraphical.Module
               else callback null, groups.map (group)->
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
+
+  fetchGroupsIncludingPending: secure (client, callback)->
+    @fetchPendingGroupInvitations client, (err, pendingGroups)=>
+      return callback err if err
+      @fetchGroups client, (err, memberGroups)->
+        return callback err if err
+        groups = pendingGroups.concat memberGroups
+        return callback null, groups
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
@@ -844,39 +853,36 @@ module.exports = class JAccount extends jraphical.Module
   #   else
   #     callback client
 
-  @fetchPendingGroupInvitations: secure (client, callback)->
-    {delegate}         = client.connection
+  fetchPendingGroupInvitations: secure (client, callback)->
     JUser              = require '../user'
     JGroup             = require '../group'
     JInvitationRequest = require '../invitationrequest'
 
-    @one _id:delegate.getId(), (err, account)->
+    JUser.one username:@profile.nickname, (err, user)->
       if err then callback err
-      else JUser.one username:account.profile.nickname, (err, user)->
-        if err then callback err
-        else
-          selector =
-            email  : user.email
-            status : {$in:['pending', 'sent']}
-            group  : {$exists:1}
+      else
+        selector =
+          email  : user.email
+          status : {$in:['pending', 'sent']}
+          group  : {$exists:1}
 
-          JInvitationRequest.some selector, {}, (err, invites)->
-            if err then callback err
-            else if invites?.length <= 0
-              callback null, []
-            else
-              invitations     = []
-              checkMembership = race (i, invitation, done)->
-                JGroup.one slug:invitation.group, (err, group)->
-                  if err
-                    callback err
+        JInvitationRequest.some selector, {}, (err, invites)->
+          if err then callback err
+          else if invites?.length <= 0
+            callback null, []
+          else
+            invitations     = []
+            checkMembership = race (i, invitation, done)->
+              JGroup.one slug:invitation.group, (err, group)->
+                if err
+                  callback err
+                  done()
+                else
+                  group.fetchMembershipStatuses client, (err, roles)->
+                    if err then callback err
+                    else if 'member' not in roles and 'admin' not in roles
+                      invitations.push {invitation, group, roles: []}
                     done()
-                  else
-                    group.fetchMembershipStatuses client, (err, roles)->
-                      if err then callback err
-                      else if 'member' not in roles
-                        invitations.push {invitation, group}
-                      done()
-              , -> callback null, invitations
-              
-              checkMembership invitation for invitation in invites
+            , -> callback null, invitations
+            
+            checkMembership invitation for invitation in invites

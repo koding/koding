@@ -5,7 +5,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     super
 
     @_popupList = new PopupList
-      itemClass  : PopupGroupListItem
+      itemClass  : PopupGroupListItemWrapper
 
     @listController = new KDListViewController
       view                : @_popupList
@@ -40,8 +40,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   populateGroups:->
     @listController.removeAllItems()
     @listController.showLazyLoader()
-#    KD.remote.api.JGroup.streamModels {},{}, (err, res)=>
-    KD.whoami().fetchGroups (err, groups)=>
+    KD.whoami().fetchGroupsIncludingPending (err, groups)=>
       if err then warn err
       else if groups?
         @listController.hideLazyLoader()
@@ -51,18 +50,31 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     super
     @populateGroups()
 
-class PopupGroupListItem extends KDListItemView
+class PopupGroupListItemWrapper extends KDListItemView
 
   constructor:(options = {}, data)->
-
     options.tagName or= "li"
+    super
 
+    {invitation} = @getData()
+    if invitation
+      @setClass 'pending'
+      @child = new PopupGroupListItemPending {}, @getData()
+    else
+      @child = new PopupGroupListItem {}, @getData()
+
+  viewAppended: JView::viewAppended
+
+  pistachio: -> "{{> @child}}"
+
+class PopupGroupListItem extends KDView
+
+  constructor:(options = {}, data)->
     super
 
     {group:{title, avatar, slug}, roles} = @getData()
 
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
-
     @setClass "role #{roleClasses}"
 
     @avatar = new KDCustomHTMLView
@@ -94,4 +106,57 @@ class PopupGroupListItem extends KDListItemView
     </div>
     """
 
+class PopupGroupListItemPending extends PopupGroupListItem
 
+  constructor:(options = {}, data)->
+    super
+
+    {group:{title, slug}, invitation} = @getData()
+
+    @acceptButton = new KDButtonView
+      style       : 'clean-gray'
+      title       : 'Accept Invitation'
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : 'accept'
+      tooltip     :
+        title     : 'Accept Invitation'
+      callback    : =>
+        invitation.acceptInvitationByInvitee (err)=>
+          if err then warn err
+          else
+            @acceptButton.hide()
+            @ignoreButton.hide()
+            @parent.unsetClass 'pending'
+
+    @ignoreButton = new KDButtonView
+      style       : 'clean-gray'
+      title       : 'Ignore Invitation'
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : 'ignore'
+      tooltip     :
+        title     : 'Ignore Invitation'
+      callback    : =>
+        invitation.ignoreInvitationByInvitee (err)=>
+          if err then warn err
+          else
+            new KDNotificationView
+              title    : 'Fair enough!'
+              content  : 'If you change your mind, you can request access to the group anytime.'
+              duration : 2000
+            @parent.hide()
+
+  viewAppended: JView::viewAppended
+
+  pistachio: ->
+    """
+    <span class='avatar'>{{> @avatar}}</span>
+    <div class='right-overflow'>
+      <div class="buttons">
+        {{> @acceptButton}}
+        {{> @ignoreButton}}
+      </div>
+      {{> @switchLink}}
+    </div>
+    """
