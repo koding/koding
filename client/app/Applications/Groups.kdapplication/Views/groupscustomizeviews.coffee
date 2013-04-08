@@ -140,7 +140,7 @@ class StaticPageCustomizeView extends KDView
   getBackgroundData:(data={})->
       if data.customize?.background?
         data.customize.background
-      else if data.profile.staticPage?.customize?.background?
+      else if data.profile?.staticPage?.customize?.background?
         data.profile.staticPage.customize.background
       else {}
 
