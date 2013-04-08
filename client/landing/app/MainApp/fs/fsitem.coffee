@@ -206,13 +206,16 @@ class FSItem extends KDObject
 
     {recursive, permissions} = options
 
-    return callback? "no permissions passed" unless permissions
+    return callback? "no permissions passed" unless permissions?
     @emit "fs.chmod.started"
+
     @kiteController.run
+      method    : "fs.setPermissions"
       withArgs  :
-        command : "chmod #{if recursive then '-R' else ''} #{permissions} #{escapeFilePath @path}"
+        path    : @path
+        mode    : permissions
     , (err, res)=>
-      @emit "fs.chmod.finished", recursive
+      @emit "fs.chmod.finished"
       if err then warn err
       else
         @mode = permissions

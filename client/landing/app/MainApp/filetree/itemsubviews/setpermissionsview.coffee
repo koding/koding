@@ -1,21 +1,4 @@
-###
-  todo:
-###
-
 class NSetPermissionsView extends JView
-
-  ###
-  CLASS CONTEXT
-  ###
-
-  permissionsToOctalString = (permissions)->
-    str = permissions.toString 8
-    str = "0" + str while str.length < 3
-    return str
-
-  ###
-  INSTANCE METHODS
-  ###
 
   constructor: ->
 
@@ -26,23 +9,31 @@ class NSetPermissionsView extends JView
     @setPermissionsButton = new KDButtonView
       title     : "Set"
       callback  : =>
-        permissions = permissionsToOctalString @getPermissions()
-        recursive   = @recursive.getValue() or no
+        permissions = @getPermissions()
+        # recursive   = @recursive.getValue() or no
         file        = @getData()
-        file.chmod {permissions, recursive}, (err,res)=>
+        file.chmod {permissions}, (err,res)=>
           unless err
             @displayOldOctalPermissions()
 
-    @fetchPermissionsButton = new KDButtonView
-      title : "Fetch file permissions"
-      callback: ->
-        log "fetch"
-        # setPermissionsView.getDelegate().fetch ->
-        #   setPermissionsView.removeSubView header
-        #   setPermissionsView.removeSubView button
-        #   setPermissionsView.applyExistingPermissions()
+    # @fetchPermissionsButton = new KDButtonView
+    #   title : "Fetch file permissions"
+    #   callback: ->
+    #     log "fetch"
+    #     # setPermissionsView.getDelegate().fetch ->
+    #     #   setPermissionsView.removeSubView header
+    #     #   setPermissionsView.removeSubView button
+    #     #   setPermissionsView.applyExistingPermissions()
 
-    @recursive = new KDOnOffSwitch
+    # FIXME GG Add following when we implement
+    # the recursive permission update
+    #
+    # @recursive = new KDOnOffSwitch
+
+  permissionsToOctalString = (permissions)->
+    str = permissions.toString 8
+    str = "0" + str while str.length < 3
+    return str
 
   createSwitches: (permission) ->
     for i in [0...9]
@@ -72,15 +63,22 @@ class NSetPermissionsView extends JView
   pistachio:->
     mode = @getData().mode
 
+    # FIXME GG Add following when we implement
+    # the recursive permission update
+    #
+    # <div class="recursive hidden">
+    #   <label>Apply to Enclosed Items</label>
+    #   {{> @recursive}}
+    # </div>
+
     unless mode?
       """
       <header class="clearfix"><div>Unknown file permissions</div></header>
-      {{> @fetchPermissionsButton}}
       """
     else
       """
-      <header class="clearfix"><span>Owner</span><span>Group</span><span>Everyone</span></header>
-      <aside class="permissions"><p>Read:</p><p>Write:</p><p>Execute:</p></aside>
+      <header class="clearfix"><span>Read</span><span>Write</span><span>Execute</span></header>
+      <aside class="permissions"><p>Owner:</p><p>Group:</p><p>Everyone:</p></aside>
       <section class="switch-holder clearfix">
         <div class="kdview switcher-group">
           {{> @switches[8]}}
@@ -99,18 +97,13 @@ class NSetPermissionsView extends JView
         </div>
       </section>
       <footer class="clearfix">
-        <div class="recursive hidden">
-          <label>Apply to Enclosed Items</label>
-          {{> @recursive}}
-        </div>
         <p class="old">Old: <em></em></p>
         <p class="new">New: <em></em></p>
         {{> @setPermissionsButton}}
       </footer>
       """
 
-
-  applyExistingPermissions:()->
+  applyExistingPermissions:->
 
     setPermissionsView = @
     {mode} = @getData()
