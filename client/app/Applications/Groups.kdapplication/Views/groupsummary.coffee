@@ -6,6 +6,8 @@ class GroupSummaryView extends KDCustomHTMLView
 
     super options, data
 
+    group = @getData()
+
     @lazyDomController = @getSingleton("lazyDomController")
 
     @lazyDomController.on "landingViewIsShown",  @bound "landingViewIsShown"
@@ -16,7 +18,6 @@ class GroupSummaryView extends KDCustomHTMLView
         width       : 60
       loaderOptions :
         color       : "#ffffff"
-
 
     @sign = new KDCustomHTMLView
       tagName     : "div"
@@ -29,7 +30,7 @@ class GroupSummaryView extends KDCustomHTMLView
       mouseenter  : -> @$().css marginTop : 13
       mouseleave  : -> @$().css marginTop : 8
       click       : @bound "showSummary"
-    , {}
+    , group
 
     @sign.bindTransitionEnd()
 
@@ -37,14 +38,16 @@ class GroupSummaryView extends KDCustomHTMLView
       tagName     : "div"
       cssClass    : "summary-koding-logo"
       click       : (event)=>
-        @kodingLogo.unsetClass "in"
-        @kodingLogo.once "transitionend", =>
-          @showSummary event
+        @summaryNavBar.once "transitionend", => @showSummary event
+        @summaryNavBar.unsetClass "in"
 
+    @summaryNavBar = new KDCustomHTMLView
+      tagName         : "nav"
+      pistachioParams :
+        logo          : @kodingLogo
+      pistachio       : "{{> logo}}"
 
-    @kodingLogo.bindTransitionEnd()
-
-    @utils.wait 1500, => @kodingLogo.setClass "in"
+    @summaryNavBar.bindTransitionEnd()
 
     @landingPageLink = new CustomLinkView
       cssClass    : "public-page-link"
@@ -54,10 +57,13 @@ class GroupSummaryView extends KDCustomHTMLView
       click       : @bound "showLandingPage"
 
     @openInKodingLink = new CustomLinkView
-      cssClass    : "open-in-koding"
+      cssClass    : "open-in-koding #{if group.privacy is 'private' then 'hidden' else ''}"
       title       : "Open the group in Koding"
       icon        : {}
       click       : @bound "hideLandingPage"
+
+    @openInKodingLink.on "viewAppended", =>
+      # set ToolTip here
 
     @closeLink = new CustomLinkView
       cssClass    : "close-link"
@@ -75,11 +81,28 @@ class GroupSummaryView extends KDCustomHTMLView
     @once "viewAppended", @bound "decorateSummary"
     @bindTransitionEnd()
 
+
+    # @lazyDomController.on "staticControllerIsReady", =>
+    {staticGroupController} = @lazyDomController
+    {buttonWrapper}         = staticGroupController
+    @summaryNavBar.addSubView buttonWrapper
+
+    log "staticControllerIsReady"
+
+    staticGroupController.on ["status.member", "status.admin"], =>
+      @openInKodingLink.show()
+      @summaryNavBar.setClass "in"
+      log "show go to koding"
+
+    staticGroupController.on "status.guest", =>
+      @summaryNavBar.setClass "in"
+      log "youre a poor villager"
+
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-      {{> @kodingLogo}}
+      {{> @summaryNavBar}}
       {{> @loader}}
       <header>
         <div class='avatar-wrapper'></div>
@@ -115,7 +138,7 @@ class GroupSummaryView extends KDCustomHTMLView
     if @lazyDomController.isLandingPageVisible()
       @$().css top : 0
       @once "transitionend", =>
-        @kodingLogo.setClass "in"
+        @summaryNavBar.setClass "in"
     else
       @once "transitionend", =>
         @sign.unsetClass "swing-out"
@@ -129,28 +152,23 @@ class GroupSummaryView extends KDCustomHTMLView
   landingViewIsShown:->
 
     @sign.unsetClass "swing-in swing-out"
-    @kodingLogo.setClass "in"
+    @summaryNavBar.setClass "in"
 
   decorateSummary:->
 
-    KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
-      if err then callback err
-      else if models?
-        [group] = models
-        @sign.setData group
-        @sign.render()
+    group = @getData()
 
-        group.fetchAdmin (err, owner)=>
-          if err then warn err
-          else
-            @loader.hide()
-            @putOwner owner
-            @putGroupBio group
+    group.fetchAdmin (err, owner)=>
+      if err then warn err
+      else
+        @loader.hide()
+        @putOwner owner
+        @putGroupBio group
 
-        group.fetchMembers (err, members)=>
-          if err then warn err
-          else if members.length
-            @putList members
+    group.fetchMembers (err, members)=>
+      if err then warn err
+      else if members.length
+        @putList members
 
   putOwner:(owner)->
 

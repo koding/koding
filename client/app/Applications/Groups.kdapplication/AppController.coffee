@@ -218,6 +218,7 @@ class GroupsAppController extends AppController
   showErrorModal:(group, err)->
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
+      @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
   requestAccess:(group, callback)->
