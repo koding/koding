@@ -183,8 +183,12 @@ func main() {
 	go func() {
 		server := &http.Server{
 			Handler: &sockjs.Mux{
-				Services: map[string]*sockjs.Service{
+				Handlers: map[string]http.Handler{
 					"/subscribe": service,
+					"/version": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("Content-Type", "text/plain")
+						w.Write([]byte(config.Current.Version))
+					}),
 				},
 			},
 		}

@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Version     string
 	ProjectRoot string
 	GoConfig    struct {
 		HomePrefix string

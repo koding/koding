@@ -6,14 +6,14 @@ import (
 )
 
 type Mux struct {
-	Services map[string]*Service
+	Handlers map[string]http.Handler
 }
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for baseUrl, service := range mux.Services {
+	for baseUrl, handler := range mux.Handlers {
 		if strings.HasPrefix(r.URL.Path, baseUrl) {
 			r.URL.Path = r.URL.Path[len(baseUrl):]
-			service.ServeHTTP(w, r)
+			handler.ServeHTTP(w, r)
 			return
 		}
 	}
