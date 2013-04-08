@@ -19,12 +19,17 @@ class StaticPageCustomizeView extends KDView
         entrypoint = @getDelegate().groupEntryPoint or @getDelegate().profileEntryPoint
         @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
 
-    @backButton = new KDButtonView
-      title     : 'Back'
-      cssClass  : 'back-button modal-cancel'
-      callback  : =>
+    @backButton = new CustomLinkView
+      title       : ""
+      cssClass    : "close-link"
+      icon        :
+        placement : "right"
+      click       : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
         contentWrapper = @getDelegate().groupContentWrapperView or @getDelegate().profileContentWrapperView
         contentWrapper.unsetClass 'edit'
+
 
     @attachListeners()
     @addSettingsButton()
