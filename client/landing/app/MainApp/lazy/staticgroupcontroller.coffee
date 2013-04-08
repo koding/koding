@@ -149,42 +149,6 @@ class StaticGroupController extends KDController
     @mainController.on "accountChanged.to.loggedIn", =>
       @checkGroupUserRelation()
 
-
-    # @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
-
-    #   facets = [facets] if 'string' is typeof facets
-    #   @emit 'DecorateStaticNavLinks', CONTENT_TYPES, facets.first
-    #   @currentFacets = facets
-    #   appManager.tell 'Activity', 'fetchActivity',
-    #     group : @groupEntryPoint
-    #     facets : facets
-    #     bypass : yes
-    #   , (err, activities=[])=>
-    #     @refreshActivities err, activities, facets, callback
-
-  # refreshActivities:(err,activities,type,callback)->
-  #   @groupReadmeView.hide()
-  #   controller = @activityController
-  #   controller.removeAllItems()
-
-  #   facetPlural = constructorToPluralNameMap[@currentFacets[0]] or 'activity'
-
-  #   controller.getOptions().noItemFoundWidget.updatePartial \
-  #     "So far, no one has not posted any #{facetPlural} in this group"
-
-  #   controller.listActivities activities
-  #   controller.hideLazyLoader()
-  #   @activityListWrapper.show()
-  #   callback?()
-
-  # appendActivities:(err,activities,callback)->
-  #   @groupReadmeView.hide()
-  #   controller = @activityController
-  #   # controller.removeAllItems()
-  #   controller.listActivities activities
-  #   controller.hideLazyLoader()
-  #   callback?()
-
   decoratePendingStatus:->
 
     @requestButton?.hide()
