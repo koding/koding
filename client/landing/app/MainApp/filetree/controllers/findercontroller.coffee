@@ -98,7 +98,6 @@ class NFinderController extends KDViewController
       @mount.emit "fs.fetchContents.started"
 
       @utils.killWait kiteFailureTimer if kiteFailureTimer
-      @treeController.hideNotification()
 
       kiteFailureTimer = @utils.wait 5000, =>
         msg = "Couldn't fetch files! Click to retry"
