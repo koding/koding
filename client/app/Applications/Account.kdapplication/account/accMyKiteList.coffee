@@ -76,24 +76,23 @@ class AccountMyKiteListController extends KDListViewController
     {
         description
       , kiteName
-#      , purchaseAmount
-#      , callCount
-#      , privacy
-#      , type
+      , purchaseAmount
+      , callCount
+      , privacy
+      , type
     } = form.modal.modalTabs.forms.MyKites.inputs
-    console.log form.modal.modalTabs.forms.MyKites.inputs
 
 
     data = {
       description  : description.getValue()
       kiteName     : kiteName.getValue()
-#      privacy      : privacy.getValue()
-#      type         : type.getValue()
+      privacy      : privacy.getValue()
+      type         : type.getValue()
     }
 
-#    if type.getValue() == 'paid'
-#      data.purchaseAmount = purchaseAmount.getValue()
-#      data.count          = callCount.getValue()
+    if type.getValue() == 'paid'
+      data.purchaseAmount = purchaseAmount.getValue()
+      data.count          = callCount.getValue()
 
     KD.remote.api.JKite.create data,(err, kite) =>
       if err
@@ -180,61 +179,68 @@ class AccountMyKiteList extends KDListView
                                        Only lowercase letters and numbers are allowed,
                                        max 25 characters.
                                        """
-#              type                    :
-#                label                 : "Type"
-#                itemClass             : KDSelectBox
-#                cssClass              : "kiteType"
-#                type                  : "select"
-#                name                  : "type"
-#                defaultValue          : "free"
-#                selectOptions         : [
-#                  { title : "Free",    value : "free" }
-#                  { title : "Paid",    value : "paid" }
-#                ]
-#                change        : ->
-#                  if @getValue() is "paid"
+              type                    :
+                label                 : "Type"
+                itemClass             : KDSelectBox
+                cssClass              : "kiteType"
+                type                  : "select"
+                tooltip               :
+                  title               : "Paid Kites are coming soon"
+                  placement           : "right"
+                name                  : "type"
+                defaultValue          : "free"
+                selectOptions         : [
+                  { title : "Free",                   value : "free" }
+                  { title : "Paid - Coming Soon!",    value : "paid" }
+                ]
+                change        : ->
+                  if @getValue() is "paid"
+                    @setValue 'free'
 #                    modal.modalTabs.forms.MyKites.inputs.callCount.show()
 #                    modal.modalTabs.forms.MyKites.inputs.purchaseAmount.show()
 #                  else
 #                    modal.modalTabs.forms.MyKites.inputs.callCount.hide()
 #                    modal.modalTabs.forms.MyKites.inputs.purchaseAmount.hide()
-#                nextElement :
-#                  callCount               :
-#                    itemClass             : KDSelectBox
-#                    cssClass              : "hidden callCount"
-#                    type                  : "select"
-#                    name                  : "type"
-#                    defaultValue          : 1000
-#                    selectOptions         : [
-#                      { title : "1K Call"   ,    value : 1000   }
-#                      { title : "10K Call"  ,    value : 10000  }
-#                      { title : "100K Call" ,    value : 100000 }
-#                    ]
-#                    nextElement               :
-#                      purchaseAmount          :
-#                        itemClass             : KDSelectBox
-#                        cssClass              : "hidden purchaseBox"
-#                        type                  : "select"
-#                        name                  : "type"
-#                        defaultValue          : 10
-#                        selectOptions         : [
-#                          { title : "$10" ,    value : 10 }
-#                          { title : "$30",     value : 30 }
-#                          { title : "$100",    value : 100 }
-#                        ]
-#              privacy                :
-#                label                : "Privacy"
-#                itemClass            : KDSelectBox
-#                type                 : "select"
-#                name                 : "privacy"
-#                defaultValue         : "public"
-#                tooltip              :
-#                  title              : "Public Kites can be used everyone"
-#                  placement          : "right"
-#                selectOptions        : [
-#                  { title: "Public", value: "public" }
-#                  { title: "Private", value: "private" }
-#                ]
+                nextElement :
+                  callCount               :
+                    itemClass             : KDSelectBox
+                    cssClass              : "hidden callCount"
+                    type                  : "select"
+                    name                  : "type"
+                    defaultValue          : 1000
+                    selectOptions         : [
+                      { title : "1K Call"   ,    value : 1000   }
+                      { title : "10K Call"  ,    value : 10000  }
+                      { title : "100K Call" ,    value : 100000 }
+                    ]
+                    nextElement               :
+                      purchaseAmount          :
+                        itemClass             : KDSelectBox
+                        cssClass              : "hidden purchaseBox"
+                        type                  : "select"
+                        name                  : "type"
+                        defaultValue          : 10
+                        selectOptions         : [
+                          { title : "$10" ,    value : 10 }
+                          { title : "$30",     value : 30 }
+                          { title : "$100",    value : 100 }
+                        ]
+              privacy                :
+                label                : "Privacy"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "privacy"
+                defaultValue         : "private"
+                tooltip              :
+                  title              : "Public Kites are coming soon"
+                  placement          : "right"
+                selectOptions        : [
+                  { title: "Private",               value: "private" }
+                  { title: "Public - Coming Soon",  value: "public" }
+                ]
+                change        : ->
+                  if @getValue() is "public"
+                    @setValue 'private'
               description            :
                 label                : "Description"
                 itemClass            : KDInputView
@@ -312,29 +318,29 @@ class AccountMyKiteListItem extends KDListItemView
       partial      : "#{data.key}"
       cssClass     : "static-text"
 
-#    @addSubView status  =  new KDLabelView
-#      title        : "Status"
-#      cssClass     : "main-label"
-#
-#    @addSubView statusValue = new KDCustomHTMLView
-#      tagName      : "span"
-#      partial      : "#{data.status}"
-#      cssClass     : "static-text"
-#
-#    @addSubView privacy  =  new KDLabelView
-#      title        : "Privacy"
-#      cssClass     : "main-label"
-#
-#    @addSubView privacyValue = new KDCustomHTMLView
-#      tagName      : "span"
-#      partial      : "#{data.privacy}"
-#      cssClass     : "static-text"
-#
-#    @addSubView type  =  new KDLabelView
-#      title        : "Type"
-#      cssClass     : "main-label"
-#
-#    @addSubView typeValue = new KDCustomHTMLView
-#      tagName      : "span"
-#      partial      : "#{data.type}"
-#      cssClass     : "static-text"
+    @addSubView status  =  new KDLabelView
+      title        : "Status"
+      cssClass     : "main-label"
+
+    @addSubView statusValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.status}"
+      cssClass     : "static-text"
+
+    @addSubView privacy  =  new KDLabelView
+      title        : "Privacy"
+      cssClass     : "main-label"
+
+    @addSubView privacyValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.privacy}"
+      cssClass     : "static-text"
+
+    @addSubView type  =  new KDLabelView
+      title        : "Type"
+      cssClass     : "main-label"
+
+    @addSubView typeValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.type}"
+      cssClass     : "static-text"
