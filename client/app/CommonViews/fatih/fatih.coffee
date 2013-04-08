@@ -4,7 +4,6 @@ class Fatih extends KDModalView
 
     options.cssClass       = "fatih"
     options.width          = 500
-    options.sticky         = yes
     options.position       =
       top : "10%"
 
