@@ -150,8 +150,10 @@ class NFinderTreeController extends JTreeViewController
         callback?()
 
   toggleFolder:(nodeView, callback)->
-
-    if nodeView.expanded then @collapseFolder nodeView, callback else @expandFolder nodeView, callback
+    if nodeView.expanded
+      @collapseFolder nodeView, callback
+    else
+      @expandFolder nodeView, callback
 
   expandFolder:(nodeView, callback)->
 
@@ -184,10 +186,11 @@ class NFinderTreeController extends JTreeViewController
   collapseFolder:(nodeView, callback)->
 
     return unless nodeView
-    nodeData = nodeView.getData()
-    {path} = nodeData
+    folder = nodeView.getData()
+    {path} = folder
 
-    @emit "folder.collapsed", nodeData
+    @emit "folder.collapsed", folder
+    folder.stopWatching?()
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
