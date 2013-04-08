@@ -118,6 +118,7 @@ class AccountAppController extends AppController
         { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
         { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Pending Invitations",  listHeader: "Your Pending Group Invitations", listType: "pendingInvites", id : 40,      parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
       ]
     billing :

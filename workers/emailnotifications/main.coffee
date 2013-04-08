@@ -29,18 +29,27 @@ log = ->
 log "E-Mail Notification Worker has started with PID #{process.pid}"
 
 flags =
-  comment           :
-    template        : template.instantMail
-    definition      : "comments"
-  likeActivities    :
-    template        : template.instantMail
-    definition      : "likes"
-  followActions     :
-    template        : template.instantMail
-    definition      : "follows"
-  privateMessage    :
-    template        : template.instantMail
-    definition      : "private messages"
+  comment              :
+    template           : template.instantMail
+    definition         : "comments"
+  likeActivities       :
+    template           : template.instantMail
+    definition         : "likes"
+  followActions        :
+    template           : template.instantMail
+    definition         : "follows"
+  privateMessage       :
+    template           : template.instantMail
+    definition         : "private messages"
+  groupInvite          :
+    template           : template.instantMail
+    definition         : "group invitation"
+  groupRequest         :
+    template           : template.instantMail
+    definition         : "group membership request"
+  groupApproved        :
+    template           : template.instantMail
+    definition         : "group membership request approved"
 
 sendDailyEmail = (details, content)->
   unless content or details.email
@@ -56,7 +65,6 @@ sendDailyEmail = (details, content)->
 
 sendInstantEmail = (details)->
   {notification} = details
-
   if details.realContent?.deletedAt? or not details.email?
     log "Content not found, notification postponed"
     notification.update $set: status: 'postponed', (err)->
@@ -107,6 +115,8 @@ fetchSubjectContentLink = (content, type, callback)->
 
   if type is 'JPrivateMessage'
     callback null, "<a href='https://koding.com/Inbox' #{template.linkStyle}>private message</a>"
+  else if type is 'JGroup'
+    callback null, "<a href='https://koding.com/#{content.slug}' #{template.linkStyle}>group</a>"
   else if content.slug
     callback null, contentTypeLinkMap(content.slug)[type]
   else
@@ -125,7 +135,7 @@ fetchSubjectContentLink = (content, type, callback)->
             else
               callback null, contentTypeLinkMap(content.slug)[type]
 
-prepareEmail = (notification, daily = no, cb)->
+prepareEmail = (notification, daily = no, cb, callback=->)->
 
   {JAccount, JMailNotification} = worker.models
 
@@ -150,7 +160,7 @@ prepareEmail = (notification, daily = no, cb)->
           callback err
         else
           if not daily and state isnt true
-            # log 'User disabled e-mails, ignored for now.'
+            log 'User disabled e-mails, ignored for now.'
             notification.update $set: status: 'postponed', (err)->
               console.error err if err
           else
@@ -193,7 +203,7 @@ prepareEmail = (notification, daily = no, cb)->
 instantEmails = ->
   {JMailNotification} = worker.models
   JMailNotification.some {status: "queued"}, {limit:300}, (err, emails)->
-    if err
+    if err or not emails
       log "Could not load email queue!"
     else
       if emails.length > 0
@@ -203,7 +213,8 @@ instantEmails = ->
           unless err
             log "Sending #{emails.length} e-mail(s)..."
             for email in emails
-              prepareEmail email, no, sendInstantEmail
+              prepareEmail email, no, sendInstantEmail, (err)->
+                console.log err
           else
             log "An error occured: #{err}"
 

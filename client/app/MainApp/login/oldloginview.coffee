@@ -110,6 +110,11 @@ class OldLoginView extends KDScrollView
       cssClass : "login-form"
       callback : (formData)=> @doRequest formData
 
+    @headBanner = new KDCustomHTMLView
+      lazyDomId: "head-banner"
+      cssClass : "head-banner hidden"
+      partial  : "..."
+
     @slideShow = new HomeSlideShowHolder
       lazyDomId : 'home-screenshots'
 
@@ -222,8 +227,7 @@ class OldLoginView extends KDScrollView
       @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
-    @$('.login-footer').hide()
-    @$('.footer-links').hide()
+    @hide()
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
