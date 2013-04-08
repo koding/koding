@@ -95,9 +95,14 @@ class MainView extends KDView
         $('.kdoverlay').remove()
 
   addHeader:->
-
+    log "adding header"
     if KD.config.groupEntryPoint
-      @addSubView @groupSummary = new GroupSummaryView
+      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+        if err then callback err
+        else if models?
+          log "adding summary"
+          [group] = models
+          @addSubView @groupSummary = new GroupSummaryView {}, group
 
     @addSubView @header = new KDView
       tagName : "header"

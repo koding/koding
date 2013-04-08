@@ -6,6 +6,8 @@ class GroupSummaryView extends KDCustomHTMLView
 
     super options, data
 
+    group = @getData()
+
     @lazyDomController = @getSingleton("lazyDomController")
 
     @lazyDomController.on "landingViewIsShown",  @bound "landingViewIsShown"
@@ -16,7 +18,6 @@ class GroupSummaryView extends KDCustomHTMLView
         width       : 60
       loaderOptions :
         color       : "#ffffff"
-
 
     @sign = new KDCustomHTMLView
       tagName     : "div"
@@ -29,10 +30,9 @@ class GroupSummaryView extends KDCustomHTMLView
       mouseenter  : -> @$().css marginTop : 13
       mouseleave  : -> @$().css marginTop : 8
       click       : @bound "showSummary"
-    , {}
+    , group
 
     @sign.bindTransitionEnd()
-
 
     @kodingLogo = new KDCustomHTMLView
       tagName     : "div"
@@ -49,8 +49,6 @@ class GroupSummaryView extends KDCustomHTMLView
 
     @summaryNavBar.bindTransitionEnd()
 
-    @utils.wait 1500, => @summaryNavBar.setClass "in"
-
     @landingPageLink = new CustomLinkView
       cssClass    : "public-page-link"
       title       : "Pull up the public page"
@@ -59,7 +57,7 @@ class GroupSummaryView extends KDCustomHTMLView
       click       : @bound "showLandingPage"
 
     @openInKodingLink = new CustomLinkView
-      cssClass    : "open-in-koding"
+      cssClass    : "open-in-koding #{if group.privacy is 'private' then 'hidden' else ''}"
       title       : "Open the group in Koding"
       icon        : {}
       click       : @bound "hideLandingPage"
@@ -83,9 +81,22 @@ class GroupSummaryView extends KDCustomHTMLView
     @once "viewAppended", @bound "decorateSummary"
     @bindTransitionEnd()
 
-    @lazyDomController.on "staticControllerIsReady", =>
-      {buttonWrapper} = @lazyDomController.staticGroupController
-      @summaryNavBar.addSubView buttonWrapper
+
+    # @lazyDomController.on "staticControllerIsReady", =>
+    {staticGroupController} = @lazyDomController
+    {buttonWrapper}         = staticGroupController
+    @summaryNavBar.addSubView buttonWrapper
+
+    log "staticControllerIsReady"
+
+    staticGroupController.on ["status.member", "status.admin"], =>
+      @openInKodingLink.show()
+      @summaryNavBar.setClass "in"
+      log "show go to koding"
+
+    staticGroupController.on "status.guest", =>
+      @summaryNavBar.setClass "in"
+      log "youre a poor villager"
 
   viewAppended: JView::viewAppended
 
@@ -145,24 +156,19 @@ class GroupSummaryView extends KDCustomHTMLView
 
   decorateSummary:->
 
-    KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
-      if err then callback err
-      else if models?
-        [group] = models
-        @sign.setData group
-        @sign.render()
+    group = @getData()
 
-        group.fetchAdmin (err, owner)=>
-          if err then warn err
-          else
-            @loader.hide()
-            @putOwner owner
-            @putGroupBio group
+    group.fetchAdmin (err, owner)=>
+      if err then warn err
+      else
+        @loader.hide()
+        @putOwner owner
+        @putGroupBio group
 
-        group.fetchMembers (err, members)=>
-          if err then warn err
-          else if members.length
-            @putList members
+    group.fetchMembers (err, members)=>
+      if err then warn err
+      else if members.length
+        @putList members
 
   putOwner:(owner)->
 
