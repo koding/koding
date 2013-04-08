@@ -137,7 +137,13 @@
     display                                       block
 
   &.dark
-    color  #888
+
+    color               rgba(255,255,255,0.9)
+    text-shadow         1px 1px 1px rgba(0,0,0,0.75)
+
+    h1,h2,h3,h4,h5,h6
+      color white!important
+
     h1
       font-size 16px
     h2
@@ -150,7 +156,7 @@
       font-size 12px
     h6
       font-size 12px
-      color     #aaa
+      // color     #aaa
 
     img
       bg color, rgba(255,255,255,0.05)
@@ -159,8 +165,9 @@
       border 1px solid rgba(255,255,255,0.16)
 
     b,strong
-      color rgba(255,255,255,0.75)//#f5f5f5
-      text-shadow 0 0 2px rgba(0,0,0,0.7)
+      // color rgba(255,255,255,0.75)//#f5f5f5
+      // text-shadow 0 0 2px rgba(0,0,0,0.7)
+      font-weight bold
 
     hr
       border-top-color  rgba(255,255,255,0.16)
@@ -177,12 +184,14 @@
 
 
     code
+      // bg color, rgba(255,255,255,0.25)
+      // bg color, rgba(0,0,0,0.25)
       bg color, rgba(255,255,255,0.05)
-      color #aaa!important
+      color #f5f5f5!important
       padding 1px 4px
-      border 1px solid rgba(255,255,255,0.16)
+      border 1px solid rgba(255,255,255,0.16) //rgba(255,255,255,0.16)
       rounded 2px
-      white-space pre-line
+      // white-space pre-line
       // vendor transition, background-color 0.2s linear
       // &:hover
       //   bg color, lighten(#403C36,2%)
@@ -190,14 +199,19 @@
 
     pre
       // vendor transition, background-color 0.2s linear
-      border 1px solid rgba(255,255,255,0.16)
-      bg color, transparent //rgba(0,0,0,0.2)//#403C36
+      // border 1px solid rgba(255,255,255,0.16)
+      // bg color, transparent //rgba(0,0,0,0.2)//#403C36
       rounded 4px
-      color #aaa!important
+      color #f5f5f5!important
       padding 0
+      bg color, transparent!important
+      border 1px solid transparent!important
       > code
+        // bg color, transparent
         padding  15px
-        border none
+        // border none
+        border 1px solid rgba(255,255,255,0.16)
+        rounded 5px
       // &:hover
       //   bg color, lighten(#403C36,2%)
       //   code
@@ -205,6 +219,7 @@
 
     a
       color #ff9200
+      border-bottom 1px solid  #ff9200
 
   &.force-small-markdown
     *

@@ -26,7 +26,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
                    <div class="group-bio">#{body}</div>
                  </div>
                </div>
-               <div class="has-markdown">
+               <div class="has-markdown dark">
                  <span class="data">#{content}</span>
                </div>
              </div>
