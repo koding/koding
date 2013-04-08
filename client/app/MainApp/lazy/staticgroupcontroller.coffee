@@ -225,17 +225,22 @@ class StaticGroupController extends KDController
         icon     : {}
         click    : (event)=>
           event.preventDefault()
-          if @groupContentWrapperView.$().hasClass 'edit'
-            @groupContentWrapperView.unsetClass 'edit'
+          if @groupContentWrapperView.$().hasClass  'edit'
+            @groupContentWrapperView.unsetClass     'hide-front'
+            @utils.wait 200, =>
+              @groupContentWrapperView.unsetClass   'edit'
           else
             # scroll only if there is a distance to scroll
             unless @groupContentView.$().scrollTop() is 0
               @groupContentView.$().animate
                 scrollTop : 0
-              ,200, 'swing', => @groupContentWrapperView.setClass 'edit'
+              ,200, 'swing', =>
+                @groupContentWrapperView.setClass   'edit'
+                @utils.wait 800, =>
+                  @groupContentWrapperView.setClass 'hide-front'
             else
               # immediately flip otherwise
-              @groupContentWrapperView.setClass 'edit'
+              @groupContentWrapperView.setClass     'edit'
 
       groupConfigView = new KDView
         lazyDomId : 'group-config'
