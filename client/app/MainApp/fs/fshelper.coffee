@@ -171,6 +171,22 @@ class FSHelper
     parentPath.pop()
     return parentPath.join('/')
 
+  @exists = (path, callback=noop)->
+    @getInfo path, (err, res)->
+      callback err, res?
+
+  @getInfo = (path, callback=noop)->
+    KD.getSingleton('kiteController').run
+      method   : "fs.getInfo"
+      withArgs : {path}
+    , callback
+
+  @getSafePath = (path, callback=noop)->
+    KD.getSingleton('kiteController').run
+      method   : "fs.getSafePath"
+      withArgs : {path}
+    , callback
+
   @createFileFromPath = (path, type = "file")->
     return warn "pass a path to create a file instance" unless path
     parentPath = @getParentPath path
@@ -204,7 +220,7 @@ class FSHelper
     return /^\s\"/.test path
 
   @escapeFilePath = (name) ->
-    return " \"#{name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"')}\" "
+    return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')

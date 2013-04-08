@@ -63,6 +63,7 @@ class KiteController extends KDController
 
     options.kiteName or= "os"
     options.method   or= "exec"
+
     if command
       options.withArgs = command
     else
