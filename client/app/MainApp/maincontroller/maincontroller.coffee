@@ -124,7 +124,7 @@ class MainController extends KDController
 
   handleLoginScreenRoute:(action, path)->
     ldc = @getSingleton 'lazyDomController'
-    ldc.hideLandingPage() if path and path != 'Logout'
+    ldc.hideLandingPage() if path and path not in ['Logout', 'Login', 'Register']
     @loginScreen.animateToForm action
 
   doJoin:->
