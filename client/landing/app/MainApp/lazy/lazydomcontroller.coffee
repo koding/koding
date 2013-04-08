@@ -29,6 +29,7 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
+      @emit "staticControllerIsReady"
       if @landingView
         @landingView.bindTransitionEnd()
 
@@ -78,16 +79,16 @@ class LazyDomController extends KDController
   addGroupViews:->
 
     return if @groupViewsAdded
-    @groupViewsAdded        = yes
-    staticGroupController   = new StaticGroupController
-    {@landingView}          = staticGroupController
+    @groupViewsAdded         = yes
+    @staticGroupController   = new StaticGroupController
+    {@landingView}           = @staticGroupController
 
   addProfileViews:->
 
     return if @profileViewsAdded
-    @profileViewsAdded      = yes
-    staticProfileController = new StaticProfileController
-    {@landingView}          = staticProfileController
+    @profileViewsAdded       = yes
+    @staticProfileController = new StaticProfileController
+    {@landingView}           = @staticProfileController
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
