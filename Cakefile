@@ -48,6 +48,12 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 # create required folders
 mkdirp.sync "./.build"
 
+addGoCommandFlags = ->
+  flags  = ""
+  flags += "-d" if options.debug
+
+  return flags
+
 compilePistachios = require 'pistachio-compiler'
 
 compileGoBinaries = (configFile,callback)->
@@ -74,7 +80,7 @@ task 'compileGo',({configFile})->
 
 task 'runKites', ({configFile})->
 
-  compileGoBinaries configFile,->
+  compileCoBinaries configFile,->
     invoke 'sharedHostingKite'
     invoke 'databasesKite'
     invoke 'applicationsKite'
@@ -220,9 +226,11 @@ task 'emailWorker',({configFile})->
 
 task 'goBroker',({configFile})->
 
+  console.log options.debug, addGoCommandFlags()
+
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}"
+    cmd   : "./go/bin/broker -c #{configFile}" + addGoCommandFlags()
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
