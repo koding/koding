@@ -35,7 +35,6 @@ module.exports = deepFreeze
     watch       : yes
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :

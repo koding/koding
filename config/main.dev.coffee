@@ -39,7 +39,6 @@ module.exports = deepFreeze
     port        : 1337
   mongo         : mongo
   runGoBroker   : no
-  watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   misc          :
