@@ -189,7 +189,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return file.Write(params.Content)
 	})
 
-	suffixRegexp, err := regexp.Compile(`((_\d+)?)(\.\w*)?$`)
+	suffixRegexp, err := regexp.Compile(`.((_\d+)?)(\.\w*)?$`)
 	if err != nil {
 		panic(err)
 	}
