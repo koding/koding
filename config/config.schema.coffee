@@ -181,7 +181,7 @@ config =
         apiUri    : 1
         appsUri   : 1
         sourceUri : 1
-        authResourceName : 1
+        # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
       port        : 1
