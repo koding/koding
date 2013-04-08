@@ -19,6 +19,7 @@ class LazyDomController extends KDController
     @mainController = @getSingleton 'mainController'
 
     @mainController.on 'FrameworkIsReady', =>
+      @emit "staticControllerIsReady"
       if @userEnteredFromGroup()
         @addGroupViews()
 
@@ -29,7 +30,8 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
-      @emit "staticControllerIsReady"
+      log "landing views put"
+
       if @landingView
         @landingView.bindTransitionEnd()
 
