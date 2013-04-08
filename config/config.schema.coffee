@@ -191,6 +191,7 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      ip          : 1
       port        : 1
       certFile    : 1
       keyFile     : 1

@@ -190,7 +190,7 @@ func main() {
 		}
 
 		var listener net.Listener
-		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{net.ParseIP(config.Current.Broker.IP), config.Current.Broker.Port})
 		if err != nil {
 			log.LogError(err, 0)
 			os.Exit(1)

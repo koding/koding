@@ -25,6 +25,7 @@ type Config struct {
 		Vhost         string
 	}
 	Broker struct {
+		IP       string
 		Port     int
 		CertFile string
 		KeyFile  string
