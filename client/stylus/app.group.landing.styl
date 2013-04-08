@@ -73,15 +73,15 @@
 
 .group-title
   borderBox()
-  abs()
-  size                      100%, 250px
-  padding                   0 50px 30px
+  rel()
+  size                      100%, 160px
+  // padding                   0 50px 0
   z-index                   10
 
   .group-title-wrapper
-    bg color,                 rgba(0,0,0,0.2)
-    padding                 30px 40px
-    height                  190px
+    // bg color,                 rgba(0,0,0,0.2)
+    // padding                 30px 40px
+    height                  100px
 
   .group-name
     borderBox()
@@ -91,7 +91,6 @@
     width                   100%
     display                 inline-block
     color                   rgba(255,255,255,.9)
-    margin-right            10px
     white-space             nowrap
     text-overflow           ellipsis
     font-weight             900
@@ -172,46 +171,36 @@
   overflow              auto
   height                100%
   width                 auto
-  // padding-top           50px
-  // gradient2             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
   borderBox()
   rel()
 
   .content-item
-    left                              0
-    right                             0
-    top                               0
-    bottom                            0
-    padding                           0 50px 100px
-    overflow                          visible
-    vendor transform-style,           preserve-3d
-    vendor transition,                all .4s ease-in;
-    vendor backface-visibility,       hidden
-    abs()
+    padding             0 50px 100px
+    height              auto
+    vendor              transform-style, preserve-3d
+    vendor              transition, all .4s ease-in;
+    vendor              backface-visibility, hidden
     borderBox()
 
     &.front
-      z-index 2
+      z-index           2
 
     &.back
-      vendor transform, rotateY(180deg);
+      abs()
+      top               0
+      vendor            transform, rotateY(180deg);
 
   .content-item-scroll-wrapper
     padding                             40px
-    margin                              250px auto 0
+    margin                              0 auto
     rounded                             0 0 5px 5px
     bg                                  color, rgba(0,0,0,.2)
     borderBox()
 
   .has-markdown
-    overflow                            auto
-    height                              100%
     color                               rgba(255,255,255,.9)
     borderBox()
     h1, h2, h3, h4, h5, h6
-      color                             rgba(255,255,255,.9)
-
-
 
 .group-nickname
   borderBox()
@@ -223,35 +212,32 @@
 
 .group-links
   margin                24px 0 27px 15px
-  ul
-    li
-      a
-        color             #adadad!important
-        noTextDeco()
-        font-size         14px
-        font-weight       300
-      line-height       20px
-      margin-bottom     4px
+  ul li
+    line-height       20px
+    margin-bottom     4px
+    a
+      color             #adadad!important
+      noTextDeco()
+      font-size         14px
+      font-weight       300
+    span.icon
+      sprite()
+      fl()
+      size            20px, 20px
+      margin-right    18px
+    &.blog
       span.icon
-        sprite()
-        fl()
-        size            20px, 20px
-        margin-right    18px
-      &.blog
-        span.icon
-          bg position,  0 -80px
-      &.twitter
-        span.icon
-          bg position,  0 -100px
-      &.github
-        span.icon
-          bg position,  0 -280px
+        bg position,  0 -80px
+    &.twitter
+      span.icon
+        bg position,  0 -100px
+    &.github
+      span.icon
+        bg position,  0 -280px
 
-  ul.admin
-    li
-      a
-        padding-top 3px
-        font-size         11px
+  ul.admin li a
+    padding-top 3px
+    font-size         11px
   hr
     border-top          1px solid rgba(44,41,36,0.5)
     border-bottom       1px solid rgba(255,255,255,0.07)
@@ -299,16 +285,13 @@
   bg size,                              cover
   cursor                                pointer
   width                                 50%
-  height                                100px
-  min-height                            100px
+  height                                auto
+  // min-height                            100px
   display                               inline-block
   padding                               5px //5px 2px
   border                                1px solid transparent
   vertical-align                        top
   text-align                            center
-
-  &.color
-    width                               25%
 
   span.data
     abs()
@@ -331,68 +314,42 @@
     span
       color                             white
 
-@media (min-height: 800px)
+@media (min-width: 0)
   .custom-image-selectitemview
-    width                               33.333%
-    height                              100px
-    &.color
-      width                             20%
+    size                               100%
 
-@media (min-height: 500px) and (max-height: 799px)
+@media (min-width: 480px) and (max-width: 599px)
   .custom-image-selectitemview
-    width                               20%
-    height                              100px
-    &.color
-      width                             16.6666667%
+    size                               50%
 
-@media (max-height: 499px)
+@media (min-width: 600px) and (max-width: 799px)
   .custom-image-selectitemview
-    width                               25%
-    height                              100px
-    &.color
-      width                             25%
+    size                               33.33333%
 
-@media (max-width: 800px)
+@media (min-width: 800px) and (max-width: 1199px)
   .custom-image-selectitemview
-    width                               50%
-    height                              100px
-    &.color
-      width                             33.33333%
+    size                               25%
 
-@media (max-width: 1200px) and (min-width:801px)
+@media (min-width: 1200px) and (max-width: 1599px)
   .custom-image-selectitemview
-    width                               33.33333%
-    height                              100px
-    &.color
-      width                             25%
+    size                               16.6666667%
 
-@media (min-width: 1201px)
+@media (min-width: 1600px)
   .custom-image-selectitemview
-    width                               20%
-    height                              100px
-    &.color
-      width                             16.6666667%
-@media (min-width: 1601px)
-  .custom-image-selectitemview
-    width                               16.6666667%
-    height                              100px
-    &.color
-      width                             10%
+    size                               10%
 
 
-
+.custom-color-picker
 .custom-image-default
+.custom-color-default
+.custom-image-upload
   borderBox()
   width                                 100%
-  height                                90px
+  height                                120px
   rounded                               3px
   display                               block
 
 .custom-color-default
-  borderBox()
-  width                                 100%
-  height                                90px
-  rounded                               3px
   border                                1px solid rgba(0,0,0,0.05)
 
 .custom-select-background-view
@@ -411,10 +368,6 @@
   hidden()
 
 .custom-color-picker
-  borderBox()
-  width                                 100%
-  height                                90px
-  rounded                               3px
   padding-top                           35px
   text-align                            center
 
@@ -459,13 +412,8 @@
   border-bottom                         1px dashed rgba(125,190,241,0.5)
 
 .custom-image-upload
-  borderBox()
   bg size,                              cover
-  rounded                               3px
-  height                                90px
   border                                1px dashed rgba(125,190,241,0.5)
-  width                                 100%
-
 
   .image-uploader
     min-width                           100%

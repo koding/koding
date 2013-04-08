@@ -16,16 +16,16 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     <div id="static-landing-page">
 
       <div class="group-content-wrapper" id="group-content-wrapper" #{applyCustomBackground customize}>
-        <div class="group-title" id="group-title">
-          <div class="group-title-wrapper" id="group-title-wrapper">
-            <div class="group-name">#{title}</div>
-            <div class="group-bio">#{body}</div>
-          </div>
-        </div>
         <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
           <div class="group-loading-content" id="group-loading-content">
            <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
+               <div class="group-title" id="group-title">
+                 <div class="group-title-wrapper" id="group-title-wrapper">
+                   <div class="group-name">#{title}</div>
+                   <div class="group-bio">#{body}</div>
+                 </div>
+               </div>
                <div class="has-markdown">
                  <span class="data">#{content}</span>
                </div>
