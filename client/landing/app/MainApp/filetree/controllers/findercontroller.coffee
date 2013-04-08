@@ -98,9 +98,12 @@ class NFinderController extends KDViewController
       @mount.emit "fs.fetchContents.started"
 
       @utils.killWait kiteFailureTimer if kiteFailureTimer
+      @treeController.hideNotification()
 
       kiteFailureTimer = @utils.wait 5000, =>
-        @treeController.notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+        msg = "Couldn't fetch files! Click to retry"
+        @treeController.notify msg, 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+        log msg+" fired from initial kiteFailureTimer"
         @mount.emit "fs.fetchContents.finished"
 
         @treeController.once 'fs.retry.scheduled', =>
@@ -112,11 +115,11 @@ class NFinderController extends KDViewController
 
       @multipleLs recentFolders, (err, response)=>
         if response
-          files = FSHelper.parseLsOutput recentFolders, response
           @utils.killWait kiteFailureTimer
+          @treeController.hideNotification()
+          files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
           @treeController.emit 'fs.retry.success'
-          @treeController.hideNotification()
 
 
         log "#{(Date.now()-timer)/1000}sec !"
