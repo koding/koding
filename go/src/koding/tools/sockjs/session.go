@@ -160,7 +160,12 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 		}
 	}
 
-	data, _ := json.Marshal(messages)
+	data, err := json.Marshal(messages)
+	if err != nil {
+		s.Service.ErrorHandler(err, 0)
+		return s.CreateNextFrame(frameStart, frameEnd, escape)
+	}
+
 	return createFrame('a', string(data), frameStart, frameEnd, escape), false
 }
 

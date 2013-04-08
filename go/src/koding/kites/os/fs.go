@@ -10,6 +10,7 @@ import (
 	"koding/virt"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"time"
 )
@@ -79,6 +80,54 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
+	k.Handle("fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path     string
+			OnChange dnode.Callback
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+		response := make(map[string]interface{})
+
+		if params.OnChange != nil {
+			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
+			if err != nil {
+				return nil, err
+			}
+
+			watchMutex.Lock()
+			defer watchMutex.Unlock()
+
+			watch := &Watch{vos, watchedPath, params.OnChange}
+			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
+			session.OnDisconnect(func() { watch.Close() })
+			response["stopWatching"] = func() { watch.Close() }
+		}
+
+		dir, err := vos.Open(params.Path)
+		defer dir.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		infos, err := dir.Readdir(0)
+		if err != nil {
+			return nil, err
+		}
+
+		files := make([]FileEntry, len(infos))
+		for i, info := range infos {
+			files[i] = makeFileEntry(vos, params.Path, info)
+		}
+		response["files"] = files
+
+		return response, nil
+	})
+
 	k.Handle("fs.readFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
 			Path string
@@ -115,17 +164,22 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 	k.Handle("fs.writeFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
-			Path    string
-			Content []byte
+			Path           string
+			Content        []byte
+			DoNotOverwrite bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
 		}
 
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
-		file, err := vos.Create(params.Path)
+		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+		if params.DoNotOverwrite {
+			flags |= os.O_EXCL
+		}
+		file, err := vos.OpenFile(params.Path, flags, 0666)
 		if err != nil {
 			return nil, err
 		}
@@ -134,52 +188,122 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return file.Write(params.Content)
 	})
 
-	k.Handle("fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("fs.getSafePath", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
-			Path     string
-			OnChange dnode.Callback
+			Path string
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 		}
 
 		user, vm := findSession(session)
 		vos := vm.OS(user)
-		response := make(map[string]interface{})
 
-		if params.OnChange != nil {
-			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
-			if err != nil {
+		return getSafePath(vos, params.Path)
+
+	})
+
+	k.Handle("fs.getInfo", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		fi, err := vos.Stat(params.Path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
+	})
+
+	k.Handle("fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+			Mode os.FileMode
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Chmod(params.Path, params.Mode); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	})
+
+	k.Handle("fs.remove", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path      string
+			Recursive bool
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if params.Recursive {
+			if err := vos.RemoveAll(params.Path); err != nil {
 				return nil, err
 			}
-
-			watchMutex.Lock()
-			defer watchMutex.Unlock()
-
-			watch := &Watch{vos, params.Path, params.OnChange}
-			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
-			session.OnDisconnect(func() { watch.Close() })
-			response["stopWatching"] = func() { watch.Close() }
+			return true, nil
 		}
 
-		dir, err := vos.Open(params.Path)
-		defer dir.Close()
-		if err != nil {
+		if err := vos.Remove(params.Path); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
+	k.Handle("fs.rename", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			OldPath string
+			NewPath string
+		}
+		if args.Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
+			return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Rename(params.OldPath, params.NewPath); err != nil {
 			return nil, err
 		}
 
-		infos, err := dir.Readdir(0)
-		if err != nil {
+		return true, nil
+	})
+
+	k.Handle("fs.createDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Path string
+		}
+		if args.Unmarshal(&params) != nil || params.Path == "" {
+			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		}
+
+		user, vm := findSession(session)
+		vos := vm.OS(user)
+
+		if err := vos.Mkdir(params.Path, 0755); err != nil {
 			return nil, err
 		}
 
-		files := make([]FileEntry, len(infos))
-		for i, info := range infos {
-			files[i] = makeFileEntry(vos, params.Path, info)
-		}
-		response["files"] = files
-
-		return response, nil
+		return true, nil
 	})
 }
 
@@ -195,26 +319,27 @@ func (watch *Watch) Close() error {
 			break
 		}
 	}
+
 	watchMap[watch.Path] = watches
 
 	if len(watches) == 0 {
-		watcher.RemoveWatch(watch.Path)
+		return watcher.RemoveWatch(watch.Path)
 	}
 
 	return nil
 }
 
-func makeFileEntry(vos *virt.VOS, dir string, info os.FileInfo) FileEntry {
+func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
-		Name:  info.Name(),
-		IsDir: info.IsDir(),
-		Size:  info.Size(),
-		Mode:  info.Mode(),
-		Time:  info.ModTime(),
+		Name:  fi.Name(),
+		IsDir: fi.IsDir(),
+		Size:  fi.Size(),
+		Mode:  fi.Mode(),
+		Time:  fi.ModTime(),
 	}
 
-	if info.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := vos.Lstat(dir + "/" + info.Name())
+	if fi.Mode()&os.ModeSymlink != 0 {
+		symlinkInfo, err := vos.Stat(path.Join(dir, fi.Name()))
 		if err != nil {
 			entry.IsBroken = true
 			return entry
@@ -226,4 +351,34 @@ func makeFileEntry(vos *virt.VOS, dir string, info os.FileInfo) FileEntry {
 	}
 
 	return entry
+}
+
+func getSafePath(vos *virt.VOS, tpath string) (string, error) {
+
+	index := 1
+	dpath, fname := path.Split(tpath)
+	fext := path.Ext(fname)
+	bname := strings.TrimRight(fname, fext)
+
+	fi, err := vos.Stat(tpath)
+	for {
+		if err != nil {
+			if os.IsNotExist(err) {
+				return tpath, nil
+			} else {
+				return "", err
+			}
+		} else {
+			if fi.IsDir() {
+				fname = fmt.Sprintf("%s_%d", fname, index)
+			} else {
+				fname = fmt.Sprintf("%s_%d%s", bname, index, fext)
+			}
+			tpath = path.Join(dpath, fname)
+			fi, err = vos.Stat(tpath)
+			index++
+		}
+	}
+
+	return "", nil
 }

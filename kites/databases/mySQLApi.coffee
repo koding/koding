@@ -376,7 +376,7 @@ module.exports = mySQL
 #   console.log options
 #   console.log "err:#{err}", res
 #
-###
+#
 #mySQL.backupDatabase options,(error,result)->
 #  if error?
 #    console.error error

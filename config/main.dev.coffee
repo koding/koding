@@ -1,12 +1,8 @@
 fs = require 'fs'
 nodePath = require 'path'
+deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
-# mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
-mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-
+version = "0.0.1"
 projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
@@ -36,7 +32,7 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  mongo         : mongo
+  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
   watchGoBroker : no
   compileGo     : no
