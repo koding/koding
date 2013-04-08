@@ -26,6 +26,8 @@ class ActivityListController extends KDListViewController
 
     super
 
+    @newActivityArrivedList = {}
+
     @_state = 'public'
 
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
@@ -115,7 +117,18 @@ class ActivityListController extends KDListViewController
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
 
+  logNewActivityArrived:(activity)->
+    id = activity.getId?()
+    return unless id
+
+    if @newActivityArrivedList[id]
+      KD.logToExternal msg:"duplicate new activity", activity:activity
+    else
+      @newActivityArrivedList[id] = true
+
   newActivityArrived:(activity)->
+
+    @logNewActivityArrived(activity)
 
     return unless @_state is 'public'
     unless @isMine activity
