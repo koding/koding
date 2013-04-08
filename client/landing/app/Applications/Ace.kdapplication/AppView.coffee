@@ -27,7 +27,7 @@ class AceView extends JView
       type          : "contextmenu"
       delegate      : @
       menu          : @getSaveMenu.bind @
-      callback      : ()=>
+      callback      : =>
         @ace.requestSave()
     @saveButton.disable()
 
