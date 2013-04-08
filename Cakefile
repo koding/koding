@@ -1,3 +1,6 @@
+# -*- mode: coffee -*-
+# vi: set ft=coffee :
+
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
