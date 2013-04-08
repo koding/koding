@@ -213,7 +213,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 				if os.IsNotExist(err) {
 					break
 				}
-				panic(err)
+				return nil, err
 			}
 
 			loc := suffixRegexp.FindStringSubmatchIndex(name)
