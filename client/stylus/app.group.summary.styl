@@ -19,6 +19,7 @@ body.landing
 
 #group-summary
   transition            top .3s ease-in
+  top                   0
   size                  100%, auto
   min-height            200px
   z-index               100
@@ -32,13 +33,12 @@ body.landing
     size                120%, 50px
     margin-left         -10%
     top                 -50px
-    opacity             .3
     padding             10px 10%
     shadow              0 0 15px rgba(0,0,0,0.4)
     borderBox()
     abs()
     bg                  color, rgba(0,0,0,.8)
-    vendor              transition-property, transform\, opacity
+    vendor              transition-property, transform
     vendor              transition-duration, .3s
     vendor              transition-easing, ease
     vendor              transform-origin-x, 0
@@ -51,7 +51,6 @@ body.landing
                         rotateZ(0deg)
     &.in
       transform         rotateX(0deg)
-      opacity           1
       z-index           1000
     .summary-koding-logo
       bg                  position, -240px -38px
@@ -70,7 +69,7 @@ body.landing
       .custom-link-view
         display           inline-block
         size              auto, 100%
-        padding           0 20px
+        padding           0 26px 0 20px
         line-height       49px
         gradient          #666, #505050
         border-right      1px solid rgba(255,255,255,.2)
@@ -93,7 +92,8 @@ body.landing
         &.open
           .icon
             bg            position, -200px -340px
-        &.request-access
+        &.request
+          gradient        #68B43B, #5B9D33
           .icon
             bg            position, -200px -360px
         &.logout
@@ -104,7 +104,7 @@ body.landing
             bg            position, -220px -320px
         &.register
           .icon
-            bg            position, -220px -340px
+            bg            position, -220px -341px
 
 
 
