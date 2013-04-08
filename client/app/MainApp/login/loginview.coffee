@@ -282,6 +282,9 @@ class LoginView extends KDScrollView
       @hidden = no
       callback?()
 
+  click:(event)->
+    @emit 'LoginViewWasClicked' if $(event.target).is('.login-screen')
+
   animateToForm: (name)->
 
     log 'animateForm called.', arguments
