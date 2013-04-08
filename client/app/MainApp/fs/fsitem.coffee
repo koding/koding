@@ -13,18 +13,14 @@ class FSItem extends KDObject
         callback? err, response
         warn err
       else
-        options = switch type
-          when 'file'
-            method           : "fs.writeFile"
-            withArgs         :
-              path           : response
-              content        : ""
-              donotoverwrite : yes
-          when 'folder'
-            method           : "fs.createDirectory"
-            withArgs         :
-              path           : response
-        KD.getSingleton('kiteController').run options, (err, res)->
+        KD.getSingleton('kiteController').run
+          method           : if type is 'folder' then "fs.createDirectory" \
+                             else "fs.writeFile"
+          withArgs         :
+            path           : response
+            content        : ""
+            donotoverwrite : yes
+        , (err, res)->
           if err then warn err
           else
             file = FSHelper.createFileFromPath response, type
