@@ -364,6 +364,7 @@
   span.title
     display                             block
     margin-bottom                       10px
+    color                               rgba(255,255,255,0.9)
   .listview-wrapper
     height                              auto
 
@@ -395,13 +396,24 @@
     display                             block
     font-size                           24px
     font-weight                         300
-    color                               #444
+    color                               rgba(255,255,255,0.9)
     margin-bottom                       20px
     span.settings-span
       font-size                         14px
       display                           inline-block
       .settings-link
         margin                          2px
+
+
+  a.close-link
+    abs()
+    top                 0px
+    right               0px
+    .icon
+      bg                position, -60px -220px
+    &:hover
+      .icon
+        bg              position, -60px -240px
 
   .back-button
     fr()
