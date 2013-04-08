@@ -94,7 +94,18 @@ class LazyDomController extends KDController
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
-    @hideLandingPage() unless path is '/Logout'
+
+    {groupEntryPoint, profileEntryPoint} = KD.config
+    entryPoint = groupEntryPoint ? profileEntryPoint
+    staticPaths = [
+      '/Logout','/Login','/Register',
+      "/#{entryPoint}/Login",
+      "/#{entryPoint}/Logout",
+      "/#{entryPoint}/Register",
+      "/#{entryPoint}"
+    ]
+
+    @hideLandingPage() unless path in staticPaths
 
   handleNavigationItemClick:(item, event)->
 
@@ -102,6 +113,12 @@ class LazyDomController extends KDController
     {action, path} = item
     {loginScreen, mainViewController}    = mc
     {groupEntryPoint, profileEntryPoint} = KD.config
+
+    loginScreen.off 'LoginViewWasClicked'
+    loginScreen.once 'LoginViewWasClicked', =>
+      loginScreen.animateToForm 'home'
+      @openPath "/#{groupEntryPoint ? profileEntryPoint}"
+
 
     return @openPath(path) if path
 
@@ -136,6 +153,12 @@ class LazyDomController extends KDController
         @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
+    {loginScreen} = @getSingleton('mainController')
+    {groupEntryPoint, profileEntryPoint} = KD.config
+
+    loginScreen.off 'LoginViewWasClicked'
+    loginScreen.once 'LoginViewWasClicked', =>
+      loginScreen.animateToForm 'home'
 
     if KD.isLoggedIn()
       fetchCurrentGroup (group)=>
