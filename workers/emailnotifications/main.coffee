@@ -116,7 +116,7 @@ fetchSubjectContentLink = (content, type, callback)->
   if type is 'JPrivateMessage'
     callback null, "<a href='https://koding.com/Inbox' #{template.linkStyle}>private message</a>"
   else if type is 'JGroup'
-    callback null, "<a href='https://koding.com/#{content.slug}' #{template.linkStyle}>group</a>"
+    callback null, "<a href='https://koding.com/#{content.slug}' #{template.linkStyle}>#{content.title}</a>"
   else if content.slug
     callback null, contentTypeLinkMap(content.slug)[type]
   else

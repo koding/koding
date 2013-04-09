@@ -14,10 +14,13 @@ flags =
     definition         : "private message"
   groupInvite          :
     definition         : "group invite"
+    fullDefinition     : "has invited you to"
   groupRequest         :
-    fullDefinition     : "Membership request to your group"
+    definition         : "group access request"
+    fullDefinition     : "has requested access to"
   groupApproved        :
-    fullDefinition     : "Your group membership has been approved"
+    definition         : "group access approval"
+    fullDefinition     : "has approved your access request to"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
@@ -102,13 +105,13 @@ Templates =
                    "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
     avatar       = gravatar m
     activityTime = dateFormat m.notification.dateIssued, "HH:MM"
-    preview      = """<div style="padding:10px; margin-left:28px; color:#777;
+    preview      = ''
+    if m.realContent?.body
+      preview    = """<div style="padding:10px; margin-left:28px; color:#777;
                                   margin-bottom:6px; margin-top: 4px;
                                   font-size:12px; background-color:#F8F8F8;
                                   border-radius:4px;">
                       #{m.realContent?.body}</div>"""
-
-    "is started to following you"
 
     switch m.event
       when 'FollowHappened'
@@ -127,6 +130,14 @@ Templates =
           # FIXME GG Implement the details
           # if m.realContent.origin?._id is m.sender._id
           #   action = "#{action} own"
+      when 'Invited'
+        action  = 'has invited you to join the group'
+      when 'ApprovalRequested'
+        action  = 'has requested access to the group'
+        preview = ''
+      when 'Approved'
+        action  = 'has approved your access request to the group'
+        preview = ''
 
     """
       <tr style="vertical-align:top; background-color:white; color: #282623;">
@@ -164,7 +175,10 @@ Templates =
 
   commonHeader : (m)->
     if flags[m.notification.eventFlag].fullDefinition?
-      return flags[m.notification.eventFlag].fullDefinition
+      sender = "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+      contentName = m.realContent?.title
+      sentence = flags[m.notification.eventFlag].fullDefinition
+      return "#{sender} #{sentence} #{contentName}!"
 
     eventName   = flags[m.notification.eventFlag].definition
     return """You have a new #{eventName}"""
