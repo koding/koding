@@ -198,10 +198,11 @@ class FSItem extends KDObject
     @emit "fs.chmod.started"
 
     @kiteController.run
-      method    : "fs.setPermissions"
-      withArgs  :
-        path    : @path
-        mode    : permissions
+      method      : "fs.setPermissions"
+      withArgs    :
+        path      : @path
+        recursive : recursive
+        mode      : permissions
     , (err, res)=>
       @emit "fs.chmod.finished"
       if err then warn err
