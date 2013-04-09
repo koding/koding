@@ -126,7 +126,7 @@ class StaticGroupController extends KDController
     @buttonWrapper = new KDCustomHTMLView
       cssClass : "button-wrapper"
 
-    @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
+    @buttonWrapper.addSubView @userButtonBar = new StaticUserButtonBar
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
@@ -293,7 +293,8 @@ class StaticGroupController extends KDController
             icon     : {}
             click    : (event)=>
               event.preventDefault()
-              @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+              @lazyDomController.handleNavigationItemClick
+                action  : 'join-group'
 
           @buttonWrapper.addSubView @requestButton
 

@@ -11,7 +11,7 @@ class GroupsInvitationRequestListItemView extends KDListItemView
         width : 40
         height : 40
 
-    KD.remote.cacheable @getData().koding.username, (err,account)=>
+    KD.remote.cacheable @getData().koding.username, (err, [account])=>
       @avatar.setData account
       @avatar.render()
 

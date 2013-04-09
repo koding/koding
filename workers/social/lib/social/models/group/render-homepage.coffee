@@ -17,6 +17,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
       <nav id="landing-page-nav">
         <h2>#{title}</h2>
       </nav>
+      <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <div class="group-content-wrapper" id="group-content-wrapper" #{applyCustomBackground customize}>
         <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
           <div class="group-landing-content" id="group-landing-content">
