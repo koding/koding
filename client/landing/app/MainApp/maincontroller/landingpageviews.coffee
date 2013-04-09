@@ -68,32 +68,32 @@ class LandingPageNavigationController extends NavigationController
           else if roles.length
             @lc.landingView.hide()
             @lc.openPath "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"
-            items.unshift \
-              { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
+            # items.unshift \
+            #   { title: 'Open Group', path: "/#{if groupEntryPoint is 'koding' then '' else groupEntryPoint+'/'}Activity"}
             @_instantiateListItems items
           else
             KD.remote.api.JMembershipPolicy.byGroupSlug groupEntryPoint,
               (err, policy)=>
                 if err then console.warn err
-                else if policy?.approvalEnabled
-                  items.unshift \
-                    { title: 'Request access', action: 'request'}
-                else
-                  items.unshift \
-                    { title: 'Join Group', action: 'join-group'}
+                # else if policy?.approvalEnabled
+                #   items.unshift \
+                #     { title: 'Request access', action: 'request'}
+                # else
+                #   items.unshift \
+                #     { title: 'Join Group', action: 'join-group'}
                 @_instantiateListItems items
 
       else
-        items.unshift { title: 'Request access', action: 'request'}
+        # items.unshift { title: 'Request access', action: 'request'}
 
-        if groupEntryPoint is "koding" then items.first.title = "Request Invite"
+        # if groupEntryPoint is "koding" then items.first.title = "Request Invite"
 
         @_instantiateListItems items
 
     else if @lc.userEnteredFromProfile()
 
       profileItems = [
-        { title : 'Home',     action : 'home',      type : 'user'}
+        { title : 'Home',     action : 'home',      type : 'user', selected : yes}
         { title : 'Activity', action : 'activity',  type : 'user'}
         { title : 'About',    action : 'about',     type : 'user'}
       ]
@@ -112,6 +112,8 @@ class LandingPageNavigationController extends NavigationController
         continue if itemData.loggedIn
       item = @getListView().addItem itemData
     @getDelegate().emit 'ListItemsInstantiated'
+    @selectItemByName 'Home'
+
 
 class LandingNavigationLink extends NavigationLink
 
@@ -120,5 +122,30 @@ class LandingNavigationLink extends NavigationLink
     data.type or= "account"
 
     super options, data
+    @loader = new KDLoaderView
+      size          :
+        width       : 20
+        height      : 20
+      loaderOptions :
+        color       : "#444444"
+    @loader.hide()
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <button type="button" class="kdbutton editor-button">
+      <span class="icon hidden"></span>
+      <span class="button-title">#{@getData().title}</span>
+    </button>
+    """
+   # "<button class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
+
+  # pistachio:->
+  #   "<a class='title'><span class='main-nav-icon #{@utils.slugify @getData().title}'></span>#{@getData().title}{{> @loader}}</a>"
 
   click:->
+    @loader.show() if @getData().type is 'user'

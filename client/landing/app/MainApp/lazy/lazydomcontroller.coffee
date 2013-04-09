@@ -21,6 +21,11 @@ class LazyDomController extends KDController
     @mainController.on 'FrameworkIsReady', =>
       if @userEnteredFromGroup()
         @addGroupViews()
+
+        # FIXME this is just a wip snip for showing the banner
+        @utils.wait 3000, =>
+          @landingView?.show()
+
       else if @userEnteredFromProfile()
         @addProfileViews()
 
@@ -31,28 +36,36 @@ class LazyDomController extends KDController
   hideLandingPage:->
 
     if @landingView
+      {groupSummary} = @mainController.mainViewController.getView()
       @utils.defer =>
         @landingView.setClass "down"
         @utils.wait 300, =>
           @landingView.setClass "out"
-          @utils.wait 1200, @landingView.bound "hide"
+          groupSummary.sign.setClass "swing-in"
+
+          # @utils.wait 1200, =>
+          #   log "ever here"
+          #   @landingView.hide()
       # FIXME: GG
       # @landingView.on "transtionEnd", @landingView.bound "hide"
 
   showLandingPage:(callback = noop)->
-
     if @landingView
-      {contentPanel} = @mainController.mainViewController.getView()
-      contentPanel.setClass "no-anim"
-      contentPanel.setClass "social"
-      @utils.defer =>
-        contentPanel.unsetClass "no-anim"
-        @landingView.show()
+      {contentPanel, groupSummary} = @mainController.mainViewController.getView()
+      @utils.wait 300, =>
+        contentPanel.setClass "no-anim"
+        contentPanel.setClass "social"
         @utils.defer =>
-          @landingView.unsetClass "out"
-          @utils.wait 600, =>
-            @landingView.unsetClass "down"
-            @utils.wait 300, callback
+          contentPanel.unsetClass "no-anim"
+          @landingView.show()
+          @utils.defer =>
+            @landingView.unsetClass "out"
+            @utils.wait 600, =>
+              @landingView.unsetClass "down"
+              groupSummary.sign.unsetClass "swing-in"
+              groupSummary.sign.unsetClass "swing-out"
+              @utils.wait 300, callback
+
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
@@ -107,13 +120,13 @@ class LazyDomController extends KDController
         @openPath '/Logout'
 
       when 'activity'
-        @getSingleton('staticProfileController').emit 'ActivityLinkClicked'
+        @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
 
       when 'about'
-        @getSingleton('staticProfileController').emit 'AboutLinkClicked'
+        @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
 
       when 'home'
-        @getSingleton('staticProfileController').emit 'HomeLinkClicked'
+        @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
 

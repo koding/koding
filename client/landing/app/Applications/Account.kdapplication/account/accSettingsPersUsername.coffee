@@ -1,4 +1,4 @@
-class AccountEditUsername
+class AccountEditUsername extends KDView
 
   viewAppended:->
     KD.remote.api.JUser.fetchUser (err,user)=>
@@ -55,7 +55,8 @@ class AccountEditUsername
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => emailSwappable.swapViews()
+
 
     # EMAIL STATIC PART
     nonEmailInputs = new KDView cssClass : "initialval clearfix"
@@ -72,7 +73,7 @@ class AccountEditUsername
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => emailSwappable.swapViews()
 
     # SET EMAIL SWAPPABLE
     emailForm.addSubView emailSwappable = new AccountsSwappable
@@ -106,7 +107,7 @@ class AccountEditUsername
       tagName      : "a"
       partial      : "cancel"
       cssClass     : "cancel-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => usernameSwappable.swapViews()
 
     # USERNAME STATIC PART
     usernameNonInputs = usernameNonInputs = new KDView cssClass : "initialval clearfix"
@@ -118,7 +119,7 @@ class AccountEditUsername
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
-      click        : passwordSwappable.bound "swapViews"
+      click        : => usernameSwappable.swapViews()
 
     # SET USERNAME SWAPPABLE
     usernameForm.addSubView usernameSwappable = new AccountsSwappable

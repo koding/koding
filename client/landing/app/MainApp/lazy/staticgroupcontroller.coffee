@@ -5,6 +5,13 @@ class StaticGroupController extends KDController
     'CDiscussionActivity', 'CTutorialActivity'
   ]
 
+  constructorToPluralNameMap =
+    'CStatusActivity'     : 'Status Updates'
+    'CBlogPostActivity'   : 'Blog Posts'
+    'CCodeSnipActivity'   : 'Code Snippets'
+    'CDiscussionActivity' : 'Discussions'
+    'CTutorialActivity'   : 'Tutorials'
+
   roleEventMap =
     "guest"               : "status.guest"
     "member"              : "status.member"
@@ -20,8 +27,18 @@ class StaticGroupController extends KDController
     @lazyDomController = @getSingleton "lazyDomController"
     {@groupEntryPoint} = KD.config
 
-    @navLinks = []
-    @currentFacets = []
+    # @navLinks = []
+    # @currentFacets = []
+
+    @reviveViews()
+
+    @checkGroupUserRelation()
+    @attachListeners()
+
+    @registerSingleton 'staticGroupController', @, yes
+
+
+  reviveViews :->
 
     @landingView = new KDView
       lazyDomId : 'static-landing-page'
@@ -30,14 +47,14 @@ class StaticGroupController extends KDController
     @landingView._windowDidResize = =>
       {innerHeight} = window
       @landingView.setHeight innerHeight
-      groupContentView.setHeight innerHeight - @groupTitleView.getHeight()
+      @groupContentView.setHeight innerHeight - @groupTitleView.getHeight()
 
-    groupContentWrapperView = new KDView
+    @groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
       cssClass : 'slideable'
 
-    groupAvatarDrop = new KDView
-      lazyDomId : 'landing-page-avatar-drop'
+    groupKodingLogo = new KDView
+      lazyDomId : 'landing-page-logo'
       tooltip   :
         title   : "Click here to see this group on Koding"
       click     : =>
@@ -48,14 +65,18 @@ class StaticGroupController extends KDController
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
+      click     : =>
+        # @activityListWrapper.hide()
+        @groupReadmeView.show()
 
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
 
     @groupTitleView.addSubView @buttonWrapper = new KDCustomHTMLView
       cssClass : "button-wrapper"
+      lazyDomId : "group-button-wrapper"
 
-    groupContentView = new KDView
+    @groupContentView = new KDView
       lazyDomId : 'group-loading-content'
 
     groupPersonalWrapperView = new KDView
@@ -69,7 +90,7 @@ class StaticGroupController extends KDController
       lazyDomId: 'group-koding-logo'
       click :=>
         groupPersonalWrapperView.setClass 'slide-down'
-        groupContentWrapperView.setClass 'slide-down'
+        @groupContentWrapperView.setClass 'slide-down'
         groupLogoView.setClass 'top'
 
         @landingView.setClass 'group-fading'
@@ -77,40 +98,52 @@ class StaticGroupController extends KDController
 
     groupLogoView.setY @landingView.getHeight()-42
 
-    for type in CONTENT_TYPES
-      @navLinks[type] = new StaticNavLink
-        delegate  : @
-        lazyDomId : type
+    # for type in CONTENT_TYPES
+    #   @navLinks[type] = new StaticNavLink
+    #     delegate  : @
+    #     lazyDomId : type
 
-    @groupContentLinks = new KDView
-      lazyDomId : 'group-content-links'
+    # @groupContentLinks = new KDView
+    #   lazyDomId : 'group-content-links'
 
-    @activityController = new ActivityListController
-      delegate          : @
-      lazyLoadThreshold : .99
-      itemClass         : ActivityListItemView
-      viewOptions       :
-        cssClass        : 'group-activity-content activity-related'
-      showHeader        : no
+    # @activityController = new ActivityListController
+    #   delegate          : @
+    #   lazyLoadThreshold : .99
+    #   itemClass         : ActivityListItemView
+    #   viewOptions       :
+    #     cssClass        : 'group-activity-content activity-related'
+    #   showHeader        : no
 
-    @activityListWrapper = @activityController.getView()
-    groupContentView.addSubView @activityListWrapper
+    #   noItemFoundWidget : new KDCustomHTMLView
+    #     cssClass : "lazy-loader"
+    #     partial  : "So far, this group does not have this kind of activity."
 
-    @activityController.on 'LazyLoadThresholdReached', =>
-      appManager.tell 'Activity', 'fetchActivity',
-        group     : @groupEntryPoint
-        facets    : @currentFacets
-        to        : @activityController.itemsOrdered.last.getData().meta.createdAt
-        bypass    : yes
-      , (err,activities=[])=>
-        @appendActivities err, activities, =>
+    #   noMoreItemFoundWidget : new KDCustomHTMLView
+    #     cssClass : "lazy-loader"
+    #     partial  : "There is no more activity."
+
+    # @activityListWrapper = @activityController.getView()
+    # @groupContentView.addSubView @activityListWrapper
+
+    # @activityListWrapper.hide()
+
+    # @activityController.on 'LazyLoadThresholdReached', =>
+    #   appManager.tell 'Activity', 'fetchActivity',
+    #     group     : @groupEntryPoint
+    #     facets    : @currentFacets
+    #     to        : @activityController.itemsOrdered.last.getData().meta.createdAt
+    #     bypass    : yes
+    #   , (err,activities=[])=>
+    #     @appendActivities err, activities, =>
+
+    # for type in CONTENT_TYPES
+    #   @navLinks[type] = new StaticNavLink
+    #     delegate  : @
+    #     lazyDomId : type
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
-
-    @checkGroupUserRelation()
-    @attachListeners()
 
   checkGroupUserRelation:->
 
@@ -120,10 +153,26 @@ class StaticGroupController extends KDController
         groups.first.fetchMembershipStatuses (err, statuses)=>
           if err then warn err
           else if statuses.length
-            if "member" in statuses or (isAdmin = "admin" in statuses)
+            if "member" in statuses or "admin" in statuses
+              isAdmin = 'admin' in statuses
               @emit roleEventMap.member, isAdmin
             else
               @emit roleEventMap[statuses.first]
+
+  removeBackground:->
+    @groupContentWrapperView.$().css backgroundImage : "none"
+    @groupContentWrapperView.$().css backgroundColor : "#ffffff"
+
+  setBackground:(type,val)->
+    if type in ['defaultImage','customImage']
+      @groupContentView.$().css backgroundColor : 'white'
+      @utils.wait 200, =>
+        @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @utils.wait 200, =>
+          @groupContentView.$().css backgroundColor : 'transparent'
+    else
+      @groupContentWrapperView.$().css backgroundImage : "none"
+      @groupContentWrapperView.$().css backgroundColor : "#{val}"
 
   attachListeners:->
 
@@ -138,33 +187,40 @@ class StaticGroupController extends KDController
       @checkGroupUserRelation()
 
 
-    @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
+    # @on 'StaticProfileNavLinkClicked', (facets,type,callback=->)=>
 
-      facets = [facets] if 'string' is typeof facets
+    #   facets = [facets] if 'string' is typeof facets
+    #   @emit 'DecorateStaticNavLinks', CONTENT_TYPES, facets.first
+    #   @currentFacets = facets
+    #   appManager.tell 'Activity', 'fetchActivity',
+    #     group : @groupEntryPoint
+    #     facets : facets
+    #     bypass : yes
+    #   , (err, activities=[])=>
+    #     @refreshActivities err, activities, facets, callback
 
-      @currentFacets = facets
-      appManager.tell 'Activity', 'fetchActivity',
-        group : @groupEntryPoint
-        facets : facets
-        bypass : yes
-      , (err, activities=[])=>
-        @refreshActivities err, activities, callback
+  # refreshActivities:(err,activities,type,callback)->
+  #   @groupReadmeView.hide()
+  #   controller = @activityController
+  #   controller.removeAllItems()
 
-  refreshActivities:(err,activities,callback)->
-    @groupReadmeView.hide()
-    controller = @activityController
-    controller.removeAllItems()
-    controller.listActivities activities
-    controller.hideLazyLoader()
-    callback?()
+  #   facetPlural = constructorToPluralNameMap[@currentFacets[0]] or 'activity'
 
-  appendActivities:(err,activities,callback)->
-    @groupReadmeView.hide()
-    controller = @activityController
-    # controller.removeAllItems()
-    controller.listActivities activities
-    controller.hideLazyLoader()
-    callback?()
+  #   controller.getOptions().noItemFoundWidget.updatePartial \
+  #     "So far, no one has not posted any #{facetPlural} in this group"
+
+  #   controller.listActivities activities
+  #   controller.hideLazyLoader()
+  #   @activityListWrapper.show()
+  #   callback?()
+
+  # appendActivities:(err,activities,callback)->
+  #   @groupReadmeView.hide()
+  #   controller = @activityController
+  #   # controller.removeAllItems()
+  #   controller.listActivities activities
+  #   controller.hideLazyLoader()
+  #   callback?()
 
   decoratePendingStatus:->
 
@@ -184,13 +240,31 @@ class StaticGroupController extends KDController
 
     @buttonWrapper.addSubView open
 
-    dashboard = new KDButtonView
-      title    : "Go to Dashboard"
-      cssClass : "editor-button"
-      callback : =>
-        @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+    if isAdmin
+      dashboard = new KDButtonView
+        title    : "Go to Dashboard"
+        cssClass : "editor-button"
+        callback : =>
+          @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
-    @buttonWrapper.addSubView dashboard
+      @buttonWrapper.addSubView dashboard
+
+      @buttonWrapper.addSubView configButton = new KDButtonView
+        cssClass : 'editor-button'
+        title    : "Customize"
+        callback : =>
+          if @groupContentWrapperView.$().hasClass 'edit'
+            @groupContentWrapperView.unsetClass 'edit'
+          else @groupContentWrapperView.setClass 'edit'
+
+      groupConfigView = new KDView
+        lazyDomId : 'group-config'
+
+      groupConfigView.addSubView new StaticGroupCustomizeView
+        delegate : @
+      ,@getData()
+
+
 
   decorateGuestStatus:->
 

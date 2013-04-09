@@ -33,6 +33,7 @@ class MainController extends KDController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
+    KD.registerSingleton "fatih", new Fatih
 
     KD.registerSingleton "linkController", new LinkController
 
@@ -138,6 +139,10 @@ class MainController extends KDController
 
   doLogout:->
 
+    # fixme: make a old tv switch off animation and reload
+    # $('body').addClass "turn-off"
+    return location.reload yes
+
     @getSingleton("lazyDomController").showLandingPage =>
       # @loginScreen.showView =>
       KD.getSingleton("appManager").quitAll =>
@@ -156,22 +161,19 @@ class MainController extends KDController
         title     : "<span></span>Come back soon!"
         duration  : 2000
 
-      # fixme: get rid of reload, clean up ui on account change
-      # tightly related to application manager refactoring
-      # @utils.wait 2000, -> location.reload yes
 
   attachListeners:->
 
-    # @on 'pageLoaded.*.*', (account)=>
+    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
-    @on '*.*.loggedOut', (account)=>
+    @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
       log "accountChanged Out"
       @loginScreen.showView =>
         @mainViewController.sidebarController.accountChanged account
         @mainViewController.getView().decorateLoginState no
 
-    @on '*.*.loggedIn', (account)=>
+    @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
       log "accountChanged In"
       @loginScreen.hideView =>
         @mainViewController.getView().decorateLoginState yes

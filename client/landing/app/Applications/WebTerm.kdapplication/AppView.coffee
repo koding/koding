@@ -1,13 +1,18 @@
 class WebTermView extends KDView
 
   constructor: (@appStorage) ->
-    @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
-    @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
-    @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
-    @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
+    @appStorage = new AppStorage 'WebTerm', '1.0'
+    @appStorage.fetchStorage =>
+      @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
+      @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
+      @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
+      @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
+      @updateSettings()
     super
 
   viewAppended: ->
+    @setHeight @getHeight() - 21 # 21 is application tabs height
+
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
       bind     : "scroll"
@@ -204,6 +209,8 @@ class WebTermView extends KDView
       @textarea?.remove()
 
   _windowDidResize: (event) ->
+    diff = 21 + 10 # 21 is app sub tab's height and 10 is padding of appView
+    @setHeight @getDelegate().getHeight() - diff
     @terminal.windowDidResize()
 
   getAdvancedSettingsMenuItems:->

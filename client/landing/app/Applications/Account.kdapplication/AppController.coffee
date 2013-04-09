@@ -127,6 +127,11 @@ class AccountAppController extends AppController
         { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
       ]
+    kites :
+      title : "Kites"
+      items : [
+        { title : "List Kites",           listHeader: "Your Kites",                 listType: "kiteList",        id : 10,      parentId : null }
+      ]
 
 
 class AccountSideBarController extends KDViewController
