@@ -179,7 +179,7 @@ module.exports = class JInvitation extends jraphical.Module
               options.email = email
               JInvitation.sendBetaInvite options,callback
             else
-              log "[JInvitation.sendBetaInvite] something got messed up."
+              console.log "[JInvitation.sendBetaInvite] something got messed up."
 
   @grantInvitesFromClient = secure (client, options, callback)->
 
@@ -301,11 +301,11 @@ module.exports = class JInvitation extends jraphical.Module
       else
         invite.addInvitedBy delegate, callback
 
-  @generateInvitationCode = (email)->
-    crypto
-      .createHmac('sha1', 'kodingsecret')
-      .update(email)
-      .digest('hex')
+  @generateInvitationCode = (email, group)->
+    code = crypto.createHmac('sha1', 'kodingsecret')
+    code.update(email)
+    code.update(group) if group
+    code.digest('hex')
 
   @getHostAndProtocol = do->
     {host, protocol} = require('../config').email
@@ -315,7 +315,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @sendInviteEmail = (invite,client,customMessage,limit,callback) ->
     {delegate} = client.connection
-    {host, protocol} = @getHostAndProtocol()
+    {host, protocol} = @getHostAndProtocol
     messageOptions =
       subject   : customMessage.subject
       body      : customMessage.body
@@ -416,11 +416,16 @@ module.exports = class JInvitation extends jraphical.Module
   @createViaGroup = secure (client, group, emails, callback=->)->
       {delegate} = client.connection
       emails.forEach (email)=>
-        JInvitation.one inviteeEmail:email, (err, existingInvite)=>
+        selector =
+          inviteeEmail : email
+          group        : group.slug
+
+        JInvitation.one selector, (err, existingInvite)=>
+          return callback err if err
           if existingInvite
             @sendEmailForInviteViaGroup client, existingInvite, group, callback
           else
-            code = @generateInvitationCode email
+            code = @generateInvitationCode email, group.slug
             invite = new JInvitation
               code         : code
               maxUses      : 1
