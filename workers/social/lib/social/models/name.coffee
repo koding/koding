@@ -1,21 +1,12 @@
 {Model, Base} = require 'bongo'
 
-class JSecretName extends Model
-
-  createId = require 'hat'
-
-  # TODO: the below should be made a bit more secure:
-  @setSchema
-    name        : String
-    secretName  :
-      type      : String
-      default   : createId
-
 module.exports = class JName extends Model
 
   KodingError = require '../error'
 
   {secure, JsPath:{getAt}, dash} = require 'bongo'
+
+  createId = require 'hat'
 
   @share()
 
@@ -31,7 +22,24 @@ module.exports = class JName extends Model
       constructorName : String
       usedAsPath      : String
 
+  @cycleSecretName =(name, callback)->
+    JSecretName = require './secretname'
+    JSecretName.one {name}, (err, secretNameObj)=>
+      if err then callback err
+      else unless secretNameObj?
+        callback new KodingError "Unknown name #{name}"
+      else
+        oldSecretName = secretNameObj.secretName
+        secretName    = createId()
+        secretNameObj.update {
+          $set: { oldSecretName, secretName }
+        }, -> callback null, oldSecretName, secretName
+        setTimeout ->
+          secretNameObj.update { $unset: oldSecretName: 1 }, ->
+        , 5000
+
   @fetchSecretName =(name, callback)->
+    JSecretName = require './secretname'
     JSecretName.one {name}, (err, secretNameObj)->
       if err then callback err
       else unless secretNameObj
@@ -39,7 +47,7 @@ module.exports = class JName extends Model
         secretNameObj.save (err)->
           if err then callback err
           else callback null, secretNameObj.secretName
-      else callback null, secretNameObj.secretName
+      else callback null, secretNameObj.secretName, secretNameObj.oldSecretName
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->

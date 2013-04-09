@@ -16,6 +16,8 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  {throttle} = require 'underscore'
+
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
     {permission: 'edit own groups', validateWith: Validators.own}
@@ -271,6 +273,34 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  @fetchSecretChannelName =(groupSlug, callback)->
+    JName = require '../name'
+    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
+      if err then callback err
+      else callback null, "group.secret.#{secretName}",
+        if oldSecretName then "group.secret.#{oldSecretName}"
+
+  @cycleChannel =do->
+    cycleChannel = (groupSlug, callback=->)->
+      JName = require '../name'
+      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
+        if err then callback err
+        else
+          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
+          @emit 'broadcast', routingKey, null
+          callback null
+    return throttle cycleChannel, 5000
+
+  @broadcast =(groupSlug, message)->
+    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
+      if err? then console.error err
+      else unless secretChannelName? then console.error 'unknown channel'
+      else
+        @emit 'broadcast', oldSecretChannelName, message  if oldSecretChannelName
+        @emit 'broadcast', secretChannelName, message
+
+  broadcast:(message)-> @constructor.broadcast @slug, message
 
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->

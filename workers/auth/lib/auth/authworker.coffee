@@ -74,7 +74,13 @@ module.exports = class AuthWorker extends EventEmitter
     delete @clients.byExchange[exchange]
     delete @clients.byRoutingKey[routingKey]
 
-  addClient:(socketId, exchange, routingKey)->
+  addClient:(socketId, exchange, routingKey, sendOk=yes)->
+    if sendOk
+      @bongo.respondToClient routingKey, {
+        method    : 'authOk'
+        arguments : []
+        callbacks : {}
+      }
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
@@ -114,15 +120,15 @@ module.exports = class AuthWorker extends EventEmitter
               @addClient socketId, exchange.name, routingKey
 
     ensureGroupPermission =(group, account, roles, callback)->
-      {JPermissionSet, JName} = @bongo.models
+      {JPermissionSet, JGroup} = @bongo.models
       client = {context: group.slug, connection: delegate: account}
-      JPermissionSet.checkPermission client, "read activities", group,
+      JPermissionSet.checkPermission client, "read activity", group,
         (err, hasPermission)->
           if err then callback err
           else unless hasPermission
             callback {message: 'Access denied!', code: 403}
           else
-            JName.fetchSecretName group.slug, callback
+            JGroup.fetchSecretChannelName group.slug, callback
 
     joinClientGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
@@ -141,12 +147,12 @@ module.exports = class AuthWorker extends EventEmitter
                   if err or not roles then fail err
                   else
                     ensureGroupPermission.call this, group, account, roles,
-                      (err, secretName)=>
-                        if err or not secretName
+                      (err, secretChannelName)=>
+                        if err or not secretChannelName
                           @rejectClient routingKey
                         else
                           setSecretNameEvent = "#{routingKey}.setSecretName"
-                          message = JSON.stringify "group.#{secretName}"
+                          message = JSON.stringify secretChannelName
                           @bongo.respondToClient setSecretNameEvent, message
 
     joinClient =(messageData, socketId)->
@@ -155,7 +161,13 @@ module.exports = class AuthWorker extends EventEmitter
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
         when 'group'
+          console.log {routingKey}
+          unless ///^group.#{messageData.group}///.test routingKey
+            console.log 'rejecting', routingKey
+            return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
+        when 'secret'
+          @addClient socketId, routingKey, routingKey, no
         else
           @rejectClient routingKey
 
