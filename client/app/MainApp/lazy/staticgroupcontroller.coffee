@@ -80,9 +80,6 @@ class StaticGroupController extends KDController
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
-      click     : =>
-        # @activityListWrapper.hide()
-        @groupReadmeView.show()
 
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
@@ -122,6 +119,9 @@ class StaticGroupController extends KDController
     @landingView.addSubView @landingNav = new KDCustomHTMLView
       tagName   : 'nav'
       lazyDomId : "landing-page-nav"
+      click     : (event)=>
+        if $(event.target).is('h2')
+          @groupContentView.scrollTo duration : 300
 
     @buttonWrapper = new KDCustomHTMLView
       cssClass : "button-wrapper"
@@ -137,19 +137,61 @@ class StaticGroupController extends KDController
   createGroupNavigation:->
 
     @parseMenuItems (items)=>
-      log items
+
+      flyingNavController  = new KDListViewController
+        view         : new KDListView
+          itemClass  : GroupLandingNavItem
+          wrapper    : no
+          scrollView : no
+          type       : "group-landing-nav"
+
+      flyingNav = flyingNavController.getListView()
+      flyingNav.on "viewAppended", ->
+        flyingNavController.instantiateListItems items.slice()
+
+      @landingNav.addSubView flyingNavController.getListView()
+
       navController  = new KDListViewController
         view         : new KDListView
           itemClass  : GroupLandingNavItem
           wrapper    : no
           scrollView : no
-          type       : "nav"
-      # , {items}
+          type       : "group-landing-nav"
 
-      navController.getListView().on "viewAppended", =>
-        navController.instantiateListItems items
+      nav = navController.getListView()
+      nav.on "viewAppended", ->
+        navController.instantiateListItems items.slice()
 
-      @landingNav.addSubView navController.getListView()
+      @groupTitleView.addSubView navController.getListView(), ".group-title-wrapper"
+
+      nav.on       "groupLandingNavItemClicked", @bound "scrollToTitle"
+      flyingNav.on "groupLandingNavItemClicked", @bound "scrollToTitle"
+
+      titles       = @groupContentView.$('.has-markdown h1')
+      scrollHeight = @groupContentView.getScrollHeight()
+      positionTop  = $(titles[titles.length-1]).position().top
+      surplus      = scrollHeight - positionTop - 50
+      marginBottom = window.innerHeight - surplus
+
+      if marginBottom > 0
+        @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
+
+      # @groupContentView.on "scroll", =>
+      #   scrollTop = @groupContentView.getScrollTop()
+      #   for title, i in titles
+      #     if $(title).position().top > scrollTop
+      #       log items[i].title
+
+
+  scrollToTitle:(itemData)->
+
+    titles = @groupContentView.$('.has-markdown h1')
+
+    for title in titles when $(title).text() is itemData.title
+      @groupContentView.scrollTo
+        top      : $(title).position().top - 50
+        duration : 300
+      break
 
   checkGroupUserRelation:->
     cb = (group)=>
@@ -313,5 +355,6 @@ class GroupLandingNavItem extends KDListItemView
 
   click:(event)->
     event.preventDefault()
+    @getDelegate().emit "groupLandingNavItemClicked", @getData()
 
   pistachio:-> "{{ #(title)}}"
