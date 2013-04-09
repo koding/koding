@@ -47,12 +47,31 @@ body
       font-weight       900
       font-size         24px
       margin-left       90px
-    .kdlistview-nav
-      abs()
+      cursor            pointer
+    .kdview.kdlistview.kdlistview-group-landing-nav
       right             90px
       top               0
-      .kdlistitemview-nav
-        fl()
+
+.kdview.kdlistview.kdlistview-group-landing-nav
+  abs()
+  right             0
+  top               13px
+  .kdlistitemview-default
+    font-family     Ubuntu,"Bree Serif",Helvetica,sans-serif
+    color           white
+    vertical-align  top
+    max-width       100px
+    width           auto
+    height          40px
+    line-height     40px
+    overflow        ellipsis
+    margin-left     10px
+    display         inline-block
+    clear           none
+    text-align      center
+    noTextDeco()
+    &:hover
+      color         linkColor1
 
 .group-header
   width                 100%
