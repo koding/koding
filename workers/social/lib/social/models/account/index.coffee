@@ -65,7 +65,7 @@ module.exports = class JAccount extends jraphical.Module
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
         'setHandle','setAbout','fetchAbout','setStaticPageTitle',
         'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchPendingGroupInvitations', 'fetchGroupsIncludingPending'
+        'fetchPendingGroupInvitations'
       ]
     schema                  :
       skillTags             : [String]
@@ -374,13 +374,39 @@ module.exports = class JAccount extends jraphical.Module
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
 
-  fetchGroupsIncludingPending: secure (client, callback)->
-    @fetchPendingGroupInvitations client, (err, pendingGroups)=>
-      return callback err if err
-      @fetchGroups client, (err, memberGroups)->
-        return callback err if err
-        groups = pendingGroups.concat memberGroups
-        return callback null, groups
+  fetchPendingGroupInvitations: secure (client, callback)->
+    JUser              = require '../user'
+    JGroup             = require '../group'
+    JInvitationRequest = require '../invitationrequest'
+
+    JUser.one username:@profile.nickname, (err, user)->
+      if err then callback err
+      else
+        selector =
+          email  : user.email
+          status : {$in:['pending', 'sent']}
+          group  : {$exists:1}
+
+        JInvitationRequest.some selector, {}, (err, invites)->
+          if err then callback err
+          else if invites?.length <= 0
+            callback null, []
+          else
+            invitations     = []
+            checkMembership = race (i, invitation, done)->
+              JGroup.one slug:invitation.group, (err, group)->
+                if err
+                  callback err
+                  done()
+                else
+                  group.fetchMembershipStatuses client, (err, roles)->
+                    if err then callback err
+                    else if 'member' not in roles and 'admin' not in roles
+                      invitations.push {invitation, group, roles: []}
+                    done()
+            , -> callback null, invitations
+            
+            checkMembership invitation for invitation in invites
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
@@ -852,37 +878,3 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
-
-  fetchPendingGroupInvitations: secure (client, callback)->
-    JUser              = require '../user'
-    JGroup             = require '../group'
-    JInvitationRequest = require '../invitationrequest'
-
-    JUser.one username:@profile.nickname, (err, user)->
-      if err then callback err
-      else
-        selector =
-          email  : user.email
-          status : {$in:['pending', 'sent']}
-          group  : {$exists:1}
-
-        JInvitationRequest.some selector, {}, (err, invites)->
-          if err then callback err
-          else if invites?.length <= 0
-            callback null, []
-          else
-            invitations     = []
-            checkMembership = race (i, invitation, done)->
-              JGroup.one slug:invitation.group, (err, group)->
-                if err
-                  callback err
-                  done()
-                else
-                  group.fetchMembershipStatuses client, (err, roles)->
-                    if err then callback err
-                    else if 'member' not in roles and 'admin' not in roles
-                      invitations.push {invitation, group, roles: []}
-                    done()
-            , -> callback null, invitations
-            
-            checkMembership invitation for invitation in invites

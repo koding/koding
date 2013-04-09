@@ -4,8 +4,22 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     super
 
+    @pending = 0
+    @notPopulated = yes
+    @notPopulatedPending = yes
+
     @_popupList = new PopupList
-      itemClass  : PopupGroupListItemWrapper
+      itemClass  : PopupGroupListItem
+
+    @_popupListPending = new PopupList
+      itemClass  : PopupGroupListItemPending
+
+    @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
+    @_popupListPending.on 'UpdateGroupList', @bound 'populateGroups'
+
+    @listControllerPending = new KDListViewController
+      view                : @_popupListPending
+      startWithLazyLoader : yes
 
     @listController = new KDListViewController
       view                : @_popupList
@@ -13,12 +27,19 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
-    @avatarPopupContent.addSubView switchToTitle = new KDView
+    @avatarPopupContent.addSubView @invitesHeader = new KDView
+      height   : "auto"
+      cssClass : "sublink top hidden"
+      partial  : "You have pending group invitations:"
+
+    @avatarPopupContent.addSubView @listControllerPending.getView()
+
+    @avatarPopupContent.addSubView @switchToTitle = new KDView
       height   : "auto"
       cssClass : "sublink top"
       partial  : "Switch to:"
 
-    switchToTitle.addSubView new KDCustomHTMLView
+    @switchToTitle.addSubView new KDCustomHTMLView
       tagName    : 'span'
       cssClass   : 'icon help'
       tooltip    :
@@ -37,39 +58,48 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   accountChanged:->
     @listController.removeAllItems()
 
+  populatePendingGroups:->
+    @listControllerPending.removeAllItems()
+    @listControllerPending.hideLazyLoader()
+
+    KD.whoami().fetchPendingGroupInvitations (err, groups)=>
+      if err then warn err
+      else if groups?
+        @pending = 0
+        for group in groups when group
+          @listControllerPending.addItem group
+          @pending++
+        @updatePendingCount()
+        @notPopulatedPending = no
+
   populateGroups:->
     @listController.removeAllItems()
     @listController.showLazyLoader()
-    KD.whoami().fetchGroupsIncludingPending (err, groups)=>
+
+    KD.whoami().fetchGroups (err, groups)=>
       if err then warn err
       else if groups?
         @listController.hideLazyLoader()
-        @listController.addItem group  for group in groups
+        @listController.addItem group for group in groups
+        @notPopulated = no
+
+  decreasePendingCount:->
+    @pending--
+    @updatePendingCount()
+
+  updatePendingCount:->
+    @listControllerPending.emit 'PendingGroupsCountDidChange', @pending
 
   show:->
     super
-    @populateGroups()
+    # in case user opens popup earlier than timed out initial population
+    @populateGroups() if @notPopulated
+    @populatePendingGroups() if @notPopulatedPending
 
-class PopupGroupListItemWrapper extends KDListItemView
+class PopupGroupListItem extends KDListItemView
 
   constructor:(options = {}, data)->
     options.tagName or= "li"
-    super
-
-    {invitation} = @getData()
-    if invitation
-      @setClass 'pending'
-      @child = new PopupGroupListItemPending {}, @getData()
-    else
-      @child = new PopupGroupListItem {}, @getData()
-
-  viewAppended: JView::viewAppended
-
-  pistachio: -> "{{> @child}}"
-
-class PopupGroupListItem extends KDView
-
-  constructor:(options = {}, data)->
     super
 
     {group:{title, avatar, slug}, roles} = @getData()
@@ -112,6 +142,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
     super
 
     {group:{title, slug}, invitation} = @getData()
+    @setClass 'role pending'
 
     @acceptButton = new KDButtonView
       style       : 'clean-gray'
@@ -125,9 +156,9 @@ class PopupGroupListItemPending extends PopupGroupListItem
         invitation.acceptInvitationByInvitee (err)=>
           if err then warn err
           else
-            @acceptButton.hide()
-            @ignoreButton.hide()
-            @parent.unsetClass 'pending'
+            @destroy()
+            @parent.emit 'PendingCountDecreased'
+            @parent.emit 'UpdateGroupList'
 
     @ignoreButton = new KDButtonView
       style       : 'clean-gray'
@@ -145,7 +176,8 @@ class PopupGroupListItemPending extends PopupGroupListItem
               title    : 'Fair enough!'
               content  : 'If you change your mind, you can request access to the group anytime.'
               duration : 2000
-            @parent.hide()
+            @destroy()
+            @parent.emit 'PendingCountDecreased'
 
   viewAppended: JView::viewAppended
 

@@ -86,6 +86,16 @@ class AvatarAreaIconMenu extends JView
         @messagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
+    @groupSwitcherPopup.listControllerPending.on 'PendingGroupsCountDidChange', (count)=>
+      @utils.killWait @groupSwitcherPopup.loaderTimeout
+      if count > 0
+        @groupSwitcherPopup.invitesHeader.show()
+        @groupSwitcherPopup.switchToTitle.unsetClass 'top'
+      else
+        @groupSwitcherPopup.invitesHeader.hide()
+        @groupSwitcherPopup.switchToTitle.setClass 'top'
+      @groupsSwitcherIcon.updateCount count
+
   accountChanged:(account)->
 
     {notificationsPopup, messagesPopup, groupSwitcherPopup} = @
@@ -109,7 +119,9 @@ class AvatarAreaIconMenu extends JView
         messagesPopup.listController.fetchMessages() if KD.isLoggedIn()
 
       groupSwitcherPopup.loaderTimeout = @utils.wait 5000, =>
-        groupSwitcherPopup.populateGroups() if KD.isLoggedIn()
+        if KD.isLoggedIn()
+          groupSwitcherPopup.populateGroups() 
+          groupSwitcherPopup.populatePendingGroups()
 
     else
       @setClass "invisible"
