@@ -23,43 +23,47 @@ class StaticGroupController extends KDController
 
     super
 
+    @group             = null
     @mainController    = @getSingleton "mainController"
     @lazyDomController = @getSingleton "lazyDomController"
     {@groupEntryPoint} = KD.config
 
-    # @navLinks = []
-    # @currentFacets = []
-
     @reviveViews()
-    @parseMenuItems (items)=>
-      log items
-
-
     @checkGroupUserRelation()
     @attachListeners()
 
 
     @registerSingleton 'staticGroupController', @, yes
 
-  parseMenuItems :(callback)->
+  fetchGroup:(callback)->
     KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if groups.first
-        groups.first.fetchReadme (err,readme={})=>
-          {content} = readme
-          unless err or not content
-            menuItems = []
-            lines = content.split("\n");
-            for line,index in lines
-              if /^#[^#]{1,}/.test line
-                menuItems.push
-                  title : line.replace(/^#*\s*/g, '')
-                  line  : index
-              else if /^\s*(=){1,}\s*$/.test line
-                menuItems.push
-                  title : lines[index-1]
-                  line  : index-1
+      if err then callback err
+      else if groups?.first
+        @group = groups.first
+        callback null, @group
 
-            callback menuItems
+  parseMenuItems :(callback)->
+
+    cb = (group)=>
+      group.fetchReadme (err,readme={})=>
+        {content} = readme
+        unless err or not content
+          menuItems = []
+          lines = content.split("\n");
+          for line,index in lines
+            if /^#[^#]{1,}/.test line
+              menuItems.push
+                title : line.replace(/^#*\s*/g, '')
+                line  : index
+            else if /^\s*(=){1,}\s*$/.test line
+              menuItems.push
+                title : lines[index-1]
+                line  : index-1
+
+          callback menuItems
+
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
 
   reviveViews :->
 
@@ -77,19 +81,19 @@ class StaticGroupController extends KDController
 
     @groupTitleView = new KDView
       lazyDomId : 'group-title'
-      click     : =>
-        # @activityListWrapper.hide()
-        @groupReadmeView.show()
 
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
 
-    @buttonWrapper = new KDCustomHTMLView
-      cssClass : "button-wrapper"
-      lazyDomId : "group-button-wrapper"
 
-    @groupContentView = new KDView
-      lazyDomId : 'group-loading-content'
+    @groupContentView = new KDScrollView
+      lazyDomId : 'group-landing-content'
+      scroll    : (event)=>
+        if @groupContentView.getScrollTop() > 37
+          @landingNav.setClass "in"
+        else
+          @landingNav.unsetClass "in"
+        # log "scrolling", event
 
     @groupSplitView = new KDView
       lazyDomId : 'group-splitview'
@@ -113,32 +117,102 @@ class StaticGroupController extends KDController
 
     groupLogoView.setY @landingView.getHeight()-42
 
-    @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
+    @landingView.addSubView @landingNav = new KDCustomHTMLView
+      tagName   : 'nav'
+      lazyDomId : "landing-page-nav"
+      click     : (event)=>
+        if $(event.target).is('h2')
+          @groupContentView.scrollTo duration : 300
+
+    @buttonWrapper = new KDCustomHTMLView
+      cssClass : "button-wrapper"
+
+    @buttonWrapper.addSubView @userButtonBar = new StaticUserButtonBar
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
 
+    @createGroupNavigation()
+
+  createGroupNavigation:->
+
+    @parseMenuItems (items)=>
+
+      flyingNavController  = new KDListViewController
+        view         : new KDListView
+          itemClass  : GroupLandingNavItem
+          wrapper    : no
+          scrollView : no
+          type       : "group-landing-nav"
+
+      flyingNav = flyingNavController.getListView()
+      flyingNav.on "viewAppended", ->
+        flyingNavController.instantiateListItems items.slice()
+
+      @landingNav.addSubView flyingNavController.getListView()
+
+      navController  = new KDListViewController
+        view         : new KDListView
+          itemClass  : GroupLandingNavItem
+          wrapper    : no
+          scrollView : no
+          type       : "group-landing-nav"
+
+      nav = navController.getListView()
+      nav.on "viewAppended", ->
+        navController.instantiateListItems items.slice()
+
+      @groupTitleView.addSubView navController.getListView(), ".group-title-wrapper"
+
+      nav.on       "groupLandingNavItemClicked", @bound "scrollToTitle"
+      flyingNav.on "groupLandingNavItemClicked", @bound "scrollToTitle"
+
+      titles       = @groupContentView.$('.has-markdown h1')
+      scrollHeight = @groupContentView.getScrollHeight()
+      positionTop  = $(titles[titles.length-1]).position().top
+      surplus      = scrollHeight - positionTop - 50
+      marginBottom = window.innerHeight - surplus
+
+      if marginBottom > 0
+        @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
+
+      # @groupContentView.on "scroll", =>
+      #   scrollTop = @groupContentView.getScrollTop()
+      #   for title, i in titles
+      #     if $(title).position().top > scrollTop
+      #       log items[i].title
+
+
+  scrollToTitle:(itemData)->
+
+    titles = @groupContentView.$('.has-markdown h1')
+
+    for title in titles when $(title).text() is itemData.title
+      @groupContentView.scrollTo
+        top      : $(title).position().top - 50
+        duration : 300
+      break
 
   checkGroupUserRelation:->
+    cb = (group)=>
+      group.fetchMembershipStatuses (err, statuses)=>
+        if err then warn err
+        else if statuses.length
+          if "member" in statuses or "admin" in statuses
+            isAdmin = 'admin' in statuses
+            @emit roleEventMap.member, isAdmin
+          else
+            @emit roleEventMap[statuses.first]
 
-    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if err then warn err
-      else if groups?.first
-        groups.first.fetchMembershipStatuses (err, statuses)=>
-          if err then warn err
-          else if statuses.length
-            if "member" in statuses or "admin" in statuses
-              isAdmin = 'admin' in statuses
-              @emit roleEventMap.member, isAdmin
-            else
-              @emit roleEventMap[statuses.first]
+      group.on 'NewMember', (member={})=>
+        if member.profile?.nickname is KD.whoami().profile.nickname
+          @pendingButton?.hide()
+          @requestButton?.hide()
+          @decorateMemberStatus no
 
-        groups.first.on 'NewMember', (member={})=>
-          if member.profile?.nickname is KD.whoami().profile.nickname
-            @pendingButton?.hide()
-            @requestButton?.hide()
-            @decorateMemberStatus no
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
 
 
 
@@ -265,6 +339,26 @@ class StaticGroupController extends KDController
             icon     : {}
             click    : (event)=>
               event.preventDefault()
-              @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+              @lazyDomController.handleNavigationItemClick
+                action  : 'join-group'
 
           @buttonWrapper.addSubView @requestButton
+
+
+class GroupLandingNavItem extends KDListItemView
+
+  constructor:(options = {}, data)->
+
+    options.tagName    or= "a"
+    options.attributes   =
+      href               : "#"
+
+    super options, data
+
+  viewAppended: JView::viewAppended
+
+  click:(event)->
+    event.preventDefault()
+    @getDelegate().emit "groupLandingNavItemClicked", @getData()
+
+  pistachio:-> "{{ #(title)}}"
