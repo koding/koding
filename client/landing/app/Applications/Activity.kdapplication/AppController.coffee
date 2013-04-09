@@ -122,6 +122,12 @@ class ActivityAppController extends AppController
             warn err
             @listController.noActivityItem.show()
           else
+            teasers = _.compact(teasers)
+            lastTo   = teasers.first.meta.createdAt
+            lastFrom = teasers.last.meta.createdAt
+
+            log lastTo, lastFrom
+
             @listController.listActivities teasers
 
       else
@@ -132,6 +138,11 @@ class ActivityAppController extends AppController
             @listController.hideLazyLoader()
             @listController.noActivityItem.show()
           else
+            lastTo   = cache.to
+            lastFrom = cache.from
+
+            log lastTo, lastFrom
+
             @sanitizeCache cache, (err, cache)=>
               @listController.hideLazyLoader()
               @listController.listActivitiesFromCache cache
@@ -203,7 +214,8 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    lastTimeStamp = (new Date @listController.lastCacheListTimestamp).getTime()
+    lastTimeStamp = (new Date lastFrom).getTime()
+    log "lastTimeStamp", lastTimeStamp
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
