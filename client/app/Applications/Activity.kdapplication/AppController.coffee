@@ -220,7 +220,6 @@ class ActivityAppController extends AppController
   continueLoadingTeasers:->
 
     lastTimeStamp = (new Date lastFrom).getTime()
-    log "lastTimeStamp", lastTimeStamp
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
