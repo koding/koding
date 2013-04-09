@@ -54,7 +54,7 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel','__chris','fetchCollectedMessages'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -152,10 +152,6 @@ module.exports = class JGroup extends Module
                       console.log "added member: #{account.profile.nickname}"
 
   @renderHomepage = require './render-homepage'
-
-  # @__chris =->
-  #   i = 0
-  #   setInterval (=> @broadcast 'koding', i++), 100
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -257,23 +253,13 @@ module.exports = class JGroup extends Module
 
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
-    JName.fetchSecretName groupSlug, (err, secretName)->
+    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
       if err then callback err
-      else callback null, "group.secret.#{secretName}"
-
-  collectedMessages = []
-
-  @collectMessages =->
-    @on 'broadcast', handler = (message)-> collectedMessages.push message
-    setTimeout (-> collectedMessages.length = 0), 10000
-    setTimeout (=> @off 'broadcast', handler), 5000
-
-  @fetchCollectedMessages = permit 'read activity',
-    success: (client, callback)-> callback null, collectedMessages
+      else callback null, "group.secret.#{secretName}",
+        if oldSecretName then "group.secret.#{oldSecretName}"
 
   @cycleChannel =do->
     cycleChannel = (groupSlug, callback=->)->
-      @collectMessages()
       JName = require '../name'
       JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
         if err then callback err
@@ -284,10 +270,12 @@ module.exports = class JGroup extends Module
     return throttle cycleChannel, 5000
 
   @broadcast =(groupSlug, message)->
-    @fetchSecretChannelName groupSlug, (err, secretChannelName)=>
+    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
       if err? then console.error err
       else unless secretChannelName? then console.error 'unknown channel'
-      else @emit 'broadcast', secretChannelName, message
+      else
+        @emit 'broadcast', oldSecretChannelName, message  if oldSecretChannelName
+        @emit 'broadcast', secretChannelName, message
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 
