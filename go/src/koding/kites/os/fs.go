@@ -10,7 +10,8 @@ import (
 	"koding/virt"
 	"os"
 	"path"
-	"strings"
+	"regexp"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -188,7 +189,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return file.Write(params.Content)
 	})
 
-	k.Handle("fs.getSafePath", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	suffixRegexp, err := regexp.Compile(`.((_\d+)?)(\.\w*)?$`)
+	if err != nil {
+		panic(err)
+	}
+
+	k.Handle("fs.ensureNonexistentPath", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
 			Path string
 		}
@@ -199,8 +205,23 @@ func registerFileSystemMethods(k *kite.Kite) {
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
-		return getSafePath(vos, params.Path)
+		name := params.Path
+		index := 1
+		for {
+			_, err := vos.Stat(name)
+			if err != nil {
+				if os.IsNotExist(err) {
+					break
+				}
+				return nil, err
+			}
 
+			loc := suffixRegexp.FindStringSubmatchIndex(name)
+			name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
+			index++
+		}
+
+		return name, nil
 	})
 
 	k.Handle("fs.getInfo", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
@@ -339,7 +360,7 @@ func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := vos.Stat(path.Join(dir, fi.Name()))
+		symlinkInfo, err := vos.Stat(dir + "/" + fi.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry
@@ -351,34 +372,4 @@ func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	}
 
 	return entry
-}
-
-func getSafePath(vos *virt.VOS, tpath string) (string, error) {
-
-	index := 1
-	dpath, fname := path.Split(tpath)
-	fext := path.Ext(fname)
-	bname := strings.TrimRight(fname, fext)
-
-	fi, err := vos.Stat(tpath)
-	for {
-		if err != nil {
-			if os.IsNotExist(err) {
-				return tpath, nil
-			} else {
-				return "", err
-			}
-		} else {
-			if fi.IsDir() {
-				fname = fmt.Sprintf("%s_%d", fname, index)
-			} else {
-				fname = fmt.Sprintf("%s_%d%s", bname, index, fext)
-			}
-			tpath = path.Join(dpath, fname)
-			fi, err = vos.Stat(tpath)
-			index++
-		}
-	}
-
-	return "", nil
 }
