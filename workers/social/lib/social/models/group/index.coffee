@@ -292,6 +292,8 @@ module.exports = class JGroup extends Module
           callback null
     return throttle cycleChannel, 5000
 
+  cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
+
   @broadcast =(groupSlug, message)->
     @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
       if err? then console.error err
@@ -738,6 +740,7 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
+      @cycleChannel()
       @emit 'NewMember'
 
   each:(selector, rest...)->
