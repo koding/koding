@@ -203,20 +203,8 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    unless isLoading
-      if @listController.itemsOrdered.last
-        lastItemData = @listController.itemsOrdered.last.getData()
-        # memberbucket data has no serverside model it comes from cache
-        # so it has no meta, that's why we check its date by its overview
-        lastDate = if lastItemData.createdAtTimestamps
-          new Date lastItemData.createdAtTimestamps[0]
-        else
-          new Date lastItemData.meta.createdAt
-      else
-        lastDate = new Date
-
-      lastTimeStamp = lastDate.getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    lastTimeStamp = (new Date @listController.lastCacheListTimestamp).getTime()
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
 
