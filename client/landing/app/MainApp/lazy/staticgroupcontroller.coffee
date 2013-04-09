@@ -31,12 +31,30 @@ class StaticGroupController extends KDController
     # @currentFacets = []
 
     @reviveViews()
+    @parseMenuItems (items)=>
+      log items
+
 
     @checkGroupUserRelation()
     @attachListeners()
 
+
     @registerSingleton 'staticGroupController', @, yes
 
+  parseMenuItems :(callback)->
+    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
+      if groups.first
+        groups.first.fetchReadme (err,{content})=>
+          unless err
+            menuItems = []
+            lines = content.split("\n");
+            for line,index in lines
+              if /^#[^#]{1,}/.test line
+                menuItems.push line.replace(/^#*\s*/g, '')
+              else if /^\s*(=){1,}\s*$/.test line
+                menuItems.push lines[index-1]
+
+            callback menuItems
 
   reviveViews :->
 
@@ -95,6 +113,7 @@ class StaticGroupController extends KDController
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
+
 
   checkGroupUserRelation:->
 
