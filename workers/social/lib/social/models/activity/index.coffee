@@ -32,8 +32,8 @@ module.exports = class CActivity extends jraphical.Capsule
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchFacets'
-        'fetchFacets1'
+        'captureSortCounts','addGlobalListener','fetchFacets',
+        'checkIfLikedBefore'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -230,9 +230,35 @@ module.exports = class CActivity extends jraphical.Capsule
       @some selector, options, (err, activities)->
         if err then callback err
         else
+
+          # When the snapshot already contains &quot;, those will be
+          # decoded once the client receives them (along with the " that
+          # are encoded for the server-client transmission). That's why
+          # they are converted into \" here.              02/28/13 Arvid
+
+          for own index,activity of activities
+            if activity.snapshot
+              activities[index].snapshot = activities[index].snapshot.replace(/(&quot;)/g, '\\"')
+
           callback null, activities
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
     , callback
+
+  @checkIfLikedBefore: secure ({connection}, idsToCheck, callback)->
+    {delegate} = connection
+    if not delegate
+      callback null, no
+    else
+      Relationship.some
+        sourceId: {$in: idsToCheck}
+        targetId: delegate.getId()
+        as: 'like'
+      , {}, (err, likedRels)=>
+        likedIds = []
+        for likedRel in likedRels
+          likedIds.push likedRel.sourceId
+
+        callback err, likedIds

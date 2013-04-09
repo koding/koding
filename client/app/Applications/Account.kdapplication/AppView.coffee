@@ -13,30 +13,31 @@ class AccountNavigationLink extends KDListItemView
 class AccountListWrapper extends KDView
 
   listClasses =
-    personal                   :
-      username                 : AccountEditUsername
-      security                 : AccountEditSecurity
-      emailNotifications       : AccountEmailNotifications
-      linkedAccountsController : AccountLinkedAccountsListController
-      linkedAccounts           : AccountLinkedAccountsList
-    billing                    :
-      historyController        : AccountPaymentHistoryListController
-      history                  : AccountPaymentHistoryList
-      methodsController        : AccountPaymentMethodsListController
-      methods                  : AccountPaymentMethodsList
-      subscriptionsController  : AccountSubscriptionsListController
-      subscriptions            : AccountSubscriptionsList
-    develop                    :
-      # databasesController      : AccountDatabaseListController
-      # databases                : AccountDatabaseList
-      editorsController        : AccountEditorListController
-      editors                  : AccountEditorList
-      mountsController         : AccountMountListController
-      mounts                   : AccountMountList
-      reposController          : AccountRepoListController
-      repos                    : AccountRepoList
-      keysController           : AccountSshKeyListController
-      keys                     : AccountSshKeyList
+    personal                         :
+      username                       : AccountEditUsername
+      security                       : AccountEditSecurity
+      emailNotifications             : AccountEmailNotifications
+      linkedAccountsController       : AccountLinkedAccountsListController
+      linkedAccounts                 : AccountLinkedAccountsList
+    billing                          :
+      historyController              : AccountPaymentHistoryListController
+      history                        : AccountPaymentHistoryList
+      methodsController              : AccountPaymentMethodsListController
+      methods                        : AccountPaymentMethodsList
+      subscriptionsController        : AccountSubscriptionsListController
+      subscriptions                  : AccountSubscriptionsList
+    develop                          :
+      editorsController              : AccountEditorListController
+      editors                        : AccountEditorList
+      mountsController               : AccountMountListController
+      mounts                         : AccountMountList
+      reposController                : AccountRepoListController
+      repos                          : AccountRepoList
+      keysController                 : AccountSshKeyListController
+      keys                           : AccountSshKeyList
+    kites                            :
+      kiteListController             : AccountKiteListController
+      kiteList                       : AccountKiteList
 
   viewAppended:->
 
@@ -65,7 +66,7 @@ class AccountsSwappable extends KDView
     @addSubView(@view1 = @options.views[0]).hide()
     @addSubView @view2 = @options.views[1]
 
-  swapViews:()->
+  swapViews:->
     if @view1.$().is(":visible")
       @view1.hide()
       @view2.show()

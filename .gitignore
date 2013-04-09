@@ -26,7 +26,8 @@ ebin
 /go/pkg
 .project
 /kites/terminal/.tmp
-
+/kites/os
+/kites/vmtool
 /node_modules/*
 
 /.deployments

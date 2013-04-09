@@ -36,7 +36,7 @@ module.exports =
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : yes
+  runOsKite     : no
   runLdapServer : yes
   runProxy      : yes
   misc          :
@@ -88,7 +88,7 @@ module.exports =
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
@@ -104,6 +104,9 @@ module.exports =
       sourceUri : 'http://koding.local:1337'
   mq            :
     host        : 'localhost'
+    port        : 5672
+    apiAddress  : "localhost"
+    apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'

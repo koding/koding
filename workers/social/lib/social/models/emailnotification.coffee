@@ -1,5 +1,7 @@
 {Model, Base, ObjectId, secure} = require 'bongo'
 
+createId = require 'hat'
+
 # Poor mans unique ID generator
 getUniqueId= -> createId 128
 

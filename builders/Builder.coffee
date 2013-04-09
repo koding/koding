@@ -61,7 +61,7 @@ module.exports = class Builder
 
       setTimeout =>
         @compileChanged options, false
-      , 250
+      , 2250
 
   readIncludesFile: ->
     includesFile = @config.client.includesPath + "/includes.coffee"
@@ -125,7 +125,7 @@ module.exports = class Builder
             jsSourceMap = result.v3SourceMap
 
             if file.includePath.indexOf("Framework") == 0
-              r = /^class (\w+)/g
+              r = /^class (\w+)/gm
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
           catch error

@@ -9,25 +9,26 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
     @createSideBar()
     @listenWindowResize()
 
-  # putAbout:->
-  #   @putOverlay
-  #     color   : "rgba(0,0,0,0.9)"
-  #     animated: yes
-  #   @$('section').addClass "scale"
+  putAbout:->
+    @putOverlay
+      color   : "rgba(0,0,0,0.9)"
+      animated: yes
+    @$('section').addClass "scale"
 
-  #   @utils.wait 500, =>
-  #     @addSubView about = new AboutView
-  #       domId   : "about-text"
-  #       click   : @bound "removeOverlay"
+    @utils.wait 500, =>
+      @addSubView about = new AboutView
+        domId   : "about-text"
+        click   : @bound "removeOverlay"
 
-  #     @once "OverlayWillBeRemoved", about.bound "destroy"
-  #     @once "OverlayWillBeRemoved", => @$('section').removeClass "scale"
+      @once "OverlayWillBeRemoved", about.bound "destroy"
+      @once "OverlayWillBeRemoved", => @$('section').removeClass "scale"
 
   addBook:-> @addSubView new BookView
 
@@ -86,10 +87,19 @@ class MainView extends KDView
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
-    @contentPanel.on "webkitTransitionEnd", (e) =>
-      @emit "mainViewTransitionEnd", e
+  addServerStack:->
+    @addSubView @serverStack = new KDView
+      domId : "server-rack"
+      click : ->
+        $('body').removeClass 'server-stack'
+        $('.kdoverlay').remove()
+
+  addHeader:()->
 
   addHeader:->
+
+    if KD.config.groupEntryPoint
+      @addSubView @groupSummary = new GroupSummaryView
 
     @addSubView @header = new KDView
       tagName : "header"

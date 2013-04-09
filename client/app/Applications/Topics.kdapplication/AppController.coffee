@@ -50,6 +50,8 @@ class TopicsAppController extends AppController
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
                   followButton.redecorateState()
+          dataError         :->
+            log "Seems something broken:", arguments
 
         following           :
           title             : "Following"
@@ -191,7 +193,7 @@ class TopicsAppController extends AppController
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
-      @getView().$(".activityhead span.optional_title").html count
+      @getView().$(".feeder-header span.optional_title").html count
       return no
     if count >= 20 then count = '20+'
     # return if count % 20 is 0 and count isnt 20
@@ -199,7 +201,7 @@ class TopicsAppController extends AppController
     count   = 'No' if count is 0
     result  = "#{count} result" + if count isnt 1 then 's' else ''
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead").html title
+    @getView().$(".feeder-header").html title
 
   createContentDisplay:(topic, callback)->
     controller = new ContentDisplayControllerTopic null, topic

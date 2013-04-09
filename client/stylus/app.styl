@@ -16,6 +16,10 @@ body
   // &.login,
   // &.loading
   //   bg                image,url("../images/koding-new-bg.png")
+  // &.turn-off
+  //   vendor         animation, shrink .6s ease
+  //   vendor         animation-iteration-count, 1
+  //   vendor         transform, scale(0)
 
   >.kdloader
     display           block
@@ -56,9 +60,6 @@ body
   z-index           1000
   background-image url(../images/koding-new-bg.png)
 
-#zikkim
-  vendor            transition, bottom .2s ease-in .2s
-
 @keyframes pulse
   0%
     opacity .5
@@ -67,49 +68,55 @@ body
   100%
     opacity .5
 
-// @keyframes fade-in-out
+// @keyframes shrink
 //   0%
-//     opacity      0
-//   16%
-//     opacity      1
-//   84%
-//     opacity      1
+//     vendor       transform, scale(1)
 //   100%
-//     opacity      0
+//     vendor       transform, scale(0)
 
-// @keyframes crawl
-//   0%
-//     vendor       transform, rotateX(40deg) translateZ(100px) translateY(1100px)
-//     opacity      1
-//   40%
-//     vendor       transform, rotateX(40deg) translateZ(300px) translateY(0px)
-//     opacity      1
-//   80%
-//     vendor       transform, rotateX(40deg) translateZ(900px) translateY(-1100px)
-//     opacity      0
-//   100%
-//     vendor       transform, rotateX(40deg) translateZ(1800px) translateY(-1800px)
-//     opacity      0
+@keyframes fade-in-out
+  0%
+    opacity      0
+  16%
+    opacity      1
+  84%
+    opacity      1
+  100%
+    opacity      0
 
-// #about-text
-//   abs()
-//   z-index        100000
-//   vendor         perspective, 800
-//   vendor         perspective-origin, center 300px
-//   top            0
-//   left           0
-//   >div
-//     height         auto
-//     color          #f2f2f2
-//     text-align     center
-//     font-size      36px
-//     line-height    72px
-//     vendor         animation, crawl 30s linear
-//     vendor         animation-iteration-count, 1
-//     // vendor         animation-delay, 1s
-//     vendor         transform-style, preserve-3d
-//   h2.sub-header
-//     display       none
+@keyframes crawl
+  0%
+    vendor       transform, rotateX(40deg) translateZ(100px) translateY(1100px)
+    opacity      1
+  40%
+    vendor       transform, rotateX(40deg) translateZ(300px) translateY(0px)
+    opacity      1
+  80%
+    vendor       transform, rotateX(40deg) translateZ(900px) translateY(-1100px)
+    opacity      0
+  100%
+    vendor       transform, rotateX(40deg) translateZ(1800px) translateY(-1800px)
+    opacity      0
+
+#about-text
+  abs()
+  z-index        100000
+  vendor         perspective, 800
+  vendor         perspective-origin, center 300px
+  top            0
+  left           0
+  >div
+    height         auto
+    color          #f2f2f2
+    text-align     center
+    font-size      36px
+    line-height    72px
+    vendor         animation, crawl 30s linear
+    vendor         animation-iteration-count, 1
+    // vendor         animation-delay, 1s
+    vendor         transform-style, preserve-3d
+  h2.sub-header
+    display       none
 
 .pulsing
   vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
@@ -1470,11 +1477,65 @@ span.main-nav-icon
       width          300px
       margin         8px
 
-#landing-page-sidebar
-  padding-top        10px
-  .kdlistview
-    vendor           transition, opacity .15s ease
-    opacity          1
-    &.out
-      opacity        0
 
+// #finder-panel
+// #content-panel
+// #kdmaincontainer
+//   -webkit-transition            all .8s ease
+
+body
+
+  #server-rack
+    background-image              url('/images/racks.png')
+    height                        835px
+    position                      absolute
+    width                         180px
+    top                           190px
+    left                          230px
+    background-repeat             no-repeat
+    -webkit-transition            opacity .8s ease
+    display                       hidden
+    opacity                       0
+    z-index                       0
+
+  #kdmaincontainer
+    header
+      -webkit-transition            opacity .8s ease
+      opacity                       1
+
+    section
+      -webkit-perspective           700px
+      -webkit-perspective-origin-x  260px
+      -webkit-perspective-origin-y  400px
+
+    #sidebar-panel
+      -webkit-transform-origin      0 0
+      -webkit-transform             rotate3d(0, 0, 0, 0deg)
+      -webkit-transition            all .8s ease
+
+    #content-panel
+      -webkit-transform-origin      32% 0px
+      -webkit-transition            all .8s ease
+      -webkit-transform             rotate3d(0, 0, 0, 0deg)
+
+  &.server-stack
+    #kdmaincontainer
+      #server-rack
+        opacity                       1
+        display                       block
+        z-index                       999999
+
+      header
+        -webkit-transition            opacity .8s ease
+
+      #sidebar-panel
+        -webkit-transform-origin      0 0
+        -webkit-transform             rotate3d(0, 1, 0, 20deg)
+        -webkit-transition            all .8s ease
+        left                          -56px
+
+      #content-panel
+        -webkit-transform-origin      32% 0px
+        -webkit-transition            all .8s ease
+        -webkit-transform             rotate3d(0, 1, 0, -20deg)
+        left                          460px

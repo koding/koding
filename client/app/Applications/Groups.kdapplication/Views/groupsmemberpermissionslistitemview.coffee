@@ -23,14 +23,19 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       cssClass         : 'fr edit-link'
       icon             :
         cssClass       : 'edit'
-      click            : @bound 'showEditMemberRolesView'
+      click            : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        @showEditMemberRolesView()
 
     @saveLink          = new CustomLinkView
       title            : 'Save'
       cssClass         : 'fr hidden save-link'
       icon             :
         cssClass       : 'save'
-      click            : =>
+      click            : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
         @emit 'RolesChanged', @getData(), @editView.getSelectedRoles()
         @hideEditMemberRolesView()
         log "save"
@@ -40,7 +45,10 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       cssClass         : 'fr hidden cancel-link'
       icon             :
         cssClass       : 'delete'
-      click            : @bound 'hideEditMemberRolesView'
+      click            : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        @hideEditMemberRolesView()
 
     @editContainer     = new KDView
       cssClass         : 'edit-container hidden'

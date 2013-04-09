@@ -203,7 +203,6 @@ module.exports = class AuthWorker extends EventEmitter
       catch e then console.error e
     @presence.listen()
 
-
   connect:->
     {bongo} = this
     bongo.mq.ready =>
