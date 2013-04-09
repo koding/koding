@@ -8,7 +8,7 @@ class FSItem extends KDObject
 
   @create:(path, type, callback)->
 
-    FSHelper.getSafePath path, (err, response)->
+    FSHelper.ensureNonexistentPath path, (err, response)->
       if err
         callback? err, response
         warn err
@@ -29,7 +29,7 @@ class FSItem extends KDObject
   @copy:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.copy.started"
-    FSHelper.getSafePath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
         callback? err, response
@@ -46,7 +46,7 @@ class FSItem extends KDObject
   @move:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.move.started"
-    FSHelper.getSafePath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
         callback? err, response
@@ -63,7 +63,7 @@ class FSItem extends KDObject
   @compress:(file, type, callback)->
 
     file.emit "fs.compress.started"
-    FSHelper.getSafePath "#{file.path}.#{type}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{file.path}.#{type}", (err, response)->
       if err
         warn err
         callback? err, response
@@ -172,7 +172,7 @@ class FSItem extends KDObject
     newPath = "#{@parentPath}/#{newName}"
 
     @emit "fs.rename.started"
-    FSHelper.getSafePath newPath, (err, response)=>
+    FSHelper.ensureNonexistentPath newPath, (err, response)=>
       if err
         warn err
         callback? err, response

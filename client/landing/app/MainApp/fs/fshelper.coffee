@@ -45,8 +45,6 @@ class FSHelper
             treeController.removeNodeView node
             break
 
-    # treeController.rebuild()#initTree treeController.nodes
-
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
     KD.getSingleton('kiteController').run command, (err, res) =>
