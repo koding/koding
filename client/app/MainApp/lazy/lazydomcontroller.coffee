@@ -114,12 +114,6 @@ class LazyDomController extends KDController
     {loginScreen, mainViewController}    = mc
     {groupEntryPoint, profileEntryPoint} = KD.config
 
-    loginScreen.off 'LoginViewWasClicked'
-    loginScreen.once 'LoginViewWasClicked', =>
-      loginScreen.animateToForm 'home'
-      @openPath "/#{groupEntryPoint ? profileEntryPoint}"
-
-
     return @openPath(path) if path
 
     switch action
@@ -155,10 +149,6 @@ class LazyDomController extends KDController
   requestAccess:->
     {loginScreen} = @getSingleton('mainController')
     {groupEntryPoint, profileEntryPoint} = KD.config
-
-    loginScreen.off 'LoginViewWasClicked'
-    loginScreen.once 'LoginViewWasClicked', =>
-      loginScreen.animateToForm 'home'
 
     if KD.isLoggedIn()
       fetchCurrentGroup (group)=>
