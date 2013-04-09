@@ -111,8 +111,8 @@ class OldLoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      lazyDomId: "head-banner"
-      cssClass : "head-banner hidden"
+      lazyDomId: "invite-recovery-notification-bar"
+      cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
     @slideShow = new HomeSlideShowHolder
@@ -248,6 +248,9 @@ class OldLoginView extends KDScrollView
       @headBanner.updatePartial "You can now create a new password for your account"
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
+
+  handleInvitation:(invite)->
+    @headBannerShowInvitation invite
 
   headBannerShowInvitation:(invite)->
 
