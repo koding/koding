@@ -43,26 +43,14 @@ class StaticGroupController extends KDController
         callback null, @group
 
   parseMenuItems :(callback)->
+    menuItems = []
+    titles = @groupContentView.$('.has-markdown>span.data>h1')
+    for title in titles
+      menuItems.push
+        title : $(title).text()
+        line : 0
+    callback menuItems
 
-    cb = (group)=>
-      group.fetchReadme (err,{content})=>
-        unless err
-          menuItems = []
-          lines = content.split("\n");
-          for line,index in lines
-            if /^#[^#]{1,}/.test line
-              menuItems.push
-                title : line.replace(/^#*\s*/g, '')
-                line  : index
-            else if /^\s*(=){1,}\s*$/.test line
-              menuItems.push
-                title : lines[index-1]
-                line  : index-1
-
-          callback menuItems
-
-    if @group then cb @group
-    else @fetchGroup (err, group)-> cb group
 
   reviveViews :->
 
@@ -272,6 +260,7 @@ class StaticGroupController extends KDController
         event.preventDefault()
         @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
+    @requestButton?.hide()
     @buttonWrapper.addSubView open
 
     if isAdmin
@@ -318,6 +307,8 @@ class StaticGroupController extends KDController
 
 
   decorateGuestStatus:->
+
+    @requestButton?.hide()
 
     @requestButton = new CustomLinkView
       title    : "Request Access"
