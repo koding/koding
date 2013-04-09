@@ -17,11 +17,12 @@ class NSetPermissionsView extends JView
             @displayOldOctalPermissions()
 
     @recursive = new KDOnOffSwitch
+      size : 'tiny'
 
   permissionsToOctalString = (permissions)->
     str = permissions.toString 8
     str = "0" + str while str.length < 3
-    return str
+    return str[-3..]
 
   createSwitches: (permission) ->
     for i in [0...9]
