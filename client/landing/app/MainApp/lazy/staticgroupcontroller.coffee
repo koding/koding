@@ -156,13 +156,14 @@ class StaticGroupController extends KDController
       flyingNav.on "groupLandingNavItemClicked", @bound "scrollToTitle"
 
       titles       = @groupContentView.$('.has-markdown h1')
-      scrollHeight = @groupContentView.getScrollHeight()
-      positionTop  = $(titles[titles.length-1]).position().top
-      surplus      = scrollHeight - positionTop - 50
-      marginBottom = window.innerHeight - surplus
+      if titles.length
+        scrollHeight = @groupContentView.getScrollHeight()
+        positionTop  = $(titles[titles.length-1]).position().top
+        surplus      = scrollHeight - positionTop - 50
+        marginBottom = window.innerHeight - surplus
 
-      if marginBottom > 0
-        @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
+        if marginBottom > 0
+          @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
 
       # @groupContentView.on "scroll", =>
       #   scrollTop = @groupContentView.getScrollTop()
