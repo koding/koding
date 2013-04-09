@@ -116,6 +116,15 @@ class GroupSummaryView extends KDCustomHTMLView
     """
 
   showSummary:(event)->
+    @getSingleton('windowController').addLayer @
+    @once 'ReceivedClickElsewhere', =>
+      # @getSingleton('windowController').removeLayer @
+      @hideSummary()
+      unless @lazyDomController.isLandingPageVisible()
+        @utils.wait 400, =>
+          @sign.setClass "swing-in"
+
+
     if event
       event.stopPropagation()
       event.preventDefault()
@@ -132,13 +141,14 @@ class GroupSummaryView extends KDCustomHTMLView
 
 
   hideSummary:(event)->
+
     if event
       event.stopPropagation()
       event.preventDefault()
     if @lazyDomController.isLandingPageVisible()
-      @$().css top : 0
       @once "transitionend", =>
         @summaryNavBar.setClass "in"
+      @$().css top : 0
     else
       @once "transitionend", =>
         @sign.unsetClass "swing-out"

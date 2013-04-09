@@ -31,12 +31,35 @@ class StaticGroupController extends KDController
     # @currentFacets = []
 
     @reviveViews()
+    @parseMenuItems (items)=>
+      log items
+
 
     @checkGroupUserRelation()
     @attachListeners()
 
+
     @registerSingleton 'staticGroupController', @, yes
 
+  parseMenuItems :(callback)->
+    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
+      if groups.first
+        groups.first.fetchReadme (err,readme={})=>
+          {content} = readme
+          unless err or not content
+            menuItems = []
+            lines = content.split("\n");
+            for line,index in lines
+              if /^#[^#]{1,}/.test line
+                menuItems.push
+                  title : line.replace(/^#*\s*/g, '')
+                  line  : index
+              else if /^\s*(=){1,}\s*$/.test line
+                menuItems.push
+                  title : lines[index-1]
+                  line  : index-1
+
+            callback menuItems
 
   reviveViews :->
 
@@ -96,6 +119,7 @@ class StaticGroupController extends KDController
     @utils.defer =>
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
+
 
   checkGroupUserRelation:->
 
@@ -171,6 +195,7 @@ class StaticGroupController extends KDController
         event.preventDefault()
         @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
+    @requestButton?.hide()
     @buttonWrapper.addSubView open
 
     if isAdmin
@@ -217,6 +242,8 @@ class StaticGroupController extends KDController
 
 
   decorateGuestStatus:->
+
+    @requestButton?.hide()
 
     @requestButton = new CustomLinkView
       title    : "Request Access"
