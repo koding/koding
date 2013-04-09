@@ -102,6 +102,19 @@ class ActivityAppController extends AppController
     for activity in activities when activity.bongo_.constructorName in @getFilter()
       @listController.newActivityArrived activity
 
+  # Store first & last activity timestamp.
+  extractTeasersTimeStamps:(teasers)->
+
+    teasers  = _.compact(teasers)
+    lastTo   = teasers.first.meta.createdAt
+    lastFrom = teasers.last.meta.createdAt
+
+  # Store first & last cache activity timestamp.
+  extractCacheTimeStamps: (cache)->
+
+    lastTo   = cache.to
+    lastFrom = cache.from
+
   populateActivity:(options = {})->
 
     return if isLoading
@@ -122,12 +135,7 @@ class ActivityAppController extends AppController
             warn err
             @listController.noActivityItem.show()
           else
-            teasers = _.compact(teasers)
-            lastTo   = teasers.first.meta.createdAt
-            lastFrom = teasers.last.meta.createdAt
-
-            log lastTo, lastFrom
-
+            @extractTeasersTimeStamps(teasers)
             @listController.listActivities teasers
 
       else
@@ -138,10 +146,7 @@ class ActivityAppController extends AppController
             @listController.hideLazyLoader()
             @listController.noActivityItem.show()
           else
-            lastTo   = cache.to
-            lastFrom = cache.from
-
-            log lastTo, lastFrom
+            @extractCacheTimeStamps(cache)
 
             @sanitizeCache cache, (err, cache)=>
               @listController.hideLazyLoader()
