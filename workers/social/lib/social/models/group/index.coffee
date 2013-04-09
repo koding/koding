@@ -62,7 +62,8 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember'
+        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
+        'removeBackgroundImage'
       ]
     schema          :
       title         :
@@ -86,6 +87,7 @@ module.exports = class JGroup extends Module
       customize     :
         background  :
           customImages    : [String]
+          customColors    : [String]
           customType      :
             type          : String
             default       : 'defaultImage'
@@ -167,6 +169,11 @@ module.exports = class JGroup extends Module
           $set: {}
           $addToSet : {}
         operation.$addToSet['customize.background.customImages'] = value
+      else if type is 'customColor'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customColors'] = value
       else
         operation = $set : {}
 
@@ -176,6 +183,15 @@ module.exports = class JGroup extends Module
         operation.$set["customize.background.customValue"] = value
 
       @update operation, callback
+
+  removeBackgroundImage: permit 'edit groups',
+    success:(client, type, value, callback=->)->
+      if type is 'customImage'
+        @update {$pullAll: 'customize.background.customImages': [value]}, callback
+      else if type is 'customColor'
+        @update {$pullAll: 'customize.background.customColors': [value]}, callback
+      else
+        console.log 'Nothing to remove'
 
 
   @renderHomepage: require './render-homepage'
