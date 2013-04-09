@@ -13,7 +13,7 @@ class GroupsInvitationListItemView extends KDListItemView
 
     if @getData().koding
       @recipient = @getData().koding.username
-      KD.remote.cacheable @recipient, (err,account)=>
+      KD.remote.cacheable @recipient, (err, [account])=>
         @avatar.setData account
         @avatar.render()
     else
