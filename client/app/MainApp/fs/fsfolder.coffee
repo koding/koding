@@ -21,19 +21,3 @@ class FSFolder extends FSFile
         callback? files
       else
         @emit "fs.fetchContents.finished", err
-
-class FSFolderOld extends FSFile
-
-  fetchContents:(callback)->
-
-    @emit "fs.fetchContents.started"
-    @kiteController.run
-      withArgs  :
-        command : "ls #{FSHelper.escapeFilePath @path} -Llpva --group-directories-first --time-style=full-iso"
-    , (err, response)=>
-      if not err or /ls\:\scannot\saccess/.test err.message
-        files = FSHelper.parseLsOutput [@path], response
-        @emit "fs.fetchContents.finished", files
-        callback? files
-      else
-        @emit "fs.fetchContents.finished", err

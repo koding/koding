@@ -41,7 +41,7 @@ class NFinderController extends KDViewController
     mainView.addSubView @treeController.getView()
     @viewLoaded = yes
 
-    @reset() if @getOptions().loadFilesOnInit
+    @reset()  if @getOptions().loadFilesOnInit
 
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
