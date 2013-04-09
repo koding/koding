@@ -81,6 +81,7 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
 
+    @lastCacheListTimestamp = cache.to
     return @noActivityItem.show() unless Object.keys(cache).length
 
     for overviewItem in cache.overview when overviewItem
