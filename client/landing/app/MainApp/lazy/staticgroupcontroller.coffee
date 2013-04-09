@@ -23,42 +23,46 @@ class StaticGroupController extends KDController
 
     super
 
+    @group             = null
     @mainController    = @getSingleton "mainController"
     @lazyDomController = @getSingleton "lazyDomController"
     {@groupEntryPoint} = KD.config
 
-    # @navLinks = []
-    # @currentFacets = []
-
     @reviveViews()
-    @parseMenuItems (items)=>
-      log items
-
-
     @checkGroupUserRelation()
     @attachListeners()
 
 
     @registerSingleton 'staticGroupController', @, yes
 
-  parseMenuItems :(callback)->
+  fetchGroup:(callback)->
     KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if groups.first
-        groups.first.fetchReadme (err,{content})=>
-          unless err
-            menuItems = []
-            lines = content.split("\n");
-            for line,index in lines
-              if /^#[^#]{1,}/.test line
-                menuItems.push
-                  title : line.replace(/^#*\s*/g, '')
-                  line  : index
-              else if /^\s*(=){1,}\s*$/.test line
-                menuItems.push
-                  title : lines[index-1]
-                  line  : index-1
+      if err then callback err
+      else if groups?.first
+        @group = groups.first
+        callback null, @group
 
-            callback menuItems
+  parseMenuItems :(callback)->
+
+    cb = (group)=>
+      group.fetchReadme (err,{content})=>
+        unless err
+          menuItems = []
+          lines = content.split("\n");
+          for line,index in lines
+            if /^#[^#]{1,}/.test line
+              menuItems.push
+                title : line.replace(/^#*\s*/g, '')
+                line  : index
+            else if /^\s*(=){1,}\s*$/.test line
+              menuItems.push
+                title : lines[index-1]
+                line  : index-1
+
+          callback menuItems
+
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
 
   reviveViews :->
 
@@ -128,26 +132,44 @@ class StaticGroupController extends KDController
       groupLogoView.setClass 'animate'
       @landingView._windowDidResize()
 
+    @createGroupNavigation()
+
+  createGroupNavigation:->
+
+    @parseMenuItems (items)=>
+      log items
+      navController  = new KDListViewController
+        view         : new KDListView
+          itemClass  : GroupLandingNavItem
+          wrapper    : no
+          scrollView : no
+          type       : "nav"
+      # , {items}
+
+      navController.getListView().on "viewAppended", =>
+        navController.instantiateListItems items
+
+      @landingNav.addSubView navController.getListView()
 
   checkGroupUserRelation:->
+    cb = (group)=>
+      group.fetchMembershipStatuses (err, statuses)=>
+        if err then warn err
+        else if statuses.length
+          if "member" in statuses or "admin" in statuses
+            isAdmin = 'admin' in statuses
+            @emit roleEventMap.member, isAdmin
+          else
+            @emit roleEventMap[statuses.first]
 
-    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if err then warn err
-      else if groups?.first
-        groups.first.fetchMembershipStatuses (err, statuses)=>
-          if err then warn err
-          else if statuses.length
-            if "member" in statuses or "admin" in statuses
-              isAdmin = 'admin' in statuses
-              @emit roleEventMap.member, isAdmin
-            else
-              @emit roleEventMap[statuses.first]
+      group.on 'NewMember', (member={})=>
+        if member.profile?.nickname is KD.whoami().profile.nickname
+          @pendingButton?.hide()
+          @requestButton?.hide()
+          @decorateMemberStatus no
 
-        groups.first.on 'NewMember', (member={})=>
-          if member.profile?.nickname is KD.whoami().profile.nickname
-            @pendingButton?.hide()
-            @requestButton?.hide()
-            @decorateMemberStatus no
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
 
 
 
@@ -274,3 +296,21 @@ class StaticGroupController extends KDController
               @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
 
           @buttonWrapper.addSubView @requestButton
+
+
+class GroupLandingNavItem extends KDListItemView
+
+  constructor:(options = {}, data)->
+
+    options.tagName    or= "a"
+    options.attributes   =
+      href               : "#"
+
+    super options, data
+
+  viewAppended: JView::viewAppended
+
+  click:(event)->
+    event.preventDefault()
+
+  pistachio:-> "{{ #(title)}}"
