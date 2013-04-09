@@ -177,10 +177,15 @@ class StaticGroupController extends KDController
         @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
 
       # @groupContentView.on "scroll", =>
-      #   scrollTop = @groupContentView.getScrollTop()
+      #   lastVal = 0
       #   for title, i in titles
-      #     if $(title).position().top > scrollTop
-      #       log items[i].title
+      #     if newVal = $(title).offset().top < 0
+      #       if ~lastVal > ~newVal
+      #         log title
+      #         break
+      #       lastVal = newVal
+
+
 
 
   scrollToTitle:(itemData)->
