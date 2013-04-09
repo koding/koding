@@ -259,7 +259,8 @@ func registerFileSystemMethods(k *kite.Kite) {
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
-		doChange := func(name string) error {
+		var doChange func(name string) error
+		doChange = func(name string) error {
 			if err := vos.Chmod(name, params.Mode); err != nil {
 				return err
 			}
@@ -283,7 +284,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 				return err
 			}
 			var firstErr error
-			for entry := range entries {
+			for _, entry := range entries {
 				err := doChange(name + "/" + entry)
 				if err != nil && firstErr == nil {
 					firstErr = err
