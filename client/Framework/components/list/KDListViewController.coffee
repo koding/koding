@@ -78,7 +78,10 @@ class KDListViewController extends KDViewController
         @showLazyLoader no
       scrollView.on 'LazyLoadThresholdReached', @showLazyLoader.bind @
 
-    @instantiateListItems(@getData()?.items or [])
+
+    # {items} = @getData()
+    log @getData(), "zikkimin kökü"
+    # @instantiateListItems(items or [])
 
     @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
