@@ -74,12 +74,13 @@ module.exports = class AuthWorker extends EventEmitter
     delete @clients.byExchange[exchange]
     delete @clients.byRoutingKey[routingKey]
 
-  addClient:(socketId, exchange, routingKey)->
-    @bongo.respondToClient routingKey, {
-      method    : 'authOk'
-      arguments : []
-      callbacks : {}
-    }
+  addClient:(socketId, exchange, routingKey, sendOk=yes)->
+    if sendOk
+      @bongo.respondToClient routingKey, {
+        method    : 'authOk'
+        arguments : []
+        callbacks : {}
+      }
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
@@ -121,7 +122,7 @@ module.exports = class AuthWorker extends EventEmitter
     ensureGroupPermission =(group, account, roles, callback)->
       {JPermissionSet, JGroup} = @bongo.models
       client = {context: group.slug, connection: delegate: account}
-      JPermissionSet.checkPermission client, "read activities", group,
+      JPermissionSet.checkPermission client, "read activity", group,
         (err, hasPermission)->
           if err then callback err
           else unless hasPermission
@@ -160,11 +161,13 @@ module.exports = class AuthWorker extends EventEmitter
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
         when 'group'
-          unless routingKey is "group.#{messageData.group}"
+          console.log {routingKey}
+          unless ///^group.#{messageData.group}///.test routingKey
+            console.log 'rejecting', routingKey
             return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
         when 'secret'
-          @addClient socketId, routingKey, routingKey
+          @addClient socketId, routingKey, routingKey, no
         else
           @rejectClient routingKey
 

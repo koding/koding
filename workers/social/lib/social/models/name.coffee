@@ -1,8 +1,8 @@
 {Model, Base} = require 'bongo'
 
-class JSecretName extends Model
+createId = require 'hat'
 
-  createId = require 'hat'
+class JSecretName extends Model
 
   # TODO: the below should be made a bit more secure:
   @setSchema
@@ -30,6 +30,15 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
+
+  @cycleSecretName =(name, callback)->
+    JSecretName.one {name}, (err, secretNameObj)=>
+      if err then callback err
+      else unless secretNameObj?
+        callback new KodingError "Unknown name #{name}"
+      else secretNameObj.remove (err)->
+        oldSecretName = secretNameObj.secretName
+        callback err, unless err then oldSecretName
 
   @fetchSecretName =(name, callback)->
     JSecretName.one {name}, (err, secretNameObj)->

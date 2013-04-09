@@ -16,6 +16,8 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  {throttle} = require 'underscore'
+
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
     {permission: 'edit own groups', validateWith: Validators.own}
@@ -52,7 +54,7 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel','__chris','fetchCollectedMessages'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -149,7 +151,11 @@ module.exports = class JGroup extends Module
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
 
-  @renderHomepage: require './render-homepage'
+  @renderHomepage = require './render-homepage'
+
+  # @__chris =->
+  #   i = 0
+  #   setInterval (=> @broadcast 'koding', i++), 100
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -255,10 +261,33 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, "group.secret.#{secretName}"
 
+  collectedMessages = []
+
+  @collectMessages =->
+    @on 'broadcast', handler = (message)-> collectedMessages.push message
+    setTimeout (-> collectedMessages.length = 0), 10000
+    setTimeout (=> @off 'broadcast', handler), 5000
+
+  @fetchCollectedMessages = permit 'read activity',
+    success: (client, callback)-> callback null, collectedMessages
+
+  @cycleChannel =do->
+    cycleChannel = (groupSlug, callback=->)->
+      @collectMessages()
+      JName = require '../name'
+      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
+        if err then callback err
+        else
+          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
+          @emit 'broadcast', routingKey, null
+          callback null
+    return throttle cycleChannel, 5000
+
   @broadcast =(groupSlug, message)->
-    @fetchSecretChannelName groupSlug, (err, secretChannelName)->
-      console.error err  if err?
-      console.log 'this should send a message to the channel', secretChannelName
+    @fetchSecretChannelName groupSlug, (err, secretChannelName)=>
+      if err? then console.error err
+      else unless secretChannelName? then console.error 'unknown channel'
+      else @emit 'broadcast', secretChannelName, message
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 
