@@ -90,7 +90,8 @@ class StaticGroupController extends KDController
 
     groupLogoView.setY @landingView.getHeight()-42
 
-    @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
+    @userButtonBar = new StaticUserButtonBar
+    @buttonWrapper.addSubView @userButtonBar
 
     @utils.defer =>
       groupLogoView.setClass 'animate'
