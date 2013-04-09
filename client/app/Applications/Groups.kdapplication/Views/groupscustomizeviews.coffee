@@ -11,6 +11,57 @@ class StaticPageCustomizeView extends KDView
       cssClass  : 'custom-select-background-view'
       delegate  : @
 
+    @uploadIndicator = new KDView
+      partial : 'Your file is being uploaded...'
+      cssClass : 'upload-indicator hidden'
+
+    @uploadDropper = new KDImageUploadView
+      cssClass : 'upload-dropper hidden'
+
+      limit           : 1
+      preview         : "thumbs"
+      extensions      : null
+      fileMaxSize     : 2048
+      totalMaxSize    : 2048
+      fieldName       : "thumbnails"
+      convertToBlob   : yes
+      title           : "Drop Image here to upload"
+
+    @uploadDropper.on 'FileReadComplete', =>
+      @uploadDropper.hide()
+      @uploadIndicator.show()
+
+    @uploadDropper.on 'FileUploadComplete', (res)=>
+      if res.length and res[0].resource
+        @staticController.setBackground 'customImage', res[0].resource
+
+        @bgSelectView.thumbsController.addItem
+          title : 'User Image'
+          url : res[0].resource
+          thumbUrl : res[0].resource
+          dataIndex : -1
+          type : 'customImage'
+          userImage : yes
+        , 0
+
+        item = @bgSelectView.thumbsController.itemsOrdered.first
+        item.$().css backgroundImage : "url(#{res[0].resource})"
+        item.customUrl = res[0].resource
+        @bgSelectView.thumbsController.selectItem item
+
+        new KDNotificationView
+          title : 'Your image was uploaded successfully'
+
+        @uploadIndicator.hide()
+
+        item.emit 'FileUploaded',item
+
+      else
+        @uploadDropper.hide()
+        new KDNotificationView
+          title : 'There was an error uploading your file'
+
+
     @settingsLink = new CustomLinkView
       title     : 'Looking for Group Settings?'
       href      : '#'
@@ -39,7 +90,7 @@ class StaticPageCustomizeView extends KDView
       @bgColorView.decorateList @group
 
     @staticController = @getSingleton('staticGroupController') ? @getSingleton('staticProfileController')
-
+    @windowController = @getSingleton('windowController')
   addSettingsButton:->
     @settingsLink = new CustomLinkView
       title     : 'Looking for Group Settings?'
@@ -137,6 +188,19 @@ class StaticPageCustomizeView extends KDView
                       title : "Background updated to color #{defaultIndexItem.getData().title}"
                     @defaultColorChanged = no
 
+    @utils.wait 1000, =>
+
+      @windowController.on 'DragEnterOnWindow', (event)=>
+        # log 'ENTERED'
+        @windowController.addLayer @uploadDropper
+        @uploadDropper.show()
+
+      @windowController.on 'DragExitOnWindow', (event)=>
+        # log 'EXITED'
+        @windowController.removeLayer @uploadDropper
+        @uploadDropper.hide()
+
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -157,6 +221,8 @@ class StaticPageCustomizeView extends KDView
     </h1>
     {{> @bgSelectView}}
     {{> @bgColorView}}
+    {{> @uploadDropper}}
+    {{> @uploadIndicator}}
     """
 
 
@@ -183,6 +249,8 @@ class StaticGroupBackgroundUploadView extends KDView
         @getDelegate().customUrl = res[0].resource
 
         @getDelegate().emit 'FileUploaded',@
+
+
 
   viewAppended:->
     super
@@ -234,7 +302,6 @@ class StaticGroupBackgroundSelectView extends KDView
       @getDelegate().emit 'CustomImageSelected', view
 
     @thumbsController.listView.on 'FileUploaded', (view)=>
-      log 'selecting item',view.getDelegate()
       @thumbsController.selectItem view.getDelegate()
       @getDelegate().emit 'CustomImageSelected', view
 
@@ -251,6 +318,7 @@ class StaticGroupBackgroundSelectView extends KDView
           thumbUrl : customImage
           dataIndex : -1
           type : 'customImage'
+          userImage : yes
         , 0
 
     if backgroundData.customType is 'defaultImage'
@@ -290,10 +358,41 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
           src       : @getData().thumbUrl
           alt       : @getData().title
     else if @type is 'customImage'
+      @hide()
       @image = new  StaticGroupBackgroundUploadView
         cssClass : 'custom-image-upload'
         delegate : @
       @image.$().css backgroundImage : "url(#{@getData().thumbUrl})" if @getData().thumbUrl
+
+
+    if @getData().userImage
+
+      @closeLink =  new CustomLinkView
+        title       : ''
+        cssClass    : 'close-link'
+        icon        :
+          placement : 'right'
+        click       : (event)=>
+          event.preventDefault()
+          event.stopPropagation()
+          modal = new KDModalView
+            title     : 'Remove Custom Image'
+            cssClass  : "new-kdmodal"
+            content   : '<p>Do you really want to remove this image?</p> '
+            buttons   :
+              'Remove Image':
+                cssClass    : 'modal-clean-red'
+                callback    : =>
+                  @getDelegate()?.getDelegate()?.group?.removeBackgroundImage 'customImage', @getData().url, =>
+                    @destroy()
+                  modal.destroy()
+              'Cancel'      :
+                cssClass    : 'modal-cancel'
+                callback    : -> modal.destroy()
+
+    else
+      @closeLink = new KDView
+
 
     @customUrl = null
 
@@ -319,6 +418,7 @@ class StaticGroupBackgroundSelectItemView extends KDListItemView
     """
     {{> @image}}
     {{#(title)}}
+    {{> @closeLink}}
     """
 
 ## *************************
