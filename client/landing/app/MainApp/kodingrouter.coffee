@@ -248,7 +248,7 @@ class KodingRouter extends KDRouter
               title: 'Invalid invitation code!'
           else
             {loginScreen} = mainController
-            loginScreen.headBannerShowInvitation invite
+            loginScreen.handleInvitation invite
           @clear()
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->

@@ -74,7 +74,8 @@ class LoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      cssClass : "head-banner hidden"
+      lazyDomId: "invite-recovery-notification-bar"
+      cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
     @getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
@@ -90,7 +91,6 @@ class LoginView extends KDScrollView
 
   pistachio:->
     """
-    {{> @headBanner}}
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
@@ -188,15 +188,7 @@ class LoginView extends KDScrollView
         mainView.show()
         mainView.$().css "opacity", 1
 
-        {groupEntryPoint} = KD.config
-
-
-        if groupEntryPoint and groupEntryPoint isnt 'koding'
-          route = "/#{groupEntryPoint}/Activity"
-        else
-          route = "/Activity"
-
-        @getSingleton('router').handleRoute route, replaceState: yes
+        @getSingleton('router').handleRoute @getRouteWithEntryPoint('Activity'), replaceState: yes
 
         new KDNotificationView
           cssClass  : "login"
@@ -228,14 +220,11 @@ class LoginView extends KDScrollView
       @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
-    @$('.login-footer').hide()
-    @$('.footer-links').hide()
-    $('body').addClass 'recovery'
-
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
     @headBanner.setClass 'show'
+    $('body').addClass 'recovery'
     @headBanner.click = callback
 
   headBannerShowGoBackGroup:(groupTitle)->
@@ -253,11 +242,18 @@ class LoginView extends KDScrollView
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
+  handleInvitation:(invite)->
+    @headBannerShowInvitation invite
+    sgc = @getSingleton 'staticGroupController'
+    sgc.once "status.guest", ->
+      sgc.requestButton.hide()
+    sgc.userButtonBar.registerButton.setClass 'green'
+
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
-      @getSingleton('router').clear '/Register'
+      @getSingleton('router').clear @getRouteWithEntryPoint('Register')
       $('body').removeClass 'recovery'
       @showView =>
         @animateToForm "register"
@@ -314,3 +310,10 @@ class LoginView extends KDScrollView
 
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
       @setClass 'landed' unless name is 'home'
+
+  getRouteWithEntryPoint:(route)->
+    {groupEntryPoint} = KD.config
+    if groupEntryPoint and groupEntryPoint isnt 'koding'
+      return "/#{groupEntryPoint}/#{route}"
+    else
+      return "/#{route}"

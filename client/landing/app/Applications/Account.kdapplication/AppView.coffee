@@ -19,8 +19,6 @@ class AccountListWrapper extends KDView
       emailNotifications             : AccountEmailNotifications
       linkedAccountsController       : AccountLinkedAccountsListController
       linkedAccounts                 : AccountLinkedAccountsList
-      pendingInvitesController       : AccountPersPendingInvitesListController
-      pendingInvites                 : AccountPersPendingInvitesList
     billing                          :
       historyController              : AccountPaymentHistoryListController
       history                        : AccountPaymentHistoryList
