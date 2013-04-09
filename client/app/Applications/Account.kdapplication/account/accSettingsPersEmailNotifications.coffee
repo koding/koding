@@ -22,9 +22,9 @@ class AccountEmailNotifications extends KDView
       groupInvite      :
         title          : 'Someone invites me to their group'
       groupRequest     :
-        title          : 'Someone requests membership to your group'
+        title          : 'Someone requests access to my group'
       groupApproved    :
-        title          : 'Group admin approves your membership request'
+        title          : 'Group admin approves my access request'
 
     for flag, field of fields
       @addSubView field.formView = new KDFormView
