@@ -61,12 +61,15 @@ class StaticGroupController extends KDController
     @groupReadmeView = new KDView
       lazyDomId : 'group-readme'
 
-    @buttonWrapper = new KDCustomHTMLView
-      cssClass : "button-wrapper"
-      lazyDomId : "group-button-wrapper"
 
-    @groupContentView = new KDView
-      lazyDomId : 'group-loading-content'
+    @groupContentView = new KDScrollView
+      lazyDomId : 'group-landing-content'
+      scroll    : (event)=>
+        if @groupContentView.getScrollTop() > 37
+          @landingNav.setClass "in"
+        else
+          @landingNav.unsetClass "in"
+        # log "scrolling", event
 
     @groupSplitView = new KDView
       lazyDomId : 'group-splitview'
@@ -89,6 +92,13 @@ class StaticGroupController extends KDController
         @utils.wait 1100, => @landingView.setClass 'group-hidden'
 
     groupLogoView.setY @landingView.getHeight()-42
+
+    @landingView.addSubView @landingNav = new KDCustomHTMLView
+      tagName   : 'nav'
+      lazyDomId : "landing-page-nav"
+
+    @buttonWrapper = new KDCustomHTMLView
+      cssClass : "button-wrapper"
 
     @buttonWrapper.addSubView userButtonBar = new StaticUserButtonBar
 

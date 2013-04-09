@@ -5,6 +5,14 @@
 @import "nib/vendor"
 
 
+body
+  #landing-page-nav
+    hidden()
+  &.landing #landing-page-nav
+    visible()
+
+
+
 #static-landing-page
   &.group-leaving
     rel()
@@ -18,6 +26,27 @@
 
   #main-loader > span
     margin              20px 0px 20px 60px
+
+  #landing-page-nav
+    fix()
+    opacity             0
+    z-index             10
+    top                 0
+    size                100%, 40px
+    gradient            rgba(0, 0, 0, .8), rgba(0, 0, 0, .6)
+    shadow              0 0 25px 10px rgba(0, 0, 0, .4)
+    vendor              transition, opacity .3s ease
+    color               rgba(255,255,255,0.9)
+    font-family         Ubuntu,"Bree Serif",Helvetica,sans-serif
+    line-height         40px
+    &.in
+      opacity           1
+    h2
+      vendor            font-smoothing, antialiased
+      vendor            text-rendering, geometricPrecision
+      font-weight       900
+      font-size         24px
+      margin-left       90px
 
 .group-header
   width                 100%
@@ -146,7 +175,7 @@
 
   &.edit
     .group-splitview
-      .group-loading-content
+      .group-landing-content
         .content-item.front
           vendor transform,rotateY(-180deg)
         .content-item.back
@@ -167,8 +196,8 @@
 
 
 
-.kdlistview.kdview.group-loading-content
-.group-loading-content
+.kdlistview.kdview.group-landing-content
+.group-landing-content
   vendor                transition, background-color 0.2s linear
   vendor                perspective, 800px
   overflow              auto
