@@ -259,7 +259,7 @@ class StaticGroupController extends KDController
       icon     : {}
       click    : (event)=>
         event.preventDefault()
-        @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+        @openGroup()
 
     @requestButton?.hide()
     @buttonWrapper.addSubView open
@@ -305,7 +305,14 @@ class StaticGroupController extends KDController
         delegate : @
       ,@getData()
 
+    @openGroup()
 
+  openGroup:->
+    router = KD.getSingleton 'router'
+    if router.getCurrentPath() is @groupEntryPoint
+      @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+    else
+      @lazyDomController.hideLandingPage()
 
   decorateGuestStatus:->
 
