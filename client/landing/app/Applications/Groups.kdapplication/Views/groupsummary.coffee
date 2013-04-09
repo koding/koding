@@ -60,7 +60,9 @@ class GroupSummaryView extends KDCustomHTMLView
       cssClass    : "open-in-koding #{if group.privacy is 'private' then 'hidden' else ''}"
       title       : "Open the group in Koding"
       icon        : {}
-      click       : @bound "hideLandingPage"
+      click       : (event)=>
+        @hideLandingPage event
+        @lazyDomController.openPath "/#{group.slug}/Activity"
 
     @openInKodingLink.on "viewAppended", =>
       # set ToolTip here
