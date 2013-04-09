@@ -614,7 +614,6 @@ module.exports = [
 
   # ACCOUNT SETTINGS
 
-  "app/Applications/Account.kdapplication/account/accSettingsPersPendingInvites.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee",

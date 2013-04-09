@@ -1,7 +1,7 @@
 class InvitationRequestListController extends KDListViewController
 
   constructor:(options, data)->
-    options.itemClass ?= GroupsInvitationRequestListItemView
+    options.itemClass ?= GroupsInvitationListItemView
     options.viewOptions ?= {}
     options.viewOptions.cssClass =
       @utils.curryCssClass 'request-list', options.viewOptions.cssClass
