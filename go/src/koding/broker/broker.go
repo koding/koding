@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -185,9 +186,9 @@ func main() {
 			Handler: &sockjs.Mux{
 				Handlers: map[string]http.Handler{
 					"/subscribe": service,
-					"/version": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						w.Header().Set("Content-Type", "text/plain")
-						w.Write([]byte(config.Current.Version))
+						w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
 					}),
 				},
 			},

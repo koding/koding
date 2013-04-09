@@ -11,7 +11,7 @@ type Mux struct {
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for baseUrl, handler := range mux.Handlers {
-		if strings.HasPrefix(r.URL.Path, baseUrl) {
+		if strings.HasPrefix(strings.ToLower(r.URL.Path), baseUrl) {
 			r.URL.Path = r.URL.Path[len(baseUrl):]
 			handler.ServeHTTP(w, r)
 			return
