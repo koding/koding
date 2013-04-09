@@ -19,12 +19,17 @@ class StaticPageCustomizeView extends KDView
         entrypoint = @getDelegate().groupEntryPoint or @getDelegate().profileEntryPoint
         @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
 
-    @backButton = new KDButtonView
-      title     : 'Back'
-      cssClass  : 'back-button modal-cancel'
-      callback  : =>
+    @backButton = new CustomLinkView
+      title       : ""
+      cssClass    : "close-link"
+      icon        :
+        placement : "right"
+      click       : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
         contentWrapper = @getDelegate().groupContentWrapperView or @getDelegate().profileContentWrapperView
         contentWrapper.unsetClass 'edit'
+
 
     @attachListeners()
     @addSettingsButton()
@@ -334,7 +339,6 @@ class StaticGroupBackgroundColorSelectView extends KDView
 
     # default items
     items = [
-      {title:'Pick a color',colorValue:@utils.getRandomHex(), type:'customColor'}
       {title:'Black',colorValue:'#000000', type:'defaultColor'}
       {title:'White',colorValue:'#ffffff', type:'defaultColor'}
       {title:'Transparent',colorValue:'rgba(0,0,0,0.2)', type:'defaultColor'}
@@ -344,7 +348,9 @@ class StaticGroupBackgroundColorSelectView extends KDView
       {title:'521 C',colorValue:'#A57FB2', type:'defaultColor'}
       {title:'326 C',colorValue:'#00B2A9', type:'defaultColor'}
       {title:'583 C',colorValue:'#B7BF10', type:'defaultColor'}
+      {title:'Pick a color',colorValue:@utils.getRandomHex(), type:'customColor'}
     ]
+
 
     @thumbsController.instantiateListItems items
     @attachListeners()
@@ -358,6 +364,16 @@ class StaticGroupBackgroundColorSelectView extends KDView
 
   decorateList:(group={})->
     backgroundData = @getDelegate().getBackgroundData group
+
+    if backgroundData.customColors
+
+      for customColor in backgroundData.customColors
+        @thumbsController.addItem
+          title : 'User Color'
+          colorValue : customColor
+          type : 'defaultColor'
+          userColor : yes
+        , 0
 
     if backgroundData.customType is 'defaultColor'
       for item in @thumbsController.itemsOrdered
@@ -389,7 +405,7 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
 
-    {@type,colorValue,title} = data = @getData()
+    {@type,colorValue,title,userColor} = data = @getData()
 
     @setClass 'custom-image-selectitemview color'
     @title = new KDView
@@ -401,12 +417,40 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
       @color = new KDView
         cssClass : 'custom-color-default'
       @color.$().css backgroundColor : "#{colorValue}"
+      log 'adding close button'
 
     else if @type is 'customColor'
       @color = new StaticGroupBackgroundColorPickerView
         cssClass : 'custom-color-picker'
         delegate : @getDelegate()
       ,data
+
+    if userColor
+      @closeLink =  new CustomLinkView
+        title       : ''
+        cssClass    : 'close-link'
+        icon        :
+          placement : 'right'
+        click       : (event)=>
+          event.preventDefault()
+          event.stopPropagation()
+          modal = new KDModalView
+            title     : 'Remove Custom Color'
+            cssClass  : "new-kdmodal"
+            content   : '<p>Do you really want to remove this color?</p> '
+            buttons   :
+              'Remove Color':
+                cssClass    : 'modal-clean-red'
+                callback    : =>
+                  @getDelegate()?.getDelegate()?.group?.removeBackgroundImage 'customColor', colorValue, =>
+                    @destroy()
+                  modal.destroy()
+              'Cancel'      :
+                cssClass    : 'modal-cancel'
+                callback    : -> modal.destroy()
+
+    else
+      @closeLink = new KDView
 
   click: ->
     {type,colorValue} = @getData()
@@ -434,6 +478,7 @@ class StaticGroupBackgroundColorSelectItemView extends KDListItemView
     """
     {{> @color}}
     {{#(title)}}
+    {{> @closeLink}}
     """
 
 class StaticGroupBackgroundColorPickerView extends KDView
