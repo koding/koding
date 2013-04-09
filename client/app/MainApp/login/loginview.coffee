@@ -279,7 +279,12 @@ class LoginView extends KDScrollView
       callback?()
 
   click:(event)->
-    @emit 'LoginViewWasClicked' if $(event.target).is('.login-screen')
+    if $(event.target).is('.login-screen')
+      # @emit 'LoginViewWasClicked'
+      {groupEntryPoint} = KD.config
+      if groupEntryPoint
+        @animateToForm 'home'
+        @getSingleton('lazyDomController').openPath "/#{groupEntryPoint}"
 
   animateToForm: (name)->
 
