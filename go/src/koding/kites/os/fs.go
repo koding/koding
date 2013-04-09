@@ -248,17 +248,50 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 	k.Handle("fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var params struct {
-			Path string
-			Mode os.FileMode
+			Path      string
+			Mode      os.FileMode
+			Recursive bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
 		}
 
 		user, vm := findSession(session)
 		vos := vm.OS(user)
 
-		if err := vos.Chmod(params.Path, params.Mode); err != nil {
+		doChange := func(name string) error {
+			if err := vos.Chmod(name, params.Mode); err != nil {
+				return err
+			}
+			if !params.Recursive {
+				return nil
+			}
+			fi, err := vos.Stat(name)
+			if err != nil {
+				return err
+			}
+			if !fi.IsDir() {
+				return nil
+			}
+			dir, err := vos.Open(name)
+			if err != nil {
+				return err
+			}
+			defer dir.Close()
+			entries, err := dir.Readdirnames(0)
+			if err != nil {
+				return err
+			}
+			var firstErr error
+			for entry := range entries {
+				err := doChange(name + "/" + entry)
+				if err != nil && firstErr == nil {
+					firstErr = err
+				}
+			}
+			return firstErr
+		}
+		if err := doChange(params.Path); err != nil {
 			return nil, err
 		}
 
