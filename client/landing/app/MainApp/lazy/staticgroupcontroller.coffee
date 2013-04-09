@@ -50,9 +50,13 @@ class StaticGroupController extends KDController
             lines = content.split("\n");
             for line,index in lines
               if /^#[^#]{1,}/.test line
-                menuItems.push line.replace(/^#*\s*/g, '')
+                menuItems.push
+                  title : line.replace(/^#*\s*/g, '')
+                  line  : index
               else if /^\s*(=){1,}\s*$/.test line
-                menuItems.push lines[index-1]
+                menuItems.push
+                  title : lines[index-1]
+                  line  : index-1
 
             callback menuItems
 
