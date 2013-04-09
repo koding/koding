@@ -245,7 +245,7 @@ class LoginView extends KDScrollView
   handleInvitation:(invite)->
     @headBannerShowInvitation invite
     sgc = @getSingleton 'staticGroupController'
-    sgc.on "status.guest", ->
+    sgc.once "status.guest", ->
       sgc.requestButton.hide()
     sgc.userButtonBar.registerButton.setClass 'green'
 
