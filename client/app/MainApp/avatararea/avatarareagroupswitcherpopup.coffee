@@ -112,6 +112,8 @@ class PopupGroupListItem extends KDListItemView
       cssClass   : 'avatar-image'
       attributes :
         src      : avatar or "http://lorempixel.com/20/20?#{@utils.getRandomNumber()}"
+        width    : 20
+        height   : 20
 
     @switchLink = new CustomLinkView
       title       : title
