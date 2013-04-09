@@ -26,12 +26,6 @@ class FSItem extends KDObject
             file = FSHelper.createFileFromPath response, type
           callback? err, file
 
-  exists:(callback=noop)->
-    FSHelper.exists @path, callback
-
-  stat:(callback=noop)->
-    FSHelper.getInfo @path, callback
-
   @copy:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.copy.started"
@@ -157,6 +151,12 @@ class FSItem extends KDObject
 
   getExtension:-> FSItem.getFileExtension @name
 
+  exists:(callback=noop)->
+    FSHelper.exists @path, callback
+
+  stat:(callback=noop)->
+    FSHelper.getInfo @path, callback
+
   remove:(callback)->
 
     @emit "fs.delete.started"
@@ -177,8 +177,11 @@ class FSItem extends KDObject
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run \
-          "mv #{escapeFilePath(@path)} #{escapeFilePath(response)}"
+        @kiteController.run
+          method    : "fs.rename"
+          withArgs  :
+            oldpath : @path
+            newpath : newPath
         , (err, res)=>
           if err then warn err
           else

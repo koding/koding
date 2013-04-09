@@ -276,10 +276,10 @@ class NFinderTreeController extends JTreeViewController
 
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
-        else
-          delete @nodes[oldPath]
-          @nodes[nodeView.getData().path] = nodeView
-          nodeView.childView.render()
+        # else
+        #   delete @nodes[oldPath]
+        #   @nodes[nodeView.getData().path] = nodeView
+        #   nodeView.childView.render()
 
       # @setKeyView()
       @beingEdited = null
@@ -288,10 +288,11 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    parentPath = if nodeData.type is "file"
-      nodeData.parentPath
+
+    if nodeData.type is "file"
+      {parentPath} = nodeData
     else
-      nodeData.path
+      parentPath = nodeData.path
 
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
