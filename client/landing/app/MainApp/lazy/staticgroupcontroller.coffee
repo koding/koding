@@ -29,18 +29,11 @@ class StaticGroupController extends KDController
     {@groupEntryPoint} = KD.config
 
     @reviveViews()
-    @checkGroupUserRelation()
     @attachListeners()
-
+    @on 'GroupSummaryListenersAttached', =>
+      @checkGroupUserRelation()
 
     @registerSingleton 'staticGroupController', @, yes
-
-  fetchGroup:(callback)->
-    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if err then callback err
-      else if groups?.first
-        @group = groups.first
-        callback null, @group
 
   parseMenuItems :(callback)->
     menuItems = []
@@ -196,6 +189,7 @@ class StaticGroupController extends KDController
       break
 
   checkGroupUserRelation:->
+<<<<<<< HEAD
     cb = (group)=>
       group.fetchMembershipStatuses (err, statuses)=>
         if err then warn err
@@ -216,6 +210,14 @@ class StaticGroupController extends KDController
     else @fetchGroup (err, group)-> cb group
 
 
+=======
+    statuses = KD.config.roles
+    if 'member' in statuses or 'admin' in statuses
+      isAdmin = 'admin' in statuses
+      @emit roleEventMap.member, isAdmin
+    else
+      @emit roleEventMap[statuses.first]
+>>>>>>> bb4de22... removed group membership fetch and used KD.config.roles for that. needed to move arvids newMember listener
 
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
@@ -313,15 +315,6 @@ class StaticGroupController extends KDController
         delegate : @
       ,@getData()
 
-    @openGroup()
-
-  openGroup:->
-    router = KD.getSingleton 'router'
-    if router.getCurrentPath() is @groupEntryPoint
-      @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
-    else
-      @lazyDomController.hideLandingPage()
-
   decorateGuestStatus:->
 
     @requestButton?.hide()
@@ -335,6 +328,8 @@ class StaticGroupController extends KDController
         @lazyDomController.requestAccess()
 
     @buttonWrapper.addSubView @requestButton
+
+    @listenToNewMember()
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
@@ -351,6 +346,33 @@ class StaticGroupController extends KDController
                 action  : 'join-group'
 
           @buttonWrapper.addSubView @requestButton
+
+  listenToNewMember:->
+    cb = (group)=>
+      group.fetchMembershipStatuses (err, statuses)=>
+        if err then warn err
+        else if statuses.length
+          if 'member' in statuses or 'admin' in statuses
+            return
+          group.on 'NewMember', =>
+            unless @requestApproved
+              group.fetchMyRoles (err,roles)=>
+                unless err or roles?.length is 0
+                  if 'member' in roles
+                    @pendingButton?.hide()
+                    @requestButton?.hide()
+                    @decorateMemberStatus no
+                    @requestApproved = yes
+
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
+
+  fetchGroup:(callback)->
+    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
+      if err then callback err
+      else if groups?.first
+        @group = groups.first
+        callback null, @group
 
 
 class GroupLandingNavItem extends KDListItemView
