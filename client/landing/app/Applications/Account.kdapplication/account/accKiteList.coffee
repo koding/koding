@@ -143,9 +143,9 @@ class AccountKiteList extends KDListView
                 name          : "apiCallLimit"
                 defaultValue  : 1000
                 selectOptions : [
-                  { title : "1K Call"   ,    value : 1000   }
-                  { title : "10K Call"  ,    value : 10000  }
-                  { title : "100K Call" ,    value : 100000 }
+                  { title : "1K Calls"   ,    value : 1000   }
+                  { title : "10K Calls"  ,    value : 10000  }
+                  { title : "100K Calls" ,    value : 100000 }
                 ]
               kites           :
                 label         : "Select a kite"
