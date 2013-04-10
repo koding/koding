@@ -10,17 +10,10 @@
   top                         0
   bg image,                   url("../images/koding-new-bg.png");
   bg repeat,                  repeat-x
-  vendor transition,          top .3s ease
-  // shadow                     0 0 50px 20px rgba(0,0,0,0.4)
+  transition                  margin-top .4s ease-out
   overflow                    visible
-  abs()
-  // &.out
-  //   opacity                 0
-  &.down
-    top                       -100%
-    #group-splash-wrapper
-      margin-top                0
-      shadow                    0 0 20px rgba(0,0,0,0.4)
+  margin-top                  0
+  // abs()
 
 #landing-page-logo
   bottom              0
@@ -74,8 +67,7 @@
     opacity                     0
 
 
-#koding-landing-logo-wrapper
-.group-logo-wrapper
+.group-sign-wrapper
   perspective           800px
   bottom                0
   right                 6px
@@ -98,40 +90,7 @@
     &:nth-child(2n)
       right             17px
 
-#koding-landing-logo-wrapper
-  height                32px
-  margin-bottom         0px
-  hidden()
-  i
-    height              0
-    bottom              0
-
-#koding-landing-logo
-  margin-bottom         8px
-  font-family           Ubuntu
-  size                  auto, 30px
-  padding               2px
-  font-size             20px
-  overflow              visible
-  color                 rgba(255, 255, 255, .5)
-  gradient              #302D27, #332F2A
-  shadow                0 0 5px rgba(0, 0, 0, 0.5)
-  transition            top .3s ease-in\,\
-                        margin-top .1s ease-out
-  vendor                transform-origin-x, 0
-  vendor                transform-origin-y, 0
-  transform             translateX(0px)\
-                        translateY(0px)\
-                        translateZ(0px)\
-                        rotateX(0deg)\
-                        rotateY(0deg)\
-                        rotateZ(0deg)
-  shadow                0 0 5px rgba(0, 0, 0, 0.5)\,\
-                        inset 0 0 2px 5px rgba(255, 255, 255, 0.1)
-  z-index               1
-  rel()
-
-h3#group-logo
+h3#group-sign
   font-family           Ubuntu
   size                  auto, 30px
   padding               2px
@@ -143,6 +102,7 @@ h3#group-logo
   rel()
   vendor                transform-origin-x, 0
   vendor                transform-origin-y, 0
+  cursor                pointer
   transition            top .3s ease-in\,\
                         margin-top .1s ease-out
   transform             translateX(0px)\
@@ -151,46 +111,8 @@ h3#group-logo
                         rotateX(-110deg)\
                         rotateY(0deg)\
                         rotateZ(0deg)
-  shadow                0 0 5px rgba(0, 0, 0, 0.5)\,\
-                        inset 0 0 2px 5px rgba(255, 255, 255, 0.1)
-
-.group-logo-wrapper
-  opacity                       .2
-  h3#group-logo
-    animation-iteration-count   1
-    animation-timing-function   ease
-    span
-      opacity                   0
-
-.group-logo-wrapper.swing-in
-.group-logo-wrapper.swing-out
-  opacity                       1
-  h3#group-logo
-    span
-      opacity                   1
-
-.group-logo-wrapper.swing-in
-  h3#group-logo
-    margin-top                  8px
-    animation-name              swing-in
-    animation-duration          1.2s
-    transform                   rotateX(0deg)
-  i
-    height                      8px
-.group-logo-wrapper.swing-out
-  h3#group-logo
-    margin-top                  0
-    animation-name              swing-out
-    animation-duration          .3s
-    transform                   rotateX(-180deg)
-  i
-    height                      0
-
-#koding-landing-logo
-h3#group-logo
-  cursor                pointer
+  shadow                0 0 5px rgba(0, 0, 0, 0.5)
   span
-    border              1px dashed rgba(0, 0, 0, 0.2)
     color               white
     text-shadow         #541313 0 1px 0
     font-weight         400
@@ -200,3 +122,39 @@ h3#group-logo
     padding             0 20px
     noTextDeco()
     borderBox()
+
+.group-sign-wrapper
+  opacity                       .2
+  h3#group-sign
+    animation-iteration-count   1
+    animation-timing-function   ease
+    span
+      opacity                   0
+
+.group-sign-wrapper.swing-in
+.group-sign-wrapper.swing-out
+  opacity                       1
+  h3#group-sign
+    span
+      opacity                   1
+
+.group-sign-wrapper.swing-in
+  h3#group-sign
+    margin-top                  8px
+    animation-name              swing-in
+    animation-duration          1.2s
+    transform                   rotateX(0deg)
+  i
+    height                      8px
+.group-sign-wrapper.swing-out
+  h3#group-sign
+    margin-top                  0
+    animation-name              swing-out
+    animation-duration          .3s
+    transform                   rotateX(-180deg)
+  i
+    height                      0
+
+.user-button-bar
+  display                       inline-block
+  width                         auto
