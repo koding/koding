@@ -94,6 +94,10 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
+  activitiesArrived:(activities)->
+    for activity in activities when activity.bongo_.constructorName in @getFilter()
+      @listController.newActivityArrived activity
+
   isExempt:(callback)->
 
     @appStorage.fetchStorage (storage) =>
