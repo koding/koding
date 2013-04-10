@@ -148,7 +148,10 @@ module.exports =
     interval: 60000
   haproxy:
     webPort     : 3020
-
+  imageProxy    :
+    run         : yes
+    port        : 2400
+    clusterSize : 1
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
