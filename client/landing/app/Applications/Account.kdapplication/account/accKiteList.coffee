@@ -7,22 +7,22 @@ class AccountKiteListController extends KDListViewController
   loadView:->
     super
 
-    KD.remote.api.JKite.fetchAll {}, (err, kites) =>
+    KD.remote.api.JMemberKite.fetchAll {}, (err, kites) =>
       if err then warn err
       else 
         @instantiateListItems kites
 
     list = @getListView()
-    @getView().parent.addSubView addButton = new KDButtonView
-      style     : "clean-gray account-header-button"
-      title     : "Add new Kite"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "plus"
+    @getView().parent.addSubView addKiteButton = new KDButtonView
+      style       : "clean-gray account-header-button"
+      title       : "Add new Kite"
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : "plus"
       tooltip     :
         title     : "Add new Kite"
         placement : "left"
-      callback  : =>
+      callback    : =>
         list.showModal()
 
     ##################### Events ############################
@@ -68,21 +68,23 @@ class AccountKiteListController extends KDListViewController
   updateKite:(listItem, formData)->
     throw new Error 'not implemented yet!'
     @emit "KiteUpdated", kite
-  
-  createKite : (form)-> 
-    data = form.getFormData()
-    KD.remote.api.JKite.create
-      description  : data.description
-      kiteName     : data.kiteName
-      #count        : data.kiteCallLimit
-      #isPublic     : data.publicPrivate 
-      (err, kite) => 
-        if err
-          @notify err.message, "fail"
-        else
-          @notify 'Your kite is created', "success"
-          @emit "KiteCreated", kite
-          form.parent.destroy()
+
+  createKite : (form)->
+    {description, apiCallLimit, kites} = form.modal.modalTabs.forms.Kites.inputs
+
+    KD.remote.api.JMemberKite.create
+      description  : description.getValue()
+      count        : apiCallLimit.getValue()
+      kites        : kites.getValue()
+    ,(err, kite) =>
+      if err
+        @notify err.message, "fail"
+        form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
+      else
+        @notify 'Your kite is created', "success"
+        @emit "KiteCreated", kite
+        form.modal.destroy()
+
           
   notify:(title, type)->
     {modal} = @getListView()
@@ -101,48 +103,97 @@ class AccountKiteList extends KDListView
       itemClass : AccountKiteListItem
     ,options
     super options,data
+  showModal:=>
+    modal = @modal = new KDModalViewWithForms
+      title                   : "Create a third party kite"
+      content                 : ""
+      overlay                 : yes
+      cssClass                : "createThirdPartyKiteModal"
+      width                   : 500
+      height                  : "auto"
+      tabs                    :
+        forms                 :
+          Kites               :
+            callback          : =>
+              @modal.modalTabs.forms.Kites.buttons.Create.showLoader()
+              @emit "CreateKiteSubmitted", @
+            buttons           :
+              create          :
+                title         : "Create"
+                style         : "modal-clean-gray"
+                type          : "submit"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : -> @hideLoader()
+              cancel          :
+                title         : "Cancel"
+                style         : "modal-cancel"
+                callback      : (event)-> modal.destroy()
+            fields            :
+              description     :
+                label         : "Description"
+                itemClass     : KDInputView
+                name          : "description"
+                placeholder   : "Description (optional)..."
+              apiCallLimit    :
+                label         : "API Call Count"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "apiCallLimit"
+                defaultValue  : 1000
+                selectOptions : [
+                  { title : "1K Calls"   ,    value : 1000   }
+                  { title : "10K Calls"  ,    value : 10000  }
+                  { title : "100K Calls" ,    value : 100000 }
+                ]
+              kites           :
+                label         : "Select a kite"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "kite"
+                nextElement   :
+                  totalAmount :
+                    itemClass : KDView
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "You must select a Kite!"
+                selectOptions : (cb)->
+                  KD.remote.api.JKite.fetchKites { sourceName : 'JKite' }, {}, (err, kites) =>
+                    console.log arguments
+                    if err then warn err
+                    else
+                      options = for kite in kites
+                        {type, kiteName} = kite
+                        if type == 'paid' then kiteName += " $$"
+                        ( title : kiteName, value : kite._id)
 
-  showModal:->
-    form = new AccountAddKiteForm
-      callback : @formSubmit
-      cssClass : "clearfix"
+                      showTotalPrice options.first.value
+                      cb options
+                change        : ->
+                  showTotalPrice @getValue()
 
-    modal = new KDModalView
-      title     : "Add a new kite"
-      content   : ""
-      overlay   : yes
-      cssClass  : "kite-kdmodal"
-      width     : 500
-      view      : form
-      buttons   :
-        "Create New Kite" :
-          style     : "modal-clean-gray"
-          callback  : => @emit "CreateKiteSubmitted", form
-        Cancel   :
-          style     : "modal-cancel"
-          callback  : (event)->
-            form.destroy()
-            modal.destroy()
+    showTotalPrice = (kiteId) =>
+      KD.remote.api.JKite.fetchKites {sourceId : kiteId}, {}, (err, kite) =>
+        if err then warn err
+        else
+          if kite?.first?.type == 'paid'
+            totalAmountView.show()
+            {count, purchaseAmount} = kite.first
+            purchasingCallCount = modal.modalTabs.forms.Kites.inputs.apiCallLimit.getValue()
+            totalAmountView.$('span').text  (purchasingCallCount / count) * purchaseAmount
+          else
+            totalAmountView.hide()
 
-class AccountAddKiteForm extends KDFormView
-  viewAppended:->
-    super
-    @addSubView descriptionView  = new KDView
-      cssClass : "modalformline"
-    descriptionView.addSubView description  = new KDInputView name : "description", placeholder : "Description (optional)..."
+    totalAmountView = new KDView
+      partial      : "Total Amount <span>0<span>"
+      cssClass     : "hidden totalAmount"
+      click        : => @emit "FormCancelled"
 
-    @addSubView kiteNameView  = new KDView
-      cssClass : "modalformline"
-    kiteNameView.addSubView kiteName  = new KDInputView name : "kiteName", placeholder : "Running Kite name..."
-    
-    # @addSubView publicOrPrivate   = new KDView
-    #   cssClass : "modalformline"
-    # publicOrPrivate.addSubView yesNo  = new KDOnOffSwitch {name : "publicPrivate", labels : ['Public', 'Private'] }
-
-
-    # @addSubView kiteApiCallLimitView  = new KDView
-    #   cssClass : "modalformline"
-    # kiteApiCallLimitView.addSubView kiteApiCallLimit = new KDInputView name : "kiteCallLimit", placeholder : "Kite Api Call limit..."
+    field = modal.modalTabs.forms.Kites.inputs.totalAmount
+    field.addSubView totalAmountView
 
 
 class AccountKiteListItem extends KDListItemView
@@ -162,19 +213,21 @@ class AccountKiteListItem extends KDListItemView
   #   @emit "DeleteKiteSubmitted", @
 
   partial:(data)->
-    """
-      <div class='kite-item'>
-        <div class='description'>
-          <span class='label'>Description:</span>
-          <span class='value'>#{data.description}</span>
-        </div>
-        <div class='kiteName'>    
-          <span class='label'>Used Kite Name:</span>
-          <span class='value'>#{data.kiteName}</span>
-        </div>
-        <div class='kiteKey'> 
-          <span class='label'>Kite Key:</span>
-          <span class='value'>#{data.key}</span>
-        </div>
-      </div>
-    """
+
+    @addSubView description  =  new KDLabelView
+      title        : "Description"
+      cssClass     : "main-label"
+
+    @addSubView descriptionValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.description}"
+      cssClass     : "static-text"
+
+    @addSubView kiteKey  =  new KDLabelView
+      title        : "Kite Key"
+      cssClass     : "main-label"
+
+    @addSubView kiteKeyValue = new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "#{data.key}"
+      cssClass     : "static-text"
