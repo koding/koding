@@ -158,10 +158,10 @@ class NavigationInviteLink extends KDCustomHTMLView
         height                  : "auto"
         cssClass                : "invitation-modal"
         tabs                    :
-          callback              : (formData)=>
-            @sendInvite formData, modal
           forms                 :
             "Invite Friends"    :
+              callback          : (formData)=>
+                @sendInvite formData, modal
               fields            :
                 recipient       :
                   label         : "Send To:"

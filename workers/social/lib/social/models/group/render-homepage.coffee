@@ -9,43 +9,36 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="login">
+  <body class="login landing">
 
     #{getLoader roles}
 
     <div id="static-landing-page">
-
+      <nav id="landing-page-nav">
+        <h2>#{title}</h2>
+      </nav>
+      <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <div class="group-content-wrapper" id="group-content-wrapper" #{applyCustomBackground customize}>
-        <div class="group-title" id="group-title">
-          <div class="group-title-wrapper" id="group-title-wrapper">
-            <div class="group-name">#{title}</div>
-            <div class="group-bio">#{body}</div>
-            <div id="group-button-wrapper">
-             <div id="landing-page-sidebar"></div>
-            </div>
-          </div>
-        </div>
-        <div class="group-splitview" id="group-splitview">
-          <div class="group-loading-content" id="group-loading-content">
+        <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
+          <div class="group-landing-content" id="group-landing-content">
            <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
-               <div class="has-markdown">
+               <div class="group-title" id="group-title">
+                 <div class="group-title-wrapper" id="group-title-wrapper">
+                   <div class="group-name">#{title}</div>
+                 </div>
+               </div>
+               <div class="has-markdown dark">
                  <span class="data">#{content}</span>
                </div>
              </div>
            </div>
-           <div class="content-item kdview back" >
+           <div class="content-item kdview back">
              <div class="content-item-scroll-wrapper" id='group-config'>
              </div>
            </div>
 
          </div>
-        </div>
-      </div>
-      <div id="landing-page-logo"></div>
-      <div id="group-splash-wrapper">
-        <div id="koding-landing-logo-wrapper">
-          <h3 id="koding-landing-logo"><a href='#'>Koding</a></h3>
         </div>
       </div>
     </div>
@@ -63,6 +56,9 @@ applyCustomBackground = (customize={})->
   if customize.background?.customType is 'defaultImage' \
   and customize.background?.customValue <= defaultImages.length
     url = defaultImages[(customize.background.customValue or 0)]
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType is 'customImage'
+    url = customize.background?.customValue
     """ style='background-color:transparent;background-image:url("#{url}")'"""
   else if customize.background?.customType in ['defaultColor','customColor']
     """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""

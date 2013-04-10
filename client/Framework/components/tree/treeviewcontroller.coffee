@@ -571,7 +571,7 @@ class JTreeViewController extends KDViewController
     @dragIsActive = yes
     e = event.originalEvent
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
-    transferredData = (@getNodeId node.getData() for node in @selectedNodes)
+    transferredData = (JSON.stringify node.getData() for node in @selectedNodes)
     e.dataTransfer.setData('Text', transferredData.join()) # required otherwise doesn't work
 
     if @selectedNodes.length > 1

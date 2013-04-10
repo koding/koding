@@ -73,7 +73,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           top  : 4
           left : -5
       click    : =>
-        @delete.hideTooltip()
+        @delete.getTooltip().hide()
         @deleteModal = new KDModalView
           title          : "Delete App"
           content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"

@@ -6,6 +6,7 @@ todo:
     2012/5/21 Sinan
 
 ###
+
 class KDWindowController extends KDController
 
   @keyViewHistory = []
