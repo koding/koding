@@ -73,15 +73,13 @@ class AccountMyKiteListController extends KDListViewController
     @emit "KiteUpdated", kite
 
   createKite : (form)->
-    {
-        description
-      , kiteName
-      , purchaseAmount
-      , callCount
-      , privacy
-      , type
+    { description
+      kiteName
+      purchaseAmount
+      callCount
+      privacy
+      type
     } = form.modal.modalTabs.forms.MyKites.inputs
-
 
     data = {
       description  : description.getValue()
