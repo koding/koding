@@ -42,12 +42,15 @@ type Config struct {
 	}
 }
 
+var FileProfile string
+var PillarProfile string
 var Profile string
 var Current Config
 var LogDebug bool
 
 func init() {
-	flag.StringVar(&Profile, "c", "", "Configuration profile")
+	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
+	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 
 	flag.Parse()
@@ -55,20 +58,39 @@ func init() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	if Profile == "" {
-		fmt.Println("Please specify a configuration profile (-c).")
+	if FileProfile == "" && PillarProfile == "" {
+		fmt.Println("Please specify a configuration profile via -c or -p.")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if FileProfile != "" && PillarProfile != "" {
+		fmt.Println("The flags -c and -p are exclusive.")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	j, err := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+Profile+"')").CombinedOutput()
+	var configCommand *exec.Cmd
+	if FileProfile != "" {
+		Profile = FileProfile
+		configCommand = exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+FileProfile+"')")
+	}
+	if PillarProfile != "" {
+		Profile = PillarProfile
+		configCommand = exec.Command("salt-call", "pillar.get", "kodingConfig:"+PillarProfile, "--output=json", "--log-level=warning")
+	}
+
+	configJSON, err := configCommand.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Koding config manager output:\n%s\nCould not execute Koding config manager: %s\n", j, err.Error())
+		fmt.Printf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
 		os.Exit(1)
 	}
 
-	if err := json.Unmarshal(j, &Current); err != nil {
-		fmt.Printf("Koding config manager output:\n%s\nCould not unmarshal config: %s\n", j, err.Error())
+	err = json.Unmarshal(configJSON, &Current)
+	if err == nil && (Current == Config{}) {
+		err = fmt.Errorf("Empty configuration.")
+	}
+	if err != nil {
+		fmt.Printf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
 		os.Exit(1)
 	}
 }

@@ -42,6 +42,18 @@ class KiteController extends KDController
     @status    = no
     @intervals = {}
     @setListeners()
+    @kites     = {}
+    @channels  = {}
+
+  addKite: (name, channel) ->
+    @channels[name] = channel
+    @kites[name] = channel
+    @emit "channelAdded", channel, name
+
+  deleteKite: (name) ->
+    @emit "channelDeleted", @kites[name], name
+    delete @kites[name]
+    delete @channels[name]
 
   run:(options = {}, callback)->
 
@@ -49,45 +61,20 @@ class KiteController extends KDController
       command = options
       options = {}
 
-    options.kiteName or= "sharedHosting"
-    options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.method   or= "executeCommand"
+    options.kiteName or= "os"
+    options.method   or= "exec"
+
     if command
-      options.withArgs = {command}
-    # else if options.withArgs?.command
-      # options.withArgs = options.withArgs.command
+      options.withArgs = command
     else
       options.withArgs or= {}
 
-    # notify "Talking to #{options.kiteName} asking #{options.withArgs.command}, #{options.toDo}"
-    return warn "you are not logged in."  unless KD.whoami()?.tellKite?
-    
+    notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
+    log "Kite Request:", options
+
     KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
-    ###
-    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
 
-      run:(options = {}, callback)->
-
-        if "string" is typeof options
-          command = options
-          options = {}
-
-        options.kiteName or= "os"
-        options.method   or= "exec"
-        if command
-          options.withArgs = {command}
-        else if options.withArgs?.command
-          options.withArgs = options.withArgs.command
-        else
-          options.withArgs or= {}
-
-        # notify "Talking to #{options.kiteName} asking #{options.toDo}"
-        KD.whoami().tellKite options, (err, response)=>
-          @parseKiteResponse {err, response}, options, callback
-
-    # ----- OS KITE VERSION OF THIS FUNCTION ------ #
-    ###
   setListeners:->
 
     mainController = @getSingleton "mainController"

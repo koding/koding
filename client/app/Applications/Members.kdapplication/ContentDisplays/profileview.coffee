@@ -40,14 +40,17 @@ class ProfileView extends JView
         diameter      : 18
         # left          : 3
       states          : [
-        "Follow", (callback)->
+        title         : "Follow"
+        callback      : (callback)->
           memberData.follow (err, response)=>
             @hideLoader()
             unless err
               memberData.followee = yes
               @setClass 'following-btn'
               callback? null
-        "Unfollow", (callback)->
+      ,
+        title         : "Unfollow"
+        callback      : (callback)->
           memberData.unfollow (err, response)=>
             @hideLoader()
             unless err

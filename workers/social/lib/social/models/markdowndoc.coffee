@@ -47,14 +47,15 @@ module.exports = class JMarkdownDoc extends Module
     setOp.checksum = JMarkdownDoc.generateChecksum setOp.content
     Module::update.apply this, arguments
 
+  save:->
+    @html = @generateHTML @content
+    super
+
   @create = (formData, callback)->
     data = formData
     markdownDoc = null
 
     daisy queue = [
-      =>
-        data.html = @generateHTML data.content
-        queue.next()
       =>
         data.checksum = @generateChecksum data.content
         queue.next()

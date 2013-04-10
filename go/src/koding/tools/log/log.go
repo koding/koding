@@ -134,8 +134,7 @@ func LogError(err interface{}, stackOffset int) {
 }
 
 func RecoverAndLog() {
-	err := recover()
-	if err != nil {
+	if err := recover(); err != nil {
 		LogError(err, 2)
 	}
 }

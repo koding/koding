@@ -125,9 +125,9 @@ func (vos *VOS) Symlink(oldname, newname string) error {
 	})
 }
 
-func (vos *VOS) Lstat(name string) (fi os.FileInfo, err error) {
+func (vos *VOS) Stat(name string) (fi os.FileInfo, err error) {
 	err = vos.inVosContext(name, func(resolved string) error {
-		fi, err = os.Lstat(resolved)
+		fi, err = os.Lstat(resolved) // resolved has already followed all symlinks
 		return err
 	})
 	return
@@ -173,6 +173,18 @@ func (vos *VOS) Readlink(name string) (linkname string, err error) {
 		return err
 	})
 	return
+}
+
+func (vos *VOS) Remove(name string) error {
+	return vos.inVosContext(name, func(resolved string) error {
+		return os.Remove(resolved)
+	})
+}
+
+func (vos *VOS) RemoveAll(name string) error {
+	return vos.inVosContext(name, func(resolved string) error {
+		return os.RemoveAll(resolved)
+	})
 }
 
 func (vos *VOS) Rename(oldname, newname string) error {

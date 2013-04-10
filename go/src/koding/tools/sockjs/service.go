@@ -18,7 +18,7 @@ type Service struct {
 	Websocket    bool
 	CookieNeeded bool
 	StreamLimit  int
-	PanicHandler func()
+	ErrorHandler func(err interface{}, stackOffset int)
 
 	iFrameContent []byte
 	iFrameETag    string
@@ -33,11 +33,11 @@ func NewService(jsFileUrl string, timeout time.Duration, callback func(*Session)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
 	s := Service{
+		Callback:     callback,
 		Websocket:    true,
 		CookieNeeded: false,
 		StreamLimit:  128 * 1024,
-		Callback:     callback,
-		PanicHandler: func() {},
+		ErrorHandler: nil,
 
 		iFrameContent: iFrameContent,
 		iFrameETag:    iFrameETag,
@@ -63,7 +63,13 @@ func NewService(jsFileUrl string, timeout time.Duration, callback func(*Session)
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer s.PanicHandler()
+	defer func() {
+		if s.ErrorHandler != nil {
+			if err := recover(); err != nil {
+				s.ErrorHandler(err, 1)
+			}
+		}
+	}()
 
 	path := r.URL.Path
 

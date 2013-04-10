@@ -48,7 +48,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   addService:({serviceGenericName, serviceUniqueName})->
     servicesOfType = @services[serviceGenericName] ?= []
-    servicesOfType.push serviceUniqueName
+    servicesOfType.push serviceUniqueName 
 
   removeService:({serviceGenericName, serviceUniqueName})->
     servicesOfType = @services[serviceGenericName] 
@@ -74,7 +74,13 @@ module.exports = class AuthWorker extends EventEmitter
     delete @clients.byExchange[exchange]
     delete @clients.byRoutingKey[routingKey]
 
-  addClient:(socketId, exchange, routingKey)->
+  addClient:(socketId, exchange, routingKey, sendOk=yes)->
+    if sendOk
+      @bongo.respondToClient routingKey, {
+        method    : 'authOk'
+        arguments : []
+        callbacks : {}
+      }
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
@@ -84,6 +90,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange.push client
 
   rejectClient:(routingKey, message)->
+    return console.trace()  unless routingKey?
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: message ? 'Access denied']
@@ -112,23 +119,41 @@ module.exports = class AuthWorker extends EventEmitter
               exchange.close() # don't leak a channel
               @addClient socketId, exchange.name, routingKey
 
+    ensureGroupPermission =(group, account, roles, callback)->
+      {JPermissionSet, JGroup} = @bongo.models
+      client = {context: group.slug, connection: delegate: account}
+      JPermissionSet.checkPermission client, "read activity", group,
+        (err, hasPermission)->
+          if err then callback err
+          else unless hasPermission
+            callback {message: 'Access denied!', code: 403}
+          else
+            JGroup.fetchSecretChannelName group.slug, callback
 
     joinClientGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
-      fail = (err)=> @rejectClient routingKey; console.error err  if err
-      @authenticate messageData, routingKey, (session)->
+      fail = (err)=>
+        console.error err  if err
+        @rejectClient routingKey
+      @authenticate messageData, routingKey, (session)=>
         unless session then fail()
-        else
-          selector = {'profile.nickname': session.username}
-          JAccount.one selector, (err, account)->
+        else JAccount.one {'profile.nickname': session.username},
+          (err, account)=>
             if err or not account then fail err
-            else
-              JGroup.one {slug: messageData.group}, (err, group)->
-                if err or not group then fail err
-                else 
-                  group.fetchRolesByAccount account, (err, roles)->
-                    if err or not roles then fail err
-                    else
+            else JGroup.one {slug: messageData.group}, (err, group)=>
+              if err or not group then fail err
+              else 
+                group.fetchRolesByAccount account, (err, roles)=>
+                  if err or not roles then fail err
+                  else
+                    ensureGroupPermission.call this, group, account, roles,
+                      (err, secretChannelName)=>
+                        if err or not secretChannelName
+                          @rejectClient routingKey
+                        else
+                          setSecretNameEvent = "#{routingKey}.setSecretName"
+                          message = JSON.stringify secretChannelName
+                          @bongo.respondToClient setSecretNameEvent, message
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
@@ -136,7 +161,13 @@ module.exports = class AuthWorker extends EventEmitter
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
         when 'group'
+          console.log {routingKey}
+          unless ///^group.#{messageData.group}///.test routingKey
+            console.log 'rejecting', routingKey
+            return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
+        when 'secret'
+          @addClient socketId, routingKey, routingKey, no
         else
           @rejectClient routingKey
 
@@ -190,7 +221,7 @@ module.exports = class AuthWorker extends EventEmitter
       {connection} = bongo.mq
       @monitorPresence connection
 
-      connection.exchange "#{@resourceName}All", AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
+      connection.exchange 'authAll', AUTH_EXCHANGE_OPTIONS, (authAllExchange)=>
         connection.queue '', {exclusive:yes}, (authAllQueue)=>
           authAllQueue.bind authAllExchange, ''
           authAllQueue.on 'queueBindOk', =>
@@ -202,8 +233,8 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'broker.clientDisconnected'
                   @cleanUpAfterDisconnect messageStr
 
-      connection.exchange @resourceName, AUTH_EXCHANGE_OPTIONS, (authExchange)=>
-        connection.queue  @resourceName, (authQueue)=>
+      connection.exchange 'auth', AUTH_EXCHANGE_OPTIONS, (authExchange)=>
+        connection.queue  'auth', (authQueue)=>
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
             authQueue.subscribe (message, headers, deliveryInfo)=>
@@ -216,7 +247,7 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'kite.leave'
                   @removeService messageData
-                when "client.#{@resourceName}"
+                when "client.auth"
                   @joinClient messageData, socketId
                 else
                   @rejectClient routingKey

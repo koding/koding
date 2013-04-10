@@ -61,7 +61,7 @@ module.exports = class Builder
 
       setTimeout =>
         @compileChanged options, false
-      , 2250
+      , 5000
 
   readIncludesFile: ->
     includesFile = @config.client.includesPath + "/includes.coffee"
@@ -110,7 +110,7 @@ module.exports = class Builder
     source = fs.readFileSync file.sourcePath, "utf-8"
     switch file.extension
       when ".coffee", ".js"
-        if file.extension == ".coffee"
+        if file.extension is ".coffee"
           try
             result = CoffeeScript.compile source,
               filename: file.includePath
@@ -125,7 +125,7 @@ module.exports = class Builder
             jsSourceMap = result.v3SourceMap
 
             if file.includePath.indexOf("Framework") == 0
-              r = /^class (\w+)/g
+              r = /^class (\w+)/gm
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
           catch error
