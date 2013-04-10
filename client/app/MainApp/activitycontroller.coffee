@@ -4,5 +4,11 @@ class ActivityController extends KDObject
 
     super
 
-    KD.remote.api.CActivity.on 'feed-new', (activities) =>
-      @emit 'ActivitiesArrived', activities
+    groupsController = @getSingleton 'groupsController'
+
+    groupChannel = null
+
+    groupsController.on 'GroupChanged', =>
+      oldChannel.close().off()  if groupChannel?
+      groupChannel = groupsController.groupChannel
+      groupChannel.on 'feed-new', => @emit 'ActivitiesArrived', activities

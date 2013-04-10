@@ -4,6 +4,8 @@ module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
 
+  {groupBy} = require 'underscore'
+
   {permit} = require '../group/permissionset'
 
   @getFlagRole =-> 'activity'
@@ -18,6 +20,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @set
     feedable          : yes
+    broadcastable     : no
     indexes           :
       'sorts.repliesCount'  : 'sparse'
       'sorts.likesCount'    : 'sparse'
@@ -60,6 +63,13 @@ module.exports = class CActivity extends jraphical.Capsule
       originType      : String
       originId        : ObjectId
       group           : String
+
+  @on 'feed-new', (activities)->
+    JGroup = require '../group'
+    grouped = groupBy activities, 'group'
+    for own groupName, items of grouped
+      console.log [groupName, 'feed-new', items]
+      JGroup.broadcast groupName, 'feed-new', items
 
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->

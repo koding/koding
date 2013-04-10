@@ -54,7 +54,7 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -294,13 +294,18 @@ module.exports = class JGroup extends Module
 
   cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
 
-  @broadcast =(groupSlug, message)->
+  @broadcast =(groupSlug, event, message)->
+    if message?
+      event = ".#{event}"
+    else
+      [message, event] = [event, message]
+      event = ''
     @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
       if err? then console.error err
       else unless secretChannelName? then console.error 'unknown channel'
       else
-        @emit 'broadcast', oldSecretChannelName, message  if oldSecretChannelName
-        @emit 'broadcast', secretChannelName, message
+        @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
+        @emit 'broadcast', "#{secretChannelName}#{event}", message
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 
