@@ -25,32 +25,43 @@ module.exports = class JKite extends jraphical.Module
           'delete'
         ]
       static        : [
-          'create', 'get', 'fetchAll', 'control'
+          'create', 'get', 'fetchAll', 'control', 'fetchKites', 'checkKiteName'
         ]
-    schema          :
-      description   :
-        type        : String
-        required    : no
-      kiteName      :
-        type        : String
-        required    : yes
-      isPublic      :
-        type        : String
-        required    : no
-        default     : "T"
-      count         :
-        type        : Number
-        required    : no
-        default     : 1
-      key           :
-        type        : String
-        required    : no
+    schema                :
+      description         :
+        type              : String
+        required          : no
+      kiteName            :
+        type              : String
+        required          : yes
+      privacy             :
+        type              : String
+        required          : yes
+        default           : "public"
+      type                :
+        type              : String
+        required          : yes
+        default           : "free"
+      status              :
+        type              : String
+        required          : no
+        default           : "active"
+      count               :
+        type              : Number
+        required          : no
+        default           : 0
+      purchaseAmount      :
+        type              : Number
+        required          : no
+        default           : 0
+      key                 :
+        type              : String
+        required          : no
 
-    relationships   :->
-      JAccount = require './account'
-      creator       :
-        targetType  : JAccount
-        as          : 'owner'
+    relationships         :->
+      creator             :
+        targetType        : JAccount
+        as                : 'owner'
 
   @create = secure (client, data, callback)->
     {delegate} = client.connection
@@ -85,7 +96,6 @@ module.exports = class JKite extends jraphical.Module
         callback err
       else
         relation.fetchSource (err, result)=>
-          console.log result 
           callback null, result
 
   @control = (data, callback)->
@@ -100,6 +110,20 @@ module.exports = class JKite extends jraphical.Module
       else
         callback null, data
 
+  @checkKiteName = (data, callback)->
+
+    @one {
+      kiteName : data.kiteName
+    }, (err, data)=>
+      if err
+        callback err
+      else
+        console.log data
+        result = true
+        result = false if data
+
+        callback null, result
+
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
 
@@ -110,6 +134,19 @@ module.exports = class JKite extends jraphical.Module
     }
 
     options or= {}
+
+    @fetcher selector, options, callback
+
+
+  @fetchKites = (selector, options, callback)->
+
+    selector or= {}
+    options  or= {}
+
+    @fetcher selector, options, callback
+
+
+  @fetcher = (selector, options, callback)->
 
     Relationship.some selector, options, (err, relationships)=>
       if err then callback err
@@ -129,6 +166,7 @@ module.exports = class JKite extends jraphical.Module
               fin()
         , -> callback null, teasers
         collectTeasers relationship for relationship in relationships
+
 
   delete: secure ({connection:{delegate}}, callback)->
 

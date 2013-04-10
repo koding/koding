@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
 
-module.exports = class JKiteApp extends jraphical.Module
+module.exports = class JKiteCall extends jraphical.Module
 
   {Relationship} = jraphical
 
@@ -39,7 +39,7 @@ module.exports = class JKiteApp extends jraphical.Module
     
   @create = (data, callback)->
     data.count = 1
-    kiteApp = new JKiteApp data
+    kiteApp = new JKiteCall data
     kiteApp.save (err)->
       if err
         callback err
@@ -49,7 +49,9 @@ module.exports = class JKiteApp extends jraphical.Module
   @get = secure (data, callback)->
 
     @one {
-      appKey     : data.appKey
+     username : data.username
+     kiteName : data.kiteName
+     methodName : data.methodName
     }, (err, appData)=>
       if err
         callback err
@@ -62,10 +64,10 @@ module.exports = class JKiteApp extends jraphical.Module
       if err
         callback err
       else
-        if appData instanceof JKiteApp
+        if appData instanceof JKiteCall
 
-          appData.update {$inc: 'count': 1} , (err) ->  
-          callback null, appData        
+          appData.update {$inc: 'count': 1} , (err) =>
+            callback null, appData
         else 
           @create data, callback
 

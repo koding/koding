@@ -195,7 +195,6 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-
   @renderHomepage: require './render-homepage'
 
   @__resetAllGroups = secure (client, callback)->

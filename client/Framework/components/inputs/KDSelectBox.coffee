@@ -4,6 +4,7 @@ class KDSelectBox extends KDInputView
 
     options.type = "select"
 
+
     super options
 
   setDomElement:(cssClass)->
@@ -49,21 +50,24 @@ class KDSelectBox extends KDInputView
     @_$select.removeAttr "disabled"
 
   setSelectOptions:(options)->
+    firstOption = null
     unless options.length
       for optGroup, subOptions of options
         $optGroup = $ "<optgroup label='#{optGroup}'/>"
         @_$select.append $optGroup
         for option in subOptions
+          firstOption or= option
           $optGroup.append "<option value='#{option.value}'>#{option.title}</option>"
     else if options.length
       for option in options
         @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
+        firstOption or= option
     else
       warn "no valid options specified for the input:", @
 
-    @_$select.val @getDefaultValue()
-
-    value = @getDefaultValue() + "" # casting number to string
+    value = @getDefaultValue() or firstOption?.value or ""
+    @_$select.val value + "" # casting to number in case, i don't remember why though. SY
+    
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
 
