@@ -54,8 +54,6 @@ class FatihPluginAbstract extends KDController
 
       @fatihView.emit "PluginViewReadyToShow", @listController.getView()
 
-    @registerIndex()
-
   createList: (items, itemClass) ->
     @listController = new KDListViewController
       wrapper     : no
