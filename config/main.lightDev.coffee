@@ -70,7 +70,6 @@ module.exports =
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :

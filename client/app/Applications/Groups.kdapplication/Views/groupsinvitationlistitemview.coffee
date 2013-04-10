@@ -1,4 +1,4 @@
-class GroupsInvitationRequestListItemView extends KDListItemView
+class GroupsInvitationListItemView extends KDListItemView
   constructor:(options, data)->
     options.cssClass = 'invitation-request formline clearfix'
 
@@ -11,24 +11,15 @@ class GroupsInvitationRequestListItemView extends KDListItemView
         width : 40
         height : 40
 
-    KD.remote.cacheable @getData().koding.username, (err, [account])=>
-      @avatar.setData account
-      @avatar.render()
-
-    @approveButton = new KDButtonView
-      cssClass  : 'cupid-green'
-      title     : 'Approve'
-      callback  : =>
-        @getDelegate().emit 'RequestIsApproved', invitationRequest
-
-    @declineButton = new KDButtonView
-      cssClass  : 'clean-red'
-      title     : 'Decline'
-      callback  : =>
-        @getDelegate().emit 'RequestIsDeclined', invitationRequest
+    if @getData().koding
+      @recipient = @getData().koding.username
+      KD.remote.cacheable @recipient, (err, [account])=>
+        @avatar.setData account
+        @avatar.render()
+    else
+      @recipient = @getData().email
 
     @getData().on 'update', => @updateStatus()
-
     @updateStatus()
 
   updateStatus:->
@@ -36,26 +27,8 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
     @inviteButton.disable()  if isSent
 
-  hideButtons:->
-    @approveButton.hide()
-    @declineButton.hide()
-
-  showButtons:->
-    @approveButton.show()
-    @declineButton.show()
-
-  initializeButtons:->
-    invitationRequest = @getData()
-
-    if invitationRequest.status is 'pending'
-      @showButtons()
-    else
-      @hideButtons()
-
   viewAppended:->
     JView::viewAppended.call this
-    @initializeButtons()
-    @getData().on 'update', @bound 'initializeButtons'
 
   getStatusText:(status)->
     switch status
@@ -69,10 +42,9 @@ class GroupsInvitationRequestListItemView extends KDListItemView
     <div class="fl">
       <span class="avatar">{{> @avatar}}</span>
       <div class="request">
-        <div class="username">{{#(koding.username)}}</div>
+        <div class="username">#{@recipient}</div>
         <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
         <div class="is-sent">Status is <span class='status'>{{@getStatusText #(status)}}</span></div>
       </div>
     </div>
-    <div class="fr">{{> @approveButton}} {{> @declineButton}}</div>
     """

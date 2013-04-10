@@ -150,7 +150,7 @@ class KodingRouter extends KDRouter
 
     mainController.on "AppIsReady", =>
       loader.destroy()
-      KD.utils.wait 600, -> $('#main-koding-loader').hide()
+      # KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
@@ -248,7 +248,7 @@ class KodingRouter extends KDRouter
               title: 'Invalid invitation code!'
           else
             {loginScreen} = mainController
-            loginScreen.headBannerShowInvitation invite
+            loginScreen.handleInvitation invite
           @clear()
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->

@@ -15,25 +15,23 @@ class DemosAppController extends AppController
 
   loadView:(mainView)->
 
-    mainView.addSubView input = new KDInputView
-      name      : "lol"
-      validate  :
-        rules   :
-          required : yes
-        events  :
-          required : 'click'
-      click     : -> log 'zozo'
-
-    input.on 'click', -> log 'zoma'
-
-    mainView.addSubView button = new KDButtonView
-      title    : 'reset validation'
-      callback : ->
-        input.setValidation
-          rules   :
-            required : yes
-          events  :
-            required : 'blur'
+    mainView.addSubView a = new KDView
+      partial    : "<span></span>"
+      tooltip    :
+        title    : "zulaku bereke"
+        selector : 'span'
 
 
-  parentDidResize:-> log "geldi mi >>>>>>>", arguments
+    a.$().css
+      display          : "block"
+      width            : "50%"
+      height           : "50%"
+      backgroundColor  : "pink"
+      margin           : "100px auto"
+
+    a.$('span').css
+      display          : "block"
+      width            : "50%"
+      height           : "50%"
+      backgroundColor  : "blue"
+      margin           : "100px auto"

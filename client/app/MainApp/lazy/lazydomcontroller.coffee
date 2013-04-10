@@ -19,6 +19,7 @@ class LazyDomController extends KDController
     @mainController = @getSingleton 'mainController'
 
     @mainController.on 'FrameworkIsReady', =>
+      @emit "staticControllerIsReady"
       if @userEnteredFromGroup()
         @addGroupViews()
 
@@ -29,43 +30,49 @@ class LazyDomController extends KDController
       else if @userEnteredFromProfile()
         @addProfileViews()
 
-      landingPageSideBar = new LandingPageSideBar
+      log "landing views put"
 
-      landingPageSideBar.on "navItemIsClicked", @bound "handleNavigationItemClick"
+      if @landingView
+        @landingView.bindTransitionEnd()
 
-  hideLandingPage:->
+        @on "landingViewIsHidden", ->
+          $('body').removeClass 'landing'
+          $('body').addClass 'koding'
 
-    if @landingView
-      {groupSummary} = @mainController.mainViewController.getView()
-      @utils.defer =>
-        @landingView.setClass "down"
-        @utils.wait 300, =>
-          @landingView.setClass "out"
-          groupSummary.sign.setClass "swing-in"
+        @on "landingViewIsShown", ->
+          $('body').addClass 'landing'
+          $('body').removeClass 'koding'
 
-          # @utils.wait 1200, =>
-          #   log "ever here"
-          #   @landingView.hide()
-      # FIXME: GG
-      # @landingView.on "transtionEnd", @landingView.bound "hide"
+
+  isLandingPageVisible:-> $('body').is('.landing')
+
+  hideLandingPage:(callback)->
+
+    return unless @landingView
+
+    @landingView.once "transitionend", (event)=>
+      # @landingView.hide()
+      @emit "landingViewIsHidden"
+      callback? event
+
+    {groupSummary} = @mainController.mainViewController.getView()
+    @landingView.$().css marginTop : -window.innerHeight
 
   showLandingPage:(callback = noop)->
-    if @landingView
-      {contentPanel, groupSummary} = @mainController.mainViewController.getView()
-      @utils.wait 300, =>
-        contentPanel.setClass "no-anim"
-        contentPanel.setClass "social"
-        @utils.defer =>
-          contentPanel.unsetClass "no-anim"
-          @landingView.show()
-          @utils.defer =>
-            @landingView.unsetClass "out"
-            @utils.wait 600, =>
-              @landingView.unsetClass "down"
-              groupSummary.sign.unsetClass "swing-in"
-              groupSummary.sign.unsetClass "swing-out"
-              @utils.wait 300, callback
 
+    return unless @landingView
+
+    {contentPanel, groupSummary} = @mainController.mainViewController.getView()
+
+    @landingView.once "transitionend", (event)=>
+      contentPanel.unsetClass "no-anim"
+      @emit "landingViewIsShown"
+      callback? event
+
+    # @landingView.show()
+    @landingView.$().css marginTop : 0
+    contentPanel.setClass "no-anim"
+    contentPanel.setClass "social"
 
   userEnteredFromGroup:-> KD.config.groupEntryPoint?
 
@@ -74,25 +81,36 @@ class LazyDomController extends KDController
   addGroupViews:->
 
     return if @groupViewsAdded
-    @groupViewsAdded        = yes
-    staticGroupController   = new StaticGroupController
-    {@landingView}          = staticGroupController
+    @groupViewsAdded         = yes
+    @staticGroupController   = new StaticGroupController
+    {@landingView}           = @staticGroupController
 
   addProfileViews:->
 
     return if @profileViewsAdded
-    @profileViewsAdded      = yes
-    staticProfileController = new StaticProfileController
-    {@landingView}          = staticProfileController
+    @profileViewsAdded       = yes
+    @staticProfileController = new StaticProfileController
+    {@landingView}           = @staticProfileController
 
   openPath:(path)->
     @getSingleton('router').handleRoute path
-    @hideLandingPage() unless path is '/Logout'
+
+    {groupEntryPoint, profileEntryPoint} = KD.config
+    entryPoint = groupEntryPoint ? profileEntryPoint
+    staticPaths = [
+      '/Logout','/Login','/Register',
+      "/#{entryPoint}/Login",
+      "/#{entryPoint}/Logout",
+      "/#{entryPoint}/Register",
+      "/#{entryPoint}"
+    ]
+
+    @hideLandingPage() unless path in staticPaths
 
   handleNavigationItemClick:(item, event)->
 
     mc = @getSingleton 'mainController'
-    {action, appPath, title, path, type} = item.getData()
+    {action, path} = item
     {loginScreen, mainViewController}    = mc
     {groupEntryPoint, profileEntryPoint} = KD.config
 
@@ -129,6 +147,8 @@ class LazyDomController extends KDController
         @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
+    {loginScreen} = @getSingleton('mainController')
+    {groupEntryPoint, profileEntryPoint} = KD.config
 
     if KD.isLoggedIn()
       fetchCurrentGroup (group)=>

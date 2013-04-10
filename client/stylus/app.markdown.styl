@@ -137,74 +137,90 @@
     display                                       block
 
   &.dark
-    color  #888
+
+    color               rgba(255,255,255,0.9)
+    text-shadow         1px 1px 1px rgba(0,0,0,0.5)
+
+    h1,h2,h3,h4,h5,h6
+      color             white!important
+
     h1
-      font-size 16px
+      font-size         16px
     h2
-      font-size 15px
+      font-size         15px
     h3
-      font-size 14px
+      font-size         14px
     h4
-      font-size 13px
+      font-size         13px
     h5
-      font-size 12px
+      font-size         12px
     h6
-      font-size 12px
-      color     #aaa
+      font-size         12px
+      // color     #aaa
 
     img
-      bg color, rgba(255,255,255,0.05)
-      padding 2px
-      rounded 5px
-      border 1px solid rgba(255,255,255,0.16)
+      bg                color, rgba(255,255,255,0.05)
+      padding           2px
+      rounded           5px
+      border            1px solid rgba(255,255,255,0.16)
 
     b,strong
-      color rgba(255,255,255,0.75)//#f5f5f5
-      text-shadow 0 0 2px rgba(0,0,0,0.7)
+      // color rgba(255,255,255,0.75)//#f5f5f5
+      // text-shadow 0 0 2px rgba(0,0,0,0.7)
+      font-weight       bold
 
     hr
       border-top-color  rgba(255,255,255,0.16)
 
     blockquote
-      border 1px solid rgba(255,255,255,0.16)
-      rounded 4px
-      padding 5px 8px
-      bg color, rgba(255,255,255,0.05)
-      margin 0 20px 10px 20px
+      border            1px solid rgba(255,255,255,0.16)
+      rounded           4px
+      padding           5px 8px
+      bg                color, rgba(255,255,255,0.05)
+      margin            0 20px 10px 20px
       p
-        margin 0
+        margin          0
 
 
 
     code
-      bg color, rgba(255,255,255,0.05)
-      color #aaa!important
-      padding 1px 4px
-      border 1px solid rgba(255,255,255,0.16)
-      rounded 2px
-      white-space pre-line
+      // bg color, rgba(255,255,255,0.25)
+      // bg color, rgba(0,0,0,0.25)
+      bg                color, rgba(0,0,0,0.8)
+      color             #f5f5f5!important
+      padding           1px 4px
+      border            1px solid rgba(255,255,255,0.16) //rgba(255,255,255,0.16)
+      rounded           2px
+      // white-space pre-line
       // vendor transition, background-color 0.2s linear
       // &:hover
       //   bg color, lighten(#403C36,2%)
 
 
     pre
-      // vendor transition, background-color 0.2s linear
-      border 1px solid rgba(255,255,255,0.16)
-      bg color, transparent //rgba(0,0,0,0.2)//#403C36
-      rounded 4px
-      color #aaa!important
-      padding 0
+      // border 1px solid rgba(255,255,255,0.16)
+      // bg color, transparent //rgba(0,0,0,0.2)//#403C36
+      rounded           4px
+      color             #f5f5f5!important
+      padding           0
+      bg                color, transparent!important
+      border            1px solid transparent!important
       > code
-        padding  15px
-        border none
-      // &:hover
-      //   bg color, lighten(#403C36,2%)
-      //   code
-      //     bg color, lighten(#403C36,2%)
+        // bg color, transparent
+        padding         15px
+        // border none
+        border          1px solid rgba(255,255,255,0.16)
+        rounded         5px
+        color           #f5f5f5!important
+
 
     a
-      color #ff9200
+      vendor            transition, color 0.2s linear
+      color             #ff9200
+      border-bottom     1px solid  #ff9200
+      &:hover
+        color           lighten(#ff9200, 50%)
+
 
   &.force-small-markdown
     *
