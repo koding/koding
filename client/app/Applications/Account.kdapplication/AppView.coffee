@@ -36,8 +36,10 @@ class AccountListWrapper extends KDView
       keysController                 : AccountSshKeyListController
       keys                           : AccountSshKeyList
     kites                            :
-      kiteListController             : AccountKiteListController
+      myKiteList                     : AccountMyKiteList
+      myKiteListController           : AccountMyKiteListController
       kiteList                       : AccountKiteList
+      kiteListController             : AccountKiteListController
 
   viewAppended:->
 
