@@ -354,8 +354,6 @@ class InfoBox extends KDView
 
     stopSanitizingToolTip = {
       title:"This feature automatically adds protocols to URLs detected in your message."
-      position: "below"
-      gravity : "s"
     }
 
     @stopSanitizingLabel = new KDLabelView

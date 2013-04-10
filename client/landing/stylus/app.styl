@@ -160,6 +160,7 @@ body
 
 #kdmaincontainer
   vendor            transition, opacity .6s ease-in-out
+  overflow          visible
 
   > header
     margin            0
@@ -789,7 +790,12 @@ span.main-nav-icon
         .custom-link-view .icon.new-page
           bg                position, -180px -520px
           opacity           .2
-
+        .buttons
+          float             right
+          button span.accept
+            bg                position, -80px -500px
+          button span.ignore
+            bg                position, -80px -480px
 
   .sublink
     border-top            1px solid #e0e0df
@@ -1539,3 +1545,24 @@ body
         -webkit-transition            all .8s ease
         -webkit-transform             rotate3d(0, 1, 0, -20deg)
         left                          460px
+
+.invite-recovery-notification-bar
+  position              fixed
+  z-index               10000
+  width                 100%
+  top                   0
+  height                0px
+  text-align            center
+  font-size             16px
+  padding-top           6px
+  color                 white
+  cursor                pointer
+  border-bottom         1px solid rgba(15,15,15,0.16)
+  bg                    color, rgba(15,15,15,0.45)
+  vendor                transition, height .4s ease-in-out
+
+  &.show
+    height              26px
+
+  span
+    color               #ffb500
