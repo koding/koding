@@ -142,7 +142,6 @@ config =
       login           : 1
       queueName       : 1
       numberOfWorkers : 1
-      authResourceName: 1
       watch           : 1
     social        :
       login       : 1

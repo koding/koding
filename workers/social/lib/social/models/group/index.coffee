@@ -16,6 +16,8 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  {throttle} = require 'underscore'
+
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
     {permission: 'edit own groups', validateWith: Validators.own}
@@ -272,6 +274,36 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
+  @fetchSecretChannelName =(groupSlug, callback)->
+    JName = require '../name'
+    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
+      if err then callback err
+      else callback null, "group.secret.#{secretName}",
+        if oldSecretName then "group.secret.#{oldSecretName}"
+
+  @cycleChannel =do->
+    cycleChannel = (groupSlug, callback=->)->
+      JName = require '../name'
+      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
+        if err then callback err
+        else
+          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
+          @emit 'broadcast', routingKey, null
+          callback null
+    return throttle cycleChannel, 5000
+
+  cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
+
+  @broadcast =(groupSlug, message)->
+    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
+      if err? then console.error err
+      else unless secretChannelName? then console.error 'unknown channel'
+      else
+        @emit 'broadcast', oldSecretChannelName, message  if oldSecretChannelName
+        @emit 'broadcast', secretChannelName, message
+
+  broadcast:(message)-> @constructor.broadcast @slug, message
+
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
       group = this
@@ -415,13 +447,23 @@ module.exports = class JGroup extends Module
       @fetchReadme (err, readme)=>
         unless readme
           JMarkdownDoc = require '../markdowndoc'
-          JMarkdownDoc.create
-            content: text
-          ,(err,readme)=>
+          readme = new JMarkdownDoc content: text
+
+          daisy queue = [
+            ->
+              readme.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
               @addReadme readme, (err)->
                 console.log err
                 if err then callback err
-                else callback null, readme
+                else queue.next()
+            ->
+              callback null, readme
+          ]
+
         else
           readme.update $set:{ content: text }, (err)=>
             if err then callback err
@@ -698,6 +740,7 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
+      @cycleChannel()
       @emit 'NewMember'
 
   each:(selector, rest...)->

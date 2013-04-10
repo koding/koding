@@ -6,6 +6,8 @@ module.exports = class JName extends Model
 
   {secure, JsPath:{getAt}, dash} = require 'bongo'
 
+  createId = require 'hat'
+
   @share()
 
   @set
@@ -19,7 +21,33 @@ module.exports = class JName extends Model
       slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
-      secretName      : String
+
+  @cycleSecretName =(name, callback)->
+    JSecretName = require './secretname'
+    JSecretName.one {name}, (err, secretNameObj)=>
+      if err then callback err
+      else unless secretNameObj?
+        callback new KodingError "Unknown name #{name}"
+      else
+        oldSecretName = secretNameObj.secretName
+        secretName    = createId()
+        secretNameObj.update {
+          $set: { oldSecretName, secretName }
+        }, -> callback null, oldSecretName, secretName
+        setTimeout ->
+          secretNameObj.update { $unset: oldSecretName: 1 }, ->
+        , 5000
+
+  @fetchSecretName =(name, callback)->
+    JSecretName = require './secretname'
+    JSecretName.one {name}, (err, secretNameObj)->
+      if err then callback err
+      else unless secretNameObj
+        secretNameObj = new JSecretName {name}
+        secretNameObj.save (err)->
+          if err then callback err
+          else callback null, secretNameObj.secretName
+      else callback null, secretNameObj.secretName, secretNameObj.oldSecretName
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->

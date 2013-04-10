@@ -13,5 +13,5 @@ processMonitor = (require 'processes-monitor').start
   interval : 30000
   librato: librato
 
-authWorker = new AuthWorker koding, authWorker.authResourceName
+authWorker = new AuthWorker koding
 authWorker.connect()

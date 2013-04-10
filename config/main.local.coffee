@@ -73,7 +73,6 @@ module.exports = deepFreeze
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :

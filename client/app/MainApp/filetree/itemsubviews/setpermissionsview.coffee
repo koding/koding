@@ -10,30 +10,19 @@ class NSetPermissionsView extends JView
       title     : "Set"
       callback  : =>
         permissions = @getPermissions()
-        # recursive   = @recursive.getValue() or no
+        recursive   = @recursive.getValue() or no
         file        = @getData()
-        file.chmod {permissions}, (err,res)=>
+        file.chmod {permissions, recursive}, (err,res)=>
           unless err
             @displayOldOctalPermissions()
 
-    # @fetchPermissionsButton = new KDButtonView
-    #   title : "Fetch file permissions"
-    #   callback: ->
-    #     log "fetch"
-    #     # setPermissionsView.getDelegate().fetch ->
-    #     #   setPermissionsView.removeSubView header
-    #     #   setPermissionsView.removeSubView button
-    #     #   setPermissionsView.applyExistingPermissions()
-
-    # FIXME GG Add following when we implement
-    # the recursive permission update
-    #
-    # @recursive = new KDOnOffSwitch
+    @recursive = new KDOnOffSwitch
+      size : 'tiny'
 
   permissionsToOctalString = (permissions)->
     str = permissions.toString 8
     str = "0" + str while str.length < 3
-    return str
+    return str[-3..]
 
   createSwitches: (permission) ->
     for i in [0...9]
@@ -63,14 +52,6 @@ class NSetPermissionsView extends JView
   pistachio:->
     mode = @getData().mode
 
-    # FIXME GG Add following when we implement
-    # the recursive permission update
-    #
-    # <div class="recursive hidden">
-    #   <label>Apply to Enclosed Items</label>
-    #   {{> @recursive}}
-    # </div>
-
     unless mode?
       """
       <header class="clearfix"><div>Unknown file permissions</div></header>
@@ -97,6 +78,10 @@ class NSetPermissionsView extends JView
         </div>
       </section>
       <footer class="clearfix">
+        <div class="recursive hidden">
+          <label>Apply to Enclosed Items</label>
+          {{> @recursive}}
+        </div>
         <p class="old">Old: <em></em></p>
         <p class="new">New: <em></em></p>
         {{> @setPermissionsButton}}
