@@ -814,3 +814,18 @@ module.exports = class JGroup extends Module
       sourceName : 'JGroup'
     , (err, count)=>
       @update ($set: 'counts.members': count), ->
+
+  leave: secure (client, options, callback)->
+
+    [callback, options] = [options, callback] unless callback
+
+    if @slug is 'koding'
+      return callback new KodingError 'Leaving Koding group is not supported yet'
+
+    @fetchAdmins (err, admins)=>
+      for admin in admins when admin
+        if client.connection.delegate.getId().equals(admin._id) and admins.length <= 1
+          return callback new KodingError 'As admin of the group, you must promote another admin before you can leave'
+
+      Joinable = require '../../traits/joinable'
+      Joinable::leave.call @, client, options, callback
