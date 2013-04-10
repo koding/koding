@@ -11,4 +11,6 @@ class ActivityController extends KDObject
     groupsController.on 'GroupChanged', =>
       oldChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
-      groupChannel.on 'feed-new', => @emit 'ActivitiesArrived', activities
+      groupChannel.on 'feed-new', (activities)=>
+        @emit 'ActivitiesArrived',
+          (KD.remote.revive activity for activity in activities)

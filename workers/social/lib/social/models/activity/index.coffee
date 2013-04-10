@@ -68,7 +68,6 @@ module.exports = class CActivity extends jraphical.Capsule
     JGroup = require '../group'
     grouped = groupBy activities, 'group'
     for own groupName, items of grouped
-      console.log [groupName, 'feed-new', items]
       JGroup.broadcast groupName, 'feed-new', items
 
   # @__migrate =(callback)->

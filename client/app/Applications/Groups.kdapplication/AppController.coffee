@@ -55,13 +55,14 @@ class GroupsAppController extends AppController
       return @currentGroupData.data.first
     return @currentGroupData.data
 
-  openGroupChannel:(group)->
+  openGroupChannel:(group, callback=->)->
     @groupChannel = KD.remote.subscribe "group.#{group.slug}", {
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
       isReadOnly  : yes
     }
+    @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroup is groupName
@@ -74,8 +75,7 @@ class GroupsAppController extends AppController
         else if models?
           [group] = models
           @currentGroupData.setGroup group
-          @openGroupChannel group
-          @emit 'GroupChanged', groupName, group
+          @openGroupChannel group, => @emit 'GroupChanged', groupName, group
 
   getUserArea:-> @userArea
 
