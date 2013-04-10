@@ -8,46 +8,34 @@ class FSItem extends KDObject
 
   @create:(path, type, callback)->
 
-    FSItem.getSafePath path, (err, response)->
+    FSHelper.ensureNonexistentPath path, (err, response)->
       if err
         callback? err, response
         warn err
       else
         KD.getSingleton('kiteController').run
-          withArgs  :
-            command : "#{if type is 'file' then 'touch' else 'mkdir -p'} #{escapeFilePath response}"
+          method           : if type is 'folder' then "fs.createDirectory" \
+                             else "fs.writeFile"
+          withArgs         :
+            path           : response
+            content        : ""
+            donotoverwrite : yes
         , (err, res)->
           if err then warn err
           else
             file = FSHelper.createFileFromPath response, type
           callback? err, file
 
-  @getSafePath:(path, callback) ->
-
-    KD.getSingleton('kiteController').run
-      method      : "fetchSafeFileName"
-      withArgs    :
-        filePath  : path
-    , callback
-
-  @doesExist:(path, callback) ->
-    KD.getSingleton('kiteController').run "test -d #{escapeFilePath path}", (err, stderr, stdout)=>
-      if err?.code > 0
-        callback null, no
-      else
-        callback err, yes
-
   @copy:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.copy.started"
-    FSItem.getSafePath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run
-          withArgs  :
-            command : "cp -R #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
+        KD.getSingleton('kiteController').run \
+          "cp -R #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
           sourceItem.emit "fs.copy.finished"
           if err then warn err
@@ -58,14 +46,13 @@ class FSItem extends KDObject
   @move:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.move.started"
-    FSItem.getSafePath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run
-          withArgs  :
-            command : "mv #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
+        KD.getSingleton('kiteController').run \
+          "mv #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
           sourceItem.emit "fs.move.finished"
           if err then warn err
@@ -76,7 +63,7 @@ class FSItem extends KDObject
   @compress:(file, type, callback)->
 
     file.emit "fs.compress.started"
-    FSItem.getSafePath "#{file.path}.#{type}", (err, response)->
+    FSHelper.ensureNonexistentPath "#{file.path}.#{type}", (err, response)->
       if err
         warn err
         callback? err, response
@@ -84,9 +71,7 @@ class FSItem extends KDObject
         command = switch type
           when "tar.gz" then "tar -pczf #{escapeFilePath response} #{escapeFilePath file.path}"
           else "zip -r #{escapeFilePath response} #{escapeFilePath file.path}"
-        KD.getSingleton('kiteController').run
-          withArgs  : {command}
-        , (err, res)->
+        KD.getSingleton('kiteController').run command, (err, res)->
           file.emit "fs.compress.finished"
           if err then warn err
           callback? err, res
@@ -101,9 +86,7 @@ class FSItem extends KDObject
           "cd #{escapeFilePath file.parentPath};tar -zxf #{escapeFilePath file.name} -C #{folder.path}"
         else if /\.zip$/.test file.name
           "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
-      KD.getSingleton('kiteController').run
-        withArgs  : {command}
-      , (err, res)->
+      KD.getSingleton('kiteController').run command, (err, res)->
         file.emit "fs.extract.finished"
         if err then warn err
         callback? err, folder
@@ -168,13 +151,16 @@ class FSItem extends KDObject
 
   getExtension:-> FSItem.getFileExtension @name
 
+  exists:(callback=noop)->
+    FSHelper.exists @path, callback
+
+  stat:(callback=noop)->
+    FSHelper.getInfo @path, callback
+
   remove:(callback)->
 
     @emit "fs.delete.started"
-    @kiteController.run
-      withArgs  :
-        command : "rm -r #{escapeFilePath @path}"
-    , (err, response)=>
+    @kiteController.run "rm -r #{escapeFilePath @path}", (err, response)=>
       callback err, response
       if err then warn err
       else
@@ -186,14 +172,16 @@ class FSItem extends KDObject
     newPath = "#{@parentPath}/#{newName}"
 
     @emit "fs.rename.started"
-    FSItem.getSafePath newPath, (err, response)=>
+    FSHelper.ensureNonexistentPath newPath, (err, response)=>
       if err
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run
+        @kiteController.run
+          method    : "fs.rename"
           withArgs  :
-            command : "mv #{escapeFilePath(@path)} #{escapeFilePath(response)}"
+            oldpath : @path
+            newpath : newPath
         , (err, res)=>
           if err then warn err
           else
@@ -206,13 +194,17 @@ class FSItem extends KDObject
 
     {recursive, permissions} = options
 
-    return callback? "no permissions passed" unless permissions
+    return callback? "no permissions passed" unless permissions?
     @emit "fs.chmod.started"
+
     @kiteController.run
-      withArgs  :
-        command : "chmod #{if recursive then '-R' else ''} #{permissions} #{escapeFilePath @path}"
+      method      : "fs.setPermissions"
+      withArgs    :
+        path      : @path
+        recursive : recursive
+        mode      : permissions
     , (err, res)=>
-      @emit "fs.chmod.finished", recursive
+      @emit "fs.chmod.finished"
       if err then warn err
       else
         @mode = permissions

@@ -219,6 +219,16 @@ module.exports = [
 
   "app/CommonViews/markdownmodal.coffee",
 
+  "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
+  "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
+  "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
+  "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
+  "app/CommonViews/fatih/fatihprefpane.coffee",
+  "app/CommonViews/fatih/fatih.coffee",
+
   # "app/MainApp/foreign_auth.coffee",
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -659,8 +669,11 @@ module.exports = [
   # "app/MainApp/oldPages/irc/customViews.coffee",
   # "app/MainApp/oldPages/irc/lists.coffee",
   # "app/MainApp/oldPages/irc/tabs.coffee",
+  "app/MainApp/status.coffee",
   "app/MainApp/account-mixins.coffee",
   "app/MainApp/main.coffee",
+  "app/MainApp/monitor_status.coffee",
+  "app/MainApp/rollbar.coffee",
 
   # --- Styles ---
   "css/style.css",

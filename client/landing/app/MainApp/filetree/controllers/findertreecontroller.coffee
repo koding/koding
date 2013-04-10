@@ -19,7 +19,6 @@ class NFinderTreeController extends JTreeViewController
 
     o = @getOptions()
     return if o.foldersOnly and nodeData.type is "file"
-    # @setFileListeners nodeData if o.fsListeners
     item = super nodeData, index
 
   setItemListeners:(view, index)->
@@ -151,8 +150,10 @@ class NFinderTreeController extends JTreeViewController
         callback?()
 
   toggleFolder:(nodeView, callback)->
-
-    if nodeView.expanded then @collapseFolder nodeView, callback else @expandFolder nodeView, callback
+    if nodeView.expanded
+      @collapseFolder nodeView, callback
+    else
+      @expandFolder nodeView, callback
 
   expandFolder:(nodeView, callback)->
 
@@ -185,10 +186,11 @@ class NFinderTreeController extends JTreeViewController
   collapseFolder:(nodeView, callback)->
 
     return unless nodeView
-    nodeData = nodeView.getData()
-    {path} = nodeData
+    folder = nodeView.getData()
+    {path} = folder
 
-    @emit "folder.collapsed", nodeData
+    @emit "folder.collapsed", folder
+    folder.stopWatching?()
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -274,10 +276,10 @@ class NFinderTreeController extends JTreeViewController
 
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
-        else
-          delete @nodes[oldPath]
-          @nodes[nodeView.getData().path] = nodeView
-          nodeView.childView.render()
+        # else
+        #   delete @nodes[oldPath]
+        #   @nodes[nodeView.getData().path] = nodeView
+        #   nodeView.childView.render()
 
       # @setKeyView()
       @beingEdited = null
@@ -286,10 +288,11 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    parentPath = if nodeData.type is "file"
-      nodeData.parentPath
+
+    if nodeData.type is "file"
+      {parentPath} = nodeData
     else
-      nodeData.path
+      parentPath = nodeData.path
 
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
@@ -715,7 +718,7 @@ class NFinderTreeController extends JTreeViewController
   ###
 
   notification  = null
-  autoTriedOnce = no
+  autoTriedOnce = yes
 
   hideNotification: ->
     notification.destroy() if notification
@@ -732,12 +735,15 @@ class NFinderTreeController extends JTreeViewController
     style or= 'error' if details
     duration = if reconnect then 0 else if details then 5000 else 2500
 
-    if not autoTriedOnce and reconnect
-      KD.utils.wait 200, =>
-        @emit 'fs.retry.scheduled'
-        @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
-      autoTriedOnce = yes
-      return
+    # SA: Temporarily commenting it out since we no longer have problem of shared
+    # hosting not returning results. If uncommented, it cycles channel
+    # unnecessarily in beginning of page load.
+    #if not autoTriedOnce and reconnect
+      #KD.utils.wait 200, =>
+        #@emit 'fs.retry.scheduled'
+        ##@getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
+      #autoTriedOnce = yes
+      #return
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
