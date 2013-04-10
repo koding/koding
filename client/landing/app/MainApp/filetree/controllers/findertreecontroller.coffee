@@ -150,8 +150,10 @@ class NFinderTreeController extends JTreeViewController
         callback?()
 
   toggleFolder:(nodeView, callback)->
-
-    if nodeView.expanded then @collapseFolder nodeView, callback else @expandFolder nodeView, callback
+    if nodeView.expanded
+      @collapseFolder nodeView, callback
+    else
+      @expandFolder nodeView, callback
 
   expandFolder:(nodeView, callback)->
 
@@ -184,10 +186,11 @@ class NFinderTreeController extends JTreeViewController
   collapseFolder:(nodeView, callback)->
 
     return unless nodeView
-    nodeData = nodeView.getData()
-    {path} = nodeData
+    folder = nodeView.getData()
+    {path} = folder
 
-    @emit "folder.collapsed", nodeData
+    @emit "folder.collapsed", folder
+    folder.stopWatching?()
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -273,10 +276,10 @@ class NFinderTreeController extends JTreeViewController
 
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
-        else
-          delete @nodes[oldPath]
-          @nodes[nodeView.getData().path] = nodeView
-          nodeView.childView.render()
+        # else
+        #   delete @nodes[oldPath]
+        #   @nodes[nodeView.getData().path] = nodeView
+        #   nodeView.childView.render()
 
       # @setKeyView()
       @beingEdited = null
@@ -285,10 +288,11 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
-    parentPath = if nodeData.type is "file"
-      nodeData.parentPath
+
+    if nodeData.type is "file"
+      {parentPath} = nodeData
     else
-      nodeData.path
+      parentPath = nodeData.path
 
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
