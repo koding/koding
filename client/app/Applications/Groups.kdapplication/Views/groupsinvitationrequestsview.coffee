@@ -17,7 +17,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @invitationTypeFilter =
       options.invitationTypeFilter ? ['basic approval','invitation']
-    
+
     @statusFilter =
       options.statusFilter ? ['pending','sent','approved', 'declined']
 
@@ -40,8 +40,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           loader        :
             color       : "#444444"
             diameter    : 12
-          callback      : -> console.log 'send', arguments
-
+          callback      : => @sendInviteToMember()
 
     @prepareBulkInvitations()
     @batchInvites = new KDFormViewWithFields
@@ -56,7 +55,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           label         : "# of Invites"
           type          : "text"
           defaultValue  : 10
-          placeholder   : "how many users do you want to Invite?"
+          placeholder   : "how many users do you want to invite?"
           validate      :
             rules       :
               regExp    : /\d+/i
@@ -74,27 +73,31 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @refresh()
 
+    @utils.defer =>
+      @parent.on 'NewInvitationActionArrived', =>
+        @refresh()
+
   getControllers:->
     (@["#{controllerName}Controller"] for controllerName in controllerNames)
 
   refresh:->
-    
+
     @fetchSomeRequests @invitationTypeFilter, @statusFilter, (err, requests)=>
       if err then console.error err
       else
-        
+
         groupedRequests = {}
-        
+
         requests.reverse().forEach (request)->
-          
-          requestGroup = 
+
+          requestGroup =
             if request.status in ['approved','declined']
               groupedRequests.resolved ?= []
             else
               groupedRequests[request.status] ?= []
-          
+
           requestGroup.push request
-        
+
         {pending, sent, resolved} = groupedRequests
 
         # clear out any items that may be there already:
@@ -111,7 +114,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @sentListController = new InvitationRequestListController
       viewOptions       :
         cssClass        : 'request-list'
-      itemClass         : GroupsInvitationRequestListItemView
+      itemClass         : GroupsInvitationListItemView
       showDefaultItem   : yes
       defaultItem       :
         options         :
@@ -157,6 +160,18 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @resolvedList = @resolvedListController.getView()
     return @resolvedList
+
+  sendInviteToMember:->
+    email = @inviteMember.getFormData().recipient
+    KD.remote.api.JGroup.one {_id:@getData()._id}, (err, group)=>
+      if err then console.warn err
+      else
+        group.inviteMember email, (err)=>
+          @inviteMember.buttons['Send invite'].hideLoader()
+          if err then console.warn err
+          else
+            @refresh()
+            console.log 'done'
 
   pistachio:->
     """

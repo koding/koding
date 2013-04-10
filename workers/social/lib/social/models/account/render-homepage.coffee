@@ -4,17 +4,12 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
 
   staticPage ?= {}
-  {backgrounds} = staticPage
+  {customize} = staticPage
 
   firstName ?= 'Koding'
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
-
-  if backgrounds?.length
-    console.log backgrounds.length, Math.floor(Math.random()*backgrounds.length)
-    selectedBackground = backgrounds[Math.floor(Math.random()*backgrounds.length)]
-    console.log selectedBackground
 
   """
   <!DOCTYPE html>
@@ -24,9 +19,9 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
     #{getStyles()}
   </head>
   <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing#{if selectedBackground then ' custom-bg' else ''}" id='static-landing-page' data-profile="#{nickname}" #{if selectedBackground then "style='background-image:url(#{selectedBackground})'" else ''}>
+    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
 
-    <div class="profile-content-wrapper kdview" id="profile-content-wrapper">
+    <div class="profile-content-wrapper kdview" id="profile-content-wrapper" #{applyCustomBackground customize}>
       <div class="profile-title" id="profile-title">
         <div class="profile-title-wrapper" id="profile-title-wrapper">
           <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
@@ -40,48 +35,52 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
         </div>
       </div>
       <div class="profile-splitview" id="profile-splitview">
-        <div id="landing-page-sidebar" class=" profile-sidebar kdview">
+        <div id="landing-page-sidebar" class="profile-sidebar kdview">
           <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
-              <button type="button" class="kdbutton editor-button">
+              <button type="button" class="kdbutton editor-button" id='profile-home-button'>
                 <span class="icon hidden"></span>
                 <span class="button-title">Home</span>
               </button>
             </div>
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-              <button type="button" class="kdbutton editor-button">
+              <button type="button" class="kdbutton editor-button" id='profile-activity-button'>
                 <span class="icon hidden"></span>
                 <span class="button-title">Activity</span>
               </button>
             </div>
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-              <button type="button" class="kdbutton editor-button">
+              <button type="button" class="kdbutton editor-button" id='profile-about-button'>
                 <span class="icon hidden"></span>
                 <span class="button-title">About</span>
               </button>
             </div>
           </div>
         </div>
-        <div class="profile-content-links links-hidden" id="profile-content-links">
-          <h4>Show me</h4>
-          <ul>
-            <li class="" id="CBlogPostActivity">Blog Posts</li>
-            <li class="disabled" id="CStatusActivity">Status Updates</li>
-            <li class="disabled" id="CCodeSnipActivity">Code Snippets</li>
-            <li class="disabled" id="CDiscussionActivity">Discussions</li>
-            <li class="disabled" id="CTutorialActivity">Tutorials</li>
-          </ul>
-        </div>
+
         <div class="profile-loading-bar" id="profile-loading-bar"></div>
 
-         <div class="profile-content-list" id="profile-content-list">
-          <div class="profile-content" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
+         <div class="profile-content-list #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="profile-content-list">
+          <div class="profile-content front" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
+            <div class="profile-content-links links-hidden" id="profile-content-links">
+              <h4>Show me</h4>
+              <ul>
+                <!--<li class="" id="CBlogPostActivity">Blog Posts</li>-->
+                <li class="disabled" id="CStatusActivity">Status Updates</li>
+                <li class="disabled" id="CCodeSnipActivity">Code Snippets</li>
+                <li class="disabled" id="CDiscussionActivity">Discussions</li>
+                <li class="disabled" id="CTutorialActivity">Tutorials</li>
+              </ul>
+            </div>
             #{getBlogPosts(lastBlogPosts,firstName,lastName)}
             <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
-             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more
-             </button>
+             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more</button>
             </div>
           </div>
+          <div class="profile-content back" id='back-wrapper'>
+            <div class="profile-config" id='profile-config'>
+            </div>
+           </div>
         </div>
 
       <div id="landing-page-logo"></div>
@@ -94,6 +93,24 @@ module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
   </body>
   </html>
   """
+
+applyCustomBackground = (customize={})->
+
+  defaultImages = ['/images/bg/bg01.jpg','/images/bg/bg02.jpg',
+   '/images/bg/bg03.jpg','/images/bg/bg04.jpg','/images/bg/bg05.jpg',]
+
+  if customize.background?.customType is 'defaultImage' \
+  and customize.background?.customValue <= defaultImages.length
+    url = defaultImages[(customize.background.customValue or 0)]
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType is 'customImage'
+    url = customize.background?.customValue
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType in ['defaultColor','customColor']
+    """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""
+  else
+    """ style='background-image:url("#{defaultImages[0]}")'"""
+
 
 getStaticProfileTitle = (profile)->
   {firstName,lastName,nickname,staticPage} = profile
@@ -249,7 +266,7 @@ getDefaultUserContents =(firstName, lastName)->
       <div class="title"><span class="text">Hello!</span></div>
       <div class="has-markdown"><span class="data">
         <p>
-          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activities' on the left to see #{firstName}'s posts on Koding.</span></div>
+          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activitiy' on top to see #{firstName}'s posts on Koding.</span></div>
         </p>
     </div>
   """

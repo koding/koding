@@ -64,7 +64,8 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin'
+        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
+        'removeBackgroundImage'
       ]
     schema          :
       title         :
@@ -88,6 +89,7 @@ module.exports = class JGroup extends Module
       customize     :
         background  :
           customImages    : [String]
+          customColors    : [String]
           customType      :
             type          : String
             default       : 'defaultImage'
@@ -162,16 +164,36 @@ module.exports = class JGroup extends Module
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
 
-
   setBackgroundImage: permit 'edit groups',
     success:(client, type, value, callback=->)->
-      operation = $set: {}
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customImages'] = value
+      else if type is 'customColor'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customColors'] = value
+      else
+        operation = $set : {}
+
       operation.$set["customize.background.customType"] = type
 
-      if type in ['defaultImage','defaultColor','customColor']
+      if type in ['defaultImage','defaultColor','customColor','customImage']
         operation.$set["customize.background.customValue"] = value
 
       @update operation, callback
+
+  removeBackgroundImage: permit 'edit groups',
+    success:(client, type, value, callback=->)->
+      if type is 'customImage'
+        @update {$pullAll: 'customize.background.customImages': [value]}, callback
+      else if type is 'customColor'
+        @update {$pullAll: 'customize.background.customColors': [value]}, callback
+      else
+        console.log 'Nothing to remove'
 
 
   @renderHomepage: require './render-homepage'
@@ -654,10 +676,49 @@ module.exports = class JGroup extends Module
   inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
-      invitationRequest = new JInvitationRequest {email}
-      invitationRequest.save (err)->
-        if err then callback err
-        else invitationRequest.sendInvitation client, callback
+
+      params =
+        email: email,
+        group: @slug
+
+      JInvitationRequest.one params, (err, invitationRequest)=>
+        if invitationRequest
+          callback new KodingError """
+            You've already invited #{email} to join this group.
+            """
+        else
+          params['invitationType'] = 'invitation'
+          params['status']         = 'sent'
+
+          invitationRequest = new JInvitationRequest params
+          invitationRequest.save (err)=>
+            if err then callback err
+            else @addInvitationRequest invitationRequest, (err)->
+              if err then callback err
+              else invitationRequest.sendInvitation client, callback
+
+  requestInvitation: secure (client, invitationType, callback)->
+    {delegate} = client.connection
+    JInvitationRequest = require '../invitationrequest'
+
+    invitationRequest = new JInvitationRequest {
+      invitationType
+      koding  : { username: delegate.profile.nickname }
+      group   : @slug,
+      status  : 'pending'
+    }
+    invitationRequest.save (err)=>
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
+      else
+        @addInvitationRequest invitationRequest, (err)=>
+          if err then callback err
+          else
+            if invitationType is 'basic approval'
+              invitationRequest.sendRequestNotification client, callback
+            @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
@@ -684,53 +745,13 @@ module.exports = class JGroup extends Module
   requestAccess: secure (client, callback)->
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
-      else if policy?.invitationsEnabled
-        @requestInvitation client, 'invitation', callback
       else
-        @requestApproval client, callback
+        if policy?.invitationsEnabled
+          invitationType = 'invitation'
+        else
+          invitationType = 'basic approval'
 
-  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
-    JMail = require '../email'
-    (new JMail
-      email   : adminUser.email
-      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
-      content : """
-        This will be the content for the approval request email.
-        """
-    ).save callback
-
-  requestApproval: secure (client, callback)->
-    {delegate} = client.connection
-    @requestInvitation client, 'basic approval', (err)=>
-      if err then callback err
-      else @fetchAdmin (err, admin)=>
-        if err then callback err
-        else delegate.fetchUser (err, delegateUser)=>
-          if err then callback err
-          else admin.fetchUser (err, adminUser)=>
-            if err then callback err
-            else
-              @sendApprovalRequestEmail(
-                delegate, delegateUser, admin, adminUser, callback
-              )
-
-  requestInvitation: secure (client, invitationType, callback)->
-    JInvitationRequest = require '../invitationrequest'
-    {delegate} = client.connection
-    invitationRequest = new JInvitationRequest {
-      invitationType
-      koding  : { username: delegate.profile.nickname }
-      group   : @slug
-    }
-    invitationRequest.save (err)=>
-      if err?.code is 11000
-        callback new KodingError """
-          You've already requested an invitation to this group.
-          """
-      else
-        @addInvitationRequest invitationRequest, (err)=>
-          callback err
-          @emit 'NewInvitationRequest'
+        @requestInvitation client, invitationType, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback

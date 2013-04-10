@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
-  {daisy}   = require 'bongo'
+  {ObjectRef, daisy, secure}   = require 'bongo'
 
   {permit} = require './group/permissionset'
 
@@ -13,7 +13,8 @@ module.exports = class JInvitationRequest extends Model
 
   @set
     indexes           :
-      email           : ['unique','sparse']
+      #email           : ['unique','sparse']
+      email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
       static          : ['create'] #,'__importKodingenUsers']
@@ -22,6 +23,8 @@ module.exports = class JInvitationRequest extends Model
         'deleteInvitation'
         'approveInvitation'
         'declineInvitation'
+        'acceptInvitationByInvitee'
+        'ignoreInvitationByInvitee'
       ]
     schema            :
       email           :
@@ -100,8 +103,13 @@ module.exports = class JInvitationRequest extends Model
 
   fetchAccount:(callback)->
     JAccount = require './account'
-    if @koding.username
+    if @koding?.username
       JAccount.one {'profile.nickname': @koding.username}, callback
+    else if @email
+      JUser = require './user'
+      JUser.one email:@email, (err, user)->
+        if err then callback err
+        else JAccount.one {'profile.nickname':user.username}, callback
     else
       callback new KodingError """
         Unimplemented: we can't fetch an account from this type of invitation
@@ -109,7 +117,6 @@ module.exports = class JInvitationRequest extends Model
 
   approveInvitation: permit 'send invitations',
     success: (client, callback=->)->
-      console.trace()
       JGroup = require './group'
       JGroup.one { slug: @group }, (err, group)=>
         if err then callback err
@@ -120,29 +127,160 @@ module.exports = class JInvitationRequest extends Model
             if err then callback err
             else
               # send the invitation in any case:
-              @sendInvitation()
+              @sendInvitation client
               if account?
                 group.approveMember account, (err)=>
                   if err then callback err
-                  else @update $set:{ status: 'approved' }, callback
+                  else @update $set:{ status: 'approved' }, (err)=>
+                    if err then callback err
+                    else
+                      @sendRequestApprovedNotification client, group, account, callback
               else
                 @update $set:{ status: 'sent' }, callback
+
+  fetchDataForAcceptOrIgnore: (client, callback)->
+    {delegate} = client.connection
+    JGroup = require './group'
+    JGroup.one slug:@group, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else @fetchAccount (err, account)=>
+        if err then callback err
+        else if not account
+          callback new KodingError "Account ID does not equal caller's ID"
+        else if not account._id.equals delegate.getId()
+          callback new KodingError "Account ID does not equal caller's ID"
+        else callback null, account, group
+
+  acceptInvitationByInvitee: secure (client, callback)->
+    @fetchDataForAcceptOrIgnore client, (err, account, group)=>
+      if err then callback err
+      else
+        group.approveMember account, (err)=>
+          if err then callback err
+          else @update $set:{status:'approved'}, (err)->
+            if err then callback err
+            else callback null
+
+  ignoreInvitationByInvitee: secure (client, callback)->
+    @fetchDataForAcceptOrIgnore client, (err, account, group)=>
+      if err then callback err
+      else
+        @update $set:{status:'declined'}, (err)->
+          if err then callback err
+          else callback null
 
   deleteInvitation: permit 'send invitations',
     success:(client, rest...)-> @remove rest...
 
-  sendInvitation:(callback=->)->
-    JUser         = require './user'
-    JInvitation   = require './invitation'
-    JUser.someData username: @koding.username, { email: 1 }, (err, cursor)=>
+  sendInvitation:(client, callback=->)->
+    JUser       = require './user'
+    JGroup      = require './group'
+    JInvitation = require './invitation'
+
+    JGroup.one slug: @group, (err, group)=>
       if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
       else
-        cursor.nextObject (err, obj)=>
+        JUser.one email: @email, (err, user)=>
           if err then callback err
-          else unless obj?
-            callback new KodingError "Unknown username: #{@koding.username}"
+          else if not user
+            # send invite to non koding user
+            JInvitation.createViaGroup client, group, [@email], callback
           else
-            JInvitation.sendBetaInvite obj, callback
+            @update $set:{'koding.username':user.username}, (err)=>
+              if err then callback err
+              else
+                # send invite to existing koding user
+                @sendInviteMailToKodingUser client, user, group, callback
 
   sendInvitation$: permit 'send invitations',
-    success: (client, callback)-> @sendInvitation callback
+    success: (client, callback)-> @sendInvitation client, callback
+
+  sendInviteMailToKodingUser:(client, user, group, callback)->
+    JAccount          = require './account'
+    JMailNotification = require './emailnotification'
+
+    JAccount.one 'profile.nickname': user.username, (err, receiver)=>
+      if err then callback err
+      else
+        {delegate} = client.connection
+        JAccount.one _id: delegate.getId(), (err, actor)=>
+          if err then callback err
+          else
+            data =
+              actor        : actor
+              receiver     : receiver
+              event        : 'Invited'
+              contents     :
+                subject    : ObjectRef(group).data
+                actionType : 'invite'
+                actorType  : 'admin'
+                invite     : ObjectRef(@).data
+                admin      : ObjectRef(client).data
+
+            JMailNotification.create data, (err)->
+              if err then callback new KodingError "Could not send"
+              else
+                callback null
+
+  sendRequestNotification:(client, callback)->
+    JUser             = require './user'
+    JAccount          = require './account'
+    JGroup            = require './group'
+    JMailNotification = require './emailnotification'
+
+    JGroup.one slug: @group, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else
+        {delegate} = client.connection
+        JAccount.one _id: delegate.getId(), (err, actor)=>
+          if err then callback err
+          else
+            group.fetchAdmins (err, accounts)=>
+              if err then callback err
+
+              for account in accounts when account
+                data =
+                  actor             : actor
+                  receiver          : account
+                  event             : 'ApprovalRequested'
+                  contents          :
+                    subject         : ObjectRef(group).data
+                    actionType      : 'approvalRequest'
+                    actorType       : 'requester'
+                    approvalRequest : ObjectRef(@).data
+                    requester       : ObjectRef(actor).data
+
+                JMailNotification.create data, (err)->
+                  if err then callback new KodingError "Could not send"
+                  else
+                    callback null
+
+  sendRequestApprovedNotification:(client, group, account, callback)->
+    JAccount          = require './account'
+    JMailNotification = require './emailnotification'
+
+    {delegate} = client.connection
+    JAccount.one _id: delegate.getId(), (err, actor)=>
+      if err then callback err
+      else
+        data =
+          actor             : actor
+          receiver          : account
+          event             : 'Approved'
+          contents          :
+            subject         : ObjectRef(group).data
+            actionType      : 'approved'
+            actorType       : 'requester'
+            approved        : ObjectRef(@).data
+            requester       : ObjectRef(actor).data
+
+        JMailNotification.create data, (err)->
+          if err then callback new KodingError "Could not send"
+          else
+            callback null

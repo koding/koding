@@ -34,12 +34,13 @@ class KDMultipleChoice extends KDInputView
     @currentValue = [] if options.multiple
 
   setDomElement:(cssClass)->
-    {labels, name} = @getOptions()
+    {labels, name, defaultValue} = @getOptions()
     @inputName = name
 
     labelItems = ""
     for label in labels
-      clsName     = "multiple-choice-#{label}"
+      activeClass = if label is defaultValue then ' active' else '' 
+      clsName     = "multiple-choice-#{label}#{activeClass}"
       labelItems += "<a href='#' name='#{label}' class='#{clsName}' title='Select #{label}'>#{label}</a>"
 
     @domElement = $ """

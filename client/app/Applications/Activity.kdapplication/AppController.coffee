@@ -111,7 +111,6 @@ class ActivityAppController extends AppController
       isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took"
-      @mainController.emit "AppIsReady"
 
       if err or teasers.length is 0
         warn "An error occured:", err  if err
