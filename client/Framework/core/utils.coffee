@@ -555,7 +555,7 @@ __utils =
     uniqueness = (Date.now()+"").slice(6)
     formData   =
       agree           : "on"
-      email           : "sinanyasar+#{uniqueness}@gmail.com"
+      email           : "senthil+#{uniqueness}@koding.com"
       firstName       : gp(gr(10), yes)
       inviteCode      : "twitterfriends"
       lastName        : gp(gr(10), yes)
