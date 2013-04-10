@@ -30,6 +30,7 @@ class KDEventEmitter
       registry[eventName] = []
 
   _on = (registry, eventName, callback)->
+    throw new Error 'Try passing a listener, genius!'  unless callback?
     if Array.isArray eventName
       _registerEvent registry, name, callback for name in eventName
     else
