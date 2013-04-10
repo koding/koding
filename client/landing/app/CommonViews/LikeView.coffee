@@ -45,7 +45,7 @@ class LikeView extends KDView
     data = @getData()
 
     return if @_lastUpdatedCount is data.meta.likes
-    @likeCount.updateTooltip { title: "Loading..." }
+    @likeCount.getTooltip().update { title: "Loading..." }
 
     if data.meta.likes is 0
       @likeLink.updatePartial "Like"
@@ -75,7 +75,7 @@ class LikeView extends KDView
             when 3 then "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]} and #{peopleWhoLiked[2]}"
             else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</stron>"
 
-        @likeCount.updateTooltip { title: tooltip }
+        @likeCount.getTooltip().update { title: tooltip }
         @_lastUpdatedCount = likes.length
 
   click:(event)->
