@@ -51,9 +51,16 @@ module.exports = class JGroup extends Module
       'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'NewMember', filter: -> [] }
+      ]
+      instance      : [
+        { name: 'NewMember', filter: -> [] }, 'save'
+      ]
     sharedMethods   :
       static        : [
-        'one','create','each','byRelevance','someWithRelationship'
+        'one','create','each','byRelevance','someWithRelationship', '__chris'
         '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel'
       ]
       instance      : [
@@ -138,6 +145,10 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @__chris =->
+    console.log 'w t f '
+    @emit 'NewMember', 'this should be filtered out'
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
