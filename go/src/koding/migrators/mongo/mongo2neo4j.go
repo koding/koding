@@ -64,7 +64,6 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 	var source map[string]interface{}
 
 	err := json.Unmarshal([]byte(data), &source)
-
 	if err != nil {
 		fmt.Println("Marshalling error:", err)
 		return nil, err
