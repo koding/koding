@@ -51,11 +51,11 @@ func sendRequest(url string, data string) string {
 
 	defer req.Body.Close()
 
-	return fmt.Sprintf("%s", body)
+	return string(body)
 }
 
 // This is a custom json string generator as http request body to neo4j
-func getPostJsonData(id, name string) string {
+func generatePostJsonData(id, name string) string {
 	return fmt.Sprintf(`{ "key" : "id", "value" : "%s", "properties" : { "id" : "%s", "name" : "%s" } }`, id, id, name)
 }
 
@@ -63,11 +63,11 @@ func getPostJsonData(id, name string) string {
 func jsonDecode(data string) (map[string]interface{}, error) {
 	var source map[string]interface{}
 
-	marshalErr := json.Unmarshal([]byte(data), &source)
+	err := json.Unmarshal([]byte(data), &source)
 
-	if marshalErr != nil {
-		fmt.Println("Marshalling error:", marshalErr)
-		return nil, marshalErr
+	if err != nil {
+		fmt.Println("Marshalling error:", err)
+		return nil, err
 	}
 
 	return source, nil
@@ -75,6 +75,14 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 // connect source and target with relationship's As property
 func createRelationship(mongoRecord *Relationship, sourceNode, targetNode map[string]interface{}) map[string]interface{} {
+	if _, ok := sourceNode["create_relationship"]; !ok {
+		return make(map[string]interface{})
+	}
+
+	if _, ok := targetNode["self"]; !ok {
+		return make(map[string]interface{})
+	}
+
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, targetNode["self"], mongoRecord.As)
 	relRes := sendRequest(fmt.Sprintf("%s", sourceNode["create_relationship"]), relationshipData)
 
@@ -91,12 +99,11 @@ func createUniqueNode(id string, name string) map[string]interface{} {
 	url := BASE_URL + UNIQUE_NODE_PATH
 	// url := "http://localhost:7474/db/data/index/node/koding?unique"
 
-	postData := getPostJsonData(id, name)
+	postData := generatePostJsonData(id, name)
 
 	response := sendRequest(url, postData)
 
 	nodeData, err := jsonDecode(response)
-
 	if err != nil {
 		fmt.Println("Problem with response", response)
 	}
@@ -118,7 +125,6 @@ func createUniqueIndex() {
 func main() {
 	// connnect to mongo
 	conn, err := mgo.Dial(MONGO_CONN_STRING)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -135,12 +141,8 @@ func main() {
 
 	//iterate over results
 	for iter.Next(&result) {
-		var sourceId string = fmt.Sprintf("%x", string(result.SourceId))
-		var targetId string = fmt.Sprintf("%x", string(result.TargetId))
-
-		sourceNode := createUniqueNode(sourceId, fmt.Sprintf("%s", result.SourceName))
-		targetNode := createUniqueNode(targetId, fmt.Sprintf("%s", result.TargetName))
-
+		sourceNode := createUniqueNode(result.SourceId.Hex(), result.SourceName)
+		targetNode := createUniqueNode(result.TargetId.Hex(), result.TargetName)
 		createRelationship(&result, sourceNode, targetNode)
 	}
 
