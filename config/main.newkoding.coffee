@@ -154,8 +154,4 @@ module.exports =
   runLdapServer: no
   runProxy: no
   emailSender:
-     run: no 
-  imageProxy    :
-    run         : yes
-    port        : 2400
-    clusterSize : 10
+     run: no

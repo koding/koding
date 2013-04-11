@@ -88,10 +88,6 @@ config =
         baseDir             : 1
         setfacl             : 1
   main :
-    imageProxy    :
-      run         : 1
-      port        : 1
-      clusterSize : 1
     haproxy       :
       webPort     : 1
     aws           :
