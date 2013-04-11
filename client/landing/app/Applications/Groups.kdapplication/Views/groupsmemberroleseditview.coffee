@@ -9,55 +9,53 @@ class GroupsMemberRolesEditView extends JView
         width : 22
 
   setRoles:(editorsRoles, allRoles)->
-    roleOrder = ['member', 'moderator', 'admin'] # excl guest and owner
-
-    _allRoles = allRoles.reduce (acc, role)->
-      acc.push role.title  unless role.title in ['owner', 'guest']
+    allRoles = allRoles.reduce (acc, role)->
+      acc.push role.title  unless role.title in ['owner', 'guest', 'member']
       return acc
     , []
-    allRoles = []
-    roleOrder.forEach (el)->
-      if el in _allRoles
-        allRoles.push el
-    _allRoles.forEach (el)->
-      if el not in allRoles
-        allRoles.push el
 
     @roles      = {
       usersRole    : @getDelegate().usersRole
       allRoles
       editorsRoles
-      roleOrder
     }
-
 
   setMember:(@member)->
 
   setGroup:(@group)->
 
   getSelectedRoles:->
-    [@radioGroup.getValue()]
+    @checkboxGroup.getValue()
 
   addViews:->
 
     @loader.hide()
 
-    return if KD.whoami().getId() is @member.getId()
-    return if 'owner' in @roles.usersRole
+    isAdmin = 'admin' in @roles.usersRole
+    @checkboxGroup = new KDInputCheckboxGroup
+      name         : 'user-role'
+      defaultValue : @roles.usersRole
+      checkboxes   : @roles.allRoles.map (role)=>
+        if role is 'admin'
+          callback = =>
+            isAdmin = 'admin' in @checkboxGroup.getValue()
+            for el in @checkboxGroup.getInputElements()
+              el = $(el)
+              if el.val() isnt 'admin'
+                if isAdmin
+                  el.removeAttr 'checked'
+                  el.parent().hide()
+                else
+                  el.parent().show()
+        else
+          callback = ->
 
-    @radioGroup = new KDInputRadioGroup
-      name          : 'user-role'
-      defaultValue  : do=>
-        # usersRole is an array, not a value, we take the "highest" one
-        for item in @roles.roleOrder.reverse()
-          if item in @roles.usersRole
-            return item
-        return @roles.usersRole.first
-      radios        : @roles.allRoles.map (role)->
-        value       : role
-        title       : role.capitalize()
+        value      : role
+        title      : role.capitalize()
+        visible    : if role isnt 'admin' and isAdmin then no else yes
+        callback   : callback
 
-    @addSubView @radioGroup, '.radios'
+    @addSubView @checkboxGroup, '.checkboxes'
 
     if 'owner' in @roles.editorsRoles
       @addSubView (new KDButtonView
@@ -156,7 +154,7 @@ class GroupsMemberRolesEditView extends JView
   pistachio:->
     """
     {{> @loader}}
-    <div class='radios'/>
+    <div class='checkboxes'/>
     <div class='buttons hidden'/>
     """
 
