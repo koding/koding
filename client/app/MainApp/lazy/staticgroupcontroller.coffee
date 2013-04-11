@@ -60,7 +60,15 @@ class StaticGroupController extends KDController
     @landingView.listenWindowResize()
     @landingView._windowDidResize = =>
       {innerHeight} = window
+      @landingView.setClass 'resizing-noanim'
       @landingView.setHeight innerHeight
+
+      @utils.killWait @wait
+      @wait = @utils.wait 200, =>
+          @landingView.unsetClass 'resizing-noanim'
+
+      if parseInt(@landingView.$().css("margin-top"),10) < 0
+        @landingView.$().css marginTop : -innerHeight
 
     @groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
