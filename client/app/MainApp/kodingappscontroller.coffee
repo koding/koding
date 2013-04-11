@@ -596,7 +596,7 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  proxifyUrl = (url)-> "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+  proxifyUrl = __utils.proxifyUrl
 
   escapeFilePath = FSHelper.escapeFilePath
 

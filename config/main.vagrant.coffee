@@ -94,14 +94,15 @@ module.exports =
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
-      broker    :
-        sockJS  : 'http://koding.local:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+      broker      :
+        sockJS    : 'http://koding.local:8008/subscribe'
+      apiUri      : 'https://dev-api.koding.com'
       # Is this correct?
-      version   : version
-      mainUri   : 'http://koding.local'
-      appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://koding.local:1337'
+      version     : version
+      mainUri     : 'http://koding.local'
+      appsUri     : 'https://dev-app.koding.com'
+      sourceUri   : 'http://koding.local:1337'
+      imgProxyUri : 'http://koding.local:2400/'
   mq            :
     host        : 'localhost'
     port        : 5672
