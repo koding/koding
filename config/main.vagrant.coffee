@@ -37,7 +37,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : yes
   runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -148,7 +147,6 @@ module.exports =
     interval: 60000
   haproxy:
     webPort     : 3020
-
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"

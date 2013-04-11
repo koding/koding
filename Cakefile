@@ -89,16 +89,6 @@ task 'webtermKite',({configFile})->
     restart : yes
     verbose : yes
 
-task 'sharedHostingKite',({configFile})->
-  {numberOfWorkers} = require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
-  numberOfWorkers ?= config.numberOfWorkers ? 1
-
-  for _, i in Array +numberOfWorkers
-    processes.fork
-      name    : "sharedHosting"
-      cmd     : __dirname+"/kites/sharedHosting/index -c #{configFile} --sharedHosting"
-      restart : yes
-
 task 'databasesKite',({configFile})->
   processes.fork
     name    : "databases"
@@ -278,16 +268,6 @@ task 'osKite',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'ldapServer',({configFile})->
-
-  processes.spawn
-    name  : 'ldapServer'
-    cmd   : "./go/bin/ldapserver -c #{configFile}"
-    restart: no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
 task 'proxy',({configFile})->
 
   processes.spawn
@@ -331,7 +311,6 @@ task 'checkConfig',({configFile})->
   require('koding-config-manager').load("main.#{configFile}")
   require('koding-config-manager').load("kite.applications.#{configFile}")
   require('koding-config-manager').load("kite.databases.#{configFile}")
-  require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
 
 
 run =({configFile})->
@@ -340,7 +319,6 @@ run =({configFile})->
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
-    invoke 'ldapServer'     if config.runLdapServer
     invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests

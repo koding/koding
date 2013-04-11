@@ -151,7 +151,6 @@ module.exports =
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
   runOsKite: no
-  runLdapServer: no
   runProxy: no
   emailSender:
-     run: no 
+     run: no
