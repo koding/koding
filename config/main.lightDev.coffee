@@ -11,7 +11,7 @@ rabbitPrefix = (
     console.log "You're missing .rabbitvhost file. Please add it with your name in it."
     throw e
 ).trim()
-socialQueueName = "koding-social-klusterdev"
+socialQueueName = "koding-social-klusterdev-#{rabbitPrefix}"
 
 module.exports =
   aws           :
