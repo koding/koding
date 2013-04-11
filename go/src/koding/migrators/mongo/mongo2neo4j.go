@@ -74,7 +74,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 }
 
 // connect source and target with relationship's As property
-func createRelationship(mongoRecord *Relationship, sourceNode map[string]interface{}, targetNode map[string]interface{}) map[string]interface{} {
+func createRelationship(mongoRecord *Relationship, sourceNode, targetNode map[string]interface{}) map[string]interface{} {
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, targetNode["self"], mongoRecord.As)
 	relRes := sendRequest(fmt.Sprintf("%s", sourceNode["create_relationship"]), relationshipData)
 
@@ -88,7 +88,6 @@ func createRelationship(mongoRecord *Relationship, sourceNode map[string]interfa
 
 // creates a unique node with given id and node name
 func createUniqueNode(id string, name string) map[string]interface{} {
-
 	url := BASE_URL + UNIQUE_NODE_PATH
 	// url := "http://localhost:7474/db/data/index/node/koding?unique"
 
@@ -108,18 +107,15 @@ func createUniqueNode(id string, name string) map[string]interface{} {
 // creates a unique tree head node to hold all nodes
 // it is called once during runtime while initializing
 func createUniqueIndex() {
-
 	//create unique index
 	url := BASE_URL + INDEX_PATH
 
 	bd := sendRequest(url, `{"name":"koding"}`)
 
 	fmt.Println("Created unique index for data", bd)
-
 }
 
 func main() {
-
 	// connnect to mongo
 	conn, err := mgo.Dial(MONGO_CONN_STRING)
 
@@ -139,7 +135,6 @@ func main() {
 
 	//iterate over results
 	for iter.Next(&result) {
-
 		var sourceId string = fmt.Sprintf("%x", string(result.SourceId))
 		var targetId string = fmt.Sprintf("%x", string(result.TargetId))
 
@@ -147,9 +142,7 @@ func main() {
 		targetNode := createUniqueNode(targetId, fmt.Sprintf("%s", result.TargetName))
 
 		createRelationship(&result, sourceNode, targetNode)
-
 	}
 
 	fmt.Println("Migration completed")
-
 }
