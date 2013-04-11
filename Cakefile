@@ -1,5 +1,6 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
-option '-D', '--debug', 'runs with node --debug'
+option '-D', '--debug', 'runs with node, go --debug'
+option '-V', '--verbose', 'runs with go --verbose'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
@@ -48,9 +49,10 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 # create required folders
 mkdirp.sync "./.build"
 
-addGoCommandFlags = ->
+addFlags = (options)->
   flags  = ""
-  flags += "-d" if options.debug
+  flags += " -d" if options.debug
+  flags += " -v" if options.verbose
 
   return flags
 
@@ -224,13 +226,13 @@ task 'emailWorker',({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
-task 'goBroker',({configFile})->
+task 'goBroker',(options)->
 
-  console.log options.debug, addGoCommandFlags()
+  {configFile} = options
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addGoCommandFlags()
+    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
