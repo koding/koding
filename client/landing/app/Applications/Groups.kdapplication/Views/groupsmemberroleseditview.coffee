@@ -9,16 +9,27 @@ class GroupsMemberRolesEditView extends JView
         width : 22
 
   setRoles:(editorsRoles, allRoles)->
-    allRoles = allRoles.reduce (acc, role)->
+    roleOrder = ['member', 'moderator', 'admin'] # excl guest and owner
+
+    _allRoles = allRoles.reduce (acc, role)->
       acc.push role.title  unless role.title in ['owner', 'guest']
       return acc
     , []
+    allRoles = []
+    roleOrder.forEach (el)->
+      if el in _allRoles
+        allRoles.push el
+    _allRoles.forEach (el)->
+      if el not in allRoles
+        allRoles.push el
 
     @roles      = {
       usersRole    : @getDelegate().usersRole
       allRoles
       editorsRoles
+      roleOrder
     }
+
 
   setMember:(@member)->
 
@@ -31,30 +42,34 @@ class GroupsMemberRolesEditView extends JView
 
     @loader.hide()
 
-    isMe = KD.whoami().getId() is @member.getId()
+    return if KD.whoami().getId() is @member.getId()
+    return if 'owner' in @roles.usersRole
 
     @radioGroup = new KDInputRadioGroup
       name          : 'user-role'
-      defaultValue  : @roles.usersRole
+      defaultValue  : do=>
+        # usersRole is an array, not a value, we take the "highest" one
+        for item in @roles.roleOrder.reverse()
+          if item in @roles.usersRole
+            return item
+        return @roles.usersRole.first
       radios        : @roles.allRoles.map (role)->
         value       : role
-        label       : role.capitalize()
-      disabled      : isMe
+        title       : role.capitalize()
 
     @addSubView @radioGroup, '.radios'
 
-    @addSubView (new KDButtonView
-      title    : "Make Owner"
-      cssClass : 'modal-clean-gray'
-      callback : => @showTransferOwnershipModal()
-      disabled : isMe
-    ), '.buttons'
+    if 'owner' in @roles.editorsRoles
+      @addSubView (new KDButtonView
+        title    : "Make Owner"
+        cssClass : 'modal-clean-gray'
+        callback : => @showTransferOwnershipModal()
+      ), '.buttons'
 
     @addSubView (new KDButtonView
       title    : "Kick"
       cssClass : 'modal-clean-red'
       callback : => @showKickModal()
-      disabled : isMe
     ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'

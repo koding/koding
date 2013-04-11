@@ -18,15 +18,18 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       partial          : "Roles: " + @usersRole.join ', '
       cssClass         : 'ib role'
 
-    @editLink          = new CustomLinkView
-      title            : 'Edit'
-      cssClass         : 'fr edit-link'
-      icon             :
-        cssClass       : 'edit'
-      click            : (event)=>
-        event.stopPropagation()
-        event.preventDefault()
-        @showEditMemberRolesView()
+    if 'owner' in @usersRole or KD.whoami().getId() is data.getId()
+      @editLink        = new KDHiddenView
+    else
+      @editLink        = new CustomLinkView
+        title          : 'Edit'
+        cssClass       : 'fr edit-link'
+        icon           :
+          cssClass     : 'edit'
+        click          : (event)=>
+          event.stopPropagation()
+          event.preventDefault()
+          @showEditMemberRolesView()
 
     @saveLink          = new CustomLinkView
       title            : 'Save'
