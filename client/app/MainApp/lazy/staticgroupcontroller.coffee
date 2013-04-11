@@ -315,6 +315,8 @@ class StaticGroupController extends KDController
         delegate : @
       ,@getData()
 
+    @lazyDomController.hideLandingPage()
+
   decorateGuestStatus:->
 
     @requestButton?.hide()
