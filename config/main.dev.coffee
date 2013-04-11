@@ -87,17 +87,18 @@ module.exports =
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
-  presence      :
-    exchange    : 'services-presence'
-  client        :
-    version     : version
-    watch       : yes
-    includesPath: 'client'
-    websitePath : 'website'
-    js          : "js/kd.#{version}.js"
-    css         : "css/kd.#{version}.css"
-    indexMaster : "index-master.html"
-    index       : "default.html"
+  presence        :
+    exchange      : 'services-presence'
+  client          :
+    version       : version
+    watch         : yes
+    watchDuration : 300
+    includesPath  : 'client'
+    websitePath   : 'website'
+    js            : "js/kd.#{version}.js"
+    css           : "css/kd.#{version}.css"
+    indexMaster   : "index-master.html"
+    index         : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
