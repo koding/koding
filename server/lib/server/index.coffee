@@ -29,8 +29,6 @@ services =
     pattern: 'webterm'
   worker_auth:
     pattern: 'auth'
-  kite_sharedhosting:
-    pattern: 'kite-sharedHosting'
   kite_applications:
     pattern: 'kite-application'
   kite_databases:

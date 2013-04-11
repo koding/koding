@@ -36,57 +36,6 @@ config =
       mongo             :
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
-    sharedHosting :
-      name                  : 1
-      numberOfWorkers       : 1
-      pidPath               : 1
-      logFile               : 1
-      amqp                  :
-        host                : 1
-        login               : 1
-        password            : 1
-        heartbeat           : 1
-      apiUri                : 1
-      usersPath             : 1
-      vhostDir              : 1
-      suspendDir            : 1
-      defaultVhostFiles     : 1
-      freeUsersGroup        : 1
-      liteSpeedUser         : 1
-      defaultDomain         : 1
-      minAllowedUid         : 1
-      debugApi              : 1
-      processBaseDir        : 1
-      cagefsctl             : 1
-      baseMountDir          : 1
-      maxAllowedRemotes     : 1
-      usersMountsFile       : 1
-      encryptKey            : 1
-      ftpfs                 :
-        curlftpfs           : 1
-        opts                : 1
-      sshfs                 :
-        sshfscmd            : 1
-        opts                : 1
-        optsWithKey         : 1
-      lsws                  :
-        baseDir             : 1
-        controllerPath      : 1
-        lsMasterConfig      : 1
-        configFilePath      : 1
-        minRestartInterval  : 1
-      ldap                  :
-        ldapUrl             : 1
-        rootUser            : 1
-        rootPass            : 1
-        groupDN             : 1
-        userDN              : 1
-        freeUID             : 1
-        freeGroup           : 1
-      FileSharing           :
-        baseSharedDir       : 1
-        baseDir             : 1
-        setfacl             : 1
   main :
     haproxy       :
       webPort     : 1

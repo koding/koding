@@ -89,16 +89,6 @@ task 'webtermKite',({configFile})->
     restart : yes
     verbose : yes
 
-task 'sharedHostingKite',({configFile})->
-  {numberOfWorkers} = require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
-  numberOfWorkers ?= config.numberOfWorkers ? 1
-
-  for _, i in Array +numberOfWorkers
-    processes.fork
-      name    : "sharedHosting"
-      cmd     : __dirname+"/kites/sharedHosting/index -c #{configFile} --sharedHosting"
-      restart : yes
-
 task 'databasesKite',({configFile})->
   processes.fork
     name    : "databases"
@@ -331,7 +321,6 @@ task 'checkConfig',({configFile})->
   require('koding-config-manager').load("main.#{configFile}")
   require('koding-config-manager').load("kite.applications.#{configFile}")
   require('koding-config-manager').load("kite.databases.#{configFile}")
-  require('koding-config-manager').load("kite.sharedHosting.#{configFile}")
 
 
 run =({configFile})->
