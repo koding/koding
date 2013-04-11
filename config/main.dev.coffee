@@ -37,7 +37,6 @@ module.exports =
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no

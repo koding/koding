@@ -1,11 +1,10 @@
-package main
+package ldapserver
 
 import (
 	"fmt"
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
-	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
@@ -19,9 +18,7 @@ var vmCache = make(map[bson.ObjectId]*virt.VM)
 var userByUidCache = make(map[int]*virt.User)
 var userByNameCache = make(map[string]*virt.User)
 
-func main() {
-	lifecycle.Startup("ldapserver", true)
-
+func Listen() {
 	go func() {
 		for {
 			vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
