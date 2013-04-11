@@ -81,7 +81,6 @@ class StaticPageCustomizeView extends KDView
         contentWrapper = @getDelegate().groupContentWrapperView or @getDelegate().profileContentWrapperView
         contentWrapper.unsetClass 'edit'
 
-
     @attachListeners()
     @addSettingsButton()
 
@@ -91,6 +90,7 @@ class StaticPageCustomizeView extends KDView
 
     @staticController = @getSingleton('staticGroupController') ? @getSingleton('staticProfileController')
     @windowController = @getSingleton('windowController')
+
   addSettingsButton:->
     @settingsLink = new CustomLinkView
       title     : 'Looking for Group Settings?'
@@ -207,11 +207,11 @@ class StaticPageCustomizeView extends KDView
     @template.update()
 
   getBackgroundData:(data={})->
-      if data.customize?.background?
-        data.customize.background
-      else if data.profile?.staticPage?.customize?.background?
-        data.profile.staticPage.customize.background
-      else {}
+    if data.customize?.background?
+      data.customize.background
+    else if data.profile?.staticPage?.customize?.background?
+      data.profile.staticPage.customize.background
+    else {}
 
   pistachio:->
     """
@@ -276,11 +276,11 @@ class StaticGroupBackgroundSelectView extends KDView
 
     # default items
     items = []
-    for i in [1..5]
+    for i in [1..9]
       items.push
         title     : "Template ##{i}"
-        url       : "/images/bg/bg0#{i}.jpg"
-        thumbUrl  : "/images/bg/th/bg0#{i}.png"
+        url       : "/images/bg/blurred/0#{i}.jpg"
+        thumbUrl  : "/images/bg/blurred/th0#{i}.jpg"
         dataIndex : i-1
         type      : 'defaultImage'
 
