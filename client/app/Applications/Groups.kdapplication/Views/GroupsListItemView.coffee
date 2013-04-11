@@ -103,7 +103,7 @@ class GroupsListItemView extends KDListItemView
         menu        : menu
         callback    : (event)=> @settingsButton.contextMenu event
     else
-      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      @settingsButton = new KDHiddenView
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 

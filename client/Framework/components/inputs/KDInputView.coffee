@@ -231,10 +231,10 @@ class KDInputView extends KDView
     for rule in @ruleChain
       @validationResults[rule] = null
 
-  setValidationResult:(rule, err)->
+  setValidationResult:(rule, err, showNotification=on)->
     if err
       @validationResults[rule] = err
-      @showValidationError err if @getOptions().validationNotifications
+      @showValidationError err if @getOptions().validationNotifications and showNotification
       @emit "ValidationError", err
       @valid = no
     else
