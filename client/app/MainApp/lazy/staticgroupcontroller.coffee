@@ -84,11 +84,10 @@ class StaticGroupController extends KDController
     @groupContentView = new KDScrollView
       lazyDomId : 'group-landing-content'
       scroll    : (event)=>
-        if @groupContentView.getScrollTop() > 37
+        if @groupContentView.getScrollTop() > 57
           @landingNav.setClass "in"
         else
           @landingNav.unsetClass "in"
-        # log "scrolling", event
 
     @groupSplitView = new KDView
       lazyDomId : 'group-splitview'
@@ -147,20 +146,6 @@ class StaticGroupController extends KDController
 
       @landingNav.addSubView flyingNavController.getListView()
 
-      navController  = new KDListViewController
-        view         : new KDListView
-          itemClass  : GroupLandingNavItem
-          wrapper    : no
-          scrollView : no
-          type       : "group-landing-nav"
-
-      nav = navController.getListView()
-      nav.on "viewAppended", ->
-        navController.instantiateListItems items.slice()
-
-      @groupTitleView.addSubView navController.getListView(), ".group-title-wrapper"
-
-      nav.on       "groupLandingNavItemClicked", @bound "scrollToTitle"
       flyingNav.on "groupLandingNavItemClicked", @bound "scrollToTitle"
 
       titles       = @groupContentView.$('.has-markdown h1')
@@ -172,18 +157,6 @@ class StaticGroupController extends KDController
 
         if marginBottom > 0
           @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
-
-      # @groupContentView.on "scroll", =>
-      #   lastVal = 0
-      #   for title, i in titles
-      #     if newVal = $(title).offset().top < 0
-      #       if ~lastVal > ~newVal
-      #         log title
-      #         break
-      #       lastVal = newVal
-
-
-
 
   scrollToTitle:(itemData)->
 
@@ -216,23 +189,22 @@ class StaticGroupController extends KDController
     else @fetchGroup (err, group)-> cb group
 
 
-
   removeBackground:->
-    @groupContentWrapperView.$().css backgroundImage : "none"
-    @groupContentWrapperView.$().css backgroundColor : "#ffffff"
+    @groupTitleView.$().css backgroundImage : "none"
+    @groupTitleView.$().css backgroundColor : "#ffffff"
 
   setBackground:(type,val)->
     if type in ['defaultImage','customImage']
       @groupSplitView.unsetClass 'vignette'
       @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
-        @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @groupTitleView.$().css backgroundImage : "url(#{val})"
         @utils.wait 200, =>
           @groupContentView.$().css backgroundColor : 'transparent'
     else
       @groupSplitView.setClass 'vignette'
-      @groupContentWrapperView.$().css backgroundImage : "none"
-      @groupContentWrapperView.$().css backgroundColor : "#{val}"
+      @groupTitleView.$().css backgroundImage : "none"
+      @groupTitleView.$().css backgroundColor : "#{val}"
 
   attachListeners:->
 

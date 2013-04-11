@@ -692,8 +692,6 @@ module.exports = class JAccount extends jraphical.Module
 
     if isDummyAdmin connection.delegate.profile.nickname
       callback null,
-        sharedHosting :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
         Databases     :
           hosts       : ["cl0", "cl1", "cl2", "cl3"]
         terminal      :

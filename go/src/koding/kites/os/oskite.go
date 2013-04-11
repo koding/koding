@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
 	"koding/tools/dnode"
@@ -59,6 +60,7 @@ func main() {
 	}
 	ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)), takenIPs)
 
+	go ldapserver.Listen()
 	go LimiterLoop()
 	k := kite.New("os")
 

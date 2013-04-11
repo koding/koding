@@ -41,7 +41,6 @@ module.exports = deepFreeze
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
