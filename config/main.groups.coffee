@@ -103,15 +103,14 @@ module.exports = deepFreeze
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
-      version     : version
-      mainUri     : 'http://localhost:3000'
-      broker      :
-        sockJS    : 'https://dmq.koding.com:8008/subscribe'
-      apiUri      : 'https://dev-api.koding.com'
+      version   : version
+      mainUri   : 'http://localhost:3000'
+      broker    :
+        sockJS  : 'https://dmq.koding.com:8008/subscribe'
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri     : 'https://dev-app.koding.com'
-      sourceUri   : 'http://localhost:1337'
-      imgProxyUri : 'http://localhost:2400/'
+      appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web-prod.in.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
@@ -144,7 +143,3 @@ module.exports = deepFreeze
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
-  imageProxy    :
-    run         : yes
-    port        : 2400
-    clusterSize : 1

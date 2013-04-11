@@ -100,15 +100,14 @@ module.exports =
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
-      version     : version
-      mainUri     : 'https://web-groups.koding.com'
-      broker      :
-        sockJS    : "https://web-groups.koding.com:#{brokerPort}/subscribe"
-      apiUri      : 'https://api.koding.com'
+      version   : version
+      mainUri   : 'https://web-groups.koding.com'
+      broker    :
+        sockJS  : "https://web-groups.koding.com:#{brokerPort}/subscribe"
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
-      appsUri     : 'https://app.koding.com'
-      sourceUri   : "http://web-groups.koding.com:#{sourceServerPort}"
-      imgProxyUri : 'https://web-groups.koding.com:2400/'
+      appsUri   : 'https://app.koding.com'
+      sourceUri : "http://web-groups.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     port        : 5672

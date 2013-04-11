@@ -111,10 +111,7 @@ __utils =
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else
-      unless KD.config.imgProxyUri
-        KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
-      else
-        KD.config.imgProxyUri + '?url=' + encodeURIComponent(url)
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
   applyMarkdown: (text)->
     # problems with markdown so far:
