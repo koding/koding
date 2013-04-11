@@ -29,27 +29,30 @@ body
 
   #landing-page-nav
     fix()
-    opacity             0
     z-index             10
     top                 0
     size                100%, 40px
-    gradient            rgba(0, 0, 0, .8), rgba(0, 0, 0, .6)
-    shadow              0 0 25px 10px rgba(0, 0, 0, .4)
-    vendor              transition, opacity .3s ease
-    color               rgba(255,255,255,0.9)
-    font-family         Ubuntu,"Bree Serif",Helvetica,sans-serif
-    line-height         40px
+    background-color    rgba(0,0,0,.3)
+    border-bottom       1px solid rgba(255,255,255,.2)
+    vendor              transition, background-color .3s ease
+    font-family         "Open Sans",Helvetica,sans-serif
+    line-height         30px
     &.in
-      opacity           1
+      h2
+        opacity           1
+      background-color    rgba(0,0,0,.9)
     h2
+      opacity           0
       vendor            font-smoothing, antialiased
       vendor            text-rendering, geometricPrecision
-      font-weight       900
+      font-weight       400
       font-size         24px
-      margin-left       90px
+      padding           4px
+      padding-left      20px
+      color             rgba(255,255,255,.9)
       cursor            pointer
     .kdview.kdlistview.kdlistview-group-landing-nav
-      right             90px
+      right             15px
       top               0
 
 .kdview.kdlistview.kdlistview-group-landing-nav
@@ -57,10 +60,15 @@ body
   right             0
   top               13px
   .kdlistitemview-default
-    font-family     Ubuntu,"Bree Serif",Helvetica,sans-serif
-    color           white
+    font-family     "Open Sans",Helvetica,sans-serif
+    font-weight     600
+    font-size       12px
+    padding-right   13px
+    padding-left    4px
+    border-right    1px solid rgba(0,0,0,.08)
+    color           rgba(255,255,255,.9)
     vertical-align  top
-    max-width       100px
+    max-width       140px
     width           auto
     height          40px
     line-height     40px
@@ -70,6 +78,7 @@ body
     clear           none
     text-align      center
     noTextDeco()
+    text-transform  uppercase
     &:hover
       color         linkColor1
 
@@ -128,15 +137,16 @@ body
 .group-title
   borderBox()
   rel()
-  size                      100%, 160px
-  // padding                   0 50px 0
+  size                      100%, 280px
+  padding                   41px
   z-index                   10
 
   .group-title-wrapper
-    // bg color,                 rgba(0,0,0,0.2)
-    // padding                 30px 40px
-    height                  100px
-    border-bottom           1px solid rgba(255, 255, 255, .3)
+    height                  280px
+    position                absolute
+    left                    50%
+    margin-left             -400px
+    border-left             1px solid
 
   .group-name
     borderBox()
@@ -146,11 +156,22 @@ body
     width                   100%
     display                 inline-block
     color                   rgb(255,255,255)
-    white-space             nowrap
     text-overflow           ellipsis
     font-weight             900
-    text-shadow             0 1px 0 rgba(0, 0, 0, .75)
+    text-shadow             0 1px 0 rgba(0,0,0,0.75), 0 0 20px rgba(0,0,0,0.4)
+    padding-left            28px
+    margin-top              60px
+    border-left             5px solid orange
+    margin-left             -3px
+    line-height             60px
     headerFont()
+
+  .group-description
+    font-size               15px
+    width                   460px
+    overflow                hidden
+    line-height             20px
+    padding-bottom          15px
 
 
   .group-bio
@@ -189,16 +210,18 @@ body
             margin                0 5px 0 0
             bg color,             transparent
 
+#group-landing-content
+  background-size                 cover !important
+
 .group-content-wrapper
   height                        100%
   width                         auto
   bg color,                     white
   borderBox()
 
-  bg size,                      cover
-  bg repeat,                    no-repeat
-  bg position,                  center center
-  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+  // bg size,                      cover
+  // bg repeat,                    no-repeat
+  // bg position,                  center center
 
   &.edit
     .group-splitview
@@ -234,7 +257,7 @@ body
   rel()
 
   .content-item
-    padding             0 50px 100px
+    // padding             0 50px 100px
     height              auto
     vendor              transform-style, preserve-3d
     vendor              transition, all .4s ease-in;
@@ -246,20 +269,42 @@ body
 
     &.back
       abs()
+      padding           40px
+      top               40px
+      background-color  rgba(0,0,0,0.7)
       top               0
       vendor            transform, rotateY(180deg);
 
   .content-item-scroll-wrapper
-    padding                             40px
+    // padding                             40px
     margin                              0 auto
     rounded                             0 0 5px 5px
-    bg                                  color, rgba(0,0,0,.6)
+    // bg                                  color, rgba(0,0,0,.6)
     borderBox()
 
   .has-markdown
-    color                               rgba(255,255,255,.9)
+    font-size                          17px
+    font-family                        'PT Sans'
+    font-weight                        200
+    // color                              white
+    // text-shadow                        0 0 10px #000, 1px 1px 1px rgba(0,0,0,.8)
+    padding                            40px
+    padding-left                       0
+    border-left                        1px solid #CCC
+    max-width                          800px
+    margin                             0 auto
+    // margin-top                         40px
     borderBox()
     h1, h2, h3, h4, h5, h6
+      // color                            white
+    h1
+      font-size                        21px
+      border-left                      5px solid orange
+      padding                          10px 0 10px 30px
+      margin-left                      -3px
+      margin-top                       10px !important
+    p, ul
+      padding-left                     30px
 
 .group-nickname
   borderBox()
@@ -446,7 +491,7 @@ body
       shadow                            none //0 1px 0 rgba(0,0,0,0.5)
 
 .group-customize-view
-  overflow-y                            auto
+  // overflow-y                            auto
 
   h1.customize-title
     display                             block

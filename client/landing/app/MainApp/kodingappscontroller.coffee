@@ -100,6 +100,7 @@ class KodingAppsController extends KDController
         callback()
 
   fetchAppsFromDb:(callback)->
+    return unless @appStorage
 
     @appStorage.fetchStorage (storage)=>
 
