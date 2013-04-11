@@ -292,7 +292,14 @@ class StaticGroupController extends KDController
         delegate : @
       ,@getData()
 
-    @lazyDomController.hideLandingPage()
+    @openGroup()
+
+  openGroup:->
+    router = KD.getSingleton 'router'
+    if router.getCurrentPath() is @groupEntryPoint
+      @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+    else
+      @lazyDomController.hideLandingPage()
 
   decorateGuestStatus:->
 
