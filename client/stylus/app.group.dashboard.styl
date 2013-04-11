@@ -16,16 +16,67 @@
 
 
 .group-admin-modal
+  .kdview.formline.type.group-type
+    padding                     0
+    border-bottom               none
+  .group-type
+    margin                      11px 0
+    .kd-radio-holder
+      height                    60px
+      line-height               60px
+      padding                   0 20px
+      rel()
+      // &.checked
+      //   bg                      color, rgba(0, 0, 0, .05)
+      label
+        display                 block
+        margin-left             90px
+        font-size               14px
+      input
+        top                     22px
+        left                    90px
+        margin                  0
+        abs()
+      &:hover
+        bg                      color, rgba(0, 0, 0, .05)
+        &:before
+          bg                    position, -460px -620px
+          opacity               .9
+      &:before
+        content                 ""
+        size                    60px, 60px
+        bg                      color, pink
+        bg                      position, -400px -620px
+        top                     5px
+        opacity                 .4
+        sprite()
+        abs()
+      &.company:before
+        bg                      position, -400px -680px
+      &.project:before
+        bg                      position, -400px -740px
+      &.custom:before
+        bg                      position, -400px -800px
+      &.company:hover:before
+        bg                      position, -460px -680px
+      &.project:hover:before
+        bg                      position, -460px -740px
+      &.custom:hover:before
+        bg                      position, -460px -800px
+
   div.general-settings  > .kdformview
     margin-top                5px
     > .formline
       width                   100%
-      borderBox()
       overflow                auto
-      border                  none
+      border-bottom           1px solid rgba(0, 0, 0, .1)
       padding                 5px 0px 7px 18px
+      borderBox()
       &.button-field
-        padding-right         10px
+        padding-right         20px
+        padding-top           10px
+      .input-wrapper
+        overflow              visible
 
   > .kdformview
     margin-top                20px
@@ -41,18 +92,14 @@
         padding               0
         margin-left           108px
         margin-top            15px
-
-
-  div.avatar
-    .kdlabel
-      margin-top              30px
-    .kdfileuploadarea
-      width                   80px
-      height                  80px
-
-  div.body
-    textarea
-      min-height              150px
+  .kdselectbox
+    margin-right              25px
+    fr()
+  .kdinput.on-off
+    margin-right              25px
+    fr()
+    > span
+      hidden()
 
 
 .groups-member-permissions-view
