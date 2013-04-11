@@ -148,6 +148,6 @@ module.exports =
   haproxy:
     webPort     : 3020
   imageProxy    :
-    run         : yes
+    run         : no
     port        : 2400
     clusterSize : 1
