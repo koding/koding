@@ -204,12 +204,3 @@ class ModalGroupsListItem extends TopicsListItemView
       </div>
     </div>
     """
-
-class GroupsListItemViewEditable extends GroupsListItemView
-
-  constructor:(options = {}, data)->
-
-    options.editable = yes
-    options.type     = "topics"
-
-    super options, data
