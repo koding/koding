@@ -11,7 +11,7 @@ rabbitPrefix = (
     console.log "You're missing .rabbitvhost file. Please add it with your name in it."
     throw e
 ).trim()
-socialQueueName = "koding-social-klusterdev"
+socialQueueName = "koding-social-klusterdev-#{rabbitPrefix}"
 
 module.exports =
   aws           :
@@ -147,7 +147,3 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
-  imageProxy    :
-    run         : no
-    port        : 2400
-    clusterSize : 1

@@ -148,7 +148,3 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
-  imageProxy    :
-    run         : yes
-    port        : 2400
-    clusterSize : 1
