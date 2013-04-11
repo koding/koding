@@ -691,8 +691,8 @@ module.exports = class JGroup extends Module
             You've already invited #{email} to join this group.
             """
         else
-          params['invitationType'] = 'invitation'
-          params['status']         = 'sent'
+          params.invitationType = 'invitation'
+          params.status         = 'sent'
 
           invitationRequest = new JInvitationRequest params
           invitationRequest.save (err)=>
