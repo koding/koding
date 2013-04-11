@@ -147,7 +147,3 @@ module.exports =
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
-  imageProxy    :
-    run         : yes
-    port        : 2400
-    clusterSize : 10

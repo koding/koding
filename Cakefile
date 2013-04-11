@@ -147,13 +147,6 @@ task 'webserver', ({configFile}) ->
           onChange  : ->
             processes.kill "server"
 
-task 'imageProxy',({configFile})->
-  processes.fork
-    name    : "imageProxy"
-    cmd     : __dirname+"/server/lib/image-proxy -c #{configFile}"
-    restart : yes
-
-
 task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
@@ -357,7 +350,6 @@ run =({configFile})->
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
-    invoke 'imageProxy'     if config.imageProxy?.run is yes
     invoke 'webserver'
 
 
