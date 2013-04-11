@@ -18,7 +18,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
+	"syscall";-)
 	"time"
 )
 
