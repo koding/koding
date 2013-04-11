@@ -19,7 +19,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3000"
+    address     : "http://web-kontrol-test.in.koding.com:3000"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -99,26 +99,26 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: 'http://web-kontrol-test.in.koding.com:3000'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : 'http://web-kontrol-test.in.koding.com:3000'
       broker    :
-        sockJS  : 'https://dmq.koding.com:8008/subscribe'
+        sockJS  : 'http://web-kontrol-test.in.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
   mq            :
     host        : 'web-dev.in.koding.com'
     port        : 5672
     apiAddress  : "web-dev.in.koding.com"
-    apiPort     : 15672
+    apiPort     : 55672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'alluppercasekoding'
     heartbeat   : 10
     vhost       : '/'
   broker        :
@@ -129,7 +129,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : 'web-kontrol-test.in.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
