@@ -189,35 +189,12 @@ class StaticGroupController extends KDController
       break
 
   checkGroupUserRelation:->
-<<<<<<< HEAD
-    cb = (group)=>
-      group.fetchMembershipStatuses (err, statuses)=>
-        if err then warn err
-        else if statuses.length
-          if "member" in statuses or "admin" in statuses
-            isAdmin = 'admin' in statuses
-            @emit roleEventMap.member, isAdmin
-          else
-            @emit roleEventMap[statuses.first]
-
-      group.on 'NewMember', (member={})=>
-        if member.profile?.nickname is KD.whoami().profile.nickname
-          @pendingButton?.hide()
-          @requestButton?.hide()
-          @decorateMemberStatus no
-
-    if @group then cb @group
-    else @fetchGroup (err, group)-> cb group
-
-
-=======
     statuses = KD.config.roles
     if 'member' in statuses or 'admin' in statuses
       isAdmin = 'admin' in statuses
       @emit roleEventMap.member, isAdmin
     else
       @emit roleEventMap[statuses.first]
->>>>>>> bb4de22... removed group membership fetch and used KD.config.roles for that. needed to move arvids newMember listener
 
   removeBackground:->
     @groupContentWrapperView.$().css backgroundImage : "none"
