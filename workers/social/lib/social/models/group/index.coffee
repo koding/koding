@@ -844,7 +844,7 @@ module.exports = class JGroup extends Module
         @cycleChannel()
         callback err
 
-      queue = _.intersection(['member', 'admin'], roles).map (role)=>=>
+      queue = roles.map (role)=>=>
         Joinable::leave.call @, client, {as:role}, (err)->
           return kallback err if err
           queue.fin()
@@ -875,7 +875,7 @@ module.exports = class JGroup extends Module
             @cycleChannel()
             callback err
 
-          queue = _.intersection(['member', 'admin'], roles).map (role)=>=>
+          queue = roles.map (role)=>=>
             @removeMember account, role, (err)->
               return kallback err if err
               queue.fin()
