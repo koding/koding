@@ -149,8 +149,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold      :
-    host        : 'salt-master.in.koding.com'
+    host        : 'localhost'
     port        : '5672'
     login       : 'guest'
-    password    : 'HV5l856bME'
+    password    : 'guest'
     vhost       : '/'
