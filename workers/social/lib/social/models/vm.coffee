@@ -6,5 +6,5 @@ module.exports = class JVM extends Model
     ip              : String
     ldapPassword    : String
     name            : String
-    users           : Array
-    groups          : Array
+    users           : [String]
+    groups          : [String]

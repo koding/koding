@@ -53,13 +53,10 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        {
-          name      : 'NewMember'
-          filter    : (payload)-> null
-        }
+        { name: 'NewMember', filter: -> null }
       ]
       instance      : [
-        { name: 'NewMember', filter: -> [] }, 'save'
+        { name: 'NewMember', filter: -> null }, 'save'
       ]
     sharedMethods   :
       static        : [
@@ -148,6 +145,26 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @on 'NewMember', ({group, member})->
+    JVM = require '../vm'
+    JVM.one { name: group.slug }, (err, vm)->
+      if err then console.error err
+      else unless vm? then console.warn "No vm for group #{group.slug}"
+      else
+        vm.update {
+          $addToSet: users: {
+            id    : member.getId()
+            sudo  : no
+          }
+        }, (err)-> console.error err  if err
+
+  constructor:->
+    super
+
+    @on 'NewMember', (member)-> @constructor.emit 'NewMember', {
+      group: this, member
+    }
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
@@ -776,7 +793,7 @@ module.exports = class JGroup extends Module
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'NewMember'
+      @emit 'NewMember', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
