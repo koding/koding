@@ -81,3 +81,25 @@ func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, servi
 		panic(err)
 	}
 }
+
+func CreateAmqpConnection(user, password, host, port string) *amqp.Connection {
+	if port == "" {
+		port = "5672" // default RABBITMQ_NODE_PORT
+	}
+
+	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		log.LogError(err, 0)
+		os.Exit(1)
+	}
+
+	go func() {
+		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
+			log.Err("AMQP connection: " + err.Error())
+			os.Exit(1)
+		}
+	}()
+
+	return conn
+}

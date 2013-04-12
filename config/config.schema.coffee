@@ -212,6 +212,12 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
+    kontrold      :
+      host        : 1
+      port        : 1
+      login       : 1
+      password    : 1
+      vhost       : 1
 
 
 module.exports = config

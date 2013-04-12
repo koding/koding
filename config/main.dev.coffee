@@ -152,3 +152,9 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  kontrold      :
+    host        : 'salt-master.in.koding.com'
+    port        : '5672'
+    login       : 'guest'
+    password    : 'HV5l856bME'
+    vhost       : '/'

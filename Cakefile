@@ -202,15 +202,19 @@ task 'guestCleanup',({configFile})->
     name  : 'guestCleanup'
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
-    restartInterval: 100
+    restartInterval : 100
+    needPermission  : yes
+    verbose         : yes
 
 task 'emailWorker',({configFile})->
 
   processes.fork
-    name            : 'emailWorker'
+    name            : 'email'
     cmd             : "./workers/emailnotifications/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
+    needPermission  : yes
+    verbose         : yes
 
   watcher = new Watcher
     groups        :
@@ -325,6 +329,35 @@ task 'cacheWorker',({configFile})->
           onChange  : ->
             processes.kill "cacheWorker"
 
+
+task 'kontrolCli',({configFile}) ->
+  processes.fork
+    name : "kontrol"
+    cmd  : "./node_modules/kontrol -c #{configFile}"
+
+task 'kontrolDaemon',({configFile}) ->
+  processes.spawn
+    name  : 'kontrolDaemon'
+    cmd   : "./kites/kontrold -c #{configFile}"
+    restart: yes
+    restartInterval: 100
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolApi',({configFile}) ->
+  processes.spawn
+    name  : 'kontrolApi'
+    cmd   : "./kites/kontrol-api -c #{configFile}"
+    restart: yes
+    restartInterval: 100
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrol',({configFile}) ->
+  invoke 'kontrolDaemon'
+  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."

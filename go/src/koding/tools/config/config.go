@@ -40,15 +40,33 @@ type Config struct {
 		Token    string
 		Interval int
 	}
+	Kontrold struct {
+		Host     string
+		Port     string
+		Login    string
+		Password string
+		Vhost    string
+	}
 }
 
 var Profile string
 var Current Config
 var LogDebug bool
+var Verbose bool
+
+var EnableAmqp bool
+var HttpPort string
+var HttpsPort string
 
 func init() {
 	flag.StringVar(&Profile, "c", "", "Configuration profile")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
+	flag.BoolVar(&Verbose, "v", false, "Enable verbose mode")
+
+	// proxy-handler
+	flag.BoolVar(&EnableAmqp, "amqp", true, "Enable rabbitmq messaging")
+	flag.StringVar(&HttpPort, "port", "80", "Change local serving http port")
+	flag.StringVar(&HttpsPort, "portSSL", "443", "Change local serving https port")
 
 	flag.Parse()
 	if flag.NArg() != 0 {
