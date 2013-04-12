@@ -969,8 +969,8 @@ module.exports = class JGroup extends Module
 
     Relationship.count selector, (err, count)->
       if err then callback err
-      else if count is 0 then callback null
-      else callback new KodingError 'This relationship already exists'
+      else if count > 0 then callback new KodingError 'This relationship already exists'
+      else callback null
 
   oldAddMember = @::addMember
   addMember:(target, options, callback)->
