@@ -80,6 +80,7 @@ module.exports = [
   "Framework/components/inputs/KDInputViewWithPreview.coffee",
   "Framework/components/inputs/KDHitEnterInputView.coffee",
   "Framework/components/inputs/KDInputRadioGroup.coffee",
+  "Framework/components/inputs/KDInputCheckboxGroup.coffee",
   "Framework/components/inputs/KDInputSwitch.coffee",
   "Framework/components/inputs/KDOnOffSwitch.coffee",
   "Framework/components/inputs/KDMultipleChoice.coffee",
