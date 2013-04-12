@@ -1,22 +1,12 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs              = require 'fs'
+nodePath        = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-username = fs.readFileSync '/etc/koding-dev-username', 'utf-8'
-domainName = "#{username.trim()}.dev.aws.koding.com"
-
-mongo = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
-
-projectRoot = nodePath.join __dirname, '..'
-
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
-
+username        = fs.readFileSync '/etc/koding-dev-username', 'utf-8'
+version         = "0.9.9a" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+domainName      = "#{username.trim()}.dev.aws.koding.com"
+mongo           = 'dev:GnDqQWt7iUQK4M@miles.mongohq.com:10057/koding_dev2?auto_reconnect'
+projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-autoscale"
 
 module.exports = deepFreeze

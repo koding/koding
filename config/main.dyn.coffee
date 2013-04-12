@@ -1,23 +1,11 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs               = require 'fs'
+nodePath         = require 'path'
+deepFreeze       = require 'koding-deep-freeze'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
-
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
-
-projectRoot = nodePath.join __dirname, '..'
-
-rabbitPrefix = ((
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then require("os").hostname()
-).trim())+"-dev-#{version}"
-rabbitPrefix = rabbitPrefix.split('.').join('-')
-
-socialQueueName = "koding-social-prod"
-
+version          = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot      = nodePath.join __dirname, '..'
+mongo            = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
+socialQueueName  = "koding-social-prod"
 webPort          = 3040
 brokerPort       = 8010 + (version % 10)
 sourceServerPort = 1300 + (version % 10)

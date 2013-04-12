@@ -1,20 +1,10 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs              = require 'fs'
+nodePath        = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
-
-projectRoot = nodePath.join __dirname, '..'
-
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
-
+version         = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+mongo           = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
+projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-prod"
 
 module.exports = deepFreeze
