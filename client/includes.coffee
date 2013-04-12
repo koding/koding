@@ -27,6 +27,7 @@ module.exports = [
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
+  "Framework/core/KDHiddenView.coffee",
   "Framework/core/KDScrollView.coffee",
   "Framework/core/KDRouter.coffee",
 
@@ -79,6 +80,7 @@ module.exports = [
   "Framework/components/inputs/KDInputViewWithPreview.coffee",
   "Framework/components/inputs/KDHitEnterInputView.coffee",
   "Framework/components/inputs/KDInputRadioGroup.coffee",
+  "Framework/components/inputs/KDInputCheckboxGroup.coffee",
   "Framework/components/inputs/KDInputSwitch.coffee",
   "Framework/components/inputs/KDOnOffSwitch.coffee",
   "Framework/components/inputs/KDMultipleChoice.coffee",

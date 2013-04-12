@@ -21,7 +21,7 @@ option '-v', '--version [VERSION]', 'Switch to a specific version'
 #     process.exit(0)
 
 ProgressBar = require 'progress'
-Builder     = require './builders/Builder'
+Builder     = require './Builder'
 # log4js      = require "log4js"
 # log         = log4js.getLogger("[Main]")
 
@@ -72,22 +72,6 @@ compileGoBinaries = (configFile,callback)->
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
-
-task 'runKites', ({configFile})->
-
-  compileGoBinaries configFile,->
-    invoke 'sharedHostingKite'
-    invoke 'databasesKite'
-    invoke 'applicationsKite'
-    invoke 'webtermKite'
-
-task 'webtermKite',({configFile})->
-  configFile = "dev" if configFile in ["",undefined,"undefined"]
-  processes.spawn
-    name    : 'webterm'
-    cmd     : __dirname+"/kites/webterm -c #{configFile}"
-    restart : yes
-    verbose : yes
 
 task 'databasesKite',({configFile})->
   processes.fork
@@ -452,7 +436,7 @@ task 'switchProxy', (options) ->
     console.log "Available versions:"
     for version in fs.readdirSync releaseDir
       vConf = JSON.parse fs.readFileSync "#{releaseDir}/#{version}/config/.dynamic-config.json"
-      console.log "  #{version} : port #{vConf.webInternalPort}" 
+      console.log "  #{version} : port #{vConf.webInternalPort}"
     console.log ""
     console.log "Use cake -v [VERSION] switchProxy"
     process.exit()
@@ -489,7 +473,7 @@ task 'switchProxy', (options) ->
       listen http-in
           bind *:#{conf.webPort}
           option httpchk GET / HTTP/1.0
-      
+
     """
 
     ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize-1]

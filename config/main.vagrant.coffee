@@ -36,7 +36,7 @@ module.exports =
   watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
+  runOsKite     : yes
   runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -82,6 +82,7 @@ module.exports =
   client        :
     version     : version
     watch       : yes
+    watchDuration : 300
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -112,6 +113,7 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""

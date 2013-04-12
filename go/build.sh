@@ -1,4 +1,5 @@
 #! /bin/bash
+set -o errexit
 
 export GOPATH=$(cd "$(dirname "$0")"; pwd)
 export GIT_DIR=$GOPATH/../.git

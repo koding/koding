@@ -1,4 +1,5 @@
 {Module} = require 'jraphical'
+_ = require 'underscore'
 
 module.exports = class JGroup extends Module
 
@@ -72,7 +73,7 @@ module.exports = class JGroup extends Module
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
         'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage'
+        'removeBackgroundImage', 'kickMember', 'transferOwnership'
       ]
     schema          :
       title         :
@@ -121,6 +122,9 @@ module.exports = class JGroup extends Module
       admin         :
         targetType  : 'JAccount'
         as          : 'admin'
+      owner         :
+        targetType  : 'JAccount'
+        as          : 'owner'
       application   :
         targetType  : 'JApp'
         as          : 'owner'
@@ -282,6 +286,11 @@ module.exports = class JGroup extends Module
             if err then callback err
             else
               console.log 'admin is added'
+              queue.next()
+        -> group.addOwner delegate, (err)->
+            if err then callback err
+            else
+              console.log 'owner is added'
               queue.next()
         -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
@@ -841,3 +850,97 @@ module.exports = class JGroup extends Module
       sourceName : 'JGroup'
     , (err, count)=>
       @update ($set: 'counts.members': count), ->
+
+  leave: secure (client, options, callback)->
+
+    [callback, options] = [options, callback] unless callback
+
+    if @slug is 'koding'
+      return callback new KodingError 'Leaving Koding group is not supported yet'
+
+    @fetchMyRoles client, (err, roles)=>
+      return callback err if err
+
+      if 'owner' in roles
+        return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
+
+      Joinable = require '../../traits/joinable'
+
+      kallback = (err)=>
+        @updateCounts()
+        @cycleChannel()
+        callback err
+
+      queue = roles.map (role)=>=>
+        Joinable::leave.call @, client, {as:role}, (err)->
+          return kallback err if err
+          queue.fin()
+      
+      dash queue, kallback
+
+  kickMember: permit 'grant permissions',
+    success: (client, accountId, callback)->
+      JAccount = require '../account'
+
+      if @slug is 'koding'
+        return callback new KodingError 'Koding group is mandatory'
+
+      JAccount.one _id:accountId, (err, account)=>
+        return callback err if err
+
+        if client.connection.delegate.getId().equals account._id
+          return callback new KodingError 'You cannot kick yourself, try leaving the group!'
+
+        @fetchRolesByAccount account, (err, roles)=>
+          return callback err if err
+
+          if 'owner' in roles
+            return callback new KodingError 'You cannot kick the owner of the group!'
+
+          kallback = (err)=>
+            @updateCounts()
+            @cycleChannel()
+            callback err
+
+          queue = roles.map (role)=>=>
+            @removeMember account, role, (err)->
+              return kallback err if err
+              queue.fin()
+          
+          dash queue, kallback
+
+  transferOwnership: permit 'grant permissions',
+    success: (client, accountId, callback)->
+      JAccount = require '../account'
+
+      {delegate} = client.connection
+      if delegate.getId().equals accountId
+        return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
+
+      # double check that client is really the owner
+      @fetchMyRoles client, (err, roles)=>
+        return callback err if err
+
+        if not 'owner' in roles
+          return callback new KodingError 'You must be owner to perform this action!'
+
+        JAccount.one _id:accountId, (err, account)=>
+          return callback err if err
+
+          @fetchRolesByAccount account, (err, newOwnersRoles)=>
+            return callback err if err
+
+            kallback = (err)=>
+              @cycleChannel()
+              @updateCounts()
+              callback err
+
+            # give rights to new owner
+            queue = _.difference(['member', 'admin', 'owner'], newOwnersRoles).map (role)=>=>
+              @addMember account, role, (err)->
+                return kallback err if err
+                queue.fin()
+
+            dash queue, =>
+              # remove ownership of previous owner
+              @removeOwner delegate, kallback
