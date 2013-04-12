@@ -54,10 +54,12 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberAdded', filter: -> null }
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
       ]
       instance      : [
-        { name: 'MemberAdded', filter: -> null }, 'save'
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
       ]
     sharedMethods   :
       static        : [
@@ -150,6 +152,12 @@ module.exports = class JGroup extends Module
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
 
+  @on 'GroupCreated', ({group, member})->
+    console.log 'Implement a hook handler for GroupCreated'
+
+  @on 'GroupDestroyed', ({group, member})->
+    console.log 'Implement a hook handler for GroupDestroyed'
+
   @on 'MemberAdded', ({group, member})->
     JVM = require '../vm'
     JVM.one { name: group.slug }, (err, vm)->
@@ -163,12 +171,23 @@ module.exports = class JGroup extends Module
           }
         }, (err)-> console.error err  if err
 
+  @on 'MemberRemoved', ({group, member})->
+    console.log 'Implement a hook handler for MemberRemoved'
+
+  @on 'MemberRolesChanged', ({group, member})->
+    console.log 'Implement a hook handler for MemberRolesChanged'
+
   constructor:->
     super
 
-    @on 'MemberAdded', (member)-> @constructor.emit 'MemberAdded', {
-      group: this, member
-    }
+    @on 'MemberAdded', (member)->
+      @constructor.emit 'MemberAdded', { group: this, member }
+
+    @on 'MemberRemoved', (member)->
+      @constructor.emit 'MemberRemoved', { group: this, member }
+
+    @on 'MemberRolesChanged', (member)->
+      @constructor.emit 'MemberRolesChanged', { group: this, member }
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
