@@ -16,7 +16,9 @@ class KodingRouter extends KDRouter
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
-      new KDNotificationView title: "You're already here!"
+      new KDNotificationView
+        title: "You're already here!"
+        type : 'mini'
 
     @on 'Params', ({params, query})=>
       #@utils.defer => @getSingleton('groupsController').changeGroup params.name
