@@ -32,7 +32,6 @@ ebin
 /kites/ldapserver
 /kites/proxy
 /kites/vmtool
-proxy.go
 .project
 /kites/terminal/.tmp
 
