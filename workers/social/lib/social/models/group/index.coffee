@@ -52,10 +52,20 @@ module.exports = class JGroup extends Module
       'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
+    sharedEvents    :
+      static        : [
+        {
+          name      : 'NewMember'
+          filter    : (payload)-> null
+        }
+      ]
+      instance      : [
+        { name: 'NewMember', filter: -> [] }, 'save'
+      ]
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'

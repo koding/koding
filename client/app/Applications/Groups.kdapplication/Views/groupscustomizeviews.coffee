@@ -276,11 +276,11 @@ class StaticGroupBackgroundSelectView extends KDView
 
     # default items
     items = []
-    for i in [1..9]
+    for i in [1..8]
       items.push
         title     : "Template ##{i}"
-        url       : "/images/bg/blurred/0#{i}.jpg"
-        thumbUrl  : "/images/bg/blurred/th0#{i}.jpg"
+        url       : "/images/bg/blurred/#{i}.jpg"
+        thumbUrl  : "/images/bg/blurred/th#{i}.jpg"
         dataIndex : i-1
         type      : 'defaultImage'
 
