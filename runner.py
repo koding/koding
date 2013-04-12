@@ -46,7 +46,8 @@ def fork_command(cmd, logfile='/dev/null'):
     os.dup2(so.fileno(), sys.stdout.fileno())
     os.dup2(se.fileno(), sys.stderr.fileno())
 
-    subprocess.call(cmd)
+    p = subprocess.Popen(cmd, stdout=so, stderr=se)
+
     os._exit(os.EX_OK)
 
 
@@ -170,5 +171,7 @@ def main():
             if cmd not in running_commands:
                 fork_command(cmd, run_log)
 
+    return 0
+
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
