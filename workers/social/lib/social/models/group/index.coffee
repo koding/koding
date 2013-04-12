@@ -152,31 +152,6 @@ module.exports = class JGroup extends Module
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
 
-  @on 'GroupCreated', ({group, member})->
-    console.log 'Implement a hook handler for GroupCreated'
-
-  @on 'GroupDestroyed', ({group, member})->
-    console.log 'Implement a hook handler for GroupDestroyed'
-
-  @on 'MemberAdded', ({group, member})->
-    JVM = require '../vm'
-    JVM.one { name: group.slug }, (err, vm)->
-      if err then console.error err
-      else unless vm? then console.warn "No vm for group #{group.slug}"
-      else
-        vm.update {
-          $addToSet: users: {
-            id    : member.getId()
-            sudo  : no
-          }
-        }, (err)-> console.error err  if err
-
-  @on 'MemberRemoved', ({group, member})->
-    console.log 'Implement a hook handler for MemberRemoved'
-
-  @on 'MemberRolesChanged', ({group, member})->
-    console.log 'Implement a hook handler for MemberRolesChanged'
-
   constructor:->
     super
 
@@ -332,7 +307,9 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
-      queue.push -> callback null, group
+      queue.push =>
+        @emit 'GroupCreated', { group, creator: delegate }
+        callback null, group
 
       daisy queue
 

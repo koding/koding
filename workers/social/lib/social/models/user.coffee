@@ -420,6 +420,7 @@ module.exports = class JUser extends jraphical.Module
                                       else
                                         user.sendEmailConfirmation()
                                         JUser.grantInitialInvitations user.username
+                                        JUser.emit 'UserCreated', user
                                         createNewMemberActivity account
                                         JAccount.emit "AccountAuthenticated", account
                                         callback null, account, replacementToken
