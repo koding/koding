@@ -63,7 +63,7 @@ class KodingAppsController extends KDController
       KD.utils.getTimedOutCallback (err, response)=>
         if err
           @putAppsToAppStorage {}
-          warn err
+          warn err, response
           callback err
         else
           files = FSHelper.parseLsOutput [path], response
@@ -100,6 +100,7 @@ class KodingAppsController extends KDController
         callback()
 
   fetchAppsFromDb:(callback)->
+    return unless @appStorage
 
     @appStorage.fetchStorage (storage)=>
 
@@ -439,7 +440,7 @@ class KodingAppsController extends KDController
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
 
-                  FSItem.doesExist appPath, (err, exists)=>
+                  FSHelper.exists appPath, (err, exists)=>
                     if exists
                       newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView
@@ -452,6 +453,7 @@ class KodingAppsController extends KDController
                         callback? err
                         newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                         newAppModal.destroy()
+
             fields                :
               type                :
                 label             : "Type"
@@ -595,7 +597,7 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  proxifyUrl = (url)-> "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+  proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   escapeFilePath = FSHelper.escapeFilePath
 

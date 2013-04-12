@@ -37,7 +37,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -62,7 +61,6 @@ module.exports =
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 2
     watch       : yes
   social        :
@@ -104,6 +102,9 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : "mq.#{domainName}"
+    port        : 5672
+    apiAddress  : "web-dev.in.koding.com"
+    apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'djfjfhgh4455__5'

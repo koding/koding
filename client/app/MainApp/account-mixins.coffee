@@ -43,23 +43,67 @@ AccountMixin = do ->
 
       ready =(resourceName)->
         @exchange = resourceName
-        @emit 'ready'
+        @emit "ready"
 
       error =(err)->
         cycleChannel.call this
         console.error err
 
-      pong =-> @lastPong = Date.now()
+      ping = (callback) ->
+        @publish JSON.stringify(
+          method      : 'ping'
+          arguments   : []
+          callbacks   : {}
+        )
+        @once 'pong', ->
+          callback?()
+
+      pong = ->
+        @emit 'pong'
+        @lastPong = Date.now()
+
+      setStopPinging = -> @stopPinging = true
+      setStartPinging = -> @stopPinging = false
 
       cycleChannel =->
+        @setStopPinging()
         @off()
-        @stopPinging?()
+
         delete channels[@name]
         delete namesCache[@authenticationInfo.name]
 
+        kite = KD.getSingleton "kiteController"
+        kite.deleteKite(@shortName)
+
+      messageArrived = (msg) ->
+        clearTimeout @unresponsiveTimeout
+        @unresponded = 0
+
+        @pingTimeout = setTimeout =>
+          @ping()
+        , 5000
+
+      messageSent = (msg) ->
+        clearTimeout @pingTimeout
+        clearTimeout @unresponsiveTimeout
+
+        @unresponsiveTimeout = setTimeout =>
+          @emit "possibleUnresponsive"
+        , 5000
+
+      possibleUnresponsive = ->
+        @unresponded ||= 0
+        @unresponded++
+        if @unresponded > 1 then @emit 'unresponsive' else @ping()
+
+        log 'possibleUnresponsive', @name, @unresponded
+
+      unresponsive = ->
+        log 'unresponsive', @name
+        @cycleChannel()
+
       messageHandler =(kiteName, args) ->
         {method} = args
-        log "Working on these:", arguments
         callback =
           if method is 'ready'
             ready.bind this
@@ -93,25 +137,27 @@ AccountMixin = do ->
         channelName = getChannelName "kite-#{kiteName}"
         return callback readyChannels[channelName]  if readyChannels[channelName]
         channel = KD.remote.mq.subscribe channelName
+        channel.shortName = kiteName
         kiteController = KD.getSingleton 'kiteController'
-        kiteController.channels ?= {}
-        kiteController.channels[kiteName] = channel
-        channel.cycleChannel = -> cycleChannel.call this
-        channel.once 'broker.subscribed', ->
-          onReady channel, ->
-            callback channel
-            i = setInterval ->
-              now = Date.now()
-              isUnresponsive = channel.lastPong? and (now - channel.lastPong > 15000)
-              cycleChannel.call channel  if isUnresponsive
-              channel.publish JSON.stringify
-                method      : 'ping'
-                arguments   : []
-                callbacks   : {}
-            , 5000
-            channel.stopPinging =-> clearInterval i
+        kiteController.addKite(kiteName, channel)
+
         unless channels[channelName]?
+          channel.cycleChannel = -> cycleChannel.call this
+          channel.ping = (callback) ->
+            ping.call this, callback  unless @stopPinging
+          channel.setStopPinging = -> setStopPinging.call this
+          channel.setStartPinging = -> setStartPinging.call this
+
           channel.on "message", messageHandler.bind channel, kiteName
+          channel.on "publish", messageSent.bind channel
+          channel.on "message", messageArrived.bind channel
+          channel.on "possibleUnresponsive", possibleUnresponsive.bind channel
+          channel.on "unresponsive", unresponsive.bind channel
+
+          channel.once 'broker.subscribed', ->
+            onReady channel, ->
+              callback channel
+
         channels[channelName] = channel
         channel.setAuthenticationInfo
           serviceType : 'kite'

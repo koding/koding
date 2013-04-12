@@ -11,20 +11,20 @@
 //   margin-top                51px
 
 #static-landing-page.profile-landing
-  abs()
+  // abs()
   bg image,                 url("../images/koding-new-bg.png");
   bg repeat,                repeat-x
-  vendor transition,        opacity 1s ease\, top 0.5s linear
+  vendor transition,        top 0.3s ease \, margin-top 0.3s ease
   shadow                    0 0 50px 20px rgba(0,0,0,0.4)
   height                    100%
   width                     100%
   z-index                   99
   bg size,                  auto 100%
 
-  &.down
-    top                     52px
-    .profile-avatar
-      height                77px
+  // &.down
+  //   top                     52px
+  //   .profile-avatar
+  //     height                77px
 
   &.out
     opacity                 0
@@ -48,7 +48,9 @@
 
       .kdloader
         fr()
-        margin-right        5px
+        // margin-right        5px
+        display             inline-block!important
+        margin-top          6px
 
       &.invisible
         border              none
@@ -78,8 +80,67 @@
     .kdlistview-navigation
       margin-bottom         5px
 
-.profile-sidebar
-  height                    auto
+  .user-button-bar
+    abs()
+    height                  auto
+    top                     26px
+    right                   26px
+
+.profile-sidebar#landing-page-sidebar
+  abs()
+  width                       100%
+  height                      auto
+  display                     inline-block
+  // padding                     0
+  // margin-right                -3px
+  margin-top                  -28px
+  z-index                     1
+
+  .kdlistview-navigation
+    text-align                center
+    width                     100%
+    margin                    0px
+    height                    40px
+
+    .navigation-item
+      border                  1px solid white
+      width                   auto
+      min-width               85px
+      display                 inline-block
+      z-index                 1000
+      margin                  0
+      // margin                  0 5px 0 0
+      height                  25px
+      vertical-align          top
+      bg color,               white
+      padding-left:20px
+
+      &:first-child
+        rounded 0 0 0 3px
+
+      &:last-child
+        rounded 0 0 3px 0
+
+      &.selected
+        bg color,             white
+        // margin                0 5px 0 0
+
+        button.editor-button
+          font-weight         bold
+
+      button.editor-button
+        border                none
+        bg color,             transparent
+        bg image,             none
+        fl()
+        // display               inline-block
+
+        &:active
+          shadow              none
+          border              none
+
+
+
 
 .profile-header
   width                     100%
@@ -117,13 +178,18 @@
   width                     160px
 
 .profile-content-wrapper
-  vendor transition,        margin-left 0.6s ease-in-out
+  vendor transition,        margin-left 0.6s ease-in-out //\, background-color 0.2s linear
   bg color,                 transparent
   borderBox()
-  margin-left               160px
+  // margin-left               160px
   // margin-left               50px
   height                    100%
   width                     auto
+  // bg color,                 white
+  bg size, cover
+  bg image, url('/images/bg/bg01.jpg')
+  bg repeat, no-repeat
+  bg position, center center
 
 .profile-title
   borderBox()
@@ -247,7 +313,11 @@ textarea.profile-handle-customize.kdinput
   line-height               16px
   vertical-align            top
 
+// .kdview.kdlistview.kdlistview-default.static-content.activity-related
+//   // padding-top               50px
 
+//   .kdlistitemview-activity:first-child
+//     border-top              1px solid rgba(0,0,0,0.075)
 
 .static-link-container
 
@@ -354,16 +424,19 @@ textarea.profile-handle-customize.kdinput
 .profile-content-links
   borderBox()
   fl()
+  bg color,                 transparent
+  // bg color,                 rgba(255,255,255,0.85)
   vendor transition,        width 0.2s linear //\, padding-left 0.2s linear
+  // padding-top               25px
   width                     139px
   overflow                  hidden
   height                    100%
   margin-right              0px
   border-right              1px solid #e8e8e8
 
-
   &.links-hidden
     width                   0
+    border                  none
 
   li
     borderBox()
@@ -456,7 +529,7 @@ textarea.profile-handle-customize.kdinput
   button
     bg image,               none
     rounded                 0
-    bg color,               white
+    bg color,               #fbfbfb
     text-shadow             none
     border                  none
     width                   100%
@@ -469,18 +542,46 @@ textarea.profile-handle-customize.kdinput
 
 .profile-splitview
   height                    100%
-  bg color,                 white
+
+.profile-content-wrapper.activity
+   .profile-content-list > .profile-content > .listview-wrapper
+     margin-left 139px
+     width auto
+
 
 .profile-content-list
-  vendor transition,        margin-left 0.2s linear
-  vendor transition,        margin-left 0.2s linear
+  vendor transition,        margin-left 0.1s linear
   overflow-y                auto
   height                    100%
   width                     auto
   margin-left               0px
 
-  &.has-links
-    margin-left             125px
+  vendor transition,        background-color 0.2s linear
+  vendor perspective,       800px
+  &.vignette
+    gradient2               50% 35%, circle farthest-corner, rgba(0,0,0,0.25) 15%, rgba(255,255,255,0.5) 100%
+
+
+  // &.has-links
+  //   margin-left             125px
+
+  > .profile-content > .listview-wrapper
+    vendor transition,      margin-left 0.2s linear
+    > .kdscrollview
+      abs()
+      borderBox()
+      vendor transition,    left 0.2s linear
+      top                     0
+      left                    0
+      right                   0
+      bottom                  0
+      margin-bottom           100px
+      rounded                 10px
+      bg color,               #fbfbfb
+      height                  auto
+      width                   auto
+      margin                  auto
+
 
 .profile-admin-customize
 .profile-admin-message
@@ -491,6 +592,7 @@ textarea.profile-handle-customize.kdinput
   width                     auto
   height                    auto
   borderBox()
+
   a span.title
     borderBox()
     noTextDeco()
@@ -501,6 +603,10 @@ textarea.profile-handle-customize.kdinput
     &:hover
       color                 #444
 
+.profile-advanced-settings-menu
+  .settings-view
+    padding                 10px 20px
+
 .profile-admin-customize
   right                     75px
 
@@ -508,12 +614,59 @@ textarea.profile-handle-customize.kdinput
 // CONTENT
 // ############################################################################
 
+
+.profile-content-wrapper
+  &.edit
+    .profile-content-list
+      .profile-content.front
+        vendor transform,rotateY(-180deg)
+      .profile-content.back
+        vendor transform, rotateY(0deg)
+
 .kdlistview.kdview.profile-content
 .profile-content
   borderBox()
   overflow                  auto
   height                    100%
   width                     auto
+  abs()
+  top                       50px
+  right                     0
+  left                      0
+  bottom                    170px
+  width                     800px
+  margin                    auto
+  rounded                   10px
+  height                    auto
+  bg color,                 #fbfbfb
+  shadow                    0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
+  border                    1px solid #e8e8e8
+
+
+  vendor transform-style,   preserve-3d
+  vendor backface-visibility, hidden
+
+  &.allow-transitions
+    vendor transition ,     all .4s ease-in;
+
+  &.front
+    z-index                 2
+
+  &.back
+    vendor transform,       rotateY(180deg);
+
+  &.kdview
+    top                     50px
+    bottom                  170px
+
+  .flip-button
+    bg image,               none
+    bg color,               transparent
+    border                  none
+    z-index                 2000
+    abs()
+    top                     5px
+    right                   0px
 
   .new-blogpost
     abs()
@@ -521,7 +674,13 @@ textarea.profile-handle-customize.kdinput
     top                     10px
 
   .content-item
-    // border-bottom           1px solid #e8e8e8
+    bg color,               transparent
+
+    &.static
+      borderBox()
+      // bg color,             white
+      width                 800px
+
     height                  auto
     border-bottom           1px solid rgba(0,0,0,0.1)
     padding                 50px
@@ -531,10 +690,7 @@ textarea.profile-handle-customize.kdinput
     text-align              center
 
     > .title
-      // bg color,             #fbfbfb
       padding               20px 40px 0px
-      // border-bottom         1px solid #e8e8e8
-      // height                16px
 
       a
         noTextDeco()
@@ -545,14 +701,13 @@ textarea.profile-handle-customize.kdinput
         headerFont()
         vendor              font-smoothing, antialiased
         vendor              text-rendering, geometricPrecision
-        max-width           600px
+        max-width           660px
         display             block
         margin-bottom       0px
         color               #444
         font-size           32px
         width               auto
         line-height         100%
-        // margin-top          -7px
         vendor transition,  color .1s linear
         a
           line-height       100%
@@ -581,7 +736,10 @@ textarea.profile-handle-customize.kdinput
       a
         border              none
       a.count
-        margin-top          0px
+        > span
+          vertical-align    top
+          margin-top        2px
+          padding           2px 3px
       a.action-link
         vendor transition,  color .1s linear
         font-weight         300
@@ -598,16 +756,16 @@ textarea.profile-handle-customize.kdinput
           vendor transition,background-color .1s linear
           bg color,         #aaa
           font-family       "Open Sans",Helvetica,sans-serif
-          margin-top        2px
+          margin-top        1px
           font-size         10px
           cursor            default
           &:hover
             bg color,       #ff9200
 
     .has-markdown
-      max-width             600px
+      borderBox()
+      max-width             780px
       padding               20px 40px 20px
-      // margin-bottom         30px
       text-align            left
       text-rendering        geometricPrecision
 
@@ -621,7 +779,7 @@ textarea.profile-handle-customize.kdinput
     // bg color,               #fbfbfb
     line-height             20px
     min-height              50px
-    height                  auto
+    height                  100%
     border-bottom           none
 
 #profile-placeholder
@@ -666,7 +824,7 @@ textarea.profile-handle-customize.kdinput
     // overflow                auto
 
     .has-markdown
-      max-width             600px
+      // max-width             600px
       margin-right          300px
       img
         max-width           100%
@@ -696,7 +854,12 @@ textarea.profile-handle-customize.kdinput
     borderBox()
     width                   100%
     min-height              200px
+    height                  45%
 
+  div.input_preview.kdinputwithpreview.preview-markdown
+    height                  45%
+    div.preview_content
+      max-height            100%
   .about-name
 
     .name
@@ -764,6 +927,8 @@ textarea.profile-handle-customize.kdinput
       .kdscrollview
         height              auto
 
+
+
   .content-display-wrapper
     rel()
     left                    0
@@ -792,9 +957,28 @@ textarea.profile-handle-customize.kdinput
         width               300px
         height              100%
         border-left         1px solid #e8e8e8
+        padding             23px 25px 25px 23px
 
       .static-page-link
         margin-left         0px!important
+
+      .profileinfo
+
+        .personal-profile-about
+          textarea.kdinput.text
+            width           100%
+
+        .profilelocation-form
+
+          > p
+            margin-left     0
+
+        .static-page-view
+          margin-left       0
+
+        .kdloader
+          fr()
+
 
 .about-sidebar .static-content
   padding                   10px
@@ -959,7 +1143,7 @@ textarea.profile-handle-customize.kdinput
 
 .profile-handles
   abs()
-  top                       47px
+  top                       70px
   right                     30px
   a
     display                 inline-block
@@ -991,3 +1175,23 @@ textarea.profile-handle-customize.kdinput
       bg position,          -39px -340px
       size                  26px 26px
       display               inline-block
+
+.profile-config
+
+  .flip-button
+    bg image,               none
+    bg color,               transparent
+    border                  none
+    // z-index                 2
+    abs()
+    top                     5px
+    right                   5px
+
+.profile-customize-view
+  height                    100%
+  borderBox()
+  padding                   40px
+
+  .visible-switch
+    margin                  10px 0 20px 0
+

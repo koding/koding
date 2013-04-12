@@ -10,28 +10,6 @@
 
 */
 
-h3#group-logo
-  font-family           Ubuntu
-  width                 auto
-  padding               0 20px
-  top                   0
-  right                 0
-  font-size             28px
-  line-height           50px
-  max-height            50px
-  max-width             80%
-  z-index               10
-  display               inline-block
-  overflow              ellipsis
-  color                 rgba(255, 255, 255, .5)
-  // bg                    color, rgba(0, 0, 0, .4)
-  abs()
-  a
-    color               white
-    font-weight         400
-    noTextDeco()
-
-
 #static-landing-page
   &.group-leaving
     rel()
@@ -94,13 +72,6 @@ h3#group-logo
   position              fixed
   background-image      url('/images/logos/50.png')
 
-#landing-page-logo
-  bottom              15px
-  left                20px
-  size                120px,30px
-  bg                  position,-240px -40px
-  sprite()
-  abs()
 
 .group-buttons
   min-height                27px
@@ -109,12 +80,7 @@ h3#group-logo
   bg color,             rgba(0,0,0,0.2)
   padding 0 5px 5px 0
   borderBox()
-.group-content-wrapper
-  margin-left           160px
-  height                100%
-  width                 auto
-  bg color,             white
-  borderBox()
+
 
 .group-title
   borderBox()
@@ -200,9 +166,35 @@ h3#group-logo
     right               26px
     top                 26px
     height              24px
+    width               auto
+
     button.kdbutton
-      margin-left       5px
+      margin            0 0 0 5px!important
       display           inline-block
+
+    #landing-page-sidebar
+      width                       auto
+      height                      auto
+      display                     inline-block
+      padding                     0
+      margin-right                -3px
+
+      .kdlistview-navigation
+        text-align                center
+        width                     100%
+        margin                    0px
+
+        .navigation-item
+          border                  none
+          width                   auto
+          min-width               10px
+          display                 inline-block
+          z-index                 1000
+          margin                  0 5px 0 0
+
+          &.selected
+            margin                0 5px 0 0
+            bg color,             transparent
 
 
 .group-nickname
@@ -251,9 +243,6 @@ h3#group-logo
     height              0
     margin              20px 20px 10px 6px
     padding             0 11px
-
-.group-splitview
-  height 100%
 
 .group-content-links
   margin-right          0px
@@ -304,213 +293,169 @@ h3#group-logo
 
   vertical-align bottom
 
-.kdlistview.kdview.group-loading-content
-.group-loading-content
-  overflow auto
-  // margin-left 125px
+
+
+
+
+.group-content-wrapper
+  // margin-left           160px
+  height                        100%
+  width                         auto
+  bg color,                     white
   borderBox()
+
+  bg size,                      cover
+  bg repeat,                    no-repeat
+  bg position,                  center center
+  bg image,                     url("http://www.wallpowper.com/wallpaper/2012/07/23/wood-background-dark-flooring-desktop-562248.jpg")
+
+  &.edit
+    .group-splitview
+      .group-landing-content
+        .content-item.front
+          vendor transform,rotateY(-180deg)
+        .content-item.back
+          vendor transform, rotateY(0deg)
+
+.group-splitview
   height 100%
-  width auto
+  borderBox()
+  margin-top: -120px
+  padding-top 120px
+
+  // vendor perspective, 800px
+  vendor perspective-origin-x, 50%
+  vendor perspective-origin-y, 50%
+
+.kdlistview.kdview.group-landing-content
+.group-landing-content
+  vendor transition, background-color 0.2s linear
+  vendor perspective, 800px
+  background-size                       cover
+  // vendor perspective-origin-x, 50%
+  // vendor perspective-origin-y, 50%
+
+  borderBox()
+
+  overflow                              auto
+  height                                100%
+  width                                 auto
+  padding-top                           50px
+  // bg color, rgba(255,255,255,0.5)
+  gradient2                             center 50%,circle farthest-corner,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.15) 100%
+  // gradient2                             center 25%, ellipse cover,  rgba(255,255,255,0.15) 0%, rgba(255,255,255,.5) 100% /* W3C */
+
+  rel()
+
+  // vendor transform-style, preserve-3d
+  // vendor transition ,all .4s ease-in;
+
+  .content-item
+    vendor transform-style, preserve-3d
+    vendor transition ,all .4s ease-in;
+    vendor backface-visibility, hidden
+    // vendor transform-origin, 50% 0px;
+
+    abs()
+    left 0
+    right 0
+    top 0
+    bottom 0
+    padding                      50px
+    borderBox()
+
+    &.front
+      // vendor transform, translateY(0px) rotateY(0deg);
+      // .has-markdown
+      //   bg color, red
+      z-index 2
+    &.back
+      vendor transform, rotateY(180deg);
+      // .has-markdown
+      //   bg color, green
+      // vendor transform, rotateY(180deg)
+
+  .content-item-scroll-wrapper
+    padding                             40px
+    // max-width                           600px
+    max-width                           61.803398875%
+    margin                              0px auto
+    rounded                             5px
+    border                              1px solid #e3e3e3
+    bg                                  color, #f5f5f5
+    shadow                              0 20px 50px -20px rgba(0,0,0,0.35), inset 0 10px 25px -10px rgba(255,255,255,0.5), 0 5px 20px -10px rgba(0,0,0,0.75)
+    borderBox()
+    height                              100%
 
   .has-markdown
-    padding 30px
-    max-width 600px
+    borderBox()
+    // padding                             30px
+    overflow                            auto
+    height                              100%
 
+.custom-image-selectitemview
+  cursor                                pointer
+  width                                 50%
+  height                                auto
+  display                               inline-block
+  rounded                               3px
+  padding                               5px 5px 2px
+  borderBox()
+  rel()
+  > span.title
+    display                             block
+    margin-bottom                       10px
+  span
+    abs()
+    borderBox()
+    top                                 5px
+    left                                5px
+    right                               5px
+    bg color,                           rgba(200,200,200,0.5)
+    padding                             5px 8px 3px
+    display                             block
+    text-shadow                         0 0 3px rgba(0,0,0,0.5)
+    color                               #ddd
+    border-bottom                       1px solid rgba(255,255,255,0.1)
+    // vendor transition,                  height 0.2s linear
+    // height                              0
+  // &:hover
+  //   span
+  //     height                            24px
+  &.selected
+    // border 1px solid #ff9200
+    bg color,                           #ff9200
+    span
+      // height                            24px
+      color                             white
+.custom-image-default
+  width                                 100%
+  height                                auto
+  rounded                               3px
 
-// .group-loader
-//   width                   30px
-//   height                  30px
-//   size                    30px, 30px
-//   margin                  auto
-//   bg                      position,-240px -40px
-//   sprite()
+.custom-select-background-view
+  width                                 100%
+  height                                auto
+  borderBox()
+  fl()
+  display                               inline-block
+  .listview-wrapper
+    height                              auto
 
-// #group-loader-container
-//   top                     40px
-//   width                   100%
-//   abs()
+.custom-select-background-upload-view
+  // margin-left                           50%
+  // width                                 50%
+  // borderBox()
+  // display inline-block
+  hidden()
 
-// .landing-button
-//   font-size               17px !important
-
-// .group-landing-content
-//   borderBox()
-//   rel()
-//   overflow                visible
-//   max-height              660px
-//   max-width               980px
-//   width                   90%
-//   border                  1px solid rgba(255,255,255,0.16)
-//   rounded                 8px
-//   margin                  100px auto 30px auto
-//   shadow                  0 0 150px rgba(0,0,0,0.32)
-//   bg color,               rgba(255,255,255,0.05)
-//   vendor transition,      height .2s linear
-
-//   .group-wrapper
-//     // max-height            650px
-//     overflow              auto
-
-//   .avatar
-//     borderBox()
-//     padding               30px 30px 10px 30px
-//     fl()
-
-//     img
-//       padding             5px
-//       border              1px solid rgba(255,255,255,0.2)
-//       bg color,           rgba(0,0,0,0.2)
-//       rounded             5px
-//       vendor transition,  all 0.2s ease-in-out
-//       width               150px
-//       height              150px
-
-//   .content-title
-//     vendor transition,    margin-left 0.2s ease-in-out
-//     font-weight           500
-//     overflow              hidden
-//     white-space           nowrap
-//     text-overflow         ellipsis
-//     font-size             24px
-//     padding               30px 30px 20px 0
-//     color                 #f5f5f5
-//     vendor                font-smoothing antialiased
-//     text-rendering        geometricPrecision
-//     margin-left           215px
-
-//     .betatag
-//       text-indent         -9999px
-//       abs()
-//       top                 -3px
-//       right               -3px
-//       width               64px
-//       height              38px
-//       sprite()
-//       bg position,        -400px -120px
-
-//   .content-body
-//     vendor transition,    margin-left 0.2s ease-in-out
-//     color                 rgba(227, 227, 227, 0.5)
-//     font-weight           300
-//     margin-left           215px
-//     padding-right         30px
-
-//   .content-meta
-//     fr()
-//     borderBox()
-//     clear                 both
-//     height                27px
-//     rounded               4px
-//     padding               5px 8px 5px 5px
-//     margin                -25px 30px 15px 30px
-//     shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
-
-//     bg color,             rgba(0,0,0,0.25)
-//     div
-//       vertical-align      top
-//       color               rgba(227,227,227,0.5)
-//       font-weight         300
-//       display             inline-block
-//       .count
-//         color             #f5f5f5
-//         vertical-align    top
-//       .icon
-//         sprite()
-//         width             20px
-//         height            20px
-//         display           inline-block
-//       .text
-//         vertical-align    top
-//       &.followers
-//         .icon
-//           bg position,    -201px -523px
-//       &.posts
-//         .icon
-//           bg position,    -99px -523px
-
-//   .group-content
-//     clear                 both
-//     borderBox()
-//     height                394px
-//     overflow              auto
-//     margin                30px
-//     bg color,             rgba(0, 0, 0, 0.25) //#282520
-//     border                10px solid rgba(0, 0, 0, 0) //#282520
-//     shadow                0 -1px 0 rgba(0,0,0,0.6), -1px 0 0 rgba(0,0,0,0.35), 1px 1px rgba(255,255,255,0.1)
-//     rounded               5px
-//     width                 auto
-
-//   .content-markdown
-//     overflow              auto
-//     padding               10px
-
-// .group-koding-logo
-//   abs()
-//   left                    0
-//   bottom                  0
-//   text-align              center
-//   width                   auto
-//   .text
-//     margin                30px 30px 10px 30px
-//     .logo
-//       cursor              pointer
-//       display             inline-block
-//       width               140px
-//       height              40px
-//       sprite()
-//       bg position,        -400px 0px
-
-// @media screen and (max-width: 500px)
-//   .group-landing-content
-//     margin-top            30px
-//     .avatar
-//       padding-right       10px
-//       img
-//         padding           2px
-//         width             40px
-//         height            40px
-//     .content-title
-//       margin-left         90px
-//     .content-body
-//       margin-left         90px
-//     .content-meta
-//       float               none
-//       margin-top          20px
-//       margin-bottom       0px
-//     .content-markdown
-//       img
-//         max-width         100%
-
-// .group-navigation
-//   width                   90%
-//   max-width               980px
-//   text-align              center
-//   margin                  auto
-//   margin-top              8px
-
-//   .group-login-buttons
-//     // border                1px solid rgba(255,255,255,0.1)
-//     // border-radius         7px
-//     padding               3px
-//     opacity               0
-//     // background-color      rgba(255,255,255,0.1)
-//     vendor transition,    opacity .3s linear
-
-//     &.ready
-//       opacity             1.0
-//       height              25px
-//       display             block
-
-//     .bigLink
-//       text-shadow           0 -1px 0 rgba(0,0,0,0.8)
-//       font-size             20px
-//       color                 #ffb500
-//       noTextDeco()
-//       vertical-align        baseline
-//       bg color,             transparent
-//       &:hover
-//         color               white
-//       cursor                pointer
+.group-customize-view
+  h1.customize-title
+    display block
+    font-size 24px
+    font-weight 300
+    color #444
+    margin-bottom 20px
 
 #group-content
   height            100%
@@ -1014,6 +959,7 @@ h3#group-logo
 
 
 .group-admin-modal
+
   div.general-settings  > .kdformview
     margin-top 5px
     > .formline
@@ -1027,11 +973,13 @@ h3#group-logo
 
   > .kdformview
     margin-top 20px
+
     > .formline
       width 100%
       borderBox()
       overflow:auto
       border none
+
       &.button-field
         bg color, transparent
         rounded 0
@@ -1041,16 +989,6 @@ h3#group-logo
         margin-top 15px
 
 
-  div.avatar
-    .kdlabel
-      margin-top:30px
-    .kdfileuploadarea
-      width 80px
-      height 80px
-
-  div.body
-    textarea
-      min-height 150px
 
 
 .groups-member-permissions-view
@@ -1232,18 +1170,20 @@ h3#group-logo
   .group-content
     borderBox()
     height auto
-    padding 0px 20px
+
+    .kdtabpaneview
+      padding 0px 20px
 
     .kdtabhandlecontainer
       padding-top           0
-      margin-top            29px
+      margin-top            28px
       // background            linear-gradient(top, #555 0%,#666 93.7%)
       height                27px
       padding               0px 10px 0px 10px
       // shadow                inset 0 2px 5px rgba(0,0,0,.1)
-      bg color,             #f5f5f5
+      bg color,             #f8f8f8
       borderBox()
-      border none
+      border-bottom         1px solid #e8e8e8
       .kdtabhandle
         border-width        0
         height              27px

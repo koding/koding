@@ -9,7 +9,6 @@ services=(
 	koding/kites/os
 	koding/kites/irc
 	koding/virt/idshift
-	koding/virt/ldapserver
 	koding/virt/proxy
 	koding/virt/vmtool
 	koding/alice
@@ -19,4 +18,6 @@ services=(
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
+
+rm -f $GOPATH/bin/ldapserver $GOPATH/../kites/ldapserver
 cp $GOPATH/bin/* $GOPATH/../kites

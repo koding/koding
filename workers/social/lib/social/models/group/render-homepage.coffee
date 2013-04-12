@@ -1,5 +1,6 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
   content ?= getDefaultGroupContents(title)
+
   """
 
   <!DOCTYPE html>
@@ -8,56 +9,68 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="login">
+  <body class="login landing">
 
     #{getLoader roles}
 
     <div id="static-landing-page">
-
-    <div class="group-personal-wrapper" id="group-personal-wrapper">
-      <div class="group-avatar" style="background-image:url(http://lorempixel.com/160/160/)"></div>
-      <div class="group-buttons">
-        <div class="group-nickname">#{slug}</div>
-      </div>
-      <div id="main-loader"></div>
-      <div id="landing-page-sidebar"></div>
-      <div id="landing-page-logo"></div>
-
-    </div>
-
-    <div class="group-content-wrapper" id="group-content-wrapper">
-      <div class="group-title" id="group-title">
-        <div class="group-title-wrapper" id="group-title-wrapper">
-          <div class="group-name">#{title}</div>
-          <div class="group-bio">#{body}</div>
-        </div>
-      </div>
-      <div class="group-splitview" id="group-splitview">
-        <div class="group-content-links" id="group-content-links">
-          <h4>Show me</h4>
-          <ul>
-            <li class="" id="CBlogPostActivity">Blog Posts</li>
-            <li class="" id="CStatusActivity">Status Updates</li>
-            <li class="" id="CCodeSnipActivity">Code Snippets</li>
-            <li class="" id="CDiscussionActivity">Discussions</li>
-            <li class="" id="CTutorialActivity">Tutorials</li>
-          </ul>
-        </div>
-        <div class="group-loading-content" id="group-loading-content">
-         <div class="content-item" id='group-readme'>
-           <div class="has-markdown">
-             <span class="data">#{content}</span>
+      <nav id="landing-page-nav">
+        <h2>#{title}</h2>
+      </nav>
+      <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
+      <div class="group-content-wrapper" id="group-content-wrapper">
+        <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
+          <div class="group-landing-content" id="group-landing-content">
+           <div class="content-item kdview front" id='group-readme'>
+             <div class="content-item-scroll-wrapper">
+               <div class="group-title" id="group-title" #{applyCustomBackground customize}>
+                 <div class="group-title-wrapper" id="group-title-wrapper">
+                   <div class="group-name">
+                    #{title}
+                    <div class="group-description">#{body}</div>
+                   </div>
+                 </div>
+               </div>
+               <div class="has-markdown">
+                 <span class="data">#{content}</span>
+               </div>
+             </div>
+           </div>
+           <div class="content-item kdview back">
+             <div class="content-item-scroll-wrapper" id='group-config'>
+             </div>
            </div>
          </div>
-       </div>
+        </div>
       </div>
     </div>
     #{KONFIG.getConfigScriptTag {groupEntryPoint: slug, roles: roles}}
     #{getScripts()}
-    </div>
   </body>
   </html>
+
   """
+
+applyCustomBackground = (customize={})->
+
+  defaultImages = [
+                    '/images/bg/blurred/1.jpg','/images/bg/blurred/5.jpg'
+                    '/images/bg/blurred/2.jpg','/images/bg/blurred/6.jpg',
+                    '/images/bg/blurred/3.jpg','/images/bg/blurred/7.jpg',
+                    '/images/bg/blurred/4.jpg','/images/bg/blurred/8.jpg',
+                  ]
+
+  if customize.background?.customType is 'defaultImage' \
+  and customize.background?.customValue <= defaultImages.length
+    url = defaultImages[(customize.background.customValue or 0)]
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType is 'customImage'
+    url = customize.background?.customValue
+    """ style='background-color:transparent;background-image:url("#{url}")'"""
+  else if customize.background?.customType in ['defaultColor','customColor']
+    """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""
+  else
+    """ style='background-image:url("#{defaultImages[0]}")'"""
 
 getLoader = (roles)->
   if 'member' in roles or 'admin' in roles

@@ -2,7 +2,7 @@
 
 module.exports = class JMarkdownDoc extends Module
 
-  {daisy} = require 'bongo'
+  {daisy, secure, ObjectId} = require 'bongo'
 
   @share()
 
@@ -11,6 +11,7 @@ module.exports = class JMarkdownDoc extends Module
       content   : String
       html      : String
       checksum  : String
+      origin    : ObjectId
     sharedMethods   :
       static        : ['generateHTML']
 
@@ -47,22 +48,17 @@ module.exports = class JMarkdownDoc extends Module
     setOp.checksum = JMarkdownDoc.generateChecksum setOp.content
     Module::update.apply this, arguments
 
-  @create = (formData, callback)->
-    data = formData
-    markdownDoc = null
+  save:->
+    @html     = JMarkdownDoc.generateHTML @content
+    @checksum = JMarkdownDoc.generateChecksum @content
+    super
 
-    daisy queue = [
-      =>
-        data.html = @generateHTML data.content
-        queue.next()
-      =>
-        data.checksum = @generateChecksum data.content
-        queue.next()
-      =>
-        markdownDoc = new @ data
-        queue.next()
-      ->
-        markdownDoc.save (err)->
-          if err then callback err
-          else callback null, markdownDoc
-    ]
+  @create$ = secure (client, formData, callback)->
+    formData.origin = client.connection.delegate.getId()
+    @create formData, callback
+
+  @create = (formData, callback)->
+    markdownDoc = new @ formData
+    markdownDoc.save (err)->
+      if err then callback err
+      else callback null, markdownDoc

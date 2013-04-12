@@ -1,18 +1,24 @@
 class KDFormViewWithFields extends KDFormView
+
+  sanitizeOptions = (options)->
+    for key,option of options
+      option.title = key
+      option
+
   constructor:->
+
     super
+
     @setClass "with-fields"
+
     @inputs  = {}
     @fields  = {}
     @buttons = {}
-    {fields,buttons} = @getOptions()
-    @createFields @sanitizeOptions  fields  if fields
-    @createButtons @sanitizeOptions buttons if buttons
 
-  sanitizeOptions:(options)->
-    for key,option of options
-      option.title or= key
-      option
+    {fields,buttons} = @getOptions()
+
+    @createFields sanitizeOptions  fields  if fields
+    @createButtons sanitizeOptions buttons if buttons
 
   createFields:(fields)->
     @addSubView @createField fieldData for fieldData in fields

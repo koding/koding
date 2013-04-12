@@ -36,7 +36,8 @@ class KDInputView extends KDView
     @setDefaultValue options.defaultValue
     @setPlaceHolder options.placeholder
     @makeDisabled() if options.disabled
-    @setSelectOptions options.selectOptions if options.selectOptions?
+    if options.selectOptions? and 'function' isnt typeof options.selectOptions
+      @setSelectOptions options.selectOptions
     @setAutoGrow() if options.autogrow
     @enableTabKey() if options.enableTabKey
     @setCase options.forceCase if options.forceCase
@@ -50,7 +51,10 @@ class KDInputView extends KDView
     if options.type is "select" and options.selectOptions
       @on "viewAppended", =>
         o = @getOptions()
-        unless o.selectOptions.length
+        if 'function' is typeof o.selectOptions
+          kallback = @bound "setSelectOptions"
+          o.selectOptions.call @, kallback
+        else unless o.selectOptions.length
           @setValue o.selectOptions[Object.keys(o.selectOptions)[0]][0].value unless o.defaultValue
         else
           @setValue o.selectOptions[0].value unless o.defaultValue

@@ -1,12 +1,8 @@
 fs = require 'fs'
 nodePath = require 'path'
+deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
-# mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
-mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-
+version = "0.0.1"
 projectRoot = nodePath.join __dirname, '..'
 
 rabbitPrefix = (
@@ -17,7 +13,6 @@ rabbitPrefix = (
 ).trim()
 
 socialQueueName = "koding-social-#{rabbitPrefix}"
-authResourceName = "koding-auth-#{rabbitPrefix}"
 
 module.exports =
   aws           :
@@ -36,13 +31,12 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  mongo         : mongo
+  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
   watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -76,7 +70,6 @@ module.exports =
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName+'auth'
-    authResourceName: authResourceName
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -93,22 +86,22 @@ module.exports =
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
-  presence      :
-    exchange    : 'services-presence'
-  client        :
-    version     : version
-    watch       : yes
-    includesPath: 'client'
-    websitePath : 'website'
-    js          : "js/kd.#{version}.js"
-    css         : "css/kd.#{version}.css"
-    indexMaster : "index-master.html"
-    index       : "default.html"
+  presence        :
+    exchange      : 'services-presence'
+  client          :
+    version       : version
+    watch         : yes
+    watchDuration : 300
+    includesPath  : 'client'
+    websitePath   : 'website'
+    js            : "js/kd.#{version}.js"
+    css           : "css/kd.#{version}.css"
+    indexMaster   : "index-master.html"
+    index         : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       resourceName: socialQueueName
-      authResourceName: authResourceName
       suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
@@ -120,6 +113,9 @@ module.exports =
       sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web-dev.in.koding.com'
+    port        : 5672
+    apiAddress  : "web-dev.in.koding.com"
+    apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'

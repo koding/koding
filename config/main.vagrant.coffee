@@ -37,7 +37,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
-  runLdapServer : yes
   runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
@@ -62,7 +61,6 @@ module.exports =
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -84,12 +82,13 @@ module.exports =
   client        :
     version     : version
     watch       : yes
+    watchDuration : 300
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
@@ -104,7 +103,10 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://koding.local:1337'
   mq            :
-    host        : 'localhost'
+    host        : 'koding.local'
+    port        : 5672
+    apiAddress  : "koding.local"
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
@@ -146,7 +148,6 @@ module.exports =
     interval: 60000
   haproxy:
     webPort     : 3020
-
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"

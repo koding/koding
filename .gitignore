@@ -26,7 +26,8 @@ ebin
 /go/pkg
 .project
 /kites/terminal/.tmp
-
+/kites/os
+/kites/vmtool
 /node_modules/*
 
 /.deployments
@@ -47,10 +48,11 @@ kites/alice
 kites/broker
 kites/idshift
 kites/irc
-kites/ldapserver
 kites/proxy
 .pyc
 
 .cake_task_cache
 
 *.sublime-*
+
+.idea/*

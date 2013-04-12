@@ -46,7 +46,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -71,7 +70,6 @@ module.exports =
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 2
     watch       : no
   cacheWorker   :
@@ -115,6 +113,9 @@ module.exports =
   mq            :
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
+    port        : 5672
+    apiAddress  : "web-prod.in.koding.com"
+    apiPort     : 55672
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
@@ -125,7 +126,7 @@ module.exports =
     keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
-    vhost       : '/new'
+    vhost       : 'new'
   email         :
     host        : 'koding.com'
     protocol    : 'https:'

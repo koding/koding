@@ -11,6 +11,7 @@ module.exports = class JUser extends jraphical.Module
   JGuest         = require './guest'
   JInvitation    = require './invitation'
   JName          = require './name'
+  JGroup         = require './group'
 
   createId       = require 'hat'
 
@@ -289,6 +290,26 @@ module.exports = class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
+  @addToGroup = (account, slug, callback)->
+    JGroup.one {slug}, (err, group)->
+      if err or not group then callback err
+      else
+        group.addMember account, 'member', (err)->
+          if err then callback err
+          else
+            group.updateCounts()
+            callback null
+
+  @addToGroups = (account, invite, callback)->
+    @addToGroup account, 'koding', (err)=>
+      if err then callback err
+      else if invite.group
+        @addToGroup account, invite.group, (err)->
+          if err then callback err
+          else callback null
+      else
+        callback null
+
   @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
@@ -327,18 +348,24 @@ module.exports = class JUser extends jraphical.Module
             else if not username? or not email?
               return callback createKodingError 'Username and email are required fields'
 
-            @verifyKodingenPassword {username, password, kodingenUser}, (err)->
+            @verifyKodingenPassword {username, password, kodingenUser}, (err)=>
               if err
                 return callback createKodingError 'Wrong password'
               else
                 nickname = username
-                JSession.one {clientId: client.sessionToken}, (err, session)->
+                JSession.one {clientId: client.sessionToken}, (err, session)=>
                   if err
                     callback err
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    JName.claim username, [username], 'JUser', 'username', (err)->
+                    slug = {
+                      slug: username,
+                      constructorName: 'JUser',
+                      usedAsPath: 'username',
+                      collectionName: 'jUsers'
+                    }
+                    JName.claim username, [slug], 'JUser', (err)=>
                       if err then callback err
                       else
                         salt = createSalt()
@@ -356,7 +383,7 @@ module.exports = class JUser extends jraphical.Module
                             likeActivities : off
                           }
                         }
-                        user.save (err)->
+                        user.save (err)=>
                           if err
                             if err.code is 11000
                               callback createKodingError "Sorry, \"#{email}\" is already in use!"
@@ -370,36 +397,33 @@ module.exports = class JUser extends jraphical.Module
                                 lastName
                                 hash
                               }
-                            account.save (err)->
-                              if err
-                                callback err
-                              else
-                                user.addOwnAccount account, (err)->
-                                  if err
-                                    callback err
+                            account.save (err)=>
+                              if err then callback err
+                              else user.addOwnAccount account, (err)=>
+                                if err then callback err
+                                else @addToGroups account, invite, (err)->
+                                  if err then callback err
+                                  else if silence
+                                    JUser.grantInitialInvitations user.username
+                                    createNewMemberActivity account
+                                    callback null, account
                                   else
-                                    if silence
-                                      JUser.grantInitialInvitations user.username
-                                      createNewMemberActivity account
-                                      callback null, account
-                                    else
-                                      replacementToken = createId()
-                                      session.update {
-                                        $set:
-                                          username      : user.username
-                                          lastLoginDate : new Date
-                                          clientId      : replacementToken
-                                        $unset          :
-                                          guestId       : 1
-                                      }, (err, docs)->
-                                        if err
-                                          callback err
-                                        else
-                                          user.sendEmailConfirmation()
-                                          JUser.grantInitialInvitations user.username
-                                          createNewMemberActivity account
-                                          JAccount.emit "AccountAuthenticated", account
-                                          callback null, account, replacementToken
+                                    replacementToken = createId()
+                                    session.update {
+                                      $set:
+                                        username      : user.username
+                                        lastLoginDate : new Date
+                                        clientId      : replacementToken
+                                      $unset          :
+                                        guestId       : 1
+                                    }, (err, docs)->
+                                      if err then callback err
+                                      else
+                                        user.sendEmailConfirmation()
+                                        JUser.grantInitialInvitations user.username
+                                        createNewMemberActivity account
+                                        JAccount.emit "AccountAuthenticated", account
+                                        callback null, account, replacementToken
 
   @grantInitialInvitations = (username)->
     JInvitation.grant {'profile.nickname': username}, 3, (err)->

@@ -39,7 +39,7 @@ class AvatarView extends LinkView
   # click:(event)->
   #   event.stopPropagation()
   #   event.preventDefault()
-  #   @hideTooltip()
+  #   @getTooltip().hide()
   #   @utils.defer => @emit 'LinkClicked'
   #   return no
 
@@ -112,7 +112,8 @@ class AvatarTooltipView extends KDView
         diameter      : 18
         top           : 11
       states          : [
-        "Follow", (callback)=>
+        title         : "Follow"
+        callback      : (callback)=>
           @followButton.getData().follow (err, response)=>
             @followButton.hideLoader()
             unless err
@@ -120,7 +121,9 @@ class AvatarTooltipView extends KDView
               callback? null
             else
               log err
-        "Unfollow", (callback)=>
+      ,
+        title         : "Unfollow"
+        callback      : (callback)=>
           @getData()?.unfollow (err, response)=>
             @followButton.hideLoader()
             unless err
@@ -169,7 +172,7 @@ class AvatarTooltipView extends KDView
     @template.update()
 
   click:(event)->
-    # @getDelegate()?.hideTooltip()
+    # @getDelegate()?.getTooltip().hide()
 
   decorateFollowButton:(data)->
 

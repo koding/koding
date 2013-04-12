@@ -78,7 +78,6 @@ class StatusLEDItemView extends KDListItemView
       'kite-applications'  : 'Applications'
       'kite-webterm'       : 'Terminal'
       'kite-databases'     : 'Databases'
-      'kite-sharedHosting' : 'Hosting'
       'koding-social-*'    : 'Social'
 
   constructor:(options={},data)->
@@ -111,13 +110,13 @@ class StatusLEDItemView extends KDListItemView
 
   setCount:(newCount)->
     @count = newCount
-    @updateTooltip()
+    @getTooltip().update()
 
   getCount:->
     @count
 
   setOnline:->
-    @updateTooltip 'online'
+    @getTooltip().update 'online'
     @setCurrentState 'online'
     @unsetClass 'red'
     @unsetClass 'yellow'
@@ -125,7 +124,7 @@ class StatusLEDItemView extends KDListItemView
     @setClass 'green'
 
   setOffline:->
-    @updateTooltip 'offline'
+    @getTooltip().update 'offline'
     @setCurrentState 'offline'
     @unsetClass 'yellow'
     @unsetClass 'off'
@@ -133,7 +132,7 @@ class StatusLEDItemView extends KDListItemView
     @setClass 'red'
 
   setWaiting:->
-    @updateTooltip 'under heavy load. Please wait.'
+    @getTooltip().update 'under heavy load. Please wait.'
     @setCurrentState 'under heavy load. Please wait.'
     @unsetClass 'red'
     @unsetClass 'green'
@@ -141,7 +140,7 @@ class StatusLEDItemView extends KDListItemView
     @setClass 'yellow'
 
   setOff:->
-    @updateTooltip 'not connected'
+    @getTooltip().update 'not connected'
     @setCurrentState 'not connected'
     @unsetClass 'yellow'
     @unsetClass 'green'

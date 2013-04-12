@@ -5,76 +5,68 @@
 class KDOnOffSwitch extends KDInputView
   constructor:(options = {}, data)->
 
-    options.type   or= "switch"       # mandatory
-    options.size   or= "small"        # a String tiny/small/big
-    options.labels or= ["ON", "OFF"]
+    options.title        or= ""
+    options.type         or= "switch"       # mandatory
+    options.size         or= "small"        # a String tiny/small/big
+    options.labels       or= ["ON", "OFF"]
+    options.defaultValue  ?= off
     super options, data
 
     @setClass options.size
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
-    if @getOptions().defaultValue?
-      @setDefaultValue @getOptions().defaultValue
+    @setDefaultValue options.defaultValue
 
   setDomElement:(cssClass)->
     {title, labels, name} = @getOptions()
-    @inputName = name
-    title or= ""
-
+    title       = "<span>#{title}</span>" if title
+    @inputName  = name
     @domElement = $ """
       <div class='kdinput on-off off #{cssClass}'>
-        <span>#{title}</span>
+        #{title}
         <a href='#' class='on' title='turn on'>#{labels[0]}</a><a href='#' class='off' title='turn off'>#{labels[1]}</a>
       </div> """
 
+  getValue:-> @$("input").attr("checked") is "checked"
+  setValue:(value, wCallback = yes)->
+    switch value
+      when on   then @setOn wCallback
+      when off  then @setOff wCallback
+
   setDefaultValue:(value) ->
     switch value
-      when on,"on","true","yes",1 then @_setDefaultValue on
-      else @_setDefaultValue off
+      when on,"on","true","yes",1 then @setValue on, no
+      else @setValue off, no
 
-  getDefaultValue:()-> @inputDefaultValue
-
-  getValue:()-> @getDomElement().find("input").eq(0).is ":checked"
-  setValue:(value)->
-    switch value
-      when on   then @_setOn()
-      when off  then @_setOff()
-
-  _setDefaultValue: (val) ->
-    setTimeout =>
-      val = !!val
-      if val then @_setOn no else @_setOff no
-    , 0
-
-  _setOff:(wCallback = yes)->
+  setOff:(wCallback = yes)->
     return if not @getValue() and wCallback
-    @inputDefaultValue = off
-    @getDomElement().find("input").eq(0).attr "checked",no
+
+    @$("input").attr "checked", no
+
     @$('a.on').removeClass('active')
     @$('a.off').addClass('active')
+
     @switchStateChanged() if wCallback
 
-  _setOn:(wCallback = yes)->
+  setOn:(wCallback = yes)->
     return if @getValue() and wCallback
-    @inputDefaultValue = on
-    @getDomElement().find("input").eq(0).attr "checked",yes
+
+    @$("input").attr "checked", yes
+
     @$('a.off').removeClass('active')
     @$('a.on').addClass('active')
+
     @switchStateChanged() if wCallback
 
-  switchStateChanged:()->
-    # log "new state of #{@getName()} is #{@getValue()}",@getCallback()?
+  switchStateChanged:->
     @emit 'SwitchStateChanged', @getValue()
-    @getCallback().call @,@getValue() if @getCallback()?
+    @getCallback().call @, @getValue() if @getCallback()?
 
   mouseDown:(event)->
     if $(event.target).is('a.on')
       @setValue on
     else if $(event.target).is('a.off')
       @setValue off
-    # no
-
-
 
 class KDCheckBox extends KDInputView
   constructor:(options = {}, data)->

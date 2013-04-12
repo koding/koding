@@ -81,9 +81,7 @@ class ActivityAppController extends AppController
 
     @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
-    activityController.on 'ActivitiesArrived', (activities)=>
-      for activity in activities when activity.bongo_.constructorName in @getFilter()
-        controller.newActivityArrived activity
+    activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
@@ -95,6 +93,10 @@ class ActivityAppController extends AppController
       @resetList()
       @setFilter data.type
       @populateActivity()
+
+  activitiesArrived:(activities)->
+    for activity in activities when activity.bongo_.constructorName in @getFilter()
+      @listController.newActivityArrived activity
 
   isExempt:(callback)->
 
@@ -113,7 +115,6 @@ class ActivityAppController extends AppController
       isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took"
-      @mainController.emit "AppIsReady"
 
       if err or teasers.length is 0
         warn "An error occured:", err  if err
@@ -177,10 +178,38 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
+    KD.remote.api.CActivity.fetchFacets options, (err, activities)->
       if err then callback err
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+
+  # Fetches activities that occur when user is disconnected.
+  fetchSomeActivities:(options = {}) ->
+
+    lastItemCreatedAt = @listController.getLastItemTimeStamp()
+
+    selector       =
+      createdAt    :
+        $lte       : new Date
+        $gt        : options.createdAt or lastItemCreatedAt
+      type         : { $in : options.facets or @getFilter() }
+      isLowQuality : { $ne : options.exempt or no }
+
+    options       =
+      limit       : 20
+      sort        :
+        createdAt : -1
+
+    KD.remote.api.CActivity.some selector, options, (err, activities) =>
+      if err then warn err
+      else
+        # FIXME: SY
+        # if it is exact 20 there may be other items
+        # put a separator and check for new items in between
+        if activities.length is 20
+          warn "put a separator in between new and old activities"
+
+        @activitiesArrived activities.reverse()
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -200,15 +229,9 @@ class ActivityAppController extends AppController
         # memberbucket data has no serverside model it comes from cache
         # so it has no meta, that's why we check its date by its overview
         lastDate = if lastItemData.createdAtTimestamps
-          new Date lastItemData.createdAtTimestamps.first
+          new Date lastItemData.createdAtTimestamps[0]
         else
           new Date lastItemData.meta.createdAt
-
-        try
-          if isNaN lastDate.getTime()
-            _rollbar.push msg:"bucket corrupted timestamp", item:lastItemData
-        catch error
-          console.log "bucket corrupted timestamp error"
       else
         lastDate = new Date
 

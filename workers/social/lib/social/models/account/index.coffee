@@ -64,7 +64,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
         'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground'
+        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
+        'fetchPendingGroupInvitations'
       ]
     schema                  :
       skillTags             : [String]
@@ -115,7 +116,18 @@ module.exports = class JAccount extends jraphical.Module
           showTypes         : [String]
           title             : String
           about             : String
-          backgrounds       : [String]
+          # backgrounds       : [String]
+          customize         :
+            background       :
+              customImages    : [String]
+              customType      :
+                type          : String
+                default       : 'defaultImage'
+                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+              customValue     :
+                type          : String
+                default       : '1'
+              customOptions   : Object
         avatar              : String
         status              : String
         experience          : String
@@ -179,6 +191,27 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+
+  setBackgroundImage: secure (client, type, value, callback=->)->
+    {delegate}    = client.connection
+    isMine        = this.equals delegate
+    if isMine
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['profile.staticPage.customize.background.customImages'] = value
+      else
+        operation = $set : {}
+
+      operation.$set["profile.staticPage.customize.background.customType"] = type
+
+      if type in ['defaultImage','defaultColor','customColor','customImage']
+        operation.$set["profile.staticPage.customize.background.customValue"] = value
+
+
+      @update operation, callback
 
   setAbout: secure (client, text, callback)->
     {delegate}    = client.connection
@@ -284,13 +317,13 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback? new KodingError 'Access denied!'
 
-  addStaticBackground: secure (client, url, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
-    if isMine
-      @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
-    else
-      callback? new KodingError 'Access denied!'
+  # addStaticBackground: secure (client, url, callback)->
+  #   {delegate}    = client.connection
+  #   isMine        = this.equals delegate
+  #   if isMine
+  #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
+  #   else
+  #     callback? new KodingError 'Access denied!'
 
   removeStaticPageType: secure (client, type, callback)->
     {delegate}    = client.connection
@@ -340,6 +373,40 @@ module.exports = class JAccount extends jraphical.Module
               else callback null, groups.map (group)->
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
+
+  fetchPendingGroupInvitations: secure (client, callback)->
+    JUser              = require '../user'
+    JGroup             = require '../group'
+    JInvitationRequest = require '../invitationrequest'
+
+    JUser.one username:@profile.nickname, (err, user)->
+      if err then callback err
+      else
+        selector =
+          email  : user.email
+          status : {$in:['pending', 'sent']}
+          group  : {$exists:1}
+
+        JInvitationRequest.some selector, {}, (err, invites)->
+          if err then callback err
+          else if invites?.length <= 0
+            callback null, []
+          else
+            invitations     = []
+            checkMembership = race (i, invitation, done)->
+              JGroup.one slug:invitation.group, (err, group)->
+                if err
+                  callback err
+                  done()
+                else
+                  group.fetchMembershipStatuses client, (err, roles)->
+                    if err then callback err
+                    else if 'member' not in roles and 'admin' not in roles
+                      invitations.push {invitation, group, roles: []}
+                    done()
+            , -> callback null, invitations
+            
+            checkMembership invitation for invitation in invites
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
@@ -625,8 +692,6 @@ module.exports = class JAccount extends jraphical.Module
 
     if isDummyAdmin connection.delegate.profile.nickname
       callback null,
-        sharedHosting :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
         Databases     :
           hosts       : ["cl0", "cl1", "cl2", "cl3"]
         terminal      :

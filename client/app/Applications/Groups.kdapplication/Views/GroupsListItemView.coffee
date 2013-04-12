@@ -28,7 +28,8 @@ class GroupsListItemView extends KDListItemView
         diameter      : 18
         top           : 11
       states          : [
-        "Join", (callback)->
+        title         : "Join"
+        callback      : (callback)->
           group.join (err, response)=>
             @hideLoader()
             unless err
@@ -36,7 +37,9 @@ class GroupsListItemView extends KDListItemView
               @setClass 'following-topic'
               @emit 'Joined'
               callback? null
-        "Leave", (callback)->
+      ,
+        title         : "Leave"
+        callback      : (callback)->
           group.leave (err, response)=>
             @hideLoader()
             unless err
@@ -201,12 +204,3 @@ class ModalGroupsListItem extends TopicsListItemView
       </div>
     </div>
     """
-
-class GroupsListItemViewEditable extends GroupsListItemView
-
-  constructor:(options = {}, data)->
-
-    options.editable = yes
-    options.type     = "topics"
-
-    super options, data

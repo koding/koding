@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
 	"koding/tools/dnode"
@@ -11,9 +12,6 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
-	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -62,6 +60,7 @@ func main() {
 	}
 	ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)), takenIPs)
 
+	go ldapserver.Listen()
 	go LimiterLoop()
 	k := kite.New("os")
 
@@ -113,71 +112,9 @@ func main() {
 		return vm.AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
-	k.Handle("watch", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		var params struct {
-			Path     string         `json:"path"`
-			OnChange dnode.Callback `json:"onChange"`
-		}
-		if args.Unmarshal(&params) != nil || params.OnChange == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
-		}
-
-		user, vm := findSession(session)
-		return WatchDir(vm, user, params.Path, params.OnChange, session)
-	})
-
-	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		user, _ := findSession(session)
-		dir, err := os.Open("/var/run/screen/S-" + user.Name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return make(map[string]string), nil
-			}
-			panic(err)
-		}
-		names, err := dir.Readdirnames(0)
-		if err != nil {
-			panic(err)
-		}
-		sessions := make(map[string]string)
-		for _, name := range names {
-			segements := strings.SplitN(name, ".", 2)
-			sessions[segements[0]] = segements[1]
-		}
-		return sessions, nil
-	})
-
-	k.Handle("webterm.createSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		var params struct {
-			Remote       WebtermRemote
-			Name         string
-			SizeX, SizeY int
-		}
-		if args.Unmarshal(&params) != nil || params.Name == "" || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
-		}
-
-		user, vm := findSession(session)
-		server := newWebtermServer(vm, user, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
-		session.OnDisconnect(func() { server.Close() })
-		return server, nil
-	})
-
-	k.Handle("webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		var params struct {
-			Remote       WebtermRemote
-			SessionId    int
-			SizeX, SizeY int
-		}
-		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
-		}
-
-		user, vm := findSession(session)
-		server := newWebtermServer(vm, user, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
-		session.OnDisconnect(func() { server.Close() })
-		return server, nil
-	})
+	registerFileSystemMethods(k)
+	registerWebtermMethods(k)
+	registerAppMethods(k)
 
 	k.Run()
 }

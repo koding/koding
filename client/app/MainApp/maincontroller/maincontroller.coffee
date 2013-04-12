@@ -33,6 +33,7 @@ class MainController extends KDController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
+    KD.registerSingleton "fatih", new Fatih
 
     KD.registerSingleton "linkController", new LinkController
 
@@ -77,6 +78,7 @@ class MainController extends KDController
         listener() for listener in queue
         queue.length = 0
 
+        @emit 'AppIsReady'
         @emit 'FrameworkIsReady'
         @appIsReady = yes
 
@@ -121,38 +123,41 @@ class MainController extends KDController
 
     @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
+  handleLoginScreenRoute:(action, path)->
+    ldc = @getSingleton 'lazyDomController'
+    ldc.handleNavigationItemClick {action, path}
+
   doJoin:->
-    @loginScreen.animateToForm 'lr'
+    @handleLoginScreenRoute 'lr', 'Join'
 
   doRegister:->
-    @loginScreen.animateToForm 'register'
+    @handleLoginScreenRoute 'register'
 
   doGoHome:->
-    @loginScreen.animateToForm 'home'
+    @handleLoginScreenRoute 'home'
 
   doLogin:->
-    @loginScreen.animateToForm 'login'
+    @handleLoginScreenRoute 'login'
 
   doRecover:->
-    @loginScreen.animateToForm 'recover'
+    @handleLoginScreenRoute 'recover', 'Recover'
 
   doLogout:->
-
-    # fixme: make a old tv switch off animation and reload
-    # $('body').addClass "turn-off"
-    return location.reload yes
-
-    @getSingleton("lazyDomController").showLandingPage =>
-      # @loginScreen.showView =>
-      KD.getSingleton("appManager").quitAll =>
-        @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
 
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
       @accountChanged account
 
+    # fixme: make a old tv switch off animation and reload
+    # $('body').addClass "turn-off"
+    return location.reload()
+
+    @getSingleton("lazyDomController").showLandingPage =>
+      # @loginScreen.showView =>
+      KD.getSingleton("appManager").quitAll =>
+        @mainViewController.sidebarController.accountChanged account
+        @mainViewController.getView().decorateLoginState no
       # @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView

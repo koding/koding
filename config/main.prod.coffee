@@ -38,7 +38,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -63,7 +62,6 @@ module.exports =
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : no
   cacheWorker   :
@@ -106,6 +104,9 @@ module.exports =
       sourceUri : 'http://koding.com:1337'
   mq            :
     host        : 'localhost'
+    port        : 5672
+    apiAddress  : "web-prod.in.koding.com"
+    apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
@@ -145,4 +146,3 @@ module.exports =
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
-

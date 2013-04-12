@@ -29,8 +29,6 @@ services =
     pattern: 'webterm'
   worker_auth:
     pattern: 'auth'
-  kite_sharedhosting:
-    pattern: 'kite-sharedHosting'
   kite_applications:
     pattern: 'kite-application'
   kite_databases:
@@ -58,6 +56,7 @@ koding.connect ->
 {extend} = require 'underscore'
 express  = require 'express'
 Broker   = require 'broker'
+request  = require 'request'
 fs       = require 'fs'
 hat      = require 'hat'
 nodePath = require 'path'
@@ -109,6 +108,11 @@ app.get "/-/cache/before/:timestamp", (req, res)->
     if err then console.warn err
     res.send if cache then cache.data else {}
 
+app.get "/-/imageProxy", (req, res)->
+  if req.query.url
+    req.pipe(request(req.query.url)).pipe(res)
+  else
+    res.send 404
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
@@ -124,9 +128,10 @@ app.get "/-/kite/login", (req, res) ->
       rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
         creds =
           protocol  : 'amqp'
-          host      : mq.host
+          host      : mq.apiAddress
           username  : data.username
           password  : data.password
+          vhost     : mq.vhost
         res.header "Content-Type", "application/json"
         res.send JSON.stringify creds
 
@@ -214,7 +219,7 @@ error_404 =->
 error_500 =->
   error_ 500, 'internal server error'
 
-app.get '/:name/:section?', (req, res, next)->
+app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
   [firstLetter] = name

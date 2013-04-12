@@ -3,12 +3,19 @@ class MainView extends KDView
   constructor:->
     super
 
-    mainController = @getSingleton 'mainController'
-    mainController.on 'AppIsReady', =>
-      @removeLoader()
+    mainController    = @getSingleton 'mainController'
+    lazyDomController = @getSingleton 'lazyDomController'
+
+    if KD.config.groupEntryPoint
+      lazyDomController.on 'landingViewIsHidden', =>
+        @removeLoader()
+    else
+      mainController.on 'AppIsReady', =>
+        @removeLoader()
 
   viewAppended:->
 
+    @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -49,22 +56,21 @@ class MainView extends KDView
 
   removeLoader:->
 
-    loadingScreen = $("#main-koding-loader")
+    loadingScreen = new KDView
+      lazyDomId : "main-koding-loader"
 
-    if loadingScreen.length
-      loginForm     = $('#main-form-handler')
+    loadingScreen.bindTransitionEnd()
 
-      loginForm.hide()
+    loginForm            = $('#main-form-handler')
+    {winWidth,winHeight} = @getSingleton "windowController"
 
-      {winWidth,winHeight} = @getSingleton "windowController"
-      loadingScreen.css
-        marginTop : -winHeight
-        opacity   : 0
+    loadingScreen.once "transitionend", =>
+      loadingScreen.destroy()
+      $('body').removeClass 'loading'
+      loginForm.show()
 
-      @utils.wait 601, =>
-        loadingScreen.remove()
-        $('body').removeClass 'loading'
-        loginForm.show()
+    loginForm.hide()
+    loadingScreen.$().css opacity : 0
 
   createMainPanels:->
 
@@ -86,10 +92,22 @@ class MainView extends KDView
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
-    @contentPanel.on "webkitTransitionEnd", (e) =>
-      @emit "mainViewTransitionEnd", e
+  addServerStack:->
+    @addSubView @serverStack = new KDView
+      domId : "server-rack"
+      click : ->
+        $('body').removeClass 'server-stack'
+        $('.kdoverlay').remove()
 
   addHeader:->
+    log "adding header"
+    if KD.config.groupEntryPoint
+      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+        if err then callback err
+        else if models?
+          log "adding summary"
+          [group] = models
+          @addSubView @groupSummary = new GroupSummaryView {}, group
 
     @addSubView @header = new KDView
       tagName : "header"
@@ -106,13 +124,6 @@ class MainView extends KDView
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
-
-    if KD.config.groupEntryPoint
-      @header.addSubView new KDCustomHTMLView
-        tagName   : "h3"
-        domId     : "group-logo"
-        partial   : "<a href='#'>#{KD.config.groupEntryPoint}</a>"
-
 
   createMainTabView:->
 

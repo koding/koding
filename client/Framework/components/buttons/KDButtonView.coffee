@@ -1,6 +1,6 @@
 class KDButtonView extends KDView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
     options.callback  or= noop          # a Function
     options.title     or= ""            # a String
@@ -57,18 +57,18 @@ class KDButtonView extends KDView
   setTitle:(title)->
     @$('.button-title').html title
 
-  getTitle:()-> @buttonTitle
+  getTitle:-> @buttonTitle
 
   setCallback:(callback)->
     @buttonCallback = callback
 
-  getCallback:()-> @buttonCallback
+  getCallback:-> @buttonCallback
 
-  showIcon:()->
+  showIcon:->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
 
-  hideIcon:()->
+  hideIcon:->
     @unsetClass "with-icon"
     @$('span.icon').addClass 'hidden'
 
@@ -77,7 +77,7 @@ class KDButtonView extends KDView
     @$('.icon').addClass iconClass
     # @setClass iconClass
 
-  setIconOnly:()->
+  setIconOnly:->
     @unsetClass "with-icon"
     @$().addClass('icon-only')
     $icon = @$('span.icon')
@@ -142,50 +142,4 @@ class KDButtonView extends KDView
     @getCallback().call @,event
     no
 
-  triggerClick:()-> @doOnSubmit()
-
-class KDToggleButton extends KDButtonView
-
-  constructor:(options = {},data)->
-
-    options = $.extend
-      dataPath     : null          # a JsPath String
-      defaultState : null          # a String
-      states       : []            # an Array of Objects in form of stateName : callback key/value pairs
-    ,options
-
-    super options,data
-
-    @setState options.defaultState
-
-  getStateIndex:(name)->
-
-    {states} = @getOptions()
-    unless name
-      return 0
-    else
-      for state,index in states
-        if name is state
-          return index
-
-  decorateState:(name)-> @setTitle @state
-
-  getState:-> @state
-
-  setState:(name)->
-
-    {states} = @getOptions()
-    @stateIndex = index = @getStateIndex name
-    @state      = states[index]
-    @decorateState name
-
-    @setCallback states[index + 1].bind @, @toggleState.bind @
-
-  toggleState:(err)->
-
-    {states} = @getOptions()
-    nextState = states[@stateIndex + 2] or states[0]
-    unless err
-      @setState nextState
-    else
-      warn err.msg or "there was an error, couldn't switch to #{nextState} state!"
+  triggerClick:-> @doOnSubmit()

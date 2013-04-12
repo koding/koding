@@ -7,7 +7,11 @@ class GroupTabHandleView extends KDTabHandleView
 
   viewAppended:->
     @currentCount = 0
-    @newCount = new KDCustomHTMLView tagName: 'span'
+    @newCount = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass: 'group-new-count'
+
+    @newCount.hide()
 
     JView::viewAppended.call this
 
@@ -18,6 +22,8 @@ class GroupTabHandleView extends KDTabHandleView
     if @isDirty
       @setClass 'dirty'  unless @currentCount++
       @newCount.updatePartial @currentCount
+      @newCount.show()
     else
       @unsetClass 'dirty'
       @newCount.updatePartial ''
+      @newCount.hide()

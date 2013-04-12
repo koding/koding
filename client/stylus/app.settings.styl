@@ -237,6 +237,7 @@ positiveGreen = rgba(58,200,2,1)
 
 .payment-methods,
 .your-subscriptions,
+.pending-invitations,
 .billing-history,
 .editor-settings,
 .repository-settings,
@@ -264,27 +265,57 @@ positiveGreen = rgba(58,200,2,1)
         color         rgba(255,255,255,.8)
       .darkText
         color         rgba(255,255,255,.5)
-.list-kites
-  ul
-    color             rgba(255,255,255,.5)
-    .kite-list-item
-      border-bottom   1px solid rgba(0,0,0,0.2)
-    .kite-item
-      margin          9px 0 15px 20px
-      line-height     1
-      display         block
-      float           left
 
-    li
-      margin: 11px 0 11px 0
-      id 
-        display       none
-      .label
-        line-height  20px
-        font-size    13px
-        color        #fff
-        width        110px
-        display      inline-block
+
+.kdselectbox.purchaseBox
+  abs()
+  left                186px
+  margin-top          -24px
+
+.kdselectbox.callCount
+  abs()
+  left                270px
+  margin-top          -24px
+
+.createThirdPartyKiteModal
+  .kite
+    .totalAmount
+      margin-top        13px
+
+
+.kites-myKiteList
+.kites-kiteList
+  li
+    border-top            1px solid rgba(255,255,255,.05)
+    &:first-child
+      border-top          none
+    &:nth-child(2n)
+        bg                color, rgba(0,0,0,.0975)
+  .main-label
+  .static-text
+    line-height           30px
+    height                30px
+    margin-left           20px
+  .main-label
+    cursor                default
+    width                 131px
+    fl()
+
+  .static-text
+    width                 auto
+    max-width             600px
+    white-space           nowrap
+    text-overflow         ellipsis
+    overflow              hidden
+    display               block
+    text-decoration       none
+    font-size             11px
+    color                 rgba(255,255,255,.85)
+
+.kite-list-item
+.my-kite-list-item
+  border-bottom         1px solid rgba(0,0,0,0.2);
+
 
 .kite-kdmodal
   a

@@ -91,12 +91,14 @@ module.exports = [
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
   "Framework/components/upload/KDImageUploadView.coffee",
+  "Framework/components/upload/kdmultipartuploader.coffee",
 
   # buttons
   "Framework/components/buttons/KDButtonView.coffee",
   "Framework/components/buttons/KDButtonViewWithMenu.coffee",
   "Framework/components/buttons/KDButtonMenu.coffee",
   "Framework/components/buttons/KDButtonGroupView.coffee",
+  "Framework/components/buttons/KDToggleButton.coffee",
 
   # forms
   "Framework/components/forms/KDFormView.coffee",
@@ -218,6 +220,16 @@ module.exports = [
 
   "app/CommonViews/markdownmodal.coffee",
 
+  "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
+  "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
+  "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
+  "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
+  "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
+  "app/CommonViews/fatih/fatihprefpane.coffee",
+  "app/CommonViews/fatih/fatih.coffee",
+
   # "app/MainApp/foreign_auth.coffee",
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -313,12 +325,12 @@ module.exports = [
   "app/MainApp/maincontroller/mainview.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/maincontroller/landingpageviews.coffee",
   "app/MainApp/localstorage.coffee",
   "app/MainApp/lazy/lazydomcontroller.coffee",
   "app/MainApp/lazy/staticprofilecontroller.coffee",
   "app/MainApp/lazy/staticprofileconfigviews.coffee",
   "app/MainApp/lazy/staticprofileaboutview.coffee",
+  "app/MainApp/lazy/staticuserbuttonbar.coffee",
   "app/MainApp/lazy/staticgroupcontroller.coffee",
   "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
@@ -505,15 +517,16 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
+  "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupslandingpageloginlink.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
@@ -530,6 +543,8 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -623,6 +638,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
   "app/Applications/Account.kdapplication/account/accKiteList.coffee",
+  "app/Applications/Account.kdapplication/account/accMyKiteList.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # CONTENT DISPLAY VIEWS
@@ -655,8 +671,11 @@ module.exports = [
   # "app/MainApp/oldPages/irc/customViews.coffee",
   # "app/MainApp/oldPages/irc/lists.coffee",
   # "app/MainApp/oldPages/irc/tabs.coffee",
+  "app/MainApp/status.coffee",
   "app/MainApp/account-mixins.coffee",
   "app/MainApp/main.coffee",
+  "app/MainApp/monitor_status.coffee",
+  "app/MainApp/rollbar.coffee",
 
   # --- Styles ---
   "css/style.css",
@@ -706,7 +725,10 @@ module.exports = [
   "stylus/app.viewer.styl",
   "stylus/app.book.styl",
   "stylus/app.codeshare.styl",
-  "stylus/app.group.styl",
+  "stylus/app.group.general.styl",
+  "stylus/app.group.dashboard.styl",
+  "stylus/app.group.landing.styl",
+  "stylus/app.group.summary.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   "stylus/temp.styl",

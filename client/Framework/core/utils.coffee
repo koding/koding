@@ -111,7 +111,7 @@ __utils =
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -344,6 +344,10 @@ __utils =
     group   = permissions.substr 3, 3
     other   = permissions.substr 6, 3
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
+
+  getFullnameFromAccount:(account)->
+    {firstName, lastName} = account.profile
+    return "#{firstName} #{lastName}"
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]

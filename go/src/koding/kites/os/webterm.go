@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"koding/tools/dnode"
+	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"
+	"os"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 	"unicode/utf8"
@@ -25,6 +28,61 @@ type WebtermServer struct {
 type WebtermRemote struct {
 	Output       dnode.Callback
 	SessionEnded dnode.Callback
+}
+
+func registerWebtermMethods(k *kite.Kite) {
+	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		user, _ := findSession(session)
+		dir, err := os.Open("/var/run/screen/S-" + user.Name)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return make(map[string]string), nil
+			}
+			panic(err)
+		}
+		names, err := dir.Readdirnames(0)
+		if err != nil {
+			panic(err)
+		}
+		sessions := make(map[string]string)
+		for _, name := range names {
+			segements := strings.SplitN(name, ".", 2)
+			sessions[segements[0]] = segements[1]
+		}
+		return sessions, nil
+	})
+
+	k.Handle("webterm.createSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Remote       WebtermRemote
+			Name         string
+			SizeX, SizeY int
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		user, vm := findSession(session)
+		server := newWebtermServer(vm, user, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
+		session.OnDisconnect(func() { server.Close() })
+		return server, nil
+	})
+
+	k.Handle("webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var params struct {
+			Remote       WebtermRemote
+			SessionId    int
+			SizeX, SizeY int
+		}
+		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		user, vm := findSession(session)
+		server := newWebtermServer(vm, user, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
+		session.OnDisconnect(func() { server.Close() })
+		return server, nil
+	})
 }
 
 func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {

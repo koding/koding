@@ -16,6 +16,8 @@ module.exports = class JGroup extends Module
 
   Validators = require './validators'
 
+  {throttle} = require 'underscore'
+
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
     {permission: 'edit own groups', validateWith: Validators.own}
@@ -49,6 +51,16 @@ module.exports = class JGroup extends Module
       'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
+    sharedEvents    :
+      static        : [
+        {
+          name      : 'NewMember'
+          filter    : (payload)-> null
+        }
+      ]
+      instance      : [
+        { name: 'NewMember', filter: -> [] }, 'save'
+      ]
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
@@ -62,7 +74,8 @@ module.exports = class JGroup extends Module
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses'
+        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
+        'removeBackgroundImage'
       ]
     schema          :
       title         :
@@ -83,6 +96,18 @@ module.exports = class JGroup extends Module
       parent        : ObjectRef
       counts        :
         members     : Number
+      customize     :
+        background  :
+          customImages    : [String]
+          customColors    : [String]
+          customType      :
+            type          : String
+            default       : 'defaultImage'
+            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+          customValue     :
+            type          : String
+            default       : '1'
+          customOptions   : Object
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -148,6 +173,37 @@ module.exports = class JGroup extends Module
                   process.nextTick ->
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
+
+  setBackgroundImage: permit 'edit groups',
+    success:(client, type, value, callback=->)->
+      if type is 'customImage'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customImages'] = value
+      else if type is 'customColor'
+        operation =
+          $set: {}
+          $addToSet : {}
+        operation.$addToSet['customize.background.customColors'] = value
+      else
+        operation = $set : {}
+
+      operation.$set["customize.background.customType"] = type
+
+      if type in ['defaultImage','defaultColor','customColor','customImage']
+        operation.$set["customize.background.customValue"] = value
+
+      @update operation, callback
+
+  removeBackgroundImage: permit 'edit groups',
+    success:(client, type, value, callback=->)->
+      if type is 'customImage'
+        @update {$pullAll: 'customize.background.customImages': [value]}, callback
+      else if type is 'customColor'
+        @update {$pullAll: 'customize.background.customColors': [value]}, callback
+      else
+        console.log 'Nothing to remove'
 
   @renderHomepage: require './render-homepage'
 
@@ -248,6 +304,41 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  @fetchSecretChannelName =(groupSlug, callback)->
+    JName = require '../name'
+    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
+      if err then callback err
+      else callback null, "group.secret.#{secretName}",
+        if oldSecretName then "group.secret.#{oldSecretName}"
+
+  @cycleChannel =do->
+    cycleChannel = (groupSlug, callback=->)->
+      JName = require '../name'
+      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
+        if err then callback err
+        else
+          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
+          @emit 'broadcast', routingKey, null
+          callback null
+    return throttle cycleChannel, 5000
+
+  cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
+
+  @broadcast =(groupSlug, event, message)->
+    if message?
+      event = ".#{event}"
+    else
+      [message, event] = [event, message]
+      event = ''
+    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
+      if err? then console.error err
+      else unless secretChannelName? then console.error 'unknown channel'
+      else
+        @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
+        @emit 'broadcast', "#{secretChannelName}#{event}", message
+
+  broadcast:(message)-> @constructor.broadcast @slug, message
 
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
@@ -392,13 +483,23 @@ module.exports = class JGroup extends Module
       @fetchReadme (err, readme)=>
         unless readme
           JMarkdownDoc = require '../markdowndoc'
-          JMarkdownDoc.create
-            content: text
-          ,(err,readme)=>
+          readme = new JMarkdownDoc content: text
+
+          daisy queue = [
+            ->
+              readme.save (err)->
+                console.log err
+                if err then callback err
+                else queue.next()
+            =>
               @addReadme readme, (err)->
                 console.log err
                 if err then callback err
-                else callback null, readme
+                else queue.next()
+            ->
+              callback null, readme
+          ]
+
         else
           readme.update $set:{ content: text }, (err)=>
             if err then callback err
@@ -424,6 +525,7 @@ module.exports = class JGroup extends Module
             @counts
             content : readme?.html ? readme?.content
             roles
+            @customize
           }
 
   fetchHomepageView:(clientId, callback)->
@@ -588,10 +690,49 @@ module.exports = class JGroup extends Module
   inviteMember: permit 'send invitations',
     success: (client, email, callback)->
       JInvitationRequest = require '../invitationrequest'
-      invitationRequest = new JInvitationRequest {email}
-      invitationRequest.save (err)->
-        if err then callback err
-        else invitationRequest.sendInvitation client, callback
+
+      params =
+        email: email,
+        group: @slug
+
+      JInvitationRequest.one params, (err, invitationRequest)=>
+        if invitationRequest
+          callback new KodingError """
+            You've already invited #{email} to join this group.
+            """
+        else
+          params.invitationType = 'invitation'
+          params.status         = 'sent'
+
+          invitationRequest = new JInvitationRequest params
+          invitationRequest.save (err)=>
+            if err then callback err
+            else @addInvitationRequest invitationRequest, (err)->
+              if err then callback err
+              else invitationRequest.sendInvitation client, callback
+
+  requestInvitation: secure (client, invitationType, callback)->
+    {delegate} = client.connection
+    JInvitationRequest = require '../invitationrequest'
+
+    invitationRequest = new JInvitationRequest {
+      invitationType
+      koding  : { username: delegate.profile.nickname }
+      group   : @slug,
+      status  : 'pending'
+    }
+    invitationRequest.save (err)=>
+      if err?.code is 11000
+        callback new KodingError """
+          You've already requested an invitation to this group.
+          """
+      else
+        @addInvitationRequest invitationRequest, (err)=>
+          if err then callback err
+          else
+            if invitationType is 'basic approval'
+              invitationRequest.sendRequestNotification client, callback
+            @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
@@ -618,53 +759,13 @@ module.exports = class JGroup extends Module
   requestAccess: secure (client, callback)->
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
-      else if policy?.invitationsEnabled
-        @requestInvitation client, 'invitation', callback
       else
-        @requestApproval client, callback
+        if policy?.invitationsEnabled
+          invitationType = 'invitation'
+        else
+          invitationType = 'basic approval'
 
-  sendApprovalRequestEmail: (delegate, delegateUser, admin, adminUser, callback)->
-    JMail = require '../email'
-    (new JMail
-      email   : adminUser.email
-      subject : "#{delegate.getFullName()} has requested to join the group #{@title}"
-      content : """
-        This will be the content for the approval request email.
-        """
-    ).save callback
-
-  requestApproval: secure (client, callback)->
-    {delegate} = client.connection
-    @requestInvitation client, 'basic approval', (err)=>
-      if err then callback err
-      else @fetchAdmin (err, admin)=>
-        if err then callback err
-        else delegate.fetchUser (err, delegateUser)=>
-          if err then callback err
-          else admin.fetchUser (err, adminUser)=>
-            if err then callback err
-            else
-              @sendApprovalRequestEmail(
-                delegate, delegateUser, admin, adminUser, callback
-              )
-
-  requestInvitation: secure (client, invitationType, callback)->
-    JInvitationRequest = require '../invitationrequest'
-    {delegate} = client.connection
-    invitationRequest = new JInvitationRequest {
-      invitationType
-      koding  : { username: delegate.profile.nickname }
-      group   : @slug
-    }
-    invitationRequest.save (err)=>
-      if err?.code is 11000
-        callback new KodingError """
-          You've already requested an invitation to this group.
-          """
-      else
-        @addInvitationRequest invitationRequest, (err)=>
-          callback err
-          @emit 'NewInvitationRequest'
+        @requestInvitation client, invitationType, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
@@ -673,7 +774,8 @@ module.exports = class JGroup extends Module
       @addMember member, role, queue.fin.bind queue
     dash queue, =>
       callback()
-      @update $inc: 'counts.members': 1, ->
+      @updateCounts()
+      @cycleChannel()
       @emit 'NewMember'
 
   each:(selector, rest...)->
@@ -713,3 +815,12 @@ module.exports = class JGroup extends Module
       callback null, ['guest']
     else
       @fetchRolesHelper delegate, callback
+
+  updateCounts:->
+    Relationship.count
+      as         : 'member'
+      targetName : 'JAccount'
+      sourceId   : @getId()
+      sourceName : 'JGroup'
+    , (err, count)=>
+      @update ($set: 'counts.members': count), ->

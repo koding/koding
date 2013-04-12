@@ -21,8 +21,6 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # @groupAvatar = new GroupAvatar
-
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -52,8 +50,6 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners       : yes
-      initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
 
@@ -66,6 +62,35 @@ class Sidebar extends JView
     , bottomControlsItems
 
     @finderBottomControls = @finderBottomControlsController.getView()
+
+    @serverStackPin = new KDButtonView
+      cssClass     : "server-pin-button"
+      iconOnly     : yes
+      iconClass    : "cog"
+      callback     : =>
+        $('body').addClass 'server-stack'
+        @putOverlay
+          animated    : yes
+          isRemovable : no
+          color       : 'rgba(0,0,0,.3)'
+
+    @finderBottomControlPin = new KDToggleButton
+      cssClass     : "finder-bottom-pin"
+      iconOnly     : yes
+      defaultState : "hide"
+      states       : [
+        title      : "show"
+        iconClass  : "up"
+        callback   : (callback)=>
+          @showBottomControls()
+          callback?()
+      ,
+        title      : "hide"
+        iconClass  : "down"
+        callback   : (callback)=>
+          @hideBottomControls()
+          callback?()
+      ]
 
     KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
@@ -142,10 +167,6 @@ class Sidebar extends JView
       $fp.css "width", newFpWidth
       cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
-    KD.utils.wait 8000, =>
-      @$('#finder-bottom-controls').addClass 'go-down'
-      @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
     @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
@@ -156,6 +177,7 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
+
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -172,12 +194,14 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
+        {{> @serverStackPin}}
         {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
+        {{> @finderBottomControlPin}}
         <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
@@ -237,6 +261,18 @@ class Sidebar extends JView
     @utils.wait 300, =>
       @_finderExpanded = no
       callback?()
+
+  showEnvironmentPanel:->
+
+    @showFinderPanel()
+
+  hideBottomControls:->
+    @$('#finder-bottom-controls').addClass 'go-down'
+    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
+
+  showBottomControls:->
+    @$('#finder-bottom-controls').removeClass 'go-down'
+    # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
   showFinderPanel:->
 
@@ -303,12 +339,24 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",  appPath: 'WebTerm' }
-      { title : "Manage Remotes",     icon : "remotes",   action: 'manageRemotes'}
-      { title : "Manage Databases",   icon : "databases", action: 'manageDatabases'}
-      { title : "Add Resources",      icon : "resources" }
-      { title : "Settings",           icon : "cog" }
-      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
+      {
+        title   : "Launch Terminal", icon : "terminal",
+        appPath : "WebTerm", isWebTerm : yes
+      }
+      {
+        title   : "Manage Remotes", icon : "remotes",
+        action  : "manageRemotes"
+      }
+      {
+        title   : "Manage Databases", icon : "databases",
+        action  : "manageDatabases"
+      }
+      { title   : "Add Resources",      icon : "resources" }
+      { title   : "Settings",           icon : "cog" }
+      {
+        title   : "Keyboard Shortcuts", icon : "shortcuts",
+        action  : "showShortcuts"
+      }
     ]
 
   adminNavItems =
@@ -316,18 +364,32 @@ class Sidebar extends JView
     title : "admin-navigation"
     items : [
       # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
-      { title : "Admin Panel",     loggedIn : yes, callback : -> new AdminModal }
+      {
+        title    : "Admin Panel",
+        loggedIn : yes,
+        callback : -> new AdminModal
+      }
     ]
 
   footerMenuItems =
     id    : "footer-menu"
     title : "footer-menu"
     items : [
-      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
-      { title : "About", callback : -> @showAboutDisplay() }
-      { title : "Chat",  loggedIn : yes, callback : ->
-        # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-        # unless location.hostname is "localhost"
-        new KDNotificationView title : "Coming soon..."
+      {
+        title    : "Help",
+        callback : ->
+          @getSingleton('mainController').emit "ShowInstructionsBook"
+      }
+      {
+        title    : "About",
+        callback : -> @showAboutDisplay()
+      }
+      {
+        title    : "Chat",
+        loggedIn : yes,
+        callback : ->
+          # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
+          # unless location.hostname is "localhost"
+          new KDNotificationView title : "Coming soon..."
       }
     ]

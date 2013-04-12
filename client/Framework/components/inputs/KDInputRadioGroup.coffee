@@ -5,19 +5,24 @@ class KDInputRadioGroup extends KDInputView
 
   setDomElement:()->
     options = @getOptions()
-    @domElement = $ "<fieldset class='radiogroup kdinput'></fieldset>"
-    for radio, i in options.radios
-      div = $ "<div/>",
-        class : "kd-radio-holder"
-      radio = $ "<input/>",
+    @domElement = $ "<fieldset class='#{@utils.curryCssClass 'radiogroup kdinput', options.cssClass}'></fieldset>"
+
+    for radioOptions, i in options.radios
+      div     = $ "<div/>",
+        class : "kd-radio-holder #{@utils.slugify radioOptions.value}"
+
+      radio   = $ "<input/>",
         type  : "radio"
         name  : options.name
-        value : radio.value
+        value : radioOptions.value
         class : "no-kdinput"
         id    : "#{@getId()}_radio_#{i}"
-      label = $ "<label/>",
+
+      label   = $ "<label/>",
         for   : "#{@getId()}_radio_#{i}"
-        html  : radio.title
+        html  : radioOptions.title
+        class : @utils.slugify radioOptions.value
+
       div.append radio
       div.append label
       @domElement.append div
@@ -31,4 +36,6 @@ class KDInputRadioGroup extends KDInputView
     @getDomElement().find("input:checked").val()
 
   setValue:(value)->
+    # @getDomElement().find("input[value='#{value}']").parent().siblings().removeClass('checked')
+    # @getDomElement().find("input[value='#{value}']").parent().addClass('checked')
     @getDomElement().find("input[value='#{value}']").attr "checked","checked"

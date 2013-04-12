@@ -11,7 +11,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @isEnabledGlobally = yes
 
-  {ObjectRef, dash, daisy, secure} = require 'bongo'
+  {ObjectRef, dash, daisy, secure, permit} = require 'bongo'
 
   JAccount = require './account'
   JLimit = require './limit'
@@ -27,7 +27,7 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       static        : ['create','byCode','sendBetaInviteFromClient',
                        'grantInvitesFromClient','markAsSent',
-                       'betaInviteCount']
+                       'betaInviteCount', 'createViaGroup']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -179,7 +179,7 @@ module.exports = class JInvitation extends jraphical.Module
               options.email = email
               JInvitation.sendBetaInvite options,callback
             else
-              log "[JInvitation.sendBetaInvite] something got messed up."
+              console.log "[JInvitation.sendBetaInvite] something got messed up."
 
   @grantInvitesFromClient = secure (client, options, callback)->
 
@@ -220,22 +220,8 @@ module.exports = class JInvitation extends jraphical.Module
 
   @getInviteEmail =-> "hello@koding.com"
 
-  @getInviteSubject =({inviter})-> "#{inviter} has invited you to Koding!"
-
-  @getInviteMessage =({inviter, url, message})->
-    message or= "#{inviter} has invited you to Koding!"
+  @getInviteFooter =->
     """
-    Hi there, we hope this is good news :) because,
-
-    #{message}
-
-    This link will allow you to create an account:
-    #{url}
-
-    If you reply to this email, it will go back to your friend who invited you.
-
-    Enjoy! :)
-
     ------------------
     If you're curious, here is a bit about Koding, http://techcrunch.com/2012/07/24/koding-launch/
 
@@ -254,6 +240,50 @@ module.exports = class JInvitation extends jraphical.Module
     Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson
     """
 
+  @getInviteSubject =({inviter})-> "#{inviter} has invited you to Koding!"
+
+  @getInviteMessage =({inviter, url, message})->
+    message or= "#{inviter} has invited you to Koding!"
+    """
+    Hi there, we hope this is good news :) because,
+
+    #{message}
+
+    This link will allow you to create an account:
+    #{url}
+
+    If you reply to this email, it will go back to your friend who invited you.
+
+    Enjoy! :)
+
+    #{@getInviteFooter()}
+    """
+
+  @getSubjectForInviteViaGroup =({inviter, group, isPublic})->
+    subject  = "#{inviter} has invited you to #{group}"
+    subject += ' on Koding' if isPublic
+    subject += '!'
+
+  @getMessageForInviteViaGroup =({inviter, group, isPublic, url})->
+    subject  = "#{inviter} has invited you to the group #{group}"
+    subject += ' on Koding' if isPublic
+    subject += '.'
+
+    message = """
+    Hi there,
+
+    #{subject}
+
+    This link will allow you to join the group: #{url}
+
+    If you reply to this email, it will go to #{inviter}.
+
+    Enjoy! :)
+
+    """
+    message += @getInviteFooter() if isPublic
+    return message
+
   @byCode = (code, callback)-> @one {code}, callback
 
   @__createMultiuse = secure (client, options, callback)->
@@ -271,12 +301,21 @@ module.exports = class JInvitation extends jraphical.Module
       else
         invite.addInvitedBy delegate, callback
 
+  @generateInvitationCode = (email, group)->
+    code = crypto.createHmac('sha1', 'kodingsecret')
+    code.update(email)
+    code.update(group) if group
+    code.digest('hex')
 
-  @sendInviteEmail = (invite,client,customMessage,limit,callback) ->
-    {delegate} = client.connection
+  @getHostAndProtocol = do->
     {host, protocol} = require('../config').email
     protocol = if host is 'localhost' then 'http:' else 'https:'
     protocol ?= protocol.split(':').shift()+':'
+    return {host, protocol}
+
+  @sendInviteEmail = (invite,client,customMessage,limit,callback) ->
+    {delegate} = client.connection
+    {host, protocol} = @getHostAndProtocol
     messageOptions =
       subject   : customMessage.subject
       body      : customMessage.body
@@ -318,6 +357,32 @@ module.exports = class JInvitation extends jraphical.Module
       #     invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
       #     callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
+  @sendEmailForInviteViaGroup =(client, invite, group, callback)->
+    JUser = require './user'
+    {delegate} = client.connection
+    {host, protocol} = @getHostAndProtocol
+
+    options =
+      group    : group.title
+      inviter  : delegate.getFullName()
+      url      : "#{protocol}//#{host}/#{group.slug}/Invitation/#{encodeURIComponent invite.code}"
+      isPublic : if group.privacy == 'public' then true else false
+
+    JUser.fetchUser client, (err, inviter)=>
+      email = new JMail
+        email   : invite.inviteeEmail
+        subject : @getSubjectForInviteViaGroup options
+        content : @getMessageForInviteViaGroup options
+        replyto : inviter.email
+
+      email.save (err)->
+        unless err
+          invite.update {$set: status: 'sent'}, (err)-> console.log err if err
+          callback null
+        else
+          invite.update {$set: status: 'couldnt send email'}, (err)-> console.log err if err
+          callback new KodingError "I got your request. I just couldn't send the email, I'll try again. Consider it done."
+
   @create = secure (client, options, callback)->
     {delegate} = client.connection
     {emails, subject, customMessage, type} = options
@@ -332,10 +397,7 @@ module.exports = class JInvitation extends jraphical.Module
             if inv
               @sendInviteEmail inv,client,customMessage,limit,callback
             else
-              code = crypto
-                .createHmac('sha1', 'kodingsecret')
-                .update(email)
-                .digest('hex')
+              code = @generateInvitationCode email
               invite = new JInvitation {
                 code
                 customMessage
@@ -350,6 +412,34 @@ module.exports = class JInvitation extends jraphical.Module
                     if err then callback err
                     else
                       @sendInviteEmail invite,client,customMessage,limit,callback
+
+  @createViaGroup = secure (client, group, emails, callback=->)->
+      {delegate} = client.connection
+      emails.forEach (email)=>
+        selector =
+          inviteeEmail : email
+          group        : group.slug
+
+        JInvitation.one selector, (err, existingInvite)=>
+          return callback err if err
+          if existingInvite
+            @sendEmailForInviteViaGroup client, existingInvite, group, callback
+          else
+            code = @generateInvitationCode email, group.slug
+            invite = new JInvitation
+              code         : code
+              maxUses      : 1
+              inviteeEmail : email
+              origin       : ObjectRef(delegate)
+              group        : group.slug
+
+            invite.save (err)=>
+              if err then callback err
+              else
+                invite.addInvitedBy delegate, (err)=>
+                  if err then callback err
+                  else
+                    @sendEmailForInviteViaGroup client, invite, group, callback
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}

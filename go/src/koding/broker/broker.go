@@ -178,7 +178,7 @@ func main() {
 		}
 	})
 	defer service.Close()
-	service.PanicHandler = log.RecoverAndLog
+	service.ErrorHandler = log.LogError
 
 	go func() {
 		server := &http.Server{

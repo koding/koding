@@ -2,9 +2,10 @@ class LikeView extends KDView
 
   constructor:(options={}, data)->
 
-    options.tagName         or= 'span'
-    options.cssClass        or= 'like-view'
-    options.tooltipPosition or= 'se'
+    options.tagName            or= 'span'
+    options.cssClass           or= 'like-view'
+    options.tooltipPosition    or= 'se'
+    options.checkIfLikedBefore  ?= yes
 
     super options, data
 
@@ -34,16 +35,17 @@ class LikeView extends KDView
       #   super
     @setTemplate @pistachio()
 
-    data.checkIfLikedBefore (err, likedBefore)=>
-      @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
-      @_currentState = likedBefore
+    if options.checkIfLikedBefore
+      data.checkIfLikedBefore (err, likedBefore)=>
+        @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+        @_currentState = likedBefore
 
   fetchLikeInfo:->
 
     data = @getData()
 
     return if @_lastUpdatedCount is data.meta.likes
-    @likeCount.updateTooltip { title: "Loading..." }
+    @likeCount.getTooltip().update { title: "Loading..." }
 
     if data.meta.likes is 0
       @likeLink.updatePartial "Like"
@@ -73,7 +75,7 @@ class LikeView extends KDView
             when 3 then "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]} and #{peopleWhoLiked[2]}"
             else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</stron>"
 
-        @likeCount.updateTooltip { title: tooltip }
+        @likeCount.getTooltip().update { title: tooltip }
         @_lastUpdatedCount = likes.length
 
   click:(event)->
