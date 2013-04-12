@@ -2,9 +2,14 @@
 
 module.exports = class JVM extends Model
 
-  @setSchema
-    ip              : String
-    ldapPassword    : String
-    name            : String
-    users           : [String]
-    groups          : [String]
+  @share()
+
+  @set
+    permissions       :
+      'sudoer'        : []
+    schema            :
+      ip              : String
+      ldapPassword    : String
+      name            : String
+      users           : [String]
+      groups          : [String]
