@@ -54,10 +54,10 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'NewMember', filter: -> null }
+        { name: 'MemberAdded', filter: -> null }
       ]
       instance      : [
-        { name: 'NewMember', filter: -> null }, 'save'
+        { name: 'MemberAdded', filter: -> null }, 'save'
       ]
     sharedMethods   :
       static        : [
@@ -150,7 +150,7 @@ module.exports = class JGroup extends Module
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
 
-  @on 'NewMember', ({group, member})->
+  @on 'MemberAdded', ({group, member})->
     JVM = require '../vm'
     JVM.one { name: group.slug }, (err, vm)->
       if err then console.error err
@@ -166,7 +166,7 @@ module.exports = class JGroup extends Module
   constructor:->
     super
 
-    @on 'NewMember', (member)-> @constructor.emit 'NewMember', {
+    @on 'MemberAdded', (member)-> @constructor.emit 'MemberAdded', {
       group: this, member
     }
 
@@ -802,7 +802,7 @@ module.exports = class JGroup extends Module
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'NewMember', member
+      @emit 'MemberAdded', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'

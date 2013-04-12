@@ -14,7 +14,7 @@ module.exports = class Joinable
     @addMember delegate, as, (err)=>
       if err then callback err
       else
-        @emit 'NewMember', delegate
+        @emit 'MemberAdded', delegate
         @updateCounts()
         callback null
       # TODO: we used to do the below, but on second thought, it's not a very good idea:
