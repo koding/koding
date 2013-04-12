@@ -1,18 +1,22 @@
 class KDCustomHTMLView extends KDView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
-    @tagName = options if typeof options is "string"
-    @tagName ?= options.tagName ? "div"
+    if typeof options is "string"
 
-    if @tagName is "a" and not options.attributes?.href?
+      if options is "hidden"
+        tagName  = "span"
+        cssClass = "hidden"
+      else
+        tagName  = options
+        cssClass = ''
+
+      options = {tagName, cssClass}
+
+    if options.tagName? is "a" and not options.attributes?.href?
       options.attributes = href : "#"
+
     super
 
   setDomElement:(cssClass)->
-
-    if @getOptions().lazyDomId
-      KDView::setDomElement.call @, cssClass
-    else
-      @domElement = $ "<#{@tagName}/>",
-        class : cssClass
+    super cssClass, ''
