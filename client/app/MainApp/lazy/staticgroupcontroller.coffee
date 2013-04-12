@@ -314,7 +314,7 @@ class StaticGroupController extends KDController
         else if statuses.length
           if 'member' in statuses or 'admin' in statuses
             return
-          group.on 'NewMember', =>
+          group.on 'MemberAdded', =>
             unless @requestApproved
               group.fetchMyRoles (err,roles)=>
                 unless err or roles?.length is 0
