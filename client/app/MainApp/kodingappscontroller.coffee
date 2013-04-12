@@ -251,8 +251,7 @@ class KodingAppsController extends KDController
     {options, name, devMode} = manifest
     {stylesheets} = manifest.source if manifest.source
 
-    proxifyUrl=(url)->
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+    proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
     if stylesheets
       $("head .app-#{__utils.slugify name}").remove()
