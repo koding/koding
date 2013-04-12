@@ -182,7 +182,7 @@ class GroupsListItemView extends KDListItemView
         return callback()
 
       new KDNotificationView
-        title    : 'Fair Enough! The return makes one love the farewell!'
+        title    : 'Fair Enough! They are gonna miss you.'
         duration : 2000
       callback()
 
