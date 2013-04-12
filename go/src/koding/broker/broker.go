@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -183,14 +184,18 @@ func main() {
 	go func() {
 		server := &http.Server{
 			Handler: &sockjs.Mux{
-				Services: map[string]*sockjs.Service{
+				Handlers: map[string]http.Handler{
 					"/subscribe": service,
+					"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("Content-Type", "text/plain")
+						w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
+					}),
 				},
 			},
 		}
 
 		var listener net.Listener
-		listener, err := net.ListenTCP("tcp", &net.TCPAddr{nil, config.Current.Broker.Port})
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 		if err != nil {
 			log.LogError(err, 0)
 			os.Exit(1)

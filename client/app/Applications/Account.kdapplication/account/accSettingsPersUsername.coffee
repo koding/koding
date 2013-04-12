@@ -57,7 +57,6 @@ class AccountEditUsername extends KDView
       cssClass     : "cancel-link"
       click        : => emailSwappable.swapViews()
 
-
     # EMAIL STATIC PART
     nonEmailInputs = new KDView cssClass : "initialval clearfix"
 

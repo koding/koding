@@ -120,6 +120,7 @@ module.exports = deepFreeze
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : ""
     keyFile     : ""

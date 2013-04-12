@@ -119,6 +119,7 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
     keyFile     : "/etc/nginx/ssl/server_new.key"
