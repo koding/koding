@@ -53,15 +53,18 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'NewMember', filter: -> [] }
+        {
+          name      : 'NewMember'
+          filter    : (payload)-> null
+        }
       ]
       instance      : [
         { name: 'NewMember', filter: -> [] }, 'save'
       ]
     sharedMethods   :
       static        : [
-        'one','create','each','byRelevance','someWithRelationship', '__chris'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel'
+        'one','create','each','byRelevance','someWithRelationship'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -145,10 +148,6 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
-
-  @__chris =->
-    console.log 'w t f '
-    @emit 'NewMember', 'this should be filtered out'
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
