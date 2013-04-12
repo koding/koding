@@ -102,10 +102,10 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://koding.local:1337'
   mq            :
-    host        : 'localhost'
+    host        : 'koding.local'
     port        : 5672
-    apiAddress  : "localhost"
-    apiPort     : 55672
+    apiAddress  : "koding.local"
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
