@@ -84,7 +84,7 @@ class ActivityListController extends KDListViewController
     return @noActivityItem.show() unless Object.keys(cache).length
 
     for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1
+      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
           anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
