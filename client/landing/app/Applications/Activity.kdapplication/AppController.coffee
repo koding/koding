@@ -14,9 +14,6 @@ class ActivityAppController extends AppController
       # 'CCodeShareActivity'
     ]
 
-  # unused
-  aRange = 2*60*60*1000
-
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
@@ -61,8 +58,8 @@ class ActivityAppController extends AppController
 
   resetList:->
 
-    delete @lastTo   = null
-    delete @lastFrom = null
+    delete @lastTo
+    delete @lastFrom
 
     @listController.removeAllItems()
 
