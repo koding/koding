@@ -27,7 +27,6 @@ module.exports = [
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
-  "Framework/core/KDHiddenView.coffee",
   "Framework/core/KDScrollView.coffee",
   "Framework/core/KDRouter.coffee",
 
