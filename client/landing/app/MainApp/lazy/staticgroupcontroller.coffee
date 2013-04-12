@@ -273,6 +273,7 @@ class StaticGroupController extends KDController
       @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
     else
       @lazyDomController.hideLandingPage()
+    KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
   decorateGuestStatus:->
 
