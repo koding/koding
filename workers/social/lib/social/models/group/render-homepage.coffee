@@ -54,11 +54,10 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
 applyCustomBackground = (customize={})->
 
   defaultImages = [
-                    '/images/bg/blurred/01.jpg','/images/bg/blurred/07.jpg',
-                    '/images/bg/blurred/02.jpg','/images/bg/blurred/08.jpg',
-                    '/images/bg/blurred/03.jpg','/images/bg/blurred/09.jpg',
-                    '/images/bg/blurred/04.jpg','/images/bg/blurred/06.jpg',
-                    '/images/bg/blurred/05.jpg'
+                    '/images/bg/blurred/1.jpg','/images/bg/blurred/5.jpg'
+                    '/images/bg/blurred/2.jpg','/images/bg/blurred/6.jpg',
+                    '/images/bg/blurred/3.jpg','/images/bg/blurred/7.jpg',
+                    '/images/bg/blurred/4.jpg','/images/bg/blurred/8.jpg',
                   ]
 
   if customize.background?.customType is 'defaultImage' \
