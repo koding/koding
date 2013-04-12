@@ -338,9 +338,7 @@ task 'kontrolCli',({configFile}) ->
 task 'kontrolDaemon',({configFile}) ->
   processes.spawn
     name  : 'kontrolDaemon'
-    cmd   : "./kites/kontrold -c #{configFile}"
-    restart: yes
-    restartInterval: 100
+    cmd   : "./kites/daemon -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -348,9 +346,7 @@ task 'kontrolDaemon',({configFile}) ->
 task 'kontrolApi',({configFile}) ->
   processes.spawn
     name  : 'kontrolApi'
-    cmd   : "./kites/kontrol-api -c #{configFile}"
-    restart: yes
-    restartInterval: 100
+    cmd   : "./kites/api -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
