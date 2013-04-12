@@ -906,7 +906,7 @@ module.exports = class JGroup extends Module
         as      : 'owner'
       }, (err, owner)=>
         return callback err if err
-        return callback new KodingError 'You must be the owner to perform this action!' if not owner
+        return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
         JAccount.one _id:accountId, (err, account)=>
           return callback err if err
@@ -936,7 +936,7 @@ module.exports = class JGroup extends Module
 
     if 'string' is typeof options
       as = options
-    else if options and options.as
+    else if options?.as
       {as} = options
     else
       as = fallbackRole
@@ -947,8 +947,8 @@ module.exports = class JGroup extends Module
       sourceName : @bongo_.constructorName
       as         : as
 
-    if not roleUnique
-      selector['targetId'] = target.getId()
+    unless roleUnique
+      selector.targetId = target.getId()
 
     Relationship.count selector, (err, count)->
       if err then callback err
@@ -959,17 +959,17 @@ module.exports = class JGroup extends Module
   addMember:(target, options, callback)->
     @ensureUniquenessOfRoleRelationship target, options, 'member', (err)=>
       if err then callback err
-      else oldAddMember.call @, target, options, callback
+      else oldAddMember.call this, target, options, callback
 
   oldAddAdmin = @::addAdmin
   addAdmin:(target, options, callback)->
     @ensureUniquenessOfRoleRelationship target, options, 'admin', (err)=>
       if err then callback err
-      else oldAddAdmin.call @, target, options, callback
+      else oldAddAdmin.call this, target, options, callback
 
   oldAddOwner = @::addOwner
   addOwner:(target, options, callback)->
     @ensureUniquenessOfRoleRelationship target, options, 'owner', yes, (err)=>
       if err then callback err
-      else oldAddOwner.call @, target, options, callback
+      else oldAddOwner.call this, target, options, callback
 
