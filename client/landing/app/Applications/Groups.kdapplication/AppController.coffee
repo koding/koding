@@ -500,7 +500,7 @@ class GroupsAppController extends AppController
           view.refresh()  if pane.tabHandle.isDirty
           pane.tabHandle.markDirty no
 
-    group.on 'NewMember', ->
+    group.on 'MemberAdded', ->
       {tabHandle} = pane
       tabHandle.markDirty()
     return pane
