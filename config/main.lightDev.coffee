@@ -90,6 +90,7 @@ module.exports =
   client        :
     version     : version
     watch       : yes
+    watchDuration: 250
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
