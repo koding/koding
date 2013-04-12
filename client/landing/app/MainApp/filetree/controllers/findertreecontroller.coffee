@@ -729,7 +729,7 @@ class NFinderTreeController extends JTreeViewController
 
     notification.destroy() if notification
 
-    if details and not msg? and /Permission denied/.test details
+    if details and not msg? and /Permission denied/.test details?.message
       msg = "Permission denied!"
 
     style or= 'error' if details
