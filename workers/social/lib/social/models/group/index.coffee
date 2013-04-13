@@ -151,6 +151,9 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+      vm            :
+        targetType  : 'JVM'
+        as          : 'owner'
 
   constructor:->
     super
