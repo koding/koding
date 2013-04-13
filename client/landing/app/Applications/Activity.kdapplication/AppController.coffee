@@ -14,11 +14,6 @@ class ActivityAppController extends AppController
       # 'CCodeShareActivity'
     ]
 
-  lastTo    = null
-  lastFrom  = null
-  aRange    = 2*60*60*1000
-  isLoading = no
-
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
@@ -43,6 +38,7 @@ class ActivityAppController extends AppController
 
     super options
 
+    @isLoading         = no
     @currentFilter     = activityTypes
     @appStorage        = new AppStorage 'Activity', '1.0'
     activityController = @getSingleton('activityController')
@@ -62,8 +58,9 @@ class ActivityAppController extends AppController
 
   resetList:->
 
-    lastFrom = null
-    lastTo   = null
+    delete @lastTo
+    delete @lastFrom
+
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -102,10 +99,23 @@ class ActivityAppController extends AppController
     for activity in activities when activity.bongo_.constructorName in @getFilter()
       @listController.newActivityArrived activity
 
+  # Store first & last activity timestamp.
+  extractTeasersTimeStamps:(teasers)->
+
+    teasers  = _.compact(teasers)
+    @lastTo   = teasers.first.meta.createdAt
+    @lastFrom = teasers.last.meta.createdAt
+
+  # Store first & last cache activity timestamp.
+  extractCacheTimeStamps: (cache)->
+
+    @lastTo   = cache.to
+    @lastFrom = cache.from
+
   populateActivity:(options = {})->
 
-    return if isLoading
-    isLoading = yes
+    return if @isLoading
+    @isLoading = yes
     @listController.showLazyLoader()
     @listController.noActivityItem.hide()
 
@@ -116,22 +126,25 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
-          isLoading = no
+          @isLoading = no
           @listController.hideLazyLoader()
           if err or teasers.length is 0
             warn err
             @listController.noActivityItem.show()
           else
+            @extractTeasersTimeStamps(teasers)
             @listController.listActivities teasers
 
       else
         @fetchCachedActivity options, (err, cache)=>
-          isLoading = no
+          @isLoading = no
           if err or cache.length is 0
             warn err
             @listController.hideLazyLoader()
             @listController.noActivityItem.show()
           else
+            @extractCacheTimeStamps(cache)
+
             @sanitizeCache cache, (err, cache)=>
               @listController.hideLazyLoader()
               @listController.listActivitiesFromCache cache
@@ -203,20 +216,8 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    unless isLoading
-      if @listController.itemsOrdered.last
-        lastItemData = @listController.itemsOrdered.last.getData()
-        # memberbucket data has no serverside model it comes from cache
-        # so it has no meta, that's why we check its date by its overview
-        lastDate = if lastItemData.createdAtTimestamps
-          new Date lastItemData.createdAtTimestamps[0]
-        else
-          new Date lastItemData.meta.createdAt
-      else
-        lastDate = new Date
-
-      lastTimeStamp = lastDate.getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    lastTimeStamp = (new Date @lastFrom).getTime()
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
 
