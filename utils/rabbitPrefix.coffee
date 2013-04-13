@@ -1,18 +1,14 @@
 fs       = require 'fs'
 nodePath = require 'path'
 
-projectRoot =->
-  nodePath.join __dirname, '..'
-
-hostname =->
-  require("os").hostname()
-
 get =->
+  projectRoot = nodePath.join(__dirname, '..')
   rabbitPrefix = ((
-    try fs.readFileSync nodePath.join(projectRoot(), '.rabbitvhost'), 'utf8'
+    try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
     catch e
-      console.log "You're missing the '.rabbitvhost' file in #{projectRoot()}. I'll use your hostname #{hostname()} instead."
-      return hostname()
+      hostname = require("os").hostname()
+      console.log "You're missing the '.rabbitvhost' file in #{projectRoot}\nUsing your hostname: '#{hostname}' as identifier for RabbitMQ instead.\n"
+      hostname
   ).trim())+"-dev"
   rabbitPrefix = rabbitPrefix.split('.').join('-')
 
