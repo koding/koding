@@ -54,7 +54,7 @@ class KDView extends KDObject
   @appendToDOMBody = (view)->
     $("body").append view.$()
     view.parentIsInDom = yes
-    view.emit "viewAppended", view
+    view.emit "viewAppended", view  unless view.lazy
 
 # #
 # INSTANCE LEVEL
@@ -211,20 +211,25 @@ class KDView extends KDObject
 
 
   setDomElement:(cssClass='')->
-    {lazyDomId, tagName} = @getOptions()
+    {domId, tagName} = @getOptions()
 
-    el = document.getElementById lazyDomId  if lazyDomId
+    if domId
+      el = document.getElementById domId
 
     unless el?
-      warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
       el = document.createElement tagName
+      el.setAttribute 'id', domId  if domId
+    else
+      elementIsLazy = yes
 
     for klass in "kdview #{cssClass}".split ' ' when klass.length
       el.classList.add klass
 
     @domElement = $ el
 
-    if lazyDomId
+    if elementIsLazy
+      @lazy = yes
+      warn "lazyElement found with id #{domId}"
       @utils.defer => @emit 'viewAppended'
 
   setDomId:(id)->
@@ -417,6 +422,7 @@ class KDView extends KDObject
   addSubView:(subView,selector,shouldPrepend)->
     unless subView?
       throw new Error 'no subview was specified'
+
     if subView.parent and subView.parent instanceof KDView
       index = subView.parent.subViews.indexOf subView
       if index > -1
@@ -428,10 +434,13 @@ class KDView extends KDObject
 
     subView.parentIsInDom = @parentIsInDom
 
-    if shouldPrepend
-      @prepend subView, selector
+    unless subView.lazy
+      if shouldPrepend
+        @prepend subView, selector
+      else
+        @append subView, selector
     else
-      @append subView, selector
+      log "lazy view", subView
 
     subView.on "ViewResized", => subView.parentDidResize()
 

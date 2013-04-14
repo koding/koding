@@ -89,6 +89,7 @@ class MainTabView extends KDTabView
 
     options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
     options.class  or= KDView
+    options.domId    = "maintabpane-#{@utils.slugify options.name}"
 
     paneInstance = new MainTabPane options
 

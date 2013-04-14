@@ -17,8 +17,10 @@ class MainViewController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.mainTabView.on "MainTabPaneShown", (pane)=>
-      @mainTabPaneChanged mainView, pane
+    log "mainView appended"
+
+    # mainView.mainTabView.on "MainTabPaneShown", (pane)=>
+    #   @mainTabPaneChanged mainView, pane
 
   mainTabPaneChanged:(mainView, pane)->
 

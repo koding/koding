@@ -106,7 +106,6 @@ class MainController extends KDController
       @mainViewController = new MainViewController
         view       : mainView = new MainView
           domId    : "kdmaincontainer"
-          # cssClass : "hidden"
 
       @appReady()
 
@@ -178,7 +177,7 @@ class MainController extends KDController
         @mainViewController.getView().decorateLoginState no
 
     @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-      log "accountChanged In"
+      # log "accountChanged In"
       @loginScreen.hideView =>
         @mainViewController.getView().decorateLoginState yes
         @mainViewController.sidebarController.accountChanged account
