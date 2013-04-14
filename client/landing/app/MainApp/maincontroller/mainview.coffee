@@ -14,8 +14,9 @@ class MainView extends KDView
         @removeLoader()
 
   viewAppended:->
-
-    @addServerStack()
+    log "mainView viewAppended"
+    # debugger
+    # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -76,6 +77,7 @@ class MainView extends KDView
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
+      domId    : "main-panel-wrapper"
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
@@ -101,25 +103,27 @@ class MainView extends KDView
 
   addHeader:->
     log "adding header"
-    if KD.config.groupEntryPoint
-      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
-        if err then callback err
-        else if models?
-          log "adding summary"
-          [group] = models
-          @addSubView @groupSummary = new GroupSummaryView {}, group
+    # if KD.config.groupEntryPoint
+    #   KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+    #     if err then callback err
+    #     else if models?
+    #       log "adding summary"
+    #       [group] = models
+    #       @addSubView @groupSummary = new GroupSummaryView {}, group
 
     @addSubView @header = new KDView
       tagName : "header"
+      domId   : "main-header"
+      click   : -> alert "ben headerim"
+
 
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       # cssClass  : "hidden"
-      attributes:
-        href    : "#"
       click     : (event)=>
         # return if @userEnteredFromGroup()
+        return alert "ben logoyum"
 
         event.stopPropagation()
         event.preventDefault()

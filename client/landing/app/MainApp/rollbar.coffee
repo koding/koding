@@ -20,7 +20,8 @@ KD.remote.on 'reconnected', ->
   logToExternal msg:"disconnected, then reconnected", data:data
 
 KD.getSingleton('mainController').on "AccountChanged", (account) ->
-  user = KD.whoami?().profile or KD.whoami()
+  user                  = KD.whoami?().profile or KD.whoami()
+  _rollbarParams        = _rollbarParams or {}
   _rollbarParams.person =
     id: user.hash or user.nickname
     username: user.nickname
