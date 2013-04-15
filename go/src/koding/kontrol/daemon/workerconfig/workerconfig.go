@@ -190,10 +190,6 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 	rWorkers := db.C("workers")
 
 	result := MsgWorker{}
-	iter := rWorkers.Find(nil).Iter()
-	for iter.Next(&result) {
-
-	}
 
 	if hostname == "" && uuid == "" {
 		iter := rWorkers.Find(nil).Iter()

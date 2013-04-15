@@ -312,13 +312,24 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("command not recognized: ", command)
 	}
 
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	db := session.DB("kontrol")
+	rWorkers := db.C("workers")
+
+	result := workerconfig.MsgWorker{}
+
 	if hostname == "" && uuid == "" {
 		// Apply action to all workers
-		if config.Verbose {
-			log.Printf("'%s' all workers", command)
-		}
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			res, err := actions[command](workerData.Hostname, workerData.Uuid)
+		log.Printf("'%s' all workers", command)
+		iter := rWorkers.Find(nil).Iter()
+		for iter.Next(&result) {
+			res, err := actions[command](result.Hostname, result.Uuid)
 			if err != nil {
 				log.Println(err)
 			}
@@ -326,30 +337,31 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		}
 	} else if hostname != "" && uuid == "" {
 		// Apply action on all workers on the hostname
-		if config.Verbose {
-			log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
-		}
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Hostname == hostname {
-				res, err := actions[command](hostname, workerData.Uuid)
-				if err != nil {
-					log.Println(err)
-				}
-				go sendWorker(res)
+		log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
+		iter := rWorkers.Find(bson.M{"hostname": hostname}).Iter()
+		for iter.Next(&result) {
+			res, err := actions[command](result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
 			}
+			go sendWorker(res)
 		}
 	} else if uuid != "" {
 		// Apply action on single worker, hostname is just for backward compatibility
-		workerRes := kontrolConfig.RegisteredWorkers[uuid]
+		workerResult, err := kontrolConfig.Worker(uuid)
+		if err != nil {
+			return fmt.Errorf("ack method error '%s'", err)
+		}
+
 		if hostname == "" {
-			hostname = workerRes.Hostname
+			hostname = workerResult.Hostname
 		}
 
 		if config.Verbose && command != "ack" {
-			log.Printf(" '%s' worker '%s' on host '%s'", command, workerRes.Name, workerRes.Hostname)
+			log.Printf(" '%s' worker '%s' on host '%s'", command, workerResult.Name, hostname)
 		}
 
-		res, err := actions[command](hostname, uuid)
+		res, err := actions[command](hostname, workerResult.Uuid)
 		if err != nil {
 			return err
 		}
@@ -440,21 +452,10 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		log.Printf("a worker of the type '%s' is already registered. Checking for status...", worker.Name)
 
-		// TODO: Adding user in this interval doesn't do anything, add 10-11 seconds timeout
-
 		err := kontrolConfig.RefreshStatusAll()
 		if err != nil {
 			log.Println("couldn't refresh data", err)
 		}
-
-		// for _, workerData := range kontrolConfig.RegisteredWorkers {
-		// 	if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-		// 		err := kontrolConfig.RefreshStatus(workerData.Uuid)
-		// 		if err != nil {
-		// 			log.Println("couldn't refresh data", err)
-		// 		}
-		// 	}
-		// }
 
 		session, err := mgo.Dial("127.0.0.1")
 		if err != nil {
