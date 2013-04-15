@@ -423,7 +423,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		return worker, nil
 
 	} else {
-		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, false)
+		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
 		// If there is no other workers of same name(type) on the same hostname than add it immediadetly ...
 		log.Printf("for '%s' workers allowed: %d, workers available: %d",
 			worker.Name,
@@ -456,30 +456,44 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		// 	}
 		// }
 
+		session, err := mgo.Dial("127.0.0.1")
+		if err != nil {
+			panic(err)
+		}
+		defer session.Close()
+		session.SetMode(mgo.Monotonic, true)
+
+		c := session.DB("kontrol").C("workers")
+
+		// First kill and delete all alive workers for the same name type.
+		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
+		log.Println(worker.Name, worker.Hostname)
+		iter := c.Find(bson.M{
+			"name":     worker.Name,
+			"hostname": worker.Hostname,
+			"status": bson.M{"$in": []int{
+				int(workerconfig.Notstarted),
+				int(workerconfig.Killed),
+				int(workerconfig.Dead),
+			}}}).Iter()
+
 		var gotPermission bool = false
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				if workerData.Status == workerconfig.Notstarted ||
-					workerData.Status == workerconfig.Killed ||
-					workerData.Status == workerconfig.Dead {
 
-					log.Printf("worker '%s' on hostname '%s' with uuid '%s' is not responding. Deleting it.",
-						workerData.Name,
-						workerData.Hostname,
-						workerData.Uuid)
-					kontrolConfig.DeleteWorker(workerData.Uuid)
+		result := workerconfig.MsgWorker{}
+		for iter.Next(&result) {
+			log.Println(result)
 
-					log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
-						worker.Name,
-						worker.Hostname,
-						worker.Uuid)
-					worker.Message.Result = "first.start"
-					worker.Status = workerconfig.Running
+			kontrolConfig.DeleteWorker(result.Uuid)
 
-					kontrolConfig.AddWorker(worker)
-					gotPermission = true
-				}
-			}
+			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
+				worker.Name,
+				worker.Hostname,
+				worker.Uuid)
+			worker.Message.Result = "first.start"
+			worker.Status = workerconfig.Running
+
+			kontrolConfig.AddWorker(worker)
+			gotPermission = true
 		}
 
 		if !gotPermission {
