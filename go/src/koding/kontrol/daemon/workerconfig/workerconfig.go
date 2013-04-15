@@ -130,6 +130,25 @@ type WorkerConfig struct {
 	Collection      *mgo.Collection
 }
 
+type MsgWorker struct {
+	Name           string           `json:"name"`
+	Uuid           string           `json:"uuid"`
+	Hostname       string           `json:"hostname"`
+	Version        int              `json:"version"`
+	Timestamp      time.Time        `json:"timestamp"`
+	Pid            int              `json:"pid"`
+	Status         WorkerStatus     `json:"status"`
+	Cmd            string           `json:"cmd"`
+	Number         int              `json:"number"`
+	Message        WorkerMessage    `json:"message"`
+	CompatibleWith map[string][]int `json:"compatibleWith"`
+	Monitor        struct {
+		Mem    MemData `json:"mem"`
+		Uptime int     `json:"uptime"`
+	} `json:"monitor"`
+}
+
+// Start point. Needs to be called in order to use other methods
 func Connect() *WorkerConfig {
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
@@ -147,24 +166,6 @@ func Connect() *WorkerConfig {
 	}
 
 	return wk
-}
-
-type MsgWorker struct {
-	Name           string           `json:"name"`
-	Uuid           string           `json:"uuid"`
-	Hostname       string           `json:"hostname"`
-	Version        int              `json:"version"`
-	Timestamp      time.Time        `json:"timestamp"`
-	Pid            int              `json:"pid"`
-	Status         WorkerStatus     `json:"status"`
-	Cmd            string           `json:"cmd"`
-	Number         int              `json:"number"`
-	Message        WorkerMessage    `json:"message"`
-	CompatibleWith map[string][]int `json:"compatibleWith"`
-	Monitor        struct {
-		Mem    MemData `json:"mem"`
-		Uptime int     `json:"uptime"`
-	} `json:"monitor"`
 }
 
 func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
