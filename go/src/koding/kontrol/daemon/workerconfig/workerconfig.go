@@ -451,23 +451,6 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	return nil
 }
 
-func (w *WorkerConfig) ReadConfig() {
-	// session, err := mgo.Dial("127.0.0.1")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer session.Close()
-	// session.SetMode(mgo.Monotonic, true)
-
-	// db := session.DB("kontrol")
-	// rWorkers := db.C("workers")
-
-	// result := MsgWorker{}
-	// iter := rWorkers.Find(nil).Iter()
-
-	return
-}
-
 func (w *WorkerConfig) IsEmpty() (bool, error) {
 	v, _ := w.Collection.Count()
 	if v == 0 {
