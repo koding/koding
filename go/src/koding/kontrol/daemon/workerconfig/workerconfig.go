@@ -324,6 +324,10 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 	return workerResult, nil
 }
 
+func (w *WorkerConfig) Add(worker MsgWorker) {
+	w.RegisteredWorkers[worker.Uuid] = worker
+}
+
 func (w *WorkerConfig) ApprovedHost(name, host string) bool {
 	v := len(w.RegisteredHosts)
 	if v == 0 {
