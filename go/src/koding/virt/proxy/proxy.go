@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fastproxy.Listen(&net.TCPAddr{nil, 80}, nil, func(req fastproxy.Request) {
+	fastproxy.Listen(&net.TCPAddr{nil, 80}, nil, false, func(req fastproxy.Request) {
 		name := strings.SplitN(req.Host, ".", 2)[0]
 
 		var vm virt.VM
