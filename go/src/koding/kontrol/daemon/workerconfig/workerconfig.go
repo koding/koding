@@ -324,7 +324,7 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 	return workerResult, nil
 }
 
-func (w *WorkerConfig) Add(worker MsgWorker) {
+func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	w.RegisteredWorkers[worker.Uuid] = worker
 }
 

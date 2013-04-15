@@ -149,11 +149,11 @@ func Startup() {
 
 		ok, _ := kontrolConfig.IsEmpty()
 		if ok {
-			kontrolConfig.Add(worker)
+			kontrolConfig.AddWorker(worker)
 		} else {
 			ok, _ := kontrolConfig.HasName(worker.Name)
 			if !ok {
-				kontrolConfig.Add(worker)
+				kontrolConfig.AddWorker(worker)
 			}
 			// there are already kontrolConfig in the config file, nothing to do.
 		}
@@ -416,7 +416,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		// Then add the new worker to a buffer, and wait.
 		worker.Status = workerconfig.Pending
-		kontrolConfig.Add(worker)
+		kontrolConfig.AddWorker(worker)
 		if err := kontrolConfig.SaveToConfig(); err != nil {
 			log.Printf(" %s", err)
 		}
@@ -446,7 +446,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 					workerData.Status = workerconfig.Running
 					log.Println("start our new worker")
 					log.Printf("'add' worker '%s' with pid: '%d'", workerData.Name, workerData.Pid)
-					kontrolConfig.Add(workerData)
+					kontrolConfig.AddWorker(workerData)
 					if err := kontrolConfig.SaveToConfig(); err != nil {
 						log.Printf(" %s", err)
 					}
@@ -467,7 +467,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			log.Printf("adding worker '%s'", worker.Name)
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
-			kontrolConfig.Add(worker)
+			kontrolConfig.AddWorker(worker)
 			if err := kontrolConfig.SaveToConfig(); err != nil {
 				log.Printf(" %s", err)
 			}
@@ -506,7 +506,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 					worker.Message.Result = "first.start"
 					worker.Status = workerconfig.Running
 
-					kontrolConfig.Add(worker)
+					kontrolConfig.AddWorker(worker)
 					if err := kontrolConfig.SaveToConfig(); err != nil {
 						log.Printf(" %s", err)
 					}
