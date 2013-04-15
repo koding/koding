@@ -337,8 +337,7 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 }
 
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
-
-	log.Println("Adding worker", worker.Name)
+	log.Println("adding worker", worker.Name)
 	w.RegisteredWorkers[worker.Uuid] = worker
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
@@ -347,10 +346,8 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 
-	db := session.DB("workers")
-	rWorkers := db.C("registeredworkers")
-
-	err = rWorkers.Insert(worker)
+	c := session.DB("kontrol").C("workers")
+	err = c.Insert(worker)
 	if err != nil {
 		log.Println(err)
 	}
@@ -481,8 +478,8 @@ func (w *WorkerConfig) ReadConfig() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 
-	db := session.DB("workers")
-	rWorkers := db.C("registeredworkers")
+	db := session.DB("kontrol")
+	rWorkers := db.C("workers")
 
 	result := MsgWorker{}
 	iter := rWorkers.Find(nil).Iter()
@@ -536,7 +533,7 @@ func (w *WorkerConfig) HasName(name string) (bool, error) {
 		panic(err)
 	}
 	defer session.Close()
-	c := session.DB("workers").C("registeredworkers")
+	c := session.DB("kontrol").C("workers")
 	result := MsgWorker{}
 	err = c.Find(bson.M{"name": name}).One(&result)
 	if err != nil {
