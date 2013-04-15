@@ -13,11 +13,12 @@ import (
 
 type Request struct {
 	Host   string
+	Cookie string
 	source net.Conn
 	buffer *bytes.Buffer
 }
 
-func Listen(laddr *net.TCPAddr, cert *tls.Certificate, handler func(Request)) error {
+func Listen(laddr *net.TCPAddr, cert *tls.Certificate, fetchCookie bool, handler func(Request)) error {
 	var listener net.Listener
 	listener, err := net.ListenTCP("tcp", laddr)
 	if err != nil {
@@ -60,8 +61,15 @@ func Listen(laddr *net.TCPAddr, cert *tls.Certificate, handler func(Request)) er
 				if len(parts) != 2 {
 					return
 				}
-				if parts[0] == "Host" {
+
+				key := strings.ToLower(parts[0])
+				if key == "host" {
 					req.Host = strings.TrimSpace(parts[1])
+				} else if fetchCookie && key == "cookie" {
+					req.Cookie = strings.TrimSpace(parts[1])
+				}
+
+				if req.Host != "" && (!fetchCookie || req.Cookie != "") {
 					break
 				}
 			}
