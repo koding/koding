@@ -151,21 +151,13 @@ func Startup() {
 		if ok {
 			kontrolConfig.AddWorker(worker)
 		} else {
+			log.Println("Checking for other workers")
 			ok, _ := kontrolConfig.HasName(worker.Name)
 			if !ok {
 				kontrolConfig.AddWorker(worker)
 			}
 			// there are already kontrolConfig in the config file, nothing to do.
 		}
-
-		if err := kontrolConfig.SaveToConfig(); err != nil {
-			log.Println(err)
-		}
-	}
-
-	err = kontrolConfig.SaveToConfig()
-	if err != nil {
-		log.Println(err)
 	}
 
 	log.Printf("ready on host %s", kontrolConfig.Hostname)
@@ -366,17 +358,14 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 }
 
 func SaveMonitorData(data *workerconfig.Monitor) error {
-	err := kontrolConfig.HasUuid(data.Uuid)
+	workerResult, err := kontrolConfig.Worker(data.Uuid)
 	if err != nil {
 		return fmt.Errorf("monitor data error '%s'", err)
 	}
 
-	workerResult := kontrolConfig.RegisteredWorkers[data.Uuid]
 	workerResult.Monitor.Mem = *data.Mem
 	workerResult.Monitor.Uptime = data.Uptime
-	kontrolConfig.RegisteredWorkers[data.Uuid] = workerResult
-	kontrolConfig.SaveToConfig()
-
+	kontrolConfig.UpdateWorker(workerResult)
 	return nil
 }
 
@@ -417,12 +406,8 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		// Then add the new worker to a buffer, and wait.
 		worker.Status = workerconfig.Pending
 		kontrolConfig.AddWorker(worker)
-		if err := kontrolConfig.SaveToConfig(); err != nil {
-			log.Printf(" %s", err)
-		}
 
 		lenPendingWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, true)
-
 		// Until we have all of them. For example if our worker type spawns 4
 		// workers then we wait until we have 4 pending workers.
 
@@ -447,9 +432,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 					log.Println("start our new worker")
 					log.Printf("'add' worker '%s' with pid: '%d'", workerData.Name, workerData.Pid)
 					kontrolConfig.AddWorker(workerData)
-					if err := kontrolConfig.SaveToConfig(); err != nil {
-						log.Printf(" %s", err)
-					}
 
 					return workerData, nil
 				}
@@ -468,9 +450,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
 			kontrolConfig.AddWorker(worker)
-			if err := kontrolConfig.SaveToConfig(); err != nil {
-				log.Printf(" %s", err)
-			}
 			return worker, nil
 		}
 
@@ -507,9 +486,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 					worker.Status = workerconfig.Running
 
 					kontrolConfig.AddWorker(worker)
-					if err := kontrolConfig.SaveToConfig(); err != nil {
-						log.Printf(" %s", err)
-					}
 					gotPermission = true
 				}
 			}
