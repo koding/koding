@@ -181,6 +181,7 @@ task 'guestCleanup',({configFile})->
     restart: yes
     restartInterval : 100
     needPermission  : yes
+    forceStart 		: yes
     verbose         : yes
 
 task 'emailWorker',({configFile})->

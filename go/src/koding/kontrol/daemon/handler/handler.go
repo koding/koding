@@ -12,6 +12,8 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/utils"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
 	"strconv"
@@ -372,71 +374,54 @@ func SaveMonitorData(data *workerconfig.Monitor) error {
 func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	option := worker.Message.Option
 
-	if !kontrolConfig.ApprovedHost(worker.Name, worker.Hostname) {
-		worker.Message.Result = "not.allowed"
-		return worker, errors.New("Worker is not in approved host before")
-	}
+	// if !kontrolConfig.ApprovedHost(worker.Name, worker.Hostname) {
+	// 	worker.Message.Result = "not.allowed"
+	// 	return worker, errors.New("Worker is not in approved host before")
+	// }
 
 	if option == "force" {
 		log.Println("force option is enabled.")
 
-		// TODO: Force for the same name on all other hostnames, or just on that hostname?
-		//			 If force should be enabled only on the same hostname that us the following line:
-		// if workerData.Status != pending && workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
+		session, err := mgo.Dial("127.0.0.1")
+		if err != nil {
+			panic(err)
+		}
+		defer session.Close()
+		session.SetMode(mgo.Monotonic, true)
 
-		// First stop all alive workers for the same name type.
-		log.Println("trying to stop and kill all other workers with the same name.")
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Status != workerconfig.Pending && workerData.Name == worker.Name {
-				res, err := kontrolConfig.Stop(workerData.Hostname, workerData.Uuid)
-				if err != nil {
-					log.Println("", err)
-				}
-				go sendWorker(res)
+		c := session.DB("kontrol").C("workers")
 
-				res, err = kontrolConfig.Kill(workerData.Hostname, workerData.Uuid)
-				if err != nil {
-					log.Println("", err)
-				}
-				go sendWorker(res)
+		// First kill and delete all alive workers for the same name type.
+		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
+		log.Println(worker.Name, worker.Hostname)
+		iter := c.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
 
+		result := workerconfig.MsgWorker{}
+		for iter.Next(&result) {
+			log.Println(result)
+
+			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
 			}
+			go sendWorker(res)
+
+			err = kontrolConfig.Delete(result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
 
-		// Then add the new worker to a buffer, and wait.
-		worker.Status = workerconfig.Pending
+		// kontrolConfig.AddWorker(worker)
+		worker.Message.Result = "added.now"
+		worker.Status = workerconfig.Running
+		log.Println("start our new worker")
+		log.Printf("'add' worker '%s' with pid: '%d'", worker.Name, worker.Pid)
 		kontrolConfig.AddWorker(worker)
 
-		lenPendingWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, true)
-		// Until we have all of them. For example if our worker type spawns 4
-		// workers then we wait until we have 4 pending workers.
+		return worker, nil
 
-		if lenPendingWorkers == worker.Number {
-			// Then delete the old workers (those we stoped and killed above)
-			log.Println("trying to delete remaining old workers with the same name.")
-			for _, workerData := range kontrolConfig.RegisteredWorkers {
-				// Use this as written above if TODO is yes!!
-				//if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name {
-					kontrolConfig.DeleteWorker(workerData.Uuid)
-				}
-			}
-
-			log.Println("trying to start new worker.")
-			// and add our new workers (which means we are starting them)
-			for _, workerData := range kontrolConfig.RegisteredWorkers {
-				//if workerData.Status == pending && workerData.Name == worker.Name && workerData.Hostname == workerData.Hostname {
-				if workerData.Status == workerconfig.Pending && workerData.Name == worker.Name {
-					workerData.Message.Result = "added.now"
-					workerData.Status = workerconfig.Running
-					log.Println("start our new worker")
-					log.Printf("'add' worker '%s' with pid: '%d'", workerData.Name, workerData.Pid)
-					kontrolConfig.AddWorker(workerData)
-
-					return workerData, nil
-				}
-			}
-		}
 	} else {
 		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, false)
 		// If there is no other workers of same name(type) on the same hostname than add it immediadetly ...
@@ -456,14 +441,20 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		log.Printf("a worker of the type '%s' is already registered. Checking for status...", worker.Name)
 
 		// TODO: Adding user in this interval doesn't do anything, add 10-11 seconds timeout
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				err := kontrolConfig.RefreshStatus(workerData.Uuid)
-				if err != nil {
-					log.Println("couldn't refresh data", err)
-				}
-			}
+
+		err := kontrolConfig.RefreshStatusAll()
+		if err != nil {
+			log.Println("couldn't refresh data", err)
 		}
+
+		// for _, workerData := range kontrolConfig.RegisteredWorkers {
+		// 	if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
+		// 		err := kontrolConfig.RefreshStatus(workerData.Uuid)
+		// 		if err != nil {
+		// 			log.Println("couldn't refresh data", err)
+		// 		}
+		// 	}
+		// }
 
 		var gotPermission bool = false
 		for _, workerData := range kontrolConfig.RegisteredWorkers {
@@ -472,7 +463,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 					workerData.Status == workerconfig.Killed ||
 					workerData.Status == workerconfig.Dead {
 
-					log.Printf("remote worker '%s' on hostname '%s' with uuid '%s' is not responding. Deleting it.",
+					log.Printf("worker '%s' on hostname '%s' with uuid '%s' is not responding. Deleting it.",
 						workerData.Name,
 						workerData.Hostname,
 						workerData.Uuid)
