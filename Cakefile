@@ -82,7 +82,7 @@ task 'compileGo',({configFile})->
 
 task 'runKites', ({configFile})->
 
-  compileCoBinaries configFile,->
+  compileGoBinaries configFile,->
     invoke 'sharedHostingKite'
     invoke 'databasesKite'
     invoke 'applicationsKite'
