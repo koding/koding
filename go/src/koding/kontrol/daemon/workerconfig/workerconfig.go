@@ -124,16 +124,26 @@ func NewStatusResponse() *StatusResponse {
 }
 
 type WorkerConfig struct {
-	Hostname          string
-	RegisteredWorkers map[string]MsgWorker
-	RegisteredHosts   map[string][]string
+	Hostname        string
+	RegisteredHosts map[string][]string
+	Session         *mgo.Session
+	Collection      *mgo.Collection
 }
 
-func NewWorkerConfig() *WorkerConfig {
+func Connect() *WorkerConfig {
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	session.SetMode(mgo.Strong, true)
+
+	col := session.DB("kontrol").C("workers")
+
 	wk := &WorkerConfig{
-		Hostname:          customHostname(),
-		RegisteredWorkers: make(map[string]MsgWorker),
-		RegisteredHosts:   make(map[string][]string),
+		Hostname:        customHostname(),
+		RegisteredHosts: make(map[string][]string),
+		Session:         session,
+		Collection:      col,
 	}
 
 	return wk
@@ -158,9 +168,7 @@ type MsgWorker struct {
 }
 
 func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
-	// TODO: improve performance, there is no need for two Dials...
 	res := *NewStatusResponse()
-
 	err := w.RefreshStatusAll()
 	if err != nil {
 		log.Println("couldn't refresh data", err)
@@ -177,34 +185,23 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 				d.Status,
 				d.Monitor.Mem.HeapTotal,
 				d.Monitor.Uptime))
+
 	}
-
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	db := session.DB("kontrol")
-	rWorkers := db.C("workers")
-
 	result := MsgWorker{}
-
 	if hostname == "" && uuid == "" {
-		iter := rWorkers.Find(nil).Iter()
+		iter := w.Collection.Find(nil).Iter()
 		for iter.Next(&result) {
 			addSingleResponse(result)
 		}
 
 	} else if hostname != "" && uuid == "" {
-		iter := rWorkers.Find(bson.M{"hostname": hostname}).Iter()
+		iter := w.Collection.Find(bson.M{"hostname": hostname}).Iter()
 		for iter.Next(&result) {
 			addSingleResponse(result)
 		}
 
 	} else if hostname != "" && uuid != "" {
-		iter := rWorkers.Find(bson.M{"hostname": hostname, "uuid": uuid}).Iter()
+		iter := w.Collection.Find(bson.M{"hostname": hostname, "uuid": uuid}).Iter()
 		for iter.Next(&result) {
 			addSingleResponse(result)
 		}
@@ -236,23 +233,12 @@ func (w *WorkerConfig) RefreshStatus(uuid string) error {
 	}
 
 	w.UpdateWorker(workerData)
-
 	return nil
 }
 
 func (w *WorkerConfig) RefreshStatusAll() error {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	db := session.DB("kontrol")
-	rWorkers := db.C("workers")
-
 	result := MsgWorker{}
-	iter := rWorkers.Find(nil).Iter()
+	iter := w.Collection.Find(nil).Iter()
 	for iter.Next(&result) {
 		err := w.RefreshStatus(result.Uuid)
 		if err != nil {
@@ -264,7 +250,6 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 }
 
 func (w *WorkerConfig) Delete(hostname, uuid string) error {
-
 	workerResult, err := w.Worker(uuid)
 	if err != nil {
 		return fmt.Errorf("delete method error '%s'", err)
@@ -272,7 +257,6 @@ func (w *WorkerConfig) Delete(hostname, uuid string) error {
 
 	log.Printf("deleting worker '%s' with hostname '%s' from the db", workerResult.Name, hostname)
 	w.DeleteWorker(uuid)
-
 	return nil
 }
 
@@ -291,7 +275,6 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 	log.Printf("stopping remote worker '%s' on '%s'", workerResult.Name, hostname)
 
 	w.UpdateWorker(workerResult)
-
 	return workerResult, nil
 }
 
@@ -345,39 +328,19 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 	}
 
 	w.UpdateWorker(workerResult)
-
 	return workerResult, nil
 }
 
 func (w *WorkerConfig) UpdateWorker(worker MsgWorker) {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	c := session.DB("kontrol").C("workers")
-
-	_, err = c.Upsert(bson.M{"uuid": worker.Uuid}, worker)
+	_, err := w.Collection.Upsert(bson.M{"uuid": worker.Uuid}, worker)
 	if err != nil {
 		log.Println(err)
 	}
-
 }
 
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	log.Println("adding worker", worker.Name)
-
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	c := session.DB("kontrol").C("workers")
-	err = c.Insert(worker)
+	err := w.Collection.Insert(worker)
 	if err != nil {
 		log.Println(err)
 	}
@@ -385,24 +348,15 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 }
 
 func (w *WorkerConfig) DeleteWorker(uuid string) {
-
 	log.Println("deleting worker with uuid", uuid)
-
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	c := session.DB("kontrol").C("workers")
-	err = c.Remove(bson.M{"uuid": uuid})
+	err := w.Collection.Remove(bson.M{"uuid": uuid})
 	if err != nil {
 		log.Println(err)
 	}
 }
 
 func (w *WorkerConfig) ApprovedHost(name, host string) bool {
+	// TODO: Should use mongodb
 	v := len(w.RegisteredHosts)
 	if v == 0 {
 		// if empty means no process file was read, thus assume as approved
@@ -434,16 +388,7 @@ func (w *WorkerConfig) ApprovedHost(name, host string) bool {
 }
 
 func (w *WorkerConfig) NumberOfWorker(workerName, workerHostname string) int {
-	var count int = 0
-
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	c := session.DB("kontrol").C("workers")
-	count, _ = c.Find(bson.M{"name": workerName, "hostname": workerHostname}).Count()
+	count, _ := w.Collection.Find(bson.M{"name": workerName, "hostname": workerHostname}).Count()
 
 	return count
 }
@@ -452,16 +397,8 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	// No check for uuid, this is a destructive action. Thus use with caution.
 	// After creating a processes, the process sends a new "update" message with
 	// child pid, a new uuid and his new status.
-
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	c := session.DB("kontrol").C("workers")
-
 	result := MsgWorker{}
-	err = c.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).One(&result)
+	err := w.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).One(&result)
 	if err != nil {
 		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
 	}
@@ -514,35 +451,24 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 }
 
 func (w *WorkerConfig) ReadConfig() {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	// session, err := mgo.Dial("127.0.0.1")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer session.Close()
+	// session.SetMode(mgo.Monotonic, true)
 
-	db := session.DB("kontrol")
-	rWorkers := db.C("workers")
+	// db := session.DB("kontrol")
+	// rWorkers := db.C("workers")
 
-	result := MsgWorker{}
-	iter := rWorkers.Find(nil).Iter()
-	for iter.Next(&result) {
-		// TODO: Should be removed
-		w.RegisteredWorkers[result.Uuid] = result
-	}
+	// result := MsgWorker{}
+	// iter := rWorkers.Find(nil).Iter()
 
 	return
 }
 
 func (w *WorkerConfig) IsEmpty() (bool, error) {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	c := session.DB("kontrol").C("workers")
-
-	v, _ := c.Count()
+	v, _ := w.Collection.Count()
 	if v == 0 {
 		return true, fmt.Errorf("no workers registered. Please register before you can continue.")
 	}
@@ -567,15 +493,8 @@ func (w *WorkerConfig) HasName(name string) (bool, error) {
 }
 
 func (w *WorkerConfig) HasUuid(uuid string) error {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	c := session.DB("kontrol").C("workers")
-
 	result := MsgWorker{}
-	err = c.Find(bson.M{"uuid": uuid}).One(&result)
+	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
 	if err != nil {
 		return fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
@@ -583,14 +502,8 @@ func (w *WorkerConfig) HasUuid(uuid string) error {
 }
 
 func (w *WorkerConfig) Worker(uuid string) (MsgWorker, error) {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	c := session.DB("kontrol").C("workers")
 	result := MsgWorker{}
-	err = c.Find(bson.M{"uuid": uuid}).One(&result)
+	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
 	if err != nil {
 		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}

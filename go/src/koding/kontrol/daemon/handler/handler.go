@@ -12,7 +12,6 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/utils"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
@@ -102,8 +101,7 @@ func Startup() {
 		log.Printf("Supervisor: worker exchange.declare: %s", err)
 	}
 
-	kontrolConfig = workerconfig.NewWorkerConfig()
-	kontrolConfig.ReadConfig()
+	kontrolConfig = workerconfig.Connect()
 
 	proxyConfig = proxyconfig.NewProxyConfiguration()
 	proxyConfig.ReadConfig()
@@ -312,22 +310,11 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("command not recognized: ", command)
 	}
 
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
-	db := session.DB("kontrol")
-	rWorkers := db.C("workers")
-
 	result := workerconfig.MsgWorker{}
-
 	if hostname == "" && uuid == "" {
 		// Apply action to all workers
 		log.Printf("'%s' all workers", command)
-		iter := rWorkers.Find(nil).Iter()
+		iter := kontrolConfig.Collection.Find(nil).Iter()
 		for iter.Next(&result) {
 			res, err := actions[command](result.Hostname, result.Uuid)
 			if err != nil {
@@ -338,7 +325,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	} else if hostname != "" && uuid == "" {
 		// Apply action on all workers on the hostname
 		log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
-		iter := rWorkers.Find(bson.M{"hostname": hostname}).Iter()
+		iter := kontrolConfig.Collection.Find(bson.M{"hostname": hostname}).Iter()
 		for iter.Next(&result) {
 			res, err := actions[command](result.Hostname, result.Uuid)
 			if err != nil {
@@ -350,7 +337,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		// Apply action on single worker, hostname is just for backward compatibility
 		workerResult, err := kontrolConfig.Worker(uuid)
 		if err != nil {
-			return fmt.Errorf("ack method error '%s'", err)
+			return fmt.Errorf("dorequest method error '%s'", err)
 		}
 
 		if hostname == "" {
@@ -394,19 +381,10 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	if option == "force" {
 		log.Println("force option is enabled.")
 
-		session, err := mgo.Dial("127.0.0.1")
-		if err != nil {
-			panic(err)
-		}
-		defer session.Close()
-		session.SetMode(mgo.Monotonic, true)
-
-		c := session.DB("kontrol").C("workers")
-
 		// First kill and delete all alive workers for the same name type.
 		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
 		log.Println(worker.Name, worker.Hostname)
-		iter := c.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
+		iter := kontrolConfig.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
 
 		result := workerconfig.MsgWorker{}
 		for iter.Next(&result) {
@@ -457,19 +435,10 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			log.Println("couldn't refresh data", err)
 		}
 
-		session, err := mgo.Dial("127.0.0.1")
-		if err != nil {
-			panic(err)
-		}
-		defer session.Close()
-		session.SetMode(mgo.Monotonic, true)
-
-		c := session.DB("kontrol").C("workers")
-
 		// First kill and delete all alive workers for the same name type.
 		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
 		log.Println(worker.Name, worker.Hostname)
-		iter := c.Find(bson.M{
+		iter := kontrolConfig.Collection.Find(bson.M{
 			"name":     worker.Name,
 			"hostname": worker.Hostname,
 			"status": bson.M{"$in": []int{
