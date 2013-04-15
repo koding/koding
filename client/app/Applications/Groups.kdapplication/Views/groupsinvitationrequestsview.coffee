@@ -3,6 +3,9 @@ class GroupsInvitationRequestsView extends GroupsRequestView
   controllerNames = ['pendingList','sentList','resolvedList']
 
   constructor:(options, data)->
+
+    options.cssClass = "groups-invitation-request-view"
+
     super
 
     group = @getData()
