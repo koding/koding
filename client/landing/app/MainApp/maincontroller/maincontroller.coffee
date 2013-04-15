@@ -97,15 +97,14 @@ class MainController extends KDController
 
     unless @mainViewController
 
-      if KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
-        @loginScreen = new LoginView
-        KDView.appendToDOMBody @loginScreen
-      else
-        @loginScreen = new OldLoginView
+      @loginScreen = new LoginView
+      # KDView.appendToDOMBody @loginScreen
 
-      @mainViewController = new MainViewController
-        view       : mainView = new MainView
-          domId    : "kdmaincontainer"
+      @mainViewController  = new MainViewController
+        view    : mainView = new MainView
+          domId : "kdmaincontainer"
+
+      KDView.appendToDOMBody mainView
 
       @appReady()
 

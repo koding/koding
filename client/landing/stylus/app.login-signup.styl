@@ -13,28 +13,17 @@ app.login-signup.styl
 
 // swapping views for views
 .kdview.login-screen
-  opacity          1
-  z-index          100
-  padding-top      50px
-  background       transparent url("../images/koding-new-bg.png") repeat-x scroll 0 0
+  z-index            100
+  padding-top        50px
+  background-image   none
+  background-color   rgba(0,0,0,.6)
+  top                0
+  left               11160px
+  vendor transition, left .6s ease-in-out
   abs()
 
-  &.land-page
-    background-image   none
-    background-color   rgba(0,0,0,.6)
-    top                0
-    left               11160px
-    vendor transition, left .6s ease-in-out
-
-    &.landed
-      left               0px
-      height             100%
-
-      &.sidebar-collapsed
-        left               50px
-
-    .flex-wrapper
-      background-color  rgba(0,0,0,0.6) !important
+  .flex-wrapper
+    background-color  rgba(0,0,0,0.6) !important
 
   .login-form-holder
   .login-options-holder
