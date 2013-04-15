@@ -8,10 +8,10 @@ class LoginView extends KDScrollView
 
     entryPoint = ''
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      options = cssClass : 'land-page'
+      options.cssClass = 'land-page'
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
     else
-      if KD.isLoggedIn() then options = cssClass : 'hidden'
+      options.cssClass = 'hidden'  if KD.isLoggedIn() 
 
     super options, data
 
