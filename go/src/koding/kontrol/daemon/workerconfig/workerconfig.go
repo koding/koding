@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/process"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
 	"regexp"
@@ -78,9 +80,15 @@ type StatusResponse struct {
 }
 
 type SingleStatusResponse struct {
-	Worker
-	Memory int `json:"memory"`
-	Uptime int `json:"uptime"`
+	Name      string       `json:"name"`
+	Uuid      string       `json:"uuid"`
+	Hostname  string       `json:"hostname"`
+	Version   int          `json:"version"`
+	Timestamp time.Time    `json:"timestamp"`
+	Pid       int          `json:"pid"`
+	Status    WorkerStatus `json:"status"`
+	Memory    int          `json:"memory"`
+	Uptime    int          `json:"uptime"`
 }
 
 type Request struct {
@@ -98,17 +106,15 @@ type ClientRequest struct {
 
 func NewSingleStatusResponse(name, uuid, hostname string, version, pid int, status WorkerStatus, mem, uptime int) *SingleStatusResponse {
 	return &SingleStatusResponse{
-		Worker: Worker{
-			Name:      name,
-			Uuid:      uuid,
-			Hostname:  hostname,
-			Version:   version,
-			Pid:       pid,
-			Status:    status,
-			Timestamp: time.Now().UTC(),
-		},
-		Memory: mem,
-		Uptime: uptime,
+		Name:      name,
+		Uuid:      uuid,
+		Hostname:  hostname,
+		Version:   version,
+		Pid:       pid,
+		Status:    status,
+		Timestamp: time.Now().UTC(),
+		Memory:    mem,
+		Uptime:    uptime,
 	}
 }
 
@@ -135,7 +141,13 @@ func NewWorkerConfig() *WorkerConfig {
 }
 
 type MsgWorker struct {
-	Worker
+	Name           string           `json:"name"`
+	Uuid           string           `json:"uuid"`
+	Hostname       string           `json:"hostname"`
+	Version        int              `json:"version"`
+	Timestamp      time.Time        `json:"timestamp"`
+	Pid            int              `json:"pid"`
+	Status         WorkerStatus     `json:"status"`
 	Cmd            string           `json:"cmd"`
 	Number         int              `json:"number"`
 	Message        WorkerMessage    `json:"message"`
@@ -325,7 +337,24 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 }
 
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
+
+	log.Println("Adding worker", worker.Name)
 	w.RegisteredWorkers[worker.Uuid] = worker
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	db := session.DB("workers")
+	rWorkers := db.C("registeredworkers")
+
+	err = rWorkers.Insert(worker)
+	if err != nil {
+		log.Println(err)
+	}
+
 }
 
 func (w *WorkerConfig) DeleteWorker(uuid string) {
@@ -445,8 +474,23 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 }
 
 func (w *WorkerConfig) ReadConfig() {
-	configFile := customHostname() + "-kontrold.json"
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
 
+	db := session.DB("workers")
+	rWorkers := db.C("registeredworkers")
+
+	result := MsgWorker{}
+	iter := rWorkers.Find(nil).Iter()
+	for iter.Next(&result) {
+		// fmt.Printf("Result: %v\n", result)
+	}
+
+	configFile := customHostname() + "-kontrold.json"
 	file, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return
@@ -486,12 +530,20 @@ func (w *WorkerConfig) IsEmpty() (bool, error) {
 
 func (w *WorkerConfig) HasName(name string) (bool, error) {
 	// log.Println(" Checking for duplicates")
-	for _, data := range w.RegisteredWorkers {
-		if data.Name == name {
-			return true, nil
-		}
+
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
 	}
-	return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
+	defer session.Close()
+	c := session.DB("workers").C("registeredworkers")
+	result := MsgWorker{}
+	err = c.Find(bson.M{"name": name}).One(&result)
+	if err != nil {
+		return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
+	}
+
+	return true, nil
 }
 
 func (w *WorkerConfig) HasUuid(uuid string) error {
