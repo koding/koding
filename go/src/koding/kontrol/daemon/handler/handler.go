@@ -433,7 +433,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 				// Use this as written above if TODO is yes!!
 				//if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
 				if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name {
-					delete(kontrolConfig.RegisteredWorkers, workerData.Uuid)
+					kontrolConfig.DeleteWorker(workerData.Uuid)
 				}
 			}
 
@@ -497,7 +497,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 						workerData.Name,
 						workerData.Hostname,
 						workerData.Uuid)
-					delete(kontrolConfig.RegisteredWorkers, workerData.Uuid)
+					kontrolConfig.DeleteWorker(workerData.Uuid)
 
 					log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
 						worker.Name,

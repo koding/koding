@@ -243,7 +243,7 @@ func (w *WorkerConfig) Delete(hostname, uuid string) error {
 		return fmt.Errorf("deleting not possible. Worker '%s' on '%s' is still alive", workerResult.Name, workerResult.Hostname)
 	}
 
-	delete(w.RegisteredWorkers, uuid)
+	w.DeleteWorker(uuid)
 	log.Printf("deleting worker '%s' with hostname '%s' from the config", workerResult.Name, hostname)
 
 	if err := w.SaveToConfig(); err != nil {
@@ -328,6 +328,10 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	w.RegisteredWorkers[worker.Uuid] = worker
 }
 
+func (w *WorkerConfig) DeleteWorker(uuid string) {
+	delete(w.RegisteredWorkers, uuid)
+}
+
 func (w *WorkerConfig) ApprovedHost(name, host string) bool {
 	v := len(w.RegisteredHosts)
 	if v == 0 {
@@ -385,7 +389,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	// child pid, a new uuid and his new status.
 	for _, workerData := range w.RegisteredWorkers {
 		if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-			delete(w.RegisteredWorkers, workerData.Uuid)
+			w.DeleteWorker(workerData.Uuid)
 			workerData.Timestamp = worker.Timestamp
 			workerData.Status = worker.Status
 			workerData.Pid = worker.Pid
