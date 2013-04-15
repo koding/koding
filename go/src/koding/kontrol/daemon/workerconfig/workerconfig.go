@@ -158,6 +158,7 @@ type MsgWorker struct {
 }
 
 func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
+	// TODO: improve performance, there is no need for two Dials...
 	res := *NewStatusResponse()
 
 	err := w.RefreshStatusAll()
@@ -178,21 +179,38 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 				d.Monitor.Uptime))
 	}
 
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	db := session.DB("kontrol")
+	rWorkers := db.C("workers")
+
+	result := MsgWorker{}
+	iter := rWorkers.Find(nil).Iter()
+	for iter.Next(&result) {
+
+	}
+
 	if hostname == "" && uuid == "" {
-		for _, d := range w.RegisteredWorkers {
-			addSingleResponse(d)
+		iter := rWorkers.Find(nil).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
+
 	} else if hostname != "" && uuid == "" {
-		for _, d := range w.RegisteredWorkers {
-			if d.Hostname == hostname {
-				addSingleResponse(d)
-			}
+		iter := rWorkers.Find(bson.M{"hostname": hostname}).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
+
 	} else if hostname != "" && uuid != "" {
-		for _, d := range w.RegisteredWorkers {
-			if d.Hostname == hostname && d.Uuid == uuid {
-				addSingleResponse(d)
-			}
+		iter := rWorkers.Find(bson.M{"hostname": hostname, "uuid": uuid}).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
 	} else if hostname == "" && uuid != "" {
 		return nil, errors.New("please provide hostname for creating status repsonse")
@@ -470,19 +488,16 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 		worker.Hostname,
 		worker.Uuid)
 
-	// w.UpdateWorker(result)
 	w.AddWorker(result)
 
 	return nil
 }
 
 func (w *WorkerConfig) Ack(worker MsgWorker) error {
-	err := w.HasUuid(worker.Uuid)
+	workerResult, err := w.Worker(worker.Uuid)
 	if err != nil {
 		return fmt.Errorf("ack method error '%s'", err)
 	}
-
-	workerResult := w.RegisteredWorkers[worker.Uuid]
 
 	// if config.Verbose {
 	// 	log.Printf(" remote worker '%s' on '%s' with pid: %d is alive", workerResult.Name, workerResult.Hostname, workerResult.Pid)
