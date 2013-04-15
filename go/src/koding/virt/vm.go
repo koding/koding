@@ -28,7 +28,7 @@ type UserEntry struct {
 }
 
 const UserIdOffset = 1000000
-const RootIdOffset = 50000000
+const RootIdOffset = 500000
 
 var templateDir string
 var templates *template.Template
