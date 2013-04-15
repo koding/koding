@@ -101,13 +101,14 @@
     > span
       hidden()
 
-
+.groups-invitation-request-view
 .groups-member-permissions-view
 
   .kdview.kdloader
     display                   block
     margin                    10px auto
 
+  .kdview.kdlistitemview.kdlistitemview-invitation-request
   .kdview.kdlistitemview.kdlistitemview-member-item
     line-height               24px
 
@@ -318,6 +319,18 @@
             // text-decoration underline
             font-weight       600
 
+    .invitations section.formline div.formline.kdlistitemview-invitation-request
+    .members .kdlistitemview-member-item
+      min-width               350px
+      display                 inline-block
+      margin                  2px
+      padding                 10px
+      borderBox()
+      vendor transition,      background-color 0.2s ease-in-out
+      background-color        rgba(248,248,248,0.5)
+      &:hover
+        background-color      rgba(248,248,248,1)
+
     .members
       .listview-wrapper
         borderBox()
@@ -325,22 +338,12 @@
         .kdlistitemview-member-item
           // width 50%
           width               auto
-          min-width           350px
-          display             inline-block
-          margin              2px
-          padding             10px
-          borderBox()
-          vendor transition,  background-color 0.2s ease-in-out
-          background-color    rgba(248,248,248,0.5)
-          &:hover
-            background-color  rgba(248,248,248,1)
-
           section
             .profile
               borderBox()
-              margin-left     60px
-              padding         2px
-              display         block
+              margin-left         60px
+              padding             2px
+              display             block
             .role
               borderBox()
               margin-left     60px
@@ -442,39 +445,58 @@
         padding               20px
         fl()
 
-        button
-          margin              0
-          fr()
-
         &.status-quo
           width               100%
 
-      .requests-list
-        margin-top            20px
+      .request-list
 
-        .default-item
-          padding-left        10px
-
-        .formline.invitation-request
-          padding             0px 10px 10px 0
-          display             inline-block
-          borderBox()
-
-          .request
-            margin-left       55px
-
-          .username
-            width             auto
-
-          .requested-at
-
+        .formline.kdlistitemview-invitation-request
+          .buttons
+            fr()
+            button
+              line-height     normal
+              .icon
+                width         20px
+                &.approve
+                  bg          position, -77px -502px
+                &.decline
+                  bg          position, -77px -482px
+          .status
+            font-size         11px
+            fr()
+            &.sent
+              color           #ff9101
+              .icon
+                bg            position, -100px -580px
+            &.approved
+              color           #40af00
+              .icon
+                bg            position, -80px -500px
+            &.declined
+              color           #be2a26
+              .icon
+                bg            position, -80px -480px
+            &.pending
+              color           #acacac
+              .icon
+                bg            position, -320px -140px
             span
               display         inline-block
+              &.icon
+                size          20px, 20px
+                sprite()
+              &.title
+                vertical-align top
+                line-height   20px
+          .details
+            margin-left       50px
+            .requested-at
+              color           #999
+              font-size       10px
+              line-height     10px
 
-          .is-sent
-
-            span
-              font-weight     600
+          a
+            noTextDeco()
 
           span.avatar
             border            1px solid #E3E3E3
