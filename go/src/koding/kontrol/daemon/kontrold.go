@@ -32,10 +32,7 @@ func main() {
 	}
 
 	// Read config file and initialize workers
-	if config.Verbose {
-		log.Printf("initiliazing worker package.")
-	}
-
+	log.Printf("initiliazing worker package.")
 	handler.Startup()
 	proxy.Startup()
 
@@ -65,10 +62,7 @@ func startRouting() (*Consumer, error) {
 		bind{"kontrol-worker", "input.worker"},
 	}
 
-	if config.Verbose {
-		log.Printf("creating connection to handle incoming cli and api messages")
-	}
-
+	log.Printf("creating connection to handle incoming cli and api messages")
 	user := config.Current.Kontrold.Login
 	password := config.Current.Kontrold.Password
 	host := config.Current.Kontrold.Host
