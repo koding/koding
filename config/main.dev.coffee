@@ -6,7 +6,7 @@ mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_c
 nodePath        = require 'path'
 projectRoot     = nodePath.join __dirname, '..'
 rabbitPrefix    = require("#{projectRoot}/utils/rabbitPrefix").get()
-socialQueueName = "koding-social-#{rabbitPrefix}-#{version}"
+socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
   aws           :
