@@ -9,7 +9,6 @@ services=(
 	koding/broker
 	koding/kites/os
 	koding/kites/irc
-	koding/virt/idshift
 	koding/virt/proxy
 	koding/virt/vmtool
 	koding/alice
