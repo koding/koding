@@ -16,7 +16,7 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-prod-#{rabbitPrefix}"
 
 webPort          = 3040
 brokerPort       = 8010 + (version % 10)
