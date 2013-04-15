@@ -338,7 +338,7 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	log.Println("adding worker", worker.Name)
-	w.RegisteredWorkers[worker.Uuid] = worker
+
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
 		panic(err)
@@ -351,6 +351,9 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	// TODO: Should be removed
+	w.RegisteredWorkers[worker.Uuid] = worker
 
 }
 
@@ -484,21 +487,25 @@ func (w *WorkerConfig) ReadConfig() {
 	result := MsgWorker{}
 	iter := rWorkers.Find(nil).Iter()
 	for iter.Next(&result) {
-		// fmt.Printf("Result: %v\n", result)
+		fmt.Printf("Result: %v\n", result)
+		// TODO: Should be removed
+		w.RegisteredWorkers[result.Uuid] = result
 	}
 
-	configFile := customHostname() + "-kontrold.json"
-	file, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return
-	}
+	return
 
-	*w = WorkerConfig{} // zeroed because otherwise the old values can be still exist
-	err = json.Unmarshal(file, &w)
-	if err != nil {
-		log.Print("bad json unmarshalling config file", err)
-		return
-	}
+	// configFile := customHostname() + "-kontrold.json"
+	// file, err := ioutil.ReadFile(configFile)
+	// if err != nil {
+	// 	return
+	// }
+
+	// *w = WorkerConfig{} // zeroed because otherwise the old values can be still exist
+	// err = json.Unmarshal(file, &w)
+	// if err != nil {
+	// 	log.Print("bad json unmarshalling config file", err)
+	// 	return
+	// }
 }
 
 func (w *WorkerConfig) SaveToConfig() error {
@@ -518,7 +525,14 @@ func (w *WorkerConfig) SaveToConfig() error {
 }
 
 func (w *WorkerConfig) IsEmpty() (bool, error) {
-	v := len(w.RegisteredWorkers)
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	c := session.DB("kontrol").C("workers")
+
+	v, _ := c.Count()
 	if v == 0 {
 		return true, fmt.Errorf("no workers registered. Please register before you can continue.")
 	}
@@ -526,8 +540,6 @@ func (w *WorkerConfig) IsEmpty() (bool, error) {
 }
 
 func (w *WorkerConfig) HasName(name string) (bool, error) {
-	// log.Println(" Checking for duplicates")
-
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
 		panic(err)
@@ -539,6 +551,7 @@ func (w *WorkerConfig) HasName(name string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
 	}
+	// log.Println("Result name:", result.Name)
 
 	return true, nil
 }
