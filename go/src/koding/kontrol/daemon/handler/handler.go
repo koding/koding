@@ -597,10 +597,7 @@ func deliver(data []byte, producer *Producer, appId string) {
 
 func createProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
-
-	if config.Verbose {
-		log.Printf("creating connection for sending %s messages", p.name)
-	}
+	log.Printf("creating connection for sending %s messages", p.name)
 
 	user := config.Current.Kontrold.Login
 	password := config.Current.Kontrold.Password
