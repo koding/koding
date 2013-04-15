@@ -358,6 +358,20 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 }
 
 func (w *WorkerConfig) DeleteWorker(uuid string) {
+	session, err := mgo.Dial("127.0.0.1")
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	c := session.DB("kontrol").C("workers")
+	err = c.Remove(bson.M{"uuid": uuid})
+	if err != nil {
+		log.Println(err)
+	}
+
+	// TODO: Should be removed
 	delete(w.RegisteredWorkers, uuid)
 }
 
@@ -493,19 +507,6 @@ func (w *WorkerConfig) ReadConfig() {
 	}
 
 	return
-
-	// configFile := customHostname() + "-kontrold.json"
-	// file, err := ioutil.ReadFile(configFile)
-	// if err != nil {
-	// 	return
-	// }
-
-	// *w = WorkerConfig{} // zeroed because otherwise the old values can be still exist
-	// err = json.Unmarshal(file, &w)
-	// if err != nil {
-	// 	log.Print("bad json unmarshalling config file", err)
-	// 	return
-	// }
 }
 
 func (w *WorkerConfig) SaveToConfig() error {
