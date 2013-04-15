@@ -3,20 +3,25 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"syscall"
 )
 
 func main() {
-	shift(os.Args[1])
+	amount, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		panic(err)
+	}
+	shift(os.Args[1], amount)
 }
 
-func shift(path string) {
+func shift(path string, amount int) {
 	info, err := os.Lstat(path)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := os.Lchown(path, int(info.Sys().(*syscall.Stat_t).Uid+500000), int(info.Sys().(*syscall.Stat_t).Gid+500000)); err != nil {
+	if err := os.Lchown(path, int(info.Sys().(*syscall.Stat_t).Uid+uint32(amount)), int(info.Sys().(*syscall.Stat_t).Gid+uint32(amount))); err != nil {
 		panic(err)
 	}
 
@@ -26,7 +31,7 @@ func shift(path string) {
 			panic(err)
 		}
 		for _, child := range children {
-			shift(path + "/" + child.Name())
+			shift(path+"/"+child.Name(), amount)
 		}
 	}
 }
