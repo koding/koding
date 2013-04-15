@@ -25,6 +25,13 @@ ebin
 /go/pkg
 /kites/webterm
 /kites/os
+/kites/alice
+/kites/broker
+/kites/idshift
+/kites/irc
+/kites/ldapserver
+/kites/proxy
+/kites/vmtool
 .project
 /kites/terminal/.tmp
 
