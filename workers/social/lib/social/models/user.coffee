@@ -296,8 +296,7 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else
-        group.approveMember account, callback
+      else group.approveMember account, callback
 
   @addToGroups = (account, invite, callback)->
     @addToGroup account, 'koding', (err)=>
@@ -306,8 +305,7 @@ module.exports = class JUser extends jraphical.Module
         @addToGroup account, invite.group, (err)->
           if err then callback err
           else callback null
-      else
-        callback null
+      else callback null
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
