@@ -963,7 +963,7 @@ module.exports = class JGroup extends Module
 
             dash queue, =>
               # transfer ownership
-              owner.update $set: targetId: accountId, kallback
+              owner.update $set: targetId: account.getId(), kallback
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback)->
     unless callback
