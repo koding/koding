@@ -157,6 +157,13 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 			}
 			vm.IP = ip
 		}
+		if vm.LdapPassword == "" {
+			ldapPassword := utils.RandomString()
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ldapPassword": nil}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+				panic(err)
+			}
+			vm.LdapPassword = ldapPassword
+		}
 
 		vm.Prepare(getUsers(vm), false)
 		if out, err := vm.Start(); err != nil {
@@ -174,10 +181,9 @@ func getDefaultVM(user *virt.User) *virt.VM {
 	if user.DefaultVM == "" {
 		// create new vm
 		vm := virt.VM{
-			Id:           bson.NewObjectId(),
-			Name:         user.Name,
-			Users:        []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
-			LdapPassword: utils.RandomString(),
+			Id:    bson.NewObjectId(),
+			Name:  user.Name,
+			Users: []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
 		}
 		if err := db.VMs.Insert(vm); err != nil {
 			panic(err)
