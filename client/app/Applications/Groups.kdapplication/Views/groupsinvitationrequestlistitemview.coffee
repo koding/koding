@@ -45,7 +45,7 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
 
   updateButtons:(err, expectedStatus)->
     if err
-      return new KDNotificationView options:title:'An error occurred. Please try again later'
+      return new KDNotificationView title:'An error occurred. Please try again later'
     @getData().status = expectedStatus
     @initializeButtons()
 

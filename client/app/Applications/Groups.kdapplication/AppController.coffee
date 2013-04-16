@@ -130,14 +130,9 @@ class GroupsAppController extends AppController
               JGroup.byRelevance @_searchValue, options, callback
             else
               JGroup.streamModels selector, options, callback
-          dataEnd           :({resultsController}, ids)->
-            {JGroup} = KD.remote.api
-            JGroup.fetchMyMemberships ids, (err, groups)->
-              if err then error err
-              else
-                {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, (view)->
-                  view.markOwnGroup()
+          dataEnd           :({resultsController}, ids)=>
+            {everything} = resultsController.listControllers
+            @markMemberAndOwnGroups everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
@@ -145,9 +140,16 @@ class GroupsAppController extends AppController
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
+              console.log items
+              ids = []
               for item in items
                 item.followee = true
+                ids.push item.group.getId()
               callback err, (item.group for item in items)
+              callback err, null, ids
+          dataEnd           :({resultsController}, ids)=>
+            {mine} = resultsController.listControllers
+            @markMemberAndOwnGroups mine, ids
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -169,6 +171,17 @@ class GroupsAppController extends AppController
 
       @putAddAGroupButton()
       @emit 'ready'
+
+  markMemberAndOwnGroups:(controller, ids)->
+    {JGroup} = KD.remote.api
+    fetchRoles = 
+      member: (view)-> view.markMemberGroup()
+      owner : (view)-> view.markOwnGroup()
+    for as, callback of fetchRoles
+      do (as, callback)->
+        JGroup.fetchMyMemberships ids, as, (err, groups)->
+          return error err if err
+          controller.forEachItemByIndex groups, callback
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'

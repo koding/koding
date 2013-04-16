@@ -75,7 +75,8 @@ module.exports = class JGroup extends Module
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
         'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership'
+        'removeBackgroundImage', 'kickMember', 'transferOwnership',
+        'remove'
       ]
     schema          :
       title         :
@@ -1009,3 +1010,75 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
+  remove_ = @::remove
+  remove: secure (client, callback)->
+    JName = require '../name'
+
+    @fetchOwner (err, owner)=>
+      return callback err if err
+      unless owner.getId().equals client.connection.delegate.getId()
+        return callback new KodingError 'You must be the owner to perform this action!'
+
+      removeHelper = (model, err, callback, queue)->
+        return callback err if err
+        return queue.next() unless model
+        model.remove (err)=>
+          return callback err if err
+          queue.next()
+
+      removeHelperMany = (klass, models, err, callback, queue)->
+        return callback err if err
+        return queue.next() if not models or models.length < 1
+        ids = (model._id for model in models)
+        klass.remove (_id: $in: ids), (err)->
+          return callback err if err
+          queue.next()
+
+      queue = [
+        => JName.one name:@slug, (err, name)->
+          removeHelper name, err, callback, queue
+
+        => @fetchPermissionSet (err, permSet)->
+          removeHelper permSet, err, callback, queue
+
+        => @fetchDefaultPermissionSet (err, permSet)->
+          removeHelper permSet, err, callback, queue
+
+        => @fetchMembershipPolicy (err, policy)->
+          removeHelper policy, err, callback, queue
+
+        => @fetchReadme (err, readme)->
+          removeHelper readme, err, callback, queue
+
+        => @fetchInvitationRequests (err, requests)->
+          JInvitationRequest = require '../invitationrequest'
+          removeHelperMany JInvitationRequest, requests, err, callback, queue
+
+        => @fetchVocabularies (err, vocabularies)->
+          JVocabulary = require '../vocabulary'
+          removeHelperMany JVocabulary, vocabularies, err, callback, queue
+
+        => @fetchTags (err, tags)->
+          JTag = require '../tag'
+          removeHelperMany JTag, tags, err, callback, queue
+
+        => @fetchApplications (err, apps)->
+          JApp = require '../app'
+          removeHelperMany JApp, apps, err, callback, queue
+
+        # needs to be tested once subgroups are supported
+        # => @fetchSubgroups (err, groups)=>
+        #   return callback err if err
+        #   return queue.next() unless groups
+        #   ids = (model._id for model in groups)
+        #   JGroup.remove client, (_id: $in: ids), (err)->
+        #     return callback err if err
+        #     queue.next()
+
+        => remove_.call this, (err)->
+          return callback err if err
+          queue.next()
+
+        -> callback null
+      ]
+      daisy queue
