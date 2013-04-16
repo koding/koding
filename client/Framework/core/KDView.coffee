@@ -215,12 +215,14 @@ class KDView extends KDObject
 # #
 # TRAVERSE DOM ELEMENT
 # #
+  Object.defineProperty @::, "$$", get : -> @$()
 
   getDomElement:-> @domElement
 
   getElement:-> @getDomElement()[0]
 
   # shortcut method for @getDomElement()
+  
   $ :(selector)->
     if selector?
       @getDomElement().find(selector)

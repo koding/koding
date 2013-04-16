@@ -120,24 +120,23 @@ class MainController extends KDController
 
     @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-  handleLoginScreenRoute:(action, path)->
-    ldc = @getSingleton 'lazyDomController'
-    ldc.handleNavigationItemClick {action, path}
+  handleLoginScreenRoute:(path)->
+    @getSingleton('router').handleRoute path
 
   doJoin:->
-    @handleLoginScreenRoute 'lr', 'Join'
+    @handleLoginScreenRoute 'Join'
 
   doRegister:->
-    @handleLoginScreenRoute 'register'
+    @handleLoginScreenRoute 'Register'
 
   doGoHome:->
-    # @handleLoginScreenRoute 'home'
+    @handleLoginScreenRoute 'Home'
 
   doLogin:->
-    @handleLoginScreenRoute 'login'
+    @handleLoginScreenRoute 'Login'
 
   doRecover:->
-    @handleLoginScreenRoute 'recover', 'Recover'
+    @handleLoginScreenRoute 'Recover'
 
   doLogout:->
 

@@ -49,14 +49,15 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
+    log ">>>>>", app, group
+    debugger
     unless @ready
       log "not ready", app, group
       @once 'ready', @go.bind this, arguments...
       return
 
-    log "it's ready", app, group
-
     @getSingleton('groupsController').changeGroup group, (err)->
+      log "ready", app, group
       if err then new KDNotificationView title: err.message
       else
         KD.getSingleton("appManager").open app
@@ -147,18 +148,6 @@ class KodingRouter extends KDRouter
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
-
-    loader = new KDLoaderView
-      size          :
-        width       : 30
-      loaderOptions :
-        color       : "#FFFFFF"
-    loader.appendToSelector '#main-loader'
-    loader.show()
-
-    mainController.on "AppIsReady", =>
-      loader.destroy()
-      # KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
     content = createLinks(
       'Activity Apps Groups Members Topics'
