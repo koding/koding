@@ -308,6 +308,7 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
+          { title : "Home",           path : "/Home" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }
@@ -323,6 +324,7 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
+          { title : "Home",           path : "/Home" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }

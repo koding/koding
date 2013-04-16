@@ -37,25 +37,6 @@ app.login-signup.styl
   >section
     hidden()
 
-  &.home
-    // margin-top            -340px !important
-    // height                 730px
-
-    >section
-    .bigLink
-    .home
-      visible()
-    .flex-wrapper
-      overflow            visible
-      size                90%, 596px
-      max-width           920px
-    .login-form-holder
-      height              100%
-      margin              -15px 0 0 0
-      padding             0
-    iframe
-      opacity             1!important
-
   &.lr
     // margin-top            -200px !important
 
@@ -200,67 +181,11 @@ app.login-signup.styl
         vertical-align    bottom
         size              12px, 11px
 
-  .video-wrapper
-    overflow              visible
-    iframe
-      size                89.13%, 76.6%
-      background          rgb(40,37,32)
-      opacity             0.00001
-      vendor              transition, opacity .6s ease-in
-      border              10px solid rgb(40,37,32)
-      rounded             5px
-      // shadow              0 -1px 0px rgba(0,0,0,0.6)\, 0 0px 1px 1px rgba(255,255,255,.1)
-      .as
-        display           none!important
-    a.login-register
-      display             inline-block
-      margin              10px auto 0
-    button
-      margin              2px 0 0 0
-      padding             6px 10px
-      font-weight         400
-      color               transparent
-      text-shadow         none
-      rounded             13px
   a
     color                 #ffb500
     noTextDeco()
     &:hover
       color               white
-
-  hr
-    size                80%,2px
-    border-top          1px solid rgba(0,0,0,0.6)
-    background          rgba(255,255,255,.1)
-    margin              40px auto
-    vendor              transition, margin .3s ease-in
-    borderBox()
-
-  .reviews
-    p
-      color               #aaa
-      font-size           32px
-      margin              20px 0 10px 0
-      line-height         40px
-      font-family         serif
-      font-style          italic
-      vendor              transition, all .3s ease-in
-    span
-      display             block
-      color               #555
-      font-size           14px
-      font-weight         300
-
-  .footer-links
-    a
-      color               #aaa
-      &:hover
-        color             white
-
-  footer.copy
-    font-size             11px
-    color                 #444
-    padding-bottom        30px
 
 .login-box-header
   rel()
@@ -545,16 +470,6 @@ p.login-tip
 .kdview.login-screen.home
   .flex-wrapper
     margin-bottom       30px
-  p.bigLink
-    text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    display             inline-block
-    font-size           20px
-    line-height         40px
-    margin-right        40px
-    vendor              transition, font-size .3s ease-in
-    &:nth-child(4)
-      margin-right    0
-
 
 .login-footer
   rel()

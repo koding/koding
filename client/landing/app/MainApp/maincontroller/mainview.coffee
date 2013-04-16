@@ -1,29 +1,17 @@
 class MainView extends KDView
 
-  constructor:->
-    super
-
-    mainController    = @getSingleton 'mainController'
-    lazyDomController = @getSingleton 'lazyDomController'
-
-    if KD.config.groupEntryPoint
-      lazyDomController.on 'landingViewIsHidden', =>
-        @removeLoader()
-    else
-      mainController.on 'AppIsReady', =>
-        @removeLoader()
-
   viewAppended:->
-    log "mainView viewAppended"
-    # debugger
+
     # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
+    @setStickyNotification()
     @createSideBar()
     @listenWindowResize()
 
   putAbout:->
+
     @putOverlay
       color   : "rgba(0,0,0,0.9)"
       animated: yes
@@ -54,24 +42,6 @@ class MainView extends KDView
         @contentPanel.unsetClass 'no-shadow'
         @mainTabView.showHandleContainer()
         @sidebar.hideFinderPanel()
-
-  removeLoader:->
-
-    loadingScreen = new KDView
-      lazyDomId : "main-koding-loader"
-
-    loadingScreen.bindTransitionEnd()
-
-    loginForm            = $('#main-form-handler')
-    {winWidth,winHeight} = @getSingleton "windowController"
-
-    loadingScreen.once "transitionend", =>
-      loadingScreen.destroy()
-      $('body').removeClass 'loading'
-      loginForm.show()
-
-    loginForm.hide()
-    loadingScreen.$().css opacity : 0
 
   createMainPanels:->
 
@@ -136,39 +106,7 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
-    getFrontAppManifest = ->
-      appManager = KD.getSingleton "appManager"
-      appController = KD.getSingleton "kodingAppsController"
-      frontApp = appManager.getFrontApp()
-      frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
-      appController.constructor.manifests?[frontAppName]
-
-    @mainSettingsMenuButton = new KDButtonView
-      domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer transparent"
-      iconOnly : yes
-      iconClass: "dot"
-      callback : ->
-        appManifest = getFrontAppManifest()
-        if appManifest?.menu
-          appManifest.menu.forEach (item, index)->
-            item.callback = (contextmenu)->
-              mainView = KD.getSingleton "mainView"
-              view = mainView.mainTabView.activePane?.mainView
-              item.eventName or= item.title
-              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
-
-          offset = @$().offset()
-          contextMenu = new JContextMenu
-              event       : event
-              delegate    : @
-              x           : offset.left - 150
-              y           : offset.top + 20
-              arrow       :
-                placement : "top"
-                margin    : -5
-            , appManifest.menu
-    @mainSettingsMenuButton.hide()
+    @mainSettingsMenuButton = @getMainSettingsMenuButton()
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -182,76 +120,12 @@ class MainView extends KDView
       appManifest = getFrontAppManifest()
       @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
-    mainController = @getSingleton('mainController')
-    mainController.popupController = new VideoPopupController
-
-    mainController.monitorController = new MonitorController
-
-    @videoButton = new KDButtonView
-      cssClass : "video-popup-button"
-      icon : yes
-      title : "Video"
-      callback :=>
-        unless @popupList.$().hasClass "hidden"
-          @videoButton.unsetClass "active"
-          @popupList.hide()
-        else
-          @videoButton.setClass "active"
-          @popupList.show()
-
-    @videoButton.hide()
-
-    @popupList = new VideoPopupList
-      cssClass      : "hidden"
-      type          : "videos"
-      itemClass     : VideoPopupListItem
-      delegate      : @
-    , {}
-
     @mainTabView.on "AllPanesClosed", ->
       @getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
     @contentPanel.addSubView @mainSettingsMenuButton
-    @contentPanel.addSubView @videoButton
-    @contentPanel.addSubView @popupList
-
-    getSticky = =>
-      @getSingleton('windowController')?.stickyNotification
-
-    getStatus = =>
-      KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
-        if err
-          if err.message is 'none_scheduled'
-            getSticky()?.emit 'restartCanceled'
-          else
-            log 'current system status:',err
-        else
-          systemStatus.on 'restartCanceled', =>
-            getSticky()?.emit 'restartCanceled'
-          new GlobalNotification
-            targetDate  : systemStatus.scheduledAt
-            title       : systemStatus.title
-            content     : systemStatus.content
-            type        : systemStatus.type
-
-    # sticky = @getSingleton('windowController')?.stickyNotification
-    @utils.defer => getStatus()
-
-    KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      sticky = @getSingleton('windowController')?.stickyNotification
-
-      if systemStatus.status isnt 'active'
-        getSticky()?.emit 'restartCanceled'
-      else
-        systemStatus.on 'restartCanceled', =>
-          getSticky()?.emit 'restartCanceled'
-        new GlobalNotification
-          targetDate : systemStatus.scheduledAt
-          title      : systemStatus.title
-          content    : systemStatus.content
-          type       : systemStatus.type
 
   createSideBar:->
 
@@ -282,3 +156,107 @@ class MainView extends KDView
 
     {winHeight} = @getSingleton "windowController"
     @panelWrapper.setHeight winHeight - 51
+
+  getMainSettingsMenuButton:->
+    new KDButtonView
+      domId    : "main-settings-menu"
+      cssClass : "kdsettingsmenucontainer transparent hidden"
+      iconOnly : yes
+      iconClass: "dot"
+      callback : ->
+        appManifest = getFrontAppManifest()
+        if appManifest?.menu
+          appManifest.menu.forEach (item, index)->
+            item.callback = (contextmenu)->
+              mainView = KD.getSingleton "mainView"
+              view = mainView.mainTabView.activePane?.mainView
+              item.eventName or= item.title
+              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
+
+          offset = @$().offset()
+          contextMenu = new JContextMenu
+              event       : event
+              delegate    : @
+              x           : offset.left - 150
+              y           : offset.top + 20
+              arrow       :
+                placement : "top"
+                margin    : -5
+            , appManifest.menu
+
+  setStickyNotification:->
+    # sticky = @getSingleton('windowController')?.stickyNotification
+    @utils.defer => getStatus()
+
+    KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
+      sticky = @getSingleton('windowController')?.stickyNotification
+
+      if systemStatus.status isnt 'active'
+        getSticky()?.emit 'restartCanceled'
+      else
+        systemStatus.on 'restartCanceled', =>
+          getSticky()?.emit 'restartCanceled'
+        new GlobalNotification
+          targetDate : systemStatus.scheduledAt
+          title      : systemStatus.title
+          content    : systemStatus.content
+          type       : systemStatus.type
+
+
+  # take this to appManager SY
+  getFrontAppManifest = ->
+    appManager    = KD.getSingleton "appManager"
+    appController = KD.getSingleton "kodingAppsController"
+    frontApp      = appManager.getFrontApp()
+    frontAppName  = name for name, instances of appManager.appControllers when frontApp in instances
+    appController.constructor.manifests?[frontAppName]
+
+  getSticky = =>
+    KD.getSingleton('windowController')?.stickyNotification
+
+  getStatus = =>
+    KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
+      if err
+        if err.message is 'none_scheduled'
+          getSticky()?.emit 'restartCanceled'
+        else
+          log 'current system status:',err
+      else
+        systemStatus.on 'restartCanceled', =>
+          getSticky()?.emit 'restartCanceled'
+        new GlobalNotification
+          targetDate  : systemStatus.scheduledAt
+          title       : systemStatus.title
+          content     : systemStatus.content
+          type        : systemStatus.type
+
+
+# inactive code
+
+    # mainController = @getSingleton('mainController')
+    # mainController.popupController = new VideoPopupController
+
+    # mainController.monitorController = new MonitorController
+
+    # @videoButton = new KDButtonView
+    #   cssClass : "video-popup-button"
+    #   icon : yes
+    #   title : "Video"
+    #   callback :=>
+    #     unless @popupList.$().hasClass "hidden"
+    #       @videoButton.unsetClass "active"
+    #       @popupList.hide()
+    #     else
+    #       @videoButton.setClass "active"
+    #       @popupList.show()
+
+    # @videoButton.hide()
+
+    # @popupList = new VideoPopupList
+    #   cssClass      : "hidden"
+    #   type          : "videos"
+    #   itemClass     : VideoPopupListItem
+    #   delegate      : @
+    # , {}
+    # @contentPanel.addSubView @videoButton
+    # @contentPanel.addSubView @popupList

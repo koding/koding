@@ -17,8 +17,6 @@
 </head>
 <body class='koding'>
 
-  <!--LOADER-->
-
   <!--[if IE]>
   <script>(function(){window.location.href='/unsupported.html'})();</script>
   <![endif]-->
@@ -80,17 +78,29 @@
           <div id="finder-panel"></div>
         </div>
       </div>
-      <div class="kdview transition social" id="content-panel">
+      <div class="kdview" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-home' class="kdview content-area-pane home content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id='content-page-home' class="kdview content-page home">
-              <div class="login-form-holder home">
-                <div class="kdview video-wrapper">
-                  <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
-                  height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
-                  allowfullscreen="">
-                  </iframe>
-                </div>
+              <div class="kdview video-wrapper">
+                <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
+                height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
+                allowfullscreen="">
+                </iframe>
+              </div>
+              <div class="login-footer">
+                <p class="bigLink">
+                  <a href="#">Request an Invite</a>
+                </p>
+                <p class="bigLink">
+                  <a href="#">Register</a>
+                </p>
+                <p class="bigLink">
+                  <a href="#">Login</a>
+                </p>
+                <p class="bigLink">
+                  <a href="#">Learn more</a>
+                </p>
               </div>
               <section>
                 <hr id="home-reviews">
@@ -107,9 +117,41 @@
                   <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
                 </div>
                 <hr />
-                <div id="home-screenshots" class="screenshots"></div>
+                <div id="home-screenshots" class="screenshots">
+                  <div class="kdview">
+                    <a class="arrow left" href="#"></a>
+                    <a class="arrow right" href="#"></a>
+                    <section class="kdview kdscrollview">
+                      <ul class="clearfix">
+                        <li>
+                          <img src="https://api.koding.com/images/demo-screenshots/sc-code.jpg">
+                          <p class="flex-caption">
+                            A free, fully featured Cloud Development environment. Create and edit code from anywhere.
+                          </p>
+                        </li>
+                        <li>
+                          <img src="https://api.koding.com/images/demo-screenshots/sc-activity.jpg">
+                          <p class="flex-caption">
+                            An active community where you can share work, collaborate and meet people who can help you with your projects.
+                          </p>
+                        </li>
+                        <li>
+                          <img src="https://api.koding.com/images/demo-screenshots/sc-terminal.jpg">
+                          <p class="flex-caption">
+                            A fully functional Terminal in your browser.
+                          </p>
+                        </li>
+                        <li>
+                          <img src="https://api.koding.com/images/demo-screenshots/sc-apps.jpg">
+                          <p class="flex-caption">
+                            An App Catalog to install common web apps, user contributed apps and scripts and more.
+                          </p>
+                        </li>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
                 <hr />
-
                 <footer id="copy-footer" class="copy">
                   ©2013 All rights reserved Koding, Inc.
                 </footer>
@@ -120,66 +162,6 @@
         </div>
       </div>
     </section>
-  </div>
-
-  <div id="main-form-handler" class="kdview kdscrollview login-screen home" style="margin-top: 0px;">
-    <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
-
-    <div class="flex-wrapper">
-      <div id="login-details"></div>
-      <div class="login-box-header">
-        <a class="betatag">beta</a>
-        <div id="header-logo" class="logo">Koding</div>
-      </div>
-      <div class="kdview login-options-holder log" id="82093_1363646314329">
-        <h3 class="kdview kdheaderview">
-          <span>SIGN IN WITH:</span>
-        </h3>
-        <ul class="login-options">
-          <li class="koding active">koding</li>
-          <li class="github">github</li>
-          <li class="facebook">facebook</li>
-          <li class="google">google</li>
-        </ul>
-      </div>
-      <div class="kdview login-options-holder reg" id="37648_1363646314330">
-        <h3 class="kdview kdheaderview ">
-          <span>
-            YOU NEED AN INVITATION CODE TO REGISTER.
-          </span>
-        </h3>
-        <ul class="login-options">
-          <li class="koding active">koding</li>
-          <li class="github">github</li>
-          <li class="facebook">facebook</li>
-          <li class="google">google</li>
-        </ul>
-      </div>
-
-      <div class="login-form-holder lf">
-        <form id="login-form"></form>
-      </div>
-
-      <div class="login-form-holder rf">
-        <form id="register-form"></form>
-      </div>
-
-      <div class="login-form-holder rcf">
-        <form id="recover-form"></form>
-      </div>
-
-      <div class="login-form-holder rsf">
-        <form id="reset-form"></form>
-      </div>
-
-      <div class="login-form-holder rqf">
-        <form id="request-form"></form>
-      </div>
-
-    </div>
-    <div id="main-loader"></div>
-    <div id="login-footer"></div>
-
   </div>
 
   <script>(function(){var result;if ((result=/AppleWebKit\/([\d.]+)/.exec(navigator.userAgent)) && (parseFloat(result[1]) < 535.0)){window.location.href='/unsupported.html'}})();</script>

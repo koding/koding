@@ -10,8 +10,76 @@ app.home.styl
 */
 }
 
-// NEW TRY
+#content-page-home
+  text-align              center
+  overflow                auto
+  .video-wrapper
+    size                  auto, auto
+    overflow              visible
+    margin                5.48% 0
+    iframe
+      size                89.13%, 76.6%
+      background          rgb(40,37,32)
+      border              10px solid rgb(40,37,32)
+      rounded             5px
+      shadow              0 5px 20px rgba(0,0,0,0.6)
+      borderBox()
+    a.login-register
+      display             inline-block
+      margin              10px auto 0
+    button
+      margin              2px 0 0 0
+      padding             6px 10px
+      font-weight         400
+      color               transparent
+      text-shadow         none
+      rounded             13px
 
+  hr
+    size                  80%,2px
+    border-top            1px solid rgba(0,0,0,0.6)
+    background            rgba(255,255,255,.1)
+    margin                40px auto
+    vendor                transition, margin .3s ease-in
+    borderBox()
+  .reviews
+    p
+      color               #aaa
+      font-size           32px
+      margin              20px 0 10px 0
+      line-height         40px
+      font-family         serif
+      font-style          italic
+      vendor              transition, all .3s ease-in
+    span
+      display             block
+      color               #555
+      font-size           14px
+      font-weight         300
+
+  .footer-links
+    a
+      color               #aaa
+      &:hover
+        color             white
+
+  footer.copy
+    font-size             11px
+    color                 #444
+    padding-bottom        30px
+
+  p.bigLink
+    text-shadow         0 -1px 0 rgba(0,0,0,.8)
+    display             inline-block
+    font-size           20px
+    line-height         40px
+    margin-right        40px
+    vendor              transition, font-size .3s ease-in
+    &:nth-child(4)
+      margin-right    0
+
+
+// NEW TRY
 div.screenshots
   height                  530px
   // h1

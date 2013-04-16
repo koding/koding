@@ -1,4 +1,4 @@
-class HomeSlideShowHolder extends JView
+class HomeAppView extends JView
 
   constructor:->
 
@@ -31,15 +31,85 @@ class HomeSlideShowHolder extends JView
       @leftArrow.$().css left : 0
       @rightArrow.$().css right : 0
 
+    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    else entryPoint = ''
+
+    handler =(route, event)=>
+      route = "/#{entryPoint}#{route}" if entryPoint
+      @utils.stopDOMEvent event
+      @getSingleton('router').handleRoute route
+
+    loginHandler      = handler.bind null, '/Login'
+    registerHandler   = handler.bind null, '/Register'
+    joinHandler       = handler.bind null, '/Join'
+
+
+    @register     = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Register"
+      click       : registerHandler
+
+    @request      = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Request an Invite"
+      click       : joinHandler
+
+    @login        = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Login"
+      click       : loginHandler
+
+    @learn        = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Learn more"
+      click       : => @$().animate scrollTop : 1200
+
+
 
   pistachio:->
 
-    # <h1>Isn't it about time to say goodbye to localhost? </h1>
-    # <h2>We're a few developers who think there is a better way to work. </h2>
     """
-    {{> @leftArrow}}
-    {{> @rightArrow}}
-    {{> @slideShow}}
+    <div class="kdview video-wrapper">
+      <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
+      height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
+      allowfullscreen="">
+      </iframe>
+    </div>
+    <div class="login-footer">
+      <p class="bigLink">{{> @request}}</p>
+      <p class="bigLink">{{> @register}}</p>
+      <p class="bigLink">{{> @login}}</p>
+      <p class="bigLink">{{> @learn}}</p>
+    </div>
+    <section>
+      <hr id="home-reviews">
+      <div class="reviews">
+        <p>A new way for developers to work</p>
+        <span>We said.</span>
+        <p>Wow! Cool - good luck!</p>
+        <span>Someone we talked to the other day...</span>
+        <p>I don't get it... What is it, again?</p>
+        <span>Same dude.</span>
+        <p>Real software development in the browser...</p>
+        <span>Us again.</span>
+        <p>with a real VM and a real Terminal?</p>
+        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+      </div>
+      <hr />
+      <div id="home-screenshots" class="screenshots">
+        <div class="kdview">
+          {{> @leftArrow}}
+          {{> @rightArrow}}
+          {{> @slideShow}}
+        </div>
+      </div>
+      <hr />
+      <footer id="copy-footer" class="copy">
+        ©#{(new Date).getFullYear()} Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
+      </footer>
+
+    </section>
     """
 
 class HomeSlideShow extends KDScrollView
@@ -59,8 +129,9 @@ class HomeSlideShow extends KDScrollView
     slideAmount = @$('li').length
     # @setHeight winHeight - @parent.$('h1').height() - @parent.$('h2').height() - 51 - 130
     # @$('ul').css marginTop : @parent.$('h1').height() + @parent.$('h2').height() + 70
-    @$('ul').width winWidth * slideAmount
-    @$('li').width winWidth
+    {contentPanel} = @getSingleton('mainView')
+    @$('ul').width contentPanel.getWidth() * slideAmount
+    @$('li').width contentPanel.getWidth()
 
   click:->
     @setKeyView()

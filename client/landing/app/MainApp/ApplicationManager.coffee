@@ -5,7 +5,7 @@ class ApplicationManager extends KDObject
 
   manifestsFetched = no
 
-  log = noop
+  # log = noop
 
   ###
 
@@ -51,6 +51,8 @@ class ApplicationManager extends KDObject
       appOptions           = KD.getAppOptions name
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
+
+      log ">>>>>", name, options
 
       # if there is no registered appController
       # we assume it should be a 3rd party app
