@@ -184,13 +184,15 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  hasPermission: (context, permission, target, callback)->
-    JPermissionSet = require './group/permissionset'
-    client = { context, connection: delegate: this }
+  checkPermission: (permission, target, callback)->
+    JPermissionSet = require '../group/permissionset'
+    client = 
+      context     : { group: target.slug }
+      connection  : { delegate: this }
     advanced = 
       if Array.isArray permission then permission
       else JPermissionSet.wrapPermission permission
-    JPermissionSet.hasPermission client, advanced, target, callback
+    JPermissionSet.checkPermission client, advanced, target, callback
 
   setBackgroundImage: secure (client, type, value, callback=->)->
     {delegate}    = client.connection
