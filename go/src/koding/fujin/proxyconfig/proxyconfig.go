@@ -1,23 +1,18 @@
 package proxyconfig
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
-	"os"
 )
 
-var configFile string = "proxy-handler.config.json"
-
-type KeyRoutingTable struct {
-	Keys map[string][]KeyData `json:"keys"`
-}
-
-func NewKeyRoutingTable() *KeyRoutingTable {
-	return &KeyRoutingTable{
-		Keys: make(map[string][]KeyData),
-	}
+type ProxyMessage struct {
+	Action   string `json:"action"`
+	Key      string `json:"key"`
+	Host     string `json:"host"`
+	HostData string `json:"hostdata"`
+	Uuid     string `json:"uuid"`
 }
 
 type KeyData struct {
@@ -36,6 +31,16 @@ func NewKeyData(key, host, hostdata string, currentindex int) *KeyData {
 	}
 }
 
+type KeyRoutingTable struct {
+	Keys map[string][]KeyData `json:"keys"`
+}
+
+func NewKeyRoutingTable() *KeyRoutingTable {
+	return &KeyRoutingTable{
+		Keys: make(map[string][]KeyData),
+	}
+}
+
 type DomainRoutingTable struct {
 	Domain map[string]string `json:"domain"`
 }
@@ -47,52 +52,69 @@ func NewDomainRoutingTable() *DomainRoutingTable {
 }
 
 type ProxyConfiguration struct {
-	RegisteredProxies map[string]Proxy
+	Session    *mgo.Session
+	Collection *mgo.Collection
 }
 
 type Proxy struct {
 	KeyRoutingTable    KeyRoutingTable
 	DomainRoutingTable DomainRoutingTable
+	Uuid               string
 }
 
-func NewProxy() *Proxy {
+func NewProxy(uuid string) *Proxy {
 	return &Proxy{
 		KeyRoutingTable:    *NewKeyRoutingTable(),
 		DomainRoutingTable: *NewDomainRoutingTable(),
+		Uuid:               uuid,
 	}
 }
 
-func NewProxyConfiguration() *ProxyConfiguration {
-	return &ProxyConfiguration{
-		RegisteredProxies: make(map[string]Proxy),
-	}
-}
-
-type ProxyMessage struct {
-	Action   string `json:"action"`
-	Key      string `json:"key"`
-	Host     string `json:"host"`
-	HostData string `json:"hostdata"`
-	Uuid     string `json:"uuid"`
-}
-
-func (p *ProxyConfiguration) AddProxy(uuid string) error {
-	err := p.ReadConfig()
+func Connect() *ProxyConfiguration {
+	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
-		log.Println("configfile not available, might be the first time registering...", err)
+		panic(err)
+	}
+	session.SetMode(mgo.Strong, true)
+
+	col := session.DB("kontrol").C("proxies")
+
+	pr := &ProxyConfiguration{
+		Session:    session,
+		Collection: col,
 	}
 
-	err = p.HasUuid(uuid)
+	return pr
+}
+
+// Base INSERT/CREATE crud action
+func (p *ProxyConfiguration) Add(proxy Proxy) error {
+	err := p.Collection.Insert(proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (p *ProxyConfiguration) AddProxy(uuid string) error {
+	err := p.HasUuid(uuid)
 	if err == nil {
 		return fmt.Errorf("registering not possible uuid '%s' uuid exists.", uuid)
 	}
 
-	proxy := *NewProxy()
-	p.RegisteredProxies[uuid] = proxy
-	if err := p.SaveConfig(); err != nil {
+	proxy := *NewProxy(uuid)
+	err = p.Add(proxy)
+	if err != nil {
 		return err
 	}
+	return nil
+}
 
+// Base DELETE crud action
+func (p *ProxyConfiguration) Delete(uuid string) error {
+	err := p.Collection.Remove(bson.M{"uuid": uuid})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -102,9 +124,8 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 		return fmt.Errorf("deleting not possible '%s'", err)
 	}
 
-	log.Printf("deleting uuid %s", uuid)
-	delete(p.RegisteredProxies, uuid)
-	if err := p.SaveConfig(); err != nil {
+	err = p.Delete(uuid)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -116,31 +137,37 @@ func (p *ProxyConfiguration) DeleteKey(key, host, hostdata, uuid string) error {
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 
-	proxy := p.RegisteredProxies[uuid]
-
-	delete(proxy.KeyRoutingTable.Keys, key)
-	if err := p.SaveConfig(); err != nil {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
 		return err
 	}
+
+	delete(proxy.KeyRoutingTable.Keys, key)
 	return nil
 }
 
 func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
-	err := p.HasUuid(uuid)
+	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key not possible '%s'", err)
 	}
 
-	proxy := p.RegisteredProxies[uuid]
-
 	if len(proxy.KeyRoutingTable.Keys) == 0 { // empty routing table, add it
 		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+		_, err := p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+		if err != nil {
+			log.Println(err)
+		}
 		return nil
 	}
 
 	_, ok := proxy.KeyRoutingTable.Keys[key] // new key, add it
 	if !ok {
 		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+		_, err := p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+		if err != nil {
+			log.Println(err)
+		}
 		return nil
 	}
 
@@ -152,60 +179,30 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 	}
 
 	proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
-
-	if err := p.SaveConfig(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (p *ProxyConfiguration) ListKeys() string {
-	data, err := json.MarshalIndent(p.RegisteredProxies, "", "  ")
+	_, err = p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
 	if err != nil {
-		log.Printf("could not marshall json: %s", err)
+		log.Println(err)
 	}
 
-	res := fmt.Sprintf("current added hosts\n\n%s", data)
-	return res
+	return nil
 }
 
 func (p *ProxyConfiguration) HasUuid(uuid string) error {
-	_, ok := p.RegisteredProxies[uuid]
-	if ok {
-		return nil
+	result := Proxy{}
+	err := p.Collection.Find(bson.M{"uuid": uuid}).One(&result)
+	if err != nil {
+		return fmt.Errorf("no proxy with the uuid %s exist.", uuid)
 	}
-	return fmt.Errorf("no proxy with the uuid %s exist.", uuid)
+	return nil
 }
 
-func (p *ProxyConfiguration) SaveConfig() error {
-	data, err := json.MarshalIndent(p, "", "  ")
+func (p *ProxyConfiguration) GetProxy(uuid string) (Proxy, error) {
+	result := Proxy{}
+	err := p.Collection.Find(bson.M{"uuid": uuid}).One(&result)
 	if err != nil {
-		return fmt.Errorf("could not marshall json: %s", err)
-	}
-	err = ioutil.WriteFile(configFile, data, 0644)
-	if err != nil {
-		return fmt.Errorf("could not save to config.json: %s", err)
+		return result, fmt.Errorf("no proxy with the uuid %s exist.", uuid)
 	}
 
-	return nil
+	return result, nil
 
-}
-
-func (p *ProxyConfiguration) ReadConfig() error {
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		return fmt.Errorf("no such file or directory: %s", configFile)
-	}
-
-	file, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return err
-	}
-
-	*p = ProxyConfiguration{} // zeroed because othwerise the old ones can be still exist
-	err = json.Unmarshal(file, &p)
-	if err != nil {
-		return fmt.Errorf("bad json unmarshalling config file", err)
-	}
-
-	return nil
 }

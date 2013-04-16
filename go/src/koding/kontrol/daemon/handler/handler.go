@@ -54,7 +54,6 @@ type Producer struct {
 
 var processConfig ProcessConfig
 var kontrolConfig *workerconfig.WorkerConfig
-var proxyConfig *proxyconfig.ProxyConfiguration
 
 var workerProducer *Producer
 var cliProducer *Producer
@@ -102,9 +101,6 @@ func Startup() {
 	}
 
 	kontrolConfig = workerconfig.Connect()
-
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	proxyConfig.ReadConfig()
 
 	var worker workerconfig.MsgWorker
 
@@ -335,7 +331,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		}
 	} else if uuid != "" {
 		// Apply action on single worker, hostname is just for backward compatibility
-		workerResult, err := kontrolConfig.Worker(uuid)
+		workerResult, err := kontrolConfig.GetWorker(uuid)
 		if err != nil {
 			return fmt.Errorf("dorequest method error '%s'", err)
 		}
@@ -359,7 +355,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 }
 
 func SaveMonitorData(data *workerconfig.Monitor) error {
-	workerResult, err := kontrolConfig.Worker(data.Uuid)
+	workerResult, err := kontrolConfig.GetWorker(data.Uuid)
 	if err != nil {
 		return fmt.Errorf("monitor data error '%s'", err)
 	}

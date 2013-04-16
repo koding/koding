@@ -214,7 +214,7 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 }
 
 func (w *WorkerConfig) RefreshStatus(uuid string) error {
-	workerData, err := w.Worker(uuid)
+	workerData, err := w.GetWorker(uuid)
 	if err != nil {
 		return err
 	}
@@ -251,7 +251,7 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 }
 
 func (w *WorkerConfig) Delete(hostname, uuid string) error {
-	workerResult, err := w.Worker(uuid)
+	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
 		return fmt.Errorf("delete method error '%s'", err)
 	}
@@ -262,7 +262,7 @@ func (w *WorkerConfig) Delete(hostname, uuid string) error {
 }
 
 func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
-	workerResult, err := w.Worker(uuid)
+	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
 		return workerResult, fmt.Errorf("ack method error '%s'", err)
 	}
@@ -280,7 +280,7 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 }
 
 func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
-	workerResult, err := w.Worker(uuid)
+	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
 		return workerResult, fmt.Errorf("ack method error '%s'", err)
 	}
@@ -294,7 +294,7 @@ func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
 }
 
 func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
-	workerResult, err := w.Worker(uuid)
+	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
 		return workerResult, fmt.Errorf("ack method error '%s'", err)
 	}
@@ -423,7 +423,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 }
 
 func (w *WorkerConfig) Ack(worker MsgWorker) error {
-	workerResult, err := w.Worker(worker.Uuid)
+	workerResult, err := w.GetWorker(worker.Uuid)
 	if err != nil {
 		return fmt.Errorf("ack method error '%s'", err)
 	}
@@ -485,7 +485,7 @@ func (w *WorkerConfig) HasUuid(uuid string) error {
 	return nil
 }
 
-func (w *WorkerConfig) Worker(uuid string) (MsgWorker, error) {
+func (w *WorkerConfig) GetWorker(uuid string) (MsgWorker, error) {
 	result := MsgWorker{}
 	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
 	if err != nil {

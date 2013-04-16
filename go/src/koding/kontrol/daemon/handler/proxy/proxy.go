@@ -40,14 +40,9 @@ func Startup() {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	err = proxyConfig.ReadConfig()
-	if err != nil {
-		log.Println(err)
-	}
+	proxyConfig = proxyconfig.Connect()
 
 	log.Println("kontrold proxy plugin has started")
-
 }
 
 func HandleMessage(data []byte) {
@@ -84,10 +79,6 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if err != nil {
 			log.Println(err)
 		}
-	case "listKey":
-		log.Println("got 'list' json request")
-		res := proxyConfig.ListKeys()
-		log.Println(res)
 	case "addProxy":
 		log.Println("got 'addProxy' json request")
 		err := proxyConfig.AddProxy(msg.Uuid)

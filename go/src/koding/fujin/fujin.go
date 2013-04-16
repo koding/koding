@@ -3,18 +3,15 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/url"
-	"os"
-	"os/signal"
 	"sort"
 	"strconv"
-	"syscall"
 )
 
 func init() {
@@ -28,36 +25,16 @@ type IncomingMessage struct {
 
 var proxyConfig *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
-var start chan bool
-var first bool = true
 
 func main() {
-	log.Printf("proxy started ")
-	start = make(chan bool)
+	log.Printf("fujin proxy started ")
 
-	if config.EnableAmqp {
-		amqpStream = setupAmqp()
-		go handleInput(amqpStream.input)
-		go signalWatcher() // used for deleting proxy in kontrold after quitting
-	}
+	// register fujin instance to kontro-daemon
+	amqpStream = setupAmqp()
+	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
 
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	err := proxyConfig.ReadConfig()
-	if err != nil {
-		if config.EnableAmqp {
-			log.Printf("registering with uuid '%s'", amqpStream.uuid)
-			data := buildProxyCmd("addProxy", amqpStream.uuid)
-			amqpStream.Publish(data)
-			log.Println("send request to get config file from kontrold")
-			<-start
-			log.Println("got configuration message")
-		} else {
-			log.Println(err)
-			log.Printf("please create or enable amqp messaging")
-			return
-		}
-
-	}
+	// get kontrol-daemon database connection
+	proxyConfig = proxyconfig.Connect()
 
 	addHTTP, err := net.ResolveTCPAddr("tcp", "localhost:"+config.HttpPort)
 	if err != nil {
@@ -119,47 +96,14 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
-func handleInput(input <-chan amqp.Delivery) {
-	log.Println("amqp mode is enabled. start listen to amqp messages...")
-	for {
-		select {
-		case d := <-input:
-			// log.Printf("got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
-			var msg IncomingMessage
-
-			err := json.Unmarshal(d.Body, &msg)
-			if err != nil {
-				log.Print("bad json incoming msg: ", err)
-			}
-
-			if msg.ProxyConfiguration != nil {
-				log.Println("received config from kontrold, starting servers...")
-				proxyConfig = msg.ProxyConfiguration
-
-				if err := proxyConfig.SaveConfig(); err != nil {
-					log.Printf(" %s", err)
-					return
-				}
-
-				if first {
-					start <- true
-					first = false
-				}
-			} else if msg.ProxyMessage != nil {
-				log.Println("Got ProxyMessage", msg.ProxyMessage)
-			} else {
-				log.Println("incoming message is in wrong format")
-			}
-		}
-	}
-}
-
 func targetUrl(numberOfDeaths int, uuid string) *url.URL {
 	var target *url.URL
 	var err error
 	host, key := targetHost(uuid)
 
-	proxy := proxyConfig.RegisteredProxies[uuid]
+	proxy, _ := proxyConfig.GetProxy(uuid)
+
+	// log.Println("Targeting with content:", proxy)
 
 	v := len(proxy.KeyRoutingTable.Keys[key])
 	if v == numberOfDeaths {
@@ -209,7 +153,7 @@ func targetHost(uuid string) (string, string) {
 	var hostname string
 	key := ""
 
-	proxy := proxyConfig.RegisteredProxies[uuid]
+	proxy, _ := proxyConfig.GetProxy(uuid)
 
 	v := len(proxy.KeyRoutingTable.Keys)
 	if v == 0 {
@@ -245,23 +189,10 @@ func targetHost(uuid string) (string, string) {
 		}
 	}
 
-	return hostname, key
-}
-
-func signalWatcher() {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals)
-	for {
-		signal := <-signals
-		switch signal {
-		case syscall.SIGINT, syscall.SIGTERM:
-			data := buildProxyCmd("deleteProxy", amqpStream.uuid)
-			amqpStream.Publish(data)
-			log.Println("deleteProxy data sended")
-			log.Fatalf("received '%s' signal; exiting", signal)
-			os.Exit(1)
-		default:
-			log.Printf("received '%s' signal; unhandled", signal)
-		}
+	_, err := proxyConfig.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+	if err != nil {
+		log.Println(err)
 	}
+
+	return hostname, key
 }

@@ -56,7 +56,6 @@ var Current Config
 var LogDebug bool
 var Verbose bool
 
-var EnableAmqp bool
 var HttpPort string
 var HttpsPort string
 
@@ -67,7 +66,6 @@ func init() {
 	flag.BoolVar(&Verbose, "v", false, "Enable verbose mode")
 
 	// proxy-handler
-	flag.BoolVar(&EnableAmqp, "amqp", true, "Enable rabbitmq messaging")
 	flag.StringVar(&HttpPort, "port", "80", "Change local serving http port")
 	flag.StringVar(&HttpsPort, "portSSL", "443", "Change local serving https port")
 
