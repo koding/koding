@@ -98,6 +98,7 @@ func (req *FTPRequest) Relay(addr *net.TCPAddr, user string) error {
 
 			sourceListener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: req.privateIP})
 			if err != nil {
+				targetConn.Close()
 				req.source.Write([]byte("421 Service not available, closing control connection."))
 				break
 			}
@@ -108,6 +109,7 @@ func (req *FTPRequest) Relay(addr *net.TCPAddr, user string) error {
 
 			sourceConn, err := sourceListener.AcceptTCP()
 			if err != nil {
+				targetConn.Close()
 				req.source.Write([]byte("421 Service not available, closing control connection."))
 				break
 			}
