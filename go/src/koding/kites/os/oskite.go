@@ -151,7 +151,7 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	if !isExistingState {
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip")
-			ip := net.IPv4(byte(ipInt<<24), byte(ipInt<<16), byte(ipInt<<8), byte(ipInt))
+			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
 				panic(err)
 			}
