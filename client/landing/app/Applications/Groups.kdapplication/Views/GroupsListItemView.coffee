@@ -118,6 +118,7 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
+  markMemberGroup:-> @setClass "member-group"
   markOwnGroup:-> @setClass "own-group"
 
   pistachio:->
@@ -168,6 +169,21 @@ class GroupsListItemView extends KDListItemView
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
+      menu['Remove Group'] =
+        cssClass : 'remove-group hidden'
+        callback : =>
+          modal = new GroupsDangerModalView
+            action     : 'Remove Group'
+            longAction : 'remove this group'
+            callback   : (callback)=>
+              data.remove (err)=>
+                callback()
+                if err
+                  return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                new KDNotificationView title:'Ok, we removed your group with a heavy heart!'
+                modal.destroy()
+                @destroy()
+          , data
 
     return menu
 
