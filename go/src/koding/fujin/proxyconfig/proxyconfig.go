@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 )
 
 type ProxyMessage struct {
@@ -132,17 +131,27 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 }
 
 func (p *ProxyConfiguration) DeleteKey(key, host, hostdata, uuid string) error {
-	err := p.HasUuid(uuid)
+	proxy, err := p.GetProxy(uuid)
 	if err != nil {
+		return err
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 
-	proxy, err := p.GetProxy(uuid)
+	delete(proxy.KeyRoutingTable.Keys, key)
+
+	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
 	}
 
-	delete(proxy.KeyRoutingTable.Keys, key)
+	return nil
+}
+
+func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
+	_, err := p.Collection.Upsert(bson.M{"uuid": proxy.Uuid}, proxy)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -154,9 +163,9 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 
 	if len(proxy.KeyRoutingTable.Keys) == 0 { // empty routing table, add it
 		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
-		_, err := p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+		err = p.UpdateProxy(proxy)
 		if err != nil {
-			log.Println(err)
+			return err
 		}
 		return nil
 	}
@@ -164,9 +173,9 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 	_, ok := proxy.KeyRoutingTable.Keys[key] // new key, add it
 	if !ok {
 		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
-		_, err := p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+		err = p.UpdateProxy(proxy)
 		if err != nil {
-			log.Println(err)
+			return err
 		}
 		return nil
 	}
@@ -179,11 +188,11 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 	}
 
 	proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
-	_, err = p.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
-	if err != nil {
-		log.Println(err)
-	}
 
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

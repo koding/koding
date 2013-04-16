@@ -6,7 +6,6 @@ import (
 	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/url"
@@ -189,7 +188,7 @@ func targetHost(uuid string) (string, string) {
 		}
 	}
 
-	_, err := proxyConfig.Collection.Upsert(bson.M{"uuid": uuid}, proxy)
+	err := proxyConfig.UpdateProxy(proxy)
 	if err != nil {
 		log.Println(err)
 	}
