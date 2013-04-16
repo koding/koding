@@ -17,8 +17,8 @@ module.exports = class JVM extends Model
         type          : String
         default       : null
       name            : String
-      users           : [String]
-      groups          : [String]
+      users           : Array
+      groups          : Array
       isEnabled       :
         type          : Boolean
         default       : yes
@@ -28,14 +28,14 @@ module.exports = class JVM extends Model
 
   do ->
 
-    handleError = (require 'koding-bound').call console, 'error'
+    handleError = (err)-> console.error err  if err
 
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = (target, user, {sudo, groups})->
+    addVm = (target, user, {name, sudo, groups})->
       vm = new JVM {
-        name: member.profile.nickname
+        name: name
         users: [
           { id: user.getId(), sudo: yes }
         ]
@@ -57,6 +57,7 @@ module.exports = class JVM extends Model
         else
           addVm group, user, {
             sudo    : yes
+            name    : group.slug
             groups  : wrapGroup group
           }
 
@@ -69,7 +70,7 @@ module.exports = class JVM extends Model
       member.fetchUser (err, user)->
         if err then handleError err
         else if group.slug is 'koding'
-          addVm member, user, sudo: yes
+          addVm member, user, sudo: yes, name: member.profile.nickname
         else
           group.fetchVms (err, vms)->
             if err then handleError err
