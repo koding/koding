@@ -38,6 +38,17 @@ class FSHelper
     file = @parseWatcher(path, change.file).first
     switch change.event
       when "added"
+
+        # Sort example for adding new files to filetree in correct place ~ GG
+        # index = 0
+        # lc = treeController.listControllers[file.parentPath]
+        # if lc
+        #   for item, ix in lc.itemsOrdered
+        #     if item.data.type is file.type and file.name > item.data.name
+        #       index = ix
+        #       index++
+        #       break
+
         treeController.addNode file
       when "removed"
         for npath, node of treeController.nodes
