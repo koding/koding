@@ -1,6 +1,7 @@
 do ->
   routes = [
     '/:name/'
+    '/:name?/Home'
     '/:name?/Groups'
     '/:name?/Groups/Search'
     '/:name?/Members'

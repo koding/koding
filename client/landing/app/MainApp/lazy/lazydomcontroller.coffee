@@ -92,25 +92,9 @@ class LazyDomController extends KDController
     @staticProfileController = new StaticProfileController
     {@landingView}           = @staticProfileController
 
-  openPath:(path)->
-    @getSingleton('router').handleRoute path
-
-    {groupEntryPoint, profileEntryPoint} = KD.config
-    entryPoint = groupEntryPoint ? profileEntryPoint
-    staticPaths = [
-      '/Logout','/Login','/Register',
-      "/#{entryPoint}/Login",
-      "/#{entryPoint}/Logout",
-      "/#{entryPoint}/Register",
-      "/#{entryPoint}"
-    ]
-
-    @hideLandingPage() unless path in staticPaths
+  openPath:(path)-> @getSingleton('router').handleRoute path
 
   handleNavigationItemClick:(item, event)->
-
-
-    # return # REVIVE TEMP
 
     mc = @getSingleton 'mainController'
     {action, path} = item

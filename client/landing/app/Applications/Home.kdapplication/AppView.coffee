@@ -35,30 +35,35 @@ class HomeAppView extends JView
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
     else entryPoint = ''
 
-    handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
+    handler = (event)=>
+      route = @$$.attr "href"
+      log route
+      # route = "/#{entryPoint}#{route}" if entryPoint isnt ''
       @utils.stopDOMEvent event
+      log route
+      # debugger
       @getSingleton('router').handleRoute route
-
-    loginHandler      = handler.bind null, '/Login'
-    registerHandler   = handler.bind null, '/Register'
-    joinHandler       = handler.bind null, '/Join'
-
 
     @register     = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register"
-      click       : registerHandler
+      attributes  :
+        href      : "/Register"
+      click       : handler
 
     @request      = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
-      click       : joinHandler
+      attributes  :
+        href      : "/Join"
+      click       : handler
 
     @login        = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Login"
-      click       : loginHandler
+      attributes  :
+        href      : "/Login"
+      click       : handler
 
     @learn        = new KDCustomHTMLView
       tagName     : "a"
