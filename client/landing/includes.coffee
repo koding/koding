@@ -1,7 +1,6 @@
 module.exports = [
   # --- Libraries ---
   # "libs/pusher.min.js",
-  "routes.coffee",
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
@@ -135,7 +134,6 @@ module.exports = [
   "Framework/components/time/timeagoview.coffee",
 
   # --- Application ---
-  "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
   "libs/pistachio.js",
