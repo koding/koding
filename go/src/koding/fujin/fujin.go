@@ -25,7 +25,7 @@ type IncomingMessage struct {
 	ProxyMessage       *proxyconfig.ProxyMessage
 }
 
-var proxy proxyconfig.Proxy
+var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var start chan bool
