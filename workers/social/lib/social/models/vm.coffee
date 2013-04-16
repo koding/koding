@@ -45,6 +45,20 @@ module.exports = class JVM extends Model
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
 
+    uidFactory = (require 'koding-counter') {
+      db          : JVM.getClient()
+      counterName : 'uid'
+      offset      : 1e6
+    }
+
+    uidFactory.reset (err, lastId)->
+      console.log "UID counter is reset: %s", lastId
+
+    JUser.on 'UserCreated', (user)->
+      uidFactory.next (err, uid)->
+        if err then handleError err
+        else user.update { $set: { uid } }, handleError
+
     JGroup.on 'GroupCreated', ({group, creator})->
       creator.fetchUser (err, user)->
         if err then handleError err
