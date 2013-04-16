@@ -80,49 +80,8 @@ func (req *FTPRequest) Relay(addr *net.TCPAddr, user string) error {
 	passiveAddress := make(chan *net.TCPAddr)
 	defer close(passiveAddress)
 	go func() {
-		defer target.CloseWrite()
-		for {
-			sourceReader := bufio.NewReader(req.source)
-			line, readErr := sourceReader.ReadSlice('\n')
-			if bytes.HasPrefix(line, []byte("PASV")) {
-				target.Write([]byte("PASV\r\n"))
-				targetConn, err := net.DialTCP("tcp", nil, <-passiveAddress)
-				if err != nil {
-					return
-				}
-
-				sourceListener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: req.privateIP})
-				if err != nil {
-					return
-				}
-				ip := req.publicIP.To4()
-				port := sourceListener.Addr().(*net.TCPAddr).Port
-				commaSeparatedAddress := btoi(ip[0]) + "," + btoi(ip[1]) + "," + btoi(ip[2]) + "," + btoi(ip[3]) + "," + btoi(byte(port>>8)) + "," + btoi(byte(port))
-				req.source.Write([]byte("227 Entering Passive Mode (" + commaSeparatedAddress + ").\r\n"))
-
-				sourceConn, err := sourceListener.AcceptTCP()
-				if err != nil {
-					return
-				}
-
-				go func() {
-					io.Copy(sourceConn, targetConn)
-					targetConn.CloseRead()
-					sourceConn.CloseWrite()
-				}()
-				go func() {
-					io.Copy(targetConn, sourceConn)
-					sourceConn.CloseRead()
-					targetConn.CloseWrite()
-				}()
-
-				continue
-			}
-			_, writeErr := target.Write(line)
-			if readErr != nil || writeErr != nil {
-				return
-			}
-		}
+		io.Copy(target, req.source)
+		target.CloseWrite()
 	}()
 	for {
 		line, readErr := targetReader.ReadSlice('\n')
@@ -130,7 +89,40 @@ func (req *FTPRequest) Relay(addr *net.TCPAddr, user string) error {
 			start := bytes.IndexByte(line, '(') + 1
 			end := bytes.IndexByte(line, ')')
 			parts := bytes.Split(line[start:end], []byte{','})
-			passiveAddress <- &net.TCPAddr{IP: net.IPv4(parseByte(parts[0]), parseByte(parts[1]), parseByte(parts[2]), parseByte(parts[3])), Port: int(parseByte(parts[4]))<<8 + int(parseByte(parts[5]))}
+			passiveAddress := &net.TCPAddr{IP: net.IPv4(parseByte(parts[0]), parseByte(parts[1]), parseByte(parts[2]), parseByte(parts[3])), Port: int(parseByte(parts[4]))<<8 + int(parseByte(parts[5]))}
+			targetConn, err := net.DialTCP("tcp", nil, passiveAddress)
+			if err != nil {
+				req.source.Write([]byte("421 Service not available, closing control connection."))
+				break
+			}
+
+			sourceListener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: req.privateIP})
+			if err != nil {
+				req.source.Write([]byte("421 Service not available, closing control connection."))
+				break
+			}
+			ip := req.publicIP.To4()
+			port := sourceListener.Addr().(*net.TCPAddr).Port
+			commaSeparatedAddress := btoi(ip[0]) + "," + btoi(ip[1]) + "," + btoi(ip[2]) + "," + btoi(ip[3]) + "," + btoi(byte(port>>8)) + "," + btoi(byte(port))
+			req.source.Write([]byte("227 Entering Passive Mode (" + commaSeparatedAddress + ").\r\n"))
+
+			sourceConn, err := sourceListener.AcceptTCP()
+			if err != nil {
+				req.source.Write([]byte("421 Service not available, closing control connection."))
+				break
+			}
+
+			go func() {
+				io.Copy(sourceConn, targetConn)
+				targetConn.CloseRead()
+				sourceConn.CloseWrite()
+			}()
+			go func() {
+				io.Copy(targetConn, sourceConn)
+				sourceConn.CloseRead()
+				targetConn.CloseWrite()
+			}()
+
 			continue
 		}
 		_, writeErr := req.source.Write(line)
