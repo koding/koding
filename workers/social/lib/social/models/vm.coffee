@@ -56,8 +56,8 @@ module.exports = class JVM extends Model
         if err then handleError err
         else
           addVm {
+            user
             target  : group
-            user    : user
             sudo    : yes
             name    : group.slug
             groups  : wrapGroup group
@@ -72,19 +72,23 @@ module.exports = class JVM extends Model
       member.fetchUser (err, user)->
         if err then handleError err
         else if group.slug is 'koding'
+          # TODO: this special case for koding should be generalized for any group.
           addVm {
+            user
             target  : member
-            user    : user
             sudo    : yes
             name    : member.profile.nickname
           }
         else
-          group.fetchVms (err, vms)->
+          member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
-            else vms.forEach (vm)->
-              vm.update {
-                $addToSet: users: { id: user.getId(), sudo: no }
-              }, handleError
+            else
+              group.fetchVms (err, vms)->
+                if err then handleError err
+                else vms.forEach (vm)->
+                  vm.update {
+                    $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                  }, handleError
 
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->
@@ -105,7 +109,7 @@ module.exports = class JVM extends Model
           JVM.update { groups: group.getId() }, { $pull: id: user.getId() }, handleError
 
     JGroup.on 'MemberRolesChanged', ({group, member})->
-      return  if group.slug 'koding'
+      return  if group.slug 'koding'  # TODO: remove this special case
       member.fetchUser (err, user)->
         if err then handleError err
         else
