@@ -350,6 +350,7 @@ module.exports = class JAccount extends jraphical.Module
     edgeSelector  =
       sourceName  : 'JGroup'
       targetId    : @getId()
+      as          : 'member'
     edgeFields    =
       sourceId    : 1
       as          : 1
