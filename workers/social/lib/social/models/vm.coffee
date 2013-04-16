@@ -33,7 +33,7 @@ module.exports = class JVM extends Model
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = (target, user, {name, sudo, groups})->
+    addVm = ({ target, user, name, sudo, groups })->
       vm = new JVM {
         name: name
         users: [
@@ -55,7 +55,9 @@ module.exports = class JVM extends Model
       creator.fetchUser (err, user)->
         if err then handleError err
         else
-          addVm group, user, {
+          addVm {
+            target  : group
+            user    : user
             sudo    : yes
             name    : group.slug
             groups  : wrapGroup group
@@ -70,7 +72,12 @@ module.exports = class JVM extends Model
       member.fetchUser (err, user)->
         if err then handleError err
         else if group.slug is 'koding'
-          addVm member, user, sudo: yes, name: member.profile.nickname
+          addVm {
+            target  : member
+            user    : user
+            sudo    : yes
+            name    : member.profile.nickname
+          }
         else
           group.fetchVms (err, vms)->
             if err then handleError err
