@@ -291,7 +291,7 @@ module.exports = class JGroup extends Module
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
           else
-            console.log "created a slug #{slug}"
+            console.log "created a slug #{slug.slug}"
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
