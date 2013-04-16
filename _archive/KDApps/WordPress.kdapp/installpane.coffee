@@ -99,7 +99,7 @@ class InstallPane extends Pane
         #   placeholder       : "prefix that all tables will start in the database"
         #   defaultValue      : "wp_"
 
-    @form.on "FormValidationFailed", => @form.buttons["Install Wordpress"].hideLoader()
+    @form.on "FormValidationFailed", => @form.buttons.install.hideLoader()
 
     domainsPath = "/home/#{nickname}/Sites"
 

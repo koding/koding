@@ -301,7 +301,7 @@ class InstallPane extends Pane
           labels            : ["YES","NO"]
           itemClass         : KDOnOffSwitch
 
-    @form.on "FormValidationFailed", => @form.buttons["Install Wordpress"].hideLoader()
+    @form.on "FormValidationFailed", => @form.buttons.install.hideLoader()
 
     domainsPath = "/home/#{nickname}/Sites"
 
