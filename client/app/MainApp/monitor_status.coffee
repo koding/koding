@@ -86,9 +86,6 @@ class MonitorStatus extends KDObject
     @on "webtermDown", (channel) ->
       @emit "onlyChannelDown", "webterm"
 
-    @on "sharedHostingDown", (channel) ->
-      @emit "onlyChannelDown", "sharedHosting"
-
     @on "internetDown", ->
       status = KD.getSingleton "status"
       status.internetDown()
@@ -134,7 +131,6 @@ class MonitorStatus extends KDObject
     reasons.kitesDown         = ["sharedHosting", "webterm"]
     reasons.brokerDown        = ["broker"]
     reasons.bongoDown         = ["bongo"]
-    reasons.sharedHostingDown = ["sharedHosting"]
     reasons.webtermDown       = ["webterm"]
 
     for reason, items of reasons

@@ -729,21 +729,11 @@ class NFinderTreeController extends JTreeViewController
 
     notification.destroy() if notification
 
-    if details and not msg? and /Permission denied/.test details
+    if details and not msg? and /Permission denied/.test details?.message
       msg = "Permission denied!"
 
     style or= 'error' if details
     duration = if reconnect then 0 else if details then 5000 else 2500
-
-    # SA: Temporarily commenting it out since we no longer have problem of shared
-    # hosting not returning results. If uncommented, it cycles channel
-    # unnecessarily in beginning of page load.
-    #if not autoTriedOnce and reconnect
-      #KD.utils.wait 200, =>
-        #@emit 'fs.retry.scheduled'
-        ##@getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
-      #autoTriedOnce = yes
-      #return
 
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
@@ -756,7 +746,6 @@ class NFinderTreeController extends JTreeViewController
       click     : =>
         if reconnect
           @emit 'fs.retry.scheduled'
-          @getSingleton('kiteController')?.channels?.sharedHosting?.cycleChannel?()
           notification.notificationSetTitle 'Attempting to fetch files'
           notification.notificationSetPositions()
           notification.setClass 'loading'

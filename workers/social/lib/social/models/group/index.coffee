@@ -1,4 +1,5 @@
 {Module} = require 'jraphical'
+{difference} = require 'underscore'
 
 module.exports = class JGroup extends Module
 
@@ -51,10 +52,19 @@ module.exports = class JGroup extends Module
       'view readme'                       : ['guest','member','moderator']
     indexes         :
       slug          : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
+      ]
+      instance      : [
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
+      ]
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers','broadcast','cycleChannel'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -65,7 +75,7 @@ module.exports = class JGroup extends Module
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
         'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage'
+        'removeBackgroundImage', 'kickMember', 'transferOwnership'
       ]
     schema          :
       title         :
@@ -114,6 +124,9 @@ module.exports = class JGroup extends Module
       admin         :
         targetType  : 'JAccount'
         as          : 'admin'
+      owner         :
+        targetType  : 'JAccount'
+        as          : 'owner'
       application   :
         targetType  : 'JApp'
         as          : 'owner'
@@ -138,6 +151,43 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+
+  @on 'GroupCreated', ({group, member})->
+    console.log 'Implement a hook handler for GroupCreated'
+
+  @on 'GroupDestroyed', ({group, member})->
+    console.log 'Implement a hook handler for GroupDestroyed'
+
+  @on 'MemberAdded', ({group, member})->
+    JVM = require '../vm'
+    JVM.one { name: group.slug }, (err, vm)->
+      if err then console.error err
+      else unless vm? then console.warn "No vm for group #{group.slug}"
+      else
+        vm.update {
+          $addToSet: users: {
+            id    : member.getId()
+            sudo  : no
+          }
+        }, (err)-> console.error err  if err
+
+  @on 'MemberRemoved', ({group, member})->
+    console.log 'Implement a hook handler for MemberRemoved'
+
+  @on 'MemberRolesChanged', ({group, member})->
+    console.log 'Implement a hook handler for MemberRolesChanged'
+
+  constructor:->
+    super
+
+    @on 'MemberAdded', (member)->
+      @constructor.emit 'MemberAdded', { group: this, member }
+
+    @on 'MemberRemoved', (member)->
+      @constructor.emit 'MemberRemoved', { group: this, member }
+
+    @on 'MemberRolesChanged', (member)->
+      @constructor.emit 'MemberRolesChanged', { group: this, member }
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
@@ -255,6 +305,11 @@ module.exports = class JGroup extends Module
             if err then callback err
             else
               console.log 'admin is added'
+              queue.next()
+        -> group.addOwner delegate, (err)->
+            if err then callback err
+            else
+              console.log 'owner is added'
               queue.next()
         -> save_ 'permission set', permissionSet, queue, callback
         -> save_ 'default permission set', defaultPermissionSet, queue,
@@ -691,8 +746,8 @@ module.exports = class JGroup extends Module
             You've already invited #{email} to join this group.
             """
         else
-          params['invitationType'] = 'invitation'
-          params['status']         = 'sent'
+          params.invitationType = 'invitation'
+          params.status         = 'sent'
 
           invitationRequest = new JInvitationRequest params
           invitationRequest.save (err)=>
@@ -766,7 +821,7 @@ module.exports = class JGroup extends Module
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'NewMember'
+      @emit 'MemberAdded', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -814,3 +869,143 @@ module.exports = class JGroup extends Module
       sourceName : 'JGroup'
     , (err, count)=>
       @update ($set: 'counts.members': count), ->
+
+  leave: secure (client, options, callback)->
+
+    [callback, options] = [options, callback] unless callback
+
+    if @slug is 'koding'
+      return callback new KodingError 'Leaving Koding group is not supported yet'
+
+    @fetchMyRoles client, (err, roles)=>
+      return callback err if err
+
+      if 'owner' in roles
+        return callback new KodingError 'As owner of this group, you must first transfer ownership to someone else!'
+
+      Joinable = require '../../traits/joinable'
+
+      kallback = (err)=>
+        @updateCounts()
+        @cycleChannel()
+        callback err
+
+      queue = roles.map (role)=>=>
+        Joinable::leave.call @, client, {as:role}, (err)->
+          return kallback err if err
+          queue.fin()
+      
+      dash queue, kallback
+
+  kickMember: permit 'grant permissions',
+    success: (client, accountId, callback)->
+      JAccount = require '../account'
+
+      if @slug is 'koding'
+        return callback new KodingError 'Koding group is mandatory'
+
+      JAccount.one _id:accountId, (err, account)=>
+        return callback err if err
+
+        if client.connection.delegate.getId().equals account._id
+          return callback new KodingError 'You cannot kick yourself, try leaving the group!'
+
+        @fetchRolesByAccount account, (err, roles)=>
+          return callback err if err
+
+          if 'owner' in roles
+            return callback new KodingError 'You cannot kick the owner of the group!'
+
+          kallback = (err)=>
+            @updateCounts()
+            @cycleChannel()
+            callback err
+
+          queue = roles.map (role)=>=>
+            @removeMember account, role, (err)->
+              return kallback err if err
+              queue.fin()
+          
+          dash queue, kallback
+
+  transferOwnership: permit 'grant permissions',
+    success: (client, accountId, callback)->
+      JAccount = require '../account'
+
+      {delegate} = client.connection
+      if delegate.getId().equals accountId
+        return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
+
+      Relationship.one {
+        targetId: delegate.getId(),
+        sourceId: @getId(),
+        as      : 'owner'
+      }, (err, owner)=>
+        return callback err if err
+        return callback new KodingError 'You must be the owner to perform this action!' unless owner
+
+        JAccount.one _id:accountId, (err, account)=>
+          return callback err if err
+
+          @fetchRolesByAccount account, (err, newOwnersRoles)=>
+            return callback err if err
+
+            kallback = (err)=>
+              @cycleChannel()
+              @updateCounts()
+              callback err
+
+            # give rights to new owner
+            queue = difference(['member', 'admin'], newOwnersRoles).map (role)=>=>
+              @addMember account, role, (err)->
+                return kallback err if err
+                queue.fin()
+
+            dash queue, =>
+              # transfer ownership
+              owner.update $set: targetId: accountId, kallback
+
+  ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback)->
+    unless callback
+      callback   = roleUnique
+      roleUnique = no
+
+    if 'string' is typeof options
+      as = options
+    else if options?.as
+      {as} = options
+    else
+      as = fallbackRole
+
+    selector =
+      targetName : target.bongo_.constructorName
+      sourceId   : @getId()
+      sourceName : @bongo_.constructorName
+      as         : as
+
+    unless roleUnique
+      selector.targetId = target.getId()
+
+    Relationship.count selector, (err, count)->
+      if err then callback err
+      else if count > 0 then callback new KodingError 'This relationship already exists'
+      else callback null
+
+  oldAddMember = @::addMember
+  addMember:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'member', (err)=>
+      if err then callback err
+      else oldAddMember.call this, target, options, callback
+
+  oldAddAdmin = @::addAdmin
+  addAdmin:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'admin', (err)=>
+      if err then callback err
+      else oldAddAdmin.call this, target, options, callback
+
+  oldAddOwner = @::addOwner
+  addOwner:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'owner', yes, (err)=>
+      if err then callback err
+      else oldAddOwner.call this, target, options, callback
+

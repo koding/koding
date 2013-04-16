@@ -78,7 +78,6 @@ class StatusLEDItemView extends KDListItemView
       'kite-applications'  : 'Applications'
       'kite-webterm'       : 'Terminal'
       'kite-databases'     : 'Databases'
-      'kite-sharedHosting' : 'Hosting'
       'koding-social-*'    : 'Social'
 
   constructor:(options={},data)->

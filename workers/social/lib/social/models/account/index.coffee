@@ -192,7 +192,6 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-
   setBackgroundImage: secure (client, type, value, callback=->)->
     {delegate}    = client.connection
     isMine        = this.equals delegate
@@ -692,8 +691,6 @@ module.exports = class JAccount extends jraphical.Module
 
     if isDummyAdmin connection.delegate.profile.nickname
       callback null,
-        sharedHosting :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
         Databases     :
           hosts       : ["cl0", "cl1", "cl2", "cl3"]
         terminal      :
@@ -809,7 +806,6 @@ module.exports = class JAccount extends jraphical.Module
     profile.firstName+' '+profile.lastName
 
   fetchStorage: secure (client, options, callback)->
-    account = @
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
 

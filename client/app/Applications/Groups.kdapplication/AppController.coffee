@@ -277,144 +277,114 @@ class GroupsAppController extends AppController
           title: 'Group was updated!'
           duration: 1000
 
-  showGroupSubmissionView:(group)->
-    unless group?
-      group = {}
-      isNewGroup = yes
-    isPrivateGroup = 'private' is group.privacy
+  showGroupSubmissionView:->
 
     modalOptions =
-      title       : if isNewGroup then 'Create a new group' else "Edit the group '#{group.title}'"
-      height      : 'auto'
-      cssClass    : "compose-message-modal admin-kdmodal group-admin-modal"
-      width       : 500
-      overlay     : yes
-      tabs        :
-        navigable : yes
-        goToNextFormOnSubmit: no
-        forms     :
-
-          "General Settings":
-            title: if isNewGroup then 'Create a group' else 'Edit group'
-            callback:(formData)=>
-              if isNewGroup
-                _createGroupHandler.call @, formData
-              else
-                _updateGroupHandler group, formData
-              modal.destroy()
-            buttons:
-              Save                :
-                style             : "modal-clean-gray"
-                type              : "submit"
-                loader            :
-                  color           : "#444444"
-                  diameter        : 12
-              Cancel              :
-                style             : "modal-clean-gray"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 16
-                callback          : -> modal.destroy()
-            fields:
-              "Avatar"              :
-                label             : "Avatar"
-                itemClass         : KDImageUploadSingleView
-                name              : "avatar"
-                limit             : 1
-                preview           : 'thumbs'
-                actions         : {
-                  big    :
-                    [
-                      'scale', {
-                        shortest: 400
-                      }
-                      'crop', {
-                        width   : 400
-                        height  : 400
-                      }
-                    ]
-                  medium         :
-                    [
-                      'scale', {
-                        shortest: 200
-                      }
-                      'crop', {
-                        width   : 200
-                        height  : 200
-                      }
-                    ]
-                  small         :
-                    [
-                      'scale', {
-                        shortest: 60
-                      }
-                      'crop', {
-                        width   : 60
-                        height  : 60
-                      }
-                    ]
-                }
-              Title               :
-                label             : "Title"
-                itemClass         : KDInputView
-                name              : "title"
-                keydown           : (pubInst, event)->
+      title                          : 'Create a new group'
+      height                         : 'auto'
+      cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
+      width                          : 500
+      overlay                        : yes
+      tabs                           :
+        navigable                    : no
+        goToNextFormOnSubmit         : yes
+        hideHandleContainer          : yes
+        callback                     :(formData)=>
+          _createGroupHandler.call @, formData
+          modal.destroy()
+        forms                        :
+          "Select group type"        :
+            title                    : 'Group type'
+            callback                 :(formData)=>
+              log "here"
+            buttons                  :
+              "Next"                 :
+                style                : "modal-clean-gray"
+                type                 : "submit"
+            fields                   :
+              "type"                 :
+                name                 : "type"
+                itemClass            : KDInputRadioGroup
+                defaultValue         : "custom"
+                cssClass             : "group-type"
+                radios               : [
+                  { title : "University/School", value : "educational"}
+                  { title : "Company",           value : "company"}
+                  { title : "Project",           value : "project"}
+                  { title : "Custom",            value : "custom"}
+                ]
+          "General Settings"         :
+            title                    : 'Create a group'
+            buttons                  :
+              "Save"                 :
+                style                : "modal-clean-gray"
+                type                 : "submit"
+                loader               :
+                  color              : "#444444"
+                  diameter           : 12
+              "Cancel"               :
+                style                : "modal-clean-gray"
+                callback             : -> modal.destroy()
+              "back"                 :
+                style                : "modal-cancel"
+                callback             : -> modal.modalTabs.showPreviousPane()
+            fields                   :
+              "Title"                :
+                label                : "Title"
+                name                 : "title"
+                keydown              : (pubInst, event)->
                   @utils.defer =>
                     slug = @utils.slugify @getValue()
                     modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-                    # modal.modalTabs.forms["General Settings"].inputs.SlugText.updatePartial '<span class="base">http://www.koding.com/Groups/</span>'+slug
-                defaultValue      : Encoder.htmlDecode group.title ? ""
-                placeholder       : 'Please enter a title here'
-              # SlugText                :
-              #   itemClass : KDView
-              #   cssClass : 'slug-url'
-              #   partial : '<span class="base">http://www.koding.com/</span>'
-              #   nextElementFlat :
-              Slug :
-                label             : "Slug"
-                itemClass         : KDInputView
-                name              : "slug"
-                # cssClass          : 'hidden'
-                defaultValue      : group.slug ? ""
-                placeholder       : 'This value will be automatically generated'
-                # disabled          : yes
-              Description         :
-                label             : "Description"
-                type              : "textarea"
-                itemClass         : KDInputView
-                name              : "body"
-                defaultValue      : Encoder.htmlDecode group.body ? ""
-                placeholder       : 'Please enter a description here.'
-              "Privacy settings"  :
-                itemClass         : KDSelectBox
-                label             : "Privacy settings"
-                type              : "select"
-                name              : "privacy"
-                defaultValue      : group.privacy ? "public"
-                selectOptions     : [
-                  { title : "Public",    value : "public" }
-                  { title : "Private",   value : "private" }
+                placeholder          : 'Please enter your group title...'
+              "Slug"                 :
+                label                : "Slug"
+                name                 : "slug"
+                defaultValue         : ""
+                placeholder          : 'This value will be automatically generated'
+              "Description"          :
+                label                : "Description"
+                type                 : "textarea"
+                name                 : "body"
+                defaultValue         : ""
+                placeholder          : "Please enter a description for your group here..."
+              "Privacy"              :
+                label                : "Privacy settings"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "privacy"
+                defaultValue         : "public"
+                selectOptions        :
+                  Public             : [
+                    { title : "Anyone can join",    value : "public" }
+                  ]
+                  Private            : [
+                    { title : "By invititation",     value : "private" }
+                    { title : "By access request",   value : "private" }
+                    { title : "In same domain",      value : "private" }
+                  ]
+              "Visibility"           :
+                label                : "Visibility settings"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "visibility"
+                defaultValue         : "visible"
+                selectOptions        : [
+                  { title : "Visible in group listings",    value : "visible" }
+                  { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              "Visibility settings"  :
-                itemClass         : KDSelectBox
-                label             : "Visibility settings"
-                type              : "select"
-                name              : "visibility"
-                defaultValue      : group.visibility ? "visible"
-                selectOptions     : [
-                  { title : "Visible",    value : "visible" }
-                  { title : "Hidden",     value : "hidden" }
-                ]
+              "Group VM"             :
+                label                : "Create a shared server for the group"
+                itemClass            : KDOnOffSwitch
+                name                 : "group-vm"
+                defaultValue         : no
+              "Member VM"            :
+                label                : "Create a server for each group member"
+                itemClass            : KDOnOffSwitch
+                name                 : "member-vm"
+                defaultValue         : no
 
-    modal = new KDModalViewWithForms modalOptions, group
-
-    {forms} = modal.modalTabs
-
-    avatarUploadView = forms["General Settings"].inputs["Avatar"]
-    avatarUploadView.on 'FileReadComplete', (event)->
-      avatarUploadView.$('.kdfileuploadarea').css
-        backgroundImage : "url(#{event.file.data})"
-      avatarUploadView.$('span').addClass 'hidden'
+    modal = new KDModalViewWithForms modalOptions
 
   handleError =(err, buttons)->
     unless buttons
@@ -469,25 +439,7 @@ class GroupsAppController extends AppController
         @loadView mainView, no
 
       mainView.createCommons()
-
-    KD.whoami().fetchRole? (err, role) =>
-      if role is "super-admin"
-        @listItemClass = GroupsListItemViewEditable
-        if firstRun
-          @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
-            @editPermissions groupItem
-          @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-            groupData = groupItem.getData()
-            groupData.canEditGroup (err, hasPermission)=>
-              unless hasPermission
-                new KDNotificationView title: 'Access denied'
-              else
-                @showGroupSubmissionView groupData
-          @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
-            groupItem.getData().fetchRoles console.log.bind console
-
       @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
   openGroup:(group)->
     {slug, title} = group
@@ -548,7 +500,7 @@ class GroupsAppController extends AppController
           view.refresh()  if pane.tabHandle.isDirty
           pane.tabHandle.markDirty no
 
-    group.on 'NewMember', ->
+    group.on 'MemberAdded', ->
       {tabHandle} = pane
       tabHandle.markDirty()
     return pane
@@ -644,3 +596,35 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
+
+
+  # old load view
+  # loadView:(mainView, firstRun = yes)->
+
+  #   if firstRun
+  #     mainView.on "searchFilterChanged", (value) =>
+  #       return if value is @_searchValue
+  #       @_searchValue = Encoder.XSSEncode value
+  #       @_lastSubview.destroy?()
+  #       @loadView mainView, no
+
+  #     mainView.createCommons()
+
+  #   KD.whoami().fetchRole? (err, role) =>
+  #     if role is "super-admin"
+  #       @listItemClass = GroupsListItemViewEditable
+  #       if firstRun
+  #         @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
+  #           @editPermissions groupItem
+  #         @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
+  #           groupData = groupItem.getData()
+  #           groupData.canEditGroup (err, hasPermission)=>
+  #             unless hasPermission
+  #               new KDNotificationView title: 'Access denied'
+  #             else
+  #               @showGroupSubmissionView groupData
+  #         @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
+  #           groupItem.getData().fetchRoles console.log.bind console
+
+  #     @createFeed mainView
+  #   # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData

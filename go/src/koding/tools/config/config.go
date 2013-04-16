@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	BuildNumber int
 	ProjectRoot string
 	GoConfig    struct {
 		HomePrefix string
@@ -25,6 +26,7 @@ type Config struct {
 		Vhost         string
 	}
 	Broker struct {
+		IP       string
 		Port     int
 		CertFile string
 		KeyFile  string
@@ -76,7 +78,7 @@ func init() {
 	}
 	if PillarProfile != "" {
 		Profile = PillarProfile
-		configCommand = exec.Command("salt-call", "pillar.get", "kodingConfig:"+PillarProfile, "--output=json", "--log-level=warning")
+		configCommand = exec.Command("salt-call", "pillar.get", PillarProfile, "--output=json", "--log-level=warning")
 	}
 
 	configJSON, err := configCommand.CombinedOutput()

@@ -1,23 +1,28 @@
 class KDTabViewWithForms extends KDTabView
-  constructor:(options,data)->
-    options = $.extend
-      navigable : yes
-      goToNextFormOnSubmit : yes
-    ,options
-    super options,data
-    @forms = {}
-    @hideHandleCloseIcons()
-    {forms} = @getOptions()
-    if forms
-      @createTabs forms = @sanitizeOptions forms
-      @showPane @panes[0]
-    if forms.length is 1
-      @hideHandleContainer()
 
-  sanitizeOptions:(options)->
+  sanitizeOptions = (options)->
     for key,option of options
       option.title = key
       option
+
+  constructor:(options = {}, data)->
+
+    options.navigable            ?= yes
+    options.goToNextFormOnSubmit ?= yes
+
+    super options,data
+
+    @forms = {}
+    @hideHandleCloseIcons()
+
+    {forms} = @getOptions()
+
+    if forms
+      @createTabs forms = sanitizeOptions forms
+      @showPane @panes[0]
+
+    if forms.length is 1
+      @hideHandleContainer()
 
   handleClicked:(index,event)->
     if @getOptions().navigable
@@ -28,6 +33,7 @@ class KDTabViewWithForms extends KDTabView
 
     oldCallback = formData.callback
     formData.callback = (formData)=>
+      log formData, "><><><"
       @showNextPane() if @getOptions().goToNextFormOnSubmit
       oldCallback? formData
       if index is @getOptions().forms.length - 1

@@ -37,7 +37,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -112,6 +111,7 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""

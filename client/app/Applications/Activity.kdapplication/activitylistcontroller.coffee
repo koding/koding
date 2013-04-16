@@ -35,6 +35,8 @@ class ActivityListController extends KDListViewController
 
     super
 
+    @newActivityArrivedList = {}
+
     @_state = 'public'
 
     @scrollView.on 'scroll', (event) =>
@@ -97,7 +99,7 @@ class ActivityListController extends KDListViewController
 
     activityIds = []
     for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1
+      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
           anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
@@ -141,7 +143,18 @@ class ActivityListController extends KDListViewController
       view = @addHiddenItem activity, 0
       @activityHeader?.newActivityArrived()
 
+  logNewActivityArrived:(activity)->
+    id = activity.getId?()
+    return unless id
+
+    if @newActivityArrivedList[id]
+      KD.logToExternal msg:"duplicate new activity", activity:activity
+    else
+      @newActivityArrivedList[id] = true
+
   newActivityArrived:(activity)->
+
+    @logNewActivityArrived(activity)
 
     return unless @_state is 'public'
     unless @isMine activity

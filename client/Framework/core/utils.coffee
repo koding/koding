@@ -111,7 +111,7 @@ __utils =
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else
-      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -556,6 +556,12 @@ __utils =
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
+  stopLoggingToRollbar: ->
+    KD.getSingleton("mainController").old_rollbar = _rollbar
+    window._rollbar = push:()->
+
+  startLoggingToRollbar: ->
+    window._rollbar = KD.getSingleton("mainController").old_rollbar
 
 ###
 //     Underscore.js 1.3.1

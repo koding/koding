@@ -41,7 +41,6 @@ module.exports = deepFreeze
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -121,6 +120,7 @@ module.exports = deepFreeze
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : ""
     keyFile     : ""

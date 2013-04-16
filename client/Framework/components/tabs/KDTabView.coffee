@@ -2,15 +2,17 @@ class KDTabView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.resizeTabHandles    ?= no
-    options.maxHandleWidth      ?= 128
-    options.minHandleWidth      ?= 30
-    options.lastTabHandleMargin ?= 0
-    options.sortable            ?= no
-    @handles                     = []
-    @panes                       = []
-    @selectedIndex               = []
-    @tabConstructor              = options.tabClass ? KDTabPaneView
+    options.resizeTabHandles     ?= no
+    options.maxHandleWidth       ?= 128
+    options.minHandleWidth       ?= 30
+    options.lastTabHandleMargin  ?= 0
+    options.sortable             ?= no
+    options.hideHandleContainer  ?= no
+    options.hideHandleCloseIcons ?= no
+    @handles                      = []
+    @panes                        = []
+    @selectedIndex                = []
+    @tabConstructor               = options.tabClass ? KDTabPaneView
 
     super options, data
 
