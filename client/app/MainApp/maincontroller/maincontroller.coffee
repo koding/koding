@@ -33,7 +33,7 @@ class MainController extends KDController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
-    KD.registerSingleton "fatih", new Fatih
+    # KD.registerSingleton "fatih", new Fatih
 
     KD.registerSingleton "linkController", new LinkController
 
@@ -88,9 +88,8 @@ class MainController extends KDController
 
   accountChanged:(account, firstLoad = no)->
 
-    @userAccount = account
-    @accountReadyState = 1
-
+    @userAccount             = account
+    @accountReadyState       = 1
     connectedState.connected = yes
 
     @emit "AccountChanged", account, firstLoad
@@ -98,7 +97,7 @@ class MainController extends KDController
     unless @mainViewController
 
       @loginScreen = new LoginView
-      # KDView.appendToDOMBody @loginScreen
+      KDView.appendToDOMBody @loginScreen
 
       @mainViewController  = new MainViewController
         view    : mainView = new MainView
@@ -132,7 +131,7 @@ class MainController extends KDController
     @handleLoginScreenRoute 'register'
 
   doGoHome:->
-    @handleLoginScreenRoute 'home'
+    # @handleLoginScreenRoute 'home'
 
   doLogin:->
     @handleLoginScreenRoute 'login'
@@ -166,8 +165,8 @@ class MainController extends KDController
 
   attachListeners:->
 
-    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
-    #   log "pageLoaded", @isUserLoggedIn()
+    @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
+      log "pageLoaded", @isUserLoggedIn()
 
     @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
       log "accountChanged Out"

@@ -49,7 +49,13 @@ class KodingRouter extends KDRouter
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
-    return @once 'ready', @go.bind this, arguments...  unless @ready
+    unless @ready
+      log "not ready", app, group
+      @once 'ready', @go.bind this, arguments...
+      return
+
+    log "it's ready", app, group
+
     @getSingleton('groupsController').changeGroup group, (err)->
       if err then new KDNotificationView title: err.message
       else
@@ -68,7 +74,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Activity'
+  getDefaultRoute:-> '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -160,8 +166,10 @@ class KodingRouter extends KDRouter
     )
 
     section = createLinks(
-      'Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
-      (sec)-> ({params:{name}, query})-> @go sec, name, query
+      'Home Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
+      (sec)-> ({params:{name}, query})->
+        log "going to: ", sec, name, query
+        @go sec, name, query
     )
 
     clear = @bound 'clear'
@@ -195,6 +203,7 @@ class KodingRouter extends KDRouter
 
       # section
       # TODO: nested groups are disabled.
+      '/:name?/Home'                    : section.Home
       '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity
       '/:name?/Members'                 : section.Members

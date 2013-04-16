@@ -109,6 +109,9 @@ class LazyDomController extends KDController
 
   handleNavigationItemClick:(item, event)->
 
+
+    # return # REVIVE TEMP
+
     mc = @getSingleton 'mainController'
     {action, path} = item
     {loginScreen, mainViewController}    = mc
@@ -137,14 +140,14 @@ class LazyDomController extends KDController
         mainViewController.getView().hide()
         @openPath '/Logout'
 
-      when 'activity'
-        @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
+      # when 'activity'
+      #   @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
 
-      when 'about'
-        @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
+      # when 'about'
+      #   @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
 
-      when 'home'
-        @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
+      # when 'home'
+      #   @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
     {loginScreen} = @getSingleton('mainController')

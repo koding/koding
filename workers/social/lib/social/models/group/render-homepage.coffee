@@ -11,8 +11,6 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
   </head>
   <body class="login landing">
 
-    #{getLoader roles}
-
     <div class="kdview" id="kdmaincontainer">
       <header class="kdview" id='main-header'>
         <a class="" id="koding-logo" href="#"></a>
@@ -111,25 +109,24 @@ applyCustomBackground = (customize={})->
   else
     """ style='background-image:url("#{defaultImages[0]}")'"""
 
-getLoader = (roles)->
-  return ''
+# getLoader = (roles)->
 
-  if 'member' in roles or 'admin' in roles
-    return """
-      <div id="main-koding-loader" class="kdview main-loading">
-        <figure>
-          <ul>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-          </ul>
-        </figure>
-      </div>
-    """
-  return ''
+#   if 'member' in roles or 'admin' in roles
+#     return """
+#       <div id="main-koding-loader" class="kdview main-loading">
+#         <figure>
+#           <ul>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#           </ul>
+#         </figure>
+#       </div>
+#     """
+#   return ''
 
 getInviteLink =(policy)->
   if policy.approvalEnabled

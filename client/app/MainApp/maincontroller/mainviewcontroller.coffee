@@ -13,8 +13,6 @@ class MainViewController extends KDViewController
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
 
-    KDView.appendToDOMBody mainView
-
   loadView:(mainView)->
 
     log "mainView appended"

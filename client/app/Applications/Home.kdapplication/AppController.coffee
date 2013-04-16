@@ -4,32 +4,21 @@ class HomeAppController extends AppController
     name         : "Home"
     route        : "Home"
     hiddenHandle : yes
-    background   : yes
+    # behavior     : "hideTabs"
 
   constructor:(options = {}, data)->
     # options.view    = new HomeMainView
-    options.view    = new KDView
+    options.view    = new HomeAppView
       cssClass      : "content-page home"
+      domId         : "content-page-home"
     options.appInfo =
       name          : "Home"
 
     super options,data
 
   loadView:(mainView)->
-    @mainView = mainView
-    mainView.putSlideShow()
-    widgetHolder = mainView.putWidgets()
-    mainView.putTechnologies()
-    mainView.putScreenshotDemo()
-    mainView.putFooter()
-    mainView._windowDidResize()
-    @createListControllers()
-
-    widgetHolder.setTemplate widgetHolder.pistachio()
-    widgetHolder.template.update()
-    widgetHolder.showLoaders()
-
-    @bringFeeds()
+    # @createListControllers()
+    # @bringFeeds()
 
   bringFeeds:->
     KD.getSingleton("appManager").tell "Topics", "fetchSomeTopics", null, (err,topics)=>
@@ -37,10 +26,10 @@ class HomeAppController extends AppController
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
 
-    # KD.getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", (activity)=>
-    #   if activity
-    #     @mainView.widgetHolder.activityLoader.hide()
-    #     @activityController.instantiateListItems activity
+    KD.getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", (activity)=>
+      if activity
+        @mainView.widgetHolder.activityLoader.hide()
+        @activityController.instantiateListItems activity
 
     KD.getSingleton("appManager").tell "Members", "fetchFeedForHomePage", (err,topics)=>
       unless err
