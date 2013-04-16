@@ -29,18 +29,11 @@ class StaticGroupController extends KDController
     {@groupEntryPoint} = KD.config
 
     @reviveViews()
-    @checkGroupUserRelation()
     @attachListeners()
-
+    @on 'GroupSummaryListenersAttached', =>
+      @checkGroupUserRelation()
 
     @registerSingleton 'staticGroupController', @, yes
-
-  fetchGroup:(callback)->
-    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
-      if err then callback err
-      else if groups?.first
-        @group = groups.first
-        callback null, @group
 
   parseMenuItems :(callback)->
     menuItems = []
@@ -60,7 +53,15 @@ class StaticGroupController extends KDController
     @landingView.listenWindowResize()
     @landingView._windowDidResize = =>
       {innerHeight} = window
+      @landingView.setClass 'resizing-noanim'
       @landingView.setHeight innerHeight
+
+      @utils.killWait @wait
+      @wait = @utils.wait 200, =>
+          @landingView.unsetClass 'resizing-noanim'
+
+      if parseInt(@landingView.$().css("margin-top"),10) < 0
+        @landingView.$().css marginTop : -innerHeight
 
     @groupContentWrapperView = new KDView
       lazyDomId : 'group-content-wrapper'
@@ -76,11 +77,10 @@ class StaticGroupController extends KDController
     @groupContentView = new KDScrollView
       lazyDomId : 'group-landing-content'
       scroll    : (event)=>
-        if @groupContentView.getScrollTop() > 37
+        if @groupContentView.getScrollTop() > 57
           @landingNav.setClass "in"
         else
           @landingNav.unsetClass "in"
-        # log "scrolling", event
 
     @groupSplitView = new KDView
       lazyDomId : 'group-splitview'
@@ -139,20 +139,6 @@ class StaticGroupController extends KDController
 
       @landingNav.addSubView flyingNavController.getListView()
 
-      navController  = new KDListViewController
-        view         : new KDListView
-          itemClass  : GroupLandingNavItem
-          wrapper    : no
-          scrollView : no
-          type       : "group-landing-nav"
-
-      nav = navController.getListView()
-      nav.on "viewAppended", ->
-        navController.instantiateListItems items.slice()
-
-      @groupTitleView.addSubView navController.getListView(), ".group-title-wrapper"
-
-      nav.on       "groupLandingNavItemClicked", @bound "scrollToTitle"
       flyingNav.on "groupLandingNavItemClicked", @bound "scrollToTitle"
 
       titles       = @groupContentView.$('.has-markdown h1')
@@ -165,18 +151,6 @@ class StaticGroupController extends KDController
         if marginBottom > 0
           @groupContentView.$('.content-item-scroll-wrapper').css {marginBottom}
 
-      # @groupContentView.on "scroll", =>
-      #   lastVal = 0
-      #   for title, i in titles
-      #     if newVal = $(title).offset().top < 0
-      #       if ~lastVal > ~newVal
-      #         log title
-      #         break
-      #       lastVal = newVal
-
-
-
-
   scrollToTitle:(itemData)->
 
     titles = @groupContentView.$('.has-markdown h1')
@@ -188,43 +162,29 @@ class StaticGroupController extends KDController
       break
 
   checkGroupUserRelation:->
-    cb = (group)=>
-      group.fetchMembershipStatuses (err, statuses)=>
-        if err then warn err
-        else if statuses.length
-          if "member" in statuses or "admin" in statuses
-            isAdmin = 'admin' in statuses
-            @emit roleEventMap.member, isAdmin
-          else
-            @emit roleEventMap[statuses.first]
-
-      group.on 'NewMember', (member={})=>
-        if member.profile?.nickname is KD.whoami().profile.nickname
-          @pendingButton?.hide()
-          @requestButton?.hide()
-          @decorateMemberStatus no
-
-    if @group then cb @group
-    else @fetchGroup (err, group)-> cb group
-
-
+    statuses = KD.config.roles
+    if 'member' in statuses or 'admin' in statuses
+      isAdmin = 'admin' in statuses
+      @emit roleEventMap.member, isAdmin
+    else
+      @emit roleEventMap[statuses.first]
 
   removeBackground:->
-    @groupContentWrapperView.$().css backgroundImage : "none"
-    @groupContentWrapperView.$().css backgroundColor : "#ffffff"
+    @groupTitleView.$().css backgroundImage : "none"
+    @groupTitleView.$().css backgroundColor : "#ffffff"
 
   setBackground:(type,val)->
     if type in ['defaultImage','customImage']
       @groupSplitView.unsetClass 'vignette'
       @groupContentView.$().css backgroundColor : 'white'
       @utils.wait 200, =>
-        @groupContentWrapperView.$().css backgroundImage : "url(#{val})"
+        @groupTitleView.$().css backgroundImage : "url(#{val})"
         @utils.wait 200, =>
           @groupContentView.$().css backgroundColor : 'transparent'
     else
       @groupSplitView.setClass 'vignette'
-      @groupContentWrapperView.$().css backgroundImage : "none"
-      @groupContentWrapperView.$().css backgroundColor : "#{val}"
+      @groupTitleView.$().css backgroundImage : "none"
+      @groupTitleView.$().css backgroundColor : "#{val}"
 
   attachListeners:->
 
@@ -313,6 +273,7 @@ class StaticGroupController extends KDController
       @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
     else
       @lazyDomController.hideLandingPage()
+    KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
   decorateGuestStatus:->
 
@@ -327,6 +288,8 @@ class StaticGroupController extends KDController
         @lazyDomController.requestAccess()
 
     @buttonWrapper.addSubView @requestButton
+
+    @listenToNewMember()
 
     if KD.isLoggedIn()
       KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
@@ -343,6 +306,33 @@ class StaticGroupController extends KDController
                 action  : 'join-group'
 
           @buttonWrapper.addSubView @requestButton
+
+  listenToNewMember:->
+    cb = (group)=>
+      group.fetchMembershipStatuses (err, statuses)=>
+        if err then warn err
+        else if statuses.length
+          if 'member' in statuses or 'admin' in statuses
+            return
+          group.on 'MemberAdded', =>
+            unless @requestApproved
+              group.fetchMyRoles (err,roles)=>
+                unless err or roles?.length is 0
+                  if 'member' in roles
+                    @pendingButton?.hide()
+                    @requestButton?.hide()
+                    @decorateMemberStatus no
+                    @requestApproved = yes
+
+    if @group then cb @group
+    else @fetchGroup (err, group)-> cb group
+
+  fetchGroup:(callback)->
+    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
+      if err then callback err
+      else if groups?.first
+        @group = groups.first
+        callback null, @group
 
 
 class GroupLandingNavItem extends KDListItemView

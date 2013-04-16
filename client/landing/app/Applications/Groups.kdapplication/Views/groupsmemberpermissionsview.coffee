@@ -36,7 +36,9 @@ class GroupsMemberPermissionsView extends JView
           else
             userRolesHash = {}
             for userRole in userRoles
-              userRolesHash[userRole.targetId] = userRole.as
+              if not userRolesHash[userRole.targetId]
+                userRolesHash[userRole.targetId] = []
+              userRolesHash[userRole.targetId].push userRole.as
 
             list.getOptions().userRoles = userRolesHash
             options =
