@@ -121,6 +121,7 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""

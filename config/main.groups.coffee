@@ -13,7 +13,7 @@ rabbitPrefix = (
 ).trim()
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
-module.exports = deepFreeze
+module.exports = 
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -69,7 +69,6 @@ module.exports = deepFreeze
   authWorker    :
     login       : 'authWorker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -91,6 +90,7 @@ module.exports = deepFreeze
   client        :
     version     : version
     watch       : yes
+    watchDuration: 250
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -112,12 +112,16 @@ module.exports = deepFreeze
       sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'web-prod.in.koding.com'
+    port        : 5672
+    apiAddress  : "web-prod.in.koding.com"
+    apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
     password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
     vhost       : 'new'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
@@ -133,6 +137,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
