@@ -3,14 +3,17 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"github.com/streadway/amqp"
 	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func init() {
@@ -22,18 +25,31 @@ type IncomingMessage struct {
 	ProxyMessage       *proxyconfig.ProxyMessage
 }
 
-var proxyConfig *proxyconfig.ProxyConfiguration
+var proxy proxyconfig.Proxy
+var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
+var start chan bool
+var first bool = true
 
 func main() {
 	log.Printf("fujin proxy started ")
+	start = make(chan bool)
 
-	// register fujin instance to kontro-daemon
+	// register fujin instance to kontrol-daemon
 	amqpStream = setupAmqp()
 	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
+	go handleInput(amqpStream.input, amqpStream.uuid)
 
-	// get kontrol-daemon database connection
-	proxyConfig = proxyconfig.Connect()
+	// open kontrol-daemon database connection
+	proxyDB = proxyconfig.Connect()
+
+	log.Println("send request to get config file from kontrold. waiting...")
+	select {
+	case <-time.After(time.Second * 15):
+		log.Fatalf("ERROR: no config received from kontrold, exiting.")
+		os.Exit(1)
+	case <-start: // wait until we got message from kontrold or exit via above chan
+	}
 
 	addHTTP, err := net.ResolveTCPAddr("tcp", "localhost:"+config.HttpPort)
 	if err != nil {
@@ -63,7 +79,7 @@ func main() {
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
-		target := targetUrl(deaths, uuid)
+		target := targetUrl(deaths)
 
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
 		if err != nil {
@@ -82,6 +98,41 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	}
 }
 
+func handleInput(input <-chan amqp.Delivery, uuid string) {
+	for {
+		select {
+		case d := <-input:
+			// log.Printf("got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+			var msg IncomingMessage
+
+			err := json.Unmarshal(d.Body, &msg)
+			if err != nil {
+				log.Print("bad json incoming msg: ", err)
+			}
+
+			if msg.ProxyConfiguration != nil {
+				// TODO: should receive simple json, something like updateProxy...
+				log.Println("received config from kontrold, starting servers...")
+
+				var err error
+				proxy, err = proxyDB.GetProxy(uuid)
+				if err != nil {
+					log.Println(err)
+				}
+
+				if first {
+					start <- true
+					first = false
+				}
+			} else if msg.ProxyMessage != nil {
+				log.Println("Got ProxyMessage", msg.ProxyMessage)
+			} else {
+				log.Println("incoming message is in wrong format")
+			}
+		}
+	}
+}
+
 func buildProxyCmd(action, uuid string) []byte {
 	var req proxyconfig.ProxyMessage
 	req.Action = action
@@ -95,14 +146,10 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
-func targetUrl(numberOfDeaths int, uuid string) *url.URL {
+func targetUrl(numberOfDeaths int) *url.URL {
 	var target *url.URL
 	var err error
-	host, key := targetHost(uuid)
-
-	proxy, _ := proxyConfig.GetProxy(uuid)
-
-	// log.Println("Targeting with content:", proxy)
+	host, key := targetHost()
 
 	v := len(proxy.KeyRoutingTable.Keys[key])
 	if v == numberOfDeaths {
@@ -120,7 +167,7 @@ func targetUrl(numberOfDeaths int, uuid string) *url.URL {
 		log.Printf("Server is death: %s. Trying to get another one", host)
 		numberOfDeaths++
 
-		target = targetUrl(numberOfDeaths, uuid)
+		target = targetUrl(numberOfDeaths)
 	} else {
 		target, err = url.Parse("http://" + host)
 		if err != nil {
@@ -148,11 +195,9 @@ func checkServer(host, key string) error {
 	return nil
 }
 
-func targetHost(uuid string) (string, string) {
+func targetHost() (string, string) {
 	var hostname string
 	key := ""
-
-	proxy, _ := proxyConfig.GetProxy(uuid)
 
 	v := len(proxy.KeyRoutingTable.Keys)
 	if v == 0 {
@@ -186,11 +231,6 @@ func targetHost(uuid string) (string, string) {
 				break
 			}
 		}
-	}
-
-	err := proxyConfig.UpdateProxy(proxy)
-	if err != nil {
-		log.Println(err)
 	}
 
 	return hostname, key
