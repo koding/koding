@@ -56,13 +56,6 @@ class KodingRouter extends KDRouter
       appManager.tell app, 'setGroup', group
     appManager.tell app, 'handleQuery', query
 
-  stripTemplate =(str, konstructor)->
-    {slugTemplate} = konstructor
-    slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
-    re = RegExp slugTemplate.replace slugStripPattern,
-      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
-    str.match(re)?[1]
-
   handleNotFound:(route)->
 
     status_404 = =>
