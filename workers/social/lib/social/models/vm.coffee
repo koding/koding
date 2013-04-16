@@ -12,10 +12,10 @@ module.exports = class JVM extends Model
     schema            :
       ip              :
         type          : String
-        default       : null
+        default       : -> null
       ldapPassword    :
         type          : String
-        default       : null
+        default       : -> null
       name            : String
       users           : Array
       groups          : Array
@@ -44,12 +44,6 @@ module.exports = class JVM extends Model
       vm.save (err)-> target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
-
-    JUser.on 'UserCreated', (user)->
-      console.warn 'User created hook needs to be implemented.'
-
-    JUser.on 'UserDestroyed', (user)->
-      console.warn 'User destroyed hook needs to be implemented.'
 
     JGroup.on 'GroupCreated', ({group, creator})->
       creator.fetchUser (err, user)->
