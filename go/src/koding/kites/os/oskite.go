@@ -29,8 +29,6 @@ type VMInfo struct {
 	MemoryLimit int    `json:"memoryLimit"`
 }
 
-var ipPoolFetch <-chan int
-var ipPoolRelease chan<- int
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 
@@ -38,7 +36,6 @@ func main() {
 	lifecycle.Startup("kite.os", true)
 	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
 
-	takenIPs := make([]int, 0)
 	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
 	var vm virt.VM
 	for iter.Next(&vm) {
@@ -47,10 +44,8 @@ func main() {
 			info := newInfo(&vm)
 			infos[vm.Id] = info
 			info.startTimeout()
-			takenIPs = append(takenIPs, utils.IPToInt(vm.IP))
 		case "STOPPED":
 			vm.Unprepare()
-			db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
 		default:
 			panic("Unhandled VM state.")
 		}
@@ -58,7 +53,6 @@ func main() {
 	if iter.Err() != nil {
 		panic(iter.Err())
 	}
-	ipPoolFetch, ipPoolRelease = utils.NewIntPool(utils.IPToInt(net.IPv4(172, 16, 0, 2)), takenIPs)
 
 	go ldapserver.Listen()
 	go LimiterLoop()
@@ -155,11 +149,14 @@ func findSession(session *kite.Session) (*virt.User, *virt.VM) {
 	infosMutex.Unlock()
 
 	if !isExistingState {
-		ip := utils.IntToIP(<-ipPoolFetch)
-		if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-			panic(err)
+		if vm.IP == nil {
+			ipInt := db.NextCounterValue("vm_ip")
+			ip := net.IPv4(byte(ipInt<<24), byte(ipInt<<16), byte(ipInt<<8), byte(ipInt))
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+				panic(err)
+			}
+			vm.IP = ip
 		}
-		vm.IP = ip
 
 		vm.Prepare(getUsers(vm), false)
 		if out, err := vm.Start(); err != nil {
@@ -243,9 +240,6 @@ func (info *VMInfo) startTimeout() {
 		if err := vm.Unprepare(); err != nil {
 			log.Warn(err.Error())
 		}
-		db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"ip": nil}})
-		ipPoolRelease <- utils.IPToInt(vm.IP)
-		vm.IP = nil
 
 		delete(infos, vm.Id)
 	})
