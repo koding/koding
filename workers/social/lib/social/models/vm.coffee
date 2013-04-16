@@ -17,57 +17,120 @@ module.exports = class JVM extends Model
         type          : String
         default       : -> null
       name            : String
-      users           : [String]
-      groups          : [String]
+      users           : Array
+      groups          : Array
+      isEnabled       :
+        type          : Boolean
+        default       : yes
+      shouldDelete    :
+        type          : Boolean
+        default       : no
 
   do ->
 
-    handleError = (require 'koding-bound').call console, 'error'
+    handleError = (err)-> console.error err  if err
 
     JGroup  = require './group'
     JUser   = require './user'
 
-    JUser.on 'UserCreated', (user)->
-      console.warn 'User created hook needs to be implemented.'
+    addVm = ({ target, user, name, sudo, groups })->
+      vm = new JVM {
+        name: name
+        users: [
+          { id: user.getId(), sudo: yes }
+        ]
+        groups: groups ? []
+      }
+      vm.save (err)-> target.addVm vm, handleError
 
-    JUser.on 'UserDestroyed', (user)->
-      console.warn 'User destroyed hook needs to be implemented.'
+    wrapGroup =(group)-> [ { id: group.getId() } ]
+
+    uidFactory = (require 'koding-counter') {
+      db          : JVM.getClient()
+      counterName : 'uid'
+      offset      : 1e6
+    }
+
+    uidFactory.reset (err, lastId)->
+      console.log "UID counter is reset: %s", lastId
+
+    JUser.on 'UserCreated', (user)->
+      uidFactory.next (err, uid)->
+        if err then handleError err
+        else user.update { $set: { uid } }, handleError
 
     JGroup.on 'GroupCreated', ({group, creator})->
       creator.fetchUser (err, user)->
         if err then handleError err
         else
-          (new JVM {
-            name: group.slug
-            users: [
-              { id: user.getId(), sudo: yes }
-            ]
-            groups: [
-              { id: group.getId() }
-            ]
-          }).save handleError
+          addVm {
+            user
+            target  : group
+            sudo    : yes
+            name    : group.slug
+            groups  : wrapGroup group
+          }
 
     JGroup.on 'GroupDestroyed', ({group, member})->
-      JVM.remove { name: group.slug }, handleError
+      group.fetchVms (err, vms)->
+        if err then handleError err
+        else vms.forEach (vm)-> vm.remove handleError
 
     JGroup.on 'MemberAdded', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
+        else if group.slug is 'koding'
+          # TODO: this special case for koding should be generalized for any group.
+          addVm {
+            user
+            target  : member
+            sudo    : yes
+            name    : member.profile.nickname
+          }
         else
-          JVM.update { name: group.slug }, {
-            $addToSet:
-              users:
-                id      : user.getId()
-                sudo    : no
-          }, handleError
+          member.checkPermission group, 'sudoer', (err, hasPermission)->
+            if err then handleError err
+            else
+              group.fetchVms (err, vms)->
+                if err then handleError err
+                else vms.forEach (vm)->
+                  vm.update {
+                    $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                  }, handleError
 
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
+        else if group.slug is 'koding'
+          member.fetchVms (err, vms)->
+            if err then handleError err
+            else vms.forEach (vm)->
+              vm.update {
+                $set: { isEnabled: no, shouldDelete: yes }
+              }, handleError
         else
-          JVM.update { name: group.slug }, { $pull: user.getId() }, handleError
+          # group.fetchVms (err, vms)->
+          #   if err then handleError err
+          #   else vms.forEach (vm)->
+          #     JVM.update {_id: vm.getId()}, { $pull: id: user.getId() }, handleError
+          # TODO: the below is more efficient and a little less strictly correct than the above:
+          JVM.update { groups: group.getId() }, { $pull: id: user.getId() }, handleError
 
     JGroup.on 'MemberRolesChanged', ({group, member})->
-      member.checkPermission group, 'sudoer', (err, hasPermission)->
+      return  if group.slug 'koding'  # TODO: remove this special case
+      member.fetchUser (err, user)->
         if err then handleError err
         else
+          member.checkPermission group, 'sudoer', (err, hasPermission)->
+            if err then handleError err
+            else if hasPermission
+              member.fetchVms (err, vms)->
+                if err then handleError err
+                else
+                  vms.forEach (vm)->
+                    vm.update {
+                      $set: users: vm.users.map (userRecord)->
+                        isMatch = userRecord.id.equals user.getId()
+                        return userRecord  unless isMatch
+                        return { id, sudo: hasPermission }
+                    }, handleError

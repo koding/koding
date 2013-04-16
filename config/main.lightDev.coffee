@@ -125,6 +125,7 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    ip          : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
