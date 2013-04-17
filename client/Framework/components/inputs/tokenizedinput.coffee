@@ -33,16 +33,14 @@ class KDTokenizedInput extends JView
 
   keyDownOnInput:(event)->
     @decorateLayer()
-    # @layer.setClass "hide-tokens"
 
   keyUpOnInput:(event)->
     {_oldMatches} = @
     matchRules = @getOptions().match
     val = @input.getValue()
     @decorateLayer()
-    # @layer.unsetClass "hide-tokens"
     {input} = @
-    # log _oldMatches
+
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())
@@ -90,7 +88,7 @@ class KDTokenizedInput extends JView
     val = val.replace token, replacedText
     @input.setValue val
     @menu.destroy()
-    @utils.defer =>
+    @utils.wait =>
       @input.setFocus()
       @input.setCaretPosition val.indexOf(replacedText) + replacedText.length
       @decorateLayer()
