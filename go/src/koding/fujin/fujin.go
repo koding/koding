@@ -35,17 +35,17 @@ func main() {
 	log.Printf("fujin proxy started ")
 	start = make(chan bool)
 
-	// register fujin instance to kontrol-daemon
-	amqpStream = setupAmqp()
-	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
-	go handleInput(amqpStream.input, amqpStream.uuid)
-
 	// open kontrol-daemon database connection
 	var err error
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
+
+	// register fujin instance to kontrol-daemon
+	amqpStream = setupAmqp()
+	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
+	go handleInput(amqpStream.input, amqpStream.uuid)
 
 	log.Printf("registering with uuid '%s'", amqpStream.uuid)
 	log.Println("send request to get config file from kontrold. waiting...")
