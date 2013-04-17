@@ -122,6 +122,7 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
@@ -149,8 +150,8 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
-    mongo         : '127.0.0.1'
-      host        :
+    mongo         :
+      host        : '127.0.0.1'
     rabbitmq      :
       host        : 'salt-master.in.koding.com'
       port        : '5672'

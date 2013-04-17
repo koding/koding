@@ -70,12 +70,13 @@ func NewProxy(uuid string) *Proxy {
 	}
 }
 
-func Connect() *ProxyConfiguration {
+func Connect() (*ProxyConfiguration, error) {
 	host := config.Current.Kontrold.Mongo.Host
 	session, err := mgo.Dial(host)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
 	session.SetMode(mgo.Strong, true)
 
 	col := session.DB("kontrol").C("proxies")
@@ -85,7 +86,7 @@ func Connect() *ProxyConfiguration {
 		Collection: col,
 	}
 
-	return pr
+	return pr, nil
 }
 
 // Base INSERT/CREATE crud action

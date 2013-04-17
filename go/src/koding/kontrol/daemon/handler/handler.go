@@ -100,7 +100,10 @@ func Startup() {
 		log.Printf("Supervisor: worker exchange.declare: %s", err)
 	}
 
-	kontrolConfig = workerconfig.Connect()
+	kontrolConfig, err = workerconfig.Connect()
+	if err != nil {
+		log.Fatalf("wokerconfig mongodb connect: %s", err)
+	}
 
 	var worker workerconfig.MsgWorker
 

@@ -40,7 +40,10 @@ func Startup() {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
-	proxyConfig = proxyconfig.Connect()
+	proxyConfig, err = proxyconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
 
 	log.Println("kontrold proxy plugin has started")
 }

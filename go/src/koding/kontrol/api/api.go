@@ -85,8 +85,16 @@ func main() {
 	amqpWrapper := setupAmqp()
 	listenTell = setupListenTell(amqpWrapper)
 
-	kontrolConfig = workerconfig.Connect()
-	proxyConfig = proxyconfig.Connect()
+	var err error
+	kontrolConfig, err = workerconfig.Connect()
+	if err != nil {
+		log.Fatalf("wokerconfig mongodb connect: %s", err)
+	}
+
+	proxyConfig, err = proxyconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
