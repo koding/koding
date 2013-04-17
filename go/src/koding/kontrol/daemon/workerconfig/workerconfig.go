@@ -150,11 +150,11 @@ type MsgWorker struct {
 }
 
 // Start point. Needs to be called in order to use other methods
-func Connect() *WorkerConfig {
+func Connect() (*WorkerConfig, error) {
 	host := config.Current.Kontrold.Mongo.Host
 	session, err := mgo.Dial(host)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	session.SetMode(mgo.Strong, true)
 
@@ -167,7 +167,7 @@ func Connect() *WorkerConfig {
 		Collection:      col,
 	}
 
-	return wk
+	return wk, nil
 }
 
 func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {

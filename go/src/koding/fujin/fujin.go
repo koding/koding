@@ -41,13 +41,17 @@ func main() {
 	go handleInput(amqpStream.input, amqpStream.uuid)
 
 	// open kontrol-daemon database connection
-	proxyDB = proxyconfig.Connect()
+	var err error
+	proxyDB, err = proxyconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
 
 	log.Printf("registering with uuid '%s'", amqpStream.uuid)
 	log.Println("send request to get config file from kontrold. waiting...")
 	select {
 	case <-time.After(time.Second * 15):
-		log.Fatalf("ERROR: no config received from kontrold, exiting.")
+		log.Fatalf("ERROR: no config received from kontrold, aborting process.")
 		os.Exit(1)
 	case <-start: // wait until we got message from kontrold or exit via above chan
 	}
