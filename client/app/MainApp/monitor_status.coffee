@@ -191,17 +191,23 @@ do ->
   window.jsonp = ->
     KD.externalPong()
 
-  brokerInterval = null
+  brokerInterval  = null
+  failureCallback = null
 
+  # use broker ping to determine internet connection
   pingBrokerOnInterval = ->
     brokerInterval = setInterval ->
+      clearTimeout failureCallback
+      failureCallback = null
+
       failureCallback = setTimeout ->
-        log 'broker ping failed, running troubleshoot'
+        log 'broker ping failed, running troubleshoot', failureCallback
         KD.troubleshoot(false)
       , 2000
 
       KD.remote.ping ->
         clearTimeout failureCallback
+        failureCallback = null
     , 5000
 
   KD.remote.on 'connected', ->
