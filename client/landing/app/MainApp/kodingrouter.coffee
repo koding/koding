@@ -16,7 +16,9 @@ class KodingRouter extends KDRouter
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
-      new KDNotificationView title: "You're already here!"
+      new KDNotificationView
+        title: "You're already here!"
+        type : 'mini'
 
     @on 'Params', ({params, query})=>
       #@utils.defer => @getSingleton('groupsController').changeGroup params.name
@@ -46,8 +48,8 @@ class KodingRouter extends KDRouter
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
-  go:(app, group, query)->
-    return @once 'ready', @go.bind this, arguments...  unless @ready
+  openSection:(app, group, query)->
+    return @once 'ready', @openSection.bind this, arguments...  unless @ready
     @getSingleton('groupsController').changeGroup group, (err)->
       if err then new KDNotificationView title: err.message
       else
@@ -66,7 +68,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Activity'
+  getDefaultRoute:-> '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -126,17 +128,6 @@ class KodingRouter extends KDRouter
   clear:(route="/#{KD.config.groupEntryPoint ? ''}", replaceState=yes)->
     super route, replaceState
 
-  createLinks =(names, fn)->
-    names = names.split ' '  if names.split?
-    names
-      .map (name)->
-        [name, fn name]
-      .reduce (acc, [name, link])->
-        acc[name] = link
-        acc
-      , {}
-
-
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
@@ -152,16 +143,6 @@ class KodingRouter extends KDRouter
       loader.destroy()
       # KD.utils.wait 600, -> $('#main-koding-loader').hide()
 
-    content = createLinks(
-      'Activity Apps Groups Members Topics'
-      (sec)=> @createContentDisplayHandler sec
-    )
-
-    section = createLinks(
-      'Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
-      (sec)-> ({params:{name}, query})-> @go sec, name, query
-    )
-
     clear = @bound 'clear'
 
     requireLogin =(fn)->
@@ -173,6 +154,11 @@ class KodingRouter extends KDRouter
       mainController.accountReady ->
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
+
+    createSectionHandler = (sec)->
+      ({params:{name}, query})-> @openSection sec, name, query
+
+    createContentHandler = @bound 'createContentDisplayHandler'
 
     routes =
 
@@ -193,13 +179,13 @@ class KodingRouter extends KDRouter
 
       # section
       # TODO: nested groups are disabled.
-      '/:name?/Groups'                  : section.Groups
-      '/:name?/Activity'                : section.Activity
-      '/:name?/Members'                 : section.Members
-      '/:name?/Topics'                  : section.Topics
-      '/:name?/Develop'                 : section.StartTab
-      '/:name?/Apps'                    : section.Apps
-      '/:name?/Account'                 : section.Account
+      '/:name?/Groups'                  : createSectionHandler 'Groups'
+      '/:name?/Activity'                : createSectionHandler 'Activity'
+      '/:name?/Members'                 : createSectionHandler 'Members'
+      '/:name?/Topics'                  : createSectionHandler 'Topics'
+      '/:name?/Develop'                 : createSectionHandler 'StartTab'
+      '/:name?/Apps'                    : createSectionHandler 'Apps'
+      '/:name?/Account'                 : createSectionHandler 'Account'
 
       # group dashboard
       '/:name?/Dashboard'               : (routeInfo, state, route)->
@@ -209,9 +195,9 @@ class KodingRouter extends KDRouter
           @openContent name, 'Groups', group, route
 
       # content
-      '/:name?/Topics/:slug'            : content.Topics
-      '/:name?/Activity/:slug'          : content.Activity
-      '/:name?/Apps/:slug'              : content.Apps
+      '/:name?/Topics/:slug'            : createContentHandler 'Topics'
+      '/:name?/Activity/:slug'          : createContentHandler 'Activity'
+      '/:name?/Apps/:slug'              : createContentHandler 'Apps'
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
@@ -312,11 +298,5 @@ class KodingRouter extends KDRouter
           else
             KD.remote.cacheable params.name, (err, [model], name)->
               open routeInfo, model, status_404
-
-    sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
-      route.replace /^\/Groups\/:group/, ''
-
-    for route in sharedRoutes when route not in Object.keys routes
-      notFound.call this, route
 
     routes

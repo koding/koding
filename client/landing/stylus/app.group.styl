@@ -331,6 +331,7 @@
 .group-landing-content
   vendor transition, background-color 0.2s linear
   vendor perspective, 800px
+  background-size                       cover
   // vendor perspective-origin-x, 50%
   // vendor perspective-origin-y, 50%
 
@@ -958,6 +959,7 @@
 
 
 .group-admin-modal
+
   div.general-settings  > .kdformview
     margin-top 5px
     > .formline
@@ -971,11 +973,13 @@
 
   > .kdformview
     margin-top 20px
+
     > .formline
       width 100%
       borderBox()
       overflow:auto
       border none
+
       &.button-field
         bg color, transparent
         rounded 0
@@ -985,16 +989,6 @@
         margin-top 15px
 
 
-  div.avatar
-    .kdlabel
-      margin-top:30px
-    .kdfileuploadarea
-      width 80px
-      height 80px
-
-  div.body
-    textarea
-      min-height 150px
 
 
 .groups-member-permissions-view
@@ -1024,12 +1018,12 @@
       &.save
         bg            position, -80px -500px
 
-    .kd-radio-holder
+    .kd-checkbox-holder
       line-height       30px
       margin-right      10px
       display           inline-block
 
-      input[type=radio]
+      input[type=checkbox]
         vertical-align  middle
         display         inline
         width           auto

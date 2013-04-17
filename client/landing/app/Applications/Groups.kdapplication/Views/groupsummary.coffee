@@ -100,6 +100,8 @@ class GroupSummaryView extends KDCustomHTMLView
       @summaryNavBar.setClass "in"
       log "youre a poor villager"
 
+    staticGroupController.emit 'GroupSummaryListenersAttached'
+
   viewAppended: JView::viewAppended
 
   pistachio:->
