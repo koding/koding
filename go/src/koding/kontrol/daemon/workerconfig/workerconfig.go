@@ -460,18 +460,11 @@ func (w *WorkerConfig) IsEmpty() (bool, error) {
 }
 
 func (w *WorkerConfig) HasName(name string) (bool, error) {
-	session, err := mgo.Dial("127.0.0.1")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-	c := session.DB("kontrol").C("workers")
 	result := MsgWorker{}
-	err = c.Find(bson.M{"name": name}).One(&result)
+	err := w.Collection.Find(bson.M{"name": name}).One(&result)
 	if err != nil {
 		return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
 	}
-	// log.Println("Result name:", result.Name)
 
 	return true, nil
 }
