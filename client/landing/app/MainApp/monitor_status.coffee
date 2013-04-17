@@ -19,7 +19,7 @@ class Ping extends KDObject
     @pingTimeout = setTimeout =>
       @status = FAILED
       @emit "failed", @item, @name
-    , 5000
+    , 3000
 
   finish: ->
     @status = SUCCESS
