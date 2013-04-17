@@ -396,6 +396,9 @@ module.exports = [
   "app/Applications/Demos.kdapplication/AppController.coffee",
   "app/Applications/StartTab.kdapplication/AppController.coffee",
 
+  # chat
+  "app/Applications/Chat.kdapplication/AppController.coffee",
+
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
