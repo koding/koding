@@ -169,7 +169,7 @@ class ExternalPing extends KDObject
     @callback = callback
     KD.externalPong = @pong.bind(this)
     $.ajax
-      url : url+"?callback"+KD.externalPong
+      url : @url+"?callback"+KD.externalPong
       timeout: 3000
       dataType: "jsonp"
       error : ->
@@ -177,17 +177,41 @@ class ExternalPing extends KDObject
   pong: ->
     @callback()
 
-url = "https://s3.amazonaws.com/koding-ping/ping.json"
-external = new ExternalPing url
+do ->
+  url = "https://s3.amazonaws.com/koding-ping/ping.json"
+  external = new ExternalPing url
 
-monitorItems = new MonitorItems
-monitorItems.register {external}
+  monitorItems = new MonitorItems
+  monitorItems.register {external}
 
-KD.troubleshoot = (showNotifications=true)->
-  monitorItems = KD.getSingleton("monitorItems").items
-  monitor = new MonitorStatus monitorItems
-  monitor.showNotifications = showNotifications
-  monitor.run()
+  KD.troubleshoot = (showNotifications=true)->
+    monitorItems = KD.getSingleton("monitorItems").items
+    monitor = new MonitorStatus monitorItems
+    monitor.showNotifications = showNotifications
+    monitor.run()
 
-window.jsonp = ->
-  KD.externalPong()
+  window.jsonp = ->
+    KD.externalPong()
+
+  brokerInterval = null
+
+  pingBrokerOnInterval = ->
+    brokerInterval = setInterval ->
+      failureCallback = setTimeout ->
+        log 'broker ping failed, running troubleshoot'
+        KD.troubleshoot(false)
+      , 2000
+
+      KD.remote.ping ->
+        log 'ping callback'
+        clearTimeout failureCallback
+    , 5000
+
+  KD.remote.on 'connected', ->
+    pingBrokerOnInterval()
+    log 'connected, starting broker ping', brokerInterval
+
+  KD.remote.on 'disconnected', ->
+    clearInterval brokerInterval
+    brokerInterval = null
+    log 'disconnected, stopping broker ping', brokerInterval
