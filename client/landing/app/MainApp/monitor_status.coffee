@@ -201,7 +201,6 @@ do ->
       , 2000
 
       KD.remote.ping ->
-        log 'ping callback'
         clearTimeout failureCallback
     , 5000
 
