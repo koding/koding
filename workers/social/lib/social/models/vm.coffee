@@ -7,6 +7,7 @@ module.exports = class JVM extends Model
   @trait __dirname, '../traits/protected'
 
   @set
+    softDelete        : yes
     permissions       :
       'sudoer'        : []
     schema            :

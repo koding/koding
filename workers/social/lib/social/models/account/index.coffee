@@ -40,6 +40,7 @@ module.exports = class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'

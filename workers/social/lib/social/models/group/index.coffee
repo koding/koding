@@ -34,6 +34,7 @@ module.exports = class JGroup extends Module
   @share()
 
   @set
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : '#{slug}'
     feedable        : no

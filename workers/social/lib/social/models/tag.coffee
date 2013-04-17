@@ -23,6 +23,7 @@ module.exports = class JTag extends jraphical.Module
   @share()
 
   @set
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : ->
       """

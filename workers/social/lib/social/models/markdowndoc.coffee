@@ -7,6 +7,7 @@ module.exports = class JMarkdownDoc extends Module
   @share()
 
   @set
+    softDelete  : yes
     schema      :
       content   : String
       html      : String

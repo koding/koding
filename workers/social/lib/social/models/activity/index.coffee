@@ -19,6 +19,7 @@ module.exports = class CActivity extends jraphical.Capsule
   @trait __dirname, '../../traits/restrictedquery'
 
   @set
+    softDelete        : yes
     feedable          : yes
     broadcastable     : no
     indexes           :
