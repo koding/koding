@@ -81,7 +81,7 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
-	k.Handle("fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path     string
 			OnChange dnode.Callback
@@ -90,8 +90,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
 		}
 
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 		response := make(map[string]interface{})
 
 		if params.OnChange != nil {
@@ -129,16 +127,13 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return response, nil
 	})
 
-	k.Handle("fs.readFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		file, err := vos.Open(params.Path)
 		if err != nil {
@@ -163,7 +158,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return map[string]interface{}{"content": buf}, nil
 	})
 
-	k.Handle("fs.writeFile", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.writeFile", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path           string
 			Content        []byte
@@ -172,9 +167,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
 		if params.DoNotOverwrite {
@@ -194,16 +186,13 @@ func registerFileSystemMethods(k *kite.Kite) {
 		panic(err)
 	}
 
-	k.Handle("fs.ensureNonexistentPath", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.ensureNonexistentPath", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		name := params.Path
 		index := 1
@@ -224,16 +213,13 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return name, nil
 	})
 
-	k.Handle("fs.getInfo", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.getInfo", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		fi, err := vos.Stat(params.Path)
 		if err != nil {
@@ -246,7 +232,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
 	})
 
-	k.Handle("fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path      string
 			Mode      os.FileMode
@@ -255,9 +241,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		var doChange func(name string) error
 		doChange = func(name string) error {
@@ -299,7 +282,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("fs.remove", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.remove", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path      string
 			Recursive bool
@@ -307,9 +290,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		if params.Recursive {
 			if err := vos.RemoveAll(params.Path); err != nil {
@@ -324,7 +304,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("fs.rename", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.rename", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			OldPath string
 			NewPath string
@@ -333,9 +313,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 		}
 
-		user, vm := findSession(session)
-		vos := vm.OS(user)
-
 		if err := vos.Rename(params.OldPath, params.NewPath); err != nil {
 			return nil, err
 		}
@@ -343,16 +320,13 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("fs.createDirectory", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "fs.createDirectory", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
 			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		if err := vos.Mkdir(params.Path, 0755); err != nil {
 			return nil, err
