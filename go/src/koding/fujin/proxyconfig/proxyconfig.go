@@ -148,7 +148,7 @@ func (p *ProxyConfiguration) DeleteKey(key, host, hostdata, uuid string) error {
 }
 
 func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
-	_, err := p.Collection.Upsert(bson.M{"uuid": proxy.Uuid}, proxy)
+	err := p.Collection.Update(bson.M{"uuid": proxy.Uuid}, proxy)
 	if err != nil {
 		return err
 	}

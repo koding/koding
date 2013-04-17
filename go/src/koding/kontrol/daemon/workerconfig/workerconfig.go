@@ -333,7 +333,7 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 }
 
 func (w *WorkerConfig) UpdateWorker(worker MsgWorker) {
-	_, err := w.Collection.Upsert(bson.M{"uuid": worker.Uuid}, worker)
+	err := w.Collection.Update(bson.M{"uuid": worker.Uuid}, worker)
 	if err != nil {
 		log.Println(err)
 	}
