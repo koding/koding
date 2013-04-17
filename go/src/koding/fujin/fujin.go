@@ -11,8 +11,9 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"sort"
-	"strconv"
+	// "sort"
+	// "strconv"
+	"strings"
 	"time"
 )
 
@@ -85,8 +86,11 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
 
-		log.Println("request made by:", req.Host)
-		target := targetUrl(deaths)
+		args := strings.Split(req.Host, ".")
+		key := args[0]
+		log.Println("key is:", key)
+
+		target := targetUrl(deaths, key)
 
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
 		if err != nil {
@@ -127,6 +131,8 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 					log.Println(err)
 				}
 
+				log.Println("debug", proxy)
+
 				if first {
 					start <- true
 					first = false
@@ -153,10 +159,10 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
-func targetUrl(numberOfDeaths int) *url.URL {
+func targetUrl(numberOfDeaths int, key string) *url.URL {
 	var target *url.URL
 	var err error
-	host, key := targetHost()
+	host := targetHost(key)
 
 	v := len(proxy.KeyRoutingTable.Keys[key])
 	if v == numberOfDeaths {
@@ -168,13 +174,13 @@ func targetUrl(numberOfDeaths int) *url.URL {
 		return target
 	}
 
-	err = checkServer(host, key)
+	err = checkServer(host)
 	if err != nil {
 		log.Println(err)
 		log.Printf("Server is death: %s. Trying to get another one", host)
 		numberOfDeaths++
 
-		target = targetUrl(numberOfDeaths)
+		target = targetUrl(numberOfDeaths, key)
 	} else {
 		target, err = url.Parse("http://" + host)
 		if err != nil {
@@ -187,7 +193,7 @@ func targetUrl(numberOfDeaths int) *url.URL {
 }
 
 // Implement with fastProxy ...
-func checkServer(host, key string) error {
+func checkServer(host string) error {
 	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
 	if err != nil {
 		return err
@@ -202,26 +208,25 @@ func checkServer(host, key string) error {
 	return nil
 }
 
-func targetHost() (string, string) {
+func targetHost(key string) string {
 	var hostname string
-	key := ""
 
 	v := len(proxy.KeyRoutingTable.Keys)
 	if v == 0 {
 		hostname = "localhost:8000"
 		log.Println("no keys are added, using default url ", hostname)
 	} else {
-		// get all keys and sort them
-		listOfKeys := make([]int, len(proxy.KeyRoutingTable.Keys))
-		i := 0
-		for k, _ := range proxy.KeyRoutingTable.Keys {
-			listOfKeys[i], _ = strconv.Atoi(k)
-			i++
-		}
-		sort.Ints(listOfKeys)
+		// // get all keys and sort them
+		// listOfKeys := make([]int, len(proxy.KeyRoutingTable.Keys))
+		// i := 0
+		// for k, _ := range proxy.KeyRoutingTable.Keys {
+		// 	listOfKeys[i], _ = strconv.Atoi(k)
+		// 	i++
+		// }
+		// sort.Ints(listOfKeys)
 
-		// give precedence to the largest key number
-		key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+		// // give precedence to the largest key number
+		// key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
 
 		// then use round-robin algorithm for each hostname
 		for i, value := range proxy.KeyRoutingTable.Keys[key] {
@@ -240,5 +245,5 @@ func targetHost() (string, string) {
 		}
 	}
 
-	return hostname, key
+	return hostname
 }
