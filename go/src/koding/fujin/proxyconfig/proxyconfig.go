@@ -2,6 +2,7 @@ package proxyconfig
 
 import (
 	"fmt"
+	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -70,7 +71,8 @@ func NewProxy(uuid string) *Proxy {
 }
 
 func Connect() *ProxyConfiguration {
-	session, err := mgo.Dial("127.0.0.1")
+	host := config.Current.Kontrold.Mongo.Host
+	session, err := mgo.Dial(host)
 	if err != nil {
 		panic(err)
 	}

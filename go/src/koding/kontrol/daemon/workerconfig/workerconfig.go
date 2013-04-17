@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"koding/tools/config"
 	"koding/tools/process"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -150,7 +151,8 @@ type MsgWorker struct {
 
 // Start point. Needs to be called in order to use other methods
 func Connect() *WorkerConfig {
-	session, err := mgo.Dial("127.0.0.1")
+	host := config.Current.Kontrold.Mongo.Host
+	session, err := mgo.Dial(host)
 	if err != nil {
 		panic(err)
 	}
