@@ -2,7 +2,7 @@
 
 module.exports = class JChatConversation extends Module
 
-  {ObjectId} = require 'bongo'
+  {ObjectId, ObjectRef} = require 'bongo'
 
   @share()
 
