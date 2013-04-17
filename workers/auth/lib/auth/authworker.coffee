@@ -161,11 +161,11 @@ module.exports = class AuthWorker extends EventEmitter
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
         when 'group'
-          console.log {routingKey}
           unless ///^group.#{messageData.group}///.test routingKey
             console.log 'rejecting', routingKey
             return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
+        when 'chat' then # TODO: handle authentication for chat
         when 'secret'
           @addClient socketId, routingKey, routingKey, no
         else
