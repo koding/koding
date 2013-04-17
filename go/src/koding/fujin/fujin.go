@@ -86,10 +86,9 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
 
-		example := "917.x.koding.com"
-		args := strings.Split(example, ".")
+		args := strings.Split(req.Host, ".")
 		key := args[0]
-		log.Println("key is:", args[0])
+		log.Println("key is:", key)
 
 		target := targetUrl(deaths, key)
 
