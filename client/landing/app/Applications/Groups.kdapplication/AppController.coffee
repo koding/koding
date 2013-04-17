@@ -60,7 +60,6 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-      isReadOnly  : yes
     }
     @groupChannel.once 'setSecretName', callback
 
