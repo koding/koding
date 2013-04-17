@@ -3,23 +3,22 @@
 Compile the binary
 
 ```
-cd proxy-handler/
+cd fujin/
 go build
 ```
 
-Start the proxy handler
+Start fujin proxy hander 
 
 ```
-./proxy-handler
+./fujin -c "dev"
 ```
 
 This will start via http (80) and https (443). You can change them with
 
 ```
-./proxy-handler --port 8080 --portSSL 9090
+./fujin -c "dev" --port 8080 --portSSL 9090
 
 ```
-
 
 # Features
 
@@ -27,11 +26,11 @@ This will start via http (80) and https (443). You can change them with
 * Dynamic configuration
 * Remote control mechanism (via kontrold). You can list, add or delete domains remotely via a custom JSON message format.
 * SSL support
+* Stored configuration on MongoDB instance
+* Fallback mechanism for death servers
 
 
 # Improvements
-* use redis as configuration backend (instead of JSON file)
-* detect death backends and remove (or flag) them from the config
 * custom HTML error pages (i.e. for death backends)
 * wildcard support for fronted domains
 * improve routing table for paths (example.com/)
