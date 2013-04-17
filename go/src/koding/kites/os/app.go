@@ -36,8 +36,8 @@ var appsBucket = s3.New(
 ).Bucket("koding-apps")
 
 func registerAppMethods(k *kite.Kite) {
-	k.Handle("app.install", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args, session)
+	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		bucketPath, vos, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
 		}
@@ -55,8 +55,8 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("app.download", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args, session)
+	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		bucketPath, vos, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
 		}
@@ -125,16 +125,13 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("app.publish", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			AppPath string
 		}
 		if args.Unmarshal(&params) != nil || params.AppPath == "" {
 			return nil, &kite.ArgumentError{Expected: "{ appPath: [string] }"}
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		manifestFile, err := vos.Open(params.AppPath + "/manifest.json")
 		if err != nil {
@@ -148,7 +145,7 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		bucketPath := fmt.Sprintf("%s/%s/%s.tar.gz", session.Username, manifest.Identifier, manifest.Version)
+		bucketPath := fmt.Sprintf("%s/%s/%s.tar.gz", user.Name, manifest.Identifier, manifest.Version)
 
 		result, err := appsBucket.List(bucketPath, "", "", 1)
 		if err != nil {
@@ -245,7 +242,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	k.Handle("app.skeleton", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Type, AppPath string
 		}
@@ -256,9 +253,6 @@ func registerAppMethods(k *kite.Kite) {
 		if params.Type == "" {
 			params.Type = "blank"
 		}
-
-		user, vm := findSession(session)
-		vos := vm.OS(user)
 
 		if _, err := vos.Stat(params.AppPath); err == nil {
 			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
@@ -274,7 +268,7 @@ func registerAppMethods(k *kite.Kite) {
 	})
 }
 
-func prepareAppRetrival(args *dnode.Partial, session *kite.Session) (bucketPath string, vos *virt.VOS, appPath string, err error) {
+func prepareAppRetrival(args *dnode.Partial) (bucketPath string, vos *virt.VOS, appPath string, err error) {
 	var params struct {
 		Owner, Identifier, Version, AppPath string
 	}
@@ -284,9 +278,6 @@ func prepareAppRetrival(args *dnode.Partial, session *kite.Session) (bucketPath 
 	}
 
 	bucketPath = fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
-
-	user, vm := findSession(session)
-	vos = vm.OS(user)
 	appPath = params.AppPath
 	return
 }
