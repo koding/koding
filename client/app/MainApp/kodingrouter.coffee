@@ -16,9 +16,10 @@ class KodingRouter extends KDRouter
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
-      new KDNotificationView
-        title: "You're already here!"
-        type : 'mini'
+      log "You're already here!"
+      # new KDNotificationView
+      #   title: "You're already here!"
+      #   type : 'mini'
 
     @on 'Params', ({params, query})=>
       #@utils.defer => @getSingleton('groupsController').changeGroup params.name
@@ -43,25 +44,22 @@ class KodingRouter extends KDRouter
       if KD.isLoggedIn()
         @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
       else
-        KD.getSingleton('mainController').doGoHome()
+        @handleRoute @getDefaultRoute()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   go:(app, group, query)->
-    log ">>>>>", app, group
-    debugger
     unless @ready
-      log "not ready", app, group
       @once 'ready', @go.bind this, arguments...
       return
 
     @getSingleton('groupsController').changeGroup group, (err)->
-      log "ready", app, group
       if err then new KDNotificationView title: err.message
       else
-        KD.getSingleton("appManager").open app
-        KD.getSingleton("appManager").tell app, 'handleQuery', query
+        appManager = KD.getSingleton("appManager")
+        appManager.open app
+        appManager.tell app, 'handleQuery', query
 
   handleNotFound:(route)->
 
@@ -155,7 +153,7 @@ class KodingRouter extends KDRouter
     )
 
     section = createLinks(
-      'Home Account Activity Apps Dashboard Groups Inbox Members StartTab Topics'
+      'Account Activity Apps Dashboard Groups Home Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})->
         log "going to: ", sec, name, query
         @go sec, name, query
@@ -173,6 +171,8 @@ class KodingRouter extends KDRouter
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
+    # defaultHandler = (sec)-> ({params:{name}}, query)-> @go sec, name, query
+
     routes =
 
       '/' : handleRoot
@@ -180,18 +180,19 @@ class KodingRouter extends KDRouter
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->
-        requireLogout -> mainController.doLogin name
+        requireLogout -> mainController.loginScreen.animateToForm 'login'
       '/:name?/Logout'    : ({params:{name}})->
-        requireLogin  -> mainController.doLogout name; clear()
+        requireLogin  -> mainController.doLogout()
       '/:name?/Register'  : ({params:{name}})->
-        requireLogout -> mainController.doRegister name
+        requireLogout -> mainController.loginScreen.animateToForm 'register'
       '/:name?/Join'      : ({params:{name}})->
-        requireLogout -> mainController.doJoin name
+        requireLogout -> mainController.loginScreen.animateToForm 'join'
       '/:name?/Recover'   : ({params:{name}})->
-        requireLogout -> mainController.doRecover name
+        requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
       # section
       # TODO: nested groups are disabled.
+      # '/:name?/Home'                    : defaultHandler "Home"
       '/:name?/Home'                    : section.Home
       '/:name?/Groups'                  : section.Groups
       '/:name?/Activity'                : section.Activity

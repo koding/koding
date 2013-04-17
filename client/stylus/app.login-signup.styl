@@ -19,8 +19,10 @@ app.login-signup.styl
   background-color   rgba(0,0,0,.6)
   top                0
   left               11160px
-  vendor transition, left .6s ease-in-out
+  text-align         center
+  vendor transition, left .3s ease-in-out
   abs()
+  borderBox()
 
   .flex-wrapper
     background-color  rgba(0,0,0,0.6) !important
@@ -31,9 +33,7 @@ app.login-signup.styl
   .regLink
   .recLink
   .reqLink
-  .vidLink
   .logLink
-  .bigLink
   >section
     hidden()
 
@@ -42,7 +42,6 @@ app.login-signup.styl
 
     .logLink
     .regLink
-    .vidLink
       visible()
     .flex-wrapper
       overflow            visible
@@ -68,7 +67,6 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
-    .vidLink
     .reqLink
     .login-options-holder.log
       visible()
@@ -78,7 +76,6 @@ app.login-signup.styl
 
     .rf
     .logLink
-    .vidLink
     .reqLink
     .login-options-holder.reg
       visible()
@@ -104,11 +101,9 @@ app.login-signup.styl
       hidden()
     .flex-wrapper
       height              254px
-
-.kdview.login-screen
-  text-align              center
-  vendor                  transition, margin-top .6s ease-in-out
-  borderBox()
+  &.home
+    .flex-wrapper
+      margin-bottom       30px
 
   .up-arrow
     display               block
@@ -151,7 +146,7 @@ app.login-signup.styl
     border                1px solid rgba(255,255,255,0.16)
     rounded               8px
     margin                30px auto 30px auto
-    shadow                0 0 150px rgba(0, 0, 0, 0.32)
+    shadow                0 0 30px rgba(0,0,0,0.6)
     bg                    color, rgba(255,255,255,0.05)
     vendor                transition, height .4s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
     overflow              hidden
@@ -181,11 +176,17 @@ app.login-signup.styl
         vertical-align    bottom
         size              12px, 11px
 
-  a
-    color                 #ffb500
-    noTextDeco()
-    &:hover
+  .login-footer
+    p
       color               white
+      line-height         24px
+      font-size           12px
+      color               rgba(255, 255, 255, .75)
+      a
+        color             #ffb500
+        noTextDeco()
+        &:hover
+          color           white
 
 .login-box-header
   rel()
@@ -466,23 +467,6 @@ app.login-signup.styl
 p.login-tip
   line-height           16px
   color                 white
-
-.kdview.login-screen.home
-  .flex-wrapper
-    margin-bottom       30px
-
-.login-footer
-  rel()
-  height                auto
-  font-size             12px
-  text-align            center
-  z-index               10
-  //font-family           mono
-  p
-    color               #b4b3b3
-    //text-shadow         1px solid #444
-    //margin-bottom       7px
-    line-height         24px
 
 .kdnotification.login
   span
