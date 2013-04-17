@@ -41,11 +41,16 @@ type Config struct {
 		Interval int
 	}
 	Kontrold struct {
-		Host     string
-		Port     string
-		Login    string
-		Password string
-		Vhost    string
+		Mongo struct {
+			Host string
+		}
+		RabbitMq struct {
+			Host     string
+			Port     string
+			Login    string
+			Password string
+			Vhost    string
+		}
 	}
 }
 

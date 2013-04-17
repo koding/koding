@@ -546,10 +546,10 @@ func createProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
 	log.Printf("creating connection for sending %s messages", p.name)
 
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	p.conn = amqputil.CreateAmqpConnection(user, password, host, port)
 	p.channel = amqputil.CreateChannel(p.conn)

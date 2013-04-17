@@ -22,17 +22,13 @@ func init() {
 }
 
 func main() {
-	if config.Verbose {
-		log.Println("verbose mode on.")
-	}
-
 	_, err := startRouting()
 	if err != nil {
 		log.Fatalf("Could not start routing of api messages: %s", err)
 	}
 
-	// Read config file and initialize workers
-	log.Printf("initiliazing worker package.")
+	// Initialize db and startup settings
+	log.Printf("initiliazing handlers")
 	handler.Startup()
 	proxy.Startup()
 
@@ -63,10 +59,10 @@ func startRouting() (*Consumer, error) {
 	}
 
 	log.Printf("creating connection to handle incoming cli and api messages")
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	/* We use one connection and channel for our three consumers */
 	c.conn = amqputil.CreateAmqpConnection(user, password, host, port)
