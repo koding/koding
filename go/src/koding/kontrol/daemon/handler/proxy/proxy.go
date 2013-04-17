@@ -40,14 +40,9 @@ func Startup() {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	err = proxyConfig.ReadConfig()
-	if err != nil {
-		log.Println(err)
-	}
+	proxyConfig = proxyconfig.Connect()
 
 	log.Println("kontrold proxy plugin has started")
-
 }
 
 func HandleMessage(data []byte) {
@@ -84,10 +79,6 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if err != nil {
 			log.Println(err)
 		}
-	case "listKey":
-		log.Println("got 'list' json request")
-		res := proxyConfig.ListKeys()
-		log.Println(res)
 	case "addProxy":
 		log.Println("got 'addProxy' json request")
 		err := proxyConfig.AddProxy(msg.Uuid)
@@ -140,10 +131,10 @@ func createProducer(name string) (*Producer, error) {
 		log.Printf("creating connection for sending %s messages", p.name)
 	}
 
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	p.conn = amqputil.CreateAmqpConnection(user, password, host, port)
 	p.channel = amqputil.CreateChannel(p.conn)

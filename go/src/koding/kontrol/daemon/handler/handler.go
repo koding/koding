@@ -12,6 +12,7 @@ import (
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/utils"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
 	"strconv"
@@ -53,7 +54,6 @@ type Producer struct {
 
 var processConfig ProcessConfig
 var kontrolConfig *workerconfig.WorkerConfig
-var proxyConfig *proxyconfig.ProxyConfiguration
 
 var workerProducer *Producer
 var cliProducer *Producer
@@ -100,11 +100,7 @@ func Startup() {
 		log.Printf("Supervisor: worker exchange.declare: %s", err)
 	}
 
-	kontrolConfig = workerconfig.NewWorkerConfig()
-	kontrolConfig.ReadConfig()
-
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	proxyConfig.ReadConfig()
+	kontrolConfig = workerconfig.Connect()
 
 	var worker workerconfig.MsgWorker
 
@@ -151,21 +147,13 @@ func Startup() {
 		if ok {
 			kontrolConfig.AddWorker(worker)
 		} else {
+			log.Println("Checking for other workers")
 			ok, _ := kontrolConfig.HasName(worker.Name)
 			if !ok {
 				kontrolConfig.AddWorker(worker)
 			}
 			// there are already kontrolConfig in the config file, nothing to do.
 		}
-
-		if err := kontrolConfig.SaveToConfig(); err != nil {
-			log.Println(err)
-		}
-	}
-
-	err = kontrolConfig.SaveToConfig()
-	if err != nil {
-		log.Println(err)
 	}
 
 	log.Printf("ready on host %s", kontrolConfig.Hostname)
@@ -318,13 +306,13 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("command not recognized: ", command)
 	}
 
+	result := workerconfig.MsgWorker{}
 	if hostname == "" && uuid == "" {
 		// Apply action to all workers
-		if config.Verbose {
-			log.Printf("'%s' all workers", command)
-		}
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			res, err := actions[command](workerData.Hostname, workerData.Uuid)
+		log.Printf("'%s' all workers", command)
+		iter := kontrolConfig.Collection.Find(nil).Iter()
+		for iter.Next(&result) {
+			res, err := actions[command](result.Hostname, result.Uuid)
 			if err != nil {
 				log.Println(err)
 			}
@@ -332,30 +320,31 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		}
 	} else if hostname != "" && uuid == "" {
 		// Apply action on all workers on the hostname
-		if config.Verbose {
-			log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
-		}
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Hostname == hostname {
-				res, err := actions[command](hostname, workerData.Uuid)
-				if err != nil {
-					log.Println(err)
-				}
-				go sendWorker(res)
+		log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
+		iter := kontrolConfig.Collection.Find(bson.M{"hostname": hostname}).Iter()
+		for iter.Next(&result) {
+			res, err := actions[command](result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
 			}
+			go sendWorker(res)
 		}
 	} else if uuid != "" {
 		// Apply action on single worker, hostname is just for backward compatibility
-		workerRes := kontrolConfig.RegisteredWorkers[uuid]
+		workerResult, err := kontrolConfig.GetWorker(uuid)
+		if err != nil {
+			return fmt.Errorf("dorequest method error '%s'", err)
+		}
+
 		if hostname == "" {
-			hostname = workerRes.Hostname
+			hostname = workerResult.Hostname
 		}
 
 		if config.Verbose && command != "ack" {
-			log.Printf(" '%s' worker '%s' on host '%s'", command, workerRes.Name, workerRes.Hostname)
+			log.Printf(" '%s' worker '%s' on host '%s'", command, workerResult.Name, hostname)
 		}
 
-		res, err := actions[command](hostname, uuid)
+		res, err := actions[command](hostname, workerResult.Uuid)
 		if err != nil {
 			return err
 		}
@@ -366,97 +355,61 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 }
 
 func SaveMonitorData(data *workerconfig.Monitor) error {
-	err := kontrolConfig.HasUuid(data.Uuid)
+	workerResult, err := kontrolConfig.GetWorker(data.Uuid)
 	if err != nil {
 		return fmt.Errorf("monitor data error '%s'", err)
 	}
 
-	workerResult := kontrolConfig.RegisteredWorkers[data.Uuid]
 	workerResult.Monitor.Mem = *data.Mem
 	workerResult.Monitor.Uptime = data.Uptime
-	kontrolConfig.RegisteredWorkers[data.Uuid] = workerResult
-	kontrolConfig.SaveToConfig()
-
+	kontrolConfig.UpdateWorker(workerResult)
 	return nil
 }
 
 func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	option := worker.Message.Option
 
-	if !kontrolConfig.ApprovedHost(worker.Name, worker.Hostname) {
-		worker.Message.Result = "not.allowed"
-		return worker, errors.New("Worker is not in approved host before")
-	}
+	// if !kontrolConfig.ApprovedHost(worker.Name, worker.Hostname) {
+	// 	worker.Message.Result = "not.allowed"
+	// 	return worker, errors.New("Worker is not in approved host before")
+	// }
 
 	if option == "force" {
 		log.Println("force option is enabled.")
 
-		// TODO: Force for the same name on all other hostnames, or just on that hostname?
-		//			 If force should be enabled only on the same hostname that us the following line:
-		// if workerData.Status != pending && workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
+		// First kill and delete all alive workers for the same name type.
+		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
+		log.Println(worker.Name, worker.Hostname)
+		iter := kontrolConfig.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
 
-		// First stop all alive workers for the same name type.
-		log.Println("trying to stop and kill all other workers with the same name.")
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Status != workerconfig.Pending && workerData.Name == worker.Name {
-				res, err := kontrolConfig.Stop(workerData.Hostname, workerData.Uuid)
-				if err != nil {
-					log.Println("", err)
-				}
-				go sendWorker(res)
+		result := workerconfig.MsgWorker{}
+		for iter.Next(&result) {
+			log.Println(result)
 
-				res, err = kontrolConfig.Kill(workerData.Hostname, workerData.Uuid)
-				if err != nil {
-					log.Println("", err)
-				}
-				go sendWorker(res)
-
+			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
 			}
+			go sendWorker(res)
+
+			err = kontrolConfig.Delete(result.Hostname, result.Uuid)
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
 
-		// Then add the new worker to a buffer, and wait.
-		worker.Status = workerconfig.Pending
+		// kontrolConfig.AddWorker(worker)
+		worker.Message.Result = "added.now"
+		worker.Status = workerconfig.Running
+		log.Println("start our new worker")
+		log.Printf("'add' worker '%s' with pid: '%d'", worker.Name, worker.Pid)
 		kontrolConfig.AddWorker(worker)
-		if err := kontrolConfig.SaveToConfig(); err != nil {
-			log.Printf(" %s", err)
-		}
 
-		lenPendingWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, true)
+		return worker, nil
 
-		// Until we have all of them. For example if our worker type spawns 4
-		// workers then we wait until we have 4 pending workers.
-
-		if lenPendingWorkers == worker.Number {
-			// Then delete the old workers (those we stoped and killed above)
-			log.Println("trying to delete remaining old workers with the same name.")
-			for _, workerData := range kontrolConfig.RegisteredWorkers {
-				// Use this as written above if TODO is yes!!
-				//if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				if workerData.Message.Result == "killed.now" && workerData.Name == worker.Name {
-					kontrolConfig.DeleteWorker(workerData.Uuid)
-				}
-			}
-
-			log.Println("trying to start new worker.")
-			// and add our new workers (which means we are starting them)
-			for _, workerData := range kontrolConfig.RegisteredWorkers {
-				//if workerData.Status == pending && workerData.Name == worker.Name && workerData.Hostname == workerData.Hostname {
-				if workerData.Status == workerconfig.Pending && workerData.Name == worker.Name {
-					workerData.Message.Result = "added.now"
-					workerData.Status = workerconfig.Running
-					log.Println("start our new worker")
-					log.Printf("'add' worker '%s' with pid: '%d'", workerData.Name, workerData.Pid)
-					kontrolConfig.AddWorker(workerData)
-					if err := kontrolConfig.SaveToConfig(); err != nil {
-						log.Printf(" %s", err)
-					}
-
-					return workerData, nil
-				}
-			}
-		}
 	} else {
-		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname, workerconfig.Pending, false)
+		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
 		// If there is no other workers of same name(type) on the same hostname than add it immediadetly ...
 		log.Printf("for '%s' workers allowed: %d, workers available: %d",
 			worker.Name,
@@ -468,51 +421,45 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
 			kontrolConfig.AddWorker(worker)
-			if err := kontrolConfig.SaveToConfig(); err != nil {
-				log.Printf(" %s", err)
-			}
 			return worker, nil
 		}
 
 		log.Printf("a worker of the type '%s' is already registered. Checking for status...", worker.Name)
 
-		// TODO: Adding user in this interval doesn't do anything, add 10-11 seconds timeout
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				err := kontrolConfig.RefreshStatus(workerData.Uuid)
-				if err != nil {
-					log.Println("couldn't refresh data", err)
-				}
-			}
+		err := kontrolConfig.RefreshStatusAll()
+		if err != nil {
+			log.Println("couldn't refresh data", err)
 		}
 
+		// First kill and delete all alive workers for the same name type.
+		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
+		log.Println(worker.Name, worker.Hostname)
+		iter := kontrolConfig.Collection.Find(bson.M{
+			"name":     worker.Name,
+			"hostname": worker.Hostname,
+			"status": bson.M{"$in": []int{
+				int(workerconfig.Notstarted),
+				int(workerconfig.Killed),
+				int(workerconfig.Dead),
+			}}}).Iter()
+
 		var gotPermission bool = false
-		for _, workerData := range kontrolConfig.RegisteredWorkers {
-			if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-				if workerData.Status == workerconfig.Notstarted ||
-					workerData.Status == workerconfig.Killed ||
-					workerData.Status == workerconfig.Dead {
 
-					log.Printf("remote worker '%s' on hostname '%s' with uuid '%s' is not responding. Deleting it.",
-						workerData.Name,
-						workerData.Hostname,
-						workerData.Uuid)
-					kontrolConfig.DeleteWorker(workerData.Uuid)
+		result := workerconfig.MsgWorker{}
+		for iter.Next(&result) {
+			log.Println(result)
 
-					log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
-						worker.Name,
-						worker.Hostname,
-						worker.Uuid)
-					worker.Message.Result = "first.start"
-					worker.Status = workerconfig.Running
+			kontrolConfig.DeleteWorker(result.Uuid)
 
-					kontrolConfig.AddWorker(worker)
-					if err := kontrolConfig.SaveToConfig(); err != nil {
-						log.Printf(" %s", err)
-					}
-					gotPermission = true
-				}
-			}
+			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
+				worker.Name,
+				worker.Hostname,
+				worker.Uuid)
+			worker.Message.Result = "first.start"
+			worker.Status = workerconfig.Running
+
+			kontrolConfig.AddWorker(worker)
+			gotPermission = true
 		}
 
 		if !gotPermission {
@@ -599,10 +546,10 @@ func createProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
 	log.Printf("creating connection for sending %s messages", p.name)
 
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	p.conn = amqputil.CreateAmqpConnection(user, password, host, port)
 	p.channel = amqputil.CreateChannel(p.conn)

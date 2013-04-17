@@ -22,7 +22,6 @@ type AmqpStream struct {
 	uuid    string
 }
 
-
 func setupAmqp() *AmqpStream {
 	c := &Consumer{
 		conn:    nil,
@@ -35,10 +34,10 @@ func setupAmqp() *AmqpStream {
 
 	appId := customHostname()
 
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	c.conn, err = amqp.Dial(url)

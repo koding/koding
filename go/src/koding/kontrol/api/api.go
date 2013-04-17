@@ -82,11 +82,8 @@ func main() {
 	amqpWrapper := setupAmqp()
 	listenTell = setupListenTell(amqpWrapper)
 
-	kontrolConfig = workerconfig.NewWorkerConfig()
-	kontrolConfig.ReadConfig()
-
-	proxyConfig = proxyconfig.NewProxyConfiguration()
-	proxyConfig.ReadConfig()
+	kontrolConfig = workerconfig.Connect()
+	proxyConfig = proxyconfig.Connect()
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
@@ -113,21 +110,19 @@ func main() {
 // Get all registered proxies
 // example: http GET "localhost:8000/proxies"
 func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
-	allProxies, err := getProxies()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 	p := make(ProxyMachines, 0)
+	proxy := proxyconfig.Proxy{}
 
-	for uuid, routingTable := range allProxies.RegisteredProxies {
+	iter := proxyConfig.Collection.Find(nil).Iter()
+	for iter.Next(&proxy) {
 		keysList := make([]string, 0)
-		for key, _ := range routingTable.KeyRoutingTable.Keys {
+		for key, _ := range proxy.KeyRoutingTable.Keys {
 			keysList = append(keysList, key)
 		}
 
-		machine := &ProxyMachine{uuid, keysList}
+		machine := &ProxyMachine{proxy.Uuid, keysList}
 		p = append(p, ProxyMachine(*machine))
+
 	}
 
 	data, err := json.MarshalIndent(p, "", "  ")
@@ -236,14 +231,8 @@ func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
 	host := v.Get("host")
 	hostdata := v.Get("hostdata")
 
-	allProxies, err := getProxies()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 	p := make(Proxies, 0)
-
-	proxyMachine := allProxies.RegisteredProxies[uuid]
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
 	for _, keys := range proxyMachine.KeyRoutingTable.Keys {
 		for _, proxy := range keys {
 			p = append(p, Proxy{proxy.Key, proxy.Host, proxy.HostData})
@@ -378,15 +367,16 @@ func home(writer http.ResponseWriter, request *http.Request) {
 }
 
 func getStatus() Workers {
-	kontrolConfig.ReadConfig()
-
 	err := kontrolConfig.RefreshStatusAll()
 	if err != nil {
 		log.Println(err)
 	}
 
 	workers := make(Workers, 0)
-	for _, worker := range kontrolConfig.RegisteredWorkers {
+	worker := workerconfig.MsgWorker{}
+
+	iter := kontrolConfig.Collection.Find(nil).Iter()
+	for iter.Next(&worker) {
 		apiWorker := &Worker{
 			worker.Name,
 			worker.Uuid,
@@ -401,15 +391,6 @@ func getStatus() Workers {
 	}
 
 	return workers
-}
-
-func getProxies() (*proxyconfig.ProxyConfiguration, error) {
-	err := proxyConfig.ReadConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	return proxyConfig, nil
 }
 
 func buildWriteData(w Workers) []byte {

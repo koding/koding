@@ -17,10 +17,10 @@ type AmqpWrapper struct {
 }
 
 func setupAmqp() (ext *AmqpWrapper) {
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	connection := amqputil.CreateAmqpConnection(user, password, host, port)
 	channel := amqputil.CreateChannel(connection)

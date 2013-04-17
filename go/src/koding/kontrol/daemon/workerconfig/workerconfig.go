@@ -1,11 +1,13 @@
 package workerconfig
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"koding/tools/config"
 	"koding/tools/process"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
 	"regexp"
@@ -78,9 +80,15 @@ type StatusResponse struct {
 }
 
 type SingleStatusResponse struct {
-	Worker
-	Memory int `json:"memory"`
-	Uptime int `json:"uptime"`
+	Name      string       `json:"name"`
+	Uuid      string       `json:"uuid"`
+	Hostname  string       `json:"hostname"`
+	Version   int          `json:"version"`
+	Timestamp time.Time    `json:"timestamp"`
+	Pid       int          `json:"pid"`
+	Status    WorkerStatus `json:"status"`
+	Memory    int          `json:"memory"`
+	Uptime    int          `json:"uptime"`
 }
 
 type Request struct {
@@ -98,17 +106,15 @@ type ClientRequest struct {
 
 func NewSingleStatusResponse(name, uuid, hostname string, version, pid int, status WorkerStatus, mem, uptime int) *SingleStatusResponse {
 	return &SingleStatusResponse{
-		Worker: Worker{
-			Name:      name,
-			Uuid:      uuid,
-			Hostname:  hostname,
-			Version:   version,
-			Pid:       pid,
-			Status:    status,
-			Timestamp: time.Now().UTC(),
-		},
-		Memory: mem,
-		Uptime: uptime,
+		Name:      name,
+		Uuid:      uuid,
+		Hostname:  hostname,
+		Version:   version,
+		Pid:       pid,
+		Status:    status,
+		Timestamp: time.Now().UTC(),
+		Memory:    mem,
+		Uptime:    uptime,
 	}
 }
 
@@ -119,23 +125,20 @@ func NewStatusResponse() *StatusResponse {
 }
 
 type WorkerConfig struct {
-	Hostname          string
-	RegisteredWorkers map[string]MsgWorker
-	RegisteredHosts   map[string][]string
-}
-
-func NewWorkerConfig() *WorkerConfig {
-	wk := &WorkerConfig{
-		Hostname:          customHostname(),
-		RegisteredWorkers: make(map[string]MsgWorker),
-		RegisteredHosts:   make(map[string][]string),
-	}
-
-	return wk
+	Hostname        string
+	RegisteredHosts map[string][]string
+	Session         *mgo.Session
+	Collection      *mgo.Collection
 }
 
 type MsgWorker struct {
-	Worker
+	Name           string           `json:"name"`
+	Uuid           string           `json:"uuid"`
+	Hostname       string           `json:"hostname"`
+	Version        int              `json:"version"`
+	Timestamp      time.Time        `json:"timestamp"`
+	Pid            int              `json:"pid"`
+	Status         WorkerStatus     `json:"status"`
 	Cmd            string           `json:"cmd"`
 	Number         int              `json:"number"`
 	Message        WorkerMessage    `json:"message"`
@@ -146,9 +149,29 @@ type MsgWorker struct {
 	} `json:"monitor"`
 }
 
+// Start point. Needs to be called in order to use other methods
+func Connect() *WorkerConfig {
+	host := config.Current.Kontrold.Mongo.Host
+	session, err := mgo.Dial(host)
+	if err != nil {
+		panic(err)
+	}
+	session.SetMode(mgo.Strong, true)
+
+	col := session.DB("kontrol").C("workers")
+
+	wk := &WorkerConfig{
+		Hostname:        customHostname(),
+		RegisteredHosts: make(map[string][]string),
+		Session:         session,
+		Collection:      col,
+	}
+
+	return wk
+}
+
 func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 	res := *NewStatusResponse()
-
 	err := w.RefreshStatusAll()
 	if err != nil {
 		log.Println("couldn't refresh data", err)
@@ -165,23 +188,25 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 				d.Status,
 				d.Monitor.Mem.HeapTotal,
 				d.Monitor.Uptime))
-	}
 
+	}
+	result := MsgWorker{}
 	if hostname == "" && uuid == "" {
-		for _, d := range w.RegisteredWorkers {
-			addSingleResponse(d)
+		iter := w.Collection.Find(nil).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
+
 	} else if hostname != "" && uuid == "" {
-		for _, d := range w.RegisteredWorkers {
-			if d.Hostname == hostname {
-				addSingleResponse(d)
-			}
+		iter := w.Collection.Find(bson.M{"hostname": hostname}).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
+
 	} else if hostname != "" && uuid != "" {
-		for _, d := range w.RegisteredWorkers {
-			if d.Hostname == hostname && d.Uuid == uuid {
-				addSingleResponse(d)
-			}
+		iter := w.Collection.Find(bson.M{"hostname": hostname, "uuid": uuid}).Iter()
+		for iter.Next(&result) {
+			addSingleResponse(result)
 		}
 	} else if hostname == "" && uuid != "" {
 		return nil, errors.New("please provide hostname for creating status repsonse")
@@ -191,12 +216,11 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 }
 
 func (w *WorkerConfig) RefreshStatus(uuid string) error {
-	err := w.HasUuid(uuid)
+	workerData, err := w.GetWorker(uuid)
 	if err != nil {
 		return err
 	}
 
-	workerData := w.RegisteredWorkers[uuid]
 	if workerData.Timestamp.IsZero() {
 		workerData.Status = Notstarted
 		workerData.Monitor.Mem = MemData{}
@@ -211,18 +235,15 @@ func (w *WorkerConfig) RefreshStatus(uuid string) error {
 		}
 	}
 
-	w.RegisteredWorkers[uuid] = workerData
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-		return err
-	}
-
+	w.UpdateWorker(workerData)
 	return nil
 }
 
 func (w *WorkerConfig) RefreshStatusAll() error {
-	for _, workerData := range w.RegisteredWorkers {
-		err := w.RefreshStatus(workerData.Uuid)
+	result := MsgWorker{}
+	iter := w.Collection.Find(nil).Iter()
+	for iter.Next(&result) {
+		err := w.RefreshStatus(result.Uuid)
 		if err != nil {
 			return err
 		}
@@ -232,28 +253,21 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 }
 
 func (w *WorkerConfig) Delete(hostname, uuid string) error {
-	err := w.HasUuid(uuid)
+	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
-		return fmt.Errorf("deleting not possible '%s'", err)
+		return fmt.Errorf("delete method error '%s'", err)
 	}
 
-	workerResult := w.RegisteredWorkers[uuid]
-
-	if workerResult.Status != Notstarted && workerResult.Status != Killed && workerResult.Status != Dead {
-		return fmt.Errorf("deleting not possible. Worker '%s' on '%s' is still alive", workerResult.Name, workerResult.Hostname)
-	}
-
+	log.Printf("deleting worker '%s' with hostname '%s' from the db", workerResult.Name, hostname)
 	w.DeleteWorker(uuid)
-	log.Printf("deleting worker '%s' with hostname '%s' from the config", workerResult.Name, hostname)
-
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-	}
 	return nil
 }
 
 func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
-	workerResult := w.RegisteredWorkers[uuid]
+	workerResult, err := w.GetWorker(uuid)
+	if err != nil {
+		return workerResult, fmt.Errorf("ack method error '%s'", err)
+	}
 	if workerResult.Status == Running {
 		workerResult.Status = Waiting
 		workerResult.Message.Result = "stopped.now"
@@ -263,30 +277,30 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 
 	log.Printf("stopping remote worker '%s' on '%s'", workerResult.Name, hostname)
 
-	w.RegisteredWorkers[workerResult.Uuid] = workerResult
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-	}
-
+	w.UpdateWorker(workerResult)
 	return workerResult, nil
 }
 
 func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
-	workerResult := w.RegisteredWorkers[uuid]
+	workerResult, err := w.GetWorker(uuid)
+	if err != nil {
+		return workerResult, fmt.Errorf("ack method error '%s'", err)
+	}
+
 	workerResult.Message.Result = "killed.now"
 	workerResult.Status = Waiting
 	log.Printf("killing remote worker with pid: %d on hostname: %s", workerResult.Pid, hostname)
 
-	w.RegisteredWorkers[workerResult.Uuid] = workerResult
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-	}
-
+	w.UpdateWorker(workerResult)
 	return workerResult, nil
 }
 
 func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
-	workerResult := w.RegisteredWorkers[uuid]
+	workerResult, err := w.GetWorker(uuid)
+	if err != nil {
+		return workerResult, fmt.Errorf("ack method error '%s'", err)
+	}
+
 	if workerResult.Status == Stopped || workerResult.Status == Killed {
 		workerResult.Status = Waiting
 		workerResult.Message.Result = "started.now"
@@ -316,23 +330,36 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 		workerResult.Message.Result = "started.before"
 	}
 
-	w.RegisteredWorkers[workerResult.Uuid] = workerResult
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-	}
-
+	w.UpdateWorker(workerResult)
 	return workerResult, nil
 }
 
+func (w *WorkerConfig) UpdateWorker(worker MsgWorker) {
+	err := w.Collection.Update(bson.M{"uuid": worker.Uuid}, worker)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
-	w.RegisteredWorkers[worker.Uuid] = worker
+	log.Println("adding worker", worker.Name)
+	err := w.Collection.Insert(worker)
+	if err != nil {
+		log.Println(err)
+	}
+
 }
 
 func (w *WorkerConfig) DeleteWorker(uuid string) {
-	delete(w.RegisteredWorkers, uuid)
+	log.Println("deleting worker with uuid", uuid)
+	err := w.Collection.Remove(bson.M{"uuid": uuid})
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (w *WorkerConfig) ApprovedHost(name, host string) bool {
+	// TODO: Should use mongodb
 	v := len(w.RegisteredHosts)
 	if v == 0 {
 		// if empty means no process file was read, thus assume as approved
@@ -363,22 +390,8 @@ func (w *WorkerConfig) ApprovedHost(name, host string) bool {
 	return false
 }
 
-func (w *WorkerConfig) NumberOfWorker(workerName, workerHostname string, status WorkerStatus, includeOnlyStatus bool) int {
-	var count int = 0
-
-	if includeOnlyStatus {
-		for _, data := range w.RegisteredWorkers {
-			if data.Name == workerName && data.Hostname == workerHostname && data.Status == status {
-				count = count + 1
-			}
-		}
-	} else {
-		for _, data := range w.RegisteredWorkers {
-			if data.Name == workerName && data.Hostname == workerHostname && data.Status != status {
-				count = count + 1
-			}
-		}
-	}
+func (w *WorkerConfig) NumberOfWorker(workerName, workerHostname string) int {
+	count, _ := w.Collection.Find(bson.M{"name": workerName, "hostname": workerHostname}).Count()
 
 	return count
 }
@@ -387,42 +400,41 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	// No check for uuid, this is a destructive action. Thus use with caution.
 	// After creating a processes, the process sends a new "update" message with
 	// child pid, a new uuid and his new status.
-	for _, workerData := range w.RegisteredWorkers {
-		if workerData.Name == worker.Name && workerData.Hostname == worker.Hostname {
-			w.DeleteWorker(workerData.Uuid)
-			workerData.Timestamp = worker.Timestamp
-			workerData.Status = worker.Status
-			workerData.Pid = worker.Pid
-			workerData.Uuid = worker.Uuid
-			workerData.Version = worker.Version
-			w.RegisteredWorkers[workerData.Uuid] = workerData
-
-			log.Printf("got new information from worker '%s' on hostname '%s' with uuid '%s'. Updating...",
-				worker.Name,
-				worker.Hostname,
-				worker.Uuid)
-
-			if err := w.SaveToConfig(); err != nil {
-				log.Printf(" %s", err)
-			}
-		}
+	result := MsgWorker{}
+	err := w.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).One(&result)
+	if err != nil {
+		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
 	}
+
+	w.DeleteWorker(result.Uuid)
+
+	result.Timestamp = worker.Timestamp
+	result.Status = worker.Status
+	result.Pid = worker.Pid
+	result.Uuid = worker.Uuid
+	result.Version = worker.Version
+
+	log.Printf("got new information from worker '%s' on hostname '%s' with uuid '%s'. Updating...",
+		worker.Name,
+		worker.Hostname,
+		worker.Uuid)
+
+	w.AddWorker(result)
+
 	return nil
 }
 
 func (w *WorkerConfig) Ack(worker MsgWorker) error {
-	err := w.HasUuid(worker.Uuid)
+	workerResult, err := w.GetWorker(worker.Uuid)
 	if err != nil {
 		return fmt.Errorf("ack method error '%s'", err)
 	}
-
-	workerResult := w.RegisteredWorkers[worker.Uuid]
 
 	// if config.Verbose {
 	// 	log.Printf(" remote worker '%s' on '%s' with pid: %d is alive", workerResult.Name, workerResult.Hostname, workerResult.Pid)
 	// }
 
-	// Fixme
+	// FIXME:
 	// if workerResult.Cmd == "" {
 	// 	for name, prop := range processConfig {
 	// 		if name == worker.Name {
@@ -437,47 +449,12 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	workerResult.Timestamp = worker.Timestamp
 	workerResult.Status = worker.Status
 
-	w.RegisteredWorkers[worker.Uuid] = workerResult
-	if err := w.SaveToConfig(); err != nil {
-		log.Printf(" %s", err)
-	}
-	return nil
-}
-
-func (w *WorkerConfig) ReadConfig() {
-	configFile := customHostname() + "-kontrold.json"
-
-	file, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return
-	}
-
-	*w = WorkerConfig{} // zeroed because otherwise the old values can be still exist
-	err = json.Unmarshal(file, &w)
-	if err != nil {
-		log.Print("bad json unmarshalling config file", err)
-		return
-	}
-}
-
-func (w *WorkerConfig) SaveToConfig() error {
-	data, err := json.MarshalIndent(w, "", "  ")
-	if err != nil {
-		return fmt.Errorf("could not marshall json: %s", err)
-	}
-	// log.Printf(" Current status of config file: %s", data)
-
-	configFile := customHostname() + "-kontrold.json"
-	err = ioutil.WriteFile(configFile, data, 0644)
-	if err != nil {
-		return fmt.Errorf("could not save to config.json: %s", err)
-	}
-
+	w.UpdateWorker(workerResult)
 	return nil
 }
 
 func (w *WorkerConfig) IsEmpty() (bool, error) {
-	v := len(w.RegisteredWorkers)
+	v, _ := w.Collection.Count()
 	if v == 0 {
 		return true, fmt.Errorf("no workers registered. Please register before you can continue.")
 	}
@@ -485,21 +462,33 @@ func (w *WorkerConfig) IsEmpty() (bool, error) {
 }
 
 func (w *WorkerConfig) HasName(name string) (bool, error) {
-	// log.Println(" Checking for duplicates")
-	for _, data := range w.RegisteredWorkers {
-		if data.Name == name {
-			return true, nil
-		}
+	result := MsgWorker{}
+	err := w.Collection.Find(bson.M{"name": name}).One(&result)
+	if err != nil {
+		return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
 	}
-	return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
+
+	return true, nil
 }
 
 func (w *WorkerConfig) HasUuid(uuid string) error {
-	_, ok := w.RegisteredWorkers[uuid]
-	if ok {
-		return nil
+	result := MsgWorker{}
+	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
+	if err != nil {
+		return fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
-	return fmt.Errorf("no worker with the uuid %s exist.", uuid)
+	return nil
+}
+
+func (w *WorkerConfig) GetWorker(uuid string) (MsgWorker, error) {
+	result := MsgWorker{}
+	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
+	if err != nil {
+		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
+	}
+
+	return result, nil
+
 }
 
 func customHostname() string {
