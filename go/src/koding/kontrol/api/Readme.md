@@ -8,8 +8,8 @@ kontrol-api is an internal WEB API endpoint that let you interact with the
 Currently kontrold is controlling the following resources of Koding:
 
 * workers: A worker is a process that is communicating directly via the kontrold server. 
-* proxies: A proxy is an entity needed for load balancing of `proxy-handler`.
-Proxy-handler is basically a reverse proxy that get all the url routes
+* proxies: A proxy is an entity needed for load balancing of `fujin` proxy-handler.
+Fujin is basically a reverse proxy that get all the url routes
 information via kontrold.
 
 ## Workers
@@ -100,7 +100,7 @@ DELETE /workers/{uuid}
 ## Proxies
 
 The client can get necessary information from a sucessfull GET requests
-A sucessfull ouput will give a list of proxy-handlers. 
+A sucessfull ouput will give a list of registered fujin proxy handlers. 
 
 ```
 GET /proxies
@@ -122,15 +122,12 @@ An example output of `GET /proxies` is:
 ]
 ```
 
+If you start fujin for the first time, it will register itself to kontrold with
+a unique uuid. This will be printed to the terminal.  Currently the `uuid` is
+created as `<hostname>-<version>` where `version` is the content of the file
+`VERSION` in the base koding dir. The `uuid` can be changed in the future. It's
+unique (means if you you can't another proxy with the same uuid).
 
-Currently the `uuid` is created as `<hostname>-<version>` where `version` is
-the content of the file `VERSION` in the base koding dir. The `uuid` can be
-changed in the future. It's unique.
-
-A proxy entry with an unique id is created whenever a `proxy-handler` is
-started. If a proxy-handler starts, it first looks for a proxy-config.json file
-in the current directory, if there is no file it's connects to kontrold server
-and requests a configuration file. 
 
 Therefore you can create a default configuration and put the necessary urls
 into it. And then when the proxy starts it will fetch the configuration you
@@ -149,7 +146,6 @@ To  delete an entity for the the given `uuid`:
 DELETE /proxies/mahlika.local-915
 
 ```
-
 To create (populate) the proxyies you have to make a POST request with a given key, host and hostdata:
 
 ```
