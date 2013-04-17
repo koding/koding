@@ -162,8 +162,7 @@ class MonitorStatus extends KDObject
       item.run()
 
 class ExternalPing extends KDObject
-  constructor: (@url) ->
-    super
+  constructor: (@url) -> super
 
   ping: (callback) ->
     @callback = callback
@@ -174,8 +173,7 @@ class ExternalPing extends KDObject
       dataType: "jsonp"
       error : ->
 
-  pong: ->
-    @callback()
+  pong: -> @callback()
 
 do ->
   url = "https://s3.amazonaws.com/koding-ping/ping.json"
