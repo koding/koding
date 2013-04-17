@@ -745,16 +745,16 @@ task 'analyzeCss','',(options)->
     log.info "possible savings:",Math.floor(counter.chars/1024)+" kbytes"
     log.info "this tool works only if u did 'cake -usd vpn beta' before running analyzeCss."
 
-task 'deploy', 'deploys the current branch', (options)->
+task 'deploy', 'deploys the current commit', (options)->
   {host, port} = require('koding-config-manager').load("main.#{options.configFile}").kontrold
 
   #version = (fs.readFileSync nodePath.join(__dirname, '/VERSION'), 'utf-8').trim()
   #version = String(Number(version)+1)
 
-  exec "git rev-parse HEAD | cut -c 1-10", (error, stdout, stderr) ->
-    lastCommitId = stdout
-
-    payload = JSON.stringify version: lastCommitId
+  # short git commit hash is enough to be unquiely identifable
+  exec "git rev-parse --short HEAD", (error, stdout, stderr) ->
+    lastCommit = stdout
+    payload = JSON.stringify commit: lastCommit
     options =
       host: host
       port: 8000      # TODO: see http://git.in.koding.com/koding/issues/70
@@ -763,8 +763,8 @@ task 'deploy', 'deploys the current branch', (options)->
       headers:
         'Content-Type':'application/json'
         'Content-Length': payload.length
-    req = http.request options
 
+    req = http.request options
     respfn = (chunk)-> console.log chunk
     req.on "data",  respfn
     req.on "error", respfn
