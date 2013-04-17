@@ -140,20 +140,8 @@ module.exports = class JAccount extends jraphical.Module
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
-      mount         :
-        as          : 'owner'
-        targetType  : "JMount"
-
-      repo          :
-        as          : 'owner'
-        targetType  : "JRepo"
-
       follower      :
         as          : 'follower'
-        targetType  : JAccount
-
-      followee      :
-        as          : 'followee'
         targetType  : JAccount
 
       activity      :
@@ -188,9 +176,23 @@ module.exports = class JAccount extends jraphical.Module
           "JBlogPost"
         ]
 
+      vm            :
+        as          : 'owner'
+        targetType  : 'JVM'
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  checkPermission: (target, permission, callback)->
+    JPermissionSet = require '../group/permissionset'
+    client = 
+      context     : { group: target.slug }
+      connection  : { delegate: this }
+    advanced = 
+      if Array.isArray permission then permission
+      else JPermissionSet.wrapPermission permission
+    JPermissionSet.checkPermission client, advanced, target, callback
 
   setBackgroundImage: secure (client, type, value, callback=->)->
     {delegate}    = client.connection
