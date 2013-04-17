@@ -7,7 +7,6 @@ class MonitorController extends KDController
       'kite-applications'
       'kite-webterm'
       'kite-databases'
-      'kite-sharedHosting'
       'koding-social-*'
     ]
 
@@ -15,7 +14,6 @@ class MonitorController extends KDController
       'kite-applications' : 'appKite'
       'kite-webterm'      : 'webtermKite'
       'kite-databases'    : 'databaseKite'
-      'kite-sharedHosting': 'sharedHostingKite'
       'koding-social-*'   : 'socialWorker'
 
     @monitorData = {}
@@ -145,9 +143,6 @@ class MonitorController extends KDController
 
   webtermKiteJoin:()->
   webtermKiteLeave:()->
-
-  sharedHostingKiteJoin:()->
-  sharedHostingKiteLeave:()->
 
   databaseKiteJoin:()->
   databaseKiteLeave:()->

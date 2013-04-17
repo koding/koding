@@ -210,7 +210,7 @@ class KDView extends KDObject
 # #
 
 
-  setDomElement:(cssClass='')->
+  setDomElement:(cssClass='', baseClass = 'kdview')->
     {lazyDomId, tagName} = @getOptions()
 
     el = document.getElementById lazyDomId  if lazyDomId
@@ -219,7 +219,7 @@ class KDView extends KDObject
       warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
       el = document.createElement tagName
 
-    for klass in "kdview #{cssClass}".split ' ' when klass.length
+    for klass in "#{baseClass} #{cssClass}".split ' ' when klass.length
       el.classList.add klass
 
     @domElement = $ el

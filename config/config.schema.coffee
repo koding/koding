@@ -36,57 +36,6 @@ config =
       mongo             :
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
-    sharedHosting :
-      name                  : 1
-      numberOfWorkers       : 1
-      pidPath               : 1
-      logFile               : 1
-      amqp                  :
-        host                : 1
-        login               : 1
-        password            : 1
-        heartbeat           : 1
-      apiUri                : 1
-      usersPath             : 1
-      vhostDir              : 1
-      suspendDir            : 1
-      defaultVhostFiles     : 1
-      freeUsersGroup        : 1
-      liteSpeedUser         : 1
-      defaultDomain         : 1
-      minAllowedUid         : 1
-      debugApi              : 1
-      processBaseDir        : 1
-      cagefsctl             : 1
-      baseMountDir          : 1
-      maxAllowedRemotes     : 1
-      usersMountsFile       : 1
-      encryptKey            : 1
-      ftpfs                 :
-        curlftpfs           : 1
-        opts                : 1
-      sshfs                 :
-        sshfscmd            : 1
-        opts                : 1
-        optsWithKey         : 1
-      lsws                  :
-        baseDir             : 1
-        controllerPath      : 1
-        lsMasterConfig      : 1
-        configFilePath      : 1
-        minRestartInterval  : 1
-      ldap                  :
-        ldapUrl             : 1
-        rootUser            : 1
-        rootPass            : 1
-        groupDN             : 1
-        userDN              : 1
-        freeUID             : 1
-        freeGroup           : 1
-      FileSharing           :
-        baseSharedDir       : 1
-        baseDir             : 1
-        setfacl             : 1
   main :
     haproxy       :
       webPort     : 1
@@ -112,7 +61,6 @@ config =
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
-    runLdapServer : 0
     runProxy      : 0
     misc          :
       claimGlobalNamesForUsers: 1
@@ -157,17 +105,18 @@ config =
       queueName   : 1
       exchangePrefix: 1
       numberOfWorkers: 1
-    presence      :
-      exchange    : 1
-    client        :
-      version     : 1
-      watch       : 1
-      includesPath: 1
-      websitePath : 1
-      js          : 1
-      css         : 1
-      indexMaster : 1
-      index       : 1
+    presence        :
+      exchange      : 1
+    client          :
+      version       : 1
+      watch         : 1
+      watchDuration : 1
+      includesPath  : 1
+      websitePath   : 1
+      js            : 1
+      css           : 1
+      indexMaster   : 1
+      index         : 1
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
@@ -192,6 +141,7 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      ip          : 1
       port        : 1
       certFile    : 1
       keyFile     : 1

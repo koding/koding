@@ -93,6 +93,18 @@ class GroupsListItemView extends KDListItemView
         cssClass  : "members"
         placement : "left"
 
+    menu = @settingsMenu data
+    if Object.keys(menu).length > 0
+      @settingsButton = new KDButtonViewWithMenu
+        cssClass    : 'transparent group-settings-context'
+        title       : ''
+        delegate    : @
+        type        : 'contextmenu'
+        menu        : menu
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @settingsButton = new KDCustomHTMLView "hidden"
+
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
   titleReceivedClick:(event)->
@@ -124,36 +136,55 @@ class GroupsListItemView extends KDListItemView
       <div class='badge-wrapper clearfix'>
         {{> @memberBadge}}
         {{> @privateBadge}}
+        {{> @settingsButton}}
       </div>
     </div>
     """
 
-  # settingsMenu:(data)->
+  settingsMenu:(data)->
 
-  #   account        = KD.whoami()
-  #   mainController = @getSingleton('mainController')
+    menu = {}
 
-  #   menu =
-  #     'Group settings'  :
-  #       callback        : =>
-  #         mainController.emit 'EditGroupButtonClicked', @
-  #     # 'Permissions'     :
-  #     #   callback : =>
-  #     #     mainController.emit 'EditPermissionsButtonClicked', @
-  #     'My roles'        :
-  #       callback        : =>
-  #         mainController.emit 'MyRolesRequested', @
+    if data.slug isnt 'koding'
+      menu['Leave Group'] =
+        callback : =>
+          modal = new KDModalView
+            title          : 'Leave Group'
+            content        : "<div class='modalformline'>Are you sure you want to leave this group?</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Leave        :
+                style      : "modal-clean-red"
+                loader     :
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @leaveGroup data, =>
+                    @unsetClass 'own-group'
+                    modal.buttons.Leave.hideLoader()
+                    modal.destroy()
+              Cancel       :
+                style      : "modal-cancel"
+                callback   : (event)-> modal.destroy()
 
-  #   # if KD.checkFlag 'super-admin'
-  #   #   menu =
-  #   #     'MARK USER AS TROLL' :
-  #   #       callback : =>
-  #   #         mainController.markUserAsTroll data
-  #   #     'UNMARK USER AS TROLL' :
-  #   #       callback : =>
-  #   #         mainController.unmarkUserAsTroll data
 
-  #   return menu
+    return menu
+
+  leaveGroup:(group, callback)->
+
+    group.leave (err)->
+      if err
+        warn err
+        new KDNotificationView
+          title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+          duration : 2000
+        return callback()
+
+      new KDNotificationView
+        title    : 'Fair Enough! They are gonna miss you.'
+        duration : 2000
+      callback()
 
 class GroupItemMemberView extends KDListItemView
 
@@ -204,12 +235,3 @@ class ModalGroupsListItem extends TopicsListItemView
       </div>
     </div>
     """
-
-class GroupsListItemViewEditable extends GroupsListItemView
-
-  constructor:(options = {}, data)->
-
-    options.editable = yes
-    options.type     = "topics"
-
-    super options, data

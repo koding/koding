@@ -14,7 +14,7 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-prod-#{version}"
 
 webPort          = 4040
 brokerPort       = 9010 + (version % 10)
@@ -46,7 +46,6 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no

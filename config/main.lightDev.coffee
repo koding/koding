@@ -11,7 +11,7 @@ rabbitPrefix = (
     console.log "You're missing .rabbitvhost file. Please add it with your name in it."
     throw e
 ).trim()
-socialQueueName = "koding-social-klusterdev"
+socialQueueName = "koding-social-klusterdev-#{rabbitPrefix}"
 
 module.exports =
   aws           :
@@ -36,7 +36,6 @@ module.exports =
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
-  runLdapServer : no
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -91,6 +90,7 @@ module.exports =
   client        :
     version     : version
     watch       : yes
+    watchDuration: 250
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -121,9 +121,11 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    ip          : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

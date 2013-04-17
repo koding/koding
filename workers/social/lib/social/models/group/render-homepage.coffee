@@ -1,4 +1,4 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, roles, description, customize})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
   content ?= getDefaultGroupContents(title)
 
   """
@@ -18,17 +18,20 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
         <h2>#{title}</h2>
       </nav>
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
-      <div class="group-content-wrapper" id="group-content-wrapper" #{applyCustomBackground customize}>
+      <div class="group-content-wrapper" id="group-content-wrapper">
         <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
           <div class="group-landing-content" id="group-landing-content">
            <div class="content-item kdview front" id='group-readme'>
              <div class="content-item-scroll-wrapper">
-               <div class="group-title" id="group-title">
+               <div class="group-title" id="group-title" #{applyCustomBackground customize}>
                  <div class="group-title-wrapper" id="group-title-wrapper">
-                   <div class="group-name">#{title}</div>
+                   <div class="group-name">
+                    #{title}
+                    <div class="group-description">#{body}</div>
+                   </div>
                  </div>
                </div>
-               <div class="has-markdown dark">
+               <div class="has-markdown">
                  <span class="data">#{content}</span>
                </div>
              </div>
@@ -37,7 +40,6 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
              <div class="content-item-scroll-wrapper" id='group-config'>
              </div>
            </div>
-
          </div>
         </div>
       </div>
@@ -46,12 +48,17 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, de
     #{getScripts()}
   </body>
   </html>
+
   """
 
 applyCustomBackground = (customize={})->
 
-  defaultImages = ['/images/bg/bg01.jpg','/images/bg/bg02.jpg',
-   '/images/bg/bg03.jpg','/images/bg/bg04.jpg','/images/bg/bg05.jpg',]
+  defaultImages = [
+                    '/images/bg/blurred/1.jpg','/images/bg/blurred/5.jpg'
+                    '/images/bg/blurred/2.jpg','/images/bg/blurred/6.jpg',
+                    '/images/bg/blurred/3.jpg','/images/bg/blurred/7.jpg',
+                    '/images/bg/blurred/4.jpg','/images/bg/blurred/8.jpg',
+                  ]
 
   if customize.background?.customType is 'defaultImage' \
   and customize.background?.customValue <= defaultImages.length
@@ -64,9 +71,6 @@ applyCustomBackground = (customize={})->
     """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""
   else
     """ style='background-image:url("#{defaultImages[0]}")'"""
-
-
-
 
 getLoader = (roles)->
   if 'member' in roles or 'admin' in roles
