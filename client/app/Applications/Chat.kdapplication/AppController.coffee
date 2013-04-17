@@ -8,10 +8,8 @@ class ChatAppController extends AppController
   constructor:(options, data)->
     super options, data
 
-    @invitationChannel = createInvitationChannel()
+    notificationController = KD.getSingleton 'notificationController'
+    notificationController.on 'chatRequest', @bound 'handleChatRequest'
 
-  createInvitationChannel = ->
-    KD.remote.subscribe 'invitation', {
-      serviceType : 'invitation'
-      isExclusive : yes
-    }
+  handleChatRequest:->
+    console.log 'this is a stub' # TODO: implement
