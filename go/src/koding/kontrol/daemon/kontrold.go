@@ -22,15 +22,15 @@ func init() {
 }
 
 func main() {
-	_, err := startRouting()
-	if err != nil {
-		log.Fatalf("Could not start routing of api messages: %s", err)
-	}
-
 	// Initialize db and startup settings
 	log.Printf("initiliazing handlers")
 	handler.Startup()
 	proxy.Startup()
+
+	_, err := startRouting()
+	if err != nil {
+		log.Fatalf("Could not start routing of api messages: %s", err)
+	}
 
 	select {}
 }

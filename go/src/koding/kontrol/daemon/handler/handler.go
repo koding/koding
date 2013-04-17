@@ -150,7 +150,6 @@ func Startup() {
 		if ok {
 			kontrolConfig.AddWorker(worker)
 		} else {
-			log.Println("Checking for other workers")
 			ok, _ := kontrolConfig.HasName(worker.Name)
 			if !ok {
 				kontrolConfig.AddWorker(worker)
