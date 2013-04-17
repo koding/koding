@@ -56,13 +56,13 @@ func main() {
 	case <-start: // wait until we got message from kontrold or exit via above chan
 	}
 
-	addHTTP, err := net.ResolveTCPAddr("tcp", "localhost:"+config.HttpPort)
+	addHTTP, err := net.ResolveTCPAddr("tcp", ":"+config.HttpPort)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	addHTTPS, err := net.ResolveTCPAddr("tcp", "localhost:"+config.HttpsPort)
+	addHTTPS, err := net.ResolveTCPAddr("tcp", ":"+config.HttpsPort)
 	if err != nil {
 		log.Println(err)
 		return
