@@ -14,5 +14,4 @@ class ChatAppController extends AppController
     KD.remote.subscribe 'invitation', {
       serviceType : 'invitation'
       isExclusive : yes
-      isReadOnly  : yes
     }
