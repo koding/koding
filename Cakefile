@@ -128,7 +128,7 @@ task 'socialWorker', ({configFile}) ->
 
   for i in [1..social.numberOfWorkers]
     processes.fork
-      name  : "socialWorker-#{i}"
+      name  : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
       cmd   : __dirname + "/workers/social/index -c #{configFile}"
       restart : yes
       restartInterval : 100
@@ -150,20 +150,24 @@ task 'socialWorker', ({configFile}) ->
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
+            if social.numberOfWorkers is 1
+              processes.kill "social"
+            else
+              processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
   config = require('koding-config-manager').load("main.#{configFile}").authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
-  for _, i in Array +numberOfWorkers
+  for i in [1..numberOfWorkers]
     processes.fork
-      name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
-      restart : yes
+      name  		  : if numberOfWorkers is 1 then "auth" else "auth-#{i}"
+      cmd   		  : __dirname+"/workers/auth/index -c #{configFile}"
+      restart 		  : yes
       restartInterval : 1000
       needPermission  : yes
+      verbose         : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -171,7 +175,10 @@ task 'authWorker',({configFile}) ->
         auth        :
           folders   : ['./workers/auth']
           onChange  : (path) ->
-            processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
+            if numberOfWorkers is 1
+              processes.kill "auth"
+            else
+              processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
 
