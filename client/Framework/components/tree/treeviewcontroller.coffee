@@ -5,7 +5,6 @@ todo:
 
 ###
 
-
 class JTreeViewController extends KDViewController
 
   keyMap = ->
@@ -44,7 +43,7 @@ class JTreeViewController extends KDViewController
     o.multipleSelection          ?= no
     o.addListsCollapsed          ?= no
     o.sortable                   ?= no
-    o.putDepthInfo               ?= no
+    o.putDepthInfo               ?= yes
     o.addOrphansToRoot           ?= yes
     o.dragdrop                   ?= no
 
@@ -55,6 +54,7 @@ class JTreeViewController extends KDViewController
     @nodes                        = {}
     @indexedNodes                 = []
     @selectedNodes                = []
+
 
   loadView:(treeView)->
 
@@ -79,14 +79,13 @@ class JTreeViewController extends KDViewController
   initTree:(nodes)->
 
     @removeAllNodes()
-    @addNode node for node in nodes
+    @addNodes nodes
 
   logTreeStructure:->
 
     o = @getOptions()
-    for node in @indexedNodes
-      # log @nodes[@getNodeId(node)].expanded, node
-      log @getNodeId(node), @getNodePId(node), node.depth
+    for index, node of @indexedNodes
+      log index, @getNodeId(node), @getNodePId(node), node.depth
 
   getNodeId:(nodeData)->
 
@@ -95,6 +94,11 @@ class JTreeViewController extends KDViewController
   getNodePId:(nodeData)->
 
     return nodeData[@getOptions().nodeParentIdPath]
+
+  getPathIndex:(targetPath)->
+    for node, index in @indexedNodes
+      return index if @getNodeId(node) is targetPath
+    return -1
 
   repairIds:(nodeData)->
 
@@ -109,12 +113,12 @@ class JTreeViewController extends KDViewController
     @nodes[@getNodeId nodeData] = {}
 
     if options.putDepthInfo
-      if @nodes[@getNodePId nodeData]
-        nodeData.depth = @nodes[@getNodePId(nodeData)].getData().depth + 1
+      if @nodes[nodeData[pIdPath]]
+        nodeData.depth = @nodes[nodeData[pIdPath]].getData().depth + 1
       else
         nodeData.depth = 0
 
-    if @getNodePId(nodeData) isnt "0" and not @nodes[@getNodePId nodeData]
+    if nodeData[pIdPath] isnt "0" and not @nodes[nodeData[pIdPath]]
       if options.addOrphansToRoot then nodeData[pIdPath] = "0" else nodeData = no
 
     return nodeData
@@ -159,27 +163,66 @@ class JTreeViewController extends KDViewController
   CRUD OPERATIONS FOR NODES
   ###
 
+  # Following Code is partially broken
+  # we need to rewrite it at some point ~ GG
+  # We're not using it right now but when we decided to use it
+  # we need to use it to guess index of node for indexedNodes
+  #
+  # guessIndex:(nodeData, parentId, index)->
+  #   parentIndex = @getPathIndex(parentId)
+  #   treeIndex   = parentIndex + index
+
+  #   prevItem  = @indexedNodes[treeIndex - 1]
+  #   currItem  = @indexedNodes[treeIndex]
+  #   nextItem  = @indexedNodes[treeIndex + 1]
+
+  #   return treeIndex unless nextItem
+
+  #   return treeIndex if index          is 0                           or \
+  #                       prevItem.depth >= nodeData.depth              or \
+  #                       treeIndex      is parentIndex                 or \
+  #                      (treeIndex - 1  is parentIndex and index > 1)  or \
+  #                       nextItem.depth <= nodeData.depth
+
+  #   for i in [0..@indexedNodes.length]
+  #     nextIndex = treeIndex + 1 + i
+  #     nextItem  = @indexedNodes[nextIndex]
+  #     return nextIndex - 1 unless nextItem
+  #     return nextIndex - 1 if nextItem.depth is nodeData.depth
+
+  #   return 0
+
   addNode:(nodeData, index)->
+
+    # This methods index option is not usable for now ~ FIXME GG
 
     return if @nodes[@getNodeId nodeData]
     nodeData = @repairIds nodeData
     return unless nodeData
 
-    @getData().push nodeData
-    @addIndexedNode nodeData, index
+    @getData().push nodeData unless nodeData in @getData()
+
     @registerListData nodeData
     parentId = @getNodePId nodeData
 
-    if @listControllers[parentId]
+    if @listControllers[parentId]?
       list = @listControllers[parentId].getListView()
     else
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData, index
+    list.addItem nodeData
+
+    # Enable this to make indexedNodes work correctly with indexes ~ GG
+    #
+    # if index >= 0
+    #   KD.time "Starting to guess"
+    #   log "INDEX", index = @guessIndex nodeData, parentId, index
+    #   KD.timeEnd "Starting to guess"
+
+    @addIndexedNode nodeData
 
   addNodes:(nodes)->
-
     @addNode node for node in nodes
 
   removeNode:(id)->
@@ -243,27 +286,24 @@ class JTreeViewController extends KDViewController
         children.push {node, index}
     if children.length then children else no
 
+  getPreviousNeighbor: (aParentNode)->
+    neighbor = aParentNode
+    children = @getChildNodes aParentNode
+    if children
+      lastChild = children.last
+      neighbor = @getPreviousNeighbor lastChild.node
+    return neighbor
+
   addIndexedNode:(nodeData, index)->
 
-    if index
+    if index >= 0
       @indexedNodes.splice index + 1, 0, nodeData
       return
-
-    neighbor = null
-    getPreviousNeighbor = (aParentNode)=>
-      neighbor = aParentNode
-      children = @getChildNodes aParentNode
-      if children
-        lastChild = children.last
-        # @selectNode @nodes[@getNodeId lastChild.node]
-        neighbor = getPreviousNeighbor lastChild.node
-
-      return neighbor
 
     # if node parent is present
     parentNodeView = @nodes[@getNodePId nodeData]
     if parentNodeView
-      prevNeighbor  = getPreviousNeighbor parentNodeView.getData()
+      prevNeighbor  = @getPreviousNeighbor parentNodeView.getData()
       neighborIndex = @indexedNodes.indexOf prevNeighbor
       @indexedNodes.splice neighborIndex + 1, 0, nodeData
     else
@@ -276,8 +316,9 @@ class JTreeViewController extends KDViewController
       @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
       @indexedNodes.splice index, 1
       # todo: make decoration with events
-      if @nodes[@getNodePId nodeData] and not @getChildNodes(@nodes[@getNodePId nodeData].getData())
-        @nodes[@getNodePId nodeData].decorateSubItemsState(no)
+      if @nodes[@getNodePId nodeData] and not \
+        @getChildNodes(@nodes[@getNodePId nodeData].getData())
+          @nodes[@getNodePId nodeData].decorateSubItemsState(no)
 
 
   ###
@@ -323,8 +364,6 @@ class JTreeViewController extends KDViewController
         @expand nodeView
     else
       @getView().addSubView listToBeAdded
-
-
 
 
   ###

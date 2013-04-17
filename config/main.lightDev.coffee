@@ -121,9 +121,11 @@ module.exports =
     heartbeat   : 10
     vhost       : '/'
   broker        :
+    ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    ip          : ""
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

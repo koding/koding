@@ -2,6 +2,10 @@ class ManageDatabasesModal extends KDModalViewWithForms
 
   constructor:(options = {}, data)->
 
+    ## LOG: Duplicate entries in database.
+    @databases = {}
+    ##
+
     options =
       title                   : "Manage Databases"
       content                 : ''
@@ -91,6 +95,8 @@ class ManageDatabasesModal extends KDModalViewWithForms
 
     @dbController.on "DatabaseAdded", (data)=>
 
+      @databaseAdded(data)
+
       dbCreateForm.inputs.dbType.makeDisabled()
       dbCreateForm.inputs.dbKind.makeDisabled()
       @newDBCreatedWidget?.destroy?()
@@ -122,6 +128,14 @@ class ManageDatabasesModal extends KDModalViewWithForms
         KD.utils.wait 300, => @setPositions()
 
       @dbController.loadItems()
+
+  ## LOG: Duplicate entries in database.
+  databaseAdded: (data)->
+    if @databases[data.dbName]
+      KD.logToExternal msg:"duplicate database", dbName:data.dbName
+    else
+      @databases[data.dbName] = true
+  ##
 
 class AccountDatabaseListController extends KDListViewController
 

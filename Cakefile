@@ -21,7 +21,7 @@ option '-v', '--version [VERSION]', 'Switch to a specific version'
 #     process.exit(0)
 
 ProgressBar = require 'progress'
-Builder     = require './builders/Builder'
+Builder     = require './Builder'
 # log4js      = require "log4js"
 # log         = log4js.getLogger("[Main]")
 
