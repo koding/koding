@@ -287,7 +287,14 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return nil
 	}
 	if command == "delete" {
-		err := kontrolConfig.Delete(hostname, uuid)
+		// Kill the worker for preventing him sending messages to us
+		res, err := kontrolConfig.Kill(hostname, uuid)
+		if err != nil {
+			log.Println(err)
+		}
+		go sendWorker(res)
+
+		err = kontrolConfig.Delete(hostname, uuid)
 		if err != nil {
 			return err
 		}
