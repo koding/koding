@@ -84,6 +84,8 @@ func main() {
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
+
+		log.Println("request made by:", req.Host)
 		target := targetUrl(deaths)
 
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)

@@ -93,7 +93,8 @@ func customHostname() string {
 		log.Println(err)
 	}
 
-	hostVersion := hostname + "-" + readVersion()
+	// hostVersion := hostname + "-" + readVersion()
+	hostVersion := hostname
 	return hostVersion
 }
 
