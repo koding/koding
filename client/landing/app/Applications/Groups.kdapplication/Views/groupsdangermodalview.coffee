@@ -31,7 +31,7 @@ class GroupsDangerModalView extends KDModalViewWithForms
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'
-              callback       : (event)-> modal.destroy()
+              callback       : (event)=> @destroy()
           fields             :
             groupSlug        :
               label          : 'Confirm'
