@@ -120,24 +120,6 @@ class MainController extends KDController
 
     @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-  handleLoginScreenRoute:(path)->
-    @getSingleton('router').handleRoute path
-
-  doJoin:->
-    @handleLoginScreenRoute 'Join'
-
-  doRegister:->
-    @handleLoginScreenRoute 'Register'
-
-  doGoHome:->
-    @handleLoginScreenRoute 'Home'
-
-  doLogin:->
-    @handleLoginScreenRoute 'Login'
-
-  doRecover:->
-    @handleLoginScreenRoute 'Recover'
-
   doLogout:->
 
     KD.logout()
@@ -164,18 +146,15 @@ class MainController extends KDController
 
   attachListeners:->
 
-    @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
-      log "pageLoaded", @isUserLoggedIn()
+    # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
+    #   log "pageLoaded", @isUserLoggedIn()
 
     @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-      log "accountChanged Out"
-      @loginScreen.showView =>
-        @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
+      @mainViewController.sidebarController.accountChanged account
+      @mainViewController.getView().decorateLoginState no
 
     @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-      # log "accountChanged In"
-      @loginScreen.hideView =>
+      @loginScreen.hide =>
         @mainViewController.getView().decorateLoginState yes
         @mainViewController.sidebarController.accountChanged account
 

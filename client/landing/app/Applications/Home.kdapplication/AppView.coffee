@@ -35,13 +35,10 @@ class HomeAppView extends JView
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
     else entryPoint = ''
 
-    handler = (event)=>
+    handler = (event)->
       route = @$$.attr "href"
-      log route
-      # route = "/#{entryPoint}#{route}" if entryPoint isnt ''
+      route = "/#{entryPoint}#{route}" if entryPoint isnt ''
       @utils.stopDOMEvent event
-      log route
-      # debugger
       @getSingleton('router').handleRoute route
 
     @register     = new KDCustomHTMLView
@@ -63,7 +60,9 @@ class HomeAppView extends JView
       partial     : "Login"
       attributes  :
         href      : "/Login"
-      click       : handler
+      click       : =>
+        @utils.stopDOMEvent event
+        @getSingleton('router').handleRoute "/Login"
 
     @learn        = new KDCustomHTMLView
       tagName     : "a"
@@ -81,7 +80,7 @@ class HomeAppView extends JView
       allowfullscreen="">
       </iframe>
     </div>
-    <div class="login-footer">
+    <div class="home-links">
       <p class="bigLink">{{> @request}}</p>
       <p class="bigLink">{{> @register}}</p>
       <p class="bigLink">{{> @login}}</p>

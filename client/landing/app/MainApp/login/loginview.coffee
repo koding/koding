@@ -6,18 +6,20 @@ class LoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = ''
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      options.cssClass = 'land-page'
-      entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else
-      options.cssClass = 'hidden'  if KD.isLoggedIn() 
+    entryPoint = if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+      KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    else ''
 
     super options, data
+
+    @hidden = yes
+
+    @bindTransitionEnd()
 
     handler =(route, event)=>
       route = "/#{entryPoint}#{route}" if entryPoint
       stop event
+      log route
       @getSingleton('router').handleRoute route
 
     homeHandler       = handler.bind null, '/'
@@ -31,7 +33,7 @@ class LoginView extends KDScrollView
       tagName     : "div"
       cssClass    : "logo"
       partial     : "Koding"
-      click       : handler.bind null, '/'
+      click       : homeHandler
 
     @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"
@@ -42,6 +44,16 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Recover password"
       click       : recoverHandler
+
+    @goToRequestLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Request an invite"
+      click       : joinHandler
+
+    @goToRegisterLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Register an account"
+      click       : registerHandler
 
     @loginOptions = new LoginOptions
       cssClass : "login-options-holder log"
@@ -82,12 +94,18 @@ class LoginView extends KDScrollView
 
   viewAppended:->
 
+    @setX @getSingleton('windowController').winWidth
     @listenWindowResize()
-    @setClass "login-screen home"
+    @setClass "login-screen login"
 
     @setTemplate @pistachio()
     @template.update()
-    # @hide()
+
+  _windowDidResize:->
+    if @hidden
+      @setX @getSingleton('windowController').winWidth
+    else
+      @setX 0
 
   pistachio:->
     """
@@ -116,8 +134,10 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
+      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
+      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
+      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
     </div>
     """
 
@@ -259,62 +279,62 @@ class LoginView extends KDScrollView
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
-  hideView:(callback)->
+  hide:(callback)->
 
-    @unsetClass 'landed'
+    @setX @getSingleton('windowController').winWidth
 
-    @utils.wait 601, =>
+    cb = =>
       @emit "LoginViewHidden"
       @hidden = yes
-      @hide()
       callback?()
 
-  showView:(callback)->
+    unless @hidden then do cb
+    else @once "transitionend", cb
 
-    @show()
-    @emit "LoginViewShown"
+  show:(callback)->
 
-    @utils.wait 601,()=>
+    @setX 0
+
+    cb = =>
+      @emit "LoginViewShown"
       @hidden = no
       callback?()
 
+    unless @hidden then do cb
+    else @once "transitionend", cb
+
   click:(event)->
     if $(event.target).is('.login-screen')
-      # @emit 'LoginViewWasClicked'
-      {groupEntryPoint} = KD.config
-      if groupEntryPoint
-        @animateToForm 'home'
-        @getSingleton('lazyDomController').openPath "/#{groupEntryPoint}"
+      @hide =>
+        {groupEntryPoint} = KD.config
+        route = if groupEntryPoint then "/#{groupEntryPoint}/Home" else "/Home"
+        @getSingleton('router').handleRoute route
 
   animateToForm: (name)->
 
-    log 'animateForm called.', arguments
+    @show =>
+      switch name
+        when "register"
+          # @utils.wait 5000, =>
+          #   @utils.registerDummyUser()
 
-    switch name
-      when "register"
-        # @utils.wait 5000, =>
-        #   @utils.registerDummyUser()
+          KD.remote.api.JUser.isRegistrationEnabled (status)=>
+            if status is no
+              @registerForm.$('div').hide()
+              @registerForm.$('section').show()
+              log "Registrations are disabled!!!"
+            else
+              @registerForm.$('section').hide()
+              @registerForm.$('div').show()
+        when "home"
+          parent.notification?.destroy()
+          if @headBannerMsg?
+            @headBanner.updatePartial @headBannerMsg
+            @headBanner.show()
 
-        KD.remote.api.JUser.isRegistrationEnabled (status)=>
-          if status is no
-            @registerForm.$('div').hide()
-            @registerForm.$('section').show()
-            log "Registrations are disabled!!!"
-          else
-            @registerForm.$('section').hide()
-            @registerForm.$('div').show()
-      when "home"
-        parent.notification?.destroy()
-        if @headBannerMsg?
-          @headBanner.updatePartial @headBannerMsg
-          @headBanner.show()
-
-    @unsetClass "register recover login reset home lr landed"
-    @emit "LoginViewAnimated", name
-    @setClass name
-
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      @setClass 'landed' unless name is 'home'
+      @unsetClass "register recover login reset home lr"
+      @emit "LoginViewAnimated", name
+      @setClass name
 
   getRouteWithEntryPoint:(route)->
     {groupEntryPoint} = KD.config

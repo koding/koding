@@ -11,18 +11,23 @@ app.home.styl
 }
 
 #content-page-home
+  border-top              1px solid white
   text-align              center
   overflow                auto
+  bg                      color, #ddd
   .video-wrapper
     size                  auto, auto
     overflow              visible
-    margin                5.48% 0
+    padding               5.48% 0
+    gradient              #f8f8f8, #ddd
+    // shadow                0 1px 0 rgba(255, 255, 255, .75)
+    // margin-bottom         40px
     iframe
       size                89.13%, 76.6%
-      background          rgb(40,37,32)
-      border              10px solid rgb(40,37,32)
-      rounded             5px
-      shadow              0 5px 20px rgba(0,0,0,0.6)
+      border              8px solid rgba(0,0,0,.1)
+      rounded             2px
+      shadow              0 -1px 0 rgba(0,0,0,0.2)\,\
+                          0 1px 0 rgba(255,255,255,0.8)
       borderBox()
     a.login-register
       display             inline-block
@@ -36,15 +41,18 @@ app.home.styl
       rounded             13px
 
   hr
-    size                  80%,2px
-    border-top            1px solid rgba(0,0,0,0.6)
-    background            rgba(255,255,255,.1)
+    size                  100%, 2px
+    border-top            1px solid #bbb
+    background            rgba(255, 255, 255, .75)
     margin                40px auto
     vendor                transition, margin .3s ease-in
     borderBox()
   .reviews
+    margin-top            40px
     p
-      color               #aaa
+      text-shadow         0 -1px 0 rgba(255, 255, 255, .75)\,\
+                          0 1px 0 rgba(0, 0, 0, .2)
+      color               #455
       font-size           32px
       margin              20px 0 10px 0
       line-height         40px
@@ -53,7 +61,7 @@ app.home.styl
       vendor              transition, all .3s ease-in
     span
       display             block
-      color               #555
+      color               #666
       font-size           14px
       font-weight         300
 
@@ -68,13 +76,34 @@ app.home.styl
     color                 #444
     padding-bottom        30px
 
+  .home-links
+    size                  89.13%, 80px
+    margin                0 auto
+    padding               20px 0
+    border-top            1px solid rgba(0,0,0,.8)
+    border-bottom         1px solid rgba(0, 0, 0, .75)
+    shadow                0 1px 0 rgba(255, 255, 255, .75)\,\
+                          inset 0 0 10px rgba(0, 0, 0, .5)
+    // gradient              #37332D, #2D2A25
+    background            url("../images/koding-new-bg.png") repeat-x 0 -300px
+    rounded               2px
+    borderBox()
+
   p.bigLink
-    text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    display             inline-block
-    font-size           20px
-    line-height         40px
-    margin-right        40px
-    vendor              transition, font-size .3s ease-in
+    // text-shadow         0 -1px 0 rgba(0,0,0,.8)
+    display               inline-block
+    font-size             20px
+    line-height           40px
+    margin-right          40px
+    vendor                transition, font-size .3s ease-in
+    text-shadow           0 1px 0 rgba(0, 0, 0, .8)
+    font-weight           500
+    a
+      color               linkColor1
+      noTextDeco()
+      &:hover
+        color             white
+
     &:nth-child(4)
       margin-right    0
 
