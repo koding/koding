@@ -8,7 +8,14 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'fanout'
     autoDelete  : yes
 
-  constructor:(@bongo, @resourceName, @presenceExchange='services-presence')->
+  NOTIFICATION_EXCHANGE_OPTIONS = 
+    type        : 'direct'
+    autoDelete  : yes
+
+  constructor:(@bongo, options = {})->
+    { @presenceExchange, @notificationExchange } = options
+    @presenceExchange     ?= 'services-presence'
+    @notificationExchange ?= 'notification-control'
     @services = {}
     @clients  = {
       bySocketId    : {}
@@ -77,7 +84,7 @@ module.exports = class AuthWorker extends EventEmitter
   addClient:(socketId, exchange, routingKey, sendOk=yes)->
     if sendOk
       @bongo.respondToClient routingKey, {
-        method    : 'authOk'
+        method    : 'auth.authOk'
         arguments : []
         callbacks : {}
       }
@@ -90,12 +97,20 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange.push client
 
   rejectClient:(routingKey, message)->
+    console.log 'rejecting', routingKey
     return console.trace()  unless routingKey?
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: message ? 'Access denied']
       callbacks : {}
     }
+
+  fetchNotificationExchange:(callback)->
+    @bongo.mq.connection.exchange(
+      @notificationExchange
+      NOTIFICATION_EXCHANGE_OPTIONS
+      callback
+    )
 
   joinClient: do ->
 
@@ -155,21 +170,42 @@ module.exports = class AuthWorker extends EventEmitter
                           message = JSON.stringify secretChannelName
                           @bongo.respondToClient setSecretNameEvent, message
 
+    joinClientNotificationHelper =(messageData, routingKey, socketId)->
+      fail = (err)=>
+        console.error err  if err
+        @rejectClient routingKey
+
+      @authenticate messageData, routingKey, (session)=>
+        unless session then fail()
+        else if session?
+          {username} = session
+          @fetchNotificationExchange (exchange)->
+            exchange.publish 'auth.join', {routingKey, username}
+
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
       switch serviceType
         when 'bongo', 'kite'
           joinClientHelper.call this, messageData, routingKey, socketId
+        
         when 'group'
-          unless ///^group.#{messageData.group}///.test routingKey
-            console.log 'rejecting', routingKey
+          unless ///^group\.#{messageData.group}\.///.test routingKey
             return @rejectClient routingKey
           joinClientGroupHelper.call this, messageData, routingKey, socketId
+        
         when 'chat' then # TODO: handle authentication for chat
+        
+        when 'notification'
+          unless ///^notification\.///.test routingKey
+            return @rejectClient routingKey
+          joinClientNotificationHelper.call this, messageData, routingKey, socketId
+        
         when 'secret'
           @addClient socketId, routingKey, routingKey, no
+        
         else
-          @rejectClient routingKey
+          @rejectClient routingKey  unless /^oid./.test routingKey
+          # TODO: we're not really handling the oid channels at all (I guess we don't need to) C.T.
 
   cleanUpClient:(client)->
     @removeClient client
