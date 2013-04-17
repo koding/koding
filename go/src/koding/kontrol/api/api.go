@@ -418,26 +418,3 @@ func buildSendProxyCmd(action, key, host, hostdata, uuid string) {
 
 	listenTell.Tell(data)
 }
-
-func setupListenTell(amqp *AmqpWrapper) (listenTell *ListenTell) {
-	input := make(chan string)
-	output := make(chan []byte)
-	listenTell = &ListenTell{input, output}
-
-	go listenAmqp(amqp, input)
-	go tellAmqp(amqp, output)
-
-	return
-}
-
-func listenAmqp(amqp *AmqpWrapper, input chan string) {
-	for msg := range amqp.Listen() {
-		input <- string(msg.Body)
-	}
-}
-
-func tellAmqp(amqp *AmqpWrapper, output chan []byte) {
-	for cmd := range output {
-		amqp.Tell(cmd)
-	}
-}
