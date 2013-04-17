@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 )
@@ -63,7 +64,8 @@ func parseRollbarReq(request *http.Request) (Rollbar, error) {
 }
 
 func findWorkersRelevantToProblem(problem string) []Worker {
-	allWorkers := getStatus()
+	query := bson.M{}
+	allWorkers := queryResult(query) // for empty bson.M it returns all workers
 	s := make([]interface{}, len(allWorkers))
 	for i, v := range allWorkers {
 		s[i] = v

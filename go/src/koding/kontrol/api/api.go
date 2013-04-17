@@ -6,8 +6,11 @@ import (
 	"io/ioutil"
 	"koding/fujin/proxyconfig"
 	"koding/kontrol/daemon/workerconfig"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -273,41 +276,31 @@ func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Get all registered workers
 // http://localhost:8000/workers
-// http://localhost:8000/workers?host=foo&status=started
+// http://localhost:8000/workers?hostname=foo&state=started
 // http://localhost:8000/workers?name=social
-// http://localhost:8000/workers?status=stopped
+// http://localhost:8000/workers?state=stopped
 func WorkersHandler(writer http.ResponseWriter, req *http.Request) {
-	v := req.URL.Query()
-	host := v.Get("host")
-	status := v.Get("status")
-	name := v.Get("name")
-	version := v.Get("version")
+	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
-	allWorkers := getStatus()
-	s := make([]interface{}, len(allWorkers))
-	for i, v := range allWorkers {
-		s[i] = v
+	query := bson.M{}
+	for key, value := range queries {
+		switch key {
+		case "version", "pid":
+			v, _ := strconv.Atoi(value[0])
+			query[key] = v
+		case "state":
+			for status, state := range StatusCode {
+				if value[0] == state {
+					query["status"] = status
+				}
+			}
+		default:
+			query[key] = value[0]
+		}
 	}
 
-	t := NewMatcher(s).
-		ByString("Hostname", host).
-		ByString("State", status).
-		ByString("Name", name).
-		ByInt("Version", version).
-		Run()
-
-	matchedWorkers := make(Workers, len(t))
-	for i, item := range t {
-		w, _ := item.(Worker)
-		matchedWorkers[i] = w
-	}
-
-	var data []byte
-	if len(v) == 0 { // no query available, means return all workers
-		data = buildWriteData(allWorkers)
-	} else {
-		data = buildWriteData(matchedWorkers)
-	}
+	matchedWorkers := queryResult(query)
+	data := buildWriteData(matchedWorkers)
 	writer.Write(data)
 
 }
@@ -318,19 +311,8 @@ func WorkerHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	allWorkers := getStatus()
-	s := make([]interface{}, len(allWorkers))
-	for i, v := range allWorkers {
-		s[i] = v
-	}
-
-	t := NewMatcher(s).ByString("Uuid", uuid).Run()
-	matchedWorkers := make(Workers, len(t))
-	for i, item := range t {
-		w, _ := item.(Worker)
-		matchedWorkers[i] = w
-	}
-
+	query := bson.M{"uuid": uuid}
+	matchedWorkers := queryResult(query)
 	data := buildWriteData(matchedWorkers)
 	writer.Write(data)
 }
@@ -359,23 +341,26 @@ func WorkerPutHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Fallback function will be removed later
 func home(writer http.ResponseWriter, request *http.Request) {
-	allWorkers := getStatus()
+	query := bson.M{}
+	allWorkers := queryResult(query)
 	log.Println(allWorkers)
 
 	data := buildWriteData(allWorkers)
 	writer.Write(data)
 }
 
-func getStatus() Workers {
+func queryResult(query bson.M) Workers {
 	err := kontrolConfig.RefreshStatusAll()
 	if err != nil {
 		log.Println(err)
 	}
 
+	log.Println(query)
+
 	workers := make(Workers, 0)
 	worker := workerconfig.MsgWorker{}
 
-	iter := kontrolConfig.Collection.Find(nil).Iter()
+	iter := kontrolConfig.Collection.Find(query).Iter()
 	for iter.Next(&worker) {
 		apiWorker := &Worker{
 			worker.Name,
