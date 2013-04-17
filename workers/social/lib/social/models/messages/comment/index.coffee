@@ -70,3 +70,35 @@ module.exports = class JComment extends jraphical.Reply
         , -> queue.fin()
     ]
     dash queue, callback
+
+  _flagIsLowQuality:(isLowQuality, inc, callback)->
+    Relationship.one {
+      targetId  : @getId()
+      as        : 'reply'
+    }, (err, rel)->
+      if err
+        queue.fin err
+      else
+        rel.fetchSource (err, message)->
+          if err
+            queue.fin err
+          else
+            repliesCount = message.getAt 'repliesCount'
+            daisy queue = [
+              ->
+                rel.update $set: 'data.flags.isLowQuality': isLowQuality, -> queue.next()
+              ->
+                message.update $inc: repliesCount: inc, -> queue.next()
+              ->
+                message.updateSnapshot -> queue.next()
+              ->
+                message.triggerCache()
+                queue.next()
+              callback
+            ]
+
+  flagIsLowQuality:(callback)->
+    @_flagIsLowQuality yes, -1, callback
+
+  unflagIsLowQuality:(callback)->
+    @_flagIsLowQuality no, 1, callback

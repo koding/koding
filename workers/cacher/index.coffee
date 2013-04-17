@@ -53,7 +53,6 @@ do ->
             payload = [payload]  unless Array.isArray payload
             emitter.emit eventName, payload...
 
-
     emitter.on "ActivityIsCreated", (activity)->
       if not cachingInProgress\
          and activity.constructor.name in typesToBeCached
@@ -72,6 +71,9 @@ do ->
         createdAt = (new Date createdAt).getTime()
         JActivityCache.modifyByTeaser {teaserId, createdAt}
 
-    console.log "Activity Cache Worker is ready."
+    emitter.on "UserMarkedAsTroll", (userId)->
+      JActivityCache.cleanCacheFromActivitiesOfUser(userId)
+
+    console.log "Activity Cache Worker is ready.\n"
 
     JActivityCache.init()

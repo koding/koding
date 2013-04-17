@@ -96,9 +96,13 @@ authenticationFailed = (res, err)->
 startTime = null
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
-  startTime = Date.now()
+  # startTime = Date.now()
   JActivityCache.latest (err, cache)->
     if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
     # console.log "latest: #{Date.now() - startTime} msecs!"
     return res.send if cache then cache.data else {}
 
@@ -106,6 +110,10 @@ app.get "/-/cache/before/:timestamp", (req, res)->
   {JActivityCache} = koding.models
   JActivityCache.before req.params.timestamp, (err, cache)->
     if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
     res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->

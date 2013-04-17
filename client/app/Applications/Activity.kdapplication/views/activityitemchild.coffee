@@ -97,14 +97,18 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      menu =
-        'MARK USER AS TROLL' :
-          callback : =>
-            mainController.markUserAsTroll data
-        'UNMARK USER AS TROLL' :
-          callback : =>
-            mainController.unmarkUserAsTroll data
-        'Delete Post' :
+      if data.isLowQuality
+        menu =
+          'Unmark User as Troll' :
+            callback : =>
+              mainController.unmarkUserAsTroll data
+      else
+        menu =
+          'Mark User as Troll' :
+            callback : =>
+              mainController.markUserAsTroll data
+
+      menu['Delete Post'] =
           callback : =>
             @confirmDeletePost data
 
