@@ -43,6 +43,7 @@ func main() {
 	// open kontrol-daemon database connection
 	proxyDB = proxyconfig.Connect()
 
+	log.Printf("registering with uuid '%s'", amqpStream.uuid)
 	log.Println("send request to get config file from kontrold. waiting...")
 	select {
 	case <-time.After(time.Second * 15):
