@@ -37,10 +37,12 @@ module.exports = class JChatConversation extends Module
 
   @create = secure (client, initialInvitees, callback)->
     {delegate} = client.connection
+
     conversation = new this {
       publicName  : createId()
       createdBy   : delegate.profile.nickname
     }
+    
     conversation.save (err)->
       if err then callback err
       else
@@ -55,8 +57,6 @@ module.exports = class JChatConversation extends Module
                         nickname in [@createdBy].concat @participants
 
     return callback new KodingError "Access denied!" unless delegateCanInvite
-
-    console.warn "we need to invite the user #{invitee}"
 
     @update {$addToSet: invitees: invitee}, (err)-> console.error err  if err?
 
