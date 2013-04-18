@@ -1,25 +1,15 @@
 package fastproxy
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/tls"
 	"errors"
-	"io"
 	"net"
-	"strings"
 	"time"
 )
 
-type Request struct {
-	Host   string
-	source net.Conn
-	buffer *bytes.Buffer
-}
-
-func Listen(laddr *net.TCPAddr, cert *tls.Certificate, handler func(Request)) error {
+func listen(privateAddr *net.TCPAddr, cert *tls.Certificate, handler func(source net.Conn)) error {
 	var listener net.Listener
-	listener, err := net.ListenTCP("tcp", laddr)
+	listener, err := net.ListenTCP("tcp", privateAddr)
 	if err != nil {
 		return err
 	}
@@ -37,43 +27,13 @@ func Listen(laddr *net.TCPAddr, cert *tls.Certificate, handler func(Request)) er
 			continue
 		}
 
-		go func() {
-			defer source.Close()
-			req := Request{
-				source: source,
-				buffer: bytes.NewBuffer(nil),
-			}
-
-			r := bufio.NewReaderSize(io.TeeReader(source, req.buffer), 128)
-
-			_, err := r.ReadString('\n') // ignored
-			if err != nil {
-				return
-			}
-
-			for {
-				line, err := r.ReadString('\n')
-				if err != nil {
-					return
-				}
-				parts := strings.SplitN(line, ":", 2)
-				if len(parts) != 2 {
-					return
-				}
-				if parts[0] == "Host" {
-					req.Host = strings.TrimSpace(parts[1])
-					break
-				}
-			}
-
-			handler(req)
-		}()
+		go handler(source)
 	}
 
 	return nil
 }
 
-func (req Request) Relay(addr *net.TCPAddr) error {
+func connect(addr *net.TCPAddr) (*net.TCPConn, error) {
 	var target *net.TCPConn
 	targetChan := make(chan *net.TCPConn)
 	errChan := make(chan error)
@@ -89,7 +49,7 @@ func (req Request) Relay(addr *net.TCPAddr) error {
 	case target = <-targetChan:
 		// continue
 	case err := <-errChan:
-		return err
+		return nil, err
 	case <-time.After(5 * time.Second):
 		go func() { // cleanup function
 			select {
@@ -98,20 +58,8 @@ func (req Request) Relay(addr *net.TCPAddr) error {
 			case <-errChan:
 			}
 		}()
-		return errors.New("Timeout")
+		return nil, errors.New("Timeout")
 	}
 
-	target.Write(req.buffer.Bytes())
-	go func() {
-		io.Copy(target, req.source)
-		target.CloseWrite()
-	}()
-	io.Copy(req.source, target)
-	target.CloseRead()
-
-	return nil
-}
-
-func (req Request) Redirect(url string) {
-	req.source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: " + url + "\r\n\r\n"))
+	return target, nil
 }

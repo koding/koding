@@ -1,5 +1,5 @@
 {Module} = require 'jraphical'
-_ = require 'underscore'
+{difference} = require 'underscore'
 
 module.exports = class JGroup extends Module
 
@@ -54,13 +54,12 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        {
-          name      : 'NewMember'
-          filter    : (payload)-> null
-        }
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
       ]
       instance      : [
-        { name: 'NewMember', filter: -> [] }, 'save'
+        { name: 'MemberAdded',    filter: -> null }
+        { name: 'MemberRemoved',  filter: -> null }
       ]
     sharedMethods   :
       static        : [
@@ -152,6 +151,21 @@ module.exports = class JGroup extends Module
       readme        :
         targetType  : 'JMarkdownDoc'
         as          : 'owner'
+      vm            :
+        targetType  : 'JVM'
+        as          : 'owner'
+
+  constructor:->
+    super
+
+    @on 'MemberAdded', (member)->
+      @constructor.emit 'MemberAdded', { group: this, member }
+
+    @on 'MemberRemoved', (member)->
+      @constructor.emit 'MemberRemoved', { group: this, member }
+
+    @on 'MemberRolesChanged', (member)->
+      @constructor.emit 'MemberRolesChanged', { group: this, member }
 
   @__importKodingMembers = secure (client, callback)->
     JAccount = require '../account'
@@ -296,7 +310,9 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
-      queue.push -> callback null, group
+      queue.push =>
+        @emit 'GroupCreated', { group, creator: delegate }
+        callback null, group
 
       daisy queue
 
@@ -785,7 +801,7 @@ module.exports = class JGroup extends Module
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'NewMember'
+      @emit 'MemberAdded', member
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -900,12 +916,13 @@ module.exports = class JGroup extends Module
       if delegate.getId().equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
-      # double check that client is really the owner
-      @fetchMyRoles client, (err, roles)=>
+      Relationship.one {
+        targetId: delegate.getId(),
+        sourceId: @getId(),
+        as      : 'owner'
+      }, (err, owner)=>
         return callback err if err
-
-        if not 'owner' in roles
-          return callback new KodingError 'You must be owner to perform this action!'
+        return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
         JAccount.one _id:accountId, (err, account)=>
           return callback err if err
@@ -919,11 +936,56 @@ module.exports = class JGroup extends Module
               callback err
 
             # give rights to new owner
-            queue = _.difference(['member', 'admin', 'owner'], newOwnersRoles).map (role)=>=>
+            queue = difference(['member', 'admin'], newOwnersRoles).map (role)=>=>
               @addMember account, role, (err)->
                 return kallback err if err
                 queue.fin()
 
             dash queue, =>
-              # remove ownership of previous owner
-              @removeOwner delegate, kallback
+              # transfer ownership
+              owner.update $set: targetId: accountId, kallback
+
+  ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback)->
+    unless callback
+      callback   = roleUnique
+      roleUnique = no
+
+    if 'string' is typeof options
+      as = options
+    else if options?.as
+      {as} = options
+    else
+      as = fallbackRole
+
+    selector =
+      targetName : target.bongo_.constructorName
+      sourceId   : @getId()
+      sourceName : @bongo_.constructorName
+      as         : as
+
+    unless roleUnique
+      selector.targetId = target.getId()
+
+    Relationship.count selector, (err, count)->
+      if err then callback err
+      else if count > 0 then callback new KodingError 'This relationship already exists'
+      else callback null
+
+  oldAddMember = @::addMember
+  addMember:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'member', (err)=>
+      if err then callback err
+      else oldAddMember.call this, target, options, callback
+
+  oldAddAdmin = @::addAdmin
+  addAdmin:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'admin', (err)=>
+      if err then callback err
+      else oldAddAdmin.call this, target, options, callback
+
+  oldAddOwner = @::addOwner
+  addOwner:(target, options, callback)->
+    @ensureUniquenessOfRoleRelationship target, options, 'owner', yes, (err)=>
+      if err then callback err
+      else oldAddOwner.call this, target, options, callback
+

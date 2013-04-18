@@ -215,7 +215,7 @@ class KDView extends KDObject
 # #
 # TRAVERSE DOM ELEMENT
 # #
-  Object.defineProperty @::, "$$", get : -> @$()
+  Object.defineProperty @prototype, "$$", get : @::$
 
   getDomElement:-> @domElement
 
