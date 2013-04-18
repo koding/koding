@@ -1,28 +1,18 @@
 class MainView extends KDView
 
-  constructor:->
-    super
-
-    mainController    = @getSingleton 'mainController'
-    lazyDomController = @getSingleton 'lazyDomController'
-
-    if KD.config.groupEntryPoint
-      lazyDomController.on 'landingViewIsHidden', =>
-        @removeLoader()
-    else
-      mainController.on 'AppIsReady', =>
-        @removeLoader()
-
   viewAppended:->
 
-    @addServerStack()
+    @bindTransitionEnd()
+    # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
+    @setStickyNotification()
     @createSideBar()
     @listenWindowResize()
 
   putAbout:->
+
     @putOverlay
       color   : "rgba(0,0,0,0.9)"
       animated: yes
@@ -38,59 +28,26 @@ class MainView extends KDView
 
   addBook:-> @addSubView new BookView
 
-  setViewState:(state)->
+  _windowDidResize:->
 
-    switch state
-      when 'hideTabs'
-        @contentPanel.setClass 'no-shadow'
-        @mainTabView.hideHandleContainer()
-        @sidebar.hideFinderPanel()
-      when 'application'
-        @contentPanel.unsetClass 'no-shadow'
-        @mainTabView.showHandleContainer()
-        @sidebar.showFinderPanel()
-      else
-        @contentPanel.unsetClass 'no-shadow'
-        @mainTabView.showHandleContainer()
-        @sidebar.hideFinderPanel()
-
-  removeLoader:->
-
-    loadingScreen = new KDView
-      lazyDomId : "main-koding-loader"
-
-    loadingScreen.bindTransitionEnd()
-
-    loginForm            = $('#main-form-handler')
-    {winWidth,winHeight} = @getSingleton "windowController"
-
-    loadingScreen.once "transitionend", =>
-      loadingScreen.destroy()
-      $('body').removeClass 'loading'
-      loginForm.show()
-
-    loginForm.hide()
-    loadingScreen.$().css opacity : 0
+    {winHeight} = @getSingleton "windowController"
+    @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
+      domId    : "main-panel-wrapper"
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
+    @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
-    @panelWrapper.addSubView @contentPanel = new KDView
+    @panelWrapper.addSubView @contentPanel = new ContentPanel
       domId    : "content-panel"
       cssClass : "transition"
-      bind     : "webkitTransitionEnd" #TODO: Cross browser support
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-    @registerSingleton "contentPanel", @contentPanel, yes
-    @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
   addServerStack:->
     @addSubView @serverStack = new KDView
@@ -101,26 +58,25 @@ class MainView extends KDView
 
   addHeader:->
     log "adding header"
-    if KD.config.groupEntryPoint
-      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
-        if err then callback err
-        else if models?
-          log "adding summary"
-          [group] = models
-          @addSubView @groupSummary = new GroupSummaryView {}, group
+    # if KD.config.groupEntryPoint
+    #   KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+    #     if err then callback err
+    #     else if models?
+    #       log "adding summary"
+    #       [group] = models
+    #       @addSubView @groupSummary = new GroupSummaryView {}, group
 
     @addSubView @header = new KDView
       tagName : "header"
+      domId   : "main-header"
+
 
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       # cssClass  : "hidden"
-      attributes:
-        href    : "#"
       click     : (event)=>
         # return if @userEnteredFromGroup()
-
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
@@ -132,16 +88,37 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
-    getFrontAppManifest = ->
-      appManager = KD.getSingleton "appManager"
-      appController = KD.getSingleton "kodingAppsController"
-      frontApp = appManager.getFrontApp()
-      frontAppName = name for name, instances of appManager.appControllers when frontApp in instances
-      appController.constructor.manifests?[frontAppName]
+    @mainSettingsMenuButton = @getMainSettingsMenuButton()
 
-    @mainSettingsMenuButton = new KDButtonView
+    @mainTabView = new MainTabView
+      domId              : "main-tab-view"
+      listenToFinder     : yes
+      delegate           : @
+      slidingPanes       : no
+      tabHandleContainer : @mainTabHandleHolder
+    ,null
+
+    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
+      appManifest = getFrontAppManifest()
+      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
+
+    @mainTabView.on "AllPanesClosed", ->
+      @getSingleton('router').handleRoute "/Activity"
+
+    @contentPanel.addSubView @mainTabView
+    @contentPanel.addSubView @mainTabHandleHolder
+    @contentPanel.addSubView @mainSettingsMenuButton
+
+  createSideBar:->
+
+    @sidebar = new Sidebar domId : "sidebar", delegate : @
+    @emit "SidebarCreated", @sidebar
+    @sidebarPanel.addSubView @sidebar
+
+  getMainSettingsMenuButton:->
+    new KDButtonView
       domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer transparent"
+      cssClass : "kdsettingsmenucontainer transparent hidden"
       iconOnly : yes
       iconClass: "dot"
       callback : ->
@@ -164,74 +141,8 @@ class MainView extends KDView
                 placement : "top"
                 margin    : -5
             , appManifest.menu
-    @mainSettingsMenuButton.hide()
 
-    @mainTabView = new MainTabView
-      domId              : "main-tab-view"
-      listenToFinder     : yes
-      delegate           : @
-      slidingPanes       : no
-      tabHandleContainer : @mainTabHandleHolder
-    ,null
-
-    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
-      appManifest = getFrontAppManifest()
-      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
-
-    mainController = @getSingleton('mainController')
-    mainController.popupController = new VideoPopupController
-
-    mainController.monitorController = new MonitorController
-
-    @videoButton = new KDButtonView
-      cssClass : "video-popup-button"
-      icon : yes
-      title : "Video"
-      callback :=>
-        unless @popupList.$().hasClass "hidden"
-          @videoButton.unsetClass "active"
-          @popupList.hide()
-        else
-          @videoButton.setClass "active"
-          @popupList.show()
-
-    @videoButton.hide()
-
-    @popupList = new VideoPopupList
-      cssClass      : "hidden"
-      type          : "videos"
-      itemClass     : VideoPopupListItem
-      delegate      : @
-    , {}
-
-    @mainTabView.on "AllPanesClosed", ->
-      @getSingleton('router').handleRoute "/Activity"
-
-    @contentPanel.addSubView @mainTabView
-    @contentPanel.addSubView @mainTabHandleHolder
-    @contentPanel.addSubView @mainSettingsMenuButton
-    @contentPanel.addSubView @videoButton
-    @contentPanel.addSubView @popupList
-
-    getSticky = =>
-      @getSingleton('windowController')?.stickyNotification
-
-    getStatus = =>
-      KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
-        if err
-          if err.message is 'none_scheduled'
-            getSticky()?.emit 'restartCanceled'
-          else
-            log 'current system status:',err
-        else
-          systemStatus.on 'restartCanceled', =>
-            getSticky()?.emit 'restartCanceled'
-          new GlobalNotification
-            targetDate  : systemStatus.scheduledAt
-            title       : systemStatus.title
-            content     : systemStatus.content
-            type        : systemStatus.type
-
+  setStickyNotification:->
     # sticky = @getSingleton('windowController')?.stickyNotification
     @utils.defer => getStatus()
 
@@ -249,32 +160,110 @@ class MainView extends KDView
           content    : systemStatus.content
           type       : systemStatus.type
 
-  createSideBar:->
 
-    @sidebar = new Sidebar domId : "sidebar", delegate : @
-    @emit "SidebarCreated", @sidebar
-    @sidebarPanel.addSubView @sidebar
+  # take this to appManager SY
+  getFrontAppManifest = ->
+    appManager    = KD.getSingleton "appManager"
+    appController = KD.getSingleton "kodingAppsController"
+    frontApp      = appManager.getFrontApp()
+    frontAppName  = name for name, instances of appManager.appControllers when frontApp in instances
+    appController.constructor.manifests?[frontAppName]
 
-  changeHomeLayout:(isLoggedIn)->
+  getSticky = =>
+    KD.getSingleton('windowController')?.stickyNotification
 
-  decorateLoginState:(isLoggedIn = no)->
+  getStatus = =>
+    KD.remote.api.JSystemStatus.getCurrentSystemStatus (err,systemStatus)=>
+      if err
+        if err.message is 'none_scheduled'
+          getSticky()?.emit 'restartCanceled'
+        else
+          log 'current system status:',err
+      else
+        systemStatus.on 'restartCanceled', =>
+          getSticky()?.emit 'restartCanceled'
+        new GlobalNotification
+          targetDate  : systemStatus.scheduledAt
+          title       : systemStatus.title
+          content     : systemStatus.content
+          type        : systemStatus.type
 
-    if isLoggedIn
-      # Workaround for Develop Tab
-      if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-        @contentPanel.setClass "social"
 
-      @mainTabView.showHandleContainer()
+# inactive code
 
-    else
+    # mainController = @getSingleton('mainController')
+    # mainController.popupController = new VideoPopupController
 
-      @contentPanel.unsetClass "social"
-      @mainTabView.hideHandleContainer()
+    # mainController.monitorController = new MonitorController
 
-    @changeHomeLayout isLoggedIn
-    @utils.wait 300, => @notifyResizeListeners()
+    # @videoButton = new KDButtonView
+    #   cssClass : "video-popup-button"
+    #   icon : yes
+    #   title : "Video"
+    #   callback :=>
+    #     unless @popupList.$().hasClass "hidden"
+    #       @videoButton.unsetClass "active"
+    #       @popupList.hide()
+    #     else
+    #       @videoButton.setClass "active"
+    #       @popupList.show()
 
-  _windowDidResize:->
+    # @videoButton.hide()
 
-    {winHeight} = @getSingleton "windowController"
-    @panelWrapper.setHeight winHeight - 51
+    # @popupList = new VideoPopupList
+    #   cssClass      : "hidden"
+    #   type          : "videos"
+    #   itemClass     : VideoPopupListItem
+    #   delegate      : @
+    # , {}
+    # @contentPanel.addSubView @videoButton
+    # @contentPanel.addSubView @popupList
+
+class ContentPanel extends KDView
+
+  constructor:(options, data)->
+
+    super options, data
+
+    @registerSingleton "contentPanel", @, yes
+
+    @bindTransitionEnd()
+
+    mainViewController = @getSingleton "mainViewController"
+    mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+
+  typeMap =
+    full    : 'adjustForFullWidth'
+    develop : 'adjustForDevelop'
+    social  : 'adjustForSocial'
+
+  nameMap =
+    Home    : 'adjustForFullWidth'
+
+  changeLayout:(options)->
+
+    {type, hideTabs, name}    = options
+    @windowController or= @getSingleton 'windowController'
+
+    @unsetClass 'full develop social'
+    @adjustShadow hideTabs
+
+    @[nameMap[name] or typeMap[type]]?()
+
+  adjustShadow:(hideTabs)->
+    @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
+
+  adjustForFullWidth:->
+    @setX 0
+    @setWidth @windowController.winWidth
+    @setClass 'full'
+
+  adjustForDevelop:->
+    @setX 260
+    @setWidth @windowController.winWidth - 260
+    @setClass 'develop'
+
+  adjustForSocial:->
+    @setX 0
+    @setWidth @windowController.winWidth - 160
+    @setClass 'social'
