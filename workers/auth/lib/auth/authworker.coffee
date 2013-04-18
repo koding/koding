@@ -9,7 +9,7 @@ module.exports = class AuthWorker extends EventEmitter
     autoDelete  : yes
 
   NOTIFICATION_EXCHANGE_OPTIONS = 
-    type        : 'direct'
+    type        : 'fanout'
     autoDelete  : yes
 
   constructor:(@bongo, options = {})->
@@ -177,10 +177,13 @@ module.exports = class AuthWorker extends EventEmitter
 
       @authenticate messageData, routingKey, (session)=>
         unless session then fail()
-        else if session?
+        else if session?.username
+          @addClient socketId, @notificationExchange, routingKey, no
           {username} = session
           @fetchNotificationExchange (exchange)->
             exchange.publish 'auth.join', {routingKey, username}
+        else
+          @rejectClient routingKey
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
@@ -199,7 +202,7 @@ module.exports = class AuthWorker extends EventEmitter
           unless ///^notification\.///.test routingKey
             return @rejectClient routingKey
           joinClientNotificationHelper.call this, messageData, routingKey, socketId
-        
+
         when 'secret'
           @addClient socketId, routingKey, routingKey, no
         
