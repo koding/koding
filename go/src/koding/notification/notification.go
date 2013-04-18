@@ -17,9 +17,13 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
-type Credential struct {
-	Token    string `json:"token"`
+type JoinMsg struct {
+	Token    string `json:"routingKey"`
 	Username string `json:"username"`
+}
+
+type LeaveMsg struct {
+	Token string `json:"routingKey"`
 }
 
 var tokens map[string]string
@@ -51,12 +55,6 @@ func startRouting() {
 
 	var err error
 	user, password, host, port := getAmqpCredentials()
-
-	type bind struct {
-		queue string
-		key   string
-	}
-
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	c.conn, err = amqp.Dial(url)
 	if err != nil {
@@ -78,9 +76,6 @@ func startRouting() {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
-	// consume from notification-control
-
-	// declaring this queue will be removed and and the queue from authworker will be used
 	if _, err := c.channel.QueueDeclare("authWorker", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
 	}
@@ -89,29 +84,55 @@ func startRouting() {
 		log.Fatal("queue.bind: %s", err)
 	}
 
-	pairs, err := c.channel.Consume("authWorker", "", true, false, false, false, nil)
+	authStream, err := c.channel.Consume("authWorker", "", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	// start handling messages
 	go func() {
-		for pair := range pairs {
-			log.Printf("token stream got %dB message data: [%v] %s",
-				len(pair.Body),
-				pair.DeliveryTag,
-				pair.Body)
+		for msg := range authStream {
+			log.Printf("join got %dB message data: [%v]-[%s] %s",
+				len(msg.Body),
+				msg.DeliveryTag,
+				msg.RoutingKey,
+				msg.Body)
 
-			var cred Credential
-			err := json.Unmarshal(pair.Body, &cred)
-			if err != nil {
-				log.Print("bad json incoming msg: ", err)
+			switch msg.RoutingKey {
+			case "auth.join":
+				var join JoinMsg
+				err := json.Unmarshal(msg.Body, &join)
+				if err != nil {
+					log.Print("bad json incoming msg: ", err)
+				}
+
+				tokens[join.Username] = join.Token
+
+				log.Println("Tokens:", tokens)
+
+				go consumeFromUser(c, join.Username)
+			case "auth.leave":
+				var leave LeaveMsg
+				err := json.Unmarshal(msg.Body, &leave)
+				if err != nil {
+					log.Print("bad json incoming msg: ", err)
+				}
+
+				// delete user from the token map and cancel it from consuming
+				for user, token := range tokens {
+					if token == leave.Token {
+						delete(tokens, user)
+
+						err := c.channel.Cancel(user, false)
+						if err != nil {
+							log.Fatal("basic.cancel: %s", err)
+						}
+					}
+				}
+
+				log.Println("Tokens:", tokens)
+			default:
+				log.Println("routing key is not defined: ", msg.RoutingKey)
 			}
-
-			tokens[cred.Username] = cred.Token
-
-			go consumeFromUser(c, cred.Username)
-
 		}
 
 	}()
