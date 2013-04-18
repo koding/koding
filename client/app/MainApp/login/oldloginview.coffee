@@ -6,8 +6,6 @@ class OldLoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.lazyDomId = 'login-footer'
-
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
     else entryPoint = ''
@@ -121,7 +119,7 @@ class OldLoginView extends KDScrollView
   viewAppended:->
 
     @listenWindowResize()
-    @setClass "login-footer"
+    @setClass "home-links"
     @setTemplate @pistachio()
     @template.update()
 

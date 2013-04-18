@@ -10,8 +10,105 @@ app.home.styl
 */
 }
 
-// NEW TRY
+#content-page-home
+  border-top              1px solid white
+  text-align              center
+  overflow                auto
+  bg                      color, #ddd
+  .video-wrapper
+    size                  auto, auto
+    overflow              visible
+    padding               5.48% 0
+    gradient              #f8f8f8, #ddd
+    // shadow                0 1px 0 rgba(255, 255, 255, .75)
+    // margin-bottom         40px
+    iframe
+      size                89.13%, 76.6%
+      border              8px solid rgba(0,0,0,.1)
+      rounded             2px
+      shadow              0 -1px 0 rgba(0,0,0,0.2)\,\
+                          0 1px 0 rgba(255,255,255,0.8)
+      borderBox()
+    a.login-register
+      display             inline-block
+      margin              10px auto 0
+    button
+      margin              2px 0 0 0
+      padding             6px 10px
+      font-weight         400
+      color               transparent
+      text-shadow         none
+      rounded             13px
 
+  hr
+    size                  100%, 2px
+    border-top            1px solid #bbb
+    background            rgba(255, 255, 255, .75)
+    margin                40px auto
+    vendor                transition, margin .3s ease-in
+    borderBox()
+  .reviews
+    margin-top            40px
+    p
+      text-shadow         0 -1px 0 rgba(255, 255, 255, .75)\,\
+                          0 1px 0 rgba(0, 0, 0, .2)
+      color               #455
+      font-size           32px
+      margin              20px 0 10px 0
+      line-height         40px
+      font-family         serif
+      font-style          italic
+      vendor              transition, all .3s ease-in
+    span
+      display             block
+      color               #666
+      font-size           14px
+      font-weight         300
+
+  .footer-links
+    a
+      color               #aaa
+      &:hover
+        color             white
+
+  footer.copy
+    font-size             11px
+    color                 #444
+    padding-bottom        30px
+
+  .home-links
+    size                  89.13%, 80px
+    margin                0 auto
+    padding               20px 0
+    border-top            1px solid rgba(0,0,0,.8)
+    border-bottom         1px solid rgba(0, 0, 0, .75)
+    shadow                0 1px 0 rgba(255, 255, 255, .75)\,\
+                          inset 0 0 10px rgba(0, 0, 0, .5)
+    // gradient              #37332D, #2D2A25
+    background            url("../images/koding-new-bg.png") repeat-x 0 -300px
+    rounded               2px
+    borderBox()
+
+  p.bigLink
+    // text-shadow         0 -1px 0 rgba(0,0,0,.8)
+    display               inline-block
+    font-size             20px
+    line-height           40px
+    margin-right          40px
+    vendor                transition, font-size .3s ease-in
+    text-shadow           0 1px 0 rgba(0, 0, 0, .8)
+    font-weight           500
+    a
+      color               linkColor1
+      noTextDeco()
+      &:hover
+        color             white
+
+    &:nth-child(4)
+      margin-right    0
+
+
+// NEW TRY
 div.screenshots
   height                  530px
   // h1

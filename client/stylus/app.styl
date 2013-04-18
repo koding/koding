@@ -513,17 +513,17 @@ span.main-nav-icon
   &.admin-dashboard
     bg(position,-80px -300px)
   &.invite-friends
-    margin        1px 20px 1px 3px
-    rounded       2px
-    bg            color,linkColor1
-    color         white
-    font-size     10px
-    line-height   16px
-    min-width     15px
-    font-weight   700
-    text-align    center
-    size          auto,16px
-    bg            image,none
+    text-shadow     0 -1px 0 #26231F
+    padding         3px 3px 1px 3px
+    color           #ccc
+    letter-spacing  0
+    bg              image, none
+    font-size       10px
+    line-height     16px
+    min-width       15px
+    font-weight     400
+    text-align      center
+    size            auto,auto
   &.register
     bg(position,0 -420px)
   &.request-access
@@ -965,26 +965,26 @@ span.main-nav-icon
       top               -16px
       left              0
       width             100%
-      padding           0px
+      padding           0
       font-size         10px
       text-align        center
       line-height       12px
       opacity           0
       z-index           2
-      vendor            transition,opacity .4s linear
+      vendor            transition, opacity .4s linear
       &.in
         opacity         1
       cite
         font-style      normal
         text-shadow     0 -1px 0 rgb(173, 103, 0, 0.5)
-        padding         2px 3px 1px 3px
+        padding         1px 3px 1px 3px
         display         inline-block
         min-width       11px
         color           white
-        letter-spacing  0px
+        letter-spacing  0
         margin          0 auto
-        rounded    3px,3px,0,0
-        bg              color,linkColor1
+        rounded         6px
+        gradient        #FFC100, linkColor1
       .arrow-wrap
         display         block
         text-align      center
@@ -992,7 +992,7 @@ span.main-nav-icon
           display       block
           margin        0 auto
           sprite()
-          bg            position,-185px -549px
+          bg            position,-186px -549px
           size          7px,3px
 
     .status-update
@@ -1493,62 +1493,62 @@ span.main-nav-icon
 // #kdmaincontainer
 //   -webkit-transition            all .8s ease
 
-body
+// body
 
-  #server-rack
-    background-image              url('/images/racks.png')
-    height                        835px
-    position                      absolute
-    width                         180px
-    top                           190px
-    left                          230px
-    background-repeat             no-repeat
-    -webkit-transition            opacity .8s ease
-    display                       hidden
-    opacity                       0
-    z-index                       0
+//   #server-rack
+//     background-image              url('/images/racks.png')
+//     height                        835px
+//     position                      absolute
+//     width                         180px
+//     top                           190px
+//     left                          230px
+//     background-repeat             no-repeat
+//     -webkit-transition            opacity .8s ease
+//     display                       hidden
+//     opacity                       0
+//     z-index                       0
 
-  #kdmaincontainer
-    header
-      -webkit-transition            opacity .8s ease
-      opacity                       1
+//   #kdmaincontainer
+//     header
+//       -webkit-transition            opacity .8s ease
+//       opacity                       1
 
-    section
-      -webkit-perspective           700px
-      -webkit-perspective-origin-x  260px
-      -webkit-perspective-origin-y  400px
+//     section
+//       -webkit-perspective           700px
+//       -webkit-perspective-origin-x  260px
+//       -webkit-perspective-origin-y  400px
 
-    #sidebar-panel
-      -webkit-transform-origin      0 0
-      -webkit-transform             rotate3d(0, 0, 0, 0deg)
-      -webkit-transition            all .8s ease
+//     #sidebar-panel
+//       -webkit-transform-origin      0 0
+//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
+//       -webkit-transition            all .8s ease
 
-    #content-panel
-      -webkit-transform-origin      32% 0px
-      -webkit-transition            all .8s ease
-      -webkit-transform             rotate3d(0, 0, 0, 0deg)
+//     #content-panel
+//       -webkit-transform-origin      32% 0px
+//       -webkit-transition            all .8s ease
+//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
 
-  &.server-stack
-    #kdmaincontainer
-      #server-rack
-        opacity                       1
-        display                       block
-        z-index                       999999
+//   &.server-stack
+//     #kdmaincontainer
+//       #server-rack
+//         opacity                       1
+//         display                       block
+//         z-index                       999999
 
-      header
-        -webkit-transition            opacity .8s ease
+//       header
+//         -webkit-transition            opacity .8s ease
 
-      #sidebar-panel
-        -webkit-transform-origin      0 0
-        -webkit-transform             rotate3d(0, 1, 0, 20deg)
-        -webkit-transition            all .8s ease
-        left                          -56px
+//       #sidebar-panel
+//         -webkit-transform-origin      0 0
+//         -webkit-transform             rotate3d(0, 1, 0, 20deg)
+//         -webkit-transition            all .8s ease
+//         left                          -56px
 
-      #content-panel
-        -webkit-transform-origin      32% 0px
-        -webkit-transition            all .8s ease
-        -webkit-transform             rotate3d(0, 1, 0, -20deg)
-        left                          460px
+//       #content-panel
+//         -webkit-transform-origin      32% 0px
+//         -webkit-transition            all .8s ease
+//         -webkit-transform             rotate3d(0, 1, 0, -20deg)
+//         left                          460px
 
 .invite-recovery-notification-bar
   position              fixed
