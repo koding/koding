@@ -94,7 +94,7 @@ class LoginView extends KDScrollView
 
   viewAppended:->
 
-    @setX @getSingleton('windowController').winWidth
+    @setY -@getSingleton('windowController').winWidth
     @listenWindowResize()
     @setClass "login-screen login"
 
@@ -103,9 +103,9 @@ class LoginView extends KDScrollView
 
   _windowDidResize:->
     if @hidden
-      @setX @getSingleton('windowController').winWidth
+      @setY @getSingleton('windowController').winWidth
     else
-      @setX 0
+      @setY 0
 
   pistachio:->
     """
@@ -281,7 +281,7 @@ class LoginView extends KDScrollView
 
   hide:(callback)->
 
-    @setX @getSingleton('windowController').winWidth
+    @setY -@getSingleton('windowController').winWidth
 
     cb = =>
       @emit "LoginViewHidden"
@@ -293,7 +293,7 @@ class LoginView extends KDScrollView
 
   show:(callback)->
 
-    @setX 0
+    @setY 0
 
     cb = =>
       @emit "LoginViewShown"
@@ -332,7 +332,7 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "register recover login reset home lr"
+      @unsetClass "join register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
 

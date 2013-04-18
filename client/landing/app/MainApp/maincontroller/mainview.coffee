@@ -2,6 +2,7 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @bindTransitionEnd()
     # @addServerStack()
     @addHeader()
     @createMainPanels()
@@ -27,21 +28,10 @@ class MainView extends KDView
 
   addBook:-> @addSubView new BookView
 
-  setViewState:(state)->
+  _windowDidResize:->
 
-    switch state
-      when 'hideTabs'
-        @contentPanel.setClass 'no-shadow'
-        @mainTabView.hideHandleContainer()
-        @sidebar.hideFinderPanel()
-      when 'application'
-        @contentPanel.unsetClass 'no-shadow'
-        @mainTabView.showHandleContainer()
-        @sidebar.showFinderPanel()
-      else
-        @contentPanel.unsetClass 'no-shadow'
-        @mainTabView.showHandleContainer()
-        @sidebar.hideFinderPanel()
+    {winHeight} = @getSingleton "windowController"
+    @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
 
@@ -51,18 +41,13 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
+    @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
-    @panelWrapper.addSubView @contentPanel = new KDView
+    @panelWrapper.addSubView @contentPanel = new ContentPanel
       domId    : "content-panel"
       cssClass : "transition"
-      bind     : "webkitTransitionEnd" #TODO: Cross browser support
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-    @registerSingleton "contentPanel", @contentPanel, yes
-    @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
   addServerStack:->
     @addSubView @serverStack = new KDView
@@ -84,7 +69,6 @@ class MainView extends KDView
     @addSubView @header = new KDView
       tagName : "header"
       domId   : "main-header"
-      click   : -> alert "ben headerim"
 
 
     @header.addSubView @logo = new KDCustomHTMLView
@@ -93,8 +77,6 @@ class MainView extends KDView
       # cssClass  : "hidden"
       click     : (event)=>
         # return if @userEnteredFromGroup()
-        return alert "ben logoyum"
-
         event.stopPropagation()
         event.preventDefault()
         KD.getSingleton('router').handleRoute null
@@ -132,30 +114,6 @@ class MainView extends KDView
     @sidebar = new Sidebar domId : "sidebar", delegate : @
     @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
-
-  changeHomeLayout:(isLoggedIn)->
-
-  decorateLoginState:(isLoggedIn = no)->
-
-    if isLoggedIn
-      # Workaround for Develop Tab
-      if "Develop" isnt @getSingleton("router")?.getCurrentPath()
-        @contentPanel.setClass "social"
-
-      @mainTabView.showHandleContainer()
-
-    else
-
-      @contentPanel.unsetClass "social"
-      @mainTabView.hideHandleContainer()
-
-    @changeHomeLayout isLoggedIn
-    @utils.wait 300, => @notifyResizeListeners()
-
-  _windowDidResize:->
-
-    {winHeight} = @getSingleton "windowController"
-    @panelWrapper.setHeight winHeight - 51
 
   getMainSettingsMenuButton:->
     new KDButtonView
@@ -260,3 +218,52 @@ class MainView extends KDView
     # , {}
     # @contentPanel.addSubView @videoButton
     # @contentPanel.addSubView @popupList
+
+class ContentPanel extends KDView
+
+  constructor:(options, data)->
+
+    super options, data
+
+    @registerSingleton "contentPanel", @, yes
+
+    @bindTransitionEnd()
+
+    mainViewController = @getSingleton "mainViewController"
+    mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+
+  typeMap =
+    full    : 'adjustForFullWidth'
+    develop : 'adjustForDevelop'
+    social  : 'adjustForSocial'
+
+  nameMap =
+    Home    : 'adjustForFullWidth'
+
+  changeLayout:(options)->
+
+    {type, hideTabs, name}    = options
+    @windowController or= @getSingleton 'windowController'
+
+    @unsetClass 'full develop social'
+    @adjustShadow hideTabs
+
+    @[nameMap[name] or typeMap[type]]?()
+
+  adjustShadow:(hideTabs)->
+    @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
+
+  adjustForFullWidth:->
+    @setX 0
+    @setWidth @windowController.winWidth
+    @setClass 'full'
+
+  adjustForDevelop:->
+    @setX 260
+    @setWidth @windowController.winWidth - 260
+    @setClass 'develop'
+
+  adjustForSocial:->
+    @setX 0
+    @setWidth @windowController.winWidth - 160
+    @setClass 'social'
