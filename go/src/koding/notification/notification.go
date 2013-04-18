@@ -47,7 +47,6 @@ func main() {
 }
 
 func startRouting() {
-	log.Println("routing started")
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
@@ -56,6 +55,7 @@ func startRouting() {
 
 	var err error
 
+	log.Printf("creating consumer connections")
 	c.conn = amqputil.CreateConnection("notification")
 	c.channel = amqputil.CreateChannel(c.conn)
 
@@ -82,6 +82,7 @@ func startRouting() {
 		log.Fatal("basic.consume: %s", err)
 	}
 
+	log.Println("routing started...")
 	go func() {
 		for msg := range authStream {
 			log.Printf("got %dB message data: [%v]-[%s] %s",
@@ -98,11 +99,11 @@ func startRouting() {
 					log.Print("bad json incoming msg: ", err)
 				}
 
-				authPairs[join.Username] = join.RoutingKey
+				authPairs[join.RoutingKey] = join.Username
 
-				log.Println("Auth pairs:", authPairs)
+				log.Println("Auth pairs:", authPairs) // this is just for debug
 
-				go consumeFromUser(c, join.Username)
+				go consumeFromUser(c, join.Username, join.RoutingKey)
 			case "auth.leave":
 				var leave LeaveMsg
 				err := json.Unmarshal(msg.Body, &leave)
@@ -111,18 +112,14 @@ func startRouting() {
 				}
 
 				// delete user from the authPairs map and cancel it from consuming
-				for user, key := range authPairs {
-					if key == leave.RoutingKey {
-						delete(authPairs, user)
+				delete(authPairs, leave.RoutingKey)
 
-						err := c.channel.Cancel(user, false)
-						if err != nil {
-							log.Fatal("basic.cancel: %s", err)
-						}
-					}
+				err = c.channel.Cancel(authPairs[leave.RoutingKey], false)
+				if err != nil {
+					log.Fatal("basic.cancel: %s", err)
 				}
 
-				log.Println("Tokens:", authPairs)
+				log.Println("Auth pairs:", authPairs) // this is just for debug
 			default:
 				log.Println("routing key is not defined: ", msg.RoutingKey)
 			}
@@ -132,7 +129,7 @@ func startRouting() {
 
 }
 
-func consumeFromUser(c *Consumer, username string) {
+func consumeFromUser(c *Consumer, username, routingKey string) {
 	if _, err := c.channel.QueueDeclare(username, false, true, true, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
 	}
@@ -152,7 +149,7 @@ func consumeFromUser(c *Consumer, username string) {
 			msg.DeliveryTag,
 			msg.Body)
 
-		publishToBroker(msg.Body, authPairs[username])
+		publishToBroker(msg.Body, routingKey)
 	}
 
 }
