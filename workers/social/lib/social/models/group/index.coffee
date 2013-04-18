@@ -1015,7 +1015,7 @@ module.exports = class JGroup extends Module
           return callback err if err
           queue.next()
 
-      queue = [
+      daisy queue = [
         => JName.one name:@slug, (err, name)->
           removeHelper name, err, callback, queue
 
@@ -1060,6 +1060,8 @@ module.exports = class JGroup extends Module
           return callback err if err
           queue.next()
 
+        => @constructor.emit 'GroupDestroyed', this, ->
+          queue.next()
+
         -> callback null
       ]
-      daisy queue

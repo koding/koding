@@ -72,7 +72,7 @@ module.exports = class JVM extends Model
             groups  : wrapGroup group
           }
 
-    JGroup.on 'GroupDestroyed', ({group, member})->
+    JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
         if err then handleError err
         else vms.forEach (vm)-> vm.remove handleError

@@ -1,6 +1,9 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
+
+  @trait __dirname, '../traits/grouprelated'
+
   {ObjectRef, daisy, secure}   = require 'bongo'
 
   {permit} = require './group/permissionset'
