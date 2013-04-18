@@ -59,12 +59,12 @@ func startRouting() {
 	c.conn = amqputil.CreateConnection("notification")
 	c.channel = amqputil.CreateChannel(c.conn)
 
-	err = c.channel.ExchangeDeclare("notification-control", "fanout", true, false, false, false, nil)
+	err = c.channel.ExchangeDeclare("notification-control", "fanout", false, true, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
-	err = c.channel.ExchangeDeclare("notification", "topic", true, false, false, false, nil)
+	err = c.channel.ExchangeDeclare("notification", "topic", false, true, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
@@ -130,15 +130,15 @@ func startRouting() {
 }
 
 func consumeFromUser(c *Consumer, username, routingKey string) {
-	if _, err := c.channel.QueueDeclare(username, false, true, true, false, nil); err != nil {
+	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", username, "notification", false, nil); err != nil {
+	if err := c.channel.QueueBind("", "", "notification", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume(username, "", true, false, false, false, nil)
+	messages, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
