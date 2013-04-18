@@ -41,6 +41,8 @@ class KDTokenizedInput extends JView
     @decorateLayer()
     {input} = @
 
+    # log "Caret Pos:", input.getCaretPosition()
+
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())
@@ -88,27 +90,36 @@ class KDTokenizedInput extends JView
     val = val.replace token, replacedText
     @input.setValue val
     @menu.destroy()
-    @utils.wait =>
+    @utils.defer =>
       @input.setFocus()
       @input.setCaretPosition val.indexOf(replacedText) + replacedText.length
       @decorateLayer()
       @getOptions().match[rule].added? data
 
-  decorateLayer:->
+  decorateLayer:(event)->
 
     value  = @input.getValue()
+
     $layer = @layer.$()
     $input = @input.$()
     $layer.text value
     replacedTextHash = {}
+
+    # log "VALUE", value
+
+    cp     = @input.getCaretPosition()
+    caret  = "<span class='caret'></span>"
+    inner  = $layer.html()
+    inner  = inner[...cp] + caret + inner[cp...]
+
     $layer.scrollTop $input.scrollTop()
     for rule, tokens of @registeredTokens
       for dataSet in tokens
         replacedTextHash[dataSet.replacedText] = dataSet
         replacedTextHash[dataSet.replacedText].rule = rule
-        inner = $layer.html()
         inner = inner.replace dataSet.replacedText, "<b#{if c = @getOptions().match[rule].wrapperClass then ' class=\"'+c+'\"' else ''}>#{dataSet.replacedText}</b>"
-        $layer.html inner
+
+    $layer.html inner
 
     for replacedText, dataSet of replacedTextHash
       if @input.getValue().indexOf(replacedText) is -1

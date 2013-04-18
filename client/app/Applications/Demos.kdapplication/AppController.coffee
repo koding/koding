@@ -4,7 +4,8 @@ class BottomChatRoom extends JView
 
     super
 
-    @tokenInput = tokenInput = new BottomChatInput
+    @tokenInput = tokenInput = new KDTokenizedInput
+      cssClass             : 'chat-input'
       input                :
         keydown            :
           "alt super+right"   : (e)->
@@ -71,14 +72,6 @@ class BottomChatRoom extends JView
       </section>
       {{> @sidebar}}
     """
-
-class BottomChatInput extends KDTokenizedInput
-
-  click:->
-
-    @emit "chat.ui.inputReceivedClick"
-    no
-
 
 class DemosAppController extends AppController
 
