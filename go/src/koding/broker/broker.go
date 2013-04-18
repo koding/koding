@@ -190,6 +190,10 @@ func main() {
 						w.Header().Set("Content-Type", "text/plain")
 						w.Write([]byte(strconv.Itoa(config.Current.BuildNumber)))
 					}),
+					"/hello": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("Content-Type", "text/plain")
+						w.Write([]byte("Hello Devrim!"))
+					}),
 				},
 			},
 		}
