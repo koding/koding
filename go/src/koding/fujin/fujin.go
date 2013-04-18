@@ -22,8 +22,7 @@ func init() {
 }
 
 type IncomingMessage struct {
-	ProxyConfiguration *proxyconfig.ProxyConfiguration
-	ProxyMessage       *proxyconfig.ProxyMessage
+	ProxyResponse *proxyconfig.ProxyResponse
 }
 
 var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
@@ -45,14 +44,14 @@ func main() {
 
 	// register fujin instance to kontrol-daemon
 	amqpStream = setupAmqp()
+	log.Printf("register fujin to kontrold with uuid '%s'", amqpStream.uuid)
 	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
+	log.Println("register command is send. waiting for response from kontrold...")
 	go handleInput(amqpStream.input, amqpStream.uuid)
 
-	log.Printf("registering with uuid '%s'", amqpStream.uuid)
-	log.Println("send request to get config file from kontrold. waiting...")
 	select {
 	case <-time.After(time.Second * 15):
-		log.Fatalf("ERROR: no config received from kontrold, aborting process.")
+		log.Fatalf("ERROR: no repsonse received from kontrold, aborting process.")
 		os.Exit(1)
 	case <-start: // wait until we got message from kontrold or exit via above chan
 	}
@@ -74,11 +73,11 @@ func main() {
 		log.Println(err)
 		log.Println("https mode is disabled... please add cert.pem and key.pem files.")
 	} else {
-		log.Printf("serving at https://localhost:%s...", config.HttpsPort)
+		log.Printf("ssl mode is enabled. serving at :%s ...", config.HttpsPort)
 		go listenProxy(addHTTPS, &cert, amqpStream.uuid)
 	}
 
-	log.Printf("serving at http://localhost:%s...", config.HttpPort)
+	log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
 	listenProxy(addHTTP, nil, amqpStream.uuid)
 }
 
@@ -88,8 +87,6 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 
 		args := strings.Split(req.Host, ".")
 		key := args[0]
-		log.Println("key is:", key)
-
 		target := targetUrl(deaths, key)
 
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
@@ -113,7 +110,11 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	for {
 		select {
 		case d := <-input:
-			// log.Printf("got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+			// log.Printf("got %dB message data: [%v] %s",
+			// 	len(d.Body),
+			// 	d.DeliveryTag,
+			// 	d.Body)
+
 			var msg IncomingMessage
 
 			err := json.Unmarshal(d.Body, &msg)
@@ -121,42 +122,28 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 				log.Print("bad json incoming msg: ", err)
 			}
 
-			if msg.ProxyConfiguration != nil {
-				// TODO: should receive simple json, something like updateProxy...
-				log.Println("received config from kontrold, starting servers...")
+			if msg.ProxyResponse != nil {
+				if msg.ProxyResponse.Action == "updateProxy" {
+					log.Println("update action received from kontrold. updating proxy route table")
+					var err error
+					proxy, err = proxyDB.GetProxy(uuid)
+					if err != nil {
+						log.Println(err)
+					}
 
-				var err error
-				proxy, err = proxyDB.GetProxy(uuid)
-				if err != nil {
-					log.Println(err)
+					if first {
+						start <- true
+						first = false
+						log.Println("routing tables updated. ready to start servers...")
+					}
+
 				}
 
-				log.Println("debug", proxy)
-
-				if first {
-					start <- true
-					first = false
-				}
-			} else if msg.ProxyMessage != nil {
-				log.Println("Got ProxyMessage", msg.ProxyMessage)
 			} else {
 				log.Println("incoming message is in wrong format")
 			}
 		}
 	}
-}
-
-func buildProxyCmd(action, uuid string) []byte {
-	var req proxyconfig.ProxyMessage
-	req.Action = action
-	req.Uuid = uuid
-
-	data, err := json.Marshal(req)
-	if err != nil {
-		log.Println("json marshall error", err)
-	}
-
-	return data
 }
 
 func targetUrl(numberOfDeaths int, key string) *url.URL {
@@ -246,4 +233,17 @@ func targetHost(key string) string {
 	}
 
 	return hostname
+}
+
+func buildProxyCmd(action, uuid string) []byte {
+	var req proxyconfig.ProxyMessage
+	req.Action = action
+	req.Uuid = uuid
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		log.Println("json marshall error", err)
+	}
+
+	return data
 }

@@ -60,8 +60,6 @@ func HandleMessage(data []byte) {
 }
 
 func DoProxy(msg proxyconfig.ProxyMessage) {
-	log.Println(msg)
-
 	switch msg.Action {
 	case "addKey":
 		log.Println("got 'add' json request")
@@ -69,7 +67,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if err != nil {
 			log.Println(err)
 		}
-		sendConfig(msg.Uuid)
+		sendResponse("updateProxy", msg.Uuid)
 	case "deleteProxy":
 		log.Println("got 'deleteProxy' json request")
 		err := proxyConfig.DeleteProxy(msg.Uuid)
@@ -88,18 +86,24 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if err != nil {
 			log.Println(err)
 		}
-		sendConfig(msg.Uuid) // TODO: seperate sending config
+		sendResponse("updateProxy", msg.Uuid)
 	default:
 		log.Println("invalid action", msg.Action)
 	}
 }
 
-func sendConfig(appId string) {
+func sendResponse(action, appId string) {
+	log.Printf("sending '%s' response to proxy", action)
 	type Wrap struct {
-		ProxyConfiguration *proxyconfig.ProxyConfiguration
+		ProxyResponse *proxyconfig.ProxyResponse
 	}
 
-	data, err := json.Marshal(&Wrap{proxyConfig})
+	response := &proxyconfig.ProxyResponse{
+		Action: action,
+		Uuid:   appId,
+	}
+
+	data, err := json.Marshal(&Wrap{response})
 	if err != nil {
 		log.Println("Json marshall error", err)
 	}

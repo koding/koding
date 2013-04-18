@@ -15,6 +15,11 @@ type ProxyMessage struct {
 	Uuid     string `json:"uuid"`
 }
 
+type ProxyResponse struct {
+	Action string `json:"action"`
+	Uuid   string `json:"uuid"`
+}
+
 type KeyData struct {
 	Key          string
 	Host         string
