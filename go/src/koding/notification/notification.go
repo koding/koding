@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
+	"koding/tools/amqputil"
 	"log"
 )
 
@@ -54,17 +55,9 @@ func startRouting() {
 	}
 
 	var err error
-	user, password, host, port := getAmqpCredentials()
-	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
-	c.conn, err = amqp.Dial(url)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	c.channel, err = c.conn.Channel()
-	if err != nil {
-		log.Fatal(err)
-	}
+	c.conn = amqputil.CreateConnection("notification")
+	c.channel = amqputil.CreateChannel(c.conn)
 
 	err = c.channel.ExchangeDeclare("notification-control", "fanout", true, false, false, false, nil)
 	if err != nil {
@@ -182,15 +175,6 @@ func publishToBroker(data []byte, token string) {
 
 }
 
-func getAmqpCredentials() (string, string, string, string) {
-	user := "guest"
-	password := "guest"
-	host := "localhost"
-	port := "5672"
-
-	return user, password, host, port
-}
-
 func createProducer() (*Producer, error) {
 	p := &Producer{
 		conn:    nil,
@@ -199,19 +183,8 @@ func createProducer() (*Producer, error) {
 
 	log.Printf("creating publisher connections")
 
-	var err error
-	user, password, host, port := getAmqpCredentials()
-
-	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
-	p.conn, err = amqp.Dial(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	p.channel, err = p.conn.Channel()
-	if err != nil {
-		log.Fatal(err)
-	}
+	p.conn = amqputil.CreateConnection("deneme")
+	p.channel = amqputil.CreateChannel(p.conn)
 
 	return p, nil
 }
