@@ -19,7 +19,7 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
       cssClass         : 'ib role'
 
     if 'owner' in @usersRole or KD.whoami().getId() is data.getId()
-      @editLink        = new KDHiddenView
+      @editLink        = new KDCustomHTMLView "hidden"
     else
       @editLink        = new CustomLinkView
         title          : 'Edit'
