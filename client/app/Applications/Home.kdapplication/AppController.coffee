@@ -4,7 +4,7 @@ class HomeAppController extends AppController
     name         : "Home"
     route        : "Home"
     hiddenHandle : yes
-    # behavior     : "hideTabs"
+    behavior     : "hideTabs"
 
   constructor:(options = {}, data)->
     # options.view    = new HomeMainView

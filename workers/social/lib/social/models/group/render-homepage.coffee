@@ -1,4 +1,6 @@
 module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
+  console.log ">>>>>>>>>", slug
+
   content ?= getDefaultGroupContents(title)
 
   """

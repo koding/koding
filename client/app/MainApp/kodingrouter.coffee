@@ -73,7 +73,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -154,9 +154,7 @@ class KodingRouter extends KDRouter
 
     section = createLinks(
       'Account Activity Apps Dashboard Groups Home Inbox Members StartTab Topics'
-      (sec)-> ({params:{name}, query})->
-        log "going to: ", sec, name, query
-        @go sec, name, query
+      (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
     clear = @bound 'clear'

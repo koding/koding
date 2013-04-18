@@ -16,16 +16,25 @@ app.login-signup.styl
   z-index            100
   padding-top        50px
   background-image   none
-  background-color   rgba(0,0,0,.6)
-  top                0
-  left               11160px
+  gradient           rgba(0, 0, 0, .8), rgba(0, 0, 0, 0)
+  top                -100%
   text-align         center
-  vendor transition, left .3s ease-in-out
+  transition         top .3s ease-in-out
   abs()
   borderBox()
+  &.shown
+    top              0
 
   .flex-wrapper
-    background-color  rgba(0,0,0,0.6) !important
+    background       transparent url("../images/koding-new-bg.png") repeat-x 0 -13px
+    size             220px, 342px
+    border           1px solid rgba(255,255,255,0.1)
+    margin           30px auto 30px auto
+    rounded          8px
+    shadow           0 10px 40px rgba(0,0,0,0.8)
+    bg               color, rgba(255,255,255,0.05)
+    vendor           transition, height .1s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
+    rel()
 
   .login-form-holder
   .login-options-holder
@@ -37,7 +46,7 @@ app.login-signup.styl
   >section
     hidden()
 
-  &.lr
+  &.join
     // margin-top            -200px !important
 
     .logLink
@@ -52,7 +61,12 @@ app.login-signup.styl
         height            310px
         p.request-thanks
           height          140px
-
+          font-size       11px
+          iframe
+            margin-top    12px
+          a:hover
+            color         #ffb500
+            text-decoration underline
 
     .rqf
       visible()
@@ -101,6 +115,7 @@ app.login-signup.styl
       hidden()
     .flex-wrapper
       height              254px
+
   &.home
     .flex-wrapper
       margin-bottom       30px
@@ -131,6 +146,11 @@ app.login-signup.styl
       opacity             1
       span::before
         content           '↑'
+  a
+    color                 #ffb500
+    noTextDeco()
+    &:hover
+      color               white
 
   // .login-lights
   //   abs()
@@ -139,17 +159,6 @@ app.login-signup.styl
   //   background            transparent url("../images/bgflare.png") no-repeat center top
   //   size                  100%,416px
   //   z-index               0
-
-  .flex-wrapper
-    rel()
-    size                  220px, 342px
-    border                1px solid rgba(255,255,255,0.16)
-    rounded               8px
-    margin                30px auto 30px auto
-    shadow                0 0 30px rgba(0,0,0,0.6)
-    bg                    color, rgba(255,255,255,0.05)
-    vendor                transition, height .4s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
-    overflow              hidden
 
   .login-hint
     color                 #B4B3B3
@@ -177,16 +186,20 @@ app.login-signup.styl
         size              12px, 11px
 
   .login-footer
+    rel()
+    size                  300px, auto
+    margin                40px auto
+    padding               10px
+    border                1px solid rgba(255,255,255,0.15)
+    rounded               0 0 5px 5px
+    bg                    color, rgba(0, 0, 0, .75)
+    shadow                0 5px 15px rgba(0,0,0,0.8)
+    borderBox()
     p
       color               white
       line-height         24px
       font-size           12px
       color               rgba(255, 255, 255, .75)
-      a
-        color             #ffb500
-        noTextDeco()
-        &:hover
-          color           white
 
 .login-box-header
   rel()
@@ -344,13 +357,6 @@ app.login-signup.styl
     overflow          hidden
     vendor            transition, height .15s ease-out
     borderBox()
-    &.request-thanks
-      font-size       11px
-      iframe
-        margin-top    12px
-      a:hover
-        color         #ffb500
-        text-decoration underline
 
     h5
       font-size       12px

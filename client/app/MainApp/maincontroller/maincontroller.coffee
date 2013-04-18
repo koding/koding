@@ -132,11 +132,8 @@ class MainController extends KDController
     return location.reload()
 
     @getSingleton("lazyDomController").showLandingPage =>
-      # @loginScreen.showView =>
       KD.getSingleton("appManager").quitAll =>
         @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
-      # @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView
         cssClass  : "login"
@@ -149,18 +146,6 @@ class MainController extends KDController
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
-    @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-      @mainViewController.sidebarController.accountChanged account
-      @mainViewController.getView().decorateLoginState no
-
-    @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-      @loginScreen.hide =>
-        @mainViewController.getView().decorateLoginState yes
-        @mainViewController.sidebarController.accountChanged account
-
-    @on "ShowInstructionsBook", (index)=>
-      book = @mainViewController.getView().addBook()
-      book.fillPage index
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
