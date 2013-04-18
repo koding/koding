@@ -14,4 +14,10 @@ services=(
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
-cp $GOPATH/bin/* $GOPATH/../kites
+
+cd $GOPATH
+cp bin/os bin/webterm bin/irc ../kites
+rm -f ../kites/alice ../kites/broker ../kites/idshift ../kites/proxy ../kites/vmtool
+
+mkdir -p build/broker
+cp bin/broker build/broker/broker

@@ -22,6 +22,7 @@ sftp-config.json
 ebin
 /website/dev/*.json
 /go/bin
+/go/build
 /go/pkg
 /kites/webterm
 /kites/os
