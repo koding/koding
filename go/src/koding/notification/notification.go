@@ -19,21 +19,21 @@ type Producer struct {
 }
 
 type JoinMsg struct {
-	Token    string `json:"routingKey"`
-	Username string `json:"username"`
+	RoutingKey string `json:"routingKey"`
+	Username   string `json:"username"`
 }
 
 type LeaveMsg struct {
-	Token string `json:"routingKey"`
+	RoutingKey string `json:"routingKey"`
 }
 
-var tokens map[string]string
+var authPairs map[string]string
 var producer *Producer
 
 func main() {
 	log.Println("notification worker started")
 
-	tokens = make(map[string]string)
+	authPairs = make(map[string]string)
 
 	var err error
 	producer, err = createProducer()
@@ -84,7 +84,7 @@ func startRouting() {
 
 	go func() {
 		for msg := range authStream {
-			log.Printf("join got %dB message data: [%v]-[%s] %s",
+			log.Printf("got %dB message data: [%v]-[%s] %s",
 				len(msg.Body),
 				msg.DeliveryTag,
 				msg.RoutingKey,
@@ -98,9 +98,9 @@ func startRouting() {
 					log.Print("bad json incoming msg: ", err)
 				}
 
-				tokens[join.Username] = join.Token
+				authPairs[join.Username] = join.RoutingKey
 
-				log.Println("Tokens:", tokens)
+				log.Println("Auth pairs:", authPairs)
 
 				go consumeFromUser(c, join.Username)
 			case "auth.leave":
@@ -110,10 +110,10 @@ func startRouting() {
 					log.Print("bad json incoming msg: ", err)
 				}
 
-				// delete user from the token map and cancel it from consuming
-				for user, token := range tokens {
-					if token == leave.Token {
-						delete(tokens, user)
+				// delete user from the authPairs map and cancel it from consuming
+				for user, key := range authPairs {
+					if key == leave.RoutingKey {
+						delete(authPairs, user)
 
 						err := c.channel.Cancel(user, false)
 						if err != nil {
@@ -122,7 +122,7 @@ func startRouting() {
 					}
 				}
 
-				log.Println("Tokens:", tokens)
+				log.Println("Tokens:", authPairs)
 			default:
 				log.Println("routing key is not defined: ", msg.RoutingKey)
 			}
@@ -152,12 +152,12 @@ func consumeFromUser(c *Consumer, username string) {
 			msg.DeliveryTag,
 			msg.Body)
 
-		publishToBroker(msg.Body, tokens[username])
+		publishToBroker(msg.Body, authPairs[username])
 	}
 
 }
 
-func publishToBroker(data []byte, token string) {
+func publishToBroker(data []byte, routingKey string) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",
@@ -168,7 +168,7 @@ func publishToBroker(data []byte, token string) {
 	}
 
 	log.Println("publishing data ", string(data))
-	err := producer.channel.Publish("broker", token, false, false, msg)
+	err := producer.channel.Publish("broker", routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
 	}
