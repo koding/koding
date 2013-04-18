@@ -134,7 +134,7 @@ func consumeFromUser(c *Consumer, username, routingKey string) {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", "chris", "notification", false, nil); err != nil {
+	if err := c.channel.QueueBind("", username, "notification", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
