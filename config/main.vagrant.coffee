@@ -7,7 +7,7 @@ mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_c
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
-module.exports = deepFreeze
+module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -26,8 +26,11 @@ module.exports = deepFreeze
     port        : 1337
   mongo         : mongo
   runGoBroker   : yes
+  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : yes
+  runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -48,13 +51,9 @@ module.exports = deepFreeze
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
-  goConfig:
-    HomePrefix:   "/Users/"
-    UseLVE:       true
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
-    authResourceName: 'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -75,30 +74,32 @@ module.exports = deepFreeze
     exchange    : 'services-presence'
   client        :
     version     : version
-    watch       : no
+    watch       : yes
+    watchDuration : 300
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
-      version   : version
-      mainUri   : 'http://koding.local'
       broker    :
         sockJS  : 'http://koding.local:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
+      version   : version
+      mainUri   : 'http://koding.local'
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://koding.local:1337'
   mq            :
-    host        : 'localhost'
+    host        : 'koding.local'
     port        : 5672
-    apiPort     : 55672
+    apiAddress  : "koding.local"
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
@@ -121,6 +122,8 @@ module.exports = deepFreeze
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -139,7 +142,6 @@ module.exports = deepFreeze
     interval: 60000
   haproxy:
     webPort     : 3020
-
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
