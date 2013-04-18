@@ -215,7 +215,7 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-        @hideView()
+        @hide()
 
         if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
           @getSingleton('lazyDomController').hideLandingPage()
@@ -273,7 +273,7 @@ class LoginView extends KDScrollView
       @headBanner.hide()
       @getSingleton('router').clear @getRouteWithEntryPoint('Register')
       $('body').removeClass 'recovery'
-      @showView =>
+      @show =>
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 
