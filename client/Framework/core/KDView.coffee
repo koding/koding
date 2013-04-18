@@ -52,9 +52,10 @@ class KDView extends KDObject
     objects.overrider
 
   @appendToDOMBody = (view)->
-    $("body").append view.$()
     view.parentIsInDom = yes
-    view.emit "viewAppended", view
+    unless view.lazy
+      $("body").append view.$()
+      view.emit "viewAppended", view
 
 # #
 # INSTANCE LEVEL
@@ -127,46 +128,10 @@ class KDView extends KDObject
           log @
           return false
 
-  setTemplate:(tmpl, params)->
-    params ?= @getOptions()?.pistachioParams
-    options = if params? then {params}
-    @template = new Pistachio @, tmpl, options
-    @updatePartial @template.html
-    @template.embedSubViews()
-
-  pistachio:(tmpl)->
-    "#{@options.prefix}#{tmpl}#{@options.suffix}"
-
-  setParent:(parent)->
-    if @parent?
-      log "view:", @, "parent:", @parent
-      error 'View already has a parent'
-    else
-      if defineProperty
-        defineProperty @, 'parent', value : parent, configurable : yes
-      else
-        @parent = parent
-
   unsetParent:()->
     delete @parent
 
-  embedChild:(placeholderId, child, isCustom)->
-    unless isCustom
-      $child = child.$().attr 'id', child.id
-      @$('#'+placeholderId).replaceWith $child
-    else
-      @$('#'+placeholderId).append(child.$())
-    child.setParent @
-    @subViews.push child
-    child.emit 'viewAppended', child
-
   getTagName:-> @options.tagName || 'div'
-
-  render:->
-    if @template?
-      @template.update()
-    # else if 'function' is typeof @partial and data = @getData()
-    #   @updatePartial @partial data
 
   setInstanceVariables:(options)->
     {@domId, @parent} = options
@@ -201,8 +166,7 @@ class KDView extends KDObject
 # VIEW PROPERTY GETTERS
 # #
 
-  getDomId:->
-    @domElement.attr "id"
+  getDomId:-> @domElement.attr "id"
 
 
 # #
@@ -210,21 +174,25 @@ class KDView extends KDObject
 # #
 
 
-  setDomElement:(cssClass='', baseClass = 'kdview')->
-    {lazyDomId, tagName} = @getOptions()
+  setDomElement:(cssClass='')->
+    {domId, tagName} = @getOptions()
 
-    el = document.getElementById lazyDomId  if lazyDomId
+    if domId
+      el = document.getElementById domId
 
-    unless el?
-      warn "No lazy DOM Element found with given id #{lazyDomId}."  if lazyDomId
+    @lazy = unless el?
       el = document.createElement tagName
+      el.setAttribute 'id', domId  if domId
+      no
+    else yes
 
-    for klass in "#{baseClass} #{cssClass}".split ' ' when klass.length
+    for klass in "kdview #{cssClass}".split ' ' when klass.length
       el.classList.add klass
 
     @domElement = $ el
 
-    if lazyDomId
+    if @lazy
+      # warn "lazyElement found with id #{domId}"
       @utils.defer => @emit 'viewAppended'
 
   setDomId:(id)->
@@ -247,12 +215,14 @@ class KDView extends KDObject
 # #
 # TRAVERSE DOM ELEMENT
 # #
+  Object.defineProperty @prototype, "$$", get : @::$
 
   getDomElement:-> @domElement
 
   getElement:-> @getDomElement()[0]
 
   # shortcut method for @getDomElement()
+  
   $ :(selector)->
     if selector?
       @getDomElement().find(selector)
@@ -262,6 +232,7 @@ class KDView extends KDObject
 # #
 # MANIPULATE DOM ELEMENT
 # #
+
   # TODO: DRY these out.
   append:(child, selector)->
     @$(selector).append child.$()
@@ -417,6 +388,7 @@ class KDView extends KDObject
   addSubView:(subView,selector,shouldPrepend)->
     unless subView?
       throw new Error 'no subview was specified'
+
     if subView.parent and subView.parent instanceof KDView
       index = subView.parent.subViews.indexOf subView
       if index > -1
@@ -428,10 +400,13 @@ class KDView extends KDObject
 
     subView.parentIsInDom = @parentIsInDom
 
-    if shouldPrepend
-      @prepend subView, selector
+    unless subView.lazy
+      if shouldPrepend
+        @prepend subView, selector
+      else
+        @append subView, selector
     else
-      @append subView, selector
+      log "lazy view", subView
 
     subView.on "ViewResized", => subView.parentDidResize()
 
@@ -460,14 +435,51 @@ class KDView extends KDObject
         subViewInstance.unsetParent()
         subViewInstance.handleEvent { type : "viewRemoved"}
 
-  parentDidResize:(parent,event)->
-    if @getSubViews()
-      (subView.parentDidResize(parent,event) for subView in @getSubViews())
+  setTemplate:(tmpl, params)->
+    params ?= @getOptions()?.pistachioParams
+    options = if params? then {params}
+    @template = new Pistachio @, tmpl, options
+    @updatePartial @template.html
+    @template.embedSubViews()
+
+  pistachio:(tmpl)->
+    "#{@options.prefix}#{tmpl}#{@options.suffix}"
+
+  setParent:(parent)->
+    if @parent?
+      log "view:", @, "parent:", @parent
+      error 'View already has a parent'
+    else
+      if defineProperty
+        defineProperty @, 'parent', value : parent, configurable : yes
+      else
+        @parent = parent
+
+  embedChild:(placeholderId, child, isCustom)->
+    unless isCustom
+      $child = child.$().attr 'id', child.id
+      @$('#'+placeholderId).replaceWith $child
+    else
+      @$('#'+placeholderId).append(child.$())
+    child.setParent @
+    @subViews.push child
+    child.emit 'viewAppended', child
+
+  render:->
+    if @template?
+      @template.update()
+    # else if 'function' is typeof @partial and data = @getData()
+    #   @updatePartial @partial data
+
 
 # #
 # EVENT BINDING/HANDLING
 # #
 
+
+  parentDidResize:(parent,event)->
+    if @getSubViews()
+      (subView.parentDidResize(parent,event) for subView in @getSubViews())
 
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
@@ -480,8 +492,6 @@ class KDView extends KDObject
         if ratio > lastRatio and ratio > threshold
           @emit 'LazyLoadThresholdReached', {ratio}
         lastRatio = ratio
-
-
 
   bindEvents:($elm)->
     $elm or= @getDomElement()

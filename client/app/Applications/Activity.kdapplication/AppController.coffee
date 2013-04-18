@@ -16,11 +16,6 @@ class ActivityAppController extends AppController
       'CBlogPostActivity'
     ]
 
-  lastTo    = null
-  lastFrom  = null
-  aRange    = 2*60*60*1000
-  isLoading = no
-
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
@@ -38,8 +33,8 @@ class ActivityAppController extends AppController
 
     @currentFilter     = activityTypes
     @appStorage        = new AppStorage 'Activity', '1.0'
-
-    @mainController = @getSingleton 'mainController'
+    @isLoading         = no
+    @mainController    = @getSingleton 'mainController'
 
     if @mainController.appIsReady then @putListeners()
     else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -56,8 +51,8 @@ class ActivityAppController extends AppController
 
   resetList:->
 
-    lastFrom = null
-    lastTo   = null
+    delete @lastTo
+    delete @lastFrom
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -112,7 +107,7 @@ class ActivityAppController extends AppController
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>
-      isLoading = no
+      @isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took"
 
@@ -124,7 +119,7 @@ class ActivityAppController extends AppController
 
   fetchActivitiesFromCache:(options = {})->
     @fetchCachedActivity options, (err, cache)=>
-      isLoading = no
+      @isLoading = no
       if err or cache.length is 0
         warn err  if err
         @listController.hideLazyLoader()
@@ -134,10 +129,23 @@ class ActivityAppController extends AppController
           @listController.hideLazyLoader()
           @listController.listActivitiesFromCache cache
 
+  # Store first & last activity timestamp.
+  extractTeasersTimeStamps:(teasers)->
+
+    teasers  = _.compact(teasers)
+    @lastTo   = teasers.first.meta.createdAt
+    @lastFrom = teasers.last.meta.createdAt
+
+  # Store first & last cache activity timestamp.
+  extractCacheTimeStamps: (cache)->
+
+    @lastTo   = cache.to
+    @lastFrom = cache.from
+
   populateActivity:(options = {})->
 
-    return if isLoading
-    isLoading = yes
+    return if @isLoading
+    @isLoading = yes
     @listController.showLazyLoader()
     @listController.hideNoItemWidget()
 
@@ -151,9 +159,32 @@ class ActivityAppController extends AppController
     else
       @isExempt (exempt)=>
         if exempt or @getFilter() isnt activityTypes
-          @fetchActivitiesDirectly options
+
+          options = to : options.to or Date.now()
+
+          @fetchActivitiesDirectly options, (err, teasers)=>
+            @isLoading = no
+            @listController.hideLazyLoader()
+            if err or teasers.length is 0
+              warn err
+              @listController.noActivityItem.show()
+            else
+              @extractTeasersTimeStamps(teasers)
+              @listController.listActivities teasers
+
         else
-          @fetchActivitiesFromCache options
+          @fetchActivitiesFromCache options, (err, cache)=>
+            @isLoading = no
+            if err or cache.length is 0
+              warn err
+              @listController.hideLazyLoader()
+              @listController.noActivityItem.show()
+            else
+              @extractCacheTimeStamps(cache)
+
+              @sanitizeCache cache, (err, cache)=>
+                @listController.hideLazyLoader()
+                @listController.listActivitiesFromCache cache
 
   sanitizeCache:(cache, callback)->
 
@@ -223,20 +254,8 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    unless isLoading
-      if @listController.itemsOrdered.last
-        lastItemData = @listController.itemsOrdered.last.getData()
-        # memberbucket data has no serverside model it comes from cache
-        # so it has no meta, that's why we check its date by its overview
-        lastDate = if lastItemData.createdAtTimestamps
-          new Date lastItemData.createdAtTimestamps[0]
-        else
-          new Date lastItemData.meta.createdAt
-      else
-        lastDate = new Date
-
-      lastTimeStamp = lastDate.getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    lastTimeStamp = (new Date @lastFrom).getTime()
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
 

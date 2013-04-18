@@ -61,7 +61,12 @@ class GroupsAppController extends AppController
       group       : group.slug
       isExclusive : yes
     }
-    @groupChannel.once 'setSecretName', callback
+    # TEMP SY: to be able to work in a vagrantless env
+    # to avoid shared authworker's message getting lost
+    if location.hostname is "localhost"
+      callback()
+    else
+      @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroup is groupName
