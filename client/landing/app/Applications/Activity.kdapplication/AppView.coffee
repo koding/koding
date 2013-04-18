@@ -3,6 +3,7 @@ class ActivityAppView extends JView
   constructor:(options = {}, data)->
 
     options.cssClass = "content-page activity"
+    options.domId    = "content-page-activity"
 
     super options, data
 

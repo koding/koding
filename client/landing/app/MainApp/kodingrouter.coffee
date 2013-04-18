@@ -16,9 +16,10 @@ class KodingRouter extends KDRouter
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
-      new KDNotificationView
-        title: "You're already here!"
-        type : 'mini'
+      log "You're already here!"
+      # new KDNotificationView
+      #   title: "You're already here!"
+      #   type : 'mini'
 
     @on 'Params', ({params, query})=>
       #@utils.defer => @getSingleton('groupsController').changeGroup params.name
@@ -43,7 +44,7 @@ class KodingRouter extends KDRouter
       if KD.isLoggedIn()
         @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
       else
-        KD.getSingleton('mainController').doGoHome()
+        @handleRoute @getDefaultRoute()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -53,8 +54,9 @@ class KodingRouter extends KDRouter
     @getSingleton('groupsController').changeGroup group, (err)->
       if err then new KDNotificationView title: err.message
       else
-        KD.getSingleton("appManager").open app
-        KD.getSingleton("appManager").tell app, 'handleQuery', query
+        appManager = KD.getSingleton("appManager")
+        appManager.open app
+        appManager.tell app, 'handleQuery', query
 
   handleNotFound:(route)->
 
@@ -68,7 +70,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -131,18 +133,6 @@ class KodingRouter extends KDRouter
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    loader = new KDLoaderView
-      size          :
-        width       : 30
-      loaderOptions :
-        color       : "#FFFFFF"
-    loader.appendToSelector '#main-loader'
-    loader.show()
-
-    mainController.on "AppIsReady", =>
-      loader.destroy()
-      # KD.utils.wait 600, -> $('#main-koding-loader').hide()
-
     clear = @bound 'clear'
 
     requireLogin =(fn)->
@@ -167,18 +157,19 @@ class KodingRouter extends KDRouter
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->
-        requireLogout -> mainController.doLogin name
+        requireLogout -> mainController.loginScreen.animateToForm 'login'
       '/:name?/Logout'    : ({params:{name}})->
-        requireLogin  -> mainController.doLogout name; clear()
+        requireLogin  -> mainController.doLogout()
       '/:name?/Register'  : ({params:{name}})->
-        requireLogout -> mainController.doRegister name
+        requireLogout -> mainController.loginScreen.animateToForm 'register'
       '/:name?/Join'      : ({params:{name}})->
-        requireLogout -> mainController.doJoin name
+        requireLogout -> mainController.loginScreen.animateToForm 'join'
       '/:name?/Recover'   : ({params:{name}})->
-        requireLogout -> mainController.doRecover name
+        requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
       # section
       # TODO: nested groups are disabled.
+      '/:name?/Home'                    : createSectionHandler 'Home'
       '/:name?/Groups'                  : createSectionHandler 'Groups'
       '/:name?/Activity'                : createSectionHandler 'Activity'
       '/:name?/Members'                 : createSectionHandler 'Members'

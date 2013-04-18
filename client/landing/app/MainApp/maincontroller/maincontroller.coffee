@@ -33,7 +33,7 @@ class MainController extends KDController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
     KD.registerSingleton "lazyDomController", new LazyDomController
-    KD.registerSingleton "fatih", new Fatih
+    # KD.registerSingleton "fatih", new Fatih
 
     KD.registerSingleton "linkController", new LinkController
 
@@ -92,25 +92,22 @@ class MainController extends KDController
 
   accountChanged:(account, firstLoad = no)->
 
-    @userAccount = account
-    @accountReadyState = 1
-
+    @userAccount             = account
+    @accountReadyState       = 1
     connectedState.connected = yes
 
     @emit "AccountChanged", account, firstLoad
 
     unless @mainViewController
 
-      if KD.config.groupEntryPoint? or KD.config.profileEntryPoint?
-        @loginScreen = new LoginView
-        KDView.appendToDOMBody @loginScreen
-      else
-        @loginScreen = new OldLoginView
+      @loginScreen = new LoginView
+      KDView.appendToDOMBody @loginScreen
 
-      @mainViewController = new MainViewController
-        view       : mainView = new MainView
-          domId    : "kdmaincontainer"
-          # cssClass : "hidden"
+      @mainViewController  = new MainViewController
+        view    : mainView = new MainView
+          domId : "kdmaincontainer"
+
+      KDView.appendToDOMBody mainView
 
       @appReady()
 
@@ -127,25 +124,6 @@ class MainController extends KDController
 
     @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-  handleLoginScreenRoute:(action, path)->
-    ldc = @getSingleton 'lazyDomController'
-    ldc.handleNavigationItemClick {action, path}
-
-  doJoin:->
-    @handleLoginScreenRoute 'lr', 'Join'
-
-  doRegister:->
-    @handleLoginScreenRoute 'register'
-
-  doGoHome:->
-    @handleLoginScreenRoute 'home'
-
-  doLogin:->
-    @handleLoginScreenRoute 'login'
-
-  doRecover:->
-    @handleLoginScreenRoute 'recover', 'Recover'
-
   doLogout:->
 
     KD.logout()
@@ -158,11 +136,8 @@ class MainController extends KDController
     return location.reload()
 
     @getSingleton("lazyDomController").showLandingPage =>
-      # @loginScreen.showView =>
       KD.getSingleton("appManager").quitAll =>
         @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
-      # @mainViewController.getView().$().css 'opacity', 0
 
       new KDNotificationView
         cssClass  : "login"
@@ -175,21 +150,6 @@ class MainController extends KDController
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
-    @on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-      log "accountChanged Out"
-      @loginScreen.showView =>
-        @mainViewController.sidebarController.accountChanged account
-        @mainViewController.getView().decorateLoginState no
-
-    @on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-      log "accountChanged In"
-      @loginScreen.hideView =>
-        @mainViewController.getView().decorateLoginState yes
-        @mainViewController.sidebarController.accountChanged account
-
-    @on "ShowInstructionsBook", (index)=>
-      book = @mainViewController.getView().addBook()
-      book.fillPage index
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
