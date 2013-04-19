@@ -1,5 +1,4 @@
 module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
-  console.log ">>>>>>>>>", slug
 
   content ?= getDefaultGroupContents(title)
 
@@ -11,11 +10,11 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="login landing">
+  <body class="group">
 
     <div class="kdview" id="kdmaincontainer">
       <header class="kdview" id='main-header'>
-        <a class="" id="koding-logo" href="#"></a>
+        <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
       </header>
       <section class="kdview" id="main-panel-wrapper">
         <div class="kdview" id="sidebar-panel">
@@ -34,6 +33,9 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
               <div class="kdview status-leds"></div>
               <div class="kdview kdlistview kdlistview-navigation">
                 <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected">
+                  <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
                   <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
                 </div>
                 <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
@@ -67,15 +69,10 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
             <div id="finder-panel"></div>
           </div>
         </div>
-        <div class="kdview transition social" id="content-panel">
+        <div class="kdview" id="content-panel">
           <div class="kdview kdscrollview kdtabview" id="main-tab-view">
-            <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
-              <div id='content-page-activity' class="kdview content-page activity">
-                <div>
-                  <h1 class="kdview kdheaderview notification-header">
-                    <span>Hi Sinan! Welcome to the Koding Public Beta.</span><cite>Warning! when we say beta - <a href="#">we mean it</a> :)</cite>
-                  </h1>
-                </div>
+            <div id='maintabpane-home' class="kdview content-area-pane home content-area-new-tab-pane clearfix kdtabpaneview active">
+              <div id='content-page-home' class="kdview content-page home">
               </div>
             </div>
           </div>

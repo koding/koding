@@ -61,6 +61,9 @@ func (c *CallbackSpec) Apply(value reflect.Value) error {
 		case reflect.Func:
 			value.Set(reflect.ValueOf(c.Callback))
 			return nil
+		case reflect.Invalid:
+			// callback path does not exist, skip
+			return nil
 		default:
 			return fmt.Errorf("Unhandled value of kind '%v' in callback path.", value.Kind())
 		}

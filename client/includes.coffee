@@ -609,9 +609,8 @@ module.exports = [
 
   # HOME VIEWS
   "app/Applications/Home.kdapplication/AppView.coffee",
-
+  "app/Applications/Home.kdapplication/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
-
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
 
   #ABOUT VIEWS
