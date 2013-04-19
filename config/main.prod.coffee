@@ -1,23 +1,20 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs               = require 'fs'
+nodePath         = require 'path'
+deepFreeze       = require 'koding-deep-freeze'
 
-deepFreeze = require 'koding-deep-freeze'
-
-version = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
-
-projectRoot = nodePath.join __dirname, '..'
-
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
-
-socialQueueName = "koding-social-prod"
+version          = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot      = nodePath.join __dirname, '..'
+mongo            = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
+rabbitPrefix     = require("#{projectRoot}/utils/rabbitPrefix").get()
+socialQueueName  = "koding-social-#{version}"
+webPort          = 3040
+brokerPort       = 8010 + (version % 10)
+sourceServerPort = 1300 + (version % 10)
+dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports = deepFreeze
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -27,16 +24,15 @@ module.exports = deepFreeze
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : 3020
+    port        : dynConfig.webInternalPort
     clusterSize : 10
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : no
-    port        : 1337
+    enabled     : yes
+    port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -66,7 +62,7 @@ module.exports = deepFreeze
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : no
   cacheWorker   :
     login       : 'prod-social'
@@ -101,11 +97,11 @@ module.exports = deepFreeze
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : 'https://mq.koding.com/subscribe'
+        sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : 'http://koding.com:1337'
+      sourceUri : "http://web-prod.in.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -117,9 +113,9 @@ module.exports = deepFreeze
     vhost       : '/'
   broker        :
     ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    port        : brokerPort
+    certFile    : "/etc/nginx/ssl/server_new.crt"
+    keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'

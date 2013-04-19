@@ -176,17 +176,18 @@ class MembersAppController extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
-  createContentDisplay:(account, doShow = yes)->
+  createContentDisplay:(account, callback)->
     controller = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
-    if doShow
-      @showContentDisplay contentDisplay
+    contentDisplay.on 'handleQuery', (query)=>
+      controller.ready -> controller.feedController?.handleQuery? query
+    @showContentDisplay contentDisplay, callback
 
-    return contentDisplay
-
-  showContentDisplay:(contentDisplay)->
+  showContentDisplay:(contentDisplay, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
+    return contentDisplay
 
   setCurrentViewNumber:(type)->
     KD.whoami().count? type, (err, count)=>

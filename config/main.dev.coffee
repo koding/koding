@@ -1,23 +1,11 @@
-fs = require 'fs'
-nodePath = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
 
-deepFreeze = require 'koding-deep-freeze'
+version         = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
-version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-
-# mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2'
-# mongo = 'dev:GnDqQWt7iUQK4M@linus.mongohq.com:10048/koding_dev2_copy'
-mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-
-projectRoot = nodePath.join __dirname, '..'
-
-rabbitPrefix = (
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e
-    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
-    throw e
-).trim()
-
+nodePath        = require 'path'
+projectRoot     = nodePath.join __dirname, '..'
+rabbitPrefix    = require("#{projectRoot}/utils/rabbitPrefix").get()
 socialQueueName = "koding-social-#{rabbitPrefix}"
 
 module.exports = deepFreeze
@@ -39,7 +27,6 @@ module.exports = deepFreeze
     port        : 1337
   mongo         : mongo
   runGoBroker   : no
-  watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   misc          :

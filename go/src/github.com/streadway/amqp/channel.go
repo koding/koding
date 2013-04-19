@@ -25,10 +25,9 @@ should be discarded and a new channel established.
 
 */
 type Channel struct {
-	// Mutex for notify listeners
 	destructor sync.Once
-	m          sync.Mutex
-	sendM      sync.Mutex
+	sendM      sync.Mutex // sequence channel frames
+	m          sync.Mutex // struct field mutex
 
 	connection *Connection
 
@@ -37,8 +36,8 @@ type Channel struct {
 
 	id uint16
 
-	// Writer lock for the notify slices
-	notify sync.Mutex
+	// true when we will never notify again
+	noNotify bool
 
 	// Channel and Connection exceptions will be broadcast on these listeners.
 	closes []chan *Error
@@ -54,8 +53,10 @@ type Channel struct {
 	// Listeners for Acks/Nacks when the channel is in Confirm mode
 	// the value is the sequentially increasing delivery tag
 	// starting at 1 immediately after the Confirm
-	acks           []chan uint64
-	nacks          []chan uint64
+	acks  []chan uint64
+	nacks []chan uint64
+
+	// When in confirm mode, track publish counter and order confirms
 	confirms       tagSet
 	publishCounter uint64
 
@@ -90,14 +91,15 @@ func newChannel(c *Connection, id uint16) *Channel {
 
 func (me *Channel) shutdown(e *Error) {
 	me.destructor.Do(func() {
+		me.m.Lock()
+		defer me.m.Unlock()
+
 		// Broadcast abnormal shutdown
 		if e != nil {
 			for _, c := range me.closes {
 				c <- e
 			}
 		}
-
-		delete(me.connection.channels, me.id)
 
 		me.send = (*Channel).sendClosed
 
@@ -120,13 +122,27 @@ func (me *Channel) shutdown(e *Error) {
 			close(c)
 		}
 
+		// A seen map to keep from double closing the ack and nacks. the other
+		// channels are different types and are not shared
+		seen := make(map[chan uint64]bool)
+
 		for _, c := range me.acks {
-			close(c)
+			if !seen[c] {
+				close(c)
+				seen[c] = true
+			}
 		}
 
 		for _, c := range me.nacks {
-			close(c)
+			if !seen[c] {
+				close(c)
+				seen[c] = true
+			}
 		}
+
+		me.noNotify = true
+
+		me.connection.channels.remove(me.id)
 	})
 }
 
@@ -387,7 +403,13 @@ graceful close, no error will be sent.
 func (me *Channel) NotifyClose(c chan *Error) chan *Error {
 	me.m.Lock()
 	defer me.m.Unlock()
-	me.closes = append(me.closes, c)
+
+	if me.noNotify {
+		close(c)
+	} else {
+		me.closes = append(me.closes, c)
+	}
+
 	return c
 }
 
@@ -427,7 +449,13 @@ basic.ack messages from getting rate limited with your basic.publish messages.
 func (me *Channel) NotifyFlow(c chan bool) chan bool {
 	me.m.Lock()
 	defer me.m.Unlock()
-	me.flows = append(me.flows, c)
+
+	if me.noNotify {
+		close(c)
+	} else {
+		me.flows = append(me.flows, c)
+	}
+
 	return c
 }
 
@@ -443,31 +471,49 @@ information about why the publishing failed.
 func (me *Channel) NotifyReturn(c chan Return) chan Return {
 	me.m.Lock()
 	defer me.m.Unlock()
-	me.returns = append(me.returns, c)
+
+	if me.noNotify {
+		close(c)
+	} else {
+		me.returns = append(me.returns, c)
+	}
+
 	return c
 }
 
 /*
 NotifyConfirm registers a listener chan for reliable publishing to receive
 basic.ack and basic.nack messages.  These messages will be sent by the server
-for every publish after Channel.Confirm has been called.  The value sent
-on these channels are the sequence number of the publishing.  It is up to
-client of this channel to maintain the sequence number and handle resends.
+for every publish after Channel.Confirm has been called.  The value sent on
+these channels is the sequence number of the publishing.  It is up to client of
+this channel to maintain the sequence number of each publishing and handle
+resends on basic.nack.
 
 There will be either at most one Ack or Nack delivered for every Publishing.
-The Ack/Nack may arrive in a different order than the publishing's sequence.
 
-The order of acknowledgments is not bound to the order of deliveries.
+The order of acknowledgments is not bound to the order of publishings.
 
-It's advisable to wait for all acks or nacks to arrive before closing the
-channel on completion.
+The capacity of the ack and nack channels must be at least as large as the
+number of outstanding publishings.  Not having enough buffered chans will
+create a deadlock if you attempt to perform other operations on the Connection
+or Channel while confirms are in-flight.
+
+It's advisable to wait for all acks or nacks to arrive before calling
+Channel.Close().
 
 */
 func (me *Channel) NotifyConfirm(ack, nack chan uint64) (chan uint64, chan uint64) {
 	me.m.Lock()
 	defer me.m.Unlock()
-	me.acks = append(me.acks, ack)
-	me.nacks = append(me.nacks, nack)
+
+	if me.noNotify {
+		close(ack)
+		close(nack)
+	} else {
+		me.acks = append(me.acks, ack)
+		me.nacks = append(me.nacks, nack)
+	}
+
 	return ack, nack
 }
 
@@ -538,9 +584,9 @@ acknowledgments from the consumers.  This option is ignored when consumers are
 started with noAck.
 
 When global is true, these Qos settings apply to all existing and future
-consumers on all channels on the same connection.  When false, the Qos
-settings will apply to all existing
-and future consumers on this channel.
+consumers on all channels on the same connection.  When false, the Channel.Qos
+settings will apply to all existing and future consumers on this channel.
+RabbitMQ does not implement the global flag.
 
 To get round-robin behavior between consumers consuming from the same queue on
 different connections, set the prefetch count to 1, and the next available
@@ -875,7 +921,7 @@ the same non-empty idenfitier in Channel.Cancel.  An empty string will cause
 the library to generate a unique identity.  The consumer identity will be
 included in every Delivery in the ConsumerTag field
 
-When autoAck (also known as noAck) is true the server will acknowledge
+When autoAck (also known as noAck) is true, the server will acknowledge
 deliveries to this consumer prior to writing the delivery to the network.  When
 autoAck is true, the consumer should not call Delivery.Ack.  Automatically
 acknowledging deliveries means that some deliveries may get lost if the
@@ -899,6 +945,10 @@ Optional arguments can be provided that have specific semantics for the queue
 or server.
 
 When the channel or connection closes, all delivery chans will also close.
+
+Deliveries on the returned chan will be buffered indefinitely.  To limit memory
+of this buffer, use the Channel.Qos method to limit the amount of
+unacknowledged/buffered deliveries the server will deliver on this Channel.
 
 */
 func (me *Channel) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
@@ -1288,9 +1338,11 @@ tag set to a 1 based incrementing index corresponding to every publishing
 received after the this method returns.
 
 Add a listener to Channel.NotifyConfirm to respond to the acknowledgments and
-negative acknowledgments.
+negative acknowledgments before publishing.  If Channel.NotifyConfirm is not
+called, the Ack/Nacks will be silently ignored.
 
-The order of acknowledgments is not related to the order of deliveries and all
+The order of acknowledgments is not bound to the order of deliveries.
+
 Ack and Nack confirmations will arrive at some point in the future.
 
 Unroutable mandatory or immediate messages are acknowledged immediately after

@@ -166,5 +166,6 @@ class ContentDisplayControllerMember extends KDViewController
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
       # log controller
+      @feedController = controller
       @getView().addSubView controller.getView()
-
+      @emit 'ready'

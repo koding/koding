@@ -84,7 +84,7 @@ class ActivityListController extends KDListViewController
     return @noActivityItem.show() unless Object.keys(cache).length
 
     for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1
+      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
           anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
@@ -145,6 +145,7 @@ class ActivityListController extends KDListViewController
 
     return unless activity.snapshot?
 
+    activityCreatedAt = activity.createdAt or (new Date()).toString()
     activity.snapshot = activity.snapshot.replace /&quot;/g, '"'
     KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
       for item in @itemsOrdered
@@ -153,6 +154,7 @@ class ActivityListController extends KDListViewController
           if data.count > 3
             data.anchors.pop()
           data.anchors.unshift bucket.anchor
+          data.createdAtTimestamps.push activityCreatedAt
           data.count++
           item.slideOut =>
             @removeItem item, data
