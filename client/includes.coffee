@@ -616,6 +616,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
 
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
+  "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
 
   #ABOUT VIEWS
 

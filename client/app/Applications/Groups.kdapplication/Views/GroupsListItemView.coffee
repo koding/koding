@@ -199,8 +199,8 @@ class GroupItemMemberView extends KDListItemView
     {firstName, lastName} = account.profile
     @avatar = new AvatarView
       size      :
-        width   : 40
-        height  : 40
+        width   : @getOptions().childOptions?.avatarWidth or 40
+        height  : @getOptions().childOptions?.avatarHeight or 40
       # detailed  : yes
       tooltip   :
         title   : "#{firstName} #{lastName}"

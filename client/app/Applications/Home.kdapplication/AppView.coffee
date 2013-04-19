@@ -69,6 +69,13 @@ class HomeAppView extends JView
       partial     : "Learn more"
       click       : => @$().animate scrollTop : 1200
 
+    @featuredMembersView = new HomeFeaturedMembersView
+      cssClass    : 'home-featured-members'
+
+    @featuredAppsView = new HomeFeaturedAppsView
+      cssClass    : 'home-featured-apps'
+
+
 
 
   pistachio:->
@@ -86,6 +93,12 @@ class HomeAppView extends JView
       <p class="bigLink">{{> @login}}</p>
       <p class="bigLink">{{> @learn}}</p>
     </div>
+    <hr />
+    <div class="home-featured">
+      {{> @featuredMembersView}}
+      {{> @featuredAppsView}}
+    </div>
+    <hr />
     <section>
       <hr id="home-reviews">
       <div class="reviews">
