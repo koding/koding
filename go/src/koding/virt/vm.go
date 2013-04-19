@@ -258,6 +258,29 @@ func (vm *VM) mapRBD() {
 	}
 }
 
+const FIFREEZE = 0xC0045877
+const FITHAW = 0xC0045878
+
+func (vm *VM) FreezeFileSystem() error {
+	return vm.controlOverlay(FIFREEZE)
+}
+
+func (vm *VM) ThawFileSystem() error {
+	return vm.controlOverlay(FITHAW)
+}
+
+func (vm *VM) controlOverlay(action uintptr) error {
+	fd, err := os.Open(vm.OverlayFile(""))
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), action, 0); errno != 0 {
+		return errno
+	}
+	return nil
+}
+
 func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
