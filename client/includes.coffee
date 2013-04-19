@@ -396,6 +396,9 @@ module.exports = [
   "app/Applications/Demos.kdapplication/AppController.coffee",
   "app/Applications/StartTab.kdapplication/AppController.coffee",
 
+  # chat
+  "app/Applications/Chat.kdapplication/AppController.coffee",
+
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
@@ -705,7 +708,7 @@ module.exports = [
   "stylus/app.aceeditor.styl",
   "stylus/app.activity.styl",
   "stylus/app.contextmenu.styl",
-  # "stylus/app.chat.styl",
+  "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",
   # "stylus/app.envsettings.styl",
