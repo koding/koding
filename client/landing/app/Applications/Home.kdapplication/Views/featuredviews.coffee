@@ -1,3 +1,27 @@
+class HomeFeaturedActivitiesView extends JView
+  constructor:(options,data)->
+    super options,data
+
+    @activityController = new KDListViewController
+      view            : @recentActivities = new KDListView
+        lastToFirst   : no
+        itemClass     : HomeActivityItem
+
+    @getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", {limit:10}, (err,activity)=>
+      if activity
+        @activityController.instantiateListItems activity
+
+    @headline = new KDView
+      partial : 'Recent Activity'
+      cssClass : 'featured-header'
+
+    @setClass 'activity-related'
+  pistachio:->
+    """
+    {{> @headline}}
+    {{> @recentActivities}}
+    """
+
 class HomeFeaturedMembersView extends JView
 
   constructor:(options, data)->
@@ -44,7 +68,6 @@ class HomeFeaturedAppsView extends JView
           avatarHeight :250
 
     KD.remote.api.JApp.some {},{limit:4},(err,apps)=>
-      console.log err,apps
       if err then warn err
       else if apps
         appsController.instantiateListItems apps
@@ -201,3 +224,18 @@ class HomeFeaturedAppsDetailsView extends JView
       </div>
       </div>
     """
+
+class HomeActivityItem extends ActivityListItemView
+  constructor:->
+    super
+
+  viewAppended:->
+    super
+    @utils.defer =>
+      # remove interactive subviews
+      @getSubViews().first?.commentBox.destroy()
+      @getSubViews().first?.actionLinks.destroy()
+      @getSubViews().first?.settingsButton.destroy()
+
+  pistachio:->
+    super
