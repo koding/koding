@@ -134,6 +134,9 @@ class ActivityAppController extends AppController
           @listController.hideLazyLoader()
           @listController.listActivitiesFromCache cache
 
+  fetchFeedForHomePage:(options={},callback)->
+    @fetchActivity options, callback
+
   populateActivity:(options = {})->
 
     return if isLoading

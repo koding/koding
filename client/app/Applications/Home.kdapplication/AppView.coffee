@@ -75,7 +75,8 @@ class HomeAppView extends JView
     @featuredAppsView = new HomeFeaturedAppsView
       cssClass    : 'home-featured-apps'
 
-
+    @featuredActivitiesView = new HomeFeaturedActivitiesView
+      cssClass    : 'home-featured-activities'
 
 
   pistachio:->
@@ -99,6 +100,9 @@ class HomeAppView extends JView
       {{> @featuredAppsView}}
     </div>
     <hr />
+    <div class="home-featured">
+      {{> @featuredActivitiesView}}
+    </div>
     <section>
       <hr id="home-reviews">
       <div class="reviews">
