@@ -17,20 +17,20 @@ class NotificationController extends KDObject
 
     super
 
-    @getSingleton('mainController').on "AccountChanged", (account)=>
-      if account.bongo_.constructorName is 'JAccount'
-        @setListeners account
+    @getSingleton('mainController').on "AccountChanged", =>
+      @off 'NotificationHasArrived'
+      @notificationChannel?.off().unsubscribe()
+      @setListeners()
 
-  setListeners:(account)->
+  setListeners:->
 
-    nickname = account.getAt('profile.nickname')
-    if nickname
-      # channelName = 'private-'+nickname+'-private'
-      # KD.remote.fetchChannel channelName, (channel)=>
-      #  channel.on 'notificationArrived', (notification)=>
-      account.on 'notificationArrived', (notification) =>
-        @emit "NotificationHasArrived", notification
-        @prepareNotification notification if notification.contents
+    @notificationChannel = KD.remote.subscribe 'notification',
+      serviceType : 'notification'
+      isExclusive : yes
+
+    @notificationChannel.on 'message', (notification)=>
+      @emit "NotificationHasArrived", notification
+      @prepareNotification notification  if notification.contents
 
   prepareNotification: (notification)->
 
