@@ -146,9 +146,9 @@ module.exports =
     webPort     : 3020
   kontrold        :
     mongo         :
-      host        : '127.0.0.1'
+      host        : 'kontrol.in.koding.com'
     rabbitmq      :
-      host        : 'localhost'
+      host        : 'kontrol.in.koding.com'
       port        : '5672'
       login       : 'guest'
       password    : 'HV5l856bME'
