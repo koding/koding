@@ -94,7 +94,7 @@ class LoginView extends KDScrollView
 
   viewAppended:->
 
-    @setY -@getSingleton('windowController').winWidth
+    @setY -@getSingleton('windowController').winHeight
     @listenWindowResize()
     @setClass "login-screen login"
 
@@ -103,9 +103,7 @@ class LoginView extends KDScrollView
 
   _windowDidResize:->
     if @hidden
-      @setY @getSingleton('windowController').winWidth
-    else
-      @setY 0
+      @setY -@getSingleton('windowController').winHeight
 
   pistachio:->
     """
@@ -217,7 +215,7 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-        @hideView()
+        @hide()
 
         if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
           @getSingleton('lazyDomController').hideLandingPage()
@@ -275,7 +273,7 @@ class LoginView extends KDScrollView
       @headBanner.hide()
       @getSingleton('router').clear @getRouteWithEntryPoint('Register')
       $('body').removeClass 'recovery'
-      @showView =>
+      @show =>
         @animateToForm "register"
         @getSingleton('mainController').emit 'InvitationReceived', invite
 

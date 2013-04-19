@@ -1,102 +1,15 @@
 class PermissionsModal extends KDFormViewWithFields
 
-  ['list','reducedList','tree'].forEach (method)=>
-    @::[method] =-> @getPermissions method
+  # TODO: this class is a bit of a mess.  I did some light refactoring, but
+  # I decided that at least some of the concerns I have with this file are
+  # dependent upon a cleaner intermediate data structure in the form api.
 
   constructor:(options,data)->
-
-    readableText = (text)->
-      dictionary =
-        "JTag" : "Tags"
-        "JGroup": 'Groups'
-        "JReview": 'Reviews'
-        "JPost":'Posts'
-        "JVocabulary": 'Vocabularies'
-      return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
-
-    _getCheckboxName =(module, permission, role)->
-      ['permission', module].join('-')+'|'+[role, permission].join('|')
-
-    checkForPermission = (permissions,module,permission,role)->
-      for perm in permissions
-        if perm.module is module and perm.role is role
-          for perm1 in perm.permissions
-            return yes  if perm1 is permission
-          return no
-
-    cascadeFormElements = (set,roles,module,permission)->
-      [current,remainder...] = roles.slice()
-      cascadeData = {}
-      cascadeData[current]=
-        itemClass     : KDCheckBox
-        cssClass      : 'permission-checkbox '+__utils.slugify(permission)+' '+current
-        name          : _getCheckboxName module, permission, current
-        defaultValue  : checkForPermission set.permissions,module,permission,current
-      if current in ['admin','owner']
-        cascadeData[current].defaultValue = yes
-        cascadeData[current].disabled = yes
-      if current and remainder.length > 0
-        cascadeData[current].nextElementFlat = cascadeFormElements set, remainder, module, permission
-      return cascadeData
-
-    cascadeHeaderElements = (roles)->
-      [current,remainder...] = roles.slice()
-      cascadeData = {}
-      cascadeData[current]=
-        itemClass     : KDView
-        partial       : readableText current
-        cssClass      : 'text header-item role-'+__utils.slugify(current)
-        tooltip       :
-          showOnlyWhenOverflowing : yes
-          title       : readableText current
-          placement   : 'top'
-          direction   : 'center'
-          offset      :
-            top       : 5
-            left      : 0
-      if current and remainder.length > 0
-        cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
-      return cascadeData
-
-    optionizePermissions = (set)->
-      permissionOptions =
-        head              :
-          itemClass       : KDView
-          cssClass        : 'permissions-header col-'+roles.length
-          nextElementFlat :
-            cascadeHeaderElements roles
-
-      for module, permissions of set.permissionsByModule
-        permissionOptions['header '+module.toLowerCase()] =
-          itemClass       : KDView
-          partial         : readableText module
-          cssClass        : 'permissions-module text'
-
-        for permission in permissions
-          permissionOptions[module+'-'+__utils.slugify(permission)] =
-            itemClass     : KDView
-            partial       : readableText permission
-            cssClass      : 'text'
-            tooltip       :
-              title       : readableText permission
-              direction   : 'center'
-              placement   : 'left'
-              offset      :
-                top       : 3
-                left      : 0
-              showOnlyWhenOverflowing : yes
-            nextElementFlat :
-              cascadeFormElements set, roles, module, permission
-      permissionOptions
 
     group                   = data # @getData()
     {privacy,permissionSet} = options #@getOptions()
 
-    roles = []
-    roles.push role.title for role in options.roles
-
-    roles.splice(roles.indexOf('owner'),1)
-    # roles.splice(roles.indexOf('admin'),1)
+    roles = (role.title for role in options.roles when role.title isnt 'owner')
 
     options.buttons or=
       "Add Role"          :
@@ -176,7 +89,7 @@ class PermissionsModal extends KDFormViewWithFields
           selectOptions   = [{title:'None',value:null}]
           selectOptions.push {title:readableText(role),value:role} for role in roles
 
-          form.addSubView @inputCopyPermissions = inputCopyPermissions = new KDSelectBox
+          form.addSubView @inputCopyPermissions = new KDSelectBox
             cssClass      : 'copy-permissions'
             selectOptions : selectOptions
             defaultValue  : null
@@ -195,28 +108,104 @@ class PermissionsModal extends KDFormViewWithFields
             @buttons["Save"].hideLoader()
             # TODO: do something with this callback
 
-    options.fields or= optionizePermissions permissionSet
+    options.fields or= optionizePermissions roles, permissionSet
     super options,data
     @setClass 'permissions-form col-'+roles.length
 
-  #   @bindEvent 'scroll'
-  #   @on 'scroll', (event={})=>
-  #     @applyScrollShadow event
+  readableText = (text)->
+    dictionary =
+      "JTag" : "Tags"
+      "JGroup": 'Groups'
+      "JReview": 'Reviews'
+      "JPost":'Posts'
+      "JVocabulary": 'Vocabularies'
+      "JVM": "Compute"
+    return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
-  # applyScrollShadow:(event)->
-  #   isAtTop = @$().scrollTop() is 0
-  #   isAtBottom = @$().scrollTop()+@getHeight() is @$()[0].scrollHeight
+  _getCheckboxName =(module, permission, role)->
+    ['permission', module].join('-')+'|'+[role, permission].join('|')
 
-  #   unless isAtTop
-  #     @$('.permissions-header').addClass 'scrolling'
-  #   else
-  #     @$('.permissions-header').remove 'scrolling'
+  checkForPermission = (permissions,module,permission,role)->
+    for perm in permissions
+      if perm.module is module and perm.role is role
+        for perm1 in perm.permissions
+          if perm1? and perm1 is permission
+            return yes
+        return no
 
-  #   unless isAtBottom
-  #     @$('.formline.button-field').addClass 'scrolling'
-  #   else
-  #     @$('.formline.button-field').removeClass 'scrolling'
+  cascadeFormElements = (set,roles,module,permission)->
+    [current,remainder...] = roles
+    cascadeData = {}
 
+    isChecked = checkForPermission set.permissions, module, permission, current
+
+    cssClass = 'permission-checkbox '+__utils.slugify(permission)+' '+current
+
+    name = _getCheckboxName module, permission, current
+
+    cascadeData[current]= {
+      name
+      cssClass
+      itemClass: KDCheckBox
+      defaultValue: isChecked ? no
+    }
+
+    if current in ['admin','owner']
+      cascadeData[current].defaultValue = yes
+      cascadeData[current].disabled = yes
+    if current and remainder.length > 0
+      cascadeData[current].nextElementFlat = cascadeFormElements set, remainder, module, permission
+    return cascadeData
+
+  cascadeHeaderElements = (roles)->
+    [current,remainder...] = roles
+    cascadeData = {}
+    cascadeData[current]=
+      itemClass     : KDView
+      partial       : readableText current
+      cssClass      : 'text header-item role-'+__utils.slugify(current)
+      tooltip       :
+        showOnlyWhenOverflowing : yes
+        title       : readableText current
+        placement   : 'top'
+        direction   : 'center'
+        offset      :
+          top       : 5
+          left      : 0
+    if current and remainder.length > 0
+      cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
+    return cascadeData
+
+  optionizePermissions = (roles, set)->
+    permissionOptions =
+      head              :
+        itemClass       : KDView
+        cssClass        : 'permissions-header col-'+roles.length
+        nextElementFlat :
+          cascadeHeaderElements roles
+
+    for module, permissions of set.permissionsByModule
+      permissionOptions['header '+module.toLowerCase()] =
+        itemClass       : KDView
+        partial         : readableText module
+        cssClass        : 'permissions-module text'
+
+      for permission in permissions
+        permissionOptions[module+'-'+__utils.slugify(permission)] =
+          itemClass     : KDView
+          partial       : readableText permission
+          cssClass      : 'text'
+          tooltip       :
+            title       : readableText permission
+            direction   : 'center'
+            placement   : 'left'
+            offset      :
+              top       : 3
+              left      : 0
+            showOnlyWhenOverflowing : yes
+          nextElementFlat :
+            cascadeFormElements set, roles, module, permission
+    permissionOptions
 
   createTree =(values)->
     values.reduce (acc, {module, role, permission})->
@@ -230,6 +219,8 @@ class PermissionsModal extends KDFormViewWithFields
     cache = {}
     values.reduce (acc, {module, role, permission})->
       storageKey = module+':'+role
+
+      console.log {storageKey}
       cached = cache[storageKey]
       if cached?
         cached.permissions.push permission
@@ -245,6 +236,9 @@ class PermissionsModal extends KDFormViewWithFields
       [facet, role, permission] = name.split '|'
       module = facet.split('-')[1]
       {module, role, permission}
+
+  ['list','reducedList','tree'].forEach (method)=>
+    @::[method] =-> @getPermissions method
 
   getPermissions:(structure='reducedList')->
     values = @getFormValues()

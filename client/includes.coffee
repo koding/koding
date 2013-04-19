@@ -1,7 +1,6 @@
 module.exports = [
   # --- Libraries ---
   # "libs/pusher.min.js",
-  "routes.coffee",
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
@@ -27,7 +26,6 @@ module.exports = [
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
-  "Framework/core/KDHiddenView.coffee",
   "Framework/core/KDScrollView.coffee",
   "Framework/core/KDRouter.coffee",
 
@@ -136,7 +134,6 @@ module.exports = [
   "Framework/components/time/timeagoview.coffee",
 
   # --- Application ---
-  "routes.coffee",
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
   "libs/pistachio.js",
@@ -541,7 +538,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupview.coffee",
   "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
-  "app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",

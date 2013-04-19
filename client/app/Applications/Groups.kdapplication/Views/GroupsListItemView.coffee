@@ -94,7 +94,7 @@ class GroupsListItemView extends KDListItemView
         placement : "left"
 
     menu = @settingsMenu data
-    if Object.keys(menu).length > 0 
+    if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent group-settings-context'
         title       : ''
@@ -103,7 +103,7 @@ class GroupsListItemView extends KDListItemView
         menu        : menu
         callback    : (event)=> @settingsButton.contextMenu event
     else
-      @settingsButton = new KDHiddenView
+      @settingsButton = new KDCustomHTMLView "hidden"
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
 
@@ -147,7 +147,7 @@ class GroupsListItemView extends KDListItemView
 
     if data.slug isnt 'koding'
       menu['Leave Group'] =
-        callback : => 
+        callback : =>
           modal = new KDModalView
             title          : 'Leave Group'
             content        : "<div class='modalformline'>Are you sure you want to leave this group?</div>"
@@ -176,7 +176,7 @@ class GroupsListItemView extends KDListItemView
     group.leave (err)->
       if err
         warn err
-        new KDNotificationView 
+        new KDNotificationView
           title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
           duration : 2000
         return callback()

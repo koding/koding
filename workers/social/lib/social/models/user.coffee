@@ -76,6 +76,9 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         validate    : require('./name').validateName
         set         : (value)-> value.toLowerCase()
+      uid           : ->
+        type        : Number
+        set         : Math.floor
       email         :
         type        : String
         email       : yes
@@ -293,8 +296,7 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else
-        group.approveMember account, callback
+      else group.approveMember account, callback
 
   @addToGroups = (account, invite, callback)->
     @addToGroup account, 'koding', (err)=>
@@ -303,8 +305,7 @@ module.exports = class JUser extends jraphical.Module
         @addToGroup account, invite.group, (err)->
           if err then callback err
           else callback null
-      else
-        callback null
+      else callback null
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
@@ -417,6 +418,7 @@ module.exports = class JUser extends jraphical.Module
                                       else
                                         user.sendEmailConfirmation()
                                         JUser.grantInitialInvitations user.username
+                                        JUser.emit 'UserCreated', user
                                         createNewMemberActivity account
                                         JAccount.emit "AccountAuthenticated", account
                                         callback null, account, replacementToken
