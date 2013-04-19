@@ -29,17 +29,19 @@ ul.chat-list
   padding                 0
   overflow                visible
   min-height              100%
-  li
+
+  li.person
     height                auto
-    // padding               7px 11px
     border-bottom         1px solid #e0e0df
     font-size             82%
-    // min-width             280px
     borderBox()
+
     &.unread
       background          rgba(250, 239, 223, .5)
       border-left         3px solid #ff9200
-      // padding             7px 11px 7px 8px
+
+    &.selected
+      background-color    rgba(0,0,0,.01)
 
     &:last-child
       border-bottom       1px solid #e0e0df !important
@@ -78,20 +80,22 @@ ul.chat-list
           display         block
 
     div.inline-conversation-widget
-      background-color    #666
+      background-color    rgba(0,0,0,0.04)
       height              0px
-      box-shadow          0 1px 15px #000 inset
       vendor              transition, height .2s ease-in
+      border-top          1px solid transparent
 
       &.ready
-        height            200px
+        height            240px
+        border-top        1px solid #e0e0df
 
       input
-        position          absolute
-        bottom            5px
-        right             3px
-        left              3px
+        left              0
+        right             0
+        bottom            0
+        border-radius     0
         box-shadow        none
+        abs()
 
     h3
       color               linkColor1
@@ -124,6 +128,16 @@ ul.chat-list
       sprite()
       // border                  1px solid transparent
 
+
+ul.chat-conversation
+  max-height        210px
+  box-shadow        0 0 10px rgba(0,0,0,0.3) inset
+  overflow-y        auto
+  padding           4px
+
+  li.message
+    padding         4px
+    border-bottom   1px solid rgba(0,0,0,0.03)
 
   // textarea
   //   color             chatTextColor
