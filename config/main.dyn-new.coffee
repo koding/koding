@@ -14,7 +14,7 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-prod-#{version}"
 
 webPort          = 4040
 brokerPort       = 9010 + (version % 10)
@@ -91,6 +91,7 @@ module.exports =
   client        :
     version     : version
     watch       : no
+    watchDuration: 4000
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -105,13 +106,13 @@ module.exports =
       version   : version
       mainUri   : 'http://new.koding.com:4040'
       broker    :
-        sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
+        sockJS  : "https://new.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
       sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
-    host        : 'localhost'
+    host        : 'web-prod.in.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     port        : 5672
     apiAddress  : "web-prod.in.koding.com"
@@ -121,6 +122,7 @@ module.exports =
     heartbeat   : 10
     vhost       : 'new'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
     keyFile     : "/etc/nginx/ssl/server_new.key"

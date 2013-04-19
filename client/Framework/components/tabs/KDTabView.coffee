@@ -159,16 +159,11 @@ class KDTabView extends KDScrollView
     for handle in @handles
       handle.makeInactive()
 
-  showHandleContainer:()->
-    @tabHandleContainer.show()
-    @handlesHidden = no
-
-  hideHandleContainer:()->
+  hideHandleContainer:->
     @tabHandleContainer.hide()
     @handlesHidden = yes
 
-  showHandleContainer:()->
-
+  showHandleContainer:->
     @tabHandleContainer.show()
     @handlesHidden = no
 

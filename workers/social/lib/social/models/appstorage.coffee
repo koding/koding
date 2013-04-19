@@ -7,6 +7,11 @@ module.exports = class JAppStorage extends jraphical.Module
   @share()
 
   @set
+    sharedEvents  :
+      static      : []
+      instance    : [
+        'updateInstance'
+      ]
     sharedMethods :
       static      : []
        #it's secure to have save and update, since JAppStorage can only be gotten by a client that owns that appstorage

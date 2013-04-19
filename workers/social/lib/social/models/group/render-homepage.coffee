@@ -1,4 +1,5 @@
 module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
+
   content ?= getDefaultGroupContents(title)
 
   """
@@ -9,41 +10,76 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="login landing">
+  <body class="group">
 
-    #{getLoader roles}
-
-    <div id="static-landing-page">
-      <nav id="landing-page-nav">
-        <h2>#{title}</h2>
-      </nav>
-      <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
-      <div class="group-content-wrapper" id="group-content-wrapper">
-        <div class="group-splitview #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="group-splitview">
-          <div class="group-landing-content" id="group-landing-content">
-           <div class="content-item kdview front" id='group-readme'>
-             <div class="content-item-scroll-wrapper">
-               <div class="group-title" id="group-title" #{applyCustomBackground customize}>
-                 <div class="group-title-wrapper" id="group-title-wrapper">
-                   <div class="group-name">
-                    #{title}
-                    <div class="group-description">#{body}</div>
-                   </div>
-                 </div>
-               </div>
-               <div class="has-markdown">
-                 <span class="data">#{content}</span>
-               </div>
-             </div>
-           </div>
-           <div class="content-item kdview back">
-             <div class="content-item-scroll-wrapper" id='group-config'>
-             </div>
-           </div>
-         </div>
+    <div class="kdview" id="kdmaincontainer">
+      <header class="kdview" id='main-header'>
+        <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+      </header>
+      <section class="kdview" id="main-panel-wrapper">
+        <div class="kdview" id="sidebar-panel">
+          <div class="kdview" id="sidebar">
+            <div id="main-nav">
+              <div class="avatar-placeholder">
+                <div id="avatar-area">
+                  <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(https://gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?size=160&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.160.png);"></div>
+                </div>
+              </div>
+              <div class="kdview actions">
+                <a class="notifications" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+                <a class="messages" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+                <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+              </div>
+              <div class="kdview status-leds"></div>
+              <div class="kdview kdlistview kdlistview-navigation">
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected">
+                  <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title"><span class="main-nav-icon members"></span>Members</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title"><span class="main-nav-icon groups"></span>Groups</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title"><span class="main-nav-icon develop"></span>Develop</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                  <a class="title"><span class="main-nav-icon apps"></span>Apps</a>
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
+                  <hr class="">
+                </div>
+                <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+                  <a class="title" href="#"><span class="main-nav-icon invite-friends"><span class="data" data-paths="quota usage">0</span></span>Invite Friends</a>
+                </div>
+              </div>
+              <div class="kdview kdlistview kdlistview-footer-menu">
+                <div class="kdview kdlistitemview kdlistitemview-default help"><span></span></div>
+                <div class="kdview kdlistitemview kdlistitemview-default about"><span></span></div>
+                <div class="kdview kdlistitemview kdlistitemview-default chat"><span></span></div>
+              </div>
+            </div>
+            <div id="finder-panel"></div>
+          </div>
         </div>
-      </div>
+        <div class="kdview" id="content-panel">
+          <div class="kdview kdscrollview kdtabview" id="main-tab-view">
+            <div id='maintabpane-home' class="kdview content-area-pane home content-area-new-tab-pane clearfix kdtabpaneview active">
+              <div id='content-page-home' class="kdview content-page home">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
+
     #{KONFIG.getConfigScriptTag {groupEntryPoint: slug, roles: roles}}
     #{getScripts()}
   </body>
@@ -72,23 +108,24 @@ applyCustomBackground = (customize={})->
   else
     """ style='background-image:url("#{defaultImages[0]}")'"""
 
-getLoader = (roles)->
-  if 'member' in roles or 'admin' in roles
-    return """
-      <div id="main-koding-loader" class="kdview main-loading">
-        <figure>
-          <ul>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-          </ul>
-        </figure>
-      </div>
-    """
-  return ''
+# getLoader = (roles)->
+
+#   if 'member' in roles or 'admin' in roles
+#     return """
+#       <div id="main-koding-loader" class="kdview main-loading">
+#         <figure>
+#           <ul>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#             <li></li>
+#           </ul>
+#         </figure>
+#       </div>
+#     """
+#   return ''
 
 getInviteLink =(policy)->
   if policy.approvalEnabled

@@ -1,8 +1,14 @@
 web:
-    cake -c dev webserver
+    cake -c dyn-new webserver
+broker:
+    cake -c dyn-new goBroker
 auth:
-    cake -c dev authWorker
+    cake -c dyn-new authWorker
 social:
-    cake -c dev socialWorker
+    cake -c dyn-new socialWorker
 cache:
-    cake -c dev cacheWorker
+    cake -c dyn-new cacheWorker
+guest:
+    cake -c dyn-new guestCleanup
+email:
+    cake -c dyn-new emailWorker

@@ -25,11 +25,11 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 
 # Dict = Object.create.bind null, null, Object.create null
 
-unless Array.prototype.last
-  Object.defineProperty Array.prototype, "last", get : -> this[this.length-1]
+unless Array::last
+  Object.defineProperty Array::, "last", get : -> @[@length-1]
 
-unless Array.prototype.first
-  Object.defineProperty Array.prototype, "first", get : -> this[0]
+unless Array::first
+  Object.defineProperty Array::, "first", get : -> @[0]
 
 # KD Global
 KD = @KD or {}
