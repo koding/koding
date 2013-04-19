@@ -85,7 +85,7 @@ module.exports =
     exchange      : 'services-presence'
   client          :
     version       : version
-    watch         : yes
+    watch         : no
     watchDuration : 300
     includesPath  : 'client'
     websitePath   : 'website'
