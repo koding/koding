@@ -112,7 +112,7 @@ module.exports =
       appsUri   : 'https://app.koding.com'
       sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
-    host        : 'localhost'
+    host        : 'web-prod.in.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     port        : 5672
     apiAddress  : "web-prod.in.koding.com"
