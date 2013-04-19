@@ -1,6 +1,8 @@
 fs = require 'fs'
 nodePath = require 'path'
 
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+
 # DEV
 mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
@@ -9,10 +11,10 @@ projectRoot = nodePath.join __dirname, '..'
 rabbitPrefix = ((
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
   catch e then require("os").hostname()
-).trim())+"-dev"
+).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-new-#{version}"
 
 webPort          = 80
 brokerPort       = 443
