@@ -10,14 +10,14 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainView', mainView, yes
 
     mainView.on "SidebarCreated", (sidebar)=>
-      @sidebarController = new SidebarController view : sidebar
+      mainController.sidebarController = new SidebarController view : sidebar
 
       mainController.on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-        @sidebarController.accountChanged account
+        mainController.sidebarController.accountChanged account
 
       mainController.on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-        @loginScreen.hide =>
-          @sidebarController.accountChanged account
+        mainController.loginScreen.hide =>
+          mainController.sidebarController.accountChanged account
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
 
@@ -34,7 +34,8 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    {navController} = @sidebarController.getView()
+    mainController  = @getSingleton 'mainController'
+    {navController} = mainController.sidebarController.getView()
     {name}          = pane.getOptions()
     {route}         = KD.getAppOptions name
     router          = @getSingleton('router')
