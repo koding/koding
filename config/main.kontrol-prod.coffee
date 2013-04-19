@@ -2,17 +2,12 @@ fs = require 'fs'
 nodePath = require 'path'
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1"
+# jenkins write to this as last step after building, we use RELEASE to avoid confusion with
+# building it manually
+version = (fs.readFileSync nodePath.join(__dirname, '../RELEASE'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitPrefix = (
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e
-    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
-    throw e
-).trim()
-
-socialQueueName = "koding-social-#{rabbitPrefix}"
+socialQueueName = "koding-social-#{version}"
 
 module.exports =
   aws           :
