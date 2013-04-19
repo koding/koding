@@ -839,6 +839,151 @@ func TestIntegrationConfirm(t *testing.T) {
 	}
 }
 
+// Sets up the topology where rejected messages will be forwarded
+// to a fanout exchange, with a single queue bound.
+//
+// Relates to https://github.com/streadway/amqp/issues/56
+//
+func TestDeclareArgsRejectToDeadLetterQueue(t *testing.T) {
+	if conn := integrationConnection(t, "declareArgs"); conn != nil {
+		defer conn.Close()
+
+		ex, q := "declareArgs", "declareArgs-deliveries"
+		dlex, dlq := ex+"-dead-letter", q+"-dead-letter"
+
+		ch, _ := conn.Channel()
+
+		if err := ch.ExchangeDeclare(ex, "fanout", false, true, false, false, nil); err != nil {
+			t.Fatalf("cannot declare %v: got: %v", ex, err)
+		}
+
+		if err := ch.ExchangeDeclare(dlex, "fanout", false, true, false, false, nil); err != nil {
+			t.Fatalf("cannot declare %v: got: %v", dlex, err)
+		}
+
+		if _, err := ch.QueueDeclare(dlq, false, true, false, false, nil); err != nil {
+			t.Fatalf("cannot declare %v: got: %v", dlq, err)
+		}
+
+		if err := ch.QueueBind(dlq, "#", dlex, false, nil); err != nil {
+			t.Fatalf("cannot bind %v to %v: got: %v", dlq, dlex, err)
+		}
+
+		if _, err := ch.QueueDeclare(q, false, true, false, false, Table{
+			"x-dead-letter-exchange": dlex,
+		}); err != nil {
+			t.Fatalf("cannot declare %v with dlq %v: got: %v", q, dlex, err)
+		}
+
+		if err := ch.QueueBind(q, "#", ex, false, nil); err != nil {
+			t.Fatalf("cannot bind %v: got: %v", ex, err)
+		}
+
+		fails, err := ch.Consume(q, "", false, false, false, false, nil)
+		if err != nil {
+			t.Fatalf("cannot consume %v: got: %v", q, err)
+		}
+
+		// Reject everything consumed
+		go func() {
+			for d := range fails {
+				d.Reject(false)
+			}
+		}()
+
+		// Publish the 'poison'
+		if err := ch.Publish(ex, q, true, false, Publishing{Body: []byte("ignored")}); err != nil {
+			t.Fatalf("publishing failed")
+		}
+
+		// spin-get until message arrives on the dead-letter queue with a
+		// synchronous parse to exercise the array field (x-death) set by the
+		// server relating to issue-56
+		for i := 0; i < 10; i++ {
+			d, got, err := ch.Get(dlq, false)
+			if !got && err == nil {
+				continue
+			} else if err != nil {
+				t.Fatalf("expected success in parsing reject, got: %v", err)
+			} else {
+				// pass if we've parsed an array
+				if v, ok := d.Headers["x-death"]; ok {
+					if _, ok := v.([]interface{}); ok {
+						return
+					}
+				}
+				t.Fatalf("array field x-death expected in the headers, got: %v (%T)", d.Headers, d.Headers["x-death"])
+			}
+		}
+
+		t.Fatalf("expectd dead-letter after 10 get attempts")
+	}
+}
+
+// https://github.com/streadway/amqp/issues/48
+func TestDeadlockConsumerIssue48(t *testing.T) {
+	if conn := integrationConnection(t, "issue48"); conn != nil {
+		defer conn.Close()
+
+		deadline := make(chan bool)
+		go func() {
+			select {
+			case <-time.After(5 * time.Second):
+				panic("expected to receive 2 deliveries while in an RPC, got a deadlock")
+			case <-deadline:
+				// pass
+			}
+		}()
+
+		ch, err := conn.Channel()
+		if err != nil {
+			t.Fatalf("got error on channel.open: %v", err)
+		}
+
+		queue := "test-issue48"
+
+		if _, err := ch.QueueDeclare(queue, false, true, false, false, nil); err != nil {
+			t.Fatalf("expected to declare a queue", err)
+		}
+
+		if err := ch.Confirm(false); err != nil {
+			t.Fatalf("got error on confirm: %v", err)
+		}
+
+		ack, nack := make(chan uint64, 2), make(chan uint64, 2)
+		ch.NotifyConfirm(ack, nack)
+
+		for i := 0; i < cap(ack); i++ {
+			// Fill the queue with some new or remaining publishings
+			ch.Publish("", queue, false, false, Publishing{Body: []byte("")})
+		}
+
+		for i := 0; i < cap(ack); i++ {
+			// Wait for them to land on the queue so they'll be delivered on consume
+			<-ack
+		}
+
+		// Consuming should send them all on the wire
+		msgs, err := ch.Consume(queue, "", false, false, false, false, nil)
+		if err != nil {
+			t.Fatalf("got error on consume: %v", err)
+		}
+
+		// We pop one off the chan, the other is on the wire
+		<-msgs
+
+		// Opening a new channel (any RPC) while another delivery is on the wire
+		if _, err := conn.Channel(); err != nil {
+			t.Fatalf("got error on consume: %v", err)
+		}
+
+		// We pop the next off the chan
+		<-msgs
+
+		deadline <- true
+	}
+}
+
 // https://github.com/streadway/amqp/issues/46
 func TestRepeatedChannelExceptionWithPublishAndMaxProcsIssue46(t *testing.T) {
 	conn := integrationConnection(t, "issue46")

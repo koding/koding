@@ -7,6 +7,7 @@ package amqp
 
 import (
 	"bufio"
+	"crypto/tls"
 	"io"
 	"net"
 	"reflect"
@@ -37,8 +38,9 @@ type Config struct {
 // multiplexed on this channel.  There must always be active receivers for
 // every asynchronous message on this connection.
 type Connection struct {
-	destructor sync.Once
-	m          sync.Mutex // writer and notify mutex
+	destructor sync.Once  // shutdown once
+	sendM      sync.Mutex // conn writer mutex
+	m          sync.Mutex // struct field mutex
 
 	conn io.ReadWriteCloser
 
@@ -46,11 +48,10 @@ type Connection struct {
 	writer *writer
 	sends  chan time.Time // timestamps of each frame sent
 
-	channelM  sync.RWMutex // channelId and channels map
-	channelId uint16       // channelId sequence for nextChannel
-	channels  map[uint16]*Channel
+	channels channelRegistry
 
-	closes []chan *Error
+	noNotify bool // true when we will never notify again
+	closes   []chan *Error
 
 	errors chan *Error
 
@@ -66,18 +67,33 @@ type readDeadliner interface {
 	SetReadDeadline(time.Time) error
 }
 
-// Dial accepts a string in the AMQP URI format, and returns a new Connection
+// Dial accepts a string in the AMQP URI format and returns a new Connection
 // over TCP using PlainAuth.  Defaults to a server heartbeat interval of 10
 // seconds and sets the initial read deadline to 30 seconds.
-func Dial(amqp string) (*Connection, error) {
-	uri, err := ParseURI(amqp)
+//
+// Dial uses the zero value of tls.Config when it encounters an amqps://
+// scheme.  It is equivalent to calling DialTLS(amqp, nil).
+func Dial(url string) (*Connection, error) {
+	return DialTLS(url, nil)
+}
+
+// DialTLS accepts a string in the AMQP URI format and returns a new Connection
+// over TCP using PlainAuth.  Defaults to a server heartbeat interval of 10
+// seconds and sets the initial read deadline to 30 seconds.
+//
+// DialTLS uses the provided tls.Config when encountering an amqps:// scheme.
+func DialTLS(url string, amqps *tls.Config) (*Connection, error) {
+	var err error
+	var conn net.Conn
+
+	uri, err := ParseURI(url)
 	if err != nil {
 		return nil, err
 	}
 
 	addr := net.JoinHostPort(uri.Host, strconv.FormatInt(int64(uri.Port), 10))
 
-	conn, err := net.DialTimeout("tcp", addr, 30*time.Second)
+	conn, err = net.DialTimeout("tcp", addr, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +101,31 @@ func Dial(amqp string) (*Connection, error) {
 	// Heartbeating hasn't started yet, don't stall forever on a dead server.
 	if err := conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
 		return nil, err
+	}
+
+	// amqps schemes get a client TLS encapulation.  With the dial and heartbeat
+	// timeouts so that TLS tunnels don't establish a tunnel to a dead server.
+	if uri.Scheme == "amqps" {
+		if amqps == nil {
+			amqps = new(tls.Config)
+		}
+
+		// Use the URI's host for hostname validation unless otherwise set. Make a
+		// copy so not to modify the caller's reference when the caller reuses a
+		// tls.Config for a different URL.
+		if amqps.ServerName == "" {
+			c := *amqps
+			c.ServerName = uri.Host
+			amqps = &c
+		}
+
+		client := tls.Client(conn, amqps)
+		if err := client.Handshake(); err != nil {
+			conn.Close()
+			return nil, err
+		}
+
+		conn = client
 	}
 
 	return Open(conn, Config{
@@ -104,8 +145,8 @@ func Open(conn io.ReadWriteCloser, config Config) (*Connection, error) {
 	me := &Connection{
 		conn:     conn,
 		writer:   &writer{bufio.NewWriter(conn)},
+		channels: channelRegistry{channels: make(map[uint16]*Channel)},
 		rpc:      make(chan message),
-		channels: make(map[uint16]*Channel),
 		sends:    make(chan time.Time),
 		errors:   make(chan *Error, 1),
 	}
@@ -126,7 +167,13 @@ re-run your setup process.
 func (me *Connection) NotifyClose(c chan *Error) chan *Error {
 	me.m.Lock()
 	defer me.m.Unlock()
-	me.closes = append(me.closes, c)
+
+	if me.noNotify {
+		close(c)
+	} else {
+		me.closes = append(me.closes, c)
+	}
+
 	return c
 }
 
@@ -166,13 +213,12 @@ func (me *Connection) closeWith(err *Error) error {
 }
 
 func (me *Connection) send(f frame) error {
-	me.m.Lock()
+	me.sendM.Lock()
 	err := me.writer.WriteFrame(f)
-	me.m.Unlock()
+	me.sendM.Unlock()
 
 	if err != nil {
-		// Assuming the connection is dead, and closeWith would be re-entrant so
-		// shutdown all the things
+		// shutdown could be re-entrant from signaling notify chans
 		me.shutdown(&Error{
 			Code:   FrameError,
 			Reason: err.Error(),
@@ -192,8 +238,8 @@ func (me *Connection) send(f frame) error {
 
 func (me *Connection) shutdown(err *Error) {
 	me.destructor.Do(func() {
-		me.channelM.Lock()
-		defer me.channelM.Unlock()
+		me.m.Lock()
+		defer me.m.Unlock()
 
 		if err != nil {
 			for _, c := range me.closes {
@@ -201,23 +247,21 @@ func (me *Connection) shutdown(err *Error) {
 			}
 		}
 
-		for id, c := range me.channels {
-			delete(me.channels, id)
-			c.shutdown(err)
+		for _, ch := range me.channels.removeAll() {
+			ch.shutdown(err)
 		}
 
 		if err != nil {
 			me.errors <- err
 		}
 
-		close(me.sends)
-		me.sends = nil
-
 		me.conn.Close()
 
 		for _, c := range me.closes {
 			close(c)
 		}
+
+		me.noNotify = true
 	})
 }
 
@@ -255,7 +299,7 @@ func (me *Connection) dispatch0(f frame) {
 }
 
 func (me *Connection) dispatchN(f frame) {
-	if channel := me.findChannel(f.channel()); channel != nil {
+	if channel := me.channels.get(f.channel()); channel != nil {
 		channel.recv(channel, f)
 	} else {
 		me.dispatchClosed(f)
@@ -321,7 +365,7 @@ func (me *Connection) reader() {
 
 // Ensures that at least one frame is being sent at the tuned interval with a
 // jitter tolerance of 1s
-func (me *Connection) heartbeater(interval time.Duration) {
+func (me *Connection) heartbeater(interval time.Duration, done chan *Error) {
 	last := time.Now()
 	tick := time.Tick(interval)
 
@@ -341,6 +385,8 @@ func (me *Connection) heartbeater(interval time.Duration) {
 			} else {
 				return
 			}
+		case <-done:
+			return
 		}
 	}
 }
@@ -370,29 +416,10 @@ invalid and a new Channel should be opened.
 
 */
 func (me *Connection) Channel() (*Channel, error) {
-	channel := me.nextChannel()
+	id := me.channels.next()
+	channel := newChannel(me, id)
+	me.channels.add(id, channel)
 	return channel, channel.open()
-}
-
-// nextChannel initializes a new channel and writes it to the channel map
-func (me *Connection) nextChannel() *Channel {
-	me.channelM.Lock()
-	defer me.channelM.Unlock()
-
-	me.channelId++
-	channel := newChannel(me, me.channelId)
-	me.channels[me.channelId] = channel
-
-	return channel
-}
-
-// findChannel gets the channel from the channel id.  Returns nil if the
-// channel is not found either due to it being closed or not yet initialized.
-func (me *Connection) findChannel(id uint16) *Channel {
-	me.channelM.RLock()
-	defer me.channelM.RUnlock()
-
-	return me.channels[id]
 }
 
 func (me *Connection) call(req message, res ...message) error {
@@ -499,7 +526,7 @@ func (me *Connection) openTune(config Config, auth Authentication) error {
 	// "The client should start sending heartbeats after receiving a
 	// Connection.Tune method"
 	if me.Config.Heartbeat > 0 {
-		go me.heartbeater(me.Config.Heartbeat)
+		go me.heartbeater(me.Config.Heartbeat, me.NotifyClose(make(chan *Error, 1)))
 	}
 
 	if err := me.send(&methodFrame{

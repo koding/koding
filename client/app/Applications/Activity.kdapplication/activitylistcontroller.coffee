@@ -171,6 +171,7 @@ class ActivityListController extends KDListViewController
 
     return unless activity.snapshot?
 
+    activityCreatedAt = activity.createdAt or (new Date()).toString()
     activity.snapshot = activity.snapshot.replace /&quot;/g, '"'
     KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
       for item in @itemsOrdered
@@ -179,6 +180,7 @@ class ActivityListController extends KDListViewController
           if data.count > 3
             data.anchors.pop()
           data.anchors.unshift bucket.anchor
+          data.createdAtTimestamps.push activityCreatedAt
           data.count++
           item.slideOut =>
             @removeItem item, data

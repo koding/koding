@@ -65,11 +65,12 @@ func publish(amqpURI, exchange, exchangeType, routingKey, body string, reliable 
 	// Reliable publisher confirms require confirm.select support from the
 	// connection.
 	if reliable {
+		log.Printf("enabling publishing confirms.")
 		if err := channel.Confirm(false); err != nil {
 			return fmt.Errorf("Channel could not be put into confirm mode: %s", err)
 		}
 
-		ack, nack := channel.NotifyConfirm(make(chan uint64), make(chan uint64))
+		ack, nack := channel.NotifyConfirm(make(chan uint64, 1), make(chan uint64, 1))
 
 		defer confirmOne(ack, nack)
 	}
@@ -78,8 +79,8 @@ func publish(amqpURI, exchange, exchangeType, routingKey, body string, reliable 
 	if err = channel.Publish(
 		exchange,   // publish to an exchange
 		routingKey, // routing to 0 or more queues
-		true,       // mandatory
-		true,       // immediate
+		false,      // mandatory
+		false,      // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "text/plain",
