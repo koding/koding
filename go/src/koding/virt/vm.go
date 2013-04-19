@@ -222,17 +222,17 @@ func (vm *VM) Unprepare() error {
 
 func (vm *VM) mapRBD() {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).Run(); err != nil {
+	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).Run(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 			panic(err)
 		}
 
 		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", vm.String()).CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd map failed.", err, out))
 		}
 
@@ -277,6 +277,17 @@ func (vm *VM) controlOverlay(action uintptr) error {
 	defer fd.Close()
 	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), action, 0); errno != 0 {
 		return errno
+	}
+	return nil
+}
+
+func (vm *VM) CreateConsistentSnapshot(snapshotName string) error {
+	if err := vm.FreezeFileSystem(); err != nil {
+		return err
+	}
+	defer vm.ThawFileSystem()
+	if out, err := exec.Command("rbd", "snap", "create", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Creating snapshot failed.", err, out)
 	}
 	return nil
 }
