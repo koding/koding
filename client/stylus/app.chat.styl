@@ -24,6 +24,107 @@ chatTextColor = #000
         border          1px solid rgba(255,0,0,.35)
         border-radius   2px
 
+ul.chat-list
+  margin                  0
+  padding                 0
+  overflow                visible
+  min-height              100%
+  li
+    height                auto
+    // padding               7px 11px
+    border-bottom         1px solid #e0e0df
+    font-size             82%
+    // min-width             280px
+    borderBox()
+    &.unread
+      background          rgba(250, 239, 223, .5)
+      border-left         3px solid #ff9200
+      // padding             7px 11px 7px 8px
+
+    &:last-child
+      border-bottom       1px solid #e0e0df !important
+
+    div.avatar-wrapper
+      padding             1px
+      border              1px solid #e3e3e3
+      border-top          none
+      border-bottom       none
+      margin-right        11px
+      size                30px,30px
+
+    a.avatar
+      size                30px,30px
+
+    div.right-overflow
+      cursor              pointer
+      margin-top          8px
+      p
+        color             #393939
+        font-size         11px
+        a.profile
+          color           linkColor1
+          font-weight     600
+      footer
+        margin-top        2px
+        font-size         11px
+        color             #888
+        a
+          color           #888
+          font-size       11px
+          margin-bottom   2px
+          line-height     1.5em
+          noTextDeco()
+        time
+          display         block
+
+    div.inline-conversation-widget
+      background-color    #666
+      height              0px
+      box-shadow          0 1px 15px #000 inset
+      vendor              transition, height .2s ease-in
+
+      &.ready
+        height            200px
+
+      input
+        position          absolute
+        bottom            5px
+        right             3px
+        left              3px
+        box-shadow        none
+
+    h3
+      color               linkColor1
+      font-size           11px
+      margin-bottom       2px
+
+    &:hover
+      bg                  color,rgba(255,255,255,.65)
+      shadow              0 0 4px 0 rgba(0,0,0,.17)
+      .delete-link
+        opacity         .5
+        &:hover
+          opacity       1
+
+    &.active
+      bg                  color,white
+      shadow              0 0 10px 0 rgba(0,0,0,.17)
+    // &.active.unread
+    //   bg                  color,red
+
+    .delete-link
+      display                 block
+      size                    20px, 20px
+      abs()
+      top                     5px
+      right                   5px
+      bg                      position, -80px -520px
+      opacity                 0
+      vendor                  transition, opacity .15s linear
+      sprite()
+      // border                  1px solid transparent
+
+
   // textarea
   //   color             chatTextColor
 
