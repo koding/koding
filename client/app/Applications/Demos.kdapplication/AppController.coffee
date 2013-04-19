@@ -1,113 +1,3 @@
-
-class ChatListController extends KDListViewController
-
-  constructor:->
-    super
-    @me = KD.whoami()
-
-  loadView:->
-    super
-    list = @getListView()
-    @loadItems()
-
-  loadItems:(callback)->
-
-    @removeAllItems()
-    @customItem?.destroy()
-    @showLazyLoader no
-
-    @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
-      @instantiateListItems accounts unless err
-
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
-
-class ChatListView extends KDListView
-
-  constructor:(options = {}, data)->
-
-    options.cssClass  = "chat-list"
-    options.tagName   = "ul"
-
-    super options, data
-
-class ChatListItem extends KDListItemView
-
-  constructor:(options = {},data)->
-
-    options.tagName  = "li"
-    options.bind     = "mouseenter mouseleave"
-
-    super options, data
-
-    data = @getData()
-
-    @avatar = new AvatarView {
-      size    : {width: 30, height: 30}
-      origin  : data
-    }
-
-    @conversation = null
-    # @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-      <div class='avatar-wrapper fl'>
-        {{> @avatar}}
-      </div>
-      <div class='right-overflow'>
-        <h3>{{#(profile.firstName)+' '+#(profile.lastName)}}</h3>
-      </div>
-    """
-
-  click:(event)->
-    unless @conversation
-      @conversation = new InlineConversationWidget
-      @addSubView @conversation
-    else
-      @conversation.$().toggleClass 'ready'
-
-    # list     = @getDelegate()
-    # mainView = list.getDelegate()
-    # mainView.emit "MessageIsSelected", {item: @, event}
-
-    # if event
-    #   if event.target?.className is "delete-link"
-    #     mainView.newMessageBar.createDeleteMessageModal()
-
-
-class InlineConversationWidget extends JView
-
-  constructor:(item)->
-    options =
-      cssClass : 'inline-conversation-widget'
-
-    super options
-
-    @messageInput = new KDHitEnterInputView
-      type         : "text"
-      placeholder  : "Type your message..."
-      callback     : ->
-        log "I will send this:", @getValue()
-
-    KD.utils.defer => @setClass 'ready'
-
-  toggle:->
-    log "sdfsdf"
-
-  pistachio:->
-    """
-      {{> @messageInput}}
-    """
-
 class DemosAppController extends AppController
 
   KD.registerAppClass @,
@@ -127,89 +17,163 @@ class DemosAppController extends AppController
     mainView.addSubView new KDHeaderView
       title : 'Demo App'
 
-    chatListView = new ChatListView
-      itemClass : ChatListItem
+    chatListView = new ChatContactListView
+      itemClass : ChatContactListItem
 
-    chatController = new ChatListController
+    chatController = new ChatContactListController
       view : chatListView
 
     chatController.loadItems()
 
     mainView.addSubView chatListView
 
-#     mainView.addSubView button = new BottomChatRoom
+class CommonChatController extends KDListViewController
+  constructor:->
+    super
+    @me = KD.whoami()
 
-# class BottomChatRoom extends JView
+  loadView:->
+    super
+    list = @getListView()
+    @loadItems()
 
-#   constructor:->
+  loadItems:(callback)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @showLazyLoader no
 
-#     super
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
-#     @tokenInput = tokenInput = new KDTokenizedInput
-#       cssClass             : 'chat-input'
-#       input                :
-#         keydown            :
-#           "alt super+right"   : (e)->
-#             tokenInput.emit "chat.ui.splitPanel", e.which
-#             e.preventDefault()
-#           "alt alt+right"     : (e)->
-#             tokenInput.emit "chat.ui.focusNextPanel"
-#           "alt alt+left"      : (e)->
-#             tokenInput.emit "chat.ui.focusPrevPanel"
-#           "alt alt+backspace" : (e)->
-#             tokenInput.emit "chat.ui.focusPrevPanel"
+class ChatContactListController extends CommonChatController
+  loadItems:(callback)->
+    super
 
-#       match                :
-#         topic              :
-#           regex            : /\B#\w.*/
-#           # throttle         : 2000
-#           wrapperClass     : "highlight-tag"
-#           replaceSignature : "{{#(title)}}"
-#           added            : (data)->
-#             log "tag is added to the input", data
-#           removed          : (data)->
-#             log "tag is removed from the input", data
-#           dataSource       : (token)->
-#             appManager.tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
-#               # log err, topics
-#               if not err and topics.length > 0
-#                 tokenInput.showMenu {token, rule : "topic"}, topics
+    @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
+      @instantiateListItems accounts unless err
 
-#         username           :
-#           regex            : /\B@\w.+/
-#           wrapperClass     : "highlight-user"
-#           replaceSignature : "{{#(profile.firstName)}} {{#(profile.lastName)}}"
-#           added            : (data)->
-#             log "user is added to the input", data
-#           removed          : (data)->
-#             log "user is removed from the input", data
-#           dataSource       : (token)->
-#             # log token, "member"
-#             appManager.tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
-#               # log err, members
-#               if not err and members.length > 0
-#                 tokenInput.showMenu {
-#                   rule             : "username"
-#                   itemChildClass   : MembersListItemView
-#                   itemChildOptions :
-#                     cssClass       : "honolulu"
-#                     userInput      : token.slice(1)
-#                   token
-#                 }, members
+class ChatContactListView extends KDListView
 
-#     @outputController = new KDListViewController
+  constructor:(options = {}, data)->
 
-#     @output = @outputController.getView()
+    options.cssClass  = "chat-list"
+    options.tagName   = "ul"
 
-#     @sidebar = new KDView
-#       cssClass : "room-sidebar"
+    super options, data
 
-#   pistachio:->
+class ChatContactListItem extends KDListItemView
 
-#     """
-#       <section>
-#         {{> @output}}
-#         {{> @tokenInput}}
-#       </section>
-#       {{> @sidebar}}
-#     """
+  constructor:(options = {},data)->
+
+    options.tagName  = "li"
+    options.cssClass = "person"
+    super options, data
+
+    @title = new ChatContactListItemTitle null, data
+    @title.on 'click', @bound 'createConversation'
+
+  createConversation:->
+    unless @conversation
+      @conversation = new ChatContactListConversationWidget
+      @conversation.on 'click', @conversation.bound 'takeFocus'
+      @addSubView @conversation
+    else
+      @conversation.$().toggleClass 'ready'
+      @conversation.takeFocus()
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """{{> @title}}"""
+
+class ChatContactListItemTitle extends JView
+
+  constructor:(options = {},data)->
+    options.cssClass = 'chat-contact-list-item-title'
+    super
+    @avatar = new AvatarView {
+      size    : {width: 30, height: 30}
+      origin  : data
+    }
+
+  pistachio:->
+    """
+      <div class='avatar-wrapper fl'>
+        {{> @avatar}}
+      </div>
+      <div class='right-overflow'>
+        <h3>{{#(profile.firstName)+' '+#(profile.lastName)}}</h3>
+      </div>
+    """
+
+class ChatContactListConversationWidget extends JView
+
+  constructor:(item)->
+    options =
+      cssClass : 'inline-conversation-widget'
+
+    super options
+
+    @messageInput = new ChatInputWidget
+    @messageInput.on 'messageSent', (message)=>
+      @conversationController.addItem {message}
+
+    @conversationList = new ChatConversationListView
+      itemClass : ChatConversationListItem
+
+    @conversationController = new ChatConversationListController
+      view : @conversationList
+
+    KD.utils.defer =>
+      @setClass 'ready'
+      @takeFocus()
+
+  takeFocus:-> @messageInput.setFocus()
+
+  pistachio:->
+    """
+      {{> @conversationList}}
+      {{> @messageInput}}
+    """
+
+class ChatConversationListController extends CommonChatController
+
+class ChatConversationListView extends KDListView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass  = "chat-conversation"
+    options.tagName   = "ul"
+
+    super options, data
+
+class ChatConversationListItem extends KDListItemView
+
+  constructor:(options = {},data)->
+
+    options.cssClass = "message"
+    options.tagName  = "li"
+    super options, data
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """{{#(message)}}"""
+
+class ChatInputWidget extends KDHitEnterInputView
+  constructor:->
+    super
+      type         : "text"
+      placeholder  : "Type your message..."
+      callback     : ->
+        @emit 'messageSent', @getValue()
+        @setValue ''
+        @setFocus()
