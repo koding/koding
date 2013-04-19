@@ -14,7 +14,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
-  @trait __dirname, '../../traits/notifiable'
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
 
@@ -45,6 +44,14 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+    sharedEvents: [
+      instance    : [
+        'updateInstance'
+      ]
+      static      : [
+        "AccountAuthenticated" # TODO: we need to do this differently.
+      ]
+    ]
     sharedMethods :
       static      : [
         'one', 'some', 'cursor', 'each', 'someWithRelationship'
@@ -859,6 +866,12 @@ module.exports = class JAccount extends jraphical.Module
   @isTainted =(id)->
     isTainted = @taintedAccounts[id]
     isTainted
+
+  sendNotification:(event, contents)->
+    @emit 'notification', {
+      routingKey: @profile.nickname
+      event, contents
+    }
 
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
