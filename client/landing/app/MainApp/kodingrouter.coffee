@@ -51,7 +51,7 @@ class KodingRouter extends KDRouter
 
   openSection:(app, group, query)->
     return @once 'ready', @openSection.bind this, arguments...  unless @ready
-    @getSingleton('groupsController').changeGroup group, (err)->
+    @getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
         appManager = KD.getSingleton("appManager")
