@@ -148,7 +148,7 @@ module.exports =
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :
-      host        : 'salt-master.in.koding.com'
+      host        : 'localhost'
       port        : '5672'
       login       : 'guest'
       password    : 'HV5l856bME'
