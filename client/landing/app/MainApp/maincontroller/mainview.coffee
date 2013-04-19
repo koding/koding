@@ -58,28 +58,33 @@ class MainView extends KDView
 
   addHeader:->
     log "adding header"
-    # if KD.config.groupEntryPoint
-    #   KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
-    #     if err then callback err
-    #     else if models?
-    #       log "adding summary"
-    #       [group] = models
-    #       @addSubView @groupSummary = new GroupSummaryView {}, group
 
     @addSubView @header = new KDView
       tagName : "header"
       domId   : "main-header"
 
+    if groupEntryPoint = KD.config.groupEntryPoint
+      route = "/#{groupEntryPoint}/Activity"
 
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      # cssClass  : "hidden"
+      cssClass  : if groupEntryPoint then 'group' else ''
+      partial   : "<span></span>"
       click     : (event)=>
         # return if @userEnteredFromGroup()
         event.stopPropagation()
         event.preventDefault()
-        KD.getSingleton('router').handleRoute null
+
+        KD.getSingleton('router').handleRoute route
+
+    if KD.config.groupEntryPoint
+      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+        if err then callback err
+        else if models?
+          [group] = models
+          @logo.updatePartial "<span></span>#{group.title}"
+
 
   createMainTabView:->
 
