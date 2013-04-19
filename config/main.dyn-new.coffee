@@ -91,6 +91,7 @@ module.exports =
   client        :
     version     : version
     watch       : no
+    watchDuration: 4000
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -121,6 +122,7 @@ module.exports =
     heartbeat   : 10
     vhost       : 'new'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
     keyFile     : "/etc/nginx/ssl/server_new.key"
