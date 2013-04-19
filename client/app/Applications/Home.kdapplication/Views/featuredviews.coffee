@@ -27,6 +27,11 @@ class HomeFeaturedMembersView extends JView
   constructor:(options, data)->
 
     super options, data
+    @loader         = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : '#aaaaaa'
 
     membersController = new KDListViewController
       view         : @members = new KDListView
@@ -43,11 +48,16 @@ class HomeFeaturedMembersView extends JView
       ,(err, members)=>
         if err then warn err
         else if members
+          @loader.hide()
           @$('.members-list-wrapper').removeClass "hidden"
           membersController.instantiateListItems members
+
+    @utils.defer => @loader.show()
+
   pistachio:->
     """
       <div class="featured-header">Latest Members</div>
+      {{> @loader}}
       {{> @members}}
     """
 
