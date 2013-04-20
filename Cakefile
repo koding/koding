@@ -95,7 +95,8 @@ task 'webserver', ({configFile}) ->
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
       restart         : yes
       restartInterval : 100
-      needPermission  : yes
+      isWorker : yes
+      needPermission  : no
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -132,7 +133,8 @@ task 'socialWorker', ({configFile}) ->
       cmd   : __dirname + "/workers/social/index -c #{configFile}"
       restart : yes
       restartInterval : 100
-      needPermission  : yes
+      needPermission  : no
+      isWorker : yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -166,7 +168,8 @@ task 'authWorker',({configFile}) ->
       cmd   		  : __dirname+"/workers/auth/index -c #{configFile}"
       restart 		  : yes
       restartInterval : 1000
-      needPermission  : yes
+      needPermission  : no
+      isWorker : yes
       verbose         : yes
 
   if config.watch is yes
@@ -187,7 +190,8 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval : 100
-    needPermission  : yes
+    needPermission  : no
+    isWorker : yes
     forceStart 		: yes
     verbose         : yes
 
@@ -198,7 +202,8 @@ task 'emailWorker',({configFile})->
     cmd             : "./workers/emailnotifications/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : yes
+    needPermission  : no
+    isWorker        : yes
     verbose         : yes
 
   watcher = new Watcher
@@ -284,7 +289,7 @@ task 'libratoWorker',({configFile})->
     cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
     restart: yes
     restartInterval: 100
-    needPermission  : yes
+    needPermission  : no
     verbose: yes
 
 task 'cacheWorker',({configFile})->
@@ -296,7 +301,8 @@ task 'cacheWorker',({configFile})->
     cmd             : "./workers/cacher/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : yes
+    needPermission  : no
+    isWorker : yes
 
   if cacheWorker.watch is yes
     watcher = new Watcher
