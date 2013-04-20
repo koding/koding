@@ -14,20 +14,8 @@ import (
 	"time"
 )
 
-type ListenTell struct {
-	listen chan string
-	tell   chan []byte
-}
-
+// Gateway to messages from/to kontrold via amqp.
 var listenTell *ListenTell
-
-func (listenTell *ListenTell) Listen() string {
-	return <-listenTell.listen
-}
-
-func (listenTell *ListenTell) Tell(data []byte) {
-	listenTell.tell <- data
-}
 
 type Worker struct {
 	Name      string    `json:"name"`
