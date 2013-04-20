@@ -97,6 +97,7 @@ task 'webserver', ({configFile}) ->
       restartInterval : 100
       isWorker : yes
       needPermission  : yes
+      forceStart : yes
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -172,6 +173,7 @@ task 'authWorker',({configFile}) ->
       needPermission  : yes
       isWorker : yes
       verbose         : yes
+      forceStart : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -206,6 +208,7 @@ task 'emailWorker',({configFile})->
     needPermission  : yes
     isWorker        : yes
     verbose         : yes
+    forceStart : yes
 
   watcher = new Watcher
     groups        :
@@ -292,6 +295,7 @@ task 'libratoWorker',({configFile})->
     restartInterval: 100
     needPermission  : yes
     verbose: yes
+    forceStart : yes
 
 task 'cacheWorker',({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
@@ -304,6 +308,7 @@ task 'cacheWorker',({configFile})->
     restartInterval : 100
     needPermission  : yes
     isWorker : yes
+    forceStart : yes
 
   if cacheWorker.watch is yes
     watcher = new Watcher
