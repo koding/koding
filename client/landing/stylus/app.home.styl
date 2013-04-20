@@ -266,4 +266,152 @@ div.screenshots
         gradient        #68B43B, #5B9D33
 
 
+div.home-featured
+  max-width               1000px
+  margin                  0 auto
+
+div.home-featured-activities
+  borderBox()
+  text-align              left
+
+  > .kdlistview
+    width                 840px
+    margin:               20px auto;
+    background-color:     rgba(255,255,255,0.75);
+    shadow                0 0 25px 1px rgba(0,0,0,0.25);
+
+
+
+div.home-featured-members
+  borderBox()
+  fl()
+  width                   480px
+  margin-right 20px
+  display                 inline-block
+  height                  525px
+
+  .kdloader
+    abs()
+    top                   50%
+    margin-top            -15px
+
+  .kdlistview-members
+    margin                5px
+  .kdlistitemview-member
+    display               inline-block
+    width                 25%
+    a.avatarview
+      width               115px!important
+      height              115px!important
+
+div.home-featured-apps
+  borderBox()
+  display                 block
+  margin-left             520px
+  width                   480px
+  .kdlistview-apps
+    .kdlistitemview
+      cursor              pointer
+      background-color    rgba(245, 245, 245, 0.5)
+      width               230px
+      height              230px
+      display             inline-block
+      margin              5px
+      vertical-align      top
+      > img
+        width             100%
+        height            auto
+
+      .details
+
+        abs()
+        bottom            0
+        left              0
+        right             0
+        bg                color, rgba(255,255,255,0.75)
+        height            38%
+        text-align        left
+        border-top        rgba(255,255,255,0.75)
+        text-shadow       0 0 3px white
+        vendor            transition, background-color 0.2s linear
+
+        .app-name
+          borderBox()
+          padding         15px 15px 10px 24px
+          color           #444
+          font-size       18px
+          font-weight     300
+          height          auto
+          text-align      left
+        .followers-wrapper
+          width           50%
+          fl()
+          display         inline-block
+        .installed-wrapper
+          width           50%
+          margin-left     50%
+          display         block
+        .app-followers
+        .app-installed
+          borderBox()
+          padding         5px
+          color           #888
+          text-align      center
+      &:hover
+        .details
+          bg              color, rgba(255,255,255,0.85)
+        shadow          0px 0px 10px rgba(0,0,0,0.25)\,0 1px 5px -2px rgba(0,0,0,0.6)
+
+div.featured-header
+  color                   #444
+  font-size               24px
+  font-weight             300
+  text-align              left
+  padding                 10px
+
+div.featured-app-details
+  borderBox()
+  width                   100%
+  height                  auto
+  padding                 25px 15px 30px 0px
+
+  .sidebar
+    borderBox()
+    padding               10px
+    height                100%
+    width                 256px
+    display               inline-block
+    fl()
+    text-align            center
+    .details-thumb
+      margin-bottom       15px
+      max-width           100%
+    // .details-install-button
+
+  .content
+    borderBox()
+    margin-left           256px
+    width                 auto
+    padding               10px
+    .details-name
+      font-size           18px
+      width               auto
+      display             inline-block
+      margin-bottom       5px
+    .details-version
+      width               auto
+      display             inline-block
+    .details-description
+      color               #aaa
+      padding             20px 0
+    .details-author
+      text-transform      italic
+
+    .counts
+      .details-followers
+      .details-installed
+      .details-likes
+        width             auto
+        display           inline-block
+        padding           10px 10px 10px 0
 // NEW TRY END
