@@ -73,11 +73,11 @@ module.exports = class JGroup extends Module
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
-        'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership',
-        'remove'
+        'countPendingInvitationRequests', 'countPendingSentInvitations',
+        'countInvitationRequests', 'fetchInvitationRequestCounts', 
+        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
+        'setBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByUsername',
+        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'remove'
       ]
     schema          :
       title         :
@@ -665,6 +665,10 @@ module.exports = class JGroup extends Module
     success: (client, callback)->
       @countInvitationRequests {}, {status: 'pending'}, callback
 
+  countPendingSentInvitations: permit 'send invitations',
+    success: (client, callback)->
+      @countInvitationRequests {}, {status: 'sent'}, callback
+
   countInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @countInvitationRequests rest...
 
@@ -714,14 +718,29 @@ module.exports = class JGroup extends Module
               console.error err  if err
             else callback null
 
-  inviteMember: permit 'send invitations',
+  inviteByEmail: permit 'send invitations',
     success: (client, email, callback)->
-      JInvitationRequest = require '../invitationrequest'
+      @inviteMember client, email, callback
 
-      params =
-        email: email,
+  inviteByUsername: permit 'send invitations',
+    success: (client, username, callback)->
+      JUser    = require '../user'
+      JUser.one {username}, (err, user)=>
+        return callback err if err
+        return callback new KodingError 'User does not exist!' unless user
+        user.fetchOwnAccount (err, account)=>
+          return callback err if err
+          @isMember account, (err, isMember)=>
+            return callback err if err
+            return callback new KodingError "#{username} is already member of this group!" if isMember
+            @inviteMember client, user.email, callback
+
+  inviteMember: (client, email, callback)->
+      params = 
+        email: email
         group: @slug
 
+      JInvitationRequest = require '../invitationrequest'
       JInvitationRequest.one params, (err, invitationRequest)=>
         if invitationRequest
           callback new KodingError """
@@ -737,6 +756,15 @@ module.exports = class JGroup extends Module
             else @addInvitationRequest invitationRequest, (err)->
               if err then callback err
               else invitationRequest.sendInvitation client, callback
+
+  isMember: (account, callback)->
+    selector =
+      sourceId  : @getId()
+      targetId  : account.getId()
+      as        : 'member'
+    Relationship.count selector, (err, count)->
+      if err then callback err
+      else callback null, (if count is 0 then no else yes)
 
   requestInvitation: secure (client, invitationType, callback)->
     {delegate} = client.connection

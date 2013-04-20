@@ -4,7 +4,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   constructor:(options, data)->
 
-    options.cssClass = "groups-invitation-request-view"
+    options.cssClass = 'groups-invitation-request-view'
 
     super
 
@@ -24,54 +24,77 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @statusFilter =
       options.statusFilter ? ['pending','sent','approved', 'declined']
 
-    @inviteMember = new KDFormViewWithFields
-      fields            :
-        recipient       :
-          label         : "Send to"
-          type          : "text"
-          name          : "recipient"
-          placeholder   : "Enter an email address..."
-          validate      :
-            rules       :
-              required  : yes
-              email     : yes
-            messages    :
-              required  : "An email address is required!"
-              email     : "That does not not seem to be a valid email address!"
-      buttons           :
-        'Send invite'   :
-          loader        :
-            color       : "#444444"
-            diameter    : 12
-          callback      : => @sendInviteToMember()
+    @inviteByEmail = new KDFormViewWithFields
+      callback            : (err)=>
+        @sendInviteByEmail()
+      fields              :
+        recipient         :
+          type            : 'text'
+          name            : 'recipient'
+          cssClass        : 'inline'
+          placeholder     : 'Enter an email address...'
+          validate        :
+            rules         :
+              required    : yes
+              email       : yes
+            messages      :
+              required    : 'An email address is required!'
+              email       : 'That does not not seem to be a valid email address!'
+          nextElementFlat :
+            'Send'        :
+              itemClass   : KDButtonView
+              type        : 'submit'
+              loader      :
+                color     : '#444444'
+                diameter  : 12
+    @inviteByEmail.on 'FormValidationFailed', => @inviteByEmail.inputs['Send'].hideLoader()
+
+    @inviteByUsername = new KDFormViewWithFields
+      callback            : => @sendInviteByUsername()
+      fields              :
+        recipient         :
+          type            : 'text'
+          name            : 'recipient'
+          cssClass        : 'inline'
+          placeholder     : 'Enter a username...'
+          validate        :
+            rules         :
+              required    : yes
+            messages      :
+              required    : 'A username is required!'
+          nextElementFlat :
+            'Send'        :
+              itemClass   : KDButtonView
+              type        : 'submit'
+              loader      :
+                color     : '#444444'
+                diameter  : 12
+    @inviteByUsername.on 'FormValidationFailed', => @inviteByUsername.inputs['Send'].hideLoader()
 
     @prepareBulkInvitations()
     @batchInvites = new KDFormViewWithFields
-      cssClass          : 'invite-tools'
-      buttons           :
-        'Send invites'  :
-          title         : 'Send invitation batch'
-          callback      : =>
-            @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
-      fields            :
-        Count           :
-          label         : "# of Invites"
-          type          : "text"
-          defaultValue  : 10
-          placeholder   : "how many users do you want to invite?"
-          validate      :
-            rules       :
-              regExp    : /\d+/i
-            messages    :
-              regExp    : "numbers only please"
-        Status          :
-          label         : "Server response"
-          type          : "hidden"
-          nextElement   :
-            statusInfo  :
-              itemClass : KDView
-              partial   : '...'
-              cssClass  : 'information-line'
+      cssClass             : 'invite-tools'
+      fields               :
+        Count              :
+          label            : '# of Invites'
+          type             : 'text'
+          defaultValue     : 10
+          placeholder      : 'how many users do you want to invite?'
+          cssClass         : 'inline'
+          validate         :
+            rules          :
+              regExp       : /\d+/i
+            messages       :
+              regExp       : 'numbers only please'
+          nextElementFlat  :
+            'Send invites' :
+              itemClass    : KDButtonView
+              title        : 'Send invitation batch'
+              loader       :
+                color      : '#444444'
+                diameter   : 12
+              callback     : =>
+                @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
     , group
 
     @refresh()
@@ -164,17 +187,29 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @resolvedList = @resolvedListController.getView()
     return @resolvedList
 
-  sendInviteToMember:->
-    email = @inviteMember.getFormData().recipient
-    KD.remote.api.JGroup.one {_id:@getData()._id}, (err, group)=>
-      if err then console.warn err
+  sendInviteByEmail:->
+    email = @inviteByEmail.getFormData().recipient
+    @getData().inviteByEmail email, (err)=>
+      @inviteByEmail.inputs['Send'].hideLoader()
+      if err then @showErrorMessage err
+      else 
+        new KDNotificationView title:'Invitation sent!'
+        @refresh()
+
+  sendInviteByUsername:->
+    username = @inviteByUsername.getFormData().recipient
+    @getData().inviteByUsername username, (err)=>
+      @inviteByUsername.inputs['Send'].hideLoader()
+      if err then @showErrorMessage err
       else
-        group.inviteMember email, (err)=>
-          @inviteMember.buttons['Send invite'].hideLoader()
-          if err then console.warn err
-          else
-            @refresh()
-            console.log 'done'
+        new KDNotificationView title:'Invitation sent!'
+        @refresh()
+
+  showErrorMessage:(err)->
+    warn err
+    new KDNotificationView 
+      title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+      duration : 2000
 
   pistachio:->
     """
@@ -183,12 +218,18 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       {{> @currentState}}
     </section>
     <div class="formline">
-      <section class="formline email">
-        <h2>Invite member by email</h2>
-        {{> @inviteMember}}
+      <section class="formline no-padding">
+        <section class="formline email">
+          <h2>Invite by email</h2>
+          {{> @inviteByEmail}}
+        </section>
+        <section class="formline username">
+          <h2>Invite by username</h2>
+          {{> @inviteByUsername}}
+        </section>
       </section>
       <section class="formline batch">
-        <h2>Invite members by batch</h2>
+        <h2>Send out invites from waitlist</h2>
         {{> @batchInvites}}
       </section>
     </div>

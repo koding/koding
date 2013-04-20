@@ -386,10 +386,21 @@
           margin-left         10px
 
         button
-          min-width           80px
           height              24px
           line-height         8px
-          margin              5px 5px 5px 0
+          fr()
+
+        .input-wrapper
+          display             inline
+
+        input.inline
+          display             inline-block
+
+        section.email input
+        section.username input
+          width               100%
+          float               left
+          margin-right        -50px
 
         .policylanguage-editor
 
@@ -447,6 +458,9 @@
 
         &.status-quo
           width               100%
+
+        &.no-padding
+          padding             0
 
       .request-list
 
