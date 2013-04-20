@@ -2,13 +2,16 @@ class GroupsRequestView extends JView
 
   prepareBulkInvitations:->
     group = @getData()
-    group.countPendingInvitationRequests (err, count)=>
+    group.countPendingInvitationRequests (err, countReq)=>
       if err then console.error error
       else
-        [toBe, people] = if count is 1 then ['is','person'] else ['are','people']
-        @currentState.updatePartial """
-          There #{toBe} currently #{count} #{people} waiting for an invitation
-          """
+        group.countPendingSentInvitations (err, countInv)=>
+          if err then console.error error
+          else
+            reqPhrase = if countReq is 1 then 'person' else 'people'
+            @currentState.updatePartial """
+              Currently there are #{countReq} #{reqPhrase} waiting for an invitation or approval and #{countInv} sent invitations unanswered.
+              """
 
   fetchSomeRequests:(invitationType='invitation', status, callback)->
     [callback, status] = [status, callback]  unless callback
