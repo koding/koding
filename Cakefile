@@ -135,6 +135,7 @@ task 'socialWorker', ({configFile}) ->
       restartInterval : 100
       needPermission  : yes
       isWorker : yes
+      forceStart : yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
