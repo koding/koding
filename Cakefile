@@ -96,7 +96,7 @@ task 'webserver', ({configFile}) ->
       restart         : yes
       restartInterval : 100
       isWorker : yes
-      needPermission  : no
+      needPermission  : yes
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -133,7 +133,7 @@ task 'socialWorker', ({configFile}) ->
       cmd   : __dirname + "/workers/social/index -c #{configFile}"
       restart : yes
       restartInterval : 100
-      needPermission  : no
+      needPermission  : yes
       isWorker : yes
       # onMessage: (msg) ->
       #   if msg.exiting
@@ -168,7 +168,7 @@ task 'authWorker',({configFile}) ->
       cmd   		  : __dirname+"/workers/auth/index -c #{configFile}"
       restart 		  : yes
       restartInterval : 1000
-      needPermission  : no
+      needPermission  : yes
       isWorker : yes
       verbose         : yes
 
@@ -190,7 +190,7 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval : 100
-    needPermission  : no
+    needPermission  : yes
     isWorker : yes
     forceStart 		: yes
     verbose         : yes
@@ -202,7 +202,7 @@ task 'emailWorker',({configFile})->
     cmd             : "./workers/emailnotifications/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : no
+    needPermission  : yes
     isWorker        : yes
     verbose         : yes
 
@@ -289,7 +289,7 @@ task 'libratoWorker',({configFile})->
     cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
     restart: yes
     restartInterval: 100
-    needPermission  : no
+    needPermission  : yes
     verbose: yes
 
 task 'cacheWorker',({configFile})->
@@ -301,7 +301,7 @@ task 'cacheWorker',({configFile})->
     cmd             : "./workers/cacher/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : no
+    needPermission  : yes
     isWorker : yes
 
   if cacheWorker.watch is yes
