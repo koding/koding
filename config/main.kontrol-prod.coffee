@@ -92,14 +92,14 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "#{version}.x.koding.com"
+    staticFilesBaseUrl: "http://#{version}.x.koding.com"
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "#{version}.x.koding.com"
+      mainUri   : "http://#{version}.x.koding.com"
       broker    :
-        sockJS   : "broker-#{version}.x.koding.com/subscribe"
+        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
