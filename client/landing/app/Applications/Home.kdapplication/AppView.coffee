@@ -4,6 +4,17 @@ class HomeAppView extends JView
 
     super
 
+    @setClass "screenshots"
+
+    account = KD.whoami()
+
+    @header = new WelcomeHeader
+      type      : "big"
+      title     : if KD.isLoggedIn() then\
+        "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+        "Welcome to the Koding Public Beta!<br>"
+      subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
+
     @slideShow = new HomeSlideShow
       tagName : "section"
 
@@ -11,25 +22,29 @@ class HomeAppView extends JView
       tagName  : "a"
       cssClass : "arrow left"
       partial  : "<span></span>"
-      click    : => @slideShow.slideTo "prev"
+      click    : (event)=>
+        @utils.stopDOMEvent event
+        @slideShow.slideTo "prev"
 
     @rightArrow = new KDCustomHTMLView
       tagName  : "a"
       cssClass : "arrow right"
       partial  : "<span></span>"
-      click    : => @slideShow.slideTo "next"
+      click    : (event)=>
+        @utils.stopDOMEvent event
+        @slideShow.slideTo "next"
 
     @slideShow.on "FirstSlideShown", =>
       @rightArrow.$().css right : 0
-      @leftArrow.$().css left : -40
+      @leftArrow.$().css  left  : -40
 
     @slideShow.on "LastSlideShown", =>
-      @leftArrow.$().css left : 0
+      @leftArrow.$().css  left  : 0
       @rightArrow.$().css right : -40
 
     @slideShow.on "OtherSlideShown", =>
-      @leftArrow.$().css left : 0
-      @rightArrow.$().css right : 0
+      @leftArrow.$().css  left  : ""
+      @rightArrow.$().css right : ""
 
     if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
       entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
@@ -41,80 +56,93 @@ class HomeAppView extends JView
       @utils.stopDOMEvent event
       @getSingleton('router').handleRoute route
 
-    @register     = new KDCustomHTMLView
+    @register     = new CustomLinkView
       tagName     : "a"
-      partial     : "Register"
+      cssClass    : "register"
+      title       : "Register"
+      icon        : {}
       attributes  :
         href      : "/Register"
       click       : handler
 
-    @request      = new KDCustomHTMLView
+    @request      = new CustomLinkView
       tagName     : "a"
-      partial     : "Request an Invite"
+      cssClass    : "join"
+      title       : "Request an Invite"
+      icon        : {}
       attributes  :
         href      : "/Join"
       click       : handler
 
-    @login        = new KDCustomHTMLView
+    @login        = new CustomLinkView
       tagName     : "a"
-      partial     : "Login"
+      title       : "Login"
+      icon        : {}
+      cssClass    : "login"
       attributes  :
         href      : "/Login"
       click       : =>
         @utils.stopDOMEvent event
         @getSingleton('router').handleRoute "/Login"
 
-    @learn        = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Learn more"
-      click       : => @$().animate scrollTop : 1200
-
-
-
   pistachio:->
 
     """
-    <div class="kdview video-wrapper">
-      <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
-      height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
-      allowfullscreen="">
-      </iframe>
-    </div>
+    {{> @header}}
+    {{> @leftArrow}}
+    {{> @rightArrow}}
+    {{> @slideShow}}
     <div class="home-links">
-      <p class="bigLink">{{> @request}}</p>
-      <p class="bigLink">{{> @register}}</p>
-      <p class="bigLink">{{> @login}}</p>
-      <p class="bigLink">{{> @learn}}</p>
+      {{> @request}}
+      {{> @register}}
+      {{> @login}}
     </div>
-    <section>
-      <hr id="home-reviews">
-      <div class="reviews">
-        <p>A new way for developers to work</p>
-        <span>We said.</span>
-        <p>Wow! Cool - good luck!</p>
-        <span>Someone we talked to the other day...</span>
-        <p>I don't get it... What is it, again?</p>
-        <span>Same dude.</span>
-        <p>Real software development in the browser...</p>
-        <span>Us again.</span>
-        <p>with a real VM and a real Terminal?</p>
-        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
-      </div>
-      <hr />
-      <div id="home-screenshots" class="screenshots">
-        <div class="kdview">
-          {{> @leftArrow}}
-          {{> @rightArrow}}
-          {{> @slideShow}}
-        </div>
-      </div>
-      <hr />
-      <footer id="copy-footer" class="copy">
-        ©#{(new Date).getFullYear()} Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
-      </footer>
-
-    </section>
     """
+
+  # pistachio:->
+
+  #   """
+  #   <div class="kdview video-wrapper">
+  #     <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
+  #     height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
+  #     allowfullscreen="">
+  #     </iframe>
+  #   </div>
+  #   <div class="home-links">
+  #     <p class="bigLink">{{> @request}}</p>
+  #     <p class="bigLink">{{> @register}}</p>
+  #     <p class="bigLink">{{> @login}}</p>
+  #     <p class="bigLink">{{> @learn}}</p>
+  #   </div>
+  #   <section>
+  #     <hr id="home-reviews">
+  #     <div class="reviews">
+  #       <p>A new way for developers to work</p>
+  #       <span>We said.</span>
+  #       <p>Wow! Cool - good luck!</p>
+  #       <span>Someone we talked to the other day...</span>
+  #       <p>I don't get it... What is it, again?</p>
+  #       <span>Same dude.</span>
+  #       <p>Real software development in the browser...</p>
+  #       <span>Us again.</span>
+  #       <p>with a real VM and a real Terminal?</p>
+  #       <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+  #     </div>
+  #     <hr />
+  #     <div id="home-screenshots" class="screenshots">
+  #       <div class="kdview">
+  #         {{> @leftArrow}}
+  #         {{> @rightArrow}}
+  #         {{> @slideShow}}
+  #       </div>
+  #     </div>
+  #     <hr />
+  #     <footer id="copy-footer" class="copy">
+  #       ©#{(new Date).getFullYear()} Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
+  #     </footer>
+
+  #   </section>
+  #   """
 
 class HomeSlideShow extends KDScrollView
 
@@ -126,6 +154,9 @@ class HomeSlideShow extends KDScrollView
     @setKeyView()
     @_windowDidResize()
     @slideTo 0
+
+    @getSingleton('mainView').on "transitionend", =>
+      @_windowDidResize()
 
   _windowDidResize:->
 
@@ -186,20 +217,29 @@ class HomeSlideShow extends KDScrollView
     """
     <ul class="clearfix">
       <li>
+        <div>
+          <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+        </div>
+      </li>
+      <li>
         <img src="#{host}/images/demo-screenshots/sc-code.jpg" />
-        <p class="flex-caption">A free, fully featured Cloud Development environment. Create and edit code from anywhere.</p>
+        <p class="flex-caption">A new way for developers to work.<span>We said.</span></p>
       </li>
       <li>
         <img src="#{host}/images/demo-screenshots/sc-activity.jpg" />
-        <p class="flex-caption">An active community where you can share work, collaborate and meet people who can help you with your projects.</p>
+        <p class="flex-caption">Wow! Cool - good luck!<span>Someone we talked to the other day...</span></p>
       </li>
       <li>
         <img src="#{host}/images/demo-screenshots/sc-terminal.jpg" />
-        <p class="flex-caption">A fully functional Terminal in your browser.</p>
+        <p class="flex-caption">I don't get it... What is it, again?<span>Same dude.</span></p>
       </li>
       <li>
         <img src="#{host}/images/demo-screenshots/sc-apps.jpg" />
-        <p class="flex-caption">An App Catalog to install common web apps, user contributed apps and scripts and more.</p>
+        <p class="flex-caption">Real software development in the browser...<span>Us again.</span></p>
+      </li>
+      <li>
+        <img src="#{host}/images/demo-screenshots/sc-apps.jpg" />
+        <p class="flex-caption">with a real VM and a real Terminal?<span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span></p>
       </li>
     </ul>
     """

@@ -76,18 +76,6 @@ app.home.styl
     color                 #444
     padding-bottom        30px
 
-  .home-links
-    size                  89.13%, 80px
-    margin                0 auto
-    padding               20px 0
-    border-top            1px solid rgba(0,0,0,.8)
-    border-bottom         1px solid rgba(0, 0, 0, .75)
-    shadow                0 1px 0 rgba(255, 255, 255, .75)\,\
-                          inset 0 0 10px rgba(0, 0, 0, .5)
-    // gradient              #37332D, #2D2A25
-    background            url("../images/koding-new-bg.png") repeat-x 0 -300px
-    rounded               2px
-    borderBox()
 
   p.bigLink
     // text-shadow         0 -1px 0 rgba(0,0,0,.8)
@@ -110,70 +98,64 @@ app.home.styl
 
 // NEW TRY
 div.screenshots
-  height                  530px
-  // h1
-  // h2
-  //   //padding-left          13px
-  //   //text-align            left
-  //   text-shadow           0 1px 1px rgba(0,0,0,0.3)
-  //   vendor                transition, all .3s ease-in-out
-  //   borderBox()
-  // h1
-  //   font-weight           600
-  //   font-size             36px
-  //   letter-spacing        -1px
-  //   margin                0 0 10px 0
-  //   color                 #eee
-
-  // h2
-  //   font-size             18px
-  //   color                 rgba(255,255,255,0.7)
-  //   font-weight           300
-  //   margin                0 0 60px 0
+  rel()
+  height                  auto
 
   .arrow
     abs()
     display               block
-    top                   50%
-    margin-top            -40px
-    size                  40px, 80px
-    shadow                0 10px 25px rgba(0,0,0,0.5)
-    bg                    color, rgba(0,0,0,0.5)
-    vendor                transition, all .15s ease-in-out
+    top                   107px
+    size                  30px, 503px
+    shadow                0 10px 25px rgba(0, 0, 0, .4)
+    bg                    color, rgba(0, 0, 0, .5)
+    vendor                transition, left  .15s ease-in-out\,\
+                                      right .15s ease-in-out\,\
+                                      width .15s ease-in-out
     z-index               1
-    &:hover
-      width               50px
-      span
-        opacity           1
+    border                1px solid transparent
+    border-color          rgba(255, 255, 255, .2)\
+                          rgba(0, 0, 0, .1)\
+                          rgba(0, 0, 0, .3)
+    borderBox()
     &.left
       left                0
       rounded             0 4px 4px 0
+      border-width        1px 1px 1px 0
       span
+        right             10px
         bg                position, -220px -100px
-        right             20px
     &.right
       right               0
       rounded             4px 0 0 4px
+      border-width        1px 0 1px 1px
       span
         left              20px
         bg                position, -200px -100px
+    &:hover
+      width               40px
+
+
     span
       abs()
       display             block
-      top                 25px
+      top                 50%
+      margin-top          -15px
+      margin-left         -10px
       size                20px, 30px
-      opacity             .5
-      vendor              transition, opacity .15s ease-in-out
       sprite()
 
-  section
-    top                   0
-    left                  0
-    abs()
-    size                  100%,100%
+  > section
+    size                  100%, auto
     overflow              hidden
-    // overflow-x            visible
-
+    text-align            center
+    padding               30px 0
+    // gradient              rgba(0, 0, 0, .1), rgba(0, 0, 0, .05)
+    background            transparent url("../images/bg/blurred/4.jpg") no-repeat 0 0
+    background-size       cover
+    border                1px solid rgba(0, 0, 0, .1)
+    border-top-color      rgba(0, 0, 0, .3)
+    border-width          1px 0 1px
+    shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
 
   ul
     margin                0
@@ -181,32 +163,107 @@ div.screenshots
     z-index               0
 
     li
-      // opacity             0
       rel()
       size                100%, auto
       overflow            visible
       vendor              transition, opacity .5s ease-in-out
       fl()
-      // &.in
-      //   opacity           1
 
       p
-        hidden()
         abs()
-        bottom            30px
-        size              100%, 60px
-        font-size         16px
-        text-shadow       0 1px 0 rgba(0,0,0,0.2)
+        size              auto, auto
+        bottom            20px
+        right             50%
+        max-width         600px
+        padding           10px 40px
+        margin-right      -410px
+        font-size         20px
+        line-height       30px
+        text-align        right
+        color             #FFF
+        opacity           .9
+        text-shadow       0 1px 0 rgba(0,0,0,0.4)
+        gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
         bg                color, #ff9200
-        padding           20px 0
-        shadow            0 5px 15px rgba(0,0,0,0.5)
+        shadow            0 0 10px rgba(0,0,0,0.5)
+        rounded           2px
         borderBox()
+        span
+          font-style      italic
+          font-size       12px
+          line-height     20px
+          color           rgba(255, 255, 255, .85)
+          display         block
 
-      img
+      > div
+      > img
+        display           inline-block
         width             90%
         max-width         800px
         min-width         500px
+        max-height        503px
         rounded           4px
         shadow            0 10px 25px rgba(0,0,0,0.5)
+        overflow          hidden
+      > div
+        background        rgba(0, 0, 0, .4)
+        iframe
+          padding         10px
+          borderBox()
+
+  .home-links
+    abs()
+    top                 585px
+    size                auto, 50px
+    margin              30px auto
+
+    .custom-link-view
+      display           inline-block
+      size              auto, 100%
+      padding           0 26px 0 20px
+      margin            0 0 0 20px
+      rounded           4px
+      line-height       49px
+      gradient          #666, #505050
+      // border-right      1px solid rgba(255,255,255,.2)
+      border-top        1px solid rgba(255,255,255,.2)
+      border-left       1px solid rgba(0,0,0,.1)
+      text-shadow       0 1px 0 rgba(0,0,0,.9)
+      borderBox()
+      .title
+        color           rgba(255,255,255,.9)
+      .icon
+        margin          15px 1px 0 0
+      &:hover
+        .title
+          color         rgba(255,255,255,1)
+      &.open
+        .icon
+          bg            position, -200px -340px
+      &.logout
+        .icon
+          bg            position, -200px -320px
+      &.login
+        .icon
+          bg            position, -220px -320px
+      &.register
+        .icon
+          bg            position, -220px -341px
+      &.customize
+        .icon
+          bg            position, -200px -380px
+      &.request
+        .icon
+          bg            position, -200px -360px
+      &.join
+        .icon
+          bg            position, -220px -378px
+      &.customize
+      &.join
+      &.request
+      &.green
+      &.open
+        gradient        #68B43B, #5B9D33
+
 
 // NEW TRY END
