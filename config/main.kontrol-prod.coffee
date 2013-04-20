@@ -22,7 +22,7 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
