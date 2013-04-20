@@ -11,12 +11,7 @@ class ActivityAppView extends JView
     feedWrapper    = new ActivityListContainer
     @innerNav      = new ActivityInnerNavigation
 
-    @header = new WelcomeHeader
-      type      : "big"
-      title     : if KD.isLoggedIn() then\
-        "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
-        "Welcome to the Koding Public Beta!<br>"
-      subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
+    @header = new HomeAppView
 
     @split = new ActivitySplitView
       views     : [@innerNav, feedWrapper]
@@ -38,7 +33,7 @@ class ActivityAppView extends JView
 
     @utils.wait 1000, @notifyResizeListeners.bind @
 
-    @header.hide()  if localStorage.welcomeMessageClosed
+    # @header.hide()  if localStorage.welcomeMessageClosed
 
   pistachio:->
     """

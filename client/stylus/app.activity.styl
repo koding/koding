@@ -118,6 +118,8 @@ h1.kdheaderview.notification-header
 *  ACTIVITY LIST STYLES
 */
 .content-page.activity
+  overflow                auto
+  size                    100%, auto
   .feeder-header
     height                28px
     line-height           28px
@@ -834,52 +836,19 @@ button.activity-status-context
   height                auto
   overflow              visible
   z-index               100
-  top                   0
-  left                  0
   abs()
   .first-label
     hidden()
   &.edit-mode
     .kdbuttonwithmenu-wrapper.activity-status-context
       hidden()
-    // .update-widget-tabs .kdtabpaneview
-    //   bg                color, #ffd56e
     .first-label
       visible()
-
-// .activity-update-widget-wrapper-folded
-//   height                auto
-//   abs()
-//   overflow              visible
-//   z-index               100
-//   hidden()
-//   .first-label
-//     hidden()
-//   &.edit-mode
-//     visible()
-//     .kdbuttonwithmenu-wrapper.activity-status-context
-//       hidden()
-//     // .update-widget-tabs .kdtabpaneview
-//     //   bg                color, #ffd56e
-//     .first-label
-//       visible()
 
 .widget-holder
   overflow              visible
   min-height            75px
   borderBox()
-  // .widget-back
-  //   width               100%
-  //   height              74px
-  //   abs()
-  //   bg                  color, white
-  //   left                0
-  //   top                 0
-  //   z-index             0
-  //   &.gradient
-  //     border-bottom     1px solid rgb(229,229,229)
-  //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
-  //     gradient          rgb(255,255,255),rgb(242,242,242)
 
   .chevron-separator
     display           none
@@ -913,7 +882,6 @@ button.activity-status-context
   border                    1px solid #bbb
   bg                        color,rgba(255,255,255,.95)
   min-width                 150px
-  // border                    1px solid rgb(187,187,187)
 
   .kdlistview-buttonmenu
     rounded                 3px 0 3px 3px

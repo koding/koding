@@ -286,10 +286,10 @@ class Sidebar extends JView
     # temp until groups are implemented
     do ->
       if location.hostname is "koding.com"
-        id    : "navigation"
-        title : "navigation"
-        items : [
-          { title : "Home",           path : "/Home" }
+        id        : "navigation"
+        title     : "navigation"
+        items     : [
+          { title : "Home",           path : "/Activity" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }
@@ -302,10 +302,10 @@ class Sidebar extends JView
           { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
         ]
       else
-        id    : "navigation"
-        title : "navigation"
-        items : [
-          { title : "Home",           path : "/Home" }
+        id        : "navigation"
+        title     : "navigation"
+        items     : [
+          { title : "Home",           path : "/Activity" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }
