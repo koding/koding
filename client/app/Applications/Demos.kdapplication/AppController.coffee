@@ -65,6 +65,28 @@ class ChatContactListView extends KDListView
 
     super options, data
 
+  getItemIndex:(targetItem)->
+    for item, index in @items
+      return index if item is targetItem
+    return -1
+
+  goUp:(item)->
+    index = @getItemIndex item
+    return unless index >= 0
+
+    if index - 1 >= 0
+      item.collapse() unless @items[index - 1].conversation?.isVisible()
+      @items[index - 1].createConversation no
+
+  goDown:(item)->
+    index = @getItemIndex item
+    return unless index >= 0
+
+    if index + 1 < @items.length
+      item.collapse()
+      item.collapse() unless @items[index + 1].conversation?.isVisible()
+      @items[index + 1].createConversation no
+
 class ChatContactListItem extends KDListItemView
 
   constructor:(options = {},data)->
@@ -76,14 +98,20 @@ class ChatContactListItem extends KDListItemView
     @title = new ChatContactListItemTitle null, data
     @title.on 'click', @bound 'createConversation'
 
-  createConversation:->
+  createConversation:(toggle = yes)->
     unless @conversation
-      @conversation = new ChatContactListConversationWidget
+      @conversation = new ChatContactListConversationWidget @
       @conversation.on 'click', @conversation.bound 'takeFocus'
       @addSubView @conversation
     else
-      @conversation.$().toggleClass 'ready'
-      @conversation.takeFocus()
+      if @conversation.isVisible()
+        @conversation.takeFocus()
+
+      if toggle then @conversation.toggle()
+      else @conversation.expand()
+
+  collapse:->
+    @conversation?.collapse()
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -124,6 +152,12 @@ class ChatContactListConversationWidget extends JView
     @messageInput.on 'messageSent', (message)=>
       @conversationController.addItem {message}
 
+    @messageInput.on 'goUpRequested', =>
+      item.getDelegate().goUp item
+
+    @messageInput.on 'goDownRequested', =>
+      item.getDelegate().goDown item
+
     @conversationList = new ChatConversationListView
       itemClass : ChatConversationListItem
 
@@ -133,6 +167,18 @@ class ChatContactListConversationWidget extends JView
     KD.utils.defer =>
       @setClass 'ready'
       @takeFocus()
+
+  toggle:->
+    @toggleClass 'ready'
+
+  collapse:->
+    @unsetClass 'ready'
+
+  expand:->
+    @setClass 'ready'
+
+  isVisible:->
+    @hasClass 'ready'
 
   takeFocus:-> @messageInput.setFocus()
 
@@ -169,11 +215,22 @@ class ChatConversationListItem extends KDListItemView
     """{{#(message)}}"""
 
 class ChatInputWidget extends KDHitEnterInputView
+
   constructor:->
     super
-      type         : "text"
-      placeholder  : "Type your message..."
-      callback     : ->
+      type              : "text"
+      placeholder       : "Type your message..."
+      keyup             :
+        "up"            : (e) => @emit 'goUpRequested'
+        "down"          : (e) => @emit 'goDownRequested'
+        # "super+up"      : (e) =>
+        #   e.preventDefault()
+        #   log 'move prev'
+        # "super+down"    : (e) =>
+        #   e.preventDefault()
+        #   log 'move next'
+      callback          : ->
         @emit 'messageSent', @getValue()
         @setValue ''
         @setFocus()
+
