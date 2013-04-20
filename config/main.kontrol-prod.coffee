@@ -14,7 +14,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://web-kontrol-test.in.koding.com:3000"
+    address     : "#{version}.x.koding.com"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -94,26 +94,26 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://web-kontrol-test.in.koding.com:3000'
+    staticFilesBaseUrl: "#{version}.x.koding.com"
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://web-kontrol-test.in.koding.com:3000'
+      mainUri   : "#{version}.x.koding.com"
       broker    :
-        sockJS  : 'http://web-kontrol-test.in.koding.com:8008/subscribe'
+        sockJS   : "broker-#{version}.x.koding.com/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
   mq            :
-    host        : 'web-kontrol-test.in.koding.com'
+    host        : 'web-dev.in.koding.com'
     port        : 5672
-    apiAddress  : "web-kontrol-test.in.koding.com"
-    apiPort     : 55672
+    apiAddress  : "web-dev.in.koding.com"
+    apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 'alluppercasekoding'
+    password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
     vhost       : '/'
   broker        :
@@ -125,7 +125,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'web-kontrol-test.in.koding.com'
+    address     : "#{version}.x.koding.com"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
