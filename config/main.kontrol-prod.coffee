@@ -2,9 +2,7 @@ fs = require 'fs'
 nodePath = require 'path'
 deepFreeze = require 'koding-deep-freeze'
 
-# jenkins write to this as last step after building, we use RELEASE to avoid confusion with
-# building it manually
-version = (fs.readFileSync nodePath.join(__dirname, '../RELEASE'), 'utf-8').trim()
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-#{version}"
