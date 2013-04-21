@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://koding.local"
+    address     : "http://10.5.5.2"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -82,22 +82,22 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://koding.local'
+    staticFilesBaseUrl: 'http://10.5.5.2'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://koding.local:8008/subscribe'
+        sockJS  : 'http://10.5.5.2:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://koding.local'
+      mainUri   : 'http://10.5.5.2'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://koding.local:1337'
+      sourceUri : 'http://10.5.5.2:1337'
   mq            :
-    host        : 'koding.local'
+    host        : '10.5.5.2'
     port        : 5672
-    apiAddress  : "koding.local"
+    apiAddress  : "10.5.5.2"
     apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
@@ -113,7 +113,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'koding.local'
+    host        : '10.5.5.2'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :

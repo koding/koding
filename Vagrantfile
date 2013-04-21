@@ -1,27 +1,3 @@
-hosts = {
-        "koding.local"   => "10.5.5.2",
-}
-
-count=0
-File.open('/etc/hosts').each_line do |s|
-    hosts.each_pair do |host,ip|
-        host = host.gsub(".","\\.")
-        ip = ip.gsub(".","\\.")
-        if s.match(/^#{ip}\s+#{host}/)
-            count += 1
-        end
-    end
-end
-
-unless count.eql?(hosts.length)
-    puts "\033[1;31m******************** WARNING !!! ****************\n\n"
-    puts "please add the following hosts to the /etc/hosts:"
-    hosts.each_pair do |host,ip|
-        puts "#{ip} #{host}"
-    end
-    puts "******************** WARNING !!! ****************\033[0m\n\n"
-end
-
 File.new(File.join(File.dirname(__FILE__), "vagrant.pem")).chmod(0600)
 
 Vagrant.configure("2") do |config|
