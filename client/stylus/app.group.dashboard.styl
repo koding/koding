@@ -232,7 +232,6 @@
     &.shadow
       shadow                  0 0 15px rgba(0,0,0,.1)
 
-
   .loader
     fl()
     margin-top                10px
@@ -241,6 +240,19 @@
     width                     auto
     margin-top                8px
     padding-left              5px
+
+  .readme
+  .invitations
+    .button-bar
+      margin-top              10px
+      margin-bottom           5px
+      text-align              right
+      width                   auto
+      opacity                 0.95
+      vendor transition,      opacity 0.2s linear
+      &:hover
+        opacity               1
+
   .readme
     borderBox()
     padding                   0px 20px
@@ -259,15 +271,6 @@
       max-height              400px
       .preview_content
         padding               10px
-    .button-bar
-      margin-top              10px
-      margin-bottom           5px
-      text-align              right
-      width                   auto
-      opacity                 0.95
-      vendor transition,      opacity 0.2s linear
-      &:hover
-        opacity               1
     .edit-cancel
       font-size               12px
       margin-top              4px
@@ -361,6 +364,9 @@
     .membership-policy
     .approval-requests
 
+      .button-bar
+        margin-right          20px
+
       section.formline
         margin-left           100px
         margin-top            10px
@@ -389,26 +395,6 @@
           height              24px
           line-height         8px
           fr()
-
-        .buttons button
-          float               none
-          display             inline-block
-
-        .input-wrapper
-          display             inline
-
-        input.inline
-          display             inline-block
-
-        section.single-invite input
-          width               100%
-          float               left
-          margin-right        -50px
-
-        section.batch-invite textarea
-          width               100%
-          height              65px
-          margin-bottom       5px
 
         .policylanguage-editor
 
@@ -444,7 +430,6 @@
 
     .invitations
     .approval-requests
-      padding-top             20px
 
       div.formline.button-field
         margin                0
@@ -466,15 +451,6 @@
 
         &.status-quo
           width               100%
-
-        &.single-invite
-          padding-left        0
-          padding-top         0
-          h2.username
-            margin-top        10px
-        &.batch-invite
-          padding-right       0
-          padding-top         0
 
       .request-list
 

@@ -24,104 +24,25 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @statusFilter =
       options.statusFilter ? ['pending','sent','approved', 'declined', 'accepted', 'ignored']
 
-    @inviteByEmail = new KDFormViewWithFields
-      callback            : => @emit 'InviteByEmail', @inviteByEmail
-      fields              :
-        recipient         :
-          type            : 'text'
-          name            : 'recipient'
-          cssClass        : 'inline'
-          placeholder     : 'Enter an email address...'
-          validate        :
-            rules         :
-              required    : yes
-              email       : yes
-            messages      :
-              required    : 'An email address is required!'
-              email       : 'That does not not seem to be a valid email address!'
-          nextElementFlat :
-            'Send'        :
-              itemClass   : KDButtonView
-              type        : 'submit'
-              loader      :
-                color     : '#444444'
-                diameter  : 12
-    @inviteByEmail.on 'FormValidationFailed', => @inviteByEmail.inputs['Send'].hideLoader()
-
-    @inviteByUsername = new KDFormViewWithFields
-      callback            : => @emit 'InviteByUsername', @inviteByUsername
-      fields              :
-        recipient         :
-          type            : 'text'
-          name            : 'recipient'
-          cssClass        : 'inline'
-          placeholder     : 'Enter a username...'
-          validate        :
-            rules         :
-              required    : yes
-            messages      :
-              required    : 'A username is required!'
-          nextElementFlat :
-            'Send'        :
-              itemClass   : KDButtonView
-              type        : 'submit'
-              loader      :
-                color     : '#444444'
-                diameter  : 12
-    @inviteByUsername.on 'FormValidationFailed', => @inviteByUsername.inputs['Send'].hideLoader()
+    @inviteByEmailButton = new KDButtonView
+      title    : 'Invite by Email'
+      cssClass : 'clean-gray'
+      callback : => @showInviteByEmailModal()
+    @inviteByUsernameButton = new KDButtonView
+      title    : 'Invite by Username'
+      cssClass : 'clean-gray'
+      callback : => @showInviteByUsernameModal()
+    @batchInviteButton = new KDButtonView
+      title    : 'Batch Invite'
+      cssClass : 'clean-gray'
+      callback : => @showBatchInviteModal()
+    @batchApproveButton = new KDButtonView
+      title    : 'Batch Approve Requests'
+      cssClass : 'clean-gray'
+      callback : => @showBatchApproveModal()
 
     @prepareBulkInvitations()
-    
-    @batchApprove = new KDFormViewWithFields
-      callback             : => @emit 'BatchApproveRequests', @batchApprove, +@batchApprove.getFormData().count
-      cssClass             : 'invite-tools'
-      fields               :
-        count              :
-          label            : '# of requests'
-          type             : 'text'
-          defaultValue     : 10
-          placeholder      : 'how many requests do you want to approve?'
-          cssClass         : 'inline'
-          validate         :
-            rules          :
-              regExp       : /\d+/i
-            messages       :
-              regExp       : 'numbers only please'
-          nextElementFlat  :
-            'Approve' :
-              itemClass    : KDButtonView
-              type         : 'submit'
-              loader       :
-                color      : '#444444'
-                diameter   : 12
-    , group
-    @batchApprove.on 'FormValidationFailed', => @batchApprove.inputs['Approve'].hideLoader()
-
-    @batchInvite = new KDFormViewWithFields
-      callback             : => @emit 'BatchInvite', @batchInvite
-      cssClass             : 'invite-tools'
-      fields               :
-        emails             :
-          type             : 'textarea'
-          placeholder      : 'Enter each email address on a new line...'
-          cssClass         : 'inline'
-          validate         :
-            rules          :
-              required     : yes
-            messages       :
-              required     : 'At least one email address required!'
-          nextElementFlat  :
-            'Send' :
-              itemClass    : KDButtonView
-              type         : 'submit'
-              loader       :
-                color      : '#444444'
-                diameter   : 12
-    , group
-    @batchInvite.on 'FormValidationFailed', => @batchInvite.inputs['Invite'].hideLoader()
-
     @refresh()
-
     @utils.defer =>
       @parent.on 'NewInvitationActionArrived', =>
         @refresh()
@@ -220,6 +141,149 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @resolvedInvitationsList = @resInvitationsListController.getView()
     return @resolvedInvitationsList
 
+  showInviteByEmailModal:->
+    modal = @inviteByEmail = new KDModalViewWithForms
+      title                  : 'Invite by Email'
+      overlay                : yes
+      width                  : 300
+      height                 : 'auto'
+      tabs                   :
+        forms                :
+          invite             :
+            callback         : => @emit 'InviteByEmail', modal.modalTabs.forms.invite
+            buttons          :
+              Send           :
+                itemClass    : KDButtonView
+                type         : 'submit'
+                loader       :
+                  color      : '#444444'
+                  diameter   : 12
+              Cancel         :
+                style        : 'modal-cancel'
+                callback     : (event)=> modal.destroy()
+            fields           :
+              recipient      :
+                label        : 'Email address'
+                type         : 'text'
+                name         : 'recipient'
+                placeholder  : 'Enter an email address...'
+                validate     :
+                  rules      :
+                    required : yes
+                    email    : yes
+                  messages   :
+                    required : 'An email address is required!'
+                    email    : 'That does not not seem to be a valid email address!'
+
+    form = modal.modalTabs.forms.invite
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+
+  showInviteByUsernameModal:->
+    modal = @inviteByUsername = new KDModalViewWithForms
+      title                  : 'Invite by Username'
+      overlay                : yes
+      width                  : 300
+      height                 : 'auto'
+      tabs                   :
+        forms                :
+          invite             :
+            callback         : => @emit 'InviteByUsername', modal.modalTabs.forms.invite
+            buttons          :
+              Send           :
+                itemClass    : KDButtonView
+                type         : 'submit'
+                loader       :
+                  color      : '#444444'
+                  diameter   : 12
+              Cancel         :
+                style        : 'modal-cancel'
+                callback     : (event)=> modal.destroy()
+            fields           :
+              recipient      :
+                label        : 'Username'
+                type         : 'text'
+                name         : 'recipient'
+                placeholder  : 'Enter a user name...'
+                validate     :
+                  rules      :
+                    required : yes
+                  messages   :
+                    required : 'A user name is required!'
+
+    form = modal.modalTabs.forms.invite
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+
+  showBatchInviteModal:->
+    modal = @batchInvite = new KDModalViewWithForms
+      title                  : 'Batch Invite by Email'
+      overlay                : yes
+      width                  : 300
+      height                 : 'auto'
+      tabs                   :
+        forms                :
+          invite             :
+            callback         : => @emit 'BatchInvite', modal.modalTabs.forms.invite
+            buttons          :
+              Send          :
+                itemClass    : KDButtonView
+                type         : 'submit'
+                loader       :
+                  color      : '#444444'
+                  diameter   : 12
+              Cancel         :
+                style        : 'modal-cancel'
+                callback     : (event)=> modal.destroy()
+            fields           :
+              emails         :
+                label        : 'Emails'
+                type         : 'textarea'
+                placeholder  : 'Enter each email address on a new line...'
+                validate     :
+                  rules      :
+                    required : yes
+                  messages   :
+                    required : 'At least one email address required!'
+
+    form = modal.modalTabs.forms.invite
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+
+  showBatchApproveModal:->
+    modal = @batchApprove = new KDModalViewWithForms
+      title                  : 'Batch Approve Requests'
+      overlay                : yes
+      width                  : 300
+      height                 : 'auto'
+      tabs                   :
+        forms                :
+          invite             :
+            callback         : => 
+              form = modal.modalTabs.forms.invite
+              @emit 'BatchApproveRequests', form, +form.getFormData().count
+            buttons          :
+              Send          :
+                itemClass    : KDButtonView
+                type         : 'submit'
+                loader       :
+                  color      : '#444444'
+                  diameter   : 12
+              Cancel         :
+                style        : 'modal-cancel'
+                callback     : (event)=> modal.destroy()
+            fields           :
+              count          :
+                label        : '# of requests'
+                type         : 'text'
+                defaultValue : 10
+                placeholder  : 'how many requests do you want to approve?'
+                validate     :
+                  rules      :
+                    regExp   : /\d+/i
+                  messages   :
+                    regExp   : 'numbers only please'
+
+    form = modal.modalTabs.forms.invite
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+
   showErrorMessage:(err)->
     warn err
     new KDNotificationView 
@@ -228,29 +292,13 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   pistachio:->
     """
+    <div class="button-bar">
+      {{> @batchApproveButton}} {{> @batchInviteButton}} {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
+    </div>
     <section class="formline status-quo">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
-    <div class="formline">
-      <section class="formline batch-approve">
-        <h2>Batch approve requests</h2>
-        {{> @batchApprove}}
-      </section>
-      <section class="formline">
-        <section class="formline single-invite">
-          <h2>Invite by email</h2>
-          {{> @inviteByEmail}}
-
-          <h2 class="username">Invite by username</h2>
-          {{> @inviteByUsername}}
-        </section>
-        <section class="formline batch-invite">
-          <h2>Batch invite by email</h2>
-          {{> @batchInvite}}
-        </section>
-      </section>
-    </div>
     <div class="formline">
       <section class="formline pending">
         <h2>Pending requests</h2>
