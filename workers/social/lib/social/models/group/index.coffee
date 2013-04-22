@@ -76,9 +76,9 @@ module.exports = class JGroup extends Module
         'countPendingInvitationRequests', 'countPendingSentInvitations',
         'countInvitationRequests', 'fetchInvitationRequestCounts', 
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
-        'setBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByUsername',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'remove',
-        'sendSomeInvitations'
+        'setBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByEmails', 
+        'inviteByUsername', 'removeBackgroundImage', 'kickMember', 
+        'transferOwnership', 'remove', 'sendSomeInvitations'
       ]
     schema          :
       title         :
@@ -722,6 +722,15 @@ module.exports = class JGroup extends Module
   inviteByEmail: permit 'send invitations',
     success: (client, email, callback)->
       @inviteMember client, email, callback
+
+  inviteByEmails: permit 'send invitations',
+    success: (client, emails, callback)->
+      queue = emails.split(/\n/).map (email)=>=>
+        @inviteByEmail client, email.trim(), (err)->
+          return callback err if err
+          queue.next()
+      queue.push -> callback null
+      daisy queue
 
   inviteByUsername: permit 'send invitations',
     success: (client, username, callback)->

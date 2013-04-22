@@ -558,6 +558,15 @@ class GroupsAppController extends AppController
             invitationRequestView.prepareBulkInvitations()
             invitationRequestView.refresh()
 
+        invitationRequestView.on 'BatchInvite', (form)->
+          {emails} = form.getFormData()
+          group.inviteByEmails emails, (err)=>
+            form.inputs['Send'].hideLoader()
+            if err then invitationRequestView.showErrorMessage err
+            else 
+              new KDNotificationView title:'Invitations sent!'
+              invitationRequestView.refresh()
+
         invitationRequestView.on 'InviteByEmail', (form)->
           {recipient} = form.getFormData()
           group.inviteByEmail recipient, (err)=>
