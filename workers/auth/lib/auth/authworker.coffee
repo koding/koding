@@ -105,6 +105,12 @@ module.exports = class AuthWorker extends EventEmitter
       callbacks : {}
     }
 
+  setSecretName:(routingKey, secretChannelName)->
+    console.log {routingKey, secretChannelName}
+    setSecretNameEvent = "#{routingKey}.setSecretName"
+    message = JSON.stringify secretChannelName
+    @bongo.respondToClient setSecretNameEvent, message
+
   fetchNotificationExchange:(callback)->
     @bongo.mq.connection.exchange(
       @notificationExchange
@@ -112,9 +118,20 @@ module.exports = class AuthWorker extends EventEmitter
       callback
     )
 
-  joinClient: do ->
+  _fakePersistenceWorker:(secretChannelName)->
+    console.log {secretChannelName}
+    {connection} = @bongo.mq
+    options = {type: 'fanout', autoDelete: yes, durable: no}
+    connection.exchange secretChannelName, options, (exchange)->
+      connection.queue '', {autoDelete: yes, durable: no, exclusive: yes}, (queue)->
+        queue.bind exchange, '#'
+        queue.on 'queueBindOk', ->
+          console.trace(); queue.subscribe (message)->
+            console.log message.data+''
 
-    joinClientHelper =(messageData, routingKey, socketId)->
+  join: do ->
+
+    joinHelper =(messageData, routingKey, socketId)->
       @authenticate messageData, routingKey, (session)=>
         serviceResourceName = @getNextServiceName messageData.name
         unless serviceResourceName?
@@ -145,7 +162,7 @@ module.exports = class AuthWorker extends EventEmitter
           else
             JGroup.fetchSecretChannelName group.slug, callback
 
-    joinClientGroupHelper =(messageData, routingKey, socketId)->
+    joinGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
       fail = (err)=>
         console.error err  if err
@@ -166,11 +183,9 @@ module.exports = class AuthWorker extends EventEmitter
                         if err or not secretChannelName
                           @rejectClient routingKey
                         else
-                          setSecretNameEvent = "#{routingKey}.setSecretName"
-                          message = JSON.stringify secretChannelName
-                          @bongo.respondToClient setSecretNameEvent, message
+                          @setSecretName routingKey
 
-    joinClientNotificationHelper =(messageData, routingKey, socketId)->
+    joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
         console.error err  if err
         @rejectClient routingKey
@@ -185,23 +200,34 @@ module.exports = class AuthWorker extends EventEmitter
         else
           @rejectClient routingKey
 
-    joinClient =(messageData, socketId)->
+    joinChatHelper =(messageData, routingKey, socketId)->
+      {name} = messageData
+      {JName} = @bongo.models
+      JName.fetchSecretName name, (err, secretChannelName)=>
+        return console.error err  if err
+
+        @_fakePersistenceWorker secretChannelName
+
+        @setSecretName routingKey, secretChannelName
+
+    join =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
       switch serviceType
         when 'bongo', 'kite'
-          joinClientHelper.call this, messageData, routingKey, socketId
+          joinHelper.call this, messageData, routingKey, socketId
         
         when 'group'
           unless ///^group\.#{messageData.group}\.///.test routingKey
             return @rejectClient routingKey
-          joinClientGroupHelper.call this, messageData, routingKey, socketId
+          joinGroupHelper.call this, messageData, routingKey, socketId
         
-        when 'chat' then # TODO: handle authentication for chat
+        when 'chat'
+          joinChatHelper.call this, messageData, routingKey, socketId
         
         when 'notification'
           unless ///^notification\.///.test routingKey
             return @rejectClient routingKey
-          joinClientNotificationHelper.call this, messageData, routingKey, socketId
+          joinNotificationHelper.call this, messageData, routingKey, socketId
 
         when 'secret'
           @addClient socketId, routingKey, routingKey, no
@@ -287,6 +313,6 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.leave'
                   @removeService messageData
                 when "client.auth"
-                  @joinClient messageData, socketId
+                  @join messageData, socketId
                 else
                   @rejectClient routingKey

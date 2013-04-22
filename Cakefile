@@ -222,7 +222,7 @@ task 'goBroker',(options)->
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
+    cmd   : "./go/bin/broker -c #{configFile} -d" + addFlags(options)
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
