@@ -550,9 +550,9 @@ class GroupsAppController extends AppController
       (pane, invitationRequestView)->
 
         invitationRequestView.on 'BatchApproveRequests', (form, count)->
-          count = invitationRequestView.batchApprove.inputs.Count.getValue()
+          count = form.inputs.count.getValue()
           group.sendSomeInvitations count, (err)->
-            form.inputs['Approve'].hideLoader()
+            form.buttons.Send.hideLoader()
             return invitationRequestView.showErrorMessage err if err
             new KDNotificationView title:'Invites sent!'
             invitationRequestView.prepareBulkInvitations()
@@ -561,7 +561,7 @@ class GroupsAppController extends AppController
         invitationRequestView.on 'BatchInvite', (form)->
           {emails} = form.getFormData()
           group.inviteByEmails emails, (err)=>
-            form.inputs['Send'].hideLoader()
+            form.buttons.Send.hideLoader()
             if err then invitationRequestView.showErrorMessage err
             else 
               new KDNotificationView title:'Invitations sent!'
@@ -570,7 +570,7 @@ class GroupsAppController extends AppController
         invitationRequestView.on 'InviteByEmail', (form)->
           {recipient} = form.getFormData()
           group.inviteByEmail recipient, (err)=>
-            form.inputs['Send'].hideLoader()
+            form.buttons.Send.hideLoader()
             if err then invitationRequestView.showErrorMessage err
             else 
               new KDNotificationView title:'Invitation sent!'
@@ -579,7 +579,7 @@ class GroupsAppController extends AppController
         invitationRequestView.on 'InviteByUsername', (form)->
           {recipient} = form.getFormData()
           group.inviteByUsername recipient, (err)=>
-            form.inputs['Send'].hideLoader()
+            form.buttons.Send.hideLoader()
             if err then invitationRequestView.showErrorMessage err
             else 
               new KDNotificationView title:'Invitation sent!'
