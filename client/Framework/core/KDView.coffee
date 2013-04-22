@@ -222,7 +222,7 @@ class KDView extends KDObject
   getElement:-> @getDomElement()[0]
 
   # shortcut method for @getDomElement()
-  
+
   $ :(selector)->
     if selector?
       @getDomElement().find(selector)
@@ -300,6 +300,10 @@ class KDView extends KDObject
 
   toggleClass:(cssClass)->
     @$().toggleClass cssClass
+    @
+
+  hasClass:(cssClass)->
+    @$().hasClass cssClass
     @
 
   getBounds:()->
