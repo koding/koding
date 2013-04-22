@@ -386,9 +386,10 @@ module.exports = class JAccount extends jraphical.Module
       if err then callback err
       else
         selector =
-          email  : user.email
-          status : {$in:['pending', 'sent']}
-          group  : {$exists:1}
+          email          : user.email
+          invitationType : 'invitation'
+          status         : 'sent'
+          group          : {$exists:1}
 
         JInvitationRequest.some selector, {}, (err, invites)->
           if err then callback err
