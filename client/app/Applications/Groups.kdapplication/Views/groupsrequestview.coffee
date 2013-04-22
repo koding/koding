@@ -29,6 +29,6 @@ class GroupsRequestView extends JView
     options   =
       targetOptions : { selector: targetSelector }
       sort          : { timestamp: -1 }
-      limit         : 20
+      limit         : 10
 
     group.fetchInvitationRequests selector, options, callback

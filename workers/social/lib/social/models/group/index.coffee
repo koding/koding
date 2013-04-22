@@ -77,7 +77,8 @@ module.exports = class JGroup extends Module
         'countInvitationRequests', 'fetchInvitationRequestCounts', 
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
         'setBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByUsername',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'remove'
+        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'remove',
+        'sendSomeInvitations'
       ]
     schema          :
       title         :
@@ -802,13 +803,10 @@ module.exports = class JGroup extends Module
         if err then callback err
         else
           queue = requests.map (request)->->
-            request.sendInvitation client, ->
-              callback null, """
-                An invite was sent to:
-                <strong>koding+#{request.koding.username}@koding.com</strong>
-                """
+            request.approveInvitation client, (err)->
+              return callback err if err
               setTimeout queue.next.bind(queue), 50
-          queue.push -> callback null, null
+          queue.push -> callback null
           daisy queue
 
   requestAccess: secure (client, callback)->

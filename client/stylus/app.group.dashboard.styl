@@ -390,6 +390,10 @@
           line-height         8px
           fr()
 
+        .buttons button
+          float               none
+          display             inline-block
+
         .input-wrapper
           display             inline
 
@@ -482,10 +486,12 @@
               color           #ff9101
               .icon
                 bg            position, -100px -580px
+            &.accepted
             &.approved
               color           #40af00
               .icon
                 bg            position, -80px -500px
+            &.ignored
             &.declined
               color           #be2a26
               .icon

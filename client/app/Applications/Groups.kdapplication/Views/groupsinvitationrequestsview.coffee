@@ -1,9 +1,8 @@
 class GroupsInvitationRequestsView extends GroupsRequestView
 
-  controllerNames = ['pendingList','sentList','resolvedList']
+  controllerNames = ['penRequestsList','penInvitationsList','resRequestsList','resInvitationsList']
 
   constructor:(options, data)->
-
     options.cssClass = 'groups-invitation-request-view'
 
     super
@@ -12,9 +11,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @timestamp = new Date 0
 
-    @prepareSentList()
-    @prepareRequestList()
-    @prepareResolvedList()
+    @preparePendingRequestsList()
+    @preparePendingInvitationsList()
+    @prepareResolvedRequestsList()
+    @prepareResolvedInvitationsList()
 
     @currentState = new KDView cssClass: 'formline'
 
@@ -22,11 +22,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       options.invitationTypeFilter ? ['basic approval','invitation']
 
     @statusFilter =
-      options.statusFilter ? ['pending','sent','approved', 'declined']
+      options.statusFilter ? ['pending','sent','approved', 'declined', 'accepted', 'ignored']
 
     @inviteByEmail = new KDFormViewWithFields
-      callback            : (err)=>
-        @sendInviteByEmail()
+      callback            : => @emit 'InviteByEmail', @inviteByEmail
       fields              :
         recipient         :
           type            : 'text'
@@ -50,7 +49,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @inviteByEmail.on 'FormValidationFailed', => @inviteByEmail.inputs['Send'].hideLoader()
 
     @inviteByUsername = new KDFormViewWithFields
-      callback            : => @sendInviteByUsername()
+      callback            : => @emit 'InviteByUsername', @inviteByUsername
       fields              :
         recipient         :
           type            : 'text'
@@ -72,14 +71,16 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @inviteByUsername.on 'FormValidationFailed', => @inviteByUsername.inputs['Send'].hideLoader()
 
     @prepareBulkInvitations()
-    @batchInvites = new KDFormViewWithFields
+    
+    @batchApprove = new KDFormViewWithFields
+      callback             : => @emit 'BatchApproveRequests', @batchApprove, +@batchApprove.getFormData().Count
       cssClass             : 'invite-tools'
       fields               :
         Count              :
-          label            : '# of Invites'
+          label            : '# of requests'
           type             : 'text'
           defaultValue     : 10
-          placeholder      : 'how many users do you want to invite?'
+          placeholder      : 'how many requests do you want to approve?'
           cssClass         : 'inline'
           validate         :
             rules          :
@@ -87,15 +88,37 @@ class GroupsInvitationRequestsView extends GroupsRequestView
             messages       :
               regExp       : 'numbers only please'
           nextElementFlat  :
-            'Send invites' :
+            'Approve' :
               itemClass    : KDButtonView
-              title        : 'Send invitation batch'
+              type         : 'submit'
               loader       :
                 color      : '#444444'
                 diameter   : 12
-              callback     : =>
-                @emit 'BatchInvitationsAreSent', +@batchInvites.getFormData().Count
     , group
+    @batchApprove.on 'FormValidationFailed', => @batchApprove.inputs['Approve'].hideLoader()
+
+    @batchInvite = new KDFormViewWithFields
+      callback             : => @emit 'BatchInvite', @batchInvite
+      cssClass             : 'invite-tools'
+      fields               :
+        Emails             :
+          type             : 'textarea'
+          placeholder      : ''
+          cssClass         : 'inline'
+          validate         :
+            rules          :
+              required     : yes
+            messages       :
+              required     : 'At least one email address required!'
+          nextElementFlat  :
+            'Invite' :
+              itemClass    : KDButtonView
+              type         : 'submit'
+              loader       :
+                color      : '#444444'
+                diameter   : 12
+    , group
+    @batchInvite.on 'FormValidationFailed', => @batchInvite.inputs['Invite'].hideLoader()
 
     @refresh()
 
@@ -107,53 +130,51 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     (@["#{controllerName}Controller"] for controllerName in controllerNames)
 
   refresh:->
-
     @fetchSomeRequests @invitationTypeFilter, @statusFilter, (err, requests)=>
       if err then console.error err
       else
-
         groupedRequests = {}
 
         requests.reverse().forEach (request)->
-
           requestGroup =
             if request.status in ['approved','declined']
-              groupedRequests.resolved ?= []
+              groupedRequests.resRequests ?= []
+            else if request.status in ['accepted','ignored']
+              groupedRequests.resInvitations ?= []
             else
               groupedRequests[request.status] ?= []
-
           requestGroup.push request
 
-        {pending, sent, resolved} = groupedRequests
+        {pending, sent, resRequests, resInvitations} = groupedRequests
 
         # clear out any items that may be there already:
         @getControllers().forEach (controller)-> controller.removeAllItems()
 
         # populate the lists:
-        @pendingListController.instantiateListItems pending     if pending?
-        @sentListController.instantiateListItems sent           if sent?
-        @resolvedListController.instantiateListItems resolved   if resolved?
+        @penRequestsListController.instantiateListItems pending           if pending?
+        @penInvitationsListController.instantiateListItems sent           if sent?
+        @resRequestsListController.instantiateListItems resRequests       if resRequests?
+        @resInvitationsListController.instantiateListItems resInvitations if resInvitations?
 
     return this
 
-  prepareSentList:->
-    @sentListController = new InvitationRequestListController
+  preparePendingInvitationsList:->
+    @penInvitationsListController = new InvitationRequestListController
       viewOptions       :
         cssClass        : 'request-list'
-      itemClass         : GroupsInvitationListItemView
       showDefaultItem   : yes
       defaultItem       :
         options         :
           cssClass      : 'default-item'
           partial       : 'No invitations sent'
 
-    @forwardEvent @sentListController, 'ShowMoreRequested', 'Sent'
+    @forwardEvent @penInvitationsListController, 'ShowMoreRequested', 'PendingInvitations'
 
-    @sentRequestList = @sentListController.getView()
-    return @sentRequestList
+    @pendingInvitationsList = @penInvitationsListController.getView()
+    return @pendingInvitationsList
 
-  prepareRequestList:->
-    @pendingListController = new InvitationRequestListController
+  preparePendingRequestsList:->
+    @penRequestsListController = new InvitationRequestListController
       viewOptions       :
         cssClass        : 'request-list'
       itemClass         : GroupsInvitationRequestListItemView
@@ -161,49 +182,43 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       defaultItem       :
         options         :
           cssClass      : 'default-item'
-          partial       : 'No invitations pending'
+          partial       : 'No requests pending'
 
-    @pendingList = @pendingListController.getView()
+    @pendingRequestsList = @penRequestsListController.getView()
 
-    listView = @pendingListController.getListView()
-
+    listView = @penRequestsListController.getListView()
     @forwardEvent listView, 'RequestIsApproved'
     @forwardEvent listView, 'RequestIsDeclined'
 
-    @forwardEvent @pendingListController, 'ShowMoreRequested', 'Pending'
+    @forwardEvent @penRequestsListController, 'ShowMoreRequested', 'PendingRequests'
 
-    return @pendingList
+    return @pendingRequestsList
 
-  prepareResolvedList:->
-    @resolvedListController = new InvitationRequestListController
+  prepareResolvedRequestsList:->
+    @resRequestsListController = new InvitationRequestListController
       showDefaultItem   : yes
       defaultItem       :
         options         :
           cssClass      : 'default-item'
           partial       : 'No requests resolved'
 
-    @forwardEvent @resolvedListController, 'ShowMoreRequested', 'Resolved'
+    @forwardEvent @resRequestsListController, 'ShowMoreRequested', 'ResolvedRequests'
 
-    @resolvedList = @resolvedListController.getView()
-    return @resolvedList
+    @resolvedRequestsList = @resRequestsListController.getView()
+    return @resolvedRequestsList
 
-  sendInviteByEmail:->
-    email = @inviteByEmail.getFormData().recipient
-    @getData().inviteByEmail email, (err)=>
-      @inviteByEmail.inputs['Send'].hideLoader()
-      if err then @showErrorMessage err
-      else 
-        new KDNotificationView title:'Invitation sent!'
-        @refresh()
+  prepareResolvedInvitationsList:->
+    @resInvitationsListController = new InvitationRequestListController
+      showDefaultItem   : yes
+      defaultItem       :
+        options         :
+          cssClass      : 'default-item'
+          partial       : 'No invitations resolved'
 
-  sendInviteByUsername:->
-    username = @inviteByUsername.getFormData().recipient
-    @getData().inviteByUsername username, (err)=>
-      @inviteByUsername.inputs['Send'].hideLoader()
-      if err then @showErrorMessage err
-      else
-        new KDNotificationView title:'Invitation sent!'
-        @refresh()
+    @forwardEvent @resInvitationsListController, 'ShowMoreRequested', 'ResolvedRequests'
+
+    @resolvedInvitationsList = @resInvitationsListController.getView()
+    return @resolvedInvitationsList
 
   showErrorMessage:(err)->
     warn err
@@ -218,6 +233,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       {{> @currentState}}
     </section>
     <div class="formline">
+      <section class="formline batch">
+        <h2>Batch approve requests</h2>
+        {{> @batchApprove}}
+      </section>
       <section class="formline no-padding">
         <section class="formline email">
           <h2>Invite by email</h2>
@@ -228,25 +247,25 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           {{> @inviteByUsername}}
         </section>
       </section>
-      <section class="formline batch">
-        <h2>Send out invites from waitlist</h2>
-        {{> @batchInvites}}
-      </section>
     </div>
     <div class="formline">
       <section class="formline pending">
         <h2>Pending requests</h2>
-        {{> @pendingList}}
+        {{> @pendingRequestsList}}
       </section>
       <section class="formline sent">
         <h2>Sent invitations</h2>
-        {{> @sentRequestList}}
+        {{> @pendingInvitationsList}}
       </section>
     </div>
     <div class="formline">
       <section class="formline resolved">
         <h2>Resolved requests</h2>
-        {{> @resolvedList}}
+        {{> @resolvedRequestsList}}
+      </section>
+      <section class="formline resolved">
+        <h2>Resolved invitations</h2>
+        {{> @resolvedInvitationsList}}
       </section>
     </div>
     """

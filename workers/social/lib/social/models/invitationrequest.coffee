@@ -51,6 +51,8 @@ module.exports = class JInvitationRequest extends Model
           'sent'
           'declined'
           'approved'
+          'ignored'
+          'accepted'
         ]]
         default       : 'pending'
       invitationType  :
@@ -155,7 +157,7 @@ module.exports = class JInvitationRequest extends Model
       else
         group.approveMember account, (err)=>
           if err then callback err
-          else @update $set:{status:'approved'}, (err)->
+          else @update $set:{status:'accepted'}, (err)->
             if err then callback err
             else callback null
 
@@ -163,7 +165,7 @@ module.exports = class JInvitationRequest extends Model
     @fetchDataForAcceptOrIgnore client, (err, account, group)=>
       if err then callback err
       else
-        @update $set:{status:'declined'}, (err)->
+        @update $set:{status:'ignored'}, (err)->
           if err then callback err
           else callback null
 
