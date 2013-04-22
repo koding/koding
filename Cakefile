@@ -95,9 +95,7 @@ task 'webserver', ({configFile}) ->
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
       restart         : yes
       restartInterval : 100
-      isWorker : yes
       needPermission  : yes
-      forceStart : yes
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port

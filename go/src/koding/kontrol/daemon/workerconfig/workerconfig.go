@@ -266,7 +266,7 @@ func (w *WorkerConfig) Delete(hostname, uuid string) error {
 func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
-		return workerResult, fmt.Errorf("ack method error '%s'", err)
+		return workerResult, fmt.Errorf("stop method error '%s'", err)
 	}
 	if workerResult.Status == Running {
 		workerResult.Status = Waiting
@@ -284,7 +284,7 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
 	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
-		return workerResult, fmt.Errorf("ack method error '%s'", err)
+		return workerResult, fmt.Errorf("kill method error '%s'", err)
 	}
 
 	workerResult.Message.Result = "killed.now"
@@ -298,7 +298,7 @@ func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
 func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
-		return workerResult, fmt.Errorf("ack method error '%s'", err)
+		return workerResult, fmt.Errorf("start method error '%s'", err)
 	}
 
 	if workerResult.Status == Stopped || workerResult.Status == Killed {

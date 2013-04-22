@@ -2,7 +2,7 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, kontrold} = KONFIG
 
 {loggedInPage, loggedOutPage} = require './staticpages'
 
@@ -54,6 +54,8 @@ koding.connect ->
       incService serviceKey, -1
 
 {extend} = require 'underscore'
+os       = require "os"
+amqp     = require 'amqp'
 express  = require 'express'
 Broker   = require 'broker'
 request  = require 'request'
@@ -303,3 +305,40 @@ app.get '*', (req,res)->
 app.listen webPort
 
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+kontrolRegister = () ->
+  {host, port, protocol, login, password, vhost, heartbeat} = kontrold.rabbitmq
+  port              ?= 5672
+  protocol          ?= 'amqp:'
+  options           = {host, port, protocol} # but not vhost, because of a bug in node-amqp
+  options.login     = login     if login?
+  options.password  = password  if password?
+  options.vhost     = vhost     if vhost?
+  options.heartbeat = heartbeat if heartbeat?
+  connection       = amqp.createConnection options
+
+  getInfoExchangeOptions = ->
+    type        : 'topic'
+    autoDelete  : no
+    durable     : true
+
+  getVersion = ->
+    version = (fs.readFileSync nodePath.join(__dirname, '../../../VERSION'), 'utf-8').trim()
+
+  getHostname =  ->
+    hostName = os.hostname()
+
+  connection.on "ready", =>
+    connection.exchange 'infoExchange', getInfoExchangeOptions(), (exchange) =>
+        console.log "registering to fujin proxy with version '#{getVersion()}' and host '#{getHostname()}:#{webPort}'"
+        exchange.publish "input.webapi",
+          proxy:
+            action   : "addKey"
+            key      : getVersion()
+            host     : getHostname() + ":" + webPort
+            hostdata : "FromWebServer"
+            uuid     : "proxy.in.koding.com" #for now register to the default proxy, in the future they will be multiple proxies
+
+        console.log "you can reach this webserver via http://#{getVersion()}.x.koding.com ..."
+
+kontrolRegister()

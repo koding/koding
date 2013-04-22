@@ -78,7 +78,6 @@ func startRouting() (*Consumer, error) {
 	}
 
 	for _, a := range apiBindings {
-
 		_, err = c.channel.QueueDeclare(a.queue, false, true, false, false, nil)
 		if err != nil {
 			log.Fatal("queue.declare: %s", err)
@@ -92,7 +91,6 @@ func startRouting() (*Consumer, error) {
 	}
 
 	for _, w := range workerBindings {
-
 		_, err = c.channel.QueueDeclare(w.queue, false, true, false, false, nil)
 		if err != nil {
 			log.Fatal("queue.declare: %s", err)
