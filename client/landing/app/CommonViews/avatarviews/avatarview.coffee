@@ -48,7 +48,7 @@ class AvatarView extends LinkView
     return unless account
     {profile} = account
     options = @getOptions()
-    fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
+    fallbackUri = "https://koding.com/images/defaultavatar/default.avatar.#{options.size.width}.png"
     # @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
 
     # this is a temp fix to avoid avatar flashing on every account change - Sinan 08/2012

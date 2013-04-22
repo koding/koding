@@ -1,78 +1,3 @@
-class BottomChatRoom extends JView
-
-  constructor:->
-
-    super
-
-    @tokenInput = tokenInput = new KDTokenizedInput
-      cssClass             : 'chat-input'
-      input                :
-        keydown            :
-          "alt super+right"   : (e)->
-            tokenInput.emit "chat.ui.splitPanel", e.which
-            e.preventDefault()
-          "alt alt+right"     : (e)->
-            tokenInput.emit "chat.ui.focusNextPanel"
-          "alt alt+left"      : (e)->
-            tokenInput.emit "chat.ui.focusPrevPanel"
-          "alt alt+backspace" : (e)->
-            tokenInput.emit "chat.ui.focusPrevPanel"
-
-      match                :
-        topic              :
-          regex            : /\B#\w.*/
-          # throttle         : 2000
-          wrapperClass     : "highlight-tag"
-          replaceSignature : "{{#(title)}}"
-          added            : (data)->
-            log "tag is added to the input", data
-          removed          : (data)->
-            log "tag is removed from the input", data
-          dataSource       : (token)->
-            appManager.tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
-              # log err, topics
-              if not err and topics.length > 0
-                tokenInput.showMenu {token, rule : "topic"}, topics
-
-        username           :
-          regex            : /\B@\w.+/
-          wrapperClass     : "highlight-user"
-          replaceSignature : "{{#(profile.firstName)}} {{#(profile.lastName)}}"
-          added            : (data)->
-            log "user is added to the input", data
-          removed          : (data)->
-            log "user is removed from the input", data
-          dataSource       : (token)->
-            # log token, "member"
-            appManager.tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
-              # log err, members
-              if not err and members.length > 0
-                tokenInput.showMenu {
-                  rule             : "username"
-                  itemChildClass   : MembersListItemView
-                  itemChildOptions :
-                    cssClass       : "honolulu"
-                    userInput      : token.slice(1)
-                  token
-                }, members
-
-    @outputController = new KDListViewController
-
-    @output = @outputController.getView()
-
-    @sidebar = new KDView
-      cssClass : "room-sidebar"
-
-  pistachio:->
-
-    """
-      <section>
-        {{> @output}}
-        {{> @tokenInput}}
-      </section>
-      {{> @sidebar}}
-    """
-
 class DemosAppController extends AppController
 
   KD.registerAppClass @,
@@ -92,4 +17,220 @@ class DemosAppController extends AppController
     mainView.addSubView new KDHeaderView
       title : 'Demo App'
 
-    mainView.addSubView button = new BottomChatRoom
+    chatListView = new ChatContactListView
+      itemClass : ChatContactListItem
+
+    chatController = new ChatContactListController
+      view : chatListView
+
+    chatController.loadItems()
+
+    mainView.addSubView chatListView
+
+class CommonChatController extends KDListViewController
+  constructor:->
+    super
+    @me = KD.whoami()
+
+  loadView:->
+    super
+    list = @getListView()
+    @loadItems()
+
+  loadItems:(callback)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @showLazyLoader no
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
+
+class ChatContactListController extends CommonChatController
+  loadItems:(callback)->
+    super
+
+    @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
+      @instantiateListItems accounts unless err
+
+class ChatContactListView extends KDListView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass  = "chat-list"
+    options.tagName   = "ul"
+
+    super options, data
+
+  getItemIndex:(targetItem)->
+    for item, index in @items
+      return index if item is targetItem
+    return -1
+
+  goUp:(item)->
+    index = @getItemIndex item
+    return unless index >= 0
+
+    if index - 1 >= 0
+      item.collapse() unless @items[index - 1].conversation?.isVisible()
+      @items[index - 1].createConversation no
+
+  goDown:(item)->
+    index = @getItemIndex item
+    return unless index >= 0
+
+    if index + 1 < @items.length
+      item.collapse()
+      item.collapse() unless @items[index + 1].conversation?.isVisible()
+      @items[index + 1].createConversation no
+
+class ChatContactListItem extends KDListItemView
+
+  constructor:(options = {},data)->
+
+    options.tagName  = "li"
+    options.cssClass = "person"
+    super options, data
+
+    @title = new ChatContactListItemTitle null, data
+    @title.on 'click', @bound 'createConversation'
+
+  createConversation:(toggle = yes)->
+    unless @conversation
+      @conversation = new ChatContactListConversationWidget @
+      @conversation.on 'click', @conversation.bound 'takeFocus'
+      @addSubView @conversation
+    else
+      if @conversation.isVisible()
+        @conversation.takeFocus()
+
+      if toggle then @conversation.toggle()
+      else @conversation.expand()
+
+  collapse:->
+    @conversation?.collapse()
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """{{> @title}}"""
+
+class ChatContactListItemTitle extends JView
+
+  constructor:(options = {},data)->
+    options.cssClass = 'chat-contact-list-item-title'
+    super
+    @avatar = new AvatarView {
+      size    : {width: 30, height: 30}
+      origin  : data
+    }
+
+  pistachio:->
+    """
+      <div class='avatar-wrapper fl'>
+        {{> @avatar}}
+      </div>
+      <div class='right-overflow'>
+        <h3>{{#(profile.firstName)+' '+#(profile.lastName)}}</h3>
+      </div>
+    """
+
+class ChatContactListConversationWidget extends JView
+
+  constructor:(item)->
+    options =
+      cssClass : 'inline-conversation-widget'
+
+    super options
+
+    @messageInput = new ChatInputWidget
+    @messageInput.on 'messageSent', (message)=>
+      @conversationController.addItem {message}
+
+    @messageInput.on 'goUpRequested', =>
+      item.getDelegate().goUp item
+
+    @messageInput.on 'goDownRequested', =>
+      item.getDelegate().goDown item
+
+    @conversationList = new ChatConversationListView
+      itemClass : ChatConversationListItem
+
+    @conversationController = new ChatConversationListController
+      view : @conversationList
+
+    KD.utils.defer =>
+      @setClass 'ready'
+      @takeFocus()
+
+  toggle:->
+    @toggleClass 'ready'
+
+  collapse:->
+    @unsetClass 'ready'
+
+  expand:->
+    @setClass 'ready'
+
+  isVisible:->
+    @hasClass 'ready'
+
+  takeFocus:-> @messageInput.setFocus()
+
+  pistachio:->
+    """
+      {{> @conversationList}}
+      {{> @messageInput}}
+    """
+
+class ChatConversationListController extends CommonChatController
+
+class ChatConversationListView extends KDListView
+
+  constructor:(options = {}, data)->
+
+    options.cssClass  = "chat-conversation"
+    options.tagName   = "ul"
+
+    super options, data
+
+class ChatConversationListItem extends KDListItemView
+
+  constructor:(options = {},data)->
+
+    options.cssClass = "message"
+    options.tagName  = "li"
+    super options, data
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """{{#(message)}}"""
+
+class ChatInputWidget extends KDHitEnterInputView
+
+  constructor:->
+    super
+      type              : "text"
+      placeholder       : "Type your message..."
+      keyup             :
+        "up"            : (e) => @emit 'goUpRequested'
+        "down"          : (e) => @emit 'goDownRequested'
+        # "super+up"      : (e) =>
+        #   e.preventDefault()
+        #   log 'move prev'
+        # "super+down"    : (e) =>
+        #   e.preventDefault()
+        #   log 'move next'
+      callback          : ->
+        @emit 'messageSent', @getValue()
+        @setValue ''
+        @setFocus()
+
