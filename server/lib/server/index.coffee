@@ -330,7 +330,7 @@ kontrolRegister = () ->
 
   connection.on "ready", =>
     connection.exchange 'infoExchange', getInfoExchangeOptions(), (exchange) =>
-        console.log "registering to fujin proxy with key '#{getVersion()}' and host '#{getHostname()}:#{webPort}'"
+        console.log "registering to fujin proxy with version '#{getVersion()}' and host '#{getHostname()}:#{webPort}'"
         exchange.publish "input.webapi",
           proxy:
             action   : "addKey"
