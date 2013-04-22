@@ -27,6 +27,19 @@ class MainTabView extends KDTabView
     @on "PaneAdded", =>
       @tabHandleContainer.setWidth @getWidth()
 
+    mainViewController = @getSingleton "mainViewController"
+    mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+
+  changeLayout:(options)->
+
+    {hideTabs} = options
+
+    if hideTabs
+      @hideHandleContainer()
+    else
+      @showHandleContainer()
+
+
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
   handleClicked:(index,event)->
@@ -48,6 +61,10 @@ class MainTabView extends KDTabView
   showPane:(pane)->
 
     lastOpenPaneIndex = @getPaneIndex @getActivePane()
+
+    # this is to hide stale static tabs
+    @$("> .kdtabpaneview").removeClass "active"
+    @$("> .kdtabpaneview").addClass "kdhiddentab"
 
     super pane
 
@@ -89,9 +106,9 @@ class MainTabView extends KDTabView
 
     options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
     options.class  or= KDView
+    options.domId    = "maintabpane-#{@utils.slugify options.name}"
 
     paneInstance = new MainTabPane options
-
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
