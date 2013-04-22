@@ -57,7 +57,6 @@ config =
       port        : 1
     mongo         : 1
     runGoBroker   : 1
-    watchGoBroker : 1
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
