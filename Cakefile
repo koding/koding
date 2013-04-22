@@ -95,7 +95,7 @@ task 'webserver', ({configFile}) ->
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
       restart         : yes
       restartInterval : 100
-      needPermission  : yes
+      kontrolEnabled  : yes
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -132,9 +132,9 @@ task 'socialWorker', ({configFile}) ->
       cmd   : __dirname + "/workers/social/index -c #{configFile}"
       restart : yes
       restartInterval : 100
-      needPermission  : yes
-      isWorker : yes
-      forceStart : yes
+      kontrolEnabled  : yes
+      kontrolForceStart : yes
+      kontrolNodeProcess : yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -168,10 +168,10 @@ task 'authWorker',({configFile}) ->
       cmd   		  : __dirname+"/workers/auth/index -c #{configFile}"
       restart 		  : yes
       restartInterval : 1000
-      needPermission  : yes
-      isWorker : yes
+      kontrolEnabled  : yes
+      kontrolForceStart : yes
+      kontrolNodeProcess : yes
       verbose         : yes
-      forceStart : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -191,9 +191,9 @@ task 'guestCleanup',({configFile})->
     cmd   : "./workers/guestcleanup/index -c #{configFile}"
     restart: yes
     restartInterval : 100
-    needPermission  : yes
-    isWorker : yes
-    forceStart 		: yes
+    kontrolEnabled  : yes
+    kontrolForceStart 		: yes
+    kontrolNodeProcess : yes
     verbose         : yes
 
 task 'emailWorker',({configFile})->
@@ -203,10 +203,9 @@ task 'emailWorker',({configFile})->
     cmd             : "./workers/emailnotifications/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : yes
-    isWorker        : yes
+    kontrolEnabled  : yes
+    kontrolNodeProcess : yes
     verbose         : yes
-    forceStart : yes
 
   watcher = new Watcher
     groups        :
@@ -291,9 +290,9 @@ task 'libratoWorker',({configFile})->
     cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
     restart: yes
     restartInterval: 100
-    needPermission  : yes
+    kontrolEnabled  : yes
+    kontrolForceStart : yes
     verbose: yes
-    forceStart : yes
 
 task 'cacheWorker',({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
@@ -304,9 +303,9 @@ task 'cacheWorker',({configFile})->
     cmd             : "./workers/cacher/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    needPermission  : yes
-    isWorker : yes
-    forceStart : yes
+    kontrolEnabled  : yes
+    kontrolForceStart : yes
+    kontrolNodeProcess : yes
 
   if cacheWorker.watch is yes
     watcher = new Watcher
