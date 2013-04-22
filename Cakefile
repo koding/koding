@@ -1,5 +1,6 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
-option '-D', '--debug', 'runs with node --debug'
+option '-D', '--debug', 'runs with node, go --debug'
+option '-V', '--verbose', 'runs with go --verbose'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
@@ -48,6 +49,13 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build"
+
+addFlags = (options)->
+  flags  = ""
+  flags += " -d" if options.debug
+  flags += " -v" if options.verbose
+
+  return flags
 
 compilePistachios = require 'pistachio-compiler'
 
@@ -229,39 +237,21 @@ task 'emailSender',({configFile})->
         onChange  : (path) ->
           processes.kill "emailSender"
 
-task 'goBroker',({configFile})->
+task 'goBroker',(options)->
+
+  {configFile} = options
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}"
+    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
-  watchBroker = (url, interval, kills, failedReqs) ->
-    kills =  if kills then kills else 0
-    failedReqs = if failedReqs then failedReqs else 0
-
-    setTimeout ->
-      http.get url, (res) ->
-        watchBroker(url, interval)
-      .on 'error', (e) ->
-        failedReqs++
-        console.log("WARN: Broker did not respond", failedReqs, "times.")
-        if failedReqs > 1 # account for random errors, manual restarts
-          kills++
-          processes.killAllChildren process.pid, ->
-            console.log("WARN: Killed broker #{kills} times since it stopped responding.")
-        watchBroker(url, interval, kills, failedReqs)
-    , interval
-
   config = require('koding-config-manager').load("main.#{configFile}")
-  watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
-  if watchGoBroker is yes
-    watchBroker(sockjs_url, 10000)
 
 task 'osKite',({configFile})->
 

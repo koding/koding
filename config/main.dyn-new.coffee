@@ -91,6 +91,7 @@ module.exports =
   client        :
     version     : version
     watch       : no
+    watchDuration: 4000
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -111,7 +112,7 @@ module.exports =
       appsUri   : 'https://app.koding.com'
       sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
-    host        : 'localhost'
+    host        : 'web-prod.in.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
     port        : 5672
     apiAddress  : "web-prod.in.koding.com"
@@ -121,6 +122,7 @@ module.exports =
     heartbeat   : 10
     vhost       : 'new'
   broker        :
+    ip          : ""
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
     keyFile     : "/etc/nginx/ssl/server_new.key"

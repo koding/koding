@@ -1,21 +1,20 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs               = require 'fs'
+nodePath         = require 'path'
+deepFreeze       = require 'koding-deep-freeze'
 
-version = "0.9.13b" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version          = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot      = nodePath.join __dirname, '..'
+mongo            = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
+rabbitPrefix     = require("#{projectRoot}/utils/rabbitPrefix").get()
+socialQueueName  = "koding-social-#{version}"
+webPort          = 3040
+brokerPort       = 8010 + (version % 10)
+sourceServerPort = 1300 + (version % 10)
+dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
-
-projectRoot = nodePath.join __dirname, '..'
-
-# rabbitPrefix = (
-#   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-#   catch e then ""
-# ).trim()
-
-socialQueueName = "koding-social-prod"
-
-module.exports =
+module.exports = deepFreeze
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
@@ -25,20 +24,17 @@ module.exports =
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : 3020
+    port        : dynConfig.webInternalPort
     clusterSize : 10
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : no
-    port        : 1337
+    enabled     : yes
+    port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
-  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -59,10 +55,14 @@ module.exports =
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  goConfig:
+    HomePrefix:   "/Users/"
+    UseLVE:       true
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    numberOfWorkers: 1
+    authResourceName: 'auth'
+    numberOfWorkers: 2
     watch       : no
   cacheWorker   :
     login       : 'prod-social'
@@ -88,7 +88,7 @@ module.exports =
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "default.html"
+    index       : "index.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
@@ -97,15 +97,14 @@ module.exports =
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
-        sockJS  : 'https://mq.koding.com/subscribe'
+        sockJS  : "https://mq.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : 'http://koding.com:1337'
+      sourceUri : "http://web-prod.in.koding.com:#{sourceServerPort}"
   mq            :
     host        : 'localhost'
     port        : 5672
-    apiAddress  : "web-prod.in.koding.com"
     apiPort     : 55672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
@@ -114,9 +113,9 @@ module.exports =
     vhost       : '/'
   broker        :
     ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    port        : brokerPort
+    certFile    : "/etc/nginx/ssl/server_new.crt"
+    keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'
@@ -129,8 +128,6 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : yes
     defaultRecepient : undefined
-  emailSender   :
-    run         : yes
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -147,3 +144,4 @@ module.exports =
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
+

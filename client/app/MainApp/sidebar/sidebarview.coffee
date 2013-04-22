@@ -111,19 +111,17 @@ class Sidebar extends JView
 
   setListeners:->
 
-    mainView = @getDelegate()
+    mainController                 = @getSingleton "mainController"
+    mainViewController             = @getSingleton "mainViewController"
+    mainView                       = @getSingleton "mainView"
     {@contentPanel, @sidebarPanel} = mainView
+    $fp                            = @$('#finder-panel')
+    cp                             = @contentPanel
+    @wc                            = @getSingleton "windowController"
+    fpLastWidth                    = null
 
-    @getSingleton('mainController').on "AvatarPopupIsActive", =>
-      @_popupIsActive = yes
-
-    @getSingleton('mainController').on "AvatarPopupIsInactive", =>
-      @_popupIsActive = no
-
-    $fp = @$('#finder-panel')
-    cp  = @contentPanel
-    @wc = @getSingleton "windowController"
-    fpLastWidth = null
+    mainController.on "AvatarPopupIsActive",   => @_popupIsActive = yes
+    mainController.on "AvatarPopupIsInactive", => @_popupIsActive = no
 
     @finderResizeHandle.on "ClickedButNotDragged", =>
       unless fpLastWidth
@@ -169,8 +167,29 @@ class Sidebar extends JView
 
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
-    @$('#main-nav').on "mouseenter", @animateLeftNavIn.bind @
-    @$('#main-nav').on "mouseleave", @animateLeftNavOut.bind @
+    @$('#main-nav').on "mouseenter", @bound "animateLeftNavIn"
+    @$('#main-nav').on "mouseleave", @bound "animateLeftNavOut"
+
+    mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+
+  changeLayout:(options)->
+
+    {type, hideTabs} = options
+    windowController = @getSingleton 'windowController'
+
+    @$finderPanel       or= @$('#finder-panel')
+    @$avatarPlaceholder or= @$('.avatar-placeholder')
+    @_onDevelop           = type is 'develop'
+
+    width = switch type
+      when 'full', 'social'
+        @$finderPanel.removeClass "expanded"
+        @$avatarPlaceholder.removeClass "collapsed"
+      when 'develop'
+        @$finderPanel.addClass "expanded"
+        @$avatarPlaceholder.addClass "collapsed"
+
+    @utils.wait 300, => @emit "NavigationPanelWillCollapse"
 
   viewAppended:->
     super
@@ -224,7 +243,7 @@ class Sidebar extends JView
       if @_mouseentered and @_onDevelop
         @collapseNavigationPanel()
 
-  expandNavigationPanel:(newSize, callback)->
+  expandNavigationPanel:->
 
     @$('.avatar-placeholder').removeClass "collapsed"
     @$('#finder-panel').removeClass "expanded"
@@ -241,31 +260,6 @@ class Sidebar extends JView
       callback?()
       @emit "NavigationPanelWillCollapse"
 
-  expandEnvironmentSplit:(newSize, callback)->
-
-    newSize          = 260
-    @_finderExpanded = yes
-
-    @contentPanel.setClass "with-finder"
-    @contentPanel.unsetClass "social"
-    @contentPanel.setWidth @wc.winWidth - @$('#finder-panel').width() - 52
-    @utils.wait 300, =>
-      callback?()
-      @_windowDidResize()
-
-  collapseEnvironmentSplit:(callback)->
-
-    @contentPanel.unsetClass "with-finder"
-    @contentPanel.setClass "social"
-    @contentPanel.setWidth @wc.winWidth - 160
-    @utils.wait 300, =>
-      @_finderExpanded = no
-      callback?()
-
-  showEnvironmentPanel:->
-
-    @showFinderPanel()
-
   hideBottomControls:->
     @$('#finder-bottom-controls').addClass 'go-down'
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
@@ -274,29 +268,16 @@ class Sidebar extends JView
     @$('#finder-bottom-controls').removeClass 'go-down'
     # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
-  showFinderPanel:->
-
-    unless @_finderExpanded
-      @collapseNavigationPanel()
-      @expandEnvironmentSplit null, ()=> @_onDevelop = yes
-
-  hideFinderPanel:->
-
-    if @_finderExpanded
-      @expandNavigationPanel 160, ()=> @_onDevelop = no
-      @collapseEnvironmentSplit =>
-        @utils.wait 300, => @notifyResizeListeners()
-
   _windowDidResize:->
 
     {winWidth} = @getSingleton('windowController')
-    if KD.isLoggedIn()
-      if @contentPanel.$().hasClass "with-finder"
-        @contentPanel.setWidth winWidth - parseInt(@$('#finder-panel').css("width"), 10) - 52
-      else
-        @contentPanel.setWidth winWidth - 160
-    else
-      @contentPanel.setWidth winWidth
+    # if KD.isLoggedIn()
+    #   if @contentPanel.$().hasClass "with-finder"
+    #     @contentPanel.setWidth winWidth - parseInt(@$('#finder-panel').css("width"), 10) - 52
+    #   else
+    #     @contentPanel.setWidth winWidth - 160
+    # else
+    #   @contentPanel.setWidth winWidth
 
     bottomListHeight = @$("#finder-bottom-controls").height() or 109
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
@@ -308,6 +289,7 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
+          { title : "Home",           path : "/Home" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }
@@ -323,6 +305,7 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
+          { title : "Home",           path : "/Home" }
           { title : "Activity",       path : "/Activity" }
           { title : "Topics",         path : "/Topics" }
           { title : "Members",        path : "/Members" }
