@@ -295,7 +295,7 @@ task 'run', (options)->
   queue = []
   if config.buildClient is yes
     queue.push ->
-      (new require('./Builder')).buildClient options
+      (new (require('./Builder'))).buildClient options
       queue.next()
   queue.push -> run options
   daisy queue
@@ -314,7 +314,7 @@ task 'accounting', (options)->
 
 
 task 'buildClient', (options)->
-  (new require('./Builder')).buildClient options
+  (new (require('./Builder'))).buildClient options
 
 task 'release',(options)->
   # Release and shared data directories
