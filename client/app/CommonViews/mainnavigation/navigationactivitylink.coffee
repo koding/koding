@@ -10,7 +10,7 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     @count = new KDCustomHTMLView
       tagName   : "span"
-      cssClass  : "main-nav-icon invite-friends" # TODO: Update class name
+      cssClass  : "main-nav-icon invite-friends" # TODO: Update class name - Fatih bunu gormemis oliim
       partial   : "#{@newActivityCount}"
       click     : =>
         @setActivityLinkToDefaultState()

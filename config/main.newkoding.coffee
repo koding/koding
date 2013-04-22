@@ -3,8 +3,8 @@ nodePath = require 'path'
 
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 
-# PROD
-mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding'
+# DEV
+mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -14,11 +14,11 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod"
+socialQueueName = "koding-social-new-#{version}"
 
-webPort          = 3040
-brokerPort       = 8010 + (version % 10)
-sourceServerPort = 1300 + (version % 10)
+webPort          = 80
+brokerPort       = 443
+sourceServerPort = 1400
 dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports =
@@ -28,13 +28,13 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://web-groups.in.koding.com"
+    address     : "http://new.koding.com:#{webPort}"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : dynConfig.webInternalPort
-    clusterSize : 10
+    port        : webPort
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
@@ -42,9 +42,10 @@ module.exports =
     port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
-  watchGoBroker : no
   compileGo     : yes
   buildClient   : yes
+  runOsKite     : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -89,35 +90,36 @@ module.exports =
   client        :
     version     : version
     watch       : no
+    watchDuration: 4000
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://web-groups.in.koding.com'
+    staticFilesBaseUrl: 'http://new.koding.com:#{webPort}'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'https://web-groups.koding.com'
+      mainUri   : 'http://new.koding.com:#{webPort}'
       broker    :
-        sockJS  : "https://web-groups.koding.com:#{brokerPort}/subscribe"
+        sockJS  : "https://new.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://app.koding.com'
-      sourceUri : "http://web-groups.koding.com:#{sourceServerPort}"
+      sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
-    host        : 'localhost'
+    host        : 'web-prod.in.koding.com'
+    login       : 'PROD-k5it50s4676pO9O'
     port        : 5672
     apiAddress  : "web-prod.in.koding.com"
     apiPort     : 55672
-    login       : 'PROD-k5it50s4676pO9O'
     componentUser: "prod-<component>"
-    password    : 'superpass'
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
-    vhost       : '/'
+    vhost       : 'new'
   broker        :
     ip          : ""
     port        : brokerPort
@@ -125,7 +127,7 @@ module.exports =
     keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
-    vhost       : '/'
+    vhost       : 'new'
   email         :
     host        : 'koding.com'
     protocol    : 'https:'
@@ -134,7 +136,9 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : yes
-    defaultRecepient : undefined
+    defaultRecepient : 'chris@koding.com'
+  emailSender   :
+    run         : no
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -151,7 +155,4 @@ module.exports =
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
-  runOsKite: no
-  runProxy: no
-  emailSender:
-     run: no
+

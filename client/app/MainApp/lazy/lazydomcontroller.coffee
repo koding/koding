@@ -92,20 +92,7 @@ class LazyDomController extends KDController
     @staticProfileController = new StaticProfileController
     {@landingView}           = @staticProfileController
 
-  openPath:(path)->
-    @getSingleton('router').handleRoute path
-
-    {groupEntryPoint, profileEntryPoint} = KD.config
-    entryPoint = groupEntryPoint ? profileEntryPoint
-    staticPaths = [
-      '/Logout','/Login','/Register',
-      "/#{entryPoint}/Login",
-      "/#{entryPoint}/Logout",
-      "/#{entryPoint}/Register",
-      "/#{entryPoint}"
-    ]
-
-    @hideLandingPage() unless path in staticPaths
+  openPath:(path)-> @getSingleton('router').handleRoute path
 
   handleNavigationItemClick:(item, event)->
 
@@ -137,14 +124,14 @@ class LazyDomController extends KDController
         mainViewController.getView().hide()
         @openPath '/Logout'
 
-      when 'activity'
-        @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
+      # when 'activity'
+      #   @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
 
-      when 'about'
-        @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
+      # when 'about'
+      #   @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
 
-      when 'home'
-        @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
+      # when 'home'
+      #   @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
     {loginScreen} = @getSingleton('mainController')
