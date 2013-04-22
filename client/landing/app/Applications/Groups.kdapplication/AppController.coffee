@@ -549,14 +549,32 @@ class GroupsAppController extends AppController
     pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
       (pane, invitationRequestView)->
 
-        invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-          count = invitationRequestView.batchInvites.inputs.Count.getValue()
-          group.sendSomeInvitations count, (err, message)->
-            if message is null
-              message = 'Done'
-              invitationRequestView.prepareBulkInvitations()
-            {statusInfo} = invitationRequestView.batchInvites.inputs
-            statusInfo.updatePartial Encoder.htmlDecode message
+        invitationRequestView.on 'BatchApproveRequests', (form, count)->
+          count = invitationRequestView.batchApprove.inputs.Count.getValue()
+          group.sendSomeInvitations count, (err)->
+            form.inputs['Approve'].hideLoader()
+            return invitationRequestView.showErrorMessage err if err
+            new KDNotificationView title:'Invites sent!'
+            invitationRequestView.prepareBulkInvitations()
+            invitationRequestView.refresh()
+
+        invitationRequestView.on 'InviteByEmail', (form)->
+          {recipient} = form.getFormData()
+          group.inviteByEmail recipient, (err)=>
+            form.inputs['Send'].hideLoader()
+            if err then invitationRequestView.showErrorMessage err
+            else 
+              new KDNotificationView title:'Invitation sent!'
+              invitationRequestView.refresh()
+
+        invitationRequestView.on 'InviteByUsername', (form)->
+          {recipient} = form.getFormData()
+          group.inviteByUsername recipient, (err)=>
+            form.inputs['Send'].hideLoader()
+            if err then invitationRequestView.showErrorMessage err
+            else 
+              new KDNotificationView title:'Invitation sent!'
+              invitationRequestView.refresh()
 
         invitationRequestView.on 'RequestIsApproved', (request)->
           request.approveInvitation()
