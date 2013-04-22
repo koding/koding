@@ -113,7 +113,7 @@ module.exports =
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
     heartbeat   : 10
-    vhost       : '/'
+    vhost       : 'new'
   broker        :
     ip          : ""
     port        : 8008
