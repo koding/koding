@@ -290,6 +290,31 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	}
 
 	if command == "delete" {
+		result := workerconfig.MsgWorker{}
+		if hostname == "" && uuid == "" {
+			// Apply action to all workers
+			log.Printf("'%s' all workers", command)
+			iter := kontrolConfig.Collection.Find(nil).Iter()
+			for iter.Next(&result) {
+				err := killAndDelete(result.Hostname, result.Uuid)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		} else if hostname != "" && uuid == "" {
+			// Apply action on all workers on the hostname
+			log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
+			iter := kontrolConfig.Collection.Find(bson.M{"hostname": hostname}).Iter()
+			for iter.Next(&result) {
+				err := killAndDelete(result.Hostname, result.Uuid)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
 		err := killAndDelete(hostname, uuid)
 		if err != nil {
 			return err
