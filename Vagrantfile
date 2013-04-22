@@ -50,34 +50,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |v|
     v.name = "koding_#{Time.new.to_i}"
-    v.customize ["setextradata", v.name, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-    v.customize ["modifyvm", v.name, "--memory", "1024", "--cpus", "2"]
-
-    # second disk for ceph
-    v.customize ["createhd",
-      "--filename", File.expand_path("~/VirtualBox\ VMs/#{v.name}/box-disk2.vmdk"),
-      "--size", "5000"
-    ]
-    v.customize ["storageattach", v.name,
-      "--storagectl", "SATAController",
-      "--port", "1",
-      "--device", "0",
-      "--type", "hdd",
-      "--medium", File.expand_path("~/VirtualBox\ VMs/#{v.name}/box-disk2.vmdk")
-    ]
-
-    # TODO what is this disk used for?
-    v.customize ["createhd",
-      "--filename", File.expand_path("~/VirtualBox\ VMs/#{v.name}/box-disk3.vmdk"),
-      "--size", "4000"
-    ]
-    v.customize ["storageattach", v.name,
-      "--storagectl", "SATAController",
-      "--port", "2",
-      "--device", "0",
-      "--type", "hdd",
-      "--medium", File.expand_path("~/VirtualBox\ VMs/#{v.name}/box-disk3.vmdk")
-    ]
+    v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
+    v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
   end
 
   if provision
