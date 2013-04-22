@@ -159,6 +159,15 @@ data field hostdata with `FromKontrolAPI` is:
 POST /proxies/mahlika.local-915 {"key": "2", "host":"localhost:8009", "hostdata": "FromKontrolAPI"}
 ```
 
+You can add multiple entities for each key. If you add different host addresses
+for the same key, the proxy will use round-robin between these hosts
+
+To delete a key and all hosts associated with it use:
+
+```
+DELETE /proxies/mahlika.local-915/2
+```
+
 To get details about a given proxy you can make uuid calls via it's `uuid`
 value. Also you can can use and combine query based filters:
 

@@ -61,6 +61,13 @@ func HandleMessage(data []byte) {
 
 func DoProxy(msg proxyconfig.ProxyMessage) {
 	switch msg.Action {
+	case "addProxy":
+		log.Println("got 'addProxy' json request")
+		err := proxyConfig.AddProxy(msg.Uuid)
+		if err != nil {
+			log.Println(err)
+		}
+		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
 		log.Println("got 'add' json request")
 		err := proxyConfig.AddKey(msg.Key, msg.Host, msg.HostData, msg.Uuid)
@@ -75,18 +82,11 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 			log.Println(err)
 		}
 	case "deleteKey":
-		log.Println("got 'delete' json request")
+		log.Println("got 'deleteKey' json request")
 		err := proxyConfig.DeleteKey(msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
-	case "addProxy":
-		log.Println("got 'addProxy' json request")
-		err := proxyConfig.AddProxy(msg.Uuid)
-		if err != nil {
-			log.Println(err)
-		}
-		sendResponse("updateProxy", msg.Uuid)
 	default:
 		log.Println("invalid action", msg.Action)
 	}

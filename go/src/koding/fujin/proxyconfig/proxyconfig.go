@@ -141,7 +141,6 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 func (p *ProxyConfiguration) DeleteKey(key, host, hostdata, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
-		return err
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 

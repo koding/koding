@@ -96,18 +96,21 @@ func main() {
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
+	// Worker handlers
 	rout.HandleFunc("/workers", WorkersHandler).Methods("GET")
 	rout.HandleFunc("/workers/{uuid}", WorkerHandler).Methods("GET")
 	rout.HandleFunc("/workers/{uuid}/{action}", WorkerPutHandler).Methods("PUT")
 	rout.HandleFunc("/workers/{uuid}", WorkerDeleteHandler).Methods("DELETE")
 
+	// Proxy handlers
 	rout.HandleFunc("/proxies", ProxiesHandler).Methods("GET")
 	rout.HandleFunc("/proxies", ProxiesPostHandler).Methods("POST")
-	// rout.HandleFunc("/proxies/{uuid}", ProxiesDeleteHandler).Methods("DELETE") // TODO
+	rout.HandleFunc("/proxies/{uuid}", ProxiesDeleteHandler).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}", ProxyHandler).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}", ProxyPostHandler).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}", ProxyDeleteHandler).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/{key}", ProxyDeleteHandler).Methods("DELETE")
 
+	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
 
 	log.Println("kontrol-api started")
@@ -143,7 +146,7 @@ func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Delete proxy machine with uuid
 // example http DELETE "localhost:8080/proxies/mahlika.local-915"
-func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+func ProxiesDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
@@ -176,6 +179,14 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	buildSendProxyCmd("addProxy", "", "", "", uuid)
+}
+
+func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	key := vars["key"]
+
+	buildSendProxyCmd("deleteKey", key, "", "", uuid)
 }
 
 // Add key with proxy host to proxy machine with uuid
