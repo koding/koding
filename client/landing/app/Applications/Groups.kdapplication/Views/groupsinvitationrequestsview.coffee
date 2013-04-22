@@ -73,10 +73,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @prepareBulkInvitations()
     
     @batchApprove = new KDFormViewWithFields
-      callback             : => @emit 'BatchApproveRequests', @batchApprove, +@batchApprove.getFormData().Count
+      callback             : => @emit 'BatchApproveRequests', @batchApprove, +@batchApprove.getFormData().count
       cssClass             : 'invite-tools'
       fields               :
-        Count              :
+        count              :
           label            : '# of requests'
           type             : 'text'
           defaultValue     : 10
@@ -101,9 +101,9 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       callback             : => @emit 'BatchInvite', @batchInvite
       cssClass             : 'invite-tools'
       fields               :
-        Emails             :
+        emails             :
           type             : 'textarea'
-          placeholder      : ''
+          placeholder      : 'Enter each email address on a new line...'
           cssClass         : 'inline'
           validate         :
             rules          :
@@ -111,7 +111,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
             messages       :
               required     : 'At least one email address required!'
           nextElementFlat  :
-            'Invite' :
+            'Send' :
               itemClass    : KDButtonView
               type         : 'submit'
               loader       :
@@ -233,18 +233,21 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       {{> @currentState}}
     </section>
     <div class="formline">
-      <section class="formline batch">
+      <section class="formline batch-approve">
         <h2>Batch approve requests</h2>
         {{> @batchApprove}}
       </section>
-      <section class="formline no-padding">
-        <section class="formline email">
+      <section class="formline">
+        <section class="formline single-invite">
           <h2>Invite by email</h2>
           {{> @inviteByEmail}}
-        </section>
-        <section class="formline username">
-          <h2>Invite by username</h2>
+
+          <h2 class="username">Invite by username</h2>
           {{> @inviteByUsername}}
+        </section>
+        <section class="formline batch-invite">
+          <h2>Batch invite by email</h2>
+          {{> @batchInvite}}
         </section>
       </section>
     </div>

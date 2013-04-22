@@ -400,11 +400,15 @@
         input.inline
           display             inline-block
 
-        section.email input
-        section.username input
+        section.single-invite input
           width               100%
           float               left
           margin-right        -50px
+
+        section.batch-invite textarea
+          width               100%
+          height              65px
+          margin-bottom       5px
 
         .policylanguage-editor
 
@@ -457,14 +461,20 @@
         width                 50%
         borderBox()
         margin                0
-        padding               20px
+        padding               20px 20px 0
         fl()
 
         &.status-quo
           width               100%
 
-        &.no-padding
-          padding             0
+        &.single-invite
+          padding-left        0
+          padding-top         0
+          h2.username
+            margin-top        10px
+        &.batch-invite
+          padding-right       0
+          padding-top         0
 
       .request-list
 
