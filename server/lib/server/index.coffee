@@ -337,7 +337,7 @@ kontrolRegister = () ->
             key      : getVersion()
             host     : getHostname() + ":" + webPort
             hostdata : "FromWebServer"
-            uuid     : "mahlika.local"
+            uuid     : "proxy.in.koding.com" #for now register to the default proxy, in the future they will be multiple proxies
 
         console.log "you can reach this webserver via http://#{getVersion()}.x.koding.com ..."
 

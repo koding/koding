@@ -58,10 +58,7 @@ type ProxyPostMessage struct {
 	Key      *string
 	Host     *string
 	Hostdata *string
-}
-
-type ProxiesPostMessage struct {
-	Uuid *string
+	Uuid     *string
 }
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
@@ -144,10 +141,19 @@ func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
+// Delete proxy machine with uuid
+// example http DELETE "localhost:8080/proxies/mahlika.local-915"
+func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+
+	buildSendProxyCmd("deleteProxy", "", "", "", uuid)
+}
+
 // Register a proxy
 // Example: http POST "localhost:8000/proxies" uuid=mahlika.local-916
 func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
-	var msg ProxiesPostMessage
+	var msg ProxyPostMessage
 	var uuid string
 
 	body, _ := ioutil.ReadAll(req.Body)
@@ -159,6 +165,10 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.Uuid != nil {
+		if *msg.Uuid == "default" {
+			log.Println("reserved keyword, please choose another uuid name")
+			return
+		}
 		uuid = *msg.Uuid
 	} else {
 		log.Println("aborting. no 'uuid' available")
@@ -166,15 +176,6 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	buildSendProxyCmd("addProxy", "", "", "", uuid)
-}
-
-// Delete proxy machine with uuid
-// example http DELETE "localhost:8080/proxies/mahlika.local-915"
-func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-
-	buildSendProxyCmd("deleteProxy", "", "", "", uuid)
 }
 
 // Add key with proxy host to proxy machine with uuid
@@ -222,8 +223,13 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 		hostdata = "FromKontrolAPI"
 	}
 
-	buildSendProxyCmd("addKey", key, host, hostdata, uuid)
+	// for default proxy assume that the main proxy will handle this. until
+	// we come up with design decision for multiple proxies, use this
+	if uuid == "default" {
+		uuid = "proxy.in.koding.com"
+	}
 
+	buildSendProxyCmd("addKey", key, host, hostdata, uuid)
 }
 
 // Get all keys and hosts for proxy machine uuid
