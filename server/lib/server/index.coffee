@@ -307,7 +307,7 @@ app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
 kontrolRegister = () ->
-  {host, port, protocol, login, password, vhost, heartbeat} = kontrold
+  {host, port, protocol, login, password, vhost, heartbeat} = kontrold.rabbitmq
   port              ?= 5672
   protocol          ?= 'amqp:'
   options           = {host, port, protocol} # but not vhost, because of a bug in node-amqp
