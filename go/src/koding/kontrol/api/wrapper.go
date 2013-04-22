@@ -97,3 +97,16 @@ func tellAmqp(amqp *AmqpWrapper, output chan []byte) {
 		amqp.Tell(cmd)
 	}
 }
+
+type ListenTell struct {
+	listen chan string
+	tell   chan []byte
+}
+
+func (listenTell *ListenTell) Listen() string {
+	return <-listenTell.listen
+}
+
+func (listenTell *ListenTell) Tell(data []byte) {
+	listenTell.tell <- data
+}
