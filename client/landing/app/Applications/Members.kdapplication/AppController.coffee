@@ -202,6 +202,8 @@ class MembersAppController extends AppController
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
+    return contentDisplay
 
   setCurrentViewNumber:(type)->
     group = KD.getSingleton('groupsController').getCurrentGroup()
