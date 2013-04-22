@@ -70,10 +70,9 @@ func main() {
 
 	cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
 	if err != nil {
-		log.Println(err)
-		log.Println("https mode is disabled... please add cert.pem and key.pem files.")
+		log.Println("https mode is disabled. please add cert.pem and key.pem files.")
 	} else {
-		log.Printf("ssl mode is enabled. serving at :%s ...", config.HttpsPort)
+		log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
 		go listenProxy(addHTTPS, &cert, amqpStream.uuid)
 	}
 
@@ -134,7 +133,7 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 					if first {
 						start <- true
 						first = false
-						log.Println("routing tables updated. ready to start servers...")
+						log.Println("routing tables updated. ready to start servers.")
 					}
 
 				}
