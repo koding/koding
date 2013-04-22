@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -32,6 +33,11 @@ type WebtermRemote struct {
 
 func registerWebtermMethods(k *kite.Kite) {
 	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		dir, err := os.Open("/var/run/screen/S-" + user.Name)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -52,6 +58,11 @@ func registerWebtermMethods(k *kite.Kite) {
 	})
 
 	registerVmMethod(k, "webterm.createSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var params struct {
 			Remote       WebtermRemote
 			Name         string
@@ -67,6 +78,11 @@ func registerWebtermMethods(k *kite.Kite) {
 	})
 
 	registerVmMethod(k, "webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var params struct {
 			Remote       WebtermRemote
 			SessionId    int
