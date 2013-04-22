@@ -97,13 +97,14 @@ task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
-  runServer = (config, port) ->
+  runServer = (config, port, index) ->
     processes.fork
-      name            : 'server'
+      name            : "server-#{index}"
       cmd             : __dirname + "/server/index -c #{config} -p #{port}"
       restart         : yes
       restartInterval : 100
       kontrolEnabled  : yes
+      port            : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -112,8 +113,8 @@ task 'webserver', ({configFile}) ->
   else
     webPort = [webserver.port]
 
-  webPort.forEach (port) ->
-    runServer configFile, port
+  webPort.forEach (port, index) ->
+    runServer configFile, port, index
 
   if sourceServer?.enabled
     processes.fork

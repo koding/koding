@@ -59,6 +59,7 @@ type Worker struct {
 	Timestamp time.Time    `json:"timestamp"`
 	Pid       int          `json:"pid"`
 	Status    WorkerStatus `json:"status"`
+	Port      int          `json:"port"`
 }
 
 type MemData struct {
@@ -89,6 +90,7 @@ type SingleStatusResponse struct {
 	Status    WorkerStatus `json:"status"`
 	Memory    int          `json:"memory"`
 	Uptime    int          `json:"uptime"`
+	Port      int          `json:"port"`
 }
 
 type Request struct {
@@ -104,7 +106,7 @@ type ClientRequest struct {
 	Pid      int
 }
 
-func NewSingleStatusResponse(name, uuid, hostname string, version, pid int, status WorkerStatus, mem, uptime int) *SingleStatusResponse {
+func NewSingleStatusResponse(name, uuid, hostname string, version, pid int, status WorkerStatus, mem, uptime, port int) *SingleStatusResponse {
 	return &SingleStatusResponse{
 		Name:      name,
 		Uuid:      uuid,
@@ -115,6 +117,7 @@ func NewSingleStatusResponse(name, uuid, hostname string, version, pid int, stat
 		Timestamp: time.Now().UTC(),
 		Memory:    mem,
 		Uptime:    uptime,
+		Port:      port,
 	}
 }
 
@@ -143,6 +146,7 @@ type MsgWorker struct {
 	Number         int              `json:"number"`
 	Message        WorkerMessage    `json:"message"`
 	CompatibleWith map[string][]int `json:"compatibleWith"`
+	Port           int              `json:"port"`
 	Monitor        struct {
 		Mem    MemData `json:"mem"`
 		Uptime int     `json:"uptime"`
@@ -187,7 +191,8 @@ func (w *WorkerConfig) Status(hostname, uuid string) (*StatusResponse, error) {
 				d.Pid,
 				d.Status,
 				d.Monitor.Mem.HeapTotal,
-				d.Monitor.Uptime))
+				d.Monitor.Uptime,
+				d.Port))
 
 	}
 	result := MsgWorker{}
