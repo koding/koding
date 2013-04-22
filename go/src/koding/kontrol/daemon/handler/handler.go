@@ -288,15 +288,9 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		}
 		return nil
 	}
-	if command == "delete" {
-		// Kill the worker for preventing him sending messages to us
-		res, err := kontrolConfig.Kill(hostname, uuid)
-		if err != nil {
-			log.Println(err)
-		}
-		go sendWorker(res)
 
-		err = kontrolConfig.Delete(hostname, uuid)
+	if command == "delete" {
+		err := killAndDelete(hostname, uuid)
 		if err != nil {
 			return err
 		}
@@ -304,8 +298,12 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	}
 
 	actions := map[string]func(hostname, uuid string) (workerconfig.MsgWorker, error){
-		"kill": func(hostname, uuid string) (workerconfig.MsgWorker, error) { return kontrolConfig.Kill(hostname, uuid) },
-		"stop": func(hostname, uuid string) (workerconfig.MsgWorker, error) { return kontrolConfig.Stop(hostname, uuid) },
+		"kill": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
+			return kontrolConfig.Kill(hostname, uuid)
+		},
+		"stop": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
+			return kontrolConfig.Stop(hostname, uuid)
+		},
 		"start": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
 			return kontrolConfig.Start(hostname, uuid)
 		},
@@ -363,6 +361,22 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	return nil
 }
 
+func killAndDelete(hostname, uuid string) error {
+	// Kill the worker for preventing him sending messages to us
+	res, err := kontrolConfig.Kill(hostname, uuid)
+	if err != nil {
+		log.Println(err)
+	}
+	go sendWorker(res)
+
+	err = kontrolConfig.Delete(hostname, uuid)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func SaveMonitorData(data *workerconfig.Monitor) error {
 	workerResult, err := kontrolConfig.GetWorker(data.Uuid)
 	if err != nil {
@@ -388,24 +402,14 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		// First kill and delete all alive workers for the same name type.
 		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
-		log.Println(worker.Name, worker.Hostname)
-		iter := kontrolConfig.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
 
+		iter := kontrolConfig.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).Iter()
 		result := workerconfig.MsgWorker{}
 		for iter.Next(&result) {
-			log.Println(result)
-
-			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid)
+			err := killAndDelete(result.Hostname, result.Uuid)
 			if err != nil {
 				log.Println(err)
 			}
-			go sendWorker(res)
-
-			err = kontrolConfig.Delete(result.Hostname, result.Uuid)
-			if err != nil {
-				log.Println(err)
-			}
-
 		}
 
 		// kontrolConfig.AddWorker(worker)
