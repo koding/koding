@@ -208,7 +208,7 @@ do ->
         if lastPong && (Date.now() - lastPong) > 30*1000
           log "lastPong too long ago, possible computer sleep; disconnecting"
           status = KD.singletons.status
-          status.disconnect({reason:"internetDown"})
+          status.disconnect({reason:"internetDownForLongTime"})
 
         clearTimeout failureCallback
         failureCallback = null

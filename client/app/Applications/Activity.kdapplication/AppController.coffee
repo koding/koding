@@ -45,7 +45,11 @@ class ActivityAppController extends AppController
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
     status = @getSingleton "status"
-    status.on "reconnected", @bound "fetchSomeActivities"
+    status.on "reconnected", (reason)=>
+      if reason is "internetDownForLongTime"
+        @reset()
+      else
+        @fetchSomeActivities()
 
   bringToFront:()->
 
@@ -55,6 +59,11 @@ class ActivityAppController extends AppController
     else
       ac = @getSingleton('activityController')
       ac.once "ActivityListControllerReady", @populateActivity.bind @
+
+  reset:->
+    @resetList()
+    @listController.resetList()
+    @populateActivity()
 
   resetList:->
 
