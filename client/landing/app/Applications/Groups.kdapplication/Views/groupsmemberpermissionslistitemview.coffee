@@ -31,18 +31,6 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
           event.preventDefault()
           @showEditMemberRolesView()
 
-    @saveLink          = new CustomLinkView
-      title            : 'Save'
-      cssClass         : 'fr hidden save-link'
-      icon             :
-        cssClass       : 'save'
-      click            : (event)=>
-        event.stopPropagation()
-        event.preventDefault()
-        @emit 'RolesChanged', @getData(), @editView.getSelectedRoles()
-        @hideEditMemberRolesView()
-        log "save"
-
     @cancelLink        = new CustomLinkView
       title            : 'Cancel'
       cssClass         : 'fr hidden cancel-link'
@@ -70,11 +58,11 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     @editView.setMember @getData()
     @editView.setGroup group
 
-    list.emit "EditMemberRolesViewShown", @
+    list.emit "EditMemberRolesViewShown", this
 
+    @setClass 'editing'
     @editLink.hide()
     @cancelLink.show()
-    @saveLink.show()  unless KD.whoami().getId() is @getData().getId()
     @editContainer.show()
     @editContainer.addSubView @editView
 
@@ -92,9 +80,9 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   hideEditMemberRolesView:->
 
+    @unsetClass 'editing'
     @editLink.show()
     @cancelLink.hide()
-    @saveLink.hide()
     @editContainer.hide()
     @editContainer.destroySubViews()
 
@@ -102,13 +90,14 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   pistachio:->
     """
-    <section>
-      <span class="avatar">{{> @avatar}}</span>
-      {{> @editLink}}
-      {{> @saveLink}}
-      {{> @cancelLink}}
-      {{> @profileLink}}
-      {{> @userRole}}
-    </section>
-    {{> @editContainer}}
+    <div class="kdlistitemview-member-item-inner">
+      <section>
+        <span class="avatar">{{> @avatar}}</span>
+        {{> @editLink}}
+        {{> @cancelLink}}
+        {{> @profileLink}}
+        {{> @userRole}}
+      </section>
+      {{> @editContainer}}
+    </div>
     """

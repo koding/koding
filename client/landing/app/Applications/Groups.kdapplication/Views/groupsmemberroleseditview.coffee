@@ -57,18 +57,27 @@ class GroupsMemberRolesEditView extends JView
 
     @addSubView @checkboxGroup, '.checkboxes'
 
-    if 'owner' in @roles.editorsRoles
-      @addSubView (new KDButtonView
-        title    : "Make Owner"
-        cssClass : 'modal-clean-gray'
-        callback : => @showTransferOwnershipModal()
-      ), '.buttons'
+    @addSubView (new KDButtonView
+      title    : 'Save'
+      cssClass : 'modal-clean-green'
+      callback : =>
+        @getDelegate().emit 'RolesChanged', @getDelegate().getData(), @getSelectedRoles()
+        @getDelegate().hideEditMemberRolesView()
+        log "save"
+    ), '.buttons'
 
     @addSubView (new KDButtonView
       title    : "Kick"
       cssClass : 'modal-clean-red'
       callback : => @showKickModal()
     ), '.buttons'
+
+    if 'owner' in @roles.editorsRoles
+      @addSubView (new KDButtonView
+        title    : "Make Owner"
+        cssClass : 'modal-clean-gray'
+        callback : => @showTransferOwnershipModal()
+      ), '.buttons'
 
     @$('.buttons').removeClass 'hidden'
 

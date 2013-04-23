@@ -323,7 +323,7 @@
             font-weight       600
 
     .invitations section.formline div.formline.kdlistitemview-invitation-request
-    .members .kdlistitemview-member-item
+    .members .kdlistitemview-member-item-inner
       min-width               350px
       display                 inline-block
       margin                  2px
@@ -331,7 +331,10 @@
       borderBox()
       vendor transition,      background-color 0.2s ease-in-out
       background-color        rgba(248,248,248,0.5)
-      &:hover
+
+    .invitations section.formline div.formline.kdlistitemview-invitation-request:hover
+    .members .kdlistitemview-member-item-inner:hover
+    .members .editing .kdlistitemview-member-item-inner
         background-color      rgba(248,248,248,1)
 
     .members
@@ -340,8 +343,20 @@
         padding               20px
         overflow              hidden
         .kdlistitemview-member-item
-          // width 50%
+          position            relative
+          overflow            visible
           width               auto
+          min-width           350px
+          height              76px
+          display             inline-block
+          &.editing .kdlistitemview-member-item-inner
+            z-index         50
+          .kdlistitemview-member-item-inner
+            border            2px solid #fff
+            margin            0
+            position          absolute
+            top               0
+            left              0
           section
             .profile
               borderBox()
@@ -357,6 +372,12 @@
             .save-link
             .cancel-link
               fr()
+            .edit-link
+              hidden()
+
+          &:hover
+            section .edit-link
+              visible()
 
     .policy-view-wrapper
       padding-top             20px
