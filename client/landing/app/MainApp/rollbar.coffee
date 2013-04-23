@@ -15,9 +15,7 @@ if _rollbar? then do ->
 
   KD.remote.on 'reconnected', ->
     connections.push new Date
-    data =
-      connections:connections
-      disconnections: disconnections
+    data = {connections, disconnections}
     logToExternal msg:"disconnected, then reconnected", data:data
 
   KD.getSingleton('mainController').on "AccountChanged", (account) ->

@@ -228,7 +228,7 @@ do ->
     log 'connected, starting broker ping', brokerInterval
 
   KD.remote.on 'disconnected', ->
-    return unless brokerInterval
+    return unless brokerInterval?
 
     clearInterval brokerInterval
     brokerInterval = null
