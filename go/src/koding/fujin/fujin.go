@@ -84,6 +84,10 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
 		name, key := parseKey(req.Host)
+		if name == "homepage" {
+			req.Redirect("http://example.com")
+			return
+		}
 
 		target := targetUrl(deaths, name, key)
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
@@ -94,7 +98,7 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 
 		if err := req.Relay(remoteAddr); err != nil {
 			log.Println(err)
-			// req.Redirect("http://www.koding.com/notactive.html")
+			req.Redirect("http://example.com")
 		}
 	})
 
@@ -105,6 +109,11 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 
 func parseKey(host string) (string, string) {
 	log.Println("HOST string", host)
+	counts := strings.Count(host, "-")
+	log.Println("count string", counts)
+	if counts == 0 {
+		return "homepage", ""
+	}
 
 	partsFirst := strings.Split(host, ".")
 	firstSub := partsFirst[0]
