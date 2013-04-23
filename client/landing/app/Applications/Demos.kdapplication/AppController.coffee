@@ -108,12 +108,12 @@ class ChatContactListItem extends KDListItemView
   setDragHandlers:->
 
     @on 'DragStarted', (e, state)->
+      @conversationWasOpen = @conversation.isVisible()
       @_dragStarted = yes
 
     @on 'DragInAction', _.throttle (x, y)->
       if y isnt 0 and @_dragStarted
         distance = Math.round(y / 33)
-        @conversationWasOpen = @conversation.isVisible()
         @conversation.collapse()
         @setClass 'ondrag'
     , 300
