@@ -256,8 +256,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			key,
 			worker.Hostname + ":" + port,
 			"FromKontrolDaemon",
-			// "proxy.in.koding.com",
-			"mahlika.local",
+			"proxy.in.koding.com",
 		}
 
 		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
