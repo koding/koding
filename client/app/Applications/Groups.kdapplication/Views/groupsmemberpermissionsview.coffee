@@ -7,7 +7,8 @@ class GroupsMemberPermissionsView extends JView
     super
 
     @listController = new KDListViewController
-      itemClass     : GroupsMemberPermissionsListItemView
+      itemClass             : GroupsMemberPermissionsListItemView
+      lazyLoadThreshold     : .99
     @listWrapper    = @listController.getView()
 
     @loader         = new KDLoaderView
@@ -19,41 +20,59 @@ class GroupsMemberPermissionsView extends JView
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
 
-    @refresh()
+    @listController.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind this
+    @on 'teasersLoaded', =>
+      unless @listController.scrollView.hasScrollBars()
+        @loader.show()
+        @loaderText.show()
+        @continueLoadingTeasers()
 
-  fetchSomeMembers:(selector={})->
-    groupData = @getData()
-    @listController.removeAllItems()
     @loader.show()
+    @loaderText.show()
+    @fetchRoles =>
+      @refresh()
+
+  fetchRoles:(callback=->)->
+    groupData = @getData()
     list = @listController.getListView()
     list.getOptions().group = groupData
     groupData.fetchRoles (err, roles)=>
-      if err then warn err
-      else
-        list.getOptions().roles = roles
-        groupData.fetchUserRoles (err, userRoles)=>
-          if err then warn err
-          else
-            userRolesHash = {}
-            for userRole in userRoles
-              if not userRolesHash[userRole.targetId]
-                userRolesHash[userRole.targetId] = []
-              userRolesHash[userRole.targetId].push userRole.as
+      return warn err if err
+      list.getOptions().roles = roles
+      groupData.fetchUserRoles (err, userRoles)=>
+        return warn err if err
+        userRolesHash = {}
+        for userRole in userRoles
+          if not userRolesHash[userRole.targetId]
+            userRolesHash[userRole.targetId] = []
+          userRolesHash[userRole.targetId].push userRole.as
 
-            list.getOptions().userRoles = userRolesHash
-            options =
-              limit : 20
-              sort  : { timestamp: -1 }
-            groupData.fetchMembers selector, options, (err, members)=>
-              if err then warn err
-              else
-                @listController.instantiateListItems members
-                @loader.hide()
-                @loaderText.hide()
+        list.getOptions().userRoles = userRolesHash
+        callback()
+
+  fetchSomeMembers:(selector={})->
+    options =
+      limit : 20
+      sort  : { timestamp: -1 }
+    groupData = @getData()
+    groupData.fetchMembers selector, options, (err, members)=>
+      return warn err if err
+      @loader.hide()
+      @loaderText.hide()
+      @listController.hideLazyLoader()
+      if members.length > 0
+        @listController.instantiateListItems members
+        @timestamp = new Date members.last.timestamp
+        log @timestamp
+        @emit 'teasersLoaded'
 
   refresh:->
+    @listController.removeAllItems()
     @timestamp = new Date 0
-    @fetchSomeMembers {timestamp: $gte: @timestamp}
+    @fetchSomeMembers()
+
+  continueLoadingTeasers:->
+    @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
 
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
@@ -61,7 +80,6 @@ class GroupsMemberPermissionsView extends JView
   viewAppended:->
     super
     @loader.show()
-    @loaderText.show()
 
   pistachio:->
     """
