@@ -43,6 +43,7 @@ type ProxyMachine struct {
 type ProxyMachines []ProxyMachine
 
 type ProxyPostMessage struct {
+	Name     *string
 	Key      *string
 	Host     *string
 	Hostdata *string
@@ -95,8 +96,9 @@ func main() {
 	rout.HandleFunc("/proxies", ProxiesPostHandler).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", ProxiesDeleteHandler).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}", ProxyHandler).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/{name}", ProxyNameHandler).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}", ProxyPostHandler).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/{key}", ProxyDeleteHandler).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/{name}/{key}", ProxyDeleteHandler).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -109,22 +111,15 @@ func main() {
 // Get all registered proxies
 // example: http GET "localhost:8000/proxies"
 func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
-	p := make(ProxyMachines, 0)
+	proxies := make([]string, 0)
 	proxy := proxyconfig.Proxy{}
-
 	iter := proxyConfig.Collection.Find(nil).Iter()
 	for iter.Next(&proxy) {
-		keysList := make([]string, 0)
-		for key, _ := range proxy.KeyRoutingTable.Keys {
-			keysList = append(keysList, key)
-		}
-
-		machine := &ProxyMachine{proxy.Uuid, keysList}
-		p = append(p, ProxyMachine(*machine))
+		proxies = append(proxies, proxy.Uuid)
 
 	}
 
-	data, err := json.MarshalIndent(p, "", "  ")
+	data, err := json.MarshalIndent(proxies, "", "  ")
 	if err != nil {
 		log.Println("Marshall allWorkers into Json failed", err)
 	}
@@ -138,7 +133,7 @@ func ProxiesDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	buildSendProxyCmd("deleteProxy", "", "", "", uuid)
+	buildSendProxyCmd("deleteProxy", "", "", "", "", uuid)
 }
 
 // Register a proxy
@@ -166,26 +161,31 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	buildSendProxyCmd("addProxy", "", "", "", uuid)
+	buildSendProxyCmd("addProxy", "", "", "", "", uuid)
 }
 
+// Delete key for the given name and key
+// exameple: http DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
 func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	key := vars["key"]
+	name := vars["key"]
 
-	buildSendProxyCmd("deleteKey", key, "", "", uuid)
+	buildSendProxyCmd("deleteKey", name, key, "", "", uuid)
 }
 
 // Add key with proxy host to proxy machine with uuid
+// * If name is not available an new one is created
 // * If key is available tries to append it, if not creates a new key with host.
 // * If key and host is available it does nothing
-// example: http POST "localhost:8000/proxies/mahlika.local-915" key=2 host=localhost:8009
+// example: http POST "localhost:8000/proxies/mahlika.local-915" name=foo key=2 host=localhost:8009
 func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
 	var msg ProxyPostMessage
+	var name string
 	var key string
 	var host string
 	var hostdata string
@@ -196,6 +196,13 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
 		log.Print("bad json incoming msg: ", err)
+	}
+
+	if msg.Name != nil {
+		name = *msg.Name
+	} else {
+		log.Println("aborting. no 'name' available")
+		return
 	}
 
 	if msg.Key != nil {
@@ -228,19 +235,42 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addKey", key, host, hostdata, uuid)
+	buildSendProxyCmd("addKey", name, key, host, hostdata, uuid)
 }
 
-// Get all keys and hosts for proxy machine uuid
+// Get all services registered to a proxy machine
 // example: http GET "localhost:8000/proxies/mahlika.local-915"
-//
-// accepts query filtering for key, host and hostdata
-// example: http GET "localhost:8000/proxies/mahlika.local-915?key=2"
-// example: http GET "localhost:8000/proxies/mahlika.local-915?host=localhost:8002"
-// example: http GET "localhost:8000/proxies/mahlika.local-915?hostdata=FromKontrolAPI"
 func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+
+	services := make([]string, 0)
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+
+	for name, _ := range proxyMachine.Services {
+		services = append(services, name)
+	}
+
+	data, err := json.MarshalIndent(services, "", "  ")
+	if err != nil {
+		log.Println("Marshall proxy services into Json failed", err)
+	}
+
+	writer.Write([]byte(data))
+
+}
+
+// Get all keys and hosts for a given proxy service registerd to a proxy uuid
+// example: http GET "localhost:8000/proxies/mahlika.local-915/foo"
+//
+// accepts query filtering for key, host and hostdata
+// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?key=2"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?host=localhost:8002"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?hostdata=FromKontrolAPI"
+func ProxyNameHandler(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	name := vars["name"]
 
 	v := req.URL.Query()
 	key := v.Get("key")
@@ -249,7 +279,9 @@ func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
 
 	p := make(Proxies, 0)
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	for _, keys := range proxyMachine.KeyRoutingTable.Keys {
+	keyRoutingTable := proxyMachine.Services[name]
+
+	for _, keys := range keyRoutingTable.Keys {
 		for _, proxy := range keys {
 			p = append(p, Proxy{proxy.Key, proxy.Host, proxy.HostData})
 		}
@@ -417,8 +449,8 @@ func buildSendCmd(action, host, uuid string) {
 }
 
 // Creates and send request message for proxies. Sends to kontrold.
-func buildSendProxyCmd(action, key, host, hostdata, uuid string) {
-	cmd := proxyconfig.ProxyMessage{action, key, host, hostdata, uuid}
+func buildSendProxyCmd(action, name, key, host, hostdata, uuid string) {
+	cmd := proxyconfig.ProxyMessage{action, name, key, host, hostdata, uuid}
 	log.Println("Sending cmd to kontrold:", cmd)
 
 	// Wrap message for dynamic unmarshaling at endpoint

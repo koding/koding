@@ -146,17 +146,19 @@ To  delete an entity for the the given `uuid`:
 DELETE /proxies/mahlika.local-915
 
 ```
-To create (populate) the proxyies you have to make a POST request with a given key, host and hostdata:
+To create (populate) the proxyies you have to make a POST request with a given
+name, key, host and hostdata:
 
 ```
-POST /proxies/mahlika.local-915 {"key": "string", "host":"ip:port", "hostdata": "optional data"}
+POST /proxies/mahlika.local-915 {"name", "string", "key": "string", "host":"ip:port", "hostdata": "optional data"}
 ```
 
-An example to create a key with `2`, host with `localhost:8009` and an optional
-data field hostdata with `FromKontrolAPI` is:
+An example to create an entry with name "fooservice" and key with `2`, host
+with `localhost:8009` and an optional data field hostdata with
+`FromKontrolAPI` is:
 
 ```
-POST /proxies/mahlika.local-915 {"key": "2", "host":"localhost:8009", "hostdata": "FromKontrolAPI"}
+POST /proxies/mahlika.local-915 {"name": "fooService", "key": "2", "host":"localhost:8009", "hostdata": "FromKontrolAPI"}
 ```
 
 You can add multiple entities for each key. If you add different host addresses
@@ -165,20 +167,35 @@ for the same key, the proxy will use round-robin between these hosts
 To delete a key and all hosts associated with it use:
 
 ```
-DELETE /proxies/mahlika.local-915/2
+DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
 ```
 
-To get details about a given proxy you can make uuid calls via it's `uuid`
-value. Also you can can use and combine query based filters:
+To get the list of services registered to a proxy use:
 
 ```
-GET /proxies/{uuid}
-GET /proxies/{uuid}?key=2
-GET /proxies/{uuid}?host=localhost:8002
-GET /proxies/{uuid}?hostdata=FromKontrolAPI
+GET /proxies/{uuid}/
 ```
 
-An example of `GET /proxies/{uuid}`
+An example output is like:
+
+```
+[
+  "server-0",
+  "goBroker"
+]
+```
+
+To get details about a given proxy service you can make uuid calls via it's
+`uuid` value and `name`. Also you can can use and combine query based filters:
+
+```
+GET /proxies/{uuid}/{name}
+GET /proxies/{uuid}/{name}?key=2
+GET /proxies/{uuid}/{name}?host=localhost:8002
+GET /proxies/{uuid}/{name}?hostdata=FromKontrolAPI
+```
+
+An example of `GET /proxies/{uuid}/{name}`
 
 ```
 [
