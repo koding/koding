@@ -79,6 +79,21 @@ ul.chat-list
         time
           display         block
 
+    &.ondrag
+      z-index             9999
+      background-color    white
+      border              1px solid orange
+      div.move-handle
+        display           block
+
+    div.move-handle
+      size                22px, 22px
+      background-color    orange
+      right               4px
+      top                 4px
+      display             none
+      abs()
+
     div.inline-conversation-widget
       background-color    rgba(0,0,0,0.04)
       height              0px
@@ -95,6 +110,7 @@ ul.chat-list
         bottom            0
         border-radius     0
         box-shadow        none
+        width             100%
         abs()
 
     h3
