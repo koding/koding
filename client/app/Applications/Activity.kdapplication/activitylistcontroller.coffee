@@ -39,6 +39,8 @@ class ActivityListController extends KDListViewController
         @activityHeader.setClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue off
       else
+        @emit "scrolled_up"
+
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
 

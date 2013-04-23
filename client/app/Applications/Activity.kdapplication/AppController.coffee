@@ -95,9 +95,17 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
+    @listController.on "scrolled_up", =>
+      return if @isLoading
+
+      log "scrolled_up fetching activities"
+      @fetchSomeActivities()
+
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
       @listController.newActivityArrived activity
+
+    @isLoading = no
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
@@ -179,6 +187,7 @@ class ActivityAppController extends AppController
   # Fetches activities that occur when user is disconnected.
   fetchSomeActivities:(options = {}) ->
 
+    @isLoading = yes
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
     unless lastItemCreatedAt? or lastItemCreatedAt is ""
       log "lastItemCreatedAt empty"
