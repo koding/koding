@@ -106,7 +106,6 @@ module.exports = class AuthWorker extends EventEmitter
     }
 
   setSecretName:(routingKey, secretChannelName)->
-    console.log {routingKey, secretChannelName}
     setSecretNameEvent = "#{routingKey}.setSecretName"
     message = JSON.stringify secretChannelName
     @bongo.respondToClient setSecretNameEvent, message
@@ -119,14 +118,13 @@ module.exports = class AuthWorker extends EventEmitter
     )
 
   _fakePersistenceWorker:(secretChannelName)->
-    console.log {secretChannelName}
     {connection} = @bongo.mq
     options = {type: 'fanout', autoDelete: yes, durable: no}
     connection.exchange secretChannelName, options, (exchange)->
       connection.queue '', {autoDelete: yes, durable: no, exclusive: yes}, (queue)->
         queue.bind exchange, '#'
         queue.on 'queueBindOk', ->
-          console.trace(); queue.subscribe (message)->
+          queue.subscribe (message)->
             console.log message.data+''
 
   join: do ->
@@ -183,7 +181,7 @@ module.exports = class AuthWorker extends EventEmitter
                         if err or not secretChannelName
                           @rejectClient routingKey
                         else
-                          @setSecretName routingKey
+                          @setSecretName routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
@@ -194,9 +192,14 @@ module.exports = class AuthWorker extends EventEmitter
         unless session then fail()
         else if session?.username
           @addClient socketId, @notificationExchange, routingKey, no
-          {username} = session
+          bindingKey = session.username
+
           @fetchNotificationExchange (exchange)->
-            exchange.publish 'auth.join', {routingKey, username}
+            exchange.publish 'auth.join', {
+              exchange: 'notification'
+              bindingKey
+              routingKey
+            }
         else
           @rejectClient routingKey
 
