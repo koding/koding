@@ -115,3 +115,7 @@ func (req Request) Relay(addr *net.TCPAddr) error {
 func (req Request) Redirect(url string) {
 	req.source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: " + url + "\r\n\r\n"))
 }
+
+func (req Request) Write(text string) {
+	req.source.Write([]byte(text))
+}

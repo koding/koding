@@ -85,7 +85,7 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 		var deaths int
 		name, key := parseKey(req.Host)
 		if name == "homepage" {
-			req.Redirect("http://example.com")
+			req.Write("Hello fujin proxy!")
 			return
 		}
 
