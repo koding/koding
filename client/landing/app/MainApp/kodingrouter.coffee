@@ -54,7 +54,7 @@ class KodingRouter extends KDRouter
     @getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
-        appManager = KD.getSingleton("appManager")
+        appManager = KD.getSingleton "appManager"
         appManager.open app
         appManager.tell app, 'handleQuery', query
 
@@ -145,8 +145,8 @@ class KodingRouter extends KDRouter
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
-    createSectionHandler = (sec)->
-      ({params:{name}, query})-> @openSection sec, name, query
+    createSectionHandler = (sec)=>
+      ({params:{name}, query})=> @openSection sec, name, query
 
     createContentHandler = @bound 'createContentDisplayHandler'
 
@@ -271,23 +271,23 @@ class KodingRouter extends KDRouter
 
       # top level names
       '/:name':do->
-        open =(routeInfo, model, status_404)->
+        open =(routeInfo, model)->
           switch model?.bongo_?.constructorName
-            when 'JAccount' then content.Members routeInfo, model
-            when 'JGroup'   then content.Groups  routeInfo, model
-            else status_404()
+            when 'JAccount'
+              (createContentHandler 'Members') routeInfo, model
+            when 'JGroup'
+              (createSectionHandler 'Activity') routeInfo, model
+            else
+              @handleNotFound routeInfo.params.name
 
         nameHandler =(routeInfo, state, route)->
           return  if @landingPageLoading
 
-          {params} = routeInfo
-          status_404 = @handleNotFound.bind this, params.name
-
           if state?
-            open routeInfo, state, status_404
+            open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable params.name, (err, [model], name)->
-              open routeInfo, model, status_404
+            KD.remote.cacheable routeInfo.params.name, (err, [model], name)->
+              open.call this, routeInfo, model
 
     routes
