@@ -6,15 +6,15 @@ class ActivityAppController extends AppController
     hiddenHandle : yes
 
   activityTypes = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-      'CBlogPostActivity'
-    ]
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+    'CBlogPostActivity'
+  ]
 
   @clearQuotes = clearQuotes = (activities)->
 

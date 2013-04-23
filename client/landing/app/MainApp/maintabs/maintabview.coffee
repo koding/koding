@@ -37,7 +37,8 @@ class MainTabView extends KDTabView
     if hideTabs
       @hideHandleContainer()
     else
-      @showHandleContainer()
+      if @getSingleton('contentPanel').navOpenedOnce
+        @showHandleContainer()
 
 
   # temp fix sinan 27 Nov 12

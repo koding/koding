@@ -10,9 +10,49 @@ app.activity.styl
 */
 }
 
-// .content-page.activity
-//   > .kdsplitview
-//     margin-top          75px
+#maintabpane-activity
+  overflow                     hidden
+  #content-page-activity
+    height                     100%
+    &.fixed
+      .common-inner-nav
+        top                    51px
+        height                 100%
+        fix()
+      .activity-update-widget-wrapper
+        top                    51px
+        fix()
+      .activity-content
+        margin                 28px 0 0 138px
+      .feeder-header
+        top                    51px
+        fix()
+      &.loggedin
+        .common-inner-nav
+          top                  128px
+        .activity-content
+          margin-top           105px
+        .feeder-header
+          top                  128px
+
+
+  .activity-content
+    min-height                 100%
+    borderBox()
+
+    .listview-wrapper
+      height                   auto
+      overflow                 hidden
+    .kdscrollview
+      height                   auto
+      overflow                 hidden
+      .lazy-loader
+        font-weight            600
+        background             rgba(0, 0, 0, 0.02)
+        border-bottom          1px solid rgba(0, 0, 0, 0.055)
+        border-top             1px solid rgba(0, 0, 0, 0.055)
+        font-size              12px
+        color                  #5F5F5F
 
 .activity-main-split
   height              100%
@@ -59,21 +99,6 @@ h1.kdheaderview.notification-header
       &:hover
         color             #27a3c9
 
-.activity-content
-  scrollbars()
-  .kdtabview
-    overflow            visible !important
-
-  .listview-wrapper
-    // .kdscrollview
-    //   margin-top         28px
-    .lazy-loader
-      font-weight        600
-      background         rgba(0, 0, 0, 0.02)
-      border-bottom      1px solid rgba(0, 0, 0, 0.055)
-      border-top         1px solid rgba(0, 0, 0, 0.055)
-      font-size          12px
-      color              #5F5F5F
 
 .new-members-loader
   display           block !important
@@ -118,6 +143,8 @@ h1.kdheaderview.notification-header
 *  ACTIVITY LIST STYLES
 */
 .content-page.activity
+  overflow                auto
+  size                    100%, auto
   .feeder-header
     height                28px
     line-height           28px
@@ -834,52 +861,19 @@ button.activity-status-context
   height                auto
   overflow              visible
   z-index               100
-  top                   0
-  left                  0
-  abs()
+  rel()
   .first-label
     hidden()
   &.edit-mode
     .kdbuttonwithmenu-wrapper.activity-status-context
       hidden()
-    // .update-widget-tabs .kdtabpaneview
-    //   bg                color, #ffd56e
     .first-label
       visible()
-
-// .activity-update-widget-wrapper-folded
-//   height                auto
-//   abs()
-//   overflow              visible
-//   z-index               100
-//   hidden()
-//   .first-label
-//     hidden()
-//   &.edit-mode
-//     visible()
-//     .kdbuttonwithmenu-wrapper.activity-status-context
-//       hidden()
-//     // .update-widget-tabs .kdtabpaneview
-//     //   bg                color, #ffd56e
-//     .first-label
-//       visible()
 
 .widget-holder
   overflow              visible
   min-height            75px
   borderBox()
-  // .widget-back
-  //   width               100%
-  //   height              74px
-  //   abs()
-  //   bg                  color, white
-  //   left                0
-  //   top                 0
-  //   z-index             0
-  //   &.gradient
-  //     border-bottom     1px solid rgb(229,229,229)
-  //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
-  //     gradient          rgb(255,255,255),rgb(242,242,242)
 
   .chevron-separator
     display           none
@@ -913,7 +907,6 @@ button.activity-status-context
   border                    1px solid #bbb
   bg                        color,rgba(255,255,255,.95)
   min-width                 150px
-  // border                    1px solid rgb(187,187,187)
 
   .kdlistview-buttonmenu
     rounded                 3px 0 3px 3px

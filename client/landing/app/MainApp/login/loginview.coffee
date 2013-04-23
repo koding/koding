@@ -305,7 +305,7 @@ class LoginView extends KDScrollView
     if $(event.target).is('.login-screen')
       @hide =>
         {groupEntryPoint} = KD.config
-        route = if groupEntryPoint then "/#{groupEntryPoint}/Home" else "/Home"
+        route = if groupEntryPoint then "/#{groupEntryPoint}/Activity" else "/Activity"
         @getSingleton('router').handleRoute route
 
   animateToForm: (name)->
