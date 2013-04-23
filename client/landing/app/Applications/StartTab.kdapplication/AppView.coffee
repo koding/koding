@@ -45,6 +45,7 @@ class StartTabMainView extends JView
       icon        : yes
       iconClass   : "plus-black"
       title       : "Make a new App"
+      introId     : "makeANewApp"
       callback    : =>
         @appsController.makeNewApp()
 
