@@ -348,7 +348,6 @@ func (w *WorkerConfig) UpdateWorker(worker MsgWorker) {
 }
 
 func (w *WorkerConfig) AddWorker(worker MsgWorker) {
-	log.Println("adding worker", worker.Name)
 	err := w.Collection.Insert(worker)
 	if err != nil {
 		log.Println(err)
@@ -357,7 +356,6 @@ func (w *WorkerConfig) AddWorker(worker MsgWorker) {
 }
 
 func (w *WorkerConfig) DeleteWorker(uuid string) {
-	log.Println("deleting worker with uuid", uuid)
 	err := w.Collection.Remove(bson.M{"uuid": uuid})
 	if err != nil {
 		log.Println(err)

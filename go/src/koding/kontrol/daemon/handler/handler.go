@@ -220,7 +220,10 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		return errors.New(" empty command, nothing to do")
 	}
 
-	if command == "add" {
+	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+
+	if command == "add" || command == "addWithProxy" {
+		log.Println("COMMAND", command)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -233,49 +236,30 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			log.Printf("could not marshall worker: %s", err)
 		}
 
-		switch worker.Name {
-		case "goBroker":
-			config := config.Config{}
-			err = json.Unmarshal([]byte(worker.ProcessData), &config.Broker)
-			if err != nil {
-				log.Print("bad json unmarshalling process config file", err)
-				return err
-			}
-			log.Println("BROKER CONFIG", config.Broker)
+		go deliver(workerJson, workerProducer, res.Uuid)
 
-			port := strconv.Itoa(config.Broker.Port)
-			key := strconv.Itoa(worker.Version)
-			cmd := proxyconfig.ProxyMessage{
-				"addKey",
-				key,
-				config.Broker.IP + ":" + port,
-				"FromKontrolDaemon",
-				"proxy.in.koding.com",
-			}
-			proxy.DoProxy(cmd)
-		case "server":
-			var configPort int
-			err = json.Unmarshal([]byte(worker.ProcessData), &configPort)
-			if err != nil {
-				log.Print("bad json unmarshalling process config file", err)
-				return err
-			}
-			log.Println("WEBSERVER CONFIG", configPort)
-
-			port := strconv.Itoa(configPort)
-			key := strconv.Itoa(worker.Version)
-			cmd := proxyconfig.ProxyMessage{
-				"addKey",
-				key,
-				worker.Hostname + ":" + port,
-				"FromKontrolDaemon",
-				"proxy.in.koding.com",
-			}
-			proxy.DoProxy(cmd)
-		default:
+		// register to fujin
+		if command != "addWithProxy" {
+			return nil
 		}
 
-		go deliver(workerJson, workerProducer, res.Uuid)
+		// but not if it has port of 0
+		if worker.Port == 0 {
+			return fmt.Errorf("register to fujin proxy not possible. port number is '0' for %s", worker.Name)
+		}
+
+		port := strconv.Itoa(worker.Port)
+		key := strconv.Itoa(worker.Version)
+		cmd := proxyconfig.ProxyMessage{
+			"addKey",
+			key,
+			worker.Hostname + ":" + port,
+			"FromKontrolDaemon",
+			"proxy.in.koding.com",
+		}
+
+		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+		proxy.DoProxy(cmd)
 
 		return nil
 	}
@@ -309,6 +293,8 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
 		return fmt.Errorf("do request", err)
 	}
+
+	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 
 	if command == "cmd" {
 		req := buildReq("start", data, hostname, 0)
