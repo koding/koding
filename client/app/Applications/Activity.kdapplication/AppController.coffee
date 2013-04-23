@@ -47,7 +47,8 @@ class ActivityAppController extends AppController
     status = @getSingleton "status"
     status.on "reconnected", (reason)=>
       if reason is "internetDownForLongTime"
-        @reset()
+        @resetAll()
+        @populateActivity()
       else
         @fetchSomeActivities()
 
@@ -60,16 +61,12 @@ class ActivityAppController extends AppController
       ac = @getSingleton('activityController')
       ac.once "ActivityListControllerReady", @populateActivity.bind @
 
-  reset:->
-    @resetList()
-    @listController.resetList()
-    @populateActivity()
-
-  resetList:->
+  resetAll:->
 
     delete @lastTo
     delete @lastFrom
 
+    @listController.resetList()
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -100,8 +97,7 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-      @resetList()
-      @listController.resetList()
+      @resetAll()
       @setFilter data.type
       @populateActivity()
 
