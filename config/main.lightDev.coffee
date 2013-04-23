@@ -113,7 +113,7 @@ module.exports =
     host        : 'kluster-dev.in.koding.com'
     port        : 5672
     apiAddress  : "kluster-dev.in.koding.com"
-    apiPort     : 55672
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
