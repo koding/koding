@@ -212,7 +212,7 @@ func HandleApiMessage(data []byte, appId string) {
 }
 
 func DoAction(command, option string, worker workerconfig.MsgWorker) error {
-	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty && command != "add" {
+	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty && (command != "add" || command != "addWithProxy") {
 		return fmt.Errorf(" do action", err)
 	}
 
