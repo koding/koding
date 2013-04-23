@@ -252,10 +252,12 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		key := strconv.Itoa(worker.Version)
 		cmd := proxyconfig.ProxyMessage{
 			"addKey",
+			worker.Name,
 			key,
 			worker.Hostname + ":" + port,
 			"FromKontrolDaemon",
-			"proxy.in.koding.com",
+			// "proxy.in.koding.com",
+			"mahlika.local",
 		}
 
 		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)

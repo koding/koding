@@ -83,9 +83,9 @@ func main() {
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
-		key := parseKey(req.Host)
+		name, key := parseKey(req.Host)
 
-		target := targetUrl(deaths, key)
+		target := targetUrl(deaths, name, key)
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
 		if err != nil {
 			log.Println(err)
@@ -103,21 +103,17 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	}
 }
 
-func parseKey(host string) string {
+func parseKey(host string) (string, string) {
 	log.Println("HOST string", host)
-	args := strings.Split(host, ".")
-	key := args[0]
 
-	// exampleHost := "broker-915.x.koding.com"
-	// partsFirst := strings.Split(exampleHost, ".")
-	// firstSub := partsFirst[0]
+	partsFirst := strings.Split(host, ".")
+	firstSub := partsFirst[0]
 
-	// partsSecond := strings.Split(firstSub, "-")
-	// name := partsSecond[0]
-	// version := partsSecond[1]
-	// log.Println("name, version", name, version)
+	partsSecond := strings.Split(firstSub, "-")
+	name := partsSecond[0]
+	key := partsSecond[1]
 
-	return key
+	return name, key
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
@@ -160,12 +156,13 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func targetUrl(numberOfDeaths int, key string) *url.URL {
+func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 	var target *url.URL
 	var err error
-	host := targetHost(key)
+	host := targetHost(name, key)
 
-	v := len(proxy.KeyRoutingTable.Keys[key])
+	keyRoutingTable := proxy.Services[name]
+	v := len(keyRoutingTable.Keys[key])
 	if v == numberOfDeaths {
 		log.Println("All given servers are death. Fallback to localhost:8000")
 		target, err = url.Parse("http://localhost:8000")
@@ -181,7 +178,7 @@ func targetUrl(numberOfDeaths int, key string) *url.URL {
 		log.Printf("Server is death: %s. Trying to get another one", host)
 		numberOfDeaths++
 
-		target = targetUrl(numberOfDeaths, key)
+		target = targetUrl(numberOfDeaths, name, key)
 	} else {
 		target, err = url.Parse("http://" + host)
 		if err != nil {
@@ -209,18 +206,20 @@ func checkServer(host string) error {
 	return nil
 }
 
-func targetHost(key string) string {
+func targetHost(name, key string) string {
 	var hostname string
 
-	v := len(proxy.KeyRoutingTable.Keys)
+	keyRoutingTable := proxy.Services[name]
+
+	v := len(keyRoutingTable.Keys)
 	if v == 0 {
 		hostname = "localhost:8000"
 		log.Println("no keys are added, using default url ", hostname)
 	} else {
 		// // get all keys and sort them
-		// listOfKeys := make([]int, len(proxy.KeyRoutingTable.Keys))
+		// listOfKeys := make([]int, len(keyRoutingTable.Keys))
 		// i := 0
-		// for k, _ := range proxy.KeyRoutingTable.Keys {
+		// for k, _ := range keyRoutingTable.Keys {
 		// 	listOfKeys[i], _ = strconv.Atoi(k)
 		// 	i++
 		// }
@@ -230,15 +229,15 @@ func targetHost(key string) string {
 		// key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
 
 		// then use round-robin algorithm for each hostname
-		for i, value := range proxy.KeyRoutingTable.Keys[key] {
+		for i, value := range keyRoutingTable.Keys[key] {
 			currentIndex := value.CurrentIndex
 			if currentIndex == i {
 				hostname = value.Host
-				for k, _ := range proxy.KeyRoutingTable.Keys[key] {
-					if len(proxy.KeyRoutingTable.Keys[key])-1 == currentIndex {
-						proxy.KeyRoutingTable.Keys[key][k].CurrentIndex = 0 // reached end
+				for k, _ := range keyRoutingTable.Keys[key] {
+					if len(keyRoutingTable.Keys[key])-1 == currentIndex {
+						keyRoutingTable.Keys[key][k].CurrentIndex = 0 // reached end
 					} else {
-						proxy.KeyRoutingTable.Keys[key][k].CurrentIndex = currentIndex + 1
+						keyRoutingTable.Keys[key][k].CurrentIndex = currentIndex + 1
 					}
 				}
 				break

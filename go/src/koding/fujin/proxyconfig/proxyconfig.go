@@ -1,6 +1,7 @@
 package proxyconfig
 
 import (
+	"errors"
 	"fmt"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
@@ -9,6 +10,7 @@ import (
 
 type ProxyMessage struct {
 	Action   string `json:"action"`
+	Name     string `json:"name"`
 	Key      string `json:"key"`
 	Host     string `json:"host"`
 	HostData string `json:"hostdata"`
@@ -62,14 +64,14 @@ type ProxyConfiguration struct {
 }
 
 type Proxy struct {
-	KeyRoutingTable    KeyRoutingTable
+	Services           map[string]KeyRoutingTable
 	DomainRoutingTable DomainRoutingTable
 	Uuid               string
 }
 
 func NewProxy(uuid string) *Proxy {
 	return &Proxy{
-		KeyRoutingTable:    *NewKeyRoutingTable(),
+		Services:           make(map[string]KeyRoutingTable),
 		DomainRoutingTable: *NewDomainRoutingTable(),
 		Uuid:               uuid,
 	}
@@ -138,14 +140,22 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteKey(key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 
-	delete(proxy.KeyRoutingTable.Keys, key)
+	_, ok := proxy.Services[name]
+	if !ok {
+		return errors.New("service name is wrong. deletin key is not possible")
 
+	}
+
+	keyRoutingTable := proxy.Services[name]
+	delete(keyRoutingTable.Keys, key)
+
+	proxy.Services[name] = keyRoutingTable
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -162,14 +172,20 @@ func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key not possible '%s'", err)
 	}
 
-	if len(proxy.KeyRoutingTable.Keys) == 0 { // empty routing table, add it
-		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+	_, ok := proxy.Services[name]
+	if !ok {
+		proxy.Services[name] = *NewKeyRoutingTable()
+	}
+	keyRoutingTable := proxy.Services[name]
+
+	if len(keyRoutingTable.Keys) == 0 { // empty routing table, add it
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
 		err = p.UpdateProxy(proxy)
 		if err != nil {
 			return err
@@ -177,9 +193,9 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 		return nil
 	}
 
-	_, ok := proxy.KeyRoutingTable.Keys[key] // new key, add it
+	_, ok = keyRoutingTable.Keys[key] // new key, add it
 	if !ok {
-		proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
 		err = p.UpdateProxy(proxy)
 		if err != nil {
 			return err
@@ -188,14 +204,15 @@ func (p *ProxyConfiguration) AddKey(key, host, hostdata, uuid string) error {
 	}
 
 	// check for existing hostnames, if exist abort
-	for _, value := range proxy.KeyRoutingTable.Keys[key] {
+	for _, value := range keyRoutingTable.Keys[key] {
 		if value.Host == host {
 			return nil
 		}
 	}
 
-	proxy.KeyRoutingTable.Keys[key] = append(proxy.KeyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
 
+	proxy.Services[name] = keyRoutingTable
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
