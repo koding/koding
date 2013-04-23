@@ -68,7 +68,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> '/Activity'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -167,7 +167,6 @@ class KodingRouter extends KDRouter
 
       # section
       # TODO: nested groups are disabled.
-      '/:name?/Home'                    : createSectionHandler 'Home'
       '/:name?/Groups'                  : createSectionHandler 'Groups'
       '/:name?/Activity'                : createSectionHandler 'Activity'
       '/:name?/Members'                 : createSectionHandler 'Members'
