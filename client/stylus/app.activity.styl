@@ -10,9 +10,49 @@ app.activity.styl
 */
 }
 
-// .content-page.activity
-//   > .kdsplitview
-//     margin-top          75px
+#maintabpane-activity
+  overflow                     hidden
+  #content-page-activity
+    height                     100%
+    &.fixed
+      .common-inner-nav
+        top                    51px
+        height                 100%
+        fix()
+      .activity-update-widget-wrapper
+        top                    51px
+        fix()
+      .activity-content
+        margin                 28px 0 0 138px
+      .feeder-header
+        top                    51px
+        fix()
+      &.loggedin
+        .common-inner-nav
+          top                  128px
+        .activity-content
+          margin-top           105px
+        .feeder-header
+          top                  128px
+
+
+  .activity-content
+    min-height                 100%
+    borderBox()
+
+    .listview-wrapper
+      height                   auto
+      overflow                 hidden
+    .kdscrollview
+      height                   auto
+      overflow                 hidden
+      .lazy-loader
+        font-weight            600
+        background             rgba(0, 0, 0, 0.02)
+        border-bottom          1px solid rgba(0, 0, 0, 0.055)
+        border-top             1px solid rgba(0, 0, 0, 0.055)
+        font-size              12px
+        color                  #5F5F5F
 
 .activity-main-split
   height              100%
@@ -59,21 +99,6 @@ h1.kdheaderview.notification-header
       &:hover
         color             #27a3c9
 
-.activity-content
-  scrollbars()
-  .kdtabview
-    overflow            visible !important
-
-  .listview-wrapper
-    // .kdscrollview
-    //   margin-top         28px
-    .lazy-loader
-      font-weight        600
-      background         rgba(0, 0, 0, 0.02)
-      border-bottom      1px solid rgba(0, 0, 0, 0.055)
-      border-top         1px solid rgba(0, 0, 0, 0.055)
-      font-size          12px
-      color              #5F5F5F
 
 .new-members-loader
   display           block !important
@@ -836,7 +861,7 @@ button.activity-status-context
   height                auto
   overflow              visible
   z-index               100
-  abs()
+  rel()
   .first-label
     hidden()
   &.edit-mode

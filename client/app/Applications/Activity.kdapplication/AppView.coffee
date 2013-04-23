@@ -1,4 +1,4 @@
-class ActivityAppView extends JView
+class ActivityAppView extends KDScrollView
 
   constructor:(options = {}, data)->
 
@@ -7,39 +7,59 @@ class ActivityAppView extends JView
 
     super options, data
 
-    account        = KD.whoami()
-    feedWrapper    = new ActivityListContainer
-    @innerNav      = new ActivityInnerNavigation
+    @listenWindowResize()
 
-    @header = new HomeAppView
+    entryPoint        = KD.config.groupEntryPoint
+    HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
+    @feedWrapper      = new ActivityListContainer
+    @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
+    @header           = new HomeKonstructor {entryPoint}
+    @widget           = new ActivityUpdateWidget
+    @widgetController = new ActivityUpdateWidgetController view : @widget
+    mainController    = @getSingleton("mainController")
 
-    @split = new ActivitySplitView
-      views     : [@innerNav, feedWrapper]
-      delegate  : @
+    mainController.on "AccountChanged", @bound "decorate"
+    mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
+    @on 'scroll', @bound "setFixed"
 
-    @widget = new ActivityUpdateWidget
+    @decorate()
 
-    @widget.hide()  unless KD.isLoggedIn()
+  decorate:->
+    if KD.isLoggedIn()
+      @setClass 'loggedin'
+      @widget.show()
+      @header.$('.home-links').addClass 'hidden'
+    else
+      @unsetClass 'loggedin'
+      @widget.hide()
+      @header.$('.home-links').removeClass 'hidden'
+    @notifyResizeListeners()
 
-    @widgetController = new ActivityUpdateWidgetController
-      view : @widget
+  setFixed:->
+    if @getScrollTop() > @header.getHeight()
+      @setClass "fixed"
+    else
+      @unsetClass "fixed"
 
-    @getSingleton("mainController").once "AccountChanged", (account)=>
-      @widget[if KD.isLoggedIn() then "show" else "hide"]()
-      @notifyResizeListeners()
+  navigateHome:(itemData)->
 
-    @split.on "ViewResized", =>
-      feedWrapper.setSize @split.getHeight()
+    top      = if itemData.pageName is "Home" then 0 else @header.getHeight()
+    duration = 300
 
-    @utils.wait 1000, @notifyResizeListeners.bind @
+    @scrollTo {top, duration} if itemData.pageName in ["Home", "Activity"]
 
-    # @header.hide()  if localStorage.welcomeMessageClosed
+  viewAppended: JView::viewAppended
+
+  _windowDidResize:->
+
+    @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
   pistachio:->
     """
       {{> @header}}
       {{> @widget}}
-      {{> @split}}
+      {{> @innerNav}}
+      {{> @feedWrapper}}
     """
 
 class ActivityListContainer extends JView
@@ -53,6 +73,8 @@ class ActivityListContainer extends JView
       delegate          : @
       lazyLoadThreshold : .99
       itemClass         : ActivityListItemView
+      # wrapper           : no
+      # scrollView        : no
 
     @listWrapper = @controller.getView()
 
@@ -60,7 +82,7 @@ class ActivityListContainer extends JView
       @getSingleton('activityController').emit "ActivityListControllerReady", @controller
 
   setSize:(newHeight)->
-    @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
+    # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
 
   pistachio:->
     """

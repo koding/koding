@@ -1,7 +1,6 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
-    @landingPageLoading = KD.config.groupEntryPoint?
 
     @openRoutes = {}
     @openRoutesById = {}
@@ -12,7 +11,6 @@ class KodingRouter extends KDRouter
       @ready = yes
       @utils.defer =>
         @emit 'ready'
-        @landingPageLoading = no
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -70,7 +68,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Activity'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -169,6 +167,7 @@ class KodingRouter extends KDRouter
 
       # section
       # TODO: nested groups are disabled.
+      '/:name?/Home'                    : createSectionHandler 'Home'
       '/:name?/Groups'                  : createSectionHandler 'Groups'
       '/:name?/Activity'                : createSectionHandler 'Activity'
       '/:name?/Members'                 : createSectionHandler 'Members'
@@ -271,13 +270,16 @@ class KodingRouter extends KDRouter
       # top level names
       '/:name':do->
         open =(routeInfo, model, status_404)->
+          router = KD.getSingleton 'router'
           switch model?.bongo_?.constructorName
-            when 'JAccount' then content.Members routeInfo, model
-            when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JAccount'
+              createContentHandler 'Members'
+            when 'JGroup'
+              {params:{name}, query} = routeInfo
+              router.handleRoute "/#{name}/Activity"
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
-          return  if @landingPageLoading
 
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
