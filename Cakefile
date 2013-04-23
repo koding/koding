@@ -99,12 +99,13 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port, index) ->
     processes.fork
-      name            : "server-#{index}"
-      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
-      restart         : yes
-      restartInterval : 100
-      kontrolEnabled  : yes
-      port            : port
+      name                   : "server-#{index}"
+      cmd                    : __dirname + "/server/index -c #{config} -p #{port}"
+      restart                : yes
+      restartInterval        : 100
+      kontrolEnabled         : yes
+      kontrolRegisterToProxy : yes
+      kontrolPort            : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -239,19 +240,23 @@ task 'emailSender',({configFile})->
           processes.kill "emailSender"
 
 task 'goBroker',(options)->
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
 
   {configFile} = options
 
   processes.spawn
-    name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
-    restart: yes
-    restartInterval: 100
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
+    name                   : 'goBroker'
+    cmd                    : "./go/bin/broker -c #{configFile}" + addFlags(options)
+    restart                : yes
+    restartInterval        : 100
+    stdout                 : process.stdout
+    stderr                 : process.stderr
+    kontrolEnabled         : yes
+    kontrolRegisterToProxy : yes
+    kontrolPort            : broker.port
+    verbose                : yes
 
-  config = require('koding-config-manager').load("main.#{configFile}")
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
 
 task 'osKite',({configFile})->

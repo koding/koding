@@ -220,7 +220,10 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		return errors.New(" empty command, nothing to do")
 	}
 
-	if command == "add" {
+	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+
+	if command == "add" || command == "addWithProxy" {
+		log.Println("COMMAND", command)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -234,6 +237,29 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		}
 
 		go deliver(workerJson, workerProducer, res.Uuid)
+
+		// register to fujin
+		if command != "addWithProxy" {
+			return nil
+		}
+
+		// but not if it has port of 0
+		if worker.Port == 0 {
+			return fmt.Errorf("register to fujin proxy not possible. port number is '0' for %s", worker.Name)
+		}
+
+		port := strconv.Itoa(worker.Port)
+		key := strconv.Itoa(worker.Version)
+		cmd := proxyconfig.ProxyMessage{
+			"addKey",
+			key,
+			worker.Hostname + ":" + port,
+			"FromKontrolDaemon",
+			"proxy.in.koding.com",
+		}
+
+		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+		proxy.DoProxy(cmd)
 
 		return nil
 	}
@@ -267,6 +293,8 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
 		return fmt.Errorf("do request", err)
 	}
+
+	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 
 	if command == "cmd" {
 		req := buildReq("start", data, hostname, 0)
@@ -471,7 +499,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		// First kill and delete all alive workers for the same name type.
 		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
-		log.Println(worker.Name, worker.Hostname)
 		iter := kontrolConfig.Collection.Find(bson.M{
 			"name":     worker.Name,
 			"hostname": worker.Hostname,
@@ -485,8 +512,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		result := workerconfig.MsgWorker{}
 		for iter.Next(&result) {
-			log.Println(result)
-
 			kontrolConfig.DeleteWorker(result.Uuid)
 
 			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",

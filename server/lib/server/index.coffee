@@ -341,4 +341,4 @@ kontrolRegister = () ->
 
         console.log "you can reach this webserver via http://#{getVersion()}.x.koding.com ..."
 
-kontrolRegister()
+# kontrolRegister()
