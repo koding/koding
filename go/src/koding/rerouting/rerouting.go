@@ -46,8 +46,6 @@ func main() {
 	}
 
 	startRouting()
-
-	select {}
 }
 
 func startRouting() {
@@ -82,49 +80,47 @@ func startRouting() {
 	}
 
 	log.Println("routing started...")
-	go func() {
-		for msg := range authStream {
-			log.Printf("got %dB message data: [%v]-[%s] %s",
-				len(msg.Body),
-				msg.DeliveryTag,
-				msg.RoutingKey,
-				msg.Body)
+	for msg := range authStream {
+		log.Printf("got %dB message data: [%v]-[%s] %s",
+			len(msg.Body),
+			msg.DeliveryTag,
+			msg.RoutingKey,
+			msg.Body)
 
-			switch msg.RoutingKey {
-			case "auth.join":
-				var join JoinMsg
-				err := json.Unmarshal(msg.Body, &join)
-				if err != nil {
-					log.Print("bad json incoming msg: ", err)
-				}
-
-				authPairs[join.RoutingKey] = join
-
-				log.Println("Auth pairs:", authPairs) // this is just for debug
-
-				declareExchange(c, join.Exchange)
-
-				go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey)
-			case "auth.leave":
-				var leave LeaveMsg
-				err := json.Unmarshal(msg.Body, &leave)
-				if err != nil {
-					log.Print("bad json incoming msg: ", err)
-				}
-
-				// delete user from the authPairs map and cancel it from consuming
-				delete(authPairs, leave.RoutingKey)
-
-				err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
-				if err != nil {
-					log.Fatal("basic.cancel: %s", err)
-				}
-
-			default:
-				log.Println("routing key is not defined: ", msg.RoutingKey)
+		switch msg.RoutingKey {
+		case "auth.join":
+			var join JoinMsg
+			err := json.Unmarshal(msg.Body, &join)
+			if err != nil {
+				log.Print("bad json incoming msg: ", err)
 			}
+
+			authPairs[join.RoutingKey] = join
+
+			log.Println("Auth pairs:", authPairs) // this is just for debug
+
+			declareExchange(c, join.Exchange)
+
+			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey)
+		case "auth.leave":
+			var leave LeaveMsg
+			err := json.Unmarshal(msg.Body, &leave)
+			if err != nil {
+				log.Print("bad json incoming msg: ", err)
+			}
+
+			// delete user from the authPairs map and cancel it from consuming
+			delete(authPairs, leave.RoutingKey)
+
+			err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
+			if err != nil {
+				log.Fatal("basic.cancel: %s", err)
+			}
+
+		default:
+			log.Println("routing key is not defined: ", msg.RoutingKey)
 		}
-	}()
+	}
 }
 
 func declareExchange(c *Consumer, exchange string) {
