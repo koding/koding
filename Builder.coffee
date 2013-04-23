@@ -23,7 +23,7 @@ module.exports = class Builder
     @config = require('koding-config-manager').load("main.#{options.configFile}")
     @incluesFileTime = 0
 
-    fs.mkdirSync ".build"
+    try fs.mkdirSync ".build"
     @compileChanged options, true
 
   compileChanged: (options, initial)->
