@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -31,8 +32,12 @@ type WebtermRemote struct {
 }
 
 func registerWebtermMethods(k *kite.Kite) {
-	k.Handle("webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		user, _ := findSession(session)
+	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		dir, err := os.Open("/var/run/screen/S-" + user.Name)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -52,7 +57,12 @@ func registerWebtermMethods(k *kite.Kite) {
 		return sessions, nil
 	})
 
-	k.Handle("webterm.createSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "webterm.createSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var params struct {
 			Remote       WebtermRemote
 			Name         string
@@ -62,13 +72,17 @@ func registerWebtermMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
 		}
 
-		user, vm := findSession(session)
 		server := newWebtermServer(vm, user, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
 		session.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
 
-	k.Handle("webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var params struct {
 			Remote       WebtermRemote
 			SessionId    int
@@ -78,7 +92,6 @@ func registerWebtermMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
 		}
 
-		user, vm := findSession(session)
 		server := newWebtermServer(vm, user, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
 		session.OnDisconnect(func() { server.Close() })
 		return server, nil

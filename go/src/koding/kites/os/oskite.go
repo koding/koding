@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
@@ -58,51 +59,77 @@ func main() {
 	go LimiterLoop()
 	k := kite.New("os")
 
-	k.Handle("vm.start", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := findSession(session)
+	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Start()
 	})
 
-	k.Handle("vm.shutdown", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := findSession(session)
+	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Shutdown()
 	})
 
-	k.Handle("vm.stop", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := findSession(session)
+	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Stop()
 	})
 
-	k.Handle("vm.info", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := findSession(session)
+	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
+		vm.Prepare(getUsers(vm), true)
+		return vm.Start()
+	})
+
+	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		info := infos[vm.Id]
 		info.State = vm.GetState()
 		return info, nil
 	})
 
-	k.Handle("vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		_, vm := findSession(session)
-		vm.Prepare(getUsers(vm), true)
-		return vm.Start()
-	})
+	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
 
-	k.Handle("spawn", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
 			return nil, &kite.ArgumentError{Expected: "array of strings"}
 		}
-
-		user, vm := findSession(session)
 		return vm.AttachCommand(user.Uid, "", command...).CombinedOutput()
 	})
 
-	k.Handle("exec", true, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	registerVmMethod(k, "exec", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var line string
 		if args.Unmarshal(&line) != nil {
 			return nil, &kite.ArgumentError{Expected: "string"}
 		}
-
-		user, vm := findSession(session)
 		return vm.AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
@@ -113,68 +140,86 @@ func main() {
 	k.Run()
 }
 
-func findSession(session *kite.Session) (*virt.User, *virt.VM) {
-	var user virt.User
-	if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
-		panic(err)
-	}
-	if user.Uid < virt.UserIdOffset {
-		panic("User with too low uid.")
-	}
-	vm := getDefaultVM(&user)
-
-	infosMutex.Lock()
-	info, isExistingState := infos[vm.Id]
-	if !isExistingState {
-		info = newInfo(vm)
-		infos[vm.Id] = info
-	}
-	if !info.sessions[session] {
-		info.sessions[session] = true
-		if info.timeout != nil {
-			info.timeout.Stop()
-			info.timeout = nil
+func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Session, *virt.User, *virt.VM, *virt.VOS) (interface{}, error)) {
+	k.Handle(method, concurrent, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		var user virt.User
+		if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
+			panic(err)
+		}
+		if user.Uid < virt.UserIdOffset {
+			panic("User with too low uid.")
 		}
 
-		session.OnDisconnect(func() {
-			infosMutex.Lock()
-			defer infosMutex.Unlock()
+		var params struct {
+			Vm string
+		}
+		if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
+			return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
+		}
 
-			delete(info.sessions, session)
-			if len(info.sessions) == 0 {
-				info.startTimeout()
+		var vm *virt.VM
+		if params.Vm != "" {
+			if err := db.VMs.FindId(bson.ObjectIdHex(params.Vm)).One(&vm); err != nil {
+				return nil, errors.New("There is no VM with id '" + params.Vm + "'.")
 			}
-		})
-	}
-	infosMutex.Unlock()
+		}
+		if vm == nil {
+			vm = getDefaultVM(&user)
+		}
 
-	if !isExistingState {
-		if vm.IP == nil {
-			ipInt := db.NextCounterValue("vm_ip")
-			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-				panic(err)
+		infosMutex.Lock()
+		info, isExistingState := infos[vm.Id]
+		if !isExistingState {
+			info = newInfo(vm)
+			infos[vm.Id] = info
+		}
+		if !info.sessions[session] {
+			info.sessions[session] = true
+			if info.timeout != nil {
+				info.timeout.Stop()
+				info.timeout = nil
 			}
-			vm.IP = ip
+
+			session.OnDisconnect(func() {
+				infosMutex.Lock()
+				defer infosMutex.Unlock()
+
+				delete(info.sessions, session)
+				if len(info.sessions) == 0 {
+					info.startTimeout()
+				}
+			})
 		}
-		if vm.LdapPassword == "" {
-			ldapPassword := utils.RandomString()
-			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ldapPassword": nil}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
-				panic(err)
+		infosMutex.Unlock()
+
+		if !isExistingState {
+			if vm.IP == nil {
+				ipInt := db.NextCounterValue("vm_ip")
+				ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+					panic(err)
+				}
+				vm.IP = ip
 			}
-			vm.LdapPassword = ldapPassword
+			if vm.LdapPassword == "" {
+				ldapPassword := utils.RandomString()
+				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ldapPassword": nil}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+					panic(err)
+				}
+				vm.LdapPassword = ldapPassword
+			}
+
+			vm.Prepare(getUsers(vm), false)
+			if out, err := vm.Start(); err != nil {
+				log.Err("Could not start VM.", err, out)
+			}
+			if out, err := vm.WaitForState("RUNNING", time.Second); err != nil {
+				log.Warn("Waiting for VM startup failed.", err, out)
+			}
 		}
 
-		vm.Prepare(getUsers(vm), false)
-		if out, err := vm.Start(); err != nil {
-			log.Err("Could not start VM.", err, out)
-		}
-		if out, err := vm.WaitForState("RUNNING", time.Second); err != nil {
-			log.Warn("Waiting for VM startup failed.", err, out)
-		}
-	}
-
-	return &user, vm
+		return callback(args, session, &user, vm, vm.OS(&user))
+	})
 }
 
 func getDefaultVM(user *virt.User) *virt.VM {

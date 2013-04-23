@@ -563,6 +563,10 @@ __utils =
   startLoggingToRollbar: ->
     window._rollbar = KD.getSingleton("mainController").old_rollbar
 
+  stopDOMEvent :(event)->
+    event.preventDefault()
+    event.stopPropagation()
+
 ###
 //     Underscore.js 1.3.1
 //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.

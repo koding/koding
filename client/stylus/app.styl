@@ -222,12 +222,33 @@ body
 #koding-logo
   abs()
   display             block
-  top                 12px
+  top                 10px
   left                16px
-  text-indent         -9999px
-  size                120px,30px
-  bg                  position,-240px -40px
-  sprite()
+  size                auto,30px
+  font-family         Ubuntu
+  font-size           24px
+  vertical-align      top
+  padding             0 0 0 30px
+  line-height         30px
+  font-weight         600
+  -moz-opacity       0.99 //hack for FF bold rendering issue
+  color               #f2f2f2
+  vendor              font-smoothing, antialiased
+  vendor              text-rendering, geometricPrecision
+  text-shadow         0 1px 0 rgba(0, 0, 0, .75)
+  noTextDeco()
+  span
+    abs()
+    top               2px
+    left              0
+    size              120px, 30px
+    display           inline-block
+    bg                position, -240px -40px
+    sprite()
+  &.group
+    span
+      size            30px, 30px
+
 
 #sidebar-panel
   abs()
@@ -513,17 +534,17 @@ span.main-nav-icon
   &.admin-dashboard
     bg(position,-80px -300px)
   &.invite-friends
-    margin        1px 20px 1px 3px
-    rounded       2px
-    bg            color,linkColor1
-    color         white
-    font-size     10px
-    line-height   16px
-    min-width     15px
-    font-weight   700
-    text-align    center
-    size          auto,16px
-    bg            image,none
+    text-shadow     0 -1px 0 #26231F
+    padding         3px 3px 1px 3px
+    color           #ccc
+    letter-spacing  0
+    bg              image, none
+    font-size       10px
+    line-height     16px
+    min-width       15px
+    font-weight     400
+    text-align      center
+    size            auto,auto
   &.register
     bg(position,0 -420px)
   &.request-access
@@ -609,7 +630,7 @@ span.main-nav-icon
   bg                  color,transparent
   vendor              transition, top .3s linear \, width .3s linear
   .kdtabhandle
-    color             rgba(255,255,255,0.85)
+    color             rgba(255,255,255,0.95)
     line-height       23px
     font-size         11px
     padding           0 20px 0 10px
@@ -620,8 +641,8 @@ span.main-nav-icon
     cursor            pointer
     text-shadow       0 -1px 0 rgba(0,0,0,.61)
     vendor            transition, width .15s linear
-    bg                color,rgba(255,255,255,.2)
-    gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+    bg                color,rgba(122,122,122,.4)
+    gradient          rgba(0,0,0,.11), rgba(255,255,255,.04)
     rounded           0
     shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
     b
@@ -965,26 +986,26 @@ span.main-nav-icon
       top               -16px
       left              0
       width             100%
-      padding           0px
+      padding           0
       font-size         10px
       text-align        center
       line-height       12px
       opacity           0
       z-index           2
-      vendor            transition,opacity .4s linear
+      vendor            transition, opacity .4s linear
       &.in
         opacity         1
       cite
         font-style      normal
         text-shadow     0 -1px 0 rgb(173, 103, 0, 0.5)
-        padding         2px 3px 1px 3px
+        padding         1px 3px 1px 3px
         display         inline-block
         min-width       11px
         color           white
-        letter-spacing  0px
+        letter-spacing  0
         margin          0 auto
-        rounded    3px,3px,0,0
-        bg              color,linkColor1
+        rounded         6px
+        gradient        #FFC100, linkColor1
       .arrow-wrap
         display         block
         text-align      center
@@ -992,7 +1013,7 @@ span.main-nav-icon
           display       block
           margin        0 auto
           sprite()
-          bg            position,-185px -549px
+          bg            position,-186px -549px
           size          7px,3px
 
     .status-update
@@ -1493,62 +1514,62 @@ span.main-nav-icon
 // #kdmaincontainer
 //   -webkit-transition            all .8s ease
 
-body
+// body
 
-  #server-rack
-    background-image              url('/images/racks.png')
-    height                        835px
-    position                      absolute
-    width                         180px
-    top                           190px
-    left                          230px
-    background-repeat             no-repeat
-    -webkit-transition            opacity .8s ease
-    display                       hidden
-    opacity                       0
-    z-index                       0
+//   #server-rack
+//     background-image              url('/images/racks.png')
+//     height                        835px
+//     position                      absolute
+//     width                         180px
+//     top                           190px
+//     left                          230px
+//     background-repeat             no-repeat
+//     -webkit-transition            opacity .8s ease
+//     display                       hidden
+//     opacity                       0
+//     z-index                       0
 
-  #kdmaincontainer
-    header
-      -webkit-transition            opacity .8s ease
-      opacity                       1
+//   #kdmaincontainer
+//     header
+//       -webkit-transition            opacity .8s ease
+//       opacity                       1
 
-    section
-      -webkit-perspective           700px
-      -webkit-perspective-origin-x  260px
-      -webkit-perspective-origin-y  400px
+//     section
+//       -webkit-perspective           700px
+//       -webkit-perspective-origin-x  260px
+//       -webkit-perspective-origin-y  400px
 
-    #sidebar-panel
-      -webkit-transform-origin      0 0
-      -webkit-transform             rotate3d(0, 0, 0, 0deg)
-      -webkit-transition            all .8s ease
+//     #sidebar-panel
+//       -webkit-transform-origin      0 0
+//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
+//       -webkit-transition            all .8s ease
 
-    #content-panel
-      -webkit-transform-origin      32% 0px
-      -webkit-transition            all .8s ease
-      -webkit-transform             rotate3d(0, 0, 0, 0deg)
+//     #content-panel
+//       -webkit-transform-origin      32% 0px
+//       -webkit-transition            all .8s ease
+//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
 
-  &.server-stack
-    #kdmaincontainer
-      #server-rack
-        opacity                       1
-        display                       block
-        z-index                       999999
+//   &.server-stack
+//     #kdmaincontainer
+//       #server-rack
+//         opacity                       1
+//         display                       block
+//         z-index                       999999
 
-      header
-        -webkit-transition            opacity .8s ease
+//       header
+//         -webkit-transition            opacity .8s ease
 
-      #sidebar-panel
-        -webkit-transform-origin      0 0
-        -webkit-transform             rotate3d(0, 1, 0, 20deg)
-        -webkit-transition            all .8s ease
-        left                          -56px
+//       #sidebar-panel
+//         -webkit-transform-origin      0 0
+//         -webkit-transform             rotate3d(0, 1, 0, 20deg)
+//         -webkit-transition            all .8s ease
+//         left                          -56px
 
-      #content-panel
-        -webkit-transform-origin      32% 0px
-        -webkit-transition            all .8s ease
-        -webkit-transform             rotate3d(0, 1, 0, -20deg)
-        left                          460px
+//       #content-panel
+//         -webkit-transform-origin      32% 0px
+//         -webkit-transition            all .8s ease
+//         -webkit-transform             rotate3d(0, 1, 0, -20deg)
+//         left                          460px
 
 .invite-recovery-notification-bar
   position              fixed

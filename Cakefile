@@ -1,5 +1,6 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
-option '-D', '--debug', 'runs with node --debug'
+option '-D', '--debug', 'runs with node, go --debug'
+option '-V', '--verbose', 'runs with go --verbose'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
@@ -11,30 +12,13 @@ option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 
-{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
-# mix koding node modules into node_modules
-# exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
-#   # can't run the program if this fails,
-#   if a or b or c
-#     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
-#     process.exit(0)
-
-ProgressBar = require 'progress'
-Builder     = require './Builder'
-# log4js      = require "log4js"
-# log         = log4js.getLogger("[Main]")
 
 log =
   info  : console.log
   error : console.log
   debug : console.log
   warn  : console.log
-
-prompt    = require 'prompt'
-hat       = require "hat"
-mkdirp    = require 'mkdirp'
-commander = require 'commander'
 
 processes          = new (require "processes") main : true
 {daisy}            = require 'sinkrow'
@@ -44,12 +28,12 @@ url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
-# create required folders
-mkdirp.sync "./.build"
-
-compilePistachios = require 'pistachio-compiler'
+addFlags = (options)->
+  flags  = ""
+  flags += " -d" if options.debug
+  flags += " -v" if options.verbose
+  return flags
 
 compileGoBinaries = (configFile,callback)->
 
@@ -208,39 +192,21 @@ task 'emailSender',({configFile})->
         onChange  : (path) ->
           processes.kill "emailSender"
 
-task 'goBroker',({configFile})->
+task 'goBroker',(options)->
+
+  {configFile} = options
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}"
+    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
-  watchBroker = (url, interval, kills, failedReqs) ->
-    kills =  if kills then kills else 0
-    failedReqs = if failedReqs then failedReqs else 0
-
-    setTimeout ->
-      http.get url, (res) ->
-        watchBroker(url, interval)
-      .on 'error', (e) ->
-        failedReqs++
-        console.log("WARN: Broker did not respond", failedReqs, "times.")
-        if failedReqs > 1 # account for random errors, manual restarts
-          kills++
-          processes.killAllChildren process.pid, ->
-            console.log("WARN: Killed broker #{kills} times since it stopped responding.")
-        watchBroker(url, interval, kills, failedReqs)
-    , interval
-
   config = require('koding-config-manager').load("main.#{configFile}")
-  watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
-  if watchGoBroker is yes
-    watchBroker(sockjs_url, 10000)
 
 task 'osKite',({configFile})->
 
@@ -266,7 +232,7 @@ task 'libratoWorker',({configFile})->
 
   processes.fork
     name  : 'libratoWorker'
-    cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
+    cmd   : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
     restart: yes
     restartInterval: 100
     verbose: yes
@@ -329,7 +295,7 @@ task 'run', (options)->
   queue = []
   if config.buildClient is yes
     queue.push ->
-      (new Builder).buildClient options
+      (new (require('./Builder'))).buildClient options
       queue.next()
   queue.push -> run options
   daisy queue
@@ -348,7 +314,7 @@ task 'accounting', (options)->
 
 
 task 'buildClient', (options)->
-  (new Builder).buildClient options
+  (new (require('./Builder'))).buildClient options
 
 task 'release',(options)->
   # Release and shared data directories
