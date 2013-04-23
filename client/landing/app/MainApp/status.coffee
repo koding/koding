@@ -39,7 +39,7 @@ class Status extends KDController
       @emit "connected"
     else
       @state = RECONNECTED
-      @emit "reconnected"
+      @emit "reconnected", @reason
       @startPingingKites()
 
   startPingingKites: ->
