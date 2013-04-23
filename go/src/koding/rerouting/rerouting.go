@@ -127,7 +127,7 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey string) {
 	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n",
 		exchange, bindingKey, routingKey)
 
-	if _, err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
+	if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
 
