@@ -194,6 +194,11 @@ class KDListViewController extends KDViewController
 
     return itemsOrdered
 
+  moveItemToIndex:(item, newIndex)->
+
+    newIndex = Math.max(0, Math.min(@itemsOrdered.length-1, newIndex))
+    @itemsOrdered = @getListView().moveItemToIndex item, newIndex
+
   ###
   HANDLING MOUSE EVENTS
   ###

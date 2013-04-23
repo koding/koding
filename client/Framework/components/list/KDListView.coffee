@@ -123,6 +123,33 @@ class KDListView extends KDView
       itemInstance.emit 'viewAppended'
     null
 
+  getItemIndex:(targetItem)->
+    for item, index in @items
+      return index if item is targetItem
+    return -1
+
+  moveItemToIndex:(item, newIndex)->
+
+    currentIndex = @getItemIndex item
+    if currentIndex < 0
+      warn "Item doesn't exists", item
+      return @items
+
+    newIndex = Math.max(0, Math.min(@items.length-1, newIndex))
+
+    if newIndex >= @items.length-1
+      targetItem = @items.last
+      targetItem.$().after item.$()
+    else
+      diff = if newIndex > currentIndex then 1 else 0
+      targetItem = @items[newIndex+diff]
+      targetItem.$().before item.$()
+
+    @items.splice(currentIndex, 1)
+    @items.splice(newIndex, 0, item)
+
+    return @items
+
   scrollDown: ->
 
     clearTimeout @_scrollDownTimeout

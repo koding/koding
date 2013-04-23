@@ -28,6 +28,7 @@ class DemosAppController extends AppController
     mainView.addSubView chatListView
 
 class CommonChatController extends KDListViewController
+
   constructor:->
     super
     @me = KD.whoami()
@@ -50,6 +51,11 @@ class CommonChatController extends KDListViewController
       partial  : message
 
 class ChatContactListController extends CommonChatController
+
+  constructor:->
+    super
+    @getListView().on 'moveToIndexRequested', @bound 'moveItemToIndex'
+
   loadItems:(callback)->
     super
 
@@ -75,47 +81,72 @@ class ChatContactListView extends KDListView
     return unless index >= 0
 
     if index - 1 >= 0
-      item.collapse() unless @items[index - 1].conversation?.isVisible()
-      @items[index - 1].createConversation no
+      item.conversation.collapse()
+      @items[index - 1].toggleConversation()
 
   goDown:(item)->
     index = @getItemIndex item
     return unless index >= 0
 
     if index + 1 < @items.length
-      item.collapse()
-      item.collapse() unless @items[index + 1].conversation?.isVisible()
-      @items[index + 1].createConversation no
+      item.conversation.collapse()
+      @items[index + 1].toggleConversation()
 
 class ChatContactListItem extends KDListItemView
 
   constructor:(options = {},data)->
 
-    options.tagName  = "li"
-    options.cssClass = "person"
+    options.tagName   = "li"
+    options.cssClass  = "person"
     super options, data
 
     @title = new ChatContactListItemTitle null, data
-    @title.on 'click', @bound 'createConversation'
+    @title.on 'click', @bound 'toggleConversation'
 
-  createConversation:(toggle = yes)->
-    unless @conversation
-      @conversation = new ChatContactListConversationWidget @
-      @conversation.on 'click', @conversation.bound 'takeFocus'
-      @addSubView @conversation
-    else
-      if @conversation.isVisible()
-        @conversation.takeFocus()
+    @setDragHandlers()
 
-      if toggle then @conversation.toggle()
-      else @conversation.expand()
+  setDragHandlers:->
 
-  collapse:->
-    @conversation?.collapse()
+    @on 'DragStarted', (e, state)->
+      @conversationWasOpen = @conversation.isVisible()
+      @_dragStarted = yes
+
+    @on 'DragInAction', _.throttle (x, y)->
+      if y isnt 0 and @_dragStarted
+        distance = Math.round(y / 33)
+        @conversation.collapse()
+        @setClass 'ondrag'
+    , 300
+
+    @on 'DragFinished', (e)->
+      @unsetClass 'ondrag'
+      @_dragStarted = no
+      distance = Math.round(@dragState.position.relative.y / 33)
+
+      unless distance is 0
+        itemIndex = @getDelegate().getItemIndex @
+        newIndex  = itemIndex + distance
+        @getDelegate().emit 'moveToIndexRequested', @, newIndex
+
+      @setEmptyDragState yes
+      @conversation.expand() if @conversationWasOpen
+
+    @setDraggable
+      handle : @title
+      axis   : "y"
+
+  toggleConversation:->
+    @conversation.toggle()
+    @conversation.takeFocus() if @conversation.isVisible()
 
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
+
+    @conversation = new ChatContactListConversationWidget @
+    @conversation.on 'click', @conversation.bound 'takeFocus'
+    @conversationWasOpen = no
+    @addSubView @conversation
 
   pistachio:->
     """{{> @title}}"""
@@ -125,6 +156,7 @@ class ChatContactListItemTitle extends JView
   constructor:(options = {},data)->
     options.cssClass = 'chat-contact-list-item-title'
     super
+
     @avatar = new AvatarView {
       size    : {width: 30, height: 30}
       origin  : data
@@ -164,10 +196,6 @@ class ChatContactListConversationWidget extends JView
     @conversationController = new ChatConversationListController
       view : @conversationList
 
-    KD.utils.defer =>
-      @setClass 'ready'
-      @takeFocus()
-
   toggle:->
     @toggleClass 'ready'
 
@@ -176,11 +204,13 @@ class ChatContactListConversationWidget extends JView
 
   expand:->
     @setClass 'ready'
+    @takeFocus()
 
   isVisible:->
     @hasClass 'ready'
 
-  takeFocus:-> @messageInput.setFocus()
+  takeFocus:->
+    @messageInput.setFocus()
 
   pistachio:->
     """
