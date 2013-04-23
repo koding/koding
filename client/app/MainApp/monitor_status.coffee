@@ -205,7 +205,7 @@ do ->
         # account for people disconnecting at night, then reconnecting in the
         # morning; if reconnection happens before failureCallback is trigged,
         # we won't know that disconnection has happened.
-        if lastPong && (Date.now() - lastPong) > 50*1000
+        if lastPong && (Date.now() - lastPong) > 30*1000
           log "lastPong greater than 50 secs, disconnecting"
           status = KD.singletons.status
           status.disconnect({reason:"internetDown"})
