@@ -83,11 +83,9 @@ func main() {
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
 		var deaths int
+		key := parseKey(req.Host)
 
-		args := strings.Split(req.Host, ".")
-		key := args[0]
 		target := targetUrl(deaths, key)
-
 		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
 		if err != nil {
 			log.Println(err)
@@ -103,6 +101,23 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	if err != nil {
 		log.Fatalf("FATAL ERROR: %s", err)
 	}
+}
+
+func parseKey(host string) string {
+	log.Println("HOST string", host)
+	args := strings.Split(host, ".")
+	key := args[0]
+
+	// exampleHost := "broker-915.x.koding.com"
+	// partsFirst := strings.Split(exampleHost, ".")
+	// firstSub := partsFirst[0]
+
+	// partsSecond := strings.Split(firstSub, "-")
+	// name := partsSecond[0]
+	// version := partsSecond[1]
+	// log.Println("name, version", name, version)
+
+	return key
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
