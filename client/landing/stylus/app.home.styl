@@ -97,6 +97,27 @@ app.home.styl
 
 
 // NEW TRY
+
+body.group
+  div.screenshots
+    > section
+      height              auto
+
+  .group-desc
+    margin                30px
+    line-height           30px
+    font-size             16px
+    color                 white
+    text-shadow           0 1px 0 rgba(0, 0, 0, .75)
+    bg                    color, transparent
+    max-width             800px
+    text-align            left
+
+  .readme
+    margin                30px
+    max-width             800px
+    text-align            left
+
 div.screenshots
   rel()
   height                  auto
@@ -145,28 +166,23 @@ div.screenshots
       sprite()
 
   > section
-    size                  100%, auto
+    size                  100%, 506px
     overflow              hidden
     text-align            center
     padding               30px 0
-    // gradient              rgba(0, 0, 0, .1), rgba(0, 0, 0, .05)
     background            transparent url("../images/bg/blurred/4.jpg") no-repeat 0 0
     background-size       cover
-    border                1px solid rgba(0, 0, 0, .1)
-    border-top-color      rgba(0, 0, 0, .3)
-    border-width          1px 0 1px
     shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
 
   ul
     margin                0
-    size                  100%, auto
+    size                  600%, 506px
     z-index               0
 
     li
       rel()
-      size                100%, auto
+      size                16.6667%, 506px
       overflow            visible
-      vendor              transition, opacity .5s ease-in-out
       fl()
 
       p
@@ -212,24 +228,25 @@ div.screenshots
           borderBox()
 
   .home-links
-    abs()
-    top                 585px
-    size                auto, 50px
-    margin              30px auto
+    size                auto, auto
+    text-align          left
+    gradient            #fff, #eee
 
     .custom-link-view
-      display           inline-block
-      size              auto, 100%
+      size              25%, 50px
       padding           0 26px 0 20px
-      margin            0 0 0 20px
-      rounded           4px
+      margin            0
+      // rounded           4px
       line-height       49px
       gradient          #666, #505050
       // border-right      1px solid rgba(255,255,255,.2)
-      border-top        1px solid rgba(255,255,255,.2)
+      border-top        1px solid rgba(255,255,255,.3)
       border-left       1px solid rgba(0,0,0,.1)
       text-shadow       0 1px 0 rgba(0,0,0,.9)
+      shadow            0 -1px 0 rgba(0, 0, 0, .3)\,\
+                        0 1px 0 rgba(255, 255, 255, .6)
       borderBox()
+      fl()
       .title
         color           rgba(255,255,255,.9)
       .icon
@@ -257,13 +274,16 @@ div.screenshots
           bg            position, -200px -360px
       &.join
         .icon
-          bg            position, -220px -378px
-      &.customize
-      &.join
-      &.request
+          bg            position, -220px -379px
+      &.browse
+        .icon
+          bg            position, -220px -400px
       &.green
-      &.open
+        border-top      1px solid rgba(255,255,255,.4)
         gradient        #68B43B, #5B9D33
+      &.orange
+        border-top      1px solid rgba(255,255,255,.4)
+        gradient        rgb(233, 142, 27), rgb(223, 118, 4)
 
 
 div.home-featured
