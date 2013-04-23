@@ -92,6 +92,7 @@ func (p *ProxyConfiguration) Add(proxy Proxy) error {
 	}
 	return nil
 }
+
 func (p *ProxyConfiguration) AddProxy(uuid string) error {
 	err := p.HasUuid(uuid)
 	if err == nil {
