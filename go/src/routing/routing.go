@@ -111,7 +111,7 @@ func startRouting() {
 				// delete user from the authPairs map and cancel it from consuming
 				delete(authPairs, leave.RoutingKey)
 
-				err = c.channel.Cancel(authPairs[leave.RoutingKey], false)
+				err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
 				if err != nil {
 					log.Fatal("basic.cancel: %s", err)
 				}
