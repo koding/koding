@@ -62,7 +62,7 @@ class GroupsMemberPermissionsView extends JView
       @listController.hideLazyLoader()
       if members.length > 0
         @listController.instantiateListItems members
-        @timestamp = new Date members.last.timestamp
+        @timestamp = new Date members.last.timestamp_
         log @timestamp
         @emit 'teasersLoaded'
 
