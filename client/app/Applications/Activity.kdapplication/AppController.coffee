@@ -180,11 +180,10 @@ class ActivityAppController extends AppController
   fetchSomeActivities:(options = {}) ->
 
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
-    unless lastItemCreatedAt? or lastItemCreatedAt == ""
+    unless lastItemCreatedAt? or lastItemCreatedAt is ""
       log "lastItemCreatedAt empty"
       KD.logToExternal
         msg:"lastItemCreatedAt on activityFeed was empty"
-        lastItemCreatedAt: lastItemCreatedAt
 
     selector       =
       createdAt    :
