@@ -212,15 +212,9 @@ func HandleApiMessage(data []byte, appId string) {
 }
 
 func DoAction(command, option string, worker workerconfig.MsgWorker) error {
-	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty && (command != "add" || command != "addWithProxy") {
-		return fmt.Errorf(" do action", err)
-	}
-
 	if command == "" {
 		return errors.New(" empty command, nothing to do")
 	}
-
-	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 
 	if command == "add" || command == "addWithProxy" {
 		log.Println("COMMAND", command)
@@ -264,6 +258,12 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 
 		return nil
 	}
+
+	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
+		return fmt.Errorf(" do action", err)
+	}
+
+	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 
 	actions := map[string]func(worker workerconfig.MsgWorker) error{
 		"ack":    func(worker workerconfig.MsgWorker) error { return kontrolConfig.Ack(worker) },
