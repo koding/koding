@@ -140,6 +140,7 @@ type MsgWorker struct {
 	Pid            int              `json:"pid"`
 	Status         WorkerStatus     `json:"status"`
 	Cmd            string           `json:"cmd"`
+	ProcessData    string           `json:"processData"`
 	Number         int              `json:"number"`
 	Message        WorkerMessage    `json:"message"`
 	CompatibleWith map[string][]int `json:"compatibleWith"`

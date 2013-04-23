@@ -233,6 +233,48 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			log.Printf("could not marshall worker: %s", err)
 		}
 
+		switch worker.Name {
+		case "goBroker":
+			config := config.Config{}
+			err = json.Unmarshal([]byte(worker.ProcessData), &config.Broker)
+			if err != nil {
+				log.Print("bad json unmarshalling process config file", err)
+				return err
+			}
+			log.Println("BROKER CONFIG", config.Broker)
+
+			port := strconv.Itoa(config.Broker.Port)
+			key := strconv.Itoa(worker.Version)
+			cmd := proxyconfig.ProxyMessage{
+				"addKey",
+				key,
+				config.Broker.IP + ":" + port,
+				"FromKontrolDaemon",
+				"proxy.in.koding.com",
+			}
+			proxy.DoProxy(cmd)
+		case "server":
+			var configPort int
+			err = json.Unmarshal([]byte(worker.ProcessData), &configPort)
+			if err != nil {
+				log.Print("bad json unmarshalling process config file", err)
+				return err
+			}
+			log.Println("WEBSERVER CONFIG", configPort)
+
+			port := strconv.Itoa(configPort)
+			key := strconv.Itoa(worker.Version)
+			cmd := proxyconfig.ProxyMessage{
+				"addKey",
+				key,
+				worker.Hostname + ":" + port,
+				"FromKontrolDaemon",
+				"proxy.in.koding.com",
+			}
+			proxy.DoProxy(cmd)
+		default:
+		}
+
 		go deliver(workerJson, workerProducer, res.Uuid)
 
 		return nil
@@ -471,7 +513,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		// First kill and delete all alive workers for the same name type.
 		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
-		log.Println(worker.Name, worker.Hostname)
 		iter := kontrolConfig.Collection.Find(bson.M{
 			"name":     worker.Name,
 			"hostname": worker.Hostname,
@@ -485,8 +526,6 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		result := workerconfig.MsgWorker{}
 		for iter.Next(&result) {
-			log.Println(result)
-
 			kontrolConfig.DeleteWorker(result.Uuid)
 
 			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",

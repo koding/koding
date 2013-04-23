@@ -1,6 +1,5 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
-option '-D', '--debug', 'runs with node, go --debug'
-option '-V', '--verbose', 'runs with go --verbose'
+option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
@@ -50,13 +49,6 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 # create required folders
 mkdirp.sync "./.build"
 
-addFlags = (options)->
-  flags  = ""
-  flags += " -d" if options.debug
-  flags += " -v" if options.verbose
-
-  return flags
-
 compilePistachios = require 'pistachio-compiler'
 
 compileGoBinaries = (configFile,callback)->
@@ -104,6 +96,7 @@ task 'webserver', ({configFile}) ->
       restart         : yes
       restartInterval : 100
       kontrolEnabled  : yes
+      kontrolData     : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -237,21 +230,42 @@ task 'emailSender',({configFile})->
         onChange  : (path) ->
           processes.kill "emailSender"
 
-task 'goBroker',(options)->
-
-  {configFile} = options
+task 'goBroker',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
+    cmd   : "./go/bin/broker -c #{configFile}"
     restart: yes
     restartInterval: 100
+    kontrolEnabled  : yes
+    kontrolData     : broker
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
-  config = require('koding-config-manager').load("main.#{configFile}")
+  watchBroker = (url, interval, kills, failedReqs) ->
+    kills =  if kills then kills else 0
+    failedReqs = if failedReqs then failedReqs else 0
+
+    setTimeout ->
+      http.get url, (res) ->
+        watchBroker(url, interval)
+      .on 'error', (e) ->
+        failedReqs++
+        console.log("WARN: Broker did not respond", failedReqs, "times.")
+        if failedReqs > 1 # account for random errors, manual restarts
+          kills++
+          processes.killAllChildren process.pid, ->
+            console.log("WARN: Killed broker #{kills} times since it stopped responding.")
+        watchBroker(url, interval, kills, failedReqs)
+    , interval
+
+  watchGoBroker = config.watchGoBroker
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
+  if watchGoBroker is yes
+    watchBroker(sockjs_url, 10000)
 
 task 'osKite',({configFile})->
 
