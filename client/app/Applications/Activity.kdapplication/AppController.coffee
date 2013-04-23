@@ -92,6 +92,7 @@ class ActivityAppController extends AppController
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @resetList()
+      @listController.resetList()
       @setFilter data.type
       @populateActivity()
 
@@ -104,8 +105,6 @@ class ActivityAppController extends AppController
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
       @listController.newActivityArrived activity
-
-    @isLoading = no
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
@@ -187,16 +186,16 @@ class ActivityAppController extends AppController
   # Fetches activities that occur when user is disconnected.
   fetchSomeActivities:(options = {}) ->
 
+    return if @isLoading
     @isLoading = yes
+
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
     unless lastItemCreatedAt? or lastItemCreatedAt is ""
-      log "lastItemCreatedAt empty"
-      KD.logToExternal
-        msg:"lastItemCreatedAt on activityFeed was empty"
+      @isLoading = no
+      return
 
     selector       =
       createdAt    :
-        $lte       : new Date
         $gt        : options.createdAt or lastItemCreatedAt
       type         : { $in : options.facets or @getFilter() }
       isLowQuality : { $ne : options.exempt or no }
@@ -216,6 +215,7 @@ class ActivityAppController extends AppController
           warn "put a separator in between new and old activities"
 
         @activitiesArrived activities.reverse()
+        @isLoading = no
 
   fetchCachedActivity:(options = {}, callback)->
 
