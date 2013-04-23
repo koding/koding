@@ -60,29 +60,59 @@ func main() {
 	k := kite.New("os")
 
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Start()
 	})
 
 	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Shutdown()
 	})
 
 	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
 		return vm.Stop()
 	})
 
+	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
+		vm.Prepare(getUsers(vm), true)
+		return vm.Start()
+	})
+
 	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		info := infos[vm.Id]
 		info.State = vm.GetState()
 		return info, nil
 	})
 
-	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		vm.Prepare(getUsers(vm), true)
-		return vm.Start()
-	})
-
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var command []string
 		if args.Unmarshal(&command) != nil {
 			return nil, &kite.ArgumentError{Expected: "array of strings"}
@@ -91,6 +121,11 @@ func main() {
 	})
 
 	registerVmMethod(k, "exec", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil {
+			return nil, errors.New("Permission denied.")
+		}
+
 		var line string
 		if args.Unmarshal(&line) != nil {
 			return nil, &kite.ArgumentError{Expected: "string"}

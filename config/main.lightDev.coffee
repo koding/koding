@@ -32,7 +32,6 @@ module.exports =
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
-  watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -114,7 +113,7 @@ module.exports =
     host        : 'kluster-dev.in.koding.com'
     port        : 5672
     apiAddress  : "kluster-dev.in.koding.com"
-    apiPort     : 55672
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'

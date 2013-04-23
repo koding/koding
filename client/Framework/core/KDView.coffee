@@ -162,10 +162,6 @@ class KDView extends KDObject
 
     @bindEvents()
 
-# #
-# VIEW PROPERTY GETTERS
-# #
-
   getDomId:-> @domElement.attr "id"
 
 
@@ -181,8 +177,8 @@ class KDView extends KDObject
       el = document.getElementById domId
 
     @lazy = unless el?
-      el = document.createElement tagName
-      el.setAttribute 'id', domId  if domId
+      el    = document.createElement tagName
+      el.id = domId  if domId
       no
     else yes
 
@@ -460,7 +456,8 @@ class KDView extends KDObject
 
   embedChild:(placeholderId, child, isCustom)->
     unless isCustom
-      $child = child.$().attr 'id', child.id
+      $child        = child.$()
+      $child[0].id ?= child.id
       @$('#'+placeholderId).replaceWith $child
     else
       @$('#'+placeholderId).append(child.$())

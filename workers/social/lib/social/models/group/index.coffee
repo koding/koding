@@ -75,7 +75,7 @@ module.exports = class JGroup extends Module
         'countPendingInvitationRequests', 'countInvitationRequests'
         'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
         'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership'
+        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'fetchNewestMembers'
       ]
     schema          :
       title         :
@@ -495,6 +495,31 @@ module.exports = class JGroup extends Module
       [selector, options, callback] = Module.limitEdges 100, rest
       @fetchMembers selector, options, callback
 
+  fetchNewestMembers$: permit 'list members',
+    success:(client, rest...)->
+      [selector, options, callback] = Module.limitEdges 100, rest
+      selector            or= {}
+      selector.as         = 'member'
+      selector.sourceName = 'JGroup'
+      selector.sourceId   = @getId()
+      selector.targetName = 'JAccount'
+
+      options             or= {}
+      options.sort        or=
+        timestamp         : -1
+      options.limit       or= 16
+
+      Relationship.some selector, options, (err,members)=>
+        if err then callback err
+        else
+          targetIds = (member.targetId for member in members)
+          JAccount = require '../account'
+          JAccount.some
+            _id   :
+              $in : targetIds
+          , {}, (err,memberAccounts)=>
+            callback err,memberAccounts
+
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
   #     [callback, options] = [options, callback]  unless callback
@@ -879,7 +904,7 @@ module.exports = class JGroup extends Module
         Joinable::leave.call @, client, {as:role}, (err)->
           return kallback err if err
           queue.fin()
-      
+
       dash queue, kallback
 
   kickMember: permit 'grant permissions',
@@ -910,7 +935,7 @@ module.exports = class JGroup extends Module
             @removeMember account, role, (err)->
               return kallback err if err
               queue.fin()
-          
+
           dash queue, kallback
 
   transferOwnership: permit 'grant permissions',

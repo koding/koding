@@ -14,11 +14,11 @@ rabbitPrefix = ((
 ).trim())+"-dev-#{version}"
 rabbitPrefix = rabbitPrefix.split('.').join('-')
 
-socialQueueName = "koding-social-prod-#{version}"
+socialQueueName = "koding-social-new-#{version}"
 
-webPort          = 4040
-brokerPort       = 9010 + (version % 10)
-sourceServerPort = 1400 + (version % 10)
+webPort          = 80
+brokerPort       = 443
+sourceServerPort = 1400
 dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports =
@@ -28,13 +28,13 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://new.koding.com:4040"
+    address     : "http://new.koding.com:#{webPort}"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : dynConfig.webInternalPort
-    clusterSize : 10
+    port        : webPort
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
@@ -98,12 +98,12 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://new.koding.com:4040'
+    staticFilesBaseUrl: 'http://new.koding.com:#{webPort}'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
-      mainUri   : 'http://new.koding.com:4040'
+      mainUri   : 'http://new.koding.com:#{webPort}'
       broker    :
         sockJS  : "https://new.koding.com:#{brokerPort}/subscribe"
       apiUri    : 'https://api.koding.com'
