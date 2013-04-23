@@ -35,8 +35,6 @@ module.exports = class JIntroSnippet extends jraphical.Module
       console.log "new intro snippet saved to database"
 
   @fetchAll = secure (client, callback) ->
-    return unless JIntroSnippet.checkPermission client
-
     JIntroSnippet.some {}, {}, (err, records) ->
       return callback err if err
       callback records
