@@ -219,7 +219,7 @@ do ->
         KD.troubleshoot(false)
       , 3000
 
-      KD.remote.ping -> brokerPong()
+      KD.remote.mq.ping -> brokerPong()
 
     , 5000
 
