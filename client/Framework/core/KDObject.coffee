@@ -13,7 +13,7 @@ class KDObject extends KDEventEmitter
     @registerKDObjectInstance()
 
     super
-    
+
     @on 'error', (err)-> error err
     @once 'ready', => @readyState = READY
 
