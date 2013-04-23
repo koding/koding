@@ -193,6 +193,7 @@ do ->
 
   brokerInterval  = null
   failureCallback = null
+  lastPong        = null
 
   # use broker ping to determine internet connection
   pingBrokerOnInterval = ->
@@ -200,14 +201,26 @@ do ->
       clearTimeout failureCallback
       failureCallback = null
 
+      brokerPong = ->
+        # account for people disconnecting at night, then reconnecting in the
+        # morning; if reconnection happens before failureCallback is trigged,
+        # we won't know that disconnection has happened.
+        if lastPong && (Date.now() - lastPong) > 50*1000
+          log "lastPong greater than 50 secs, disconnecting"
+          status = KD.singletons.status
+          status.disconnect({reason:"internetDown"})
+
+        clearTimeout failureCallback
+        failureCallback = null
+        lastPong = Date.now()
+
       failureCallback = setTimeout ->
         log 'broker ping failed, running troubleshoot', failureCallback
         KD.troubleshoot(false)
-      , 2000
+      , 3000
 
-      KD.remote.ping ->
-        clearTimeout failureCallback
-        failureCallback = null
+      KD.remote.ping -> brokerPong()
+
     , 5000
 
   KD.remote.on 'connected', ->
