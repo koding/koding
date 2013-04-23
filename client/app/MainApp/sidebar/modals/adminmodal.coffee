@@ -6,7 +6,7 @@ class AdminModal extends KDModalViewWithForms
       title                   : "Admin Panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       overlay                 : yes
-      width                   : 500
+      width                   : 600
       height                  : "auto"
       cssClass                : "admin-kdmodal"
       tabs                    :
@@ -316,6 +316,44 @@ class AdminModal extends KDModalViewWithForms
                     cssClass  : 'type-explain'
                     itemClass : KDView
                     partial   : 'This will show a timer.'
+
+
+          "Introduction":
+            buttons           :
+              "Go"  :
+                title         : "Go"
+                style         : "modal-clean-gray"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : (event)=>
+
+              "Cancel":
+                title         : "Cancel"
+                style         : "modal-clean-gray"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : (event)=>
+
+            # fields            :
+            #   Title           :
+            #     label         :s "Message Title"
+            #     type          : "text"
+            #     placeholder   : "Shutdown in"
+            #     tooltip       :
+            #       title       : 'When using type "Restart", end title with "in",'+\
+            #       ' since there will be a timer following the title.'
+            #       placement   : 'right'
+            #       direction   : 'center'
+            #       offset      :
+            #         top       : 2
+            #         left      : 0
+            #   Description     :
+            #     label         : "Message Details"
+            #     type          : "text"
+            #     placeholder   : "We are upgrading the platform. Please save your work."
+
 
 
     super options, data

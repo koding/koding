@@ -80,6 +80,7 @@ class MainController extends KDController
 
         @emit 'AppIsReady'
         @emit 'FrameworkIsReady'
+        @fetchIntroTooltipData()
         @appIsReady = yes
 
   accountReady:(fn)->
@@ -240,3 +241,12 @@ class MainController extends KDController
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
           @utils.wait 2500, -> modal?.destroy()
+
+  fetchIntroTooltipData: ->
+    KD.remote.api.JIntroSnippet.fetchAll (err, snippets) ->
+      return log err if err # TODO: error handling
+      # should create tooltip instance for each snippet
+
+  initIntroTooltip: (view) ->
+    return if not @introSnippets or not view
+    # should create tooltip instance for this view

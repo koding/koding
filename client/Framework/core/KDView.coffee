@@ -116,6 +116,9 @@ class KDView extends KDObject
             child.parentIsInDom = yes
             child.emit 'viewAppended', child
 
+      if @getOptions().introId
+        KD.getSingleton("mainController").initIntroTooltip @
+
     # development only
     if location.hostname is "localhost"
       @on "click", (event)=>
@@ -222,7 +225,7 @@ class KDView extends KDObject
   getElement:-> @getDomElement()[0]
 
   # shortcut method for @getDomElement()
-  
+
   $ :(selector)->
     if selector?
       @getDomElement().find(selector)

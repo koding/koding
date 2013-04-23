@@ -63,6 +63,7 @@ KD.error = error = noop
 
   debugStates     : {}
   instances       : {}
+  introInstances  : {}
   singletons      : {}
   subscriptions   : []
   classes         : {}
@@ -114,6 +115,7 @@ KD.error = error = noop
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
+    @introInstances[anInstance.id] = anInstance if anInstance.getOptions().introId
     # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->
