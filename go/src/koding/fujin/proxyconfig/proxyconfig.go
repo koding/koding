@@ -48,33 +48,21 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 	}
 }
 
-type DomainRoutingTable struct {
-	Domain map[string]string `json:"domain"`
+type Proxy struct {
+	Services map[string]KeyRoutingTable
+	Uuid     string
 }
 
-func NewDomainRoutingTable() *DomainRoutingTable {
-	return &DomainRoutingTable{
-		Domain: make(map[string]string),
+func NewProxy(uuid string) *Proxy {
+	return &Proxy{
+		Services: make(map[string]KeyRoutingTable),
+		Uuid:     uuid,
 	}
 }
 
 type ProxyConfiguration struct {
 	Session    *mgo.Session
 	Collection *mgo.Collection
-}
-
-type Proxy struct {
-	Services           map[string]KeyRoutingTable
-	DomainRoutingTable DomainRoutingTable
-	Uuid               string
-}
-
-func NewProxy(uuid string) *Proxy {
-	return &Proxy{
-		Services:           make(map[string]KeyRoutingTable),
-		DomainRoutingTable: *NewDomainRoutingTable(),
-		Uuid:               uuid,
-	}
 }
 
 func Connect() (*ProxyConfiguration, error) {
