@@ -198,7 +198,7 @@ class KDView extends KDObject
   setDomId:(id)->
     @domElement.attr "id",id
 
-  setDataId:()->
+  setDataId:->
     @domElement.data "data-id",@getId()
 
   setDomAttributes:(attributes)->

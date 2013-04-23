@@ -71,11 +71,6 @@ class ChatContactListView extends KDListView
 
     super options, data
 
-  getItemIndex:(targetItem)->
-    for item, index in @items
-      return index if item is targetItem
-    return -1
-
   goUp:(item)->
     index = @getItemIndex item
     return unless index >= 0
@@ -113,15 +108,17 @@ class ChatContactListItem extends KDListItemView
 
     @on 'DragInAction', _.throttle (x, y)->
       if y isnt 0 and @_dragStarted
-        distance = Math.round(y / 33)
         @conversation.collapse()
         @setClass 'ondrag'
     , 300
 
     @on 'DragFinished', (e)->
+
       @unsetClass 'ondrag'
       @_dragStarted = no
-      distance = Math.round(@dragState.position.relative.y / 33)
+
+      height = $(event.target).closest('.kdlistitemview').height() or 33
+      distance = Math.round(@dragState.position.relative.y / height)
 
       unless distance is 0
         itemIndex = @getDelegate().getItemIndex @
