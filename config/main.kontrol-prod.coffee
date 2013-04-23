@@ -26,7 +26,6 @@ module.exports =
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
-  watchGoBroker : no
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
