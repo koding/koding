@@ -30,12 +30,14 @@ type LeaveMsg struct {
 }
 
 var authPairs map[string]JoinMsg
+var exchanges map[string]bool
 var producer *Producer
 
 func main() {
 	log.Println("routing worker started")
 
 	authPairs = make(map[string]JoinMsg)
+	exchanges = make(map[string]bool)
 
 	var err error
 	producer, err = createProducer()
@@ -100,6 +102,8 @@ func startRouting() {
 
 				log.Println("Auth pairs:", authPairs) // this is just for debug
 
+				declareExchange(c, join.Exchange)
+
 				go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey)
 			case "auth.leave":
 				var leave LeaveMsg
@@ -121,6 +125,15 @@ func startRouting() {
 			}
 		}
 	}()
+}
+
+func declareExchange(c *Consumer, exchange string) {
+	if !exchanges[exchange] {
+		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
+			log.Fatal("exchange.declare: %s", err)
+		}
+		exchanges[exchange] = true
+	}
 }
 
 func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey string) {

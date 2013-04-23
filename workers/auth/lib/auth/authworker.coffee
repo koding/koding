@@ -13,9 +13,9 @@ module.exports = class AuthWorker extends EventEmitter
     autoDelete  : yes
 
   constructor:(@bongo, options = {})->
-    { @presenceExchange, @notificationExchange } = options
+    { @presenceExchange, @reroutingExchange } = options
     @presenceExchange     ?= 'services-presence'
-    @notificationExchange ?= 'notification-control'
+    @reroutingExchange    ?= 'routing-control'
     @services = {}
     @clients  = {
       bySocketId    : {}
@@ -112,7 +112,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   fetchNotificationExchange:(callback)->
     @bongo.mq.connection.exchange(
-      @notificationExchange
+      @reroutingExchange
       NOTIFICATION_EXCHANGE_OPTIONS
       callback
     )
@@ -191,7 +191,7 @@ module.exports = class AuthWorker extends EventEmitter
       @authenticate messageData, routingKey, (session)=>
         unless session then fail()
         else if session?.username
-          @addClient socketId, @notificationExchange, routingKey, no
+          @addClient socketId, @reroutingExchange, routingKey, no
           bindingKey = session.username
 
           @fetchNotificationExchange (exchange)->
