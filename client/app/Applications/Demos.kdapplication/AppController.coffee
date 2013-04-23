@@ -112,7 +112,7 @@ class ChatContactListItem extends KDListItemView
         @setClass 'ondrag'
     , 300
 
-    @on 'DragFinished', (e)->
+    @on 'DragFinished', (event)->
 
       @unsetClass 'ondrag'
       @_dragStarted = no
