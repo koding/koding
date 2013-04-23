@@ -23,7 +23,7 @@
 
   <div class="kdview" id="kdmaincontainer">
     <header class="kdview" id='main-header'>
-      <a class="" id="koding-logo" href="#"></a>
+      <a class="" id="koding-logo" href="#"><span></span></a>
     </header>
     <section class="kdview" id="main-panel-wrapper">
       <div class="kdview" id="sidebar-panel">
@@ -31,7 +31,7 @@
           <div id="main-nav">
             <div class="avatar-placeholder">
               <div id="avatar-area">
-                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(https://gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?size=160&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.160.png);"></div>
+                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(//api.koding.com/images/defaultavatar/default.avatar.160.png);"></div>
               </div>
             </div>
             <div class="kdview actions">
@@ -66,7 +66,7 @@
                 <hr class="">
               </div>
               <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-                <a class="title" href="#"><span class="main-nav-icon invite-friends"><span class="data" data-paths="quota usage">0</span></span>Invite Friends</a>
+                <a class="title" href="#"><span class="main-nav-icon invite-friends"><span data-paths="quota usage">0</span></span>Invite Friends</a>
               </div>
             </div>
             <div class="kdview kdlistview kdlistview-footer-menu">
@@ -80,82 +80,80 @@
       </div>
       <div class="kdview" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
-          <div id='maintabpane-home' class="kdview content-area-pane home content-area-new-tab-pane clearfix kdtabpaneview active">
-            <div id='content-page-home' class="kdview content-page home">
-              <div class="kdview video-wrapper">
-                <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
-                height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
-                allowfullscreen="">
-                </iframe>
-              </div>
-              <div class="home-links">
-                <p class="bigLink">
-                  <a href="#">Request an Invite</a>
-                </p>
-                <p class="bigLink">
-                  <a href="#">Register</a>
-                </p>
-                <p class="bigLink">
-                  <a href="#">Login</a>
-                </p>
-                <p class="bigLink">
-                  <a href="#">Learn more</a>
-                </p>
-              </div>
-              <section>
-                <div class="reviews">
-                  <p>A new way for developers to work</p>
-                  <span>We said.</span>
-                  <p>Wow! Cool - good luck!</p>
-                  <span>Someone we talked to the other day...</span>
-                  <p>I don't get it... What is it, again?</p>
-                  <span>Same dude.</span>
-                  <p>Real software development in the browser...</p>
-                  <span>Us again.</span>
-                  <p>with a real VM and a real Terminal?</p>
-                  <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+          <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
+            <div id="content-page-activity" class="kdview content-page activity kdscrollview">
+              <div class="kdview screenshots">
+                <div>
+                  <h1 class="kdview kdheaderview notification-header">
+                    <div><span>Welcome to the Koding Public Beta!<br></span><cite>Warning! when we say beta - <a href="#">we mean it</a> :)</cite></div>
+                    <i></i>
+                  </h1>
                 </div>
-                <hr />
-                <div id="home-screenshots" class="screenshots">
-                  <div class="kdview">
-                    <a class="arrow left" href="#"></a>
-                    <a class="arrow right" href="#"></a>
-                    <section class="kdview kdscrollview">
-                      <ul class="clearfix">
-                        <li>
-                          <img src="https://api.koding.com/images/demo-screenshots/sc-code.jpg">
-                          <p class="flex-caption">
-                            A free, fully featured Cloud Development environment. Create and edit code from anywhere.
-                          </p>
-                        </li>
-                        <li>
-                          <img src="https://api.koding.com/images/demo-screenshots/sc-activity.jpg">
-                          <p class="flex-caption">
-                            An active community where you can share work, collaborate and meet people who can help you with your projects.
-                          </p>
-                        </li>
-                        <li>
-                          <img src="https://api.koding.com/images/demo-screenshots/sc-terminal.jpg">
-                          <p class="flex-caption">
-                            A fully functional Terminal in your browser.
-                          </p>
-                        </li>
-                        <li>
-                          <img src="https://api.koding.com/images/demo-screenshots/sc-apps.jpg">
-                          <p class="flex-caption">
-                            An App Catalog to install common web apps, user contributed apps and scripts and more.
-                          </p>
-                        </li>
-                      </ul>
-                    </section>
+                <a class="arrow left" href="#" style="left: -40px;"><span></span></a>
+                <a class="arrow right" href="#" style="right: 0px;"><span></span></a>
+                <section class="kdview kdscrollview">
+                  <ul class="clearfix">
+                    <li>
+                      <div>
+                        <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+                      </div>
+                    </li>
+                    <li>
+                      <img src="/images/demo-screenshots/sc-code.jpg">
+                      <p class="flex-caption">A new way for developers to work.<span>We said.</span></p>
+                    </li>
+                    <li>
+                      <img src="/images/demo-screenshots/sc-activity.jpg">
+                      <p class="flex-caption">Wow! Cool - good luck!<span>Someone we talked to the other day...</span></p>
+                    </li>
+                    <li>
+                      <img src="/images/demo-screenshots/sc-terminal.jpg">
+                      <p class="flex-caption">I don't get it... What is it, again?<span>Same dude.</span></p>
+                    </li>
+                    <li>
+                      <img src="/images/demo-screenshots/sc-apps.jpg">
+                      <p class="flex-caption">Real software development in the browser...<span>Us again.</span></p>
+                    </li>
+                    <li>
+                      <img src="/images/demo-screenshots/sc-apps.jpg">
+                      <p class="flex-caption">with a real VM and a real Terminal?<span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span></p>
+                    </li>
+                  </ul>
+                </section>
+                <div class="home-links">
+                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
+                </div>
+              </div>
+              <div class="kdview fl common-inner-nav">
+                <div class="kdview listview-wrapper list">
+                  <h4 class="kdview kdheaderview list-group-title">
+                    <span>SHOW ME</span>
+                  </h4>
+                  <ul class="kdview kdlistview kdlistview-default">
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Everything</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Status Updates</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Blog Posts</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Code Snippets</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Discussions</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Tutorials</a></li>
+                    <li class="kdview kdlistitemview kdlistitemview-default"><a href="#">Links</a></li>
+                  </ul>
+                </div>
+                <div class="kdview help-box">
+                  <div>
+                    <cite>NEED HELP?</cite> <a href="#"><span data-paths="subtitle" id="el-189">About Your Activity Feed</span></a>
                   </div>
                 </div>
-                <hr />
-                <footer id="copy-footer" class="copy">
-                  ©2013 All rights reserved Koding, Inc.
-                </footer>
-
-              </section>
+              </div>
+              <div class="kdview activity-content feeder-tabs">
+                <div class="kdview listview-wrapper">
+                  <div class="kdview feeder-header clearfix"><span>Latest Activity</span></div>
+                  <div class="kdview kdscrollview">
+                    <div class="kdview kdlistview kdlistview-default activity-related"></div>
+                    <div class="lazy-loader">Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-477" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
