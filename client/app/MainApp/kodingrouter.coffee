@@ -1,7 +1,6 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
-    @landingPageLoading = KD.config.groupEntryPoint?
 
     @openRoutes = {}
     @openRoutesById = {}
@@ -12,7 +11,6 @@ class KodingRouter extends KDRouter
       @ready = yes
       @utils.defer =>
         @emit 'ready'
-        @landingPageLoading = no
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -281,7 +279,6 @@ class KodingRouter extends KDRouter
               @handleNotFound routeInfo.params.name
 
         nameHandler =(routeInfo, state, route)->
-          return  if @landingPageLoading
 
           if state?
             open.call this, routeInfo, state
