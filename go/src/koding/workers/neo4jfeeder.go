@@ -18,6 +18,19 @@ type Consumer struct {
 	channel *amqp.Channel
 }
 
+type Message struct {
+	Event string `json:"event"`
+	Data []EventData
+}
+
+type EventData struct {
+	SourceName string
+	SourceId   string
+	TargetName string
+	TargetId   string
+	As         string
+}
+
 func main() {
 	log.Println("Neo4J Feeder worker started")
 	startConsuming()
