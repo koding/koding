@@ -101,7 +101,7 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
-    @listController.on "scrolled_up", =>
+    @listController.on "scrolledToTopOfPage", =>
       return if @isLoading
 
       log "scrolled_up fetching activities"
