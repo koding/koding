@@ -22,7 +22,7 @@ class ActivityAppView extends KDScrollView
 
     mainController.on "AccountChanged", @bound "decorate"
     mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
-    @on 'scroll', @utils.throttle @bound("setFixed"), 50
+    @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
     @decorate()
     @setLazyLoader(.99)

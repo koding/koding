@@ -574,9 +574,8 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
-  createContentDisplay:(group)->
-    # controller = new ContentDisplayControllerGroups null, content
-    # contentDisplay = controller.getView()
+  createContentDisplay:(group, callback)->
+
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
@@ -592,10 +591,11 @@ class GroupsAppController extends AppController
       @prepareMembershipPolicyTab()
       @prepareInvitationsTab()
 
-    @showContentDisplay @groupView
+    contentDisplay = @showContentDisplay @groupView
+    callback contentDisplay
 
 
-  showContentDisplay:(groupView, callback=->)->
+  showContentDisplay:(groupView)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
