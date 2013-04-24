@@ -1,12 +1,10 @@
 package main
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/streadway/amqp"
 	"io"
-	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
 	"log"
@@ -58,37 +56,10 @@ func main() {
 	case <-start: // wait until we got message from kontrold or exit via above chan
 	}
 
-	// addHTTP, err := net.ResolveTCPAddr("tcp", ":"+config.HttpPort)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	// addHTTPS, err := net.ResolveTCPAddr("tcp", ":"+config.HttpsPort)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	// cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
-	// if err != nil {
-	// 	log.Println("https mode is disabled. please add cert.pem and key.pem files.")
-	// } else {
-	// 	log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
-	// 	go listenProxy(addHTTPS, &cert, amqpStream.uuid)
-	// }
-
-	// log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
-	// listenProxy(addHTTP, nil, amqpStream.uuid)
-
 	reverseProxy := NewSingleHostReverseProxy()
 	http.Handle("/", reverseProxy)
 
-	// http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-	// 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	// })
-
-	// start one with go in order not to block the other one
+	// start one with goroutine in order not to block the other one
 	go func() {
 		err = http.ListenAndServeTLS(":"+config.HttpsPort, "cert.pem", "key.pem", nil)
 		if err != nil {
@@ -100,83 +71,6 @@ func main() {
 
 	log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
 	http.ListenAndServe(":"+config.HttpPort, nil)
-}
-
-func Handler(writer http.ResponseWriter, req *http.Request) {
-
-	// writer.Write([]byte(data))
-}
-
-// func newReverseProxy() *httputil.ReverseProxy {
-// 	director := func(req *http.Request) {
-// 		log.Println("HOST:", req.RequestURI, req.Host)
-// 		var deaths int
-// 		name, key := parseKey(req.Host)
-// 		if name == "homepage" {
-// 			log.Println("hello world!")
-// 			return
-// 		}
-//
-// 		target := targetUrl(deaths, name, key)
-//
-// 		targetQuery := target.RawQuery
-//
-// 		req.URL.Scheme = target.Scheme
-// 		req.URL.Host = target.Host
-// 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-// 		if targetQuery == "" || req.URL.RawQuery == "" {
-// 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
-// 		} else {
-// 			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
-// 		}
-// 	}
-//
-// 	reverseProxy := &httputil.ReverseProxy{Director: director}
-//
-// 	return reverseProxy
-// }
-
-func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
-	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
-		var deaths int
-		name, key := parseKey(req.Host)
-		if name == "homepage" {
-			req.Write("Hello fujin proxy!")
-			return
-		}
-
-		target := targetUrl(deaths, name, key)
-		remoteAddr, err := net.ResolveTCPAddr("tcp", target.Host)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		if err := req.Relay(remoteAddr); err != nil {
-			log.Println(err)
-			req.Redirect("http://example.com")
-		}
-	})
-
-	if err != nil {
-		log.Fatalf("FATAL ERROR: %s", err)
-	}
-}
-
-func parseKey(host string) (string, string) {
-	counts := strings.Count(host, "-")
-	if counts == 0 {
-		return "homepage", ""
-	}
-
-	partsFirst := strings.Split(host, ".")
-	firstSub := partsFirst[0]
-
-	partsSecond := strings.Split(firstSub, "-")
-	name := partsSecond[0]
-	key := partsSecond[1]
-
-	return name, key
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
@@ -217,6 +111,22 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 			}
 		}
 	}
+}
+
+func parseKey(host string) (string, string) {
+	counts := strings.Count(host, "-")
+	if counts == 0 {
+		return "homepage", ""
+	}
+
+	partsFirst := strings.Split(host, ".")
+	firstSub := partsFirst[0]
+
+	partsSecond := strings.Split(firstSub, "-")
+	name := partsSecond[0]
+	key := partsSecond[1]
+
+	return name, key
 }
 
 func targetUrl(numberOfDeaths int, name, key string) *url.URL {
@@ -367,7 +277,7 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 		var deaths int
 		name, key := parseKey(req.Host)
 		if name == "homepage" {
-			log.Println("hello world!")
+			log.Println("someone hit the main page!")
 			return
 		}
 
@@ -409,67 +319,119 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	name, err := os.Hostname()
-	log.Println("REMOTE HOST", req.Host)
+	name, _ := os.Hostname()
+	log.Println("PUBLIC HOSTNAME", req.Host)
 	log.Println("LOCAL HOSTNAME", name)
 	if name == req.Host {
 		io.WriteString(rw, "hello, world!\n")
 		return
 	}
 
-	transport := p.Transport
-	if transport == nil {
-		transport = http.DefaultTransport
+	conn_hdr := ""
+	conn_hdrs := req.Header["Connection"]
+	log.Printf("Connection headers: %v", conn_hdrs)
+	if len(conn_hdrs) > 0 {
+		conn_hdr = conn_hdrs[0]
 	}
 
-	outreq := new(http.Request)
-	*outreq = *req // includes shallow copies of maps, but okay
+	upgrade_websocket := false
+	if strings.ToLower(conn_hdr) == "upgrade" {
+		log.Printf("got Connection: Upgrade")
+		upgrade_hdrs := req.Header["Upgrade"]
+		log.Printf("Upgrade headers: %v", upgrade_hdrs)
+		if len(upgrade_hdrs) > 0 {
+			upgrade_websocket = (strings.ToLower(upgrade_hdrs[0]) == "websocket")
+		}
+	}
 
-	p.Director(outreq)
-	outreq.Proto = "HTTP/1.1"
-	outreq.ProtoMajor = 1
-	outreq.ProtoMinor = 1
-	outreq.Close = false
+	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
+	if upgrade_websocket {
+		rConn, err := net.Dial("tcp", req.URL.Host)
+		if err != nil {
+			http.Error(rw, "Error contacting backend server.", 500)
+			log.Printf("Error dialing websocket backend %s: %v", req.URL.Host, err)
+			return
+		}
 
-	// Remove hop-by-hop headers to the backend.  Especially
-	// important is "Connection" because we want a persistent
-	// connection, regardless of what the client sent to us.  This
-	// is modifying the same underlying map from req (shallow
-	// copied above) so we only copy it if necessary.
-	copiedHeaders := false
-	for _, h := range hopHeaders {
-		if outreq.Header.Get(h) != "" {
-			if !copiedHeaders {
-				outreq.Header = make(http.Header)
-				copyHeader(outreq.Header, req.Header)
-				copiedHeaders = true
+		hj, ok := rw.(http.Hijacker)
+		if !ok {
+			http.Error(rw, "Not a hijacker?", 500)
+			return
+		}
+
+		conn, _, err := hj.Hijack()
+		if err != nil {
+			log.Printf("Hijack error: %v", err)
+			return
+		}
+		defer conn.Close()
+		defer rConn.Close()
+
+		err = req.Write(rConn)
+		if err != nil {
+			log.Printf("Error copying request to target: %v", err)
+			return
+		}
+
+		go p.copyResponse(rConn, conn)
+		p.copyResponse(conn, rConn)
+
+	} else {
+		transport := p.Transport
+		if transport == nil {
+			transport = http.DefaultTransport
+		}
+
+		outreq := new(http.Request)
+		*outreq = *req // includes shallow copies of maps, but okay
+
+		p.Director(outreq)
+		outreq.Proto = "HTTP/1.1"
+		outreq.ProtoMajor = 1
+		outreq.ProtoMinor = 1
+		outreq.Close = false
+
+		// Remove hop-by-hop headers to the backend.  Especially
+		// important is "Connection" because we want a persistent
+		// connection, regardless of what the client sent to us.  This
+		// is modifying the same underlying map from req (shallow
+		// copied above) so we only copy it if necessary.
+		copiedHeaders := false
+		for _, h := range hopHeaders {
+			if outreq.Header.Get(h) != "" {
+				if !copiedHeaders {
+					outreq.Header = make(http.Header)
+					copyHeader(outreq.Header, req.Header)
+					copiedHeaders = true
+				}
+				outreq.Header.Del(h)
 			}
-			outreq.Header.Del(h)
 		}
-	}
 
-	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
-		// If we aren't the first proxy retain prior
-		// X-Forwarded-For information as a comma+space
-		// separated list and fold multiple headers into one.
-		if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
-			clientIP = strings.Join(prior, ", ") + ", " + clientIP
+		if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+			// If we aren't the first proxy retain prior
+			// X-Forwarded-For information as a comma+space
+			// separated list and fold multiple headers into one.
+			if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
+				clientIP = strings.Join(prior, ", ") + ", " + clientIP
+			}
+			outreq.Header.Set("X-Forwarded-For", clientIP)
 		}
-		outreq.Header.Set("X-Forwarded-For", clientIP)
+
+		res, err := transport.RoundTrip(outreq)
+		if err != nil {
+			log.Printf("http: proxy error: %v", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer res.Body.Close()
+
+		copyHeader(rw.Header(), res.Header)
+
+		rw.WriteHeader(res.StatusCode)
+		p.copyResponse(rw, res.Body)
 	}
 
-	res, err := transport.RoundTrip(outreq)
-	if err != nil {
-		log.Printf("http: proxy error: %v", err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer res.Body.Close()
-
-	copyHeader(rw.Header(), res.Header)
-
-	rw.WriteHeader(res.StatusCode)
-	p.copyResponse(rw, res.Body)
 }
 
 func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
