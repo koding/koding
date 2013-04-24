@@ -124,10 +124,15 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
+  # Refreshes activity feed.
+  #
+  # If no response is returned in 5 secs, we assume user has
+  # been disconnected so long, his/her channel subscription is
+  # dead, so we reconnect.
   refresh:->
     @populateActivity {},\
       KD.utils.getTimedOutCallback (err, items)->
-        log 'refresh'
+        log 'refreshing activity feed'
       , =>
         @isLoading = no
         @status.disconnect()
@@ -323,4 +328,3 @@ class ActivityAppController extends AppController
           if err then callback err
           else
             callback instances
-
