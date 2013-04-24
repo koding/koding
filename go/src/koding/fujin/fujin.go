@@ -138,7 +138,7 @@ func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 	v := len(keyRoutingTable.Keys[key])
 	if v == numberOfDeaths {
 		log.Println("All given servers are death. Fallback to localhost:8000")
-		target, err = url.Parse("http://localhost:8000")
+		target, err = url.Parse("http://proxy.in.koding.com")
 		if err != nil {
 			log.Fatal(err)
 		}
