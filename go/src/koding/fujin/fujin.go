@@ -256,15 +256,15 @@ func singleJoiningSlash(a, b string) string {
 	return a + b
 }
 
-func lookupDomain(domainname string) (string, string, error) {
+func lookupDomain(domainname string) (string, string, string, error) {
 	log.Printf("lookup domain table for host '%s'", domainname)
 
 	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		return "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return domain.Name, domain.Key, nil
+	return domain.Name, domain.Key, domain.FullUrl, nil
 }
 
 // NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
@@ -276,16 +276,26 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 		log.Println("HOST:", req.RequestURI, req.Host)
 		var deaths int
 		var target *url.URL
+		var fullurl string
 
 		name, key, err := lookupKey(req.Host)
 		if err != nil {
 			log.Println(err)
-			name, key, err = lookupDomain(req.Host)
+			name, key, fullurl, err = lookupDomain(req.Host)
 			if err != nil {
 				log.Println(err)
 			}
+
 		}
-		target = targetUrl(deaths, name, key)
+
+		if fullurl != "" {
+			target, err = url.Parse("http://" + fullurl)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			target = targetUrl(deaths, name, key)
+		}
 
 		log.Printf("proxy to host '%s' ...", target.Host)
 		targetQuery := target.RawQuery
