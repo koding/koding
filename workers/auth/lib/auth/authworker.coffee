@@ -8,7 +8,7 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'fanout'
     autoDelete  : yes
 
-  NOTIFICATION_EXCHANGE_OPTIONS = 
+  REROUTING_EXCHANGE_OPTIONS = 
     type        : 'fanout'
     autoDelete  : yes
 
@@ -110,12 +110,20 @@ module.exports = class AuthWorker extends EventEmitter
     message = JSON.stringify secretChannelName
     @bongo.respondToClient setSecretNameEvent, message
 
-  fetchNotificationExchange:(callback)->
+  fetchReroutingExchange:(callback)->
     @bongo.mq.connection.exchange(
       @reroutingExchange
-      NOTIFICATION_EXCHANGE_OPTIONS
+      REROUTING_EXCHANGE_OPTIONS
       callback
     )
+
+  addBinding:(exchangeName, bindingKey, routingKey)->
+    @fetchReroutingExchange (exchange)=>
+      exchange.publish 'auth.join', {
+        exchange: exchangeName
+        bindingKey
+        routingKey
+      }
 
   _fakePersistenceWorker:(secretChannelName)->
     {connection} = @bongo.mq
@@ -193,13 +201,7 @@ module.exports = class AuthWorker extends EventEmitter
         else if session?.username
           @addClient socketId, @reroutingExchange, routingKey, no
           bindingKey = session.username
-
-          @fetchNotificationExchange (exchange)->
-            exchange.publish 'auth.join', {
-              exchange: 'notification'
-              bindingKey
-              routingKey
-            }
+          @addBinding 'notification', bindingKey, routingKey
         else
           @rejectClient routingKey
 
@@ -209,9 +211,12 @@ module.exports = class AuthWorker extends EventEmitter
       JName.fetchSecretName name, (err, secretChannelName)=>
         return console.error err  if err
 
-        @_fakePersistenceWorker secretChannelName
+        personalToken = do require 'hat'
+        
+        @addBinding 'chat', secretChannelName, personalToken
 
-        @setSecretName routingKey, secretChannelName
+        @_fakePersistenceWorker secretChannelName
+        @setSecretName routingKey, personalToken
 
     join =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
