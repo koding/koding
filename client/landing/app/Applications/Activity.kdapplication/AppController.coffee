@@ -127,13 +127,19 @@ class ActivityAppController extends AppController
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
   refresh:->
+
+    # prevents multiple clicks to refresh from interfering
+    return if @isLoading
+
     @resetAll()
     @populateActivity {},\
       KD.utils.getTimedOutCallback (err, items)->
         log 'refreshing activity feed'
       , =>
+        # set in populateActivity, but if that fails, this
+        # is never unset, therefore will block further clicks
         @isLoading = no
-        @status.disconnect()
+        @status.disconnect(showModal:false)
       , 5000
 
   populateActivity:(options = {}, callback)->
