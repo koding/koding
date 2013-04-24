@@ -210,17 +210,21 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.some selector, options, (err, activities) =>
-      if err then warn err
-      else
-        # FIXME: SY
-        # if it is exact 20 there may be other items
-        # put a separator and check for new items in between
-        if activities.length is 20
-          warn "put a separator in between new and old activities"
+    KD.remote.api.CActivity.some selector, options,\
+      KD.utils.getTimedOutCallback (err, activities) =>
+        if err then warn err
+        else
+          # FIXME: SY
+          # if it is exact 20 there may be other items
+          # put a separator and check for new items in between
+          if activities.length is 20
+            warn "put a separator in between new and old activities"
 
-        @activitiesArrived activities.reverse()
+          @activitiesArrived activities.reverse()
+          @isLoading = no
+      , ->
         @isLoading = no
+        log "fetchSomeActivities timeout reached"
 
   fetchCachedActivity:(options = {}, callback)->
 
