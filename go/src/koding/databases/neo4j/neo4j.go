@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	// "koding/tools/config"
+	"koding/tools/config"
 	"log"
 	"net/http"
 	"strings"
 )
 
 var (
-	// todo update this constants, here must be only config file related strings after config files updated  
-	// BASE_URL         = config.Current.Neo4j.Url + config.Current.Neo4j.Port  // "http://localhost:7474"
-	BASE_URL         = "http://localhost:7474"
+	BASE_URL         = config.Current.Neo4j.Host + ":" + fmt.Sprintf("%d", config.Current.Neo4j.Port)
 	INDEX_NODE_PATH  = "/db/data/index/node/koding"
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
