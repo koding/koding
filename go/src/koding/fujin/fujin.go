@@ -348,14 +348,14 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if upgrade_websocket {
 		rConn, err := net.Dial("tcp", req.URL.Host)
 		if err != nil {
-			http.Error(rw, "Error contacting backend server.", 500)
+			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
 			log.Printf("Error dialing websocket backend %s: %v", req.URL.Host, err)
 			return
 		}
 
 		hj, ok := rw.(http.Hijacker)
 		if !ok {
-			http.Error(rw, "Not a hijacker?", 500)
+			http.Error(rw, "Not a hijacker?", http.StatusInternalServerError)
 			return
 		}
 
