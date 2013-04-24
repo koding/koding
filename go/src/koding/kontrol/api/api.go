@@ -87,22 +87,23 @@ func main() {
 	rout.HandleFunc("/", home).Methods("GET")
 
 	// Worker handlers
-	rout.HandleFunc("/workers", WorkersHandler).Methods("GET")
-	rout.HandleFunc("/workers/{uuid}", WorkerHandler).Methods("GET")
-	rout.HandleFunc("/workers/{uuid}/{action}", WorkerPutHandler).Methods("PUT")
-	rout.HandleFunc("/workers/{uuid}", WorkerDeleteHandler).Methods("DELETE")
+	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
+	rout.HandleFunc("/workers/{uuid}", GetWorker).Methods("GET")
+	rout.HandleFunc("/workers/{uuid}/{action}", UpdateWorker).Methods("PUT")
+	rout.HandleFunc("/workers/{uuid}", DeleteWorker).Methods("DELETE")
 
 	// Proxy handlers
-	rout.HandleFunc("/proxies", ProxiesHandler).Methods("GET")
-	rout.HandleFunc("/proxies", ProxiesPostHandler).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}", ProxiesDeleteHandler).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}", ProxyHandler).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/{name}", ProxyNameHandler).Methods("GET")
+	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
+	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
 
-	rout.HandleFunc("/proxies/{uuid}", ProxyPostHandler).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", ProxyDomainPostHandler).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
 
-	rout.HandleFunc("/proxies/{uuid}/{servicename}/{key}", ProxyDeleteHandler).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -114,7 +115,7 @@ func main() {
 
 // Get all registered proxies
 // example: http GET "localhost:8000/proxies"
-func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
+func GetProxies(writer http.ResponseWriter, req *http.Request) {
 	proxies := make([]string, 0)
 	proxy := proxyconfig.Proxy{}
 	iter := proxyConfig.Collection.Find(nil).Iter()
@@ -133,7 +134,7 @@ func ProxiesHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Delete proxy machine with uuid
 // example http DELETE "localhost:8080/proxies/mahlika.local-915"
-func ProxiesDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
@@ -142,7 +143,7 @@ func ProxiesDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Register a proxy
 // Example: http POST "localhost:8000/proxies" uuid=mahlika.local-916
-func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
+func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	var msg ProxyPostMessage
 	var uuid string
 
@@ -170,7 +171,7 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Delete key for the given name and key
 // exameple: http DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
-func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	key := vars["key"]
@@ -179,9 +180,28 @@ func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", uuid)
 }
 
+// Get all domains registered to a proxy machine
+// example: http GET "localhost:8000/proxies/mahlika.local-915/domains"
+func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+
+	domains := proxyMachine.DomainRoutingTable
+
+	data, err := json.MarshalIndent(domains, "", "  ")
+	if err != nil {
+		log.Println("Marshall proxy services into Json failed", err)
+	}
+
+	writer.Write([]byte(data))
+
+}
+
 // Add domain to the domainroutingtable
 // example: http POST "localhost:8000/proxies/mahlika.local-915/domains/blog.arsln.org" name=server key=15
-func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
+func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	domain := vars["domain"]
@@ -231,13 +251,13 @@ func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
 // * If name is not available an new one is created
 // * If key is available tries to append it, if not creates a new key with host.
 // * If key and host is available it does nothing
-// example: http POST "localhost:8000/proxies/mahlika.local-915" name=foo key=2 host=localhost:8009
-func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
+// example: http POST "localhost:8000/proxies/mahlika.local-915/services/server" key=2 host=localhost:8009
+func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	servicename := vars["servicename"]
 
 	var msg ProxyPostMessage
-	var name string
 	var key string
 	var host string
 	var hostdata string
@@ -248,13 +268,6 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
 		log.Print("bad json incoming msg: ", err)
-	}
-
-	if msg.Name != nil {
-		name = *msg.Name
-	} else {
-		log.Println("aborting. no 'name' available")
-		return
 	}
 
 	if msg.Key != nil {
@@ -286,12 +299,12 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addKey", "", name, key, host, hostdata, uuid)
+	buildSendProxyCmd("addKey", "", servicename, key, host, hostdata, uuid)
 }
 
 // Get all services registered to a proxy machine
-// example: http GET "localhost:8000/proxies/mahlika.local-915"
-func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services"
+func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
@@ -318,10 +331,10 @@ func ProxyHandler(writer http.ResponseWriter, req *http.Request) {
 // example: http GET "localhost:8000/proxies/mahlika.local-915/foo?key=2"
 // example: http GET "localhost:8000/proxies/mahlika.local-915/foo?host=localhost:8002"
 // example: http GET "localhost:8000/proxies/mahlika.local-915/foo?hostdata=FromKontrolAPI"
-func ProxyNameHandler(writer http.ResponseWriter, req *http.Request) {
+func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	name := vars["name"]
+	servicename := vars["servicename"]
 
 	v := req.URL.Query()
 	key := v.Get("key")
@@ -330,7 +343,7 @@ func ProxyNameHandler(writer http.ResponseWriter, req *http.Request) {
 
 	p := make(Proxies, 0)
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	keyRoutingTable := proxyMachine.Services[name]
+	keyRoutingTable := proxyMachine.Services[servicename]
 
 	for _, keys := range keyRoutingTable.Keys {
 		for _, proxy := range keys {
@@ -375,7 +388,7 @@ func ProxyNameHandler(writer http.ResponseWriter, req *http.Request) {
 // http://localhost:8000/workers?hostname=foo&state=started
 // http://localhost:8000/workers?name=social
 // http://localhost:8000/workers?state=stopped
-func WorkersHandler(writer http.ResponseWriter, req *http.Request) {
+func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	query := bson.M{}
@@ -403,7 +416,7 @@ func WorkersHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Get worker with uuid
 // Example :http://localhost:8000/workers/134f945b3327b775a5f424be804d75e3
-func WorkerHandler(writer http.ResponseWriter, req *http.Request) {
+func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
@@ -415,7 +428,7 @@ func WorkerHandler(writer http.ResponseWriter, req *http.Request) {
 
 // Delete worker with uuid
 // Example: http DELETE "localhost:8000/workers/l8zqdZ1Dz3D14FscAmRxrw=="
-func WorkerDeleteHandler(writer http.ResponseWriter, req *http.Request) {
+func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
@@ -428,7 +441,7 @@ func WorkerDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 // * start (to start the stopped process of the worker)
 //
 // example: http PUT "localhost:8000/workers/e59c64aaa8192523ced12ffa0cddcd3c/stop"
-func WorkerPutHandler(writer http.ResponseWriter, req *http.Request) {
+func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid, action := vars["uuid"], vars["action"]
 

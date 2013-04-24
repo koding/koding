@@ -146,19 +146,19 @@ To  delete an entity for the the given `uuid`:
 DELETE /proxies/mahlika.local-915
 
 ```
-To create (populate) the proxyies you have to make a POST request with a given
+To create (populate) the proxies you have to make a POST request with a given
 name, key, host and hostdata:
 
 ```
-POST /proxies/mahlika.local-915 {"name", "string", "key": "string", "host":"ip:port", "hostdata": "optional data"}
+POST /proxies/uuid/services/name {"key": "string", "host":"ip:port", "hostdata": "optional data"}
 ```
 
-An example to create an entry with name "fooservice" and key with `2`, host
+An example to create an entry with name "server" and key with `2`, host
 with `localhost:8009` and an optional data field hostdata with
 `FromKontrolAPI` is:
 
 ```
-POST /proxies/mahlika.local-915 {"name": "fooService", "key": "2", "host":"localhost:8009", "hostdata": "FromKontrolAPI"}
+POST /proxies/mahlika.local-915/services/server {"key": "2", "host":"localhost:8009", "hostdata": "FromKontrolAPI"}
 ```
 
 You can add multiple entities for each key. If you add different host addresses
@@ -167,13 +167,13 @@ for the same key, the proxy will use round-robin between these hosts
 To delete a key and all hosts associated with it use:
 
 ```
-DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
+DELETE /proxies/mahlika.local-915/services/{serviceName}/{keyname}
 ```
 
 To get the list of services registered to a proxy use:
 
 ```
-GET /proxies/{uuid}/
+GET /proxies/{uuid}/services
 ```
 
 An example output is like:
@@ -189,10 +189,10 @@ To get details about a given proxy service you can make uuid calls via it's
 `uuid` value and `name`. Also you can can use and combine query based filters:
 
 ```
-GET /proxies/{uuid}/{name}
-GET /proxies/{uuid}/{name}?key=2
-GET /proxies/{uuid}/{name}?host=localhost:8002
-GET /proxies/{uuid}/{name}?hostdata=FromKontrolAPI
+GET /proxies/{uuid}/services/{name}
+GET /proxies/{uuid}/services/{name}?key=2
+GET /proxies/{uuid}/services/{name}?host=localhost:8002
+GET /proxies/{uuid}/services/{name}?hostdata=FromKontrolAPI
 ```
 
 An example of `GET /proxies/{uuid}/{name}`
@@ -220,6 +220,19 @@ An example of `GET /proxies/{uuid}/{name}`
     "Hostdata": "FromKontrolAPI"
   }
 ]
+```
+
+To add a domain for routing table use
+
+POST /proxies/mahlika.local-915/domains/example.com  {"name": "server", "key": "15"}
+
+This will lookup the domain and will use the server-15 proxy for forwarding.
+
+
+To get the list of domaings created to a proxy use:
+
+```
+GET /proxies/{uuid}/domains
 ```
 
 
