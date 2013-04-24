@@ -38,6 +38,18 @@ func main() {
 	select {}
 }
 
+//here, mapping of decoded json
+func jsonDecode(data string) (*Message, error) {
+	source := &Message{}
+	err := json.Unmarshal([]byte(data), &source)
+	if err != nil {
+		fmt.Println("Marshalling error:", err)
+		return source, err
+	}
+
+	return source, nil
+}
+
 func startConsuming() {
 
 	c := &Consumer{
