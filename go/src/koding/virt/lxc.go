@@ -8,10 +8,18 @@ import (
 )
 
 func (vm *VM) Start() ([]byte, error) {
+	//Add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		return out, err
+	}
 	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput()
 }
 
 func (vm *VM) Stop() ([]byte, error) {
+	//Remove the static route so it is no longer redistribed by BGP
+	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+                return out, err
+        }
 	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String()).CombinedOutput()
 }
 
