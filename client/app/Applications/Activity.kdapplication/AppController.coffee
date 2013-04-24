@@ -252,7 +252,7 @@ class ActivityAppController extends AppController
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       when "JBlogPost"     then @createBlogPostContentDisplay activity
       when "JTutorial"     then @createTutorialContentDisplay activity
-    @utils.defer -> callback contentDisplayController
+    @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
