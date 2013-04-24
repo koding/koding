@@ -134,17 +134,6 @@ func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 	var err error
 	host := targetHost(name, key)
 
-	keyRoutingTable := proxy.Services[name]
-	v := len(keyRoutingTable.Keys[key])
-	if v == numberOfDeaths {
-		log.Println("All given servers are death. Fallback to localhost:8000")
-		target, err = url.Parse("http://proxy.in.koding.com")
-		if err != nil {
-			log.Fatal(err)
-		}
-		return target
-	}
-
 	target, err = url.Parse("http://" + host)
 	if err != nil {
 		log.Fatal(err)
@@ -159,7 +148,6 @@ func targetHost(name, key string) string {
 	var hostname string
 
 	keyRoutingTable := proxy.Services[name]
-
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
 		hostname = "proxy.in.koding.com"
@@ -314,14 +302,6 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	name, _ := os.Hostname()
-	log.Println("PUBLIC HOSTNAME", req.Host)
-	log.Println("LOCAL HOSTNAME", name)
-	if name == req.Host {
-		io.WriteString(rw, "hello, world!\n")
-		return
-	}
-
 	conn_hdr := ""
 	conn_hdrs := req.Header["Connection"]
 	log.Printf("Connection headers: %v", conn_hdrs)
@@ -385,6 +365,14 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		outreq.ProtoMajor = 1
 		outreq.ProtoMinor = 1
 		outreq.Close = false
+
+		name, _ := os.Hostname()
+		log.Println("LOCAL HOSTNAME", name)
+		log.Println("REMOTE HOSTANME", outreq.URL)
+		if name == outreq.URL.Host {
+			io.WriteString(rw, "hello, world!\n")
+			return
+		}
 
 		// Remove hop-by-hop headers to the backend.  Especially
 		// important is "Connection" because we want a persistent
