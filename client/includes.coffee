@@ -182,8 +182,6 @@ module.exports = [
   # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
-  "app/CommonViews/mainnavigation/navigationactivitylink.coffee",
-  "app/CommonViews/Navigation.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
 
   "app/CommonViews/followbutton.coffee",
@@ -239,6 +237,14 @@ module.exports = [
   "app/MainApp/sidebar/footermenuitem.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
+
+  "app/MainApp/navigation/navigationcontroller.coffee",
+  "app/MainApp/navigation/navigationlist.coffee",
+  "app/MainApp/navigation/navigationlink.coffee",
+  "app/MainApp/navigation/navigationseparator.coffee",
+  "app/MainApp/navigation/navigationadminlink.coffee",
+  "app/MainApp/navigation/navigationinvitationlink.coffee",
+  "app/MainApp/navigation/navigationactivitylink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -326,13 +332,17 @@ module.exports = [
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
   "app/MainApp/localstorage.coffee",
-  "app/MainApp/lazy/lazydomcontroller.coffee",
-  "app/MainApp/lazy/staticprofilecontroller.coffee",
-  "app/MainApp/lazy/staticprofileconfigviews.coffee",
-  "app/MainApp/lazy/staticprofileaboutview.coffee",
-  "app/MainApp/lazy/staticuserbuttonbar.coffee",
-  "app/MainApp/lazy/staticgroupcontroller.coffee",
-  "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
+
+
+  # got rid of static controllers
+
+  # "app/MainApp/lazy/lazydomcontroller.coffee",
+  # "app/MainApp/lazy/staticprofilecontroller.coffee",
+  # "app/MainApp/lazy/staticprofileconfigviews.coffee",
+  # "app/MainApp/lazy/staticprofileaboutview.coffee",
+  # "app/MainApp/lazy/staticuserbuttonbar.coffee",
+  # "app/MainApp/lazy/staticgroupcontroller.coffee",
+  # "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
@@ -494,13 +504,13 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
 
  # Static Profile List Items
-  "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
+  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -543,7 +553,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
-  "app/MainApp/lazy/staticprofilecustomizeview.coffee",
+  # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -609,8 +619,11 @@ module.exports = [
 
   # HOME VIEWS
   "app/Applications/Home.kdapplication/AppView.coffee",
-  "app/Applications/Home.kdapplication/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
+  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
+  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
+  "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
 
