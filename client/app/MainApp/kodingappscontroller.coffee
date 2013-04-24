@@ -59,6 +59,8 @@ class KodingAppsController extends KDController
 
     path = "/home/#{KD.whoami().profile.nickname}/Applications"
 
+    throw "Please adapt to new os kite interface."
+
     @kiteController.run "ls #{escapeFilePath path} -lpva", \
       KD.utils.getTimedOutCallback (err, response)=>
         if err

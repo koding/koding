@@ -1,11 +1,8 @@
-Function::bind or= do ->
-  {slice} = []
-  (context)->
-    func = @
-    if 1 < arguments.length
-      args = slice.call arguments, 1
-      return -> func.apply context, if arguments.length then args.concat slice.call arguments else args
-    -> if arguments.length then func.apply context, arguments else func.call context
+Function::bind3 or= (context) ->
+  if 1 < arguments.length
+    args = [].slice.call arguments, 1
+    return => @apply context, if arguments.length then args.concat [].slice.call arguments else args
+  => if arguments.length then @apply context, arguments else @call context
 
 Function::swiss = (parent, names...)->
   for name in names
@@ -25,11 +22,14 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 
 # Dict = Object.create.bind null, null, Object.create null
 
-unless Array::last
-  Object.defineProperty Array::, "last", get : -> @[@length-1]
+do (arrayProto = Array.prototype, {defineProperty} = Object)->
+  # set up .first and .last getters for Array prototype
 
-unless Array::first
-  Object.defineProperty Array::, "first", get : -> @[0]
+  "last" of arrayProto or
+    defineProperty arrayProto, "last", { get: -> @[@length-1] }
+
+  "first" of arrayProto or
+    defineProperty arrayProto, "first", { get: -> @[0] }
 
 # KD Global
 KD = @KD or {}
@@ -39,6 +39,11 @@ noop  = ->
 KD.log   = log   = noop
 KD.warn  = warn  = noop
 KD.error = error = noop
+
+unless window.event?
+  # warn when the global "event" property is accessed.
+  Object.defineProperty window, "event", get:->
+    KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
 
 @KD = $.extend (KD), do ->
   # private member for tracking z-indexes

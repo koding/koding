@@ -1,38 +1,48 @@
 fs = require 'fs'
 nodePath = require 'path'
-deepFreeze = require 'koding-deep-freeze'
 
-version = "0.0.1"
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+
+# DEV
+mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitPrefix = (
+rabbitPrefix = ((
   try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e
-    console.log "You're missing .rabbitvhost file. Please add it with your name in it."
-    throw e
-).trim()
-socialQueueName = "koding-social-klusterdev-#{rabbitPrefix}"
+  catch e then require("os").hostname()
+).trim())+"-dev-#{version}"
+rabbitPrefix = rabbitPrefix.split('.').join('-')
+
+socialQueueName = "koding-social-prod-#{version}"
+
+webPort          = 4040
+brokerPort       = 9010 + (version % 10)
+sourceServerPort = 1400 + (version % 10)
+dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
 
 module.exports =
+  haproxy:
+    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3000"
+    address     : "http://new.koding.com:4040"
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'webserver'
-    port        : 3000
-    clusterSize : 1
+    login       : 'prod-webserver'
+    port        : dynConfig.webInternalPort
+    clusterSize : 10
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   sourceServer  :
     enabled     : yes
-    port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-  runGoBroker   : no
-  compileGo     : no
+    port        : sourceServerPort
+  mongo         : mongo
+  runGoBroker   : yes
+  compileGo     : yes
   buildClient   : yes
   runOsKite     : no
   runProxy      : no
@@ -48,15 +58,6 @@ module.exports =
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
-  librato :
-    push      : no
-    email     : ""
-    token     : ""
-    interval  : 60000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
@@ -66,20 +67,20 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'prod-auth-worker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    numberOfWorkers: 1
-    watch       : yes
-  social        :
-    login       : 'prod-social'
-    numberOfWorkers: 1
-    watch       : yes
-    queueName   : socialQueueName
+    numberOfWorkers: 2
+    watch       : no
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
-    run         : no
+    run         : yes
+  social        :
+    login       : 'prod-social'
+    numberOfWorkers: 10
+    watch       : no
+    queueName   : socialQueueName
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -88,55 +89,54 @@ module.exports =
     exchange    : 'services-presence'
   client        :
     version     : version
-    watch       : yes
-    watchDuration: 250
+    watch       : no
+    watchDuration: 4000
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
     css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
-    index       : "index.html"
+    index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: 'http://new.koding.com:4040'
     runtimeOptions:
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : 'http://new.koding.com:4040'
       broker    :
-        sockJS  : 'http://kluster-dev.in.koding.com:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS  : "https://new.koding.com:#{brokerPort}/subscribe"
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      appsUri   : 'https://app.koding.com'
+      sourceUri : "http://new.koding.com:#{sourceServerPort}"
   mq            :
-    host        : 'kluster-dev.in.koding.com'
-    port        : 5672
-    apiAddress  : "kluster-dev.in.koding.com"
-    apiPort     : 15672
+    host        : 'web-prod.in.koding.com'
     login       : 'PROD-k5it50s4676pO9O'
-    componentUser: "PROD-k5it50s4676pO9O"
-    password    : 'djfjfhgh4455__5'
+    port        : 5672
+    apiAddress  : "web-prod.in.koding.com"
+    apiPort     : 55672
+    componentUser: "prod-<component>"
+    password    : 'Dtxym6fRJXx4GJz'
     heartbeat   : 10
-    vhost       : '/'
+    vhost       : 'new'
   broker        :
     ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
-    ip          : ""
+    port        : brokerPort
+    certFile    : "/etc/nginx/ssl/server_new.crt"
+    keyFile     : "/etc/nginx/ssl/server_new.key"
   kites:
     disconnectTimeout: 3e3
-    vhost       : 'kite'
+    vhost       : 'new'
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
-    run         : no
-    defaultRecepient : undefined
+    run         : yes
+    defaultRecepient : 'chris@koding.com'
   emailSender   :
     run         : no
   guests        :
@@ -146,5 +146,13 @@ module.exports =
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
   pidFile       : '/tmp/koding.server.pid'
-  haproxy:
-    webPort     : 3020
+  loggr:
+    push: no
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
+  librato:
+    push: no
+    email: "devrim@koding.com"
+    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
+    interval: 60000
+
