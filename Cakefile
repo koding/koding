@@ -75,7 +75,7 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port, index) ->
     processes.fork
-      name              : "server-#{index}"
+      name              : "server"
       cmd               : __dirname + "/server/index -c #{config} -p #{port}"
       restart           : yes
       restartInterval   : 100
