@@ -87,7 +87,9 @@ task 'fooWorker',({configFile})->
   processes.fork
     name            : 'fooWorker'
     cmd             : "./workers/fooWorker/index -c #{configFile}"
-    needPermission  : yes
+    kontrol         :
+      enabled       : yes
+      
 ```
 
 This flag basically creates a helper-process inside our processes module, which
@@ -101,8 +103,9 @@ task 'fooWorker',({configFile})->
   processes.fork
     name            : 'fooWorker'
     cmd             : "./workers/fooWorker/index -c #{configFile}"
-    needPermission  : yes
-    forceStart      : yes
+    kontrol         :
+      enabled       : yes
+      forceStart    : yes
 ```
 
 This stops and kills all running process with the same name.
@@ -123,15 +126,16 @@ do ->
 
 If your process is connected to the Kontrol server, than the Kontrol server can
 kill your process or restart it again. However you change this behaviour via the
-`isWorker` option. Basically you create a process like:
+`nodeProcess` option. Basically you create a process like:
 
 ```
 task 'emailWorker',({configFile})->
   processes.fork
     name            : 'emailWorker'
     cmd             : "./workers/email/index -c #{configFile}"
-    needPermission  : yes
-    isWorker        : yes
+    kontrol         :
+      enabled       : yes
+      nodeProcess   : yes
 ```
 
 Now you can basically alter the 'start' and 'stop' commands your process is
