@@ -231,11 +231,13 @@ class ContentPanel extends KDView
     super options, data
 
     @registerSingleton "contentPanel", @, yes
-
     @bindTransitionEnd()
+
+    @navOpenedOnce = if KD.isLoggedIn() then yes else no
 
     mainViewController = @getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+    mainViewController.on "browseRequested", @bound "browseRequested"
 
   typeMap =
     full    : 'adjustForFullWidth'
@@ -245,6 +247,11 @@ class ContentPanel extends KDView
   nameMap =
     Home    : 'adjustForFullWidth'
 
+  browseRequested:->
+    @navOpenedOnce = yes
+    @adjustForSocial()
+    @getSingleton("mainView").mainTabView.changeLayout hideTabs : no
+
   changeLayout:(options)->
 
     {type, hideTabs, name}    = options
@@ -252,8 +259,12 @@ class ContentPanel extends KDView
 
     @unsetClass 'full develop social'
     @adjustShadow hideTabs
+    @navOpenedOnce = yes unless name in ["Home", "Activity"]
 
-    @[nameMap[name] or typeMap[type]]?()
+    if KD.isLoggedIn() or @navOpenedOnce
+      @[nameMap[name] or typeMap[type]]?()
+    else
+      @adjustForFullWidth()
 
   adjustShadow:(hideTabs)->
     @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
