@@ -72,13 +72,40 @@ func startConsuming() {
 
 	go func() {
 		for msg := range relationshipEvent {
-			fmt.Println(msg)
-			log.Printf("got %dB message data: [%v]-[%s] %s",
-				len(msg.Body),
-				msg.DeliveryTag,
-				msg.RoutingKey,
-				msg.Body)
-			sa := mongo.createUniqueNode("hebe", "dede")
+			body := fmt.Sprintf("%s", msg.Body)
+
+			message, err := jsonDecode(body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			//there will be only one array in data
+			data := message.Data[0]
+			fmt.Println(message.Event)
+			if message.Event == "RelationshipSaved" {
+				createNode(data)
+			} else if message.Event == "RelationshipRemoved" {
+				// deleteNode(data)
+			}
 		}
 	}()
+}
+
+func createNode(data EventData) {
+
+	sourceNode := neo4j.CreateUniqueNode(data.SourceId, data.SourceName)
+	targetNode := neo4j.CreateUniqueNode(data.TargetId, data.TargetName)
+
+	source := fmt.Sprintf("%s", sourceNode["create_relationship"])
+	target := fmt.Sprintf("%s", targetNode["self"])
+	neo4j.CreateRelationship(data.As, source, target)
+
+}
+
+func deleteNode(data EventData) {
+
+	sourceNode := neo4j.DeleteNode(data.SourceId)
+	fmt.Println(sourceNode)
+	targetNode := neo4j.DeleteNode(data.TargetId)
+	fmt.Println(targetNode)
+
 }
