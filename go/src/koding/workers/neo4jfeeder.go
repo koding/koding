@@ -20,8 +20,8 @@ type Consumer struct {
 }
 
 type Message struct {
-	Event string `json:"event"`
-	Data  []EventData
+	Event   string `json:"event"`
+	Payload []EventData
 }
 
 type EventData struct {
@@ -90,7 +90,7 @@ func startConsuming() {
 				log.Fatal(err)
 			}
 			//there will be only one array in data
-			data := message.Data[0]
+			data := message.Payload[0]
 			fmt.Println(message.Event)
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
