@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -9,93 +10,6 @@ HOME stylesheet
 app.home.styl
 */
 }
-
-#content-page-home
-  border-top              1px solid white
-  text-align              center
-  overflow                auto
-  bg                      color, #ddd
-  .video-wrapper
-    size                  auto, auto
-    overflow              visible
-    padding               5.48% 0
-    gradient              #f8f8f8, #ddd
-    // shadow                0 1px 0 rgba(255, 255, 255, .75)
-    // margin-bottom         40px
-    iframe
-      size                89.13%, 76.6%
-      border              8px solid rgba(0,0,0,.1)
-      rounded             2px
-      shadow              0 -1px 0 rgba(0,0,0,0.2)\,\
-                          0 1px 0 rgba(255,255,255,0.8)
-      borderBox()
-    a.login-register
-      display             inline-block
-      margin              10px auto 0
-    button
-      margin              2px 0 0 0
-      padding             6px 10px
-      font-weight         400
-      color               transparent
-      text-shadow         none
-      rounded             13px
-
-  hr
-    size                  100%, 2px
-    border-top            1px solid #bbb
-    background            rgba(255, 255, 255, .75)
-    margin                40px auto
-    vendor                transition, margin .3s ease-in
-    borderBox()
-  .reviews
-    margin-top            40px
-    p
-      text-shadow         0 -1px 0 rgba(255, 255, 255, .75)\,\
-                          0 1px 0 rgba(0, 0, 0, .2)
-      color               #455
-      font-size           32px
-      margin              20px 0 10px 0
-      line-height         40px
-      font-family         serif
-      font-style          italic
-      vendor              transition, all .3s ease-in
-    span
-      display             block
-      color               #666
-      font-size           14px
-      font-weight         300
-
-  .footer-links
-    a
-      color               #aaa
-      &:hover
-        color             white
-
-  footer.copy
-    font-size             11px
-    color                 #444
-    padding-bottom        30px
-
-
-  p.bigLink
-    // text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    display               inline-block
-    font-size             20px
-    line-height           40px
-    margin-right          40px
-    vendor                transition, font-size .3s ease-in
-    text-shadow           0 1px 0 rgba(0, 0, 0, .8)
-    font-weight           500
-    a
-      color               linkColor1
-      noTextDeco()
-      &:hover
-        color             white
-
-    &:nth-child(4)
-      margin-right    0
-
-
 // NEW TRY
 
 body.group
@@ -121,6 +35,7 @@ body.group
 div.screenshots
   rel()
   height                  auto
+  z-index                 1000
 
   .arrow
     abs()
@@ -285,6 +200,16 @@ div.screenshots
         border-top      1px solid rgba(255,255,255,.4)
         gradient        rgb(233, 142, 27), rgb(223, 118, 4)
 
+// NEW TRY END
+
+
+
+// DEPRECATED
+// we don't need featured
+// sections on homepage anymore/yet.
+// left here for refernce
+
+/*
 
 div.home-featured
   max-width               1000px
@@ -378,9 +303,9 @@ div.home-featured-apps
           color           #888
           text-align      center
       &:hover
+        shadow            0px 0px 10px rgba(0,0,0,0.25)\,0 1px 5px -2px rgba(0,0,0,0.6)
         .details
           bg              color, rgba(255,255,255,0.85)
-        shadow          0px 0px 10px rgba(0,0,0,0.25)\,0 1px 5px -2px rgba(0,0,0,0.6)
 
 div.featured-header
   color                   #444
@@ -434,4 +359,5 @@ div.featured-app-details
         width             auto
         display           inline-block
         padding           10px 10px 10px 0
-// NEW TRY END
+
+*/
