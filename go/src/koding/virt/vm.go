@@ -173,6 +173,10 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
+	// Add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		return out, err
+	}
 }
 
 func (vm *VM) Unprepare() error {
@@ -207,6 +211,10 @@ func (vm *VM) Unprepare() error {
 	}
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("rbd unmap failed.", err, out)
+	}
+	// Remove the static route so it is no longer redistribed by BGP
+	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		return out, err
 	}
 
 	// remove VM directory

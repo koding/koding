@@ -4,22 +4,32 @@ class GroupHomeView extends KDView
 
     super options, data
 
+    @setClass "screenshots"
+
+    @homeLoginBar = new HomeLoginBar
+
   viewAppended:->
-    entryPoint = @getOption 'entryPoint'
+    entryPoint       = @getOption 'entryPoint'
     groupsController = @getSingleton "groupsController"
-    # groupsController.on "GroupChanged", (name, group)->
+
     KD.remote.cacheable entryPoint, (err, models)=>
       if err then callback err
       else if models?
         [group] = models
         @setData group
-
+        @body = new KDScrollView
+          domId     : 'home-group-body'
+          tagName   : 'section'
+          pistachio : """<div class='group-desc'>{{ #(body)}}</div>"""
+        , group
         @readmeView = new GroupReadmeView {}, group
-
         JView::viewAppended.call @
 
   pistachio:->
+
     """
-      <h1> Dat is da {{ #(title)}} groop!</h1>
-      {{> @readmeView}}
+    {{> @body}}
+    {{> @homeLoginBar}}
+    {{> @readmeView}}
     """
+
