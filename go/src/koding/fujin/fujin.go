@@ -413,8 +413,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	reqHost, err := net.ResolveTCPAddr("tcp", req.Host)
 	if err != nil {
 		log.Println(err)
-		return
 	}
+
 	localHost, err := localIP()
 
 	if localHost.String() == reqHost.IP.String() {
