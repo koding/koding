@@ -46,6 +46,7 @@ func sendRequest(requestType, url, data string) string {
 }
 
 // connect source and target with relation property
+// response will be object
 func CreateRelationship(relation, source, target string) map[string]interface{} {
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, target, relation)
@@ -60,6 +61,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 }
 
 // creates a unique node with given id and node name
+// response will be Object
 func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	url := BASE_URL + UNIQUE_NODE_PATH
@@ -68,35 +70,56 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	response := sendRequest("POST", url, postData)
 
-	nodeData, err := jsonDecode(response)
+	node, err := jsonDecode(response)
 	if err != nil {
-		fmt.Println("Problem with response", response)
+		fmt.Println("Problem with unique node creation response", response)
 	}
 
-	return nodeData
+	return node
 }
 
-func DeleteNodeRelationships(nodeUrl string) {
-	relationshipsURL := nodeUrl + "/relationships/all"
+// deletes a relation between two node using relationship info
+func DeleteRelationship(sourceId, targetId, relationship string) bool {
 
+	//get source node information
+	sourceInfo := GetNode(sourceId)
+
+	//get target node information
+	targetInfo := GetNode(targetId)
+
+	// create  url to get relationship information of source node
+	relationshipsURL := fmt.Sprintf("%s", sourceInfo[0]["self"]) + "/relationships/all/" + relationship
+
+	//this request returns objects in an array
 	response := sendRequest("GET", relationshipsURL, "")
-
-	relationships, err := jsonDecode(response)
+	//so use json array decoder
+	relationships, err := jsonArrayDecode(response)
 	if err != nil {
-		fmt.Println("Problem with response", response)
+		fmt.Println("Problem with unique node creation response", response)
 	}
 
-	fmt.Println(relationships)
-
+	//check there might be another relations
+	if relationships[0]["end"] == targetInfo[0]["self"] {
+		toBeDeletedRelationURL := fmt.Sprintf("%s", relationships[0]["self"])
+		deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "")
+		fmt.Println(deletionResponse)
+	} else {
+		fmt.Println("not found!")
+		fmt.Println("relationships...")
+		fmt.Println(relationships)
+	}
+	return true
 }
 
-func GetNode(id string) map[string]interface{} {
+// gets node from neo4j with given unique node id
+//response will be object
+func GetNode(id string) []map[string]interface{} {
 
 	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
 
 	response := sendRequest("GET", url, "")
 
-	nodeData, err := jsonDecode(response)
+	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
 		fmt.Println("Problem with response", response)
 	}
@@ -105,22 +128,23 @@ func GetNode(id string) map[string]interface{} {
 }
 
 // creates a unique node with given id and node name
-func DeleteNode(id string) bool {
 
-	// url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
+func DeleteNode(id string) bool {
 
 	node := GetNode(id)
 
-	nodeURL := node["self"]
+	nodeURL := node[0]["self"]
 
-	DeleteNodeRelationships(fmt.Sprintf("%s", nodeURL))
+	url := BASE_URL + NODE_URL + fmt.Sprintf("%s", nodeURL)
 
-	// response := sendRequest("DELETE", url, "")
+	// DeleteNodeRelationships(fmt.Sprintf("%s", nodeURL))
 
-	// nodeData, err := jsonDecode(response)
-	// if err != nil {
-	// 	fmt.Println("Problem with response", response)
-	// }
+	response := sendRequest("DELETE", url, "")
+
+	_, err := jsonDecode(response)
+	if err != nil {
+		fmt.Println("Problem with response", response)
+	}
 
 	return true
 }
@@ -139,6 +163,19 @@ func CreateUniqueIndex(name string) {
 // This is a custom json string generator as http request body to neo4j
 func generatePostJsonData(id, name string) string {
 	return fmt.Sprintf(`{ "key" : "id", "value" : "%s", "properties" : { "id" : "%s", "name" : "%s" } }`, id, id, name)
+}
+
+//here, mapping of decoded json
+func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
+	var source []map[string]interface{}
+
+	err := json.Unmarshal([]byte(data), &source)
+	if err != nil {
+		fmt.Println("Marshalling error:", err)
+		return nil, err
+	}
+
+	return source, nil
 }
 
 //here, mapping of decoded json
