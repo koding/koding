@@ -21,7 +21,7 @@ type Consumer struct {
 
 type Message struct {
 	Event string `json:"event"`
-	Data []EventData
+	Data  []EventData
 }
 
 type EventData struct {
@@ -95,7 +95,7 @@ func startConsuming() {
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
-				// deleteNode(data)
+				deleteNode(data)
 			}
 		}
 	}()
@@ -113,10 +113,10 @@ func createNode(data EventData) {
 }
 
 func deleteNode(data EventData) {
-
-	sourceNode := neo4j.DeleteNode(data.SourceId)
-	fmt.Println(sourceNode)
-	targetNode := neo4j.DeleteNode(data.TargetId)
-	fmt.Println(targetNode)
-
+	result := neo4j.DeleteRelationship(data.SourceId, data.TargetId, data.As)
+	if result {
+		fmt.Println("Relationship deleted")
+	} else {
+		fmt.Println("Relationship couldnt be deleted")
+	}
 }
