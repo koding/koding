@@ -399,6 +399,16 @@ module.exports = [
 
   # chat
   "app/Applications/Chat.kdapplication/AppController.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/commonchatcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/contactlistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/conversationlistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatcontactlistitemtitle.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatconversationlistitem.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatconversationlistview.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatconversationwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatcontactlistview.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatcontactlistitem.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
 
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
