@@ -117,12 +117,14 @@ module.exports = class AuthWorker extends EventEmitter
       callback
     )
 
-  addBinding:(exchangeName, bindingKey, routingKey)->
+  addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
+    suffix = ".#{suffix}"  if suffix.length
     @fetchReroutingExchange (exchange)=>
       exchange.publish 'auth.join', {
         exchange: exchangeName
         bindingKey
         routingKey
+        suffix
       }
 
   _fakePersistenceWorker:(secretChannelName)->
@@ -208,15 +210,18 @@ module.exports = class AuthWorker extends EventEmitter
     joinChatHelper =(messageData, routingKey, socketId)->
       {name} = messageData
       {JName} = @bongo.models
-      JName.fetchSecretName name, (err, secretChannelName)=>
-        return console.error err  if err
+      fail = => @rejectClient routingKey
+      @authenticate messageData, routingKey, (session)=>
+        return fail()  unless session?.username?
+        JName.fetchSecretName name, (err, secretChannelName)=>
+          return console.error err  if err
 
-        personalToken = do require 'hat'
-        
-        @addBinding 'chat', secretChannelName, personalToken
+          personalToken = do require 'hat'
 
-        @_fakePersistenceWorker secretChannelName
-        @setSecretName routingKey, personalToken
+          @addBinding 'chat', secretChannelName, personalToken, session.username
+
+          @_fakePersistenceWorker secretChannelName
+          @setSecretName routingKey, personalToken
 
     join =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData

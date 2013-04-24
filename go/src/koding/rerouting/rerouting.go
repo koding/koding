@@ -23,6 +23,7 @@ type JoinMsg struct {
 	BindingKey string `json:"bindingKey"`
 	Exchange   string `json:"exchange"`
 	RoutingKey string `json:"routingKey"`
+	Suffix     string `json:"suffix"`
 }
 
 type LeaveMsg struct {
@@ -101,7 +102,7 @@ func startRouting() {
 
 			declareExchange(c, join.Exchange)
 
-			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey)
+			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix)
 		case "auth.leave":
 			var leave LeaveMsg
 			err := json.Unmarshal(msg.Body, &leave)
@@ -132,9 +133,13 @@ func declareExchange(c *Consumer, exchange string) {
 	}
 }
 
-func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey string) {
+func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string) {
 	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n",
 		exchange, bindingKey, routingKey)
+
+	if len(suffix) > 0 {
+		routingKey += suffix
+	}
 
 	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
