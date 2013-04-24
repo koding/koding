@@ -47,8 +47,7 @@ class ActivityAppController extends AppController
     @status = @getSingleton "status"
     @status.on "reconnected", (reason)=>
       if reason is "internetDownForLongTime"
-        @resetAll()
-        @populateActivity()
+        @refresh()
       else
         @fetchSomeActivities()
 
@@ -89,6 +88,7 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
+    activityController.on 'Refresh', @bound "refresh"
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
@@ -127,13 +127,14 @@ class ActivityAppController extends AppController
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
   refresh:->
+    @resetAll()
     @populateActivity {},\
       KD.utils.getTimedOutCallback (err, items)->
         log 'refreshing activity feed'
       , =>
         @isLoading = no
         @status.disconnect()
-      , 2000
+      , 5000
 
   populateActivity:(options = {}, callback)->
 
