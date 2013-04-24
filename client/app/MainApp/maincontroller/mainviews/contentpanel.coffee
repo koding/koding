@@ -8,6 +8,7 @@ class ContentPanel extends KDView
     @bindTransitionEnd()
     @listenWindowResize()
     @state = 'full'
+    @windowController or= @getSingleton 'windowController'
 
     @navOpenedOnce = if KD.isLoggedIn() then yes else no
 
@@ -31,7 +32,6 @@ class ContentPanel extends KDView
   changeLayout:(options)->
 
     {type, hideTabs, name}    = options
-    @windowController or= @getSingleton 'windowController'
 
     @unsetClass 'full develop social'
     @adjustShadow hideTabs
