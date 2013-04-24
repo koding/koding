@@ -370,7 +370,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		log.Println("LOCAL HOSTNAME", name)
 		log.Println("REMOTE HOSTANME", outreq.URL)
 		if name == outreq.URL.Host {
-			io.WriteString(rw, "hello, world!\n")
+			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
 		}
 

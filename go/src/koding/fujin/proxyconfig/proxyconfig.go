@@ -48,15 +48,27 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 	}
 }
 
+type DomainRoutingTable struct {
+	Domain map[string]string `json:"domain"`
+}
+
+func NewDomainRoutingTable() *DomainRoutingTable {
+	return &DomainRoutingTable{
+		Domain: make(map[string]string),
+	}
+}
+
 type Proxy struct {
-	Services map[string]KeyRoutingTable
-	Uuid     string
+	Services           map[string]KeyRoutingTable
+	DomainRoutingTable DomainRoutingTable
+	Uuid               string
 }
 
 func NewProxy(uuid string) *Proxy {
 	return &Proxy{
-		Services: make(map[string]KeyRoutingTable),
-		Uuid:     uuid,
+		Services:           make(map[string]KeyRoutingTable),
+		DomainRoutingTable: *NewDomainRoutingTable(),
+		Uuid:               uuid,
 	}
 }
 
@@ -155,6 +167,26 @@ func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) e
 
 func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
 	err := p.Collection.Update(bson.M{"uuid": proxy.Uuid}, proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *ProxyConfiguration) AddDomain(name, host, uuid string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("adding domain not possible '%s'", err)
+	}
+
+	_, ok := proxy.DomainRoutingTable.Domain[name]
+	if !ok {
+		proxy.DomainRoutingTable.Domain[name] = host
+	}
+
+	// domainMap := proxy.DomainRoutingTable.Domain
+	// proxy.DomainRoutingTable.Domain = domainMap
+	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
 	}

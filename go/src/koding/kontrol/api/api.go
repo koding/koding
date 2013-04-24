@@ -44,6 +44,7 @@ type ProxyMachines []ProxyMachine
 
 type ProxyPostMessage struct {
 	Name     *string
+	Domain   *string
 	Key      *string
 	Host     *string
 	Hostdata *string
@@ -97,7 +98,10 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}", ProxiesDeleteHandler).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}", ProxyHandler).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/{name}", ProxyNameHandler).Methods("GET")
+
 	rout.HandleFunc("/proxies/{uuid}", ProxyPostHandler).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", ProxyDomainPostHandler).Methods("POST")
+
 	rout.HandleFunc("/proxies/{uuid}/{name}/{key}", ProxyDeleteHandler).Methods("DELETE")
 
 	// Rollbar api
@@ -173,6 +177,41 @@ func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	name := vars["key"]
 
 	buildSendProxyCmd("deleteKey", name, key, "", "", uuid)
+}
+
+// Add domain to the domainroutingtable
+// example: http POST "localhost:8000/proxies/mahlika.local-915" domain=blog.arsln.org host=server-15.x.koding.com
+func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	domain := vars["domain"]
+
+	var msg ProxyPostMessage
+	var host string
+
+	body, _ := ioutil.ReadAll(req.Body)
+	log.Println(string(body))
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		log.Print("bad json incoming msg: ", err)
+	}
+
+	if msg.Host != nil {
+		host = *msg.Host
+	} else {
+		log.Println("aborting. no 'host' available")
+		return
+	}
+
+	// for default proxy assume that the main proxy will handle this. until
+	// we come up with design decision for multiple proxies, use this
+	if uuid == "default" {
+		uuid = "proxy.in.koding.com"
+	}
+
+	buildSendProxyCmd("addDomain", domain, "", host, "FromKontrolAPI", uuid)
+
 }
 
 // Add key with proxy host to proxy machine with uuid
