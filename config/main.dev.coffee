@@ -25,6 +25,10 @@ module.exports = deepFreeze
   sourceServer  :
     enabled     : yes
     port        : 1337
+  neo4j         :
+    enabled     : yes
+    host        : "http://neo4j-dev"
+    port        : 7474
   mongo         : mongo
   runGoBroker   : no
   compileGo     : no
