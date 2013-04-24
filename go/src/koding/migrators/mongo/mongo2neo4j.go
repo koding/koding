@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	// "koding/tools/config"
 	"koding/databases/neo4j"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -21,8 +20,9 @@ type Relationship struct {
 }
 
 var (
-	// todo update this constants, here must be only config file related strings after config files updated  
-	MONGO_CONN_STRING = "mongodb://dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy"
+	MONGO_CONN_STRING     = "mongodb://PROD-koding:34W4BXx595ib3J72k5Mh@web-prod.in.koding.com:27017/" + MONGO_DATABASE_NAME
+	MONGO_DATABASE_NAME   = "beta_koding"
+	MONGO_COLLECTION_NAME = "relationships"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 
 	neo4j.CreateUniqueIndex("koding")
 
-	relationshipColl := conn.DB("koding_dev2_copy").C("relationships")
+	relationshipColl := conn.DB(MONGO_DATABASE_NAME).C(MONGO_COLLECTION_NAME)
 
 	var result Relationship
 	iter := relationshipColl.Find(nil).Iter()
