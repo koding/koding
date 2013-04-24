@@ -3,18 +3,19 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"errors"
 	"github.com/streadway/amqp"
+	"io"
 	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
 	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -80,12 +81,14 @@ func main() {
 	// log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
 	// listenProxy(addHTTP, nil, amqpStream.uuid)
 
+	reverseProxy := NewSingleHostReverseProxy()
+	http.Handle("/", reverseProxy)
+
+	// http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	// })
+
 	// start one with go in order not to block the other one
-
-	r := mux.NewRouter()
-	r.Handle("/", newReverseProxy())
-	http.Handle("/", r)
-
 	go func() {
 		err = http.ListenAndServeTLS(":"+config.HttpsPort, "cert.pem", "key.pem", nil)
 		if err != nil {
@@ -99,32 +102,39 @@ func main() {
 	http.ListenAndServe(":"+config.HttpPort, nil)
 }
 
-func newReverseProxy() *httputil.ReverseProxy {
-	director := func(req *http.Request) {
-		log.Println("HOST:", req.RequestURI, req.Host)
-		var deaths int
-		name, key := parseKey(req.Host)
-		if name == "homepage" {
-			log.Println("Hello world!")
-			return
-		}
+func Handler(writer http.ResponseWriter, req *http.Request) {
 
-		target := targetUrl(deaths, name, key)
-
-		targetQuery := target.RawQuery
-
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
-		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-		if targetQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = targetQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
-		}
-	}
-
-	return &httputil.ReverseProxy{Director: director}
+	// writer.Write([]byte(data))
 }
+
+// func newReverseProxy() *httputil.ReverseProxy {
+// 	director := func(req *http.Request) {
+// 		log.Println("HOST:", req.RequestURI, req.Host)
+// 		var deaths int
+// 		name, key := parseKey(req.Host)
+// 		if name == "homepage" {
+// 			log.Println("hello world!")
+// 			return
+// 		}
+//
+// 		target := targetUrl(deaths, name, key)
+//
+// 		targetQuery := target.RawQuery
+//
+// 		req.URL.Scheme = target.Scheme
+// 		req.URL.Host = target.Host
+// 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+// 		if targetQuery == "" || req.URL.RawQuery == "" {
+// 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
+// 		} else {
+// 			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
+// 		}
+// 	}
+//
+// 	reverseProxy := &httputil.ReverseProxy{Director: director}
+//
+// 	return reverseProxy
+// }
 
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 	err := fastproxy.Listen(localAddr, cert, func(req fastproxy.Request) {
@@ -154,9 +164,7 @@ func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
 }
 
 func parseKey(host string) (string, string) {
-	log.Println("HOST string", host)
 	counts := strings.Count(host, "-")
-	log.Println("count string", counts)
 	if counts == 0 {
 		return "homepage", ""
 	}
@@ -304,7 +312,39 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
-// this is from ReverseProxy.go, can change..
+/*************************************************
+*
+*  modified version of go's reverseProxy source code
+*  has support for dynamic url and websockets
+*
+*  - arslan
+*************************************************/
+
+// onExitFlushLoop is a callback set by tests to detect the state of the
+// flushLoop() goroutine.
+var onExitFlushLoop func()
+
+// ReverseProxy is an HTTP Handler that takes an incoming request and
+// sends it to another server, proxying the response back to the
+// client.
+type ReverseProxy struct {
+	// Director must be a function which modifies
+	// the request into a new request to be sent
+	// using Transport. Its response is then copied
+	// back to the original client unmodified.
+	Director func(*http.Request)
+
+	// The transport used to perform proxy requests.
+	// If nil, http.DefaultTransport is used.
+	Transport http.RoundTripper
+
+	// FlushInterval specifies the flush interval
+	// to flush to the client while copying the
+	// response body.
+	// If zero, no periodic flushing is done.
+	FlushInterval time.Duration
+}
+
 func singleJoiningSlash(a, b string) string {
 	aslash := strings.HasSuffix(a, "/")
 	bslash := strings.HasPrefix(b, "/")
@@ -315,4 +355,205 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
+}
+
+// NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
+// URLs to the scheme, host, and base path provided in target. If the
+// target's path is "/base" and the incoming request was for "/dir",
+// the target request will be for /base/dir.
+func NewSingleHostReverseProxy() *ReverseProxy {
+	director := func(req *http.Request) {
+		log.Println("HOST:", req.RequestURI, req.Host)
+		var deaths int
+		name, key := parseKey(req.Host)
+		if name == "homepage" {
+			log.Println("hello world!")
+			return
+		}
+
+		target := targetUrl(deaths, name, key)
+
+		targetQuery := target.RawQuery
+
+		req.URL.Scheme = target.Scheme
+		req.URL.Host = target.Host
+		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+		if targetQuery == "" || req.URL.RawQuery == "" {
+			req.URL.RawQuery = targetQuery + req.URL.RawQuery
+		} else {
+			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
+		}
+	}
+
+	return &ReverseProxy{Director: director}
+}
+
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+// Hop-by-hop headers. These are removed when sent to the backend.
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
+
+func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	reqHost, err := net.ResolveTCPAddr("tcp", req.Host)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	localHost, err := localIP()
+
+	if localHost.String() == reqHost.IP.String() {
+		io.WriteString(rw, "hello, world!\n")
+		return
+	}
+
+	transport := p.Transport
+	if transport == nil {
+		transport = http.DefaultTransport
+	}
+
+	outreq := new(http.Request)
+	*outreq = *req // includes shallow copies of maps, but okay
+
+	p.Director(outreq)
+	outreq.Proto = "HTTP/1.1"
+	outreq.ProtoMajor = 1
+	outreq.ProtoMinor = 1
+	outreq.Close = false
+
+	// Remove hop-by-hop headers to the backend.  Especially
+	// important is "Connection" because we want a persistent
+	// connection, regardless of what the client sent to us.  This
+	// is modifying the same underlying map from req (shallow
+	// copied above) so we only copy it if necessary.
+	copiedHeaders := false
+	for _, h := range hopHeaders {
+		if outreq.Header.Get(h) != "" {
+			if !copiedHeaders {
+				outreq.Header = make(http.Header)
+				copyHeader(outreq.Header, req.Header)
+				copiedHeaders = true
+			}
+			outreq.Header.Del(h)
+		}
+	}
+
+	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+		// If we aren't the first proxy retain prior
+		// X-Forwarded-For information as a comma+space
+		// separated list and fold multiple headers into one.
+		if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
+			clientIP = strings.Join(prior, ", ") + ", " + clientIP
+		}
+		outreq.Header.Set("X-Forwarded-For", clientIP)
+	}
+
+	res, err := transport.RoundTrip(outreq)
+	if err != nil {
+		log.Printf("http: proxy error: %v", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer res.Body.Close()
+
+	copyHeader(rw.Header(), res.Header)
+
+	rw.WriteHeader(res.StatusCode)
+	p.copyResponse(rw, res.Body)
+}
+
+func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
+	if p.FlushInterval != 0 {
+		if wf, ok := dst.(writeFlusher); ok {
+			mlw := &maxLatencyWriter{
+				dst:     wf,
+				latency: p.FlushInterval,
+				done:    make(chan bool),
+			}
+			go mlw.flushLoop()
+			defer mlw.stop()
+			dst = mlw
+		}
+	}
+
+	io.Copy(dst, src)
+}
+
+type writeFlusher interface {
+	io.Writer
+	http.Flusher
+}
+
+type maxLatencyWriter struct {
+	dst     writeFlusher
+	latency time.Duration
+
+	lk   sync.Mutex // protects Write + Flush
+	done chan bool
+}
+
+func (m *maxLatencyWriter) Write(p []byte) (int, error) {
+	m.lk.Lock()
+	defer m.lk.Unlock()
+	return m.dst.Write(p)
+}
+
+func (m *maxLatencyWriter) flushLoop() {
+	t := time.NewTicker(m.latency)
+	defer t.Stop()
+	for {
+		select {
+		case <-m.done:
+			if onExitFlushLoop != nil {
+				onExitFlushLoop()
+			}
+			return
+		case <-t.C:
+			m.lk.Lock()
+			m.dst.Flush()
+			m.lk.Unlock()
+		}
+	}
+}
+
+func (m *maxLatencyWriter) stop() { m.done <- true }
+
+func localIP() (net.IP, error) {
+	tt, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range tt {
+		aa, err := t.Addrs()
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range aa {
+			ipnet, ok := a.(*net.IPNet)
+			if !ok {
+				continue
+			}
+			v4 := ipnet.IP.To4()
+			if v4 == nil || v4[0] == 127 { // loopback address
+				continue
+			}
+			return v4, nil
+		}
+	}
+	return nil, errors.New("cannot find local IP address")
 }
