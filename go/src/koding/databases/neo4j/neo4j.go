@@ -14,9 +14,10 @@ var (
 	// todo update this constants, here must be only config file related strings after config files updated  
 	// BASE_URL         = config.Current.Neo4j.Url + config.Current.Neo4j.Port  // "http://localhost:7474"
 	BASE_URL         = "http://localhost:7474"
-	NODE_PATH        = "/db/data/index/node/koding/"
+	INDEX_NODE_PATH  = "/db/data/index/node/koding"
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
+	NODE_URL         = "/db/data/node"
 )
 
 // Gets URL and string data to be sent and makes POST request
@@ -75,12 +76,25 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 	return nodeData
 }
 
-// creates a unique node with given id and node name
-func DeleteNode(id string) map[string]interface{} {
+func DeleteNodeRelationships(nodeUrl string) {
+	relationshipsURL := nodeUrl + "/relationships/all"
 
-	url := BASE_URL + NODE_PATH
+	response := sendRequest("GET", relationshipsURL, "")
 
-	response := sendRequest("DELETE", url, "")
+	relationships, err := jsonDecode(response)
+	if err != nil {
+		fmt.Println("Problem with response", response)
+	}
+
+	fmt.Println(relationships)
+
+}
+
+func GetNode(id string) map[string]interface{} {
+
+	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
+
+	response := sendRequest("GET", url, "")
 
 	nodeData, err := jsonDecode(response)
 	if err != nil {
@@ -88,6 +102,27 @@ func DeleteNode(id string) map[string]interface{} {
 	}
 
 	return nodeData
+}
+
+// creates a unique node with given id and node name
+func DeleteNode(id string) bool {
+
+	// url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
+
+	node := GetNode(id)
+
+	nodeURL := node["self"]
+
+	DeleteNodeRelationships(fmt.Sprintf("%s", nodeURL))
+
+	// response := sendRequest("DELETE", url, "")
+
+	// nodeData, err := jsonDecode(response)
+	// if err != nil {
+	// 	fmt.Println("Problem with response", response)
+	// }
+
+	return true
 }
 
 // creates a unique tree head node to hold all nodes
