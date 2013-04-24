@@ -3,16 +3,17 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 	"koding/fujin/fastproxy"
 	"koding/fujin/proxyconfig"
 	"koding/tools/config"
 	"log"
 	"net"
+	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
-	// "sort"
-	// "strconv"
 	"strings"
 	"time"
 )
@@ -56,28 +57,73 @@ func main() {
 	case <-start: // wait until we got message from kontrold or exit via above chan
 	}
 
-	addHTTP, err := net.ResolveTCPAddr("tcp", ":"+config.HttpPort)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// addHTTP, err := net.ResolveTCPAddr("tcp", ":"+config.HttpPort)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
 
-	addHTTPS, err := net.ResolveTCPAddr("tcp", ":"+config.HttpsPort)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// addHTTPS, err := net.ResolveTCPAddr("tcp", ":"+config.HttpsPort)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
 
-	cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
-	if err != nil {
-		log.Println("https mode is disabled. please add cert.pem and key.pem files.")
-	} else {
-		log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
-		go listenProxy(addHTTPS, &cert, amqpStream.uuid)
-	}
+	// cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
+	// if err != nil {
+	// 	log.Println("https mode is disabled. please add cert.pem and key.pem files.")
+	// } else {
+	// 	log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
+	// 	go listenProxy(addHTTPS, &cert, amqpStream.uuid)
+	// }
+
+	// log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
+	// listenProxy(addHTTP, nil, amqpStream.uuid)
+
+	// start one with go in order not to block the other one
+
+	r := mux.NewRouter()
+	r.Handle("/", newReverseProxy())
+	http.Handle("/", r)
+
+	go func() {
+		err = http.ListenAndServeTLS(":"+config.HttpsPort, "cert.pem", "key.pem", nil)
+		if err != nil {
+			log.Println("https mode is disabled. please add cert.pem and key.pem files.")
+		} else {
+			log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
+		}
+	}()
 
 	log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
-	listenProxy(addHTTP, nil, amqpStream.uuid)
+	http.ListenAndServe(":"+config.HttpPort, nil)
+}
+
+func newReverseProxy() *httputil.ReverseProxy {
+	director := func(req *http.Request) {
+		log.Println("HOST:", req.RequestURI, req.Host)
+		var deaths int
+		name, key := parseKey(req.Host)
+		if name == "homepage" {
+			log.Println("Hello world!")
+			return
+		}
+
+		target := targetUrl(deaths, name, key)
+
+		targetQuery := target.RawQuery
+
+		req.URL.Scheme = target.Scheme
+		req.URL.Host = target.Host
+		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+		if targetQuery == "" || req.URL.RawQuery == "" {
+			req.URL.RawQuery = targetQuery + req.URL.RawQuery
+		} else {
+			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
+		}
+	}
+
+	return &httputil.ReverseProxy{Director: director}
 }
 
 func listenProxy(localAddr *net.TCPAddr, cert *tls.Certificate, uuid string) {
@@ -225,19 +271,7 @@ func targetHost(name, key string) string {
 		hostname = "localhost:8000"
 		log.Println("no keys are added, using default url ", hostname)
 	} else {
-		// // get all keys and sort them
-		// listOfKeys := make([]int, len(keyRoutingTable.Keys))
-		// i := 0
-		// for k, _ := range keyRoutingTable.Keys {
-		// 	listOfKeys[i], _ = strconv.Atoi(k)
-		// 	i++
-		// }
-		// sort.Ints(listOfKeys)
-
-		// // give precedence to the largest key number
-		// key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
-
-		// then use round-robin algorithm for each hostname
+		// use round-robin algorithm for each hostname
 		for i, value := range keyRoutingTable.Keys[key] {
 			currentIndex := value.CurrentIndex
 			if currentIndex == i {
@@ -268,4 +302,17 @@ func buildProxyCmd(action, uuid string) []byte {
 	}
 
 	return data
+}
+
+// this is from ReverseProxy.go, can change..
+func singleJoiningSlash(a, b string) string {
+	aslash := strings.HasSuffix(a, "/")
+	bslash := strings.HasPrefix(b, "/")
+	switch {
+	case aslash && bslash:
+		return a + b[1:]
+	case !aslash && !bslash:
+		return a + "/" + b
+	}
+	return a + b
 }
