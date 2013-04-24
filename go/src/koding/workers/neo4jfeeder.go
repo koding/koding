@@ -54,9 +54,7 @@ func startConsuming() {
 	}
 
 	//name, durable, autoDelete, exclusive, noWait, args Table
-	if _, err := c.channel.QueueDeclare(
-		WORKER_QUEUE_NAME, true, false, false, false, nil
-	); err != nil {
+	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
 	}
 
