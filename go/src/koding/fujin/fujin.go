@@ -351,12 +351,21 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	outreq := new(http.Request)
+	*outreq = *req // includes shallow copies of maps, but okay
+
+	p.Director(outreq)
+	outreq.Proto = "HTTP/1.1"
+	outreq.ProtoMajor = 1
+	outreq.ProtoMinor = 1
+	outreq.Close = false
+
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
 	if upgrade_websocket {
-		rConn, err := net.Dial("tcp", req.URL.Host)
+		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
-			log.Printf("Error dialing websocket backend %s: %v", req.URL.Host, err)
+			log.Printf("Error dialing websocket backend %s: %v", outreq.URL.Host, err)
 			return
 		}
 
@@ -388,15 +397,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if transport == nil {
 			transport = http.DefaultTransport
 		}
-
-		outreq := new(http.Request)
-		*outreq = *req // includes shallow copies of maps, but okay
-
-		p.Director(outreq)
-		outreq.Proto = "HTTP/1.1"
-		outreq.ProtoMajor = 1
-		outreq.ProtoMinor = 1
-		outreq.Close = false
 
 		name, _ := os.Hostname()
 		log.Println("LOCAL HOSTNAME:", name)
