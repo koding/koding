@@ -410,14 +410,10 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	reqHost, err := net.ResolveTCPAddr("tcp", req.Host)
-	if err != nil {
-		log.Println(err)
-	}
-
 	localHost, err := localIP()
-
-	if localHost.String() == reqHost.IP.String() {
+	log.Println("LOCAL HOST", localHost.String())
+	log.Println("REMOTE HOST", req.Host)
+	if localHost.String() == req.Host {
 		io.WriteString(rw, "hello, world!\n")
 		return
 	}
