@@ -44,8 +44,8 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-    status = @getSingleton "status"
-    status.on "reconnected", (reason)=>
+    @status = @getSingleton "status"
+    @status.on "reconnected", (reason)=>
       if reason is "internetDownForLongTime"
         @resetAll()
         @populateActivity()
@@ -124,7 +124,16 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
-  populateActivity:(options = {})->
+  refresh:->
+    @populateActivity {},\
+      KD.utils.getTimedOutCallback (err, items)->
+        log 'refresh'
+      , =>
+        @isLoading = no
+        @status.disconnect()
+      , 2000
+
+  populateActivity:(options = {}, callback)->
 
     return if @isLoading
     @isLoading = yes
@@ -138,6 +147,8 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
+          callback? err, teasers
+
           @isLoading = no
           @listController.hideLazyLoader()
           if err or teasers.length is 0
@@ -149,6 +160,8 @@ class ActivityAppController extends AppController
 
       else
         @fetchCachedActivity options, (err, cache)=>
+          callback? err, cache
+
           @isLoading = no
           if err or cache.length is 0
             warn err
@@ -222,7 +235,7 @@ class ActivityAppController extends AppController
 
           @activitiesArrived activities.reverse()
           @isLoading = no
-      , ->
+      , =>
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
