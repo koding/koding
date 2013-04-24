@@ -102,7 +102,7 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}", ProxyPostHandler).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", ProxyDomainPostHandler).Methods("POST")
 
-	rout.HandleFunc("/proxies/{uuid}/{name}/{key}", ProxyDeleteHandler).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/{servicename}/{key}", ProxyDeleteHandler).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -137,7 +137,7 @@ func ProxiesDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	buildSendProxyCmd("deleteProxy", "", "", "", "", uuid)
+	buildSendProxyCmd("deleteProxy", "", "", "", "", "", uuid)
 }
 
 // Register a proxy
@@ -165,7 +165,7 @@ func ProxiesPostHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	buildSendProxyCmd("addProxy", "", "", "", "", uuid)
+	buildSendProxyCmd("addProxy", "", "", "", "", "", uuid)
 }
 
 // Delete key for the given name and key
@@ -174,19 +174,21 @@ func ProxyDeleteHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	key := vars["key"]
-	name := vars["key"]
+	servicename := vars["servicename"]
 
-	buildSendProxyCmd("deleteKey", name, key, "", "", uuid)
+	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", uuid)
 }
 
 // Add domain to the domainroutingtable
-// example: http POST "localhost:8000/proxies/mahlika.local-915" domain=blog.arsln.org host=server-15.x.koding.com
+// example: http POST "localhost:8000/proxies/mahlika.local-915/domains/blog.arsln.org" name=server key=15
 func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	domain := vars["domain"]
 
 	var msg ProxyPostMessage
+	var name string
+	var key string
 	var host string
 
 	body, _ := ioutil.ReadAll(req.Body)
@@ -197,11 +199,22 @@ func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
 		log.Print("bad json incoming msg: ", err)
 	}
 
+	if msg.Name != nil {
+		name = *msg.Name
+	} else {
+		log.Println("aborting. no 'name' available")
+	}
+
+	if msg.Key != nil {
+		key = *msg.Key
+	} else {
+		log.Println("aborting. no 'key' available")
+		return
+	}
+
+	// this is optional feature
 	if msg.Host != nil {
 		host = *msg.Host
-	} else {
-		log.Println("aborting. no 'host' available")
-		return
 	}
 
 	// for default proxy assume that the main proxy will handle this. until
@@ -210,7 +223,7 @@ func ProxyDomainPostHandler(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addDomain", domain, "", host, "FromKontrolAPI", uuid)
+	buildSendProxyCmd("addDomain", domain, name, key, host, "FromKontrolAPI", uuid)
 
 }
 
@@ -260,7 +273,6 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 
 	// this is optional
 	if msg.Hostdata != nil {
-		log.Println(*msg.Hostdata)
 		hostdata = *msg.Hostdata
 	}
 
@@ -274,7 +286,7 @@ func ProxyPostHandler(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addKey", name, key, host, hostdata, uuid)
+	buildSendProxyCmd("addKey", "", name, key, host, hostdata, uuid)
 }
 
 // Get all services registered to a proxy machine
@@ -488,8 +500,16 @@ func buildSendCmd(action, host, uuid string) {
 }
 
 // Creates and send request message for proxies. Sends to kontrold.
-func buildSendProxyCmd(action, name, key, host, hostdata, uuid string) {
-	cmd := proxyconfig.ProxyMessage{action, name, key, host, hostdata, uuid}
+func buildSendProxyCmd(action, domainname, servicename, key, host, hostdata, uuid string) {
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = action
+	cmd.Uuid = uuid
+	cmd.Key = key
+	cmd.ServiceName = servicename
+	cmd.DomainName = domainname
+	cmd.Host = host
+	cmd.HostData = hostdata
+
 	log.Println("Sending cmd to kontrold:", cmd)
 
 	// Wrap message for dynamic unmarshaling at endpoint

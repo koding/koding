@@ -70,14 +70,14 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
 		log.Println("got 'addKey' json request")
-		err := proxyConfig.AddKey(msg.Name, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		err := proxyConfig.AddKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addDomain":
 		log.Println("got 'addDomain' json request")
-		err := proxyConfig.AddDomain(msg.Name, msg.Host, msg.Uuid)
+		err := proxyConfig.AddDomain(msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
@@ -90,7 +90,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		}
 	case "deleteKey":
 		log.Println("got 'deleteKey' json request")
-		err := proxyConfig.DeleteKey(msg.Name, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		err := proxyConfig.DeleteKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}

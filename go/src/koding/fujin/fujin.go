@@ -114,7 +114,7 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func parseKey(host string) (string, string, error) {
+func lookupKey(host string) (string, string, error) {
 	counts := strings.Count(host, "-")
 	if counts == 0 {
 		return "", "", fmt.Errorf("no key found for host '%s'", host)
@@ -256,28 +256,15 @@ func singleJoiningSlash(a, b string) string {
 	return a + b
 }
 
-func lookupDomain(host string) (*url.URL, error) {
-	log.Printf("lookup domain table for host '%s'", host)
-	var target *url.URL
-	var err error
+func lookupDomain(domainname string) (string, string, error) {
+	log.Printf("lookup domain table for host '%s'", domainname)
 
-	targetHost, ok := proxy.DomainRoutingTable.Domain[host]
+	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		target, err = url.Parse("http://proxy.in.koding.com")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return target, fmt.Errorf("no remote host found for host '%s'", host)
+		return "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	target, err = url.Parse("http://" + targetHost)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return target, nil
-
+	return domain.Name, domain.Key, nil
 }
 
 // NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
@@ -290,16 +277,15 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 		var deaths int
 		var target *url.URL
 
-		name, key, err := parseKey(req.Host)
+		name, key, err := lookupKey(req.Host)
 		if err != nil {
 			log.Println(err)
-			target, err = lookupDomain(req.Host)
+			name, key, err = lookupDomain(req.Host)
 			if err != nil {
 				log.Println(err)
 			}
-		} else {
-			target = targetUrl(deaths, name, key)
 		}
+		target = targetUrl(deaths, name, key)
 
 		log.Printf("proxy to host '%s' ...", target.Host)
 		targetQuery := target.RawQuery
@@ -404,7 +390,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		name, _ := os.Hostname()
 		log.Println("LOCAL HOSTNAME:", name)
-		log.Println("REMOTE HOSTANME: ", outreq.URL.Host)
+		log.Println("REMOTE HOSTANME:", outreq.URL.Host)
 		if name == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return

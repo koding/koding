@@ -246,6 +246,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		key := strconv.Itoa(worker.Version)
 		cmd := proxyconfig.ProxyMessage{
 			"addKey",
+			"",
 			worker.Name,
 			key,
 			worker.Hostname + ":" + port,
