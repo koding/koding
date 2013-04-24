@@ -401,7 +401,7 @@ class KDView extends KDObject
       if shouldPrepend
       then @prepend subView, selector
       else @append subView, selector
-    else log "lazy view", subView
+    # else log "lazy view", subView
 
     subView.on "ViewResized", => subView.parentDidResize()
 

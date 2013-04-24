@@ -1,5 +1,7 @@
 class ActivityAppView extends KDScrollView
 
+  headerHeight = 0
+
   constructor:(options = {}, data)->
 
     options.cssClass = "content-page activity"
@@ -20,9 +22,14 @@ class ActivityAppView extends KDScrollView
 
     mainController.on "AccountChanged", @bound "decorate"
     mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
-    @on 'scroll', @bound "setFixed"
+    @on 'scroll', @utils.throttle @bound("setFixed"), 50
 
     @decorate()
+    @setLazyLoader(.99)
+
+    {scrollView} = @feedWrapper.controller
+    @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
+    @header.on "viewAppended", -> headerHeight = @getHeight()
 
   decorate:->
     if KD.isLoggedIn()
@@ -36,7 +43,7 @@ class ActivityAppView extends KDScrollView
     @notifyResizeListeners()
 
   setFixed:->
-    if @getScrollTop() > @header.getHeight()
+    if @getScrollTop() > headerHeight
       @setClass "fixed"
     else
       @unsetClass "fixed"
@@ -52,6 +59,7 @@ class ActivityAppView extends KDScrollView
 
   _windowDidResize:->
 
+    headerHeight = @header.getHeight()
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
   pistachio:->
