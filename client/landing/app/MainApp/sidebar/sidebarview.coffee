@@ -161,7 +161,7 @@ class Sidebar extends JView
       $fp.css "width", newFpWidth
 
     KD.utils.wait 8000, =>
-      @$('#finder-bottom-controls').addClass 'go-down'
+      # @$('#finder-bottom-controls').addClass 'go-down'
       @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
     # exception - Sinan, Jan 2013
