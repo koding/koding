@@ -7,11 +7,12 @@ import (
 	"koding/tools/config"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 var (
-	BASE_URL         = config.Current.Neo4j.Host + ":" + fmt.Sprintf("%d", config.Current.Neo4j.Port)
+	BASE_URL         = config.Current.Neo4j.Host + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 	INDEX_NODE_PATH  = "/db/data/index/node/koding"
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
