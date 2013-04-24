@@ -145,38 +145,14 @@ func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 		return target
 	}
 
-	err = checkServer(host)
+	target, err = url.Parse("http://" + host)
 	if err != nil {
-		log.Println(err)
-		log.Printf("Server is death: %s. Trying to get another one", host)
-		numberOfDeaths++
-
-		target = targetUrl(numberOfDeaths, name, key)
-	} else {
-		target, err = url.Parse("http://" + host)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Printf("got / request. using proxy to %s (key: %s)", target.Host, key)
+		log.Fatal(err)
 	}
+
+	log.Printf("got / request. using proxy to %s (key: %s)", target.Host, key)
+
 	return target
-}
-
-// Implement with fastProxy ...
-func checkServer(host string) error {
-	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
-	if err != nil {
-		return err
-	}
-
-	remoteConn, err := net.DialTCP("tcp", nil, remoteAddr)
-	if err != nil {
-		return err
-	}
-
-	remoteConn.Close()
-	return nil
 }
 
 func targetHost(name, key string) string {
@@ -209,6 +185,13 @@ func targetHost(name, key string) string {
 	return hostname
 }
 
+/*************************************************
+*
+*  util functions
+*
+*  - arslan
+*************************************************/
+
 func buildProxyCmd(action, uuid string) []byte {
 	var req proxyconfig.ProxyMessage
 	req.Action = action
@@ -220,6 +203,23 @@ func buildProxyCmd(action, uuid string) []byte {
 	}
 
 	return data
+}
+
+// not used currently, find a more reliable way
+func checkServer(host string) error {
+	log.Println("Checking server")
+	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
+	if err != nil {
+		return err
+	}
+
+	remoteConn, err := net.DialTCP("tcp", nil, remoteAddr)
+	if err != nil {
+		return err
+	}
+
+	remoteConn.Close()
+	return nil
 }
 
 /*************************************************
