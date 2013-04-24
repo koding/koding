@@ -174,6 +174,7 @@ class KodingRouter extends KDRouter
       '/:name?/Develop'                 : createSectionHandler 'StartTab'
       '/:name?/Apps'                    : createSectionHandler 'Apps'
       '/:name?/Account'                 : createSectionHandler 'Account'
+      '/:name?/Demos'                   : createSectionHandler 'Demos'
 
       # group dashboard
       '/:name?/Dashboard'               : (routeInfo, state, route)->
