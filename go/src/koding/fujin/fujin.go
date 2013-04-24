@@ -372,7 +372,6 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 		}
 
 		target := targetUrl(deaths, name, key)
-
 		targetQuery := target.RawQuery
 
 		req.URL.Scheme = target.Scheme
@@ -410,10 +409,10 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	localHost, err := localIP()
-	log.Println("LOCAL HOST", localHost.String())
+	name, err := os.Hostname()
 	log.Println("REMOTE HOST", req.Host)
-	if localHost.String() == req.Host {
+	log.Println("LOCAL HOSTNAME", name)
+	if name == req.Host {
 		io.WriteString(rw, "hello, world!\n")
 		return
 	}
