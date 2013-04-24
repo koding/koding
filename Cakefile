@@ -99,13 +99,14 @@ task 'webserver', ({configFile}) ->
 
   runServer = (config, port, index) ->
     processes.fork
-      name                   : "server-#{index}"
-      cmd                    : __dirname + "/server/index -c #{config} -p #{port}"
-      restart                : yes
-      restartInterval        : 100
-      kontrolEnabled         : yes
-      kontrolRegisterToProxy : yes
-      kontrolPort            : port
+      name              : "server-#{index}"
+      cmd               : __dirname + "/server/index -c #{config} -p #{port}"
+      restart           : yes
+      restartInterval   : 100
+      kontrol           :
+        enabled         : yes
+        registerToProxy : yes
+        port            : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -138,13 +139,14 @@ task 'socialWorker', ({configFile}) ->
 
   for i in [1..social.numberOfWorkers]
     processes.fork
-      name  : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd   : __dirname + "/workers/social/index -c #{configFile}"
-      restart : yes
+      name            : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
+      cmd             : __dirname + "/workers/social/index -c #{configFile}"
+      restart         : yes
       restartInterval : 100
-      kontrolEnabled  : yes
-      kontrolForceStart : yes
-      kontrolNodeProcess : yes
+      kontrol         :
+        enabled       : yes
+        forceStart    : yes
+        nodeProcess   : yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -178,9 +180,10 @@ task 'authWorker',({configFile}) ->
       cmd   		  : __dirname+"/workers/auth/index -c #{configFile}"
       restart 		  : yes
       restartInterval : 1000
-      kontrolEnabled  : yes
-      kontrolForceStart : yes
-      kontrolNodeProcess : yes
+      kontrol         :
+        enabled       : yes
+        forceStart    : yes
+        nodeProcess   : yes
       verbose         : yes
 
   if config.watch is yes
@@ -197,13 +200,14 @@ task 'authWorker',({configFile}) ->
 task 'guestCleanup',({configFile})->
 
   processes.fork
-    name  : 'guestCleanup'
-    cmd   : "./workers/guestcleanup/index -c #{configFile}"
-    restart: yes
+    name            : 'guestCleanup'
+    cmd             : "./workers/guestcleanup/index -c #{configFile}"
+    restart         : yes
     restartInterval : 100
-    kontrolEnabled  : yes
-    kontrolForceStart 		: yes
-    kontrolNodeProcess : yes
+    kontrol         :
+      enabled       : yes
+      forceStart    : yes
+      nodeProcess   : yes
     verbose         : yes
 
 task 'emailWorker',({configFile})->
@@ -213,8 +217,9 @@ task 'emailWorker',({configFile})->
     cmd             : "./workers/emailnotifications/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    kontrolEnabled  : yes
-    kontrolNodeProcess : yes
+    kontrol         :
+      enabled       : yes
+      nodeProcess   : yes
     verbose         : yes
 
   watcher = new Watcher
@@ -246,16 +251,17 @@ task 'goBroker',(options)->
   {configFile} = options
 
   processes.spawn
-    name                   : 'goBroker'
-    cmd                    : "./go/bin/broker -c #{configFile}" + addFlags(options)
-    restart                : yes
-    restartInterval        : 100
-    stdout                 : process.stdout
-    stderr                 : process.stderr
-    kontrolEnabled         : yes
-    kontrolRegisterToProxy : yes
-    kontrolPort            : broker.port
-    verbose                : yes
+    name              : 'broker'
+    cmd               : "./go/bin/broker -c #{configFile}" + addFlags(options)
+    restart           : yes
+    restartInterval   : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : yes
+      registerToProxy : yes
+      port            : broker.port
+    verbose           : yes
 
   sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
 
@@ -282,26 +288,28 @@ task 'proxy',({configFile})->
 task 'libratoWorker',({configFile})->
 
   processes.fork
-    name  : 'libratoWorker'
-    cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
-    restart: yes
-    restartInterval: 100
-    kontrolEnabled  : yes
-    kontrolForceStart : yes
-    verbose: yes
+    name            : 'librato'
+    cmd             : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
+    restart         : yes
+    restartInterval : 100
+    kontrol         :
+      enabled       : yes
+      forceStart    : yes
+    verbose         : yes
 
 task 'cacheWorker',({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
 
   processes.fork
-    name            : 'cacheWorker'
+    name            : 'cache'
     cmd             : "./workers/cacher/index -c #{configFile}"
     restart         : yes
     restartInterval : 100
-    kontrolEnabled  : yes
-    kontrolForceStart : yes
-    kontrolNodeProcess : yes
+    kontrol         :
+      enabled       : yes
+      forceStart    : yes
+      nodeProcess   : yes
 
   if cacheWorker.watch is yes
     watcher = new Watcher
