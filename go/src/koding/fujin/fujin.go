@@ -116,7 +116,7 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 func parseKey(host string) (string, string) {
 	counts := strings.Count(host, "-")
 	if counts == 0 {
-		return "homepage", ""
+		return "wrongService", "wrongKey"
 	}
 
 	partsFirst := strings.Split(host, ".")
@@ -162,7 +162,7 @@ func targetHost(name, key string) string {
 
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
-		hostname = "localhost:8000"
+		hostname = "proxy.in.koding.com"
 		log.Println("no keys are added, using default url ", hostname)
 	} else {
 		// use round-robin algorithm for each hostname
@@ -276,11 +276,6 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 		log.Println("HOST:", req.RequestURI, req.Host)
 		var deaths int
 		name, key := parseKey(req.Host)
-		if name == "homepage" {
-			log.Println("someone hit the main page!")
-			return
-		}
-
 		target := targetUrl(deaths, name, key)
 		targetQuery := target.RawQuery
 
