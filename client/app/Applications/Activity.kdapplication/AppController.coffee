@@ -97,7 +97,7 @@ class ActivityAppController extends AppController
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
-      @listController.newActivityArrived activity
+      @listController?.newActivityArrived activity
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
