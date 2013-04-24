@@ -110,7 +110,7 @@ func main() {
 
 	log.Println("kontrol-api started")
 	http.Handle("/", rout)
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":80", nil)
 }
 
 // Get all registered proxies
