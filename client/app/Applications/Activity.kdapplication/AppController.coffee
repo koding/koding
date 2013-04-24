@@ -124,11 +124,8 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
-  # Refreshes activity feed.
-  #
-  # If no response is returned in 5 secs, we assume user has
-  # been disconnected so long, his/her channel subscription is
-  # dead, so we reconnect.
+  # Refreshes activity feed, used when user has been disconnected
+  # for so long, backend connection is long gone.
   refresh:->
     @populateActivity {},\
       KD.utils.getTimedOutCallback (err, items)->
@@ -206,7 +203,8 @@ class ActivityAppController extends AppController
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
-  # Fetches activities that occur when user is disconnected.
+  # Fetches activities that occured after the first entry in user feed,
+  # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
 
     return if @isLoading
