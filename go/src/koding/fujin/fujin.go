@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/streadway/amqp"
 	"io"
 	"koding/fujin/proxyconfig"
@@ -113,10 +114,10 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func parseKey(host string) (string, string) {
+func parseKey(host string) (string, string, error) {
 	counts := strings.Count(host, "-")
 	if counts == 0 {
-		return "wrongService", "wrongKey"
+		return "", "", fmt.Errorf("no key found for host '%s'", host)
 	}
 
 	partsFirst := strings.Split(host, ".")
@@ -126,7 +127,7 @@ func parseKey(host string) (string, string) {
 	name := partsSecond[0]
 	key := partsSecond[1]
 
-	return name, key
+	return name, key, nil
 }
 
 func targetUrl(numberOfDeaths int, name, key string) *url.URL {
@@ -255,6 +256,30 @@ func singleJoiningSlash(a, b string) string {
 	return a + b
 }
 
+func lookupDomain(host string) (*url.URL, error) {
+	log.Printf("lookup domain table for host '%s'", host)
+	var target *url.URL
+	var err error
+
+	targetHost, ok := proxy.DomainRoutingTable.Domain[host]
+	if !ok {
+		target, err = url.Parse("http://proxy.in.koding.com")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return target, fmt.Errorf("no remote host found for host '%s'", host)
+	}
+
+	target, err = url.Parse("http://" + targetHost)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return target, nil
+
+}
+
 // NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
 // URLs to the scheme, host, and base path provided in target. If the
 // target's path is "/base" and the incoming request was for "/dir",
@@ -263,10 +288,21 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 	director := func(req *http.Request) {
 		log.Println("HOST:", req.RequestURI, req.Host)
 		var deaths int
-		name, key := parseKey(req.Host)
-		target := targetUrl(deaths, name, key)
-		targetQuery := target.RawQuery
+		var target *url.URL
 
+		name, key, err := parseKey(req.Host)
+		if err != nil {
+			log.Println(err)
+			target, err = lookupDomain(req.Host)
+			if err != nil {
+				log.Println(err)
+			}
+		} else {
+			target = targetUrl(deaths, name, key)
+		}
+
+		log.Printf("proxy to host '%s' ...", target.Host)
+		targetQuery := target.RawQuery
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
@@ -367,8 +403,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		outreq.Close = false
 
 		name, _ := os.Hostname()
-		log.Println("LOCAL HOSTNAME", name)
-		log.Println("REMOTE HOSTANME", outreq.URL)
+		log.Println("LOCAL HOSTNAME:", name)
+		log.Println("REMOTE HOSTANME: ", outreq.URL.Host)
 		if name == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
