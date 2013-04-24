@@ -74,7 +74,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
               <div class="kdview screenshots">
-                <section class="kdview kdscrollview">
+                <section id="home-group-body" class="kdview kdscrollview">
                   <div class="group-desc">#{body}</div>
                 </section>
                 <div class="home-links">
@@ -82,7 +82,9 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
                 </div>
               </div>
               <div class="kdview readme">
-                #{content}
+                <figure class='has-markdown'>
+                  #{content}
+                </figure>
               </div>
             </div>
           </div>
