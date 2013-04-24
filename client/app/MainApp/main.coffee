@@ -100,7 +100,7 @@ do ->
     log 'kd remote re-connected'
 
     if showModalNotification
-      destroyModal yes, modalContent
+      destroyModal yes, showModalNotification
     else
       notifySilentReconnection()
 
