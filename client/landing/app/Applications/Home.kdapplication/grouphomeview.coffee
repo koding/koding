@@ -18,6 +18,7 @@ class GroupHomeView extends KDView
         [group] = models
         @setData group
         @body = new KDScrollView
+          domId     : 'home-group-body'
           tagName   : 'section'
           pistachio : """<div class='group-desc'>{{ #(body)}}</div>"""
         , group

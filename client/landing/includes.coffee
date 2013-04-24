@@ -321,7 +321,8 @@ module.exports = [
   # "app/MainApp/bottompanels/chat/chatuseritem.coffee",
   # "app/MainApp/bottompanels/terminal/terminalpanel.coffee",
 
-  "app/MainApp/maincontroller/mainview.coffee",
+  "app/MainApp/maincontroller/mainviews/mainview.coffee",
+  "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
   "app/MainApp/localstorage.coffee",
