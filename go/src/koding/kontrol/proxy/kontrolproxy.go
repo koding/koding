@@ -71,7 +71,10 @@ func main() {
 	}()
 
 	log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
-	http.ListenAndServe(":"+config.HttpPort, nil)
+	err = http.ListenAndServe(":"+config.HttpPort, nil)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
