@@ -2,7 +2,7 @@ class MainChatPanel extends JView
 
   constructor:->
     super
-      cssClass : 'main-chat-panel'
+      cssClass : 'main-chat-panel visible'
 
     @registerSingleton "chatPanel", @, yes
 
