@@ -41,6 +41,8 @@ class ActivityListHeader extends JView
 
     else
       @lowQualitySwitch = new KDCustomHTMLView
+      @refreshLink      = new KDCustomHTMLView
+        tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
       state = @appStorage.getValue('liveUpdates') or off
