@@ -207,8 +207,10 @@ do ->
         # we won't know that disconnection has happened.
         if lastPong && (Date.now() - lastPong) > 30*1000
           log "lastPong too long ago, possible computer sleep; disconnecting"
-          status = KD.singletons.status
-          status.disconnect({reason:"internetDownForLongTime"})
+          status = KD.getSingleton "status"
+          status.disconnect
+            reason:"internetDownForLongTime"
+            showModal:false
 
         clearTimeout failureCallback
         failureCallback = null
