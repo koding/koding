@@ -1,17 +1,10 @@
 module.exports = [
   # --- Libraries ---
-  # "libs/pusher.min.js",
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
-  # "libs/highlight.pack.js",
-  # "libs/jquery-1.7.1.js",
-  # "libs/jquery-1.7.1.min.js",
-  # "libs/jquery-ui-1.8.16.custom.min.js",
-  # "libs/three.js" ==> added for testplay, please dont delete,
-  # "libs/jquery-emit.js",
 
   # --- Framework ---
   "libs/sockjs-0.3-patched.js",
@@ -179,7 +172,6 @@ module.exports = [
   "app/CommonViews/CommonListHeader.coffee",
   "app/CommonViews/CommonInnerNavigation.coffee",
   "app/CommonViews/headers.coffee",
-  # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
@@ -227,7 +219,6 @@ module.exports = [
   "app/CommonViews/fatih/fatihprefpane.coffee",
   "app/CommonViews/fatih/fatih.coffee",
 
-  # "app/MainApp/foreign_auth.coffee",
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
@@ -348,43 +339,18 @@ module.exports = [
   # minifying jquery breaks the code.
 
 
-#  "libs/jquery-hashchange.js",
   "libs/jquery-timeago.js",
   "libs/date.format.js",
   "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
-  # "libs/keypress.js",
   "libs/mousetrap.js",
-  # "libs/jquery.wmd.js",
-  # "libs/jquery.fieldselection.js",
-  # "libs/jquery.multiselect.min.js",
-  # "libs/log4js.js",
-  # "libs/jsonh.js",
   "libs/md5-min.js",
-  # "libs/frogaloop.min.js",
-
-  # "libs/bootstrap-twipsy.js",
-  # "libs/jquery.tipsy.js",
   "libs/async.js",
   "libs/jquery.mousewheel.js",
-  # "libs/mwheelIntent.js",
-  # "libs/underscore.js",
   "libs/inflector.js",
   "libs/canvas-loader.js",
-
   "libs/marked.js",
-  # "libs/google-code-prettify/prettify.js",
-  # "libs/less.min.js",
-
-  # "libs/xml2json.js",
-  # "libs/ZeroClipboard.js",
-
   "app/Helpers/jspath.coffee",
-
-  # "app/Helpers/Command.coffee",
-  # "app/Helpers/FileEmitter.coffee",
-  # "app/Helpers/polyfills.coffee",
-  # "app/Helpers/CommandParser.coffee",
 
   # --- Applications ---
   "app/MainApp/channels/kitechannel.coffee",
@@ -692,7 +658,6 @@ module.exports = [
   # --- Styles ---
   "css/style.css",
   "css/highlight-styles/sunburst.css",
-  # "css/tipsy.css",
 
   "Framework/themes/default/kdfn.styl",
   "stylus/appfn.styl",
@@ -707,7 +672,6 @@ module.exports = [
   "Framework/themes/default/kd.modal.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
-  # "stylus/kd.tiptip.styl" => discarded,
 
   "stylus/app.styl",
   "stylus/app.landing.styl",
