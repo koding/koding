@@ -371,6 +371,6 @@ class Sidebar extends JView
         title    : "Chat",
         loggedIn : yes,
         callback : ->
-          @getSingleton('mainController').emit "ShowChatPanel"
+          @getSingleton('mainController').emit "ToggleChatPanel"
       }
     ]
