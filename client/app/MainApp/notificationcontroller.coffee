@@ -30,7 +30,9 @@ class NotificationController extends KDObject
 
     @notificationChannel.on 'message', (notification)=>
       @emit "NotificationHasArrived", notification
-      @prepareNotification notification  if notification.contents
+      if notification.contents
+        @emit notification.event, notification.contents
+        @prepareNotification notification
 
   prepareNotification: (notification)->
 
@@ -48,6 +50,8 @@ class NotificationController extends KDObject
 
     isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
     actor  = replier or liker or sender
+
+    return  unless actor
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
 

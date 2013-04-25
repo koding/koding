@@ -13,7 +13,7 @@ module.exports = class JChatConversation extends Module
   @set
     sharedEvents    :
       static        : []
-      instance      : ['updateInstance']
+      instance      : ['updateInstance','notification']
     sharedMethods   :
       static        : ['create']
       instance      : ['invite']
@@ -58,7 +58,14 @@ module.exports = class JChatConversation extends Module
 
     return callback new KodingError "Access denied!" unless delegateCanInvite
 
-    @update {$addToSet: invitees: invitee}, (err)-> console.error err  if err?
+    @update {$addToSet: invitees: invitee}, (err)=>
+      return console.error err  if err?
+
+      @emit 'notification', {
+        event       : 'chatRequest'
+        routingKey  : invitee
+        contents    : { invitee, @publicName }
+      }
 
 
 

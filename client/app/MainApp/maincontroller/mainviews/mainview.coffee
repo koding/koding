@@ -9,6 +9,7 @@ class MainView extends KDView
     @createMainTabView()
     @setStickyNotification()
     @createSideBar()
+    @createChatPanel()
     @listenWindowResize()
 
   putAbout:->
@@ -119,6 +120,9 @@ class MainView extends KDView
     @sidebar = new Sidebar domId : "sidebar", delegate : @
     @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
+
+  createChatPanel:->
+    @addSubView @chatPanel = new MainChatPanel
 
   getMainSettingsMenuButton:->
     new KDButtonView

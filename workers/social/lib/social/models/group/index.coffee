@@ -362,6 +362,11 @@ module.exports = class JGroup extends Module
       else
         @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
         @emit 'broadcast', "#{secretChannelName}#{event}", message
+        @emit 'notification', "#{groupSlug}#{event}", {
+          routingKey  : groupSlug
+          contents    : message
+          event       : 'feed-new'
+        }
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 
