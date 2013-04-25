@@ -1,4 +1,4 @@
-class ChatContactListItem extends KDListItemView
+class ChatConversationListItem extends KDListItemView
 
   constructor:(options = {},data)->
 
@@ -6,7 +6,7 @@ class ChatContactListItem extends KDListItemView
     options.cssClass  = "person"
     super options, data
 
-    @title = new ChatContactListItemTitle null, data
+    @title = new ChatConversationListItemTitle null, data
     @title.on 'click', @bound 'toggleConversation'
 
     @setDragHandlers()

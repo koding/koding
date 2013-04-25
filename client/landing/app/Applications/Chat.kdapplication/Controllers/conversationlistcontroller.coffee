@@ -1,4 +1,4 @@
-class ChatContactListController extends CommonChatController
+class ChatConversationListController extends CommonChatController
 
   constructor:->
     super
