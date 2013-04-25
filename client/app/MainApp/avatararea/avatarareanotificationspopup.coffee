@@ -32,9 +32,11 @@ class AvatarPopupNotifications extends AvatarPopup
         @hide()
 
   hide:->
-    KD.whoami()?.glanceActivities =>
-      for item in @listController.itemsOrdered
-        item.unsetClass 'unread'
-      @noNotification.show()
-      @listController.emit 'NotificationCountDidChange', 0
+    if KD.isLoggedIn()
+      KD.whoami().glanceActivities =>
+        for item in @listController.itemsOrdered
+          item.unsetClass 'unread'
+        @noNotification.show()
+        @listController.emit 'NotificationCountDidChange', 0
+
     super
