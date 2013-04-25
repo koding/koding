@@ -90,19 +90,15 @@ func LowerdirFile(p string) string {
 func (vm *VM) Prepare(users []User, reinitialize bool) {
 	vm.Unprepare()
 
+	// map rbd image to block device
+	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
+		panic(err)
+	}
+
 	// write LXC files
 	prepareDir(vm.File(""), 0)
 	vm.generateFile(vm.File("config"), "config", 0, false)
 	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
-
-	// map rbd image to block device
-	vm.mapRBD()
-
-	// mount block device to overlay
-	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
-		panic(commandError("mount rbd failed.", err, out))
-	}
 
 	// remove all except /home on reinitialize
 	if reinitialize {
@@ -212,11 +208,8 @@ func (vm *VM) Unprepare() error {
 	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount overlay failed.", err, out)
 	}
-	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount rbd failed.", err, out)
-	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("rbd unmap failed.", err, out)
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil && firstError == nil {
+		firstError = err
 	}
 
 	// remove VM directory
@@ -224,26 +217,25 @@ func (vm *VM) Unprepare() error {
 	os.Remove(vm.File("fstab"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.File("rootfs.hold"))
-	os.Remove(vm.OverlayFile("/"))
 	os.Remove(vm.File(""))
 
 	return firstError
 }
 
-func (vm *VM) mapRBD() {
+func (vm *VM) MountRBD(mountDir string) error {
 	makeFileSystem := false
 	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).Run(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			panic(err)
+			return err
 		}
 
 		// create disk and try to map again
 		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd create failed.", err, out))
+			return commandError("rbd create failed.", err, out)
 		}
 		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd map failed.", err, out))
+			return commandError("rbd map failed.", err, out)
 		}
 
 		makeFileSystem = true
@@ -256,16 +248,38 @@ func (vm *VM) mapRBD() {
 			break
 		}
 		if !os.IsNotExist(err) {
-			panic(err)
+			return err
 		}
 		time.Sleep(time.Second / 2)
 	}
 
 	if makeFileSystem {
 		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
-			panic(commandError("mkfs.ext4 failed.", err, out))
+			return commandError("mkfs.ext4 failed.", err, out)
 		}
 	}
+
+	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
+		return err
+	}
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), mountDir).CombinedOutput(); err != nil {
+		os.Remove(mountDir)
+		return commandError("mount rbd failed.", err, out)
+	}
+
+	return nil
+}
+
+func (vm *VM) UnmountRBD(mountDir string) error {
+	var firstError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
+	}
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("rbd unmap failed.", err, out)
+	}
+	os.Remove(mountDir)
+	return firstError
 }
 
 const FIFREEZE = 0xC0045877
@@ -298,6 +312,26 @@ func (vm *VM) CreateConsistentSnapshot(snapshotName string) error {
 	defer vm.ThawFileSystem()
 	if out, err := exec.Command("rbd", "snap", "create", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Creating snapshot failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) DeleteSnapshot(snapshotName string) error {
+	if out, err := exec.Command("rbd", "snap", "unprotect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Unprotecting snapshot failed.", err, out)
+	}
+	if out, err := exec.Command("rbd", "snap", "rm", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Removing snapshot failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) CreateImageFromSnapshot(snapshotName, imageName string) error {
+	if out, err := exec.Command("rbd", "snap", "protect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Protecting snapshot failed.", err, out)
+	}
+	if out, err := exec.Command("rbd", "clone", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName, "--dest-pool", "vms", "--dest", imageName).CombinedOutput(); err != nil {
+		return commandError("Cloning snapshot failed.", err, out)
 	}
 	return nil
 }

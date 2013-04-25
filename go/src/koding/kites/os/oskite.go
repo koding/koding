@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
@@ -13,6 +14,8 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
+	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -105,6 +108,59 @@ func main() {
 		info := infos[vm.Id]
 		info.State = vm.GetState()
 		return info, nil
+	})
+
+	registerVmMethod(k, "vm.createFilteredSnapshot", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		userEntry := vm.GetUserEntry(user)
+		if userEntry == nil || !userEntry.Sudo {
+			return nil, errors.New("Permission denied.")
+		}
+
+		var params struct {
+			Whitelist []string
+		}
+		if args.Unmarshal(&params) != nil || len(params.Whitelist) == 0 {
+			return nil, &kite.ArgumentError{Expected: "{ whitelist: [string array] }"}
+		}
+
+		id := bson.NewObjectId()
+		clone := virt.VM{
+			Id:    id,
+			Name:  id.Hex(),
+			Users: vm.Users,
+		}
+
+		if err := vm.CreateConsistentSnapshot(id.Hex()); err != nil {
+			return nil, err
+		}
+		if err := vm.CreateImageFromSnapshot(id.Hex(), clone.String()); err != nil {
+			return nil, err
+		}
+
+		mountDir := os.TempDir() + "/" + id.Hex()
+		err := clone.MountRBD(mountDir)
+		defer clone.UnmountRBD(mountDir) // always try to clean up
+		if err != nil {
+			return nil, err
+		}
+
+		sort.Strings(params.Whitelist)
+		for _, dirname := range []string{"/etc", "/home", "/var"} {
+			entries, err := ioutil.ReadDir(mountDir + dirname)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, entry := range entries {
+				if sort.SearchStrings(params.Whitelist, dirname+"/"+entry.Name()) == len(params.Whitelist) {
+					if err := os.RemoveAll(mountDir + dirname + "/" + entry.Name()); err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+
+		return true, nil
 	})
 
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
