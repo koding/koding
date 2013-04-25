@@ -1,7 +1,6 @@
 class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
-    @landingPageLoading = KD.config.groupEntryPoint?
 
     @openRoutes = {}
     @openRoutesById = {}
@@ -12,7 +11,6 @@ class KodingRouter extends KDRouter
       @ready = yes
       @utils.defer =>
         @emit 'ready'
-        @landingPageLoading = no
     super getRoutes.call this
 
     @on 'AlreadyHere', ->
@@ -51,10 +49,10 @@ class KodingRouter extends KDRouter
 
   openSection:(app, group, query)->
     return @once 'ready', @openSection.bind this, arguments...  unless @ready
-    @getSingleton('groupsController').changeGroup group, (err)->
+    @getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
-        appManager = KD.getSingleton("appManager")
+        appManager = KD.getSingleton "appManager"
         appManager.open app
         appManager.tell app, 'handleQuery', query
 
@@ -70,7 +68,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> '/Activity'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -145,8 +143,8 @@ class KodingRouter extends KDRouter
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
-    createSectionHandler = (sec)->
-      ({params:{name}, query})-> @openSection sec, name, query
+    createSectionHandler = (sec)=>
+      ({params:{name}, query})=> @openSection sec, name, query
 
     createContentHandler = @bound 'createContentDisplayHandler'
 
@@ -169,7 +167,6 @@ class KodingRouter extends KDRouter
 
       # section
       # TODO: nested groups are disabled.
-      '/:name?/Home'                    : createSectionHandler 'Home'
       '/:name?/Groups'                  : createSectionHandler 'Groups'
       '/:name?/Activity'                : createSectionHandler 'Activity'
       '/:name?/Members'                 : createSectionHandler 'Members'
@@ -271,23 +268,22 @@ class KodingRouter extends KDRouter
 
       # top level names
       '/:name':do->
-        open =(routeInfo, model, status_404)->
+        open =(routeInfo, model)->
           switch model?.bongo_?.constructorName
-            when 'JAccount' then content.Members routeInfo, model
-            when 'JGroup'   then content.Groups  routeInfo, model
-            else status_404()
+            when 'JAccount'
+              (createContentHandler 'Members') routeInfo, model
+            when 'JGroup'
+              (createSectionHandler 'Activity') routeInfo, model
+            else
+              @handleNotFound routeInfo.params.name
 
         nameHandler =(routeInfo, state, route)->
-          return  if @landingPageLoading
-
-          {params} = routeInfo
-          status_404 = @handleNotFound.bind this, params.name
 
           if state?
-            open routeInfo, state, status_404
+            open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable params.name, (err, [model], name)->
-              open routeInfo, model, status_404
+            KD.remote.cacheable routeInfo.params.name, (err, [model], name)=>
+              open.call this, routeInfo, model
 
     routes

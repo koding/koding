@@ -6,15 +6,15 @@ class ActivityAppController extends AppController
     hiddenHandle : yes
 
   activityTypes = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-      'CBlogPostActivity'
-    ]
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+    'CBlogPostActivity'
+  ]
 
   @clearQuotes = clearQuotes = (activities)->
 
@@ -43,7 +43,8 @@ class ActivityAppController extends AppController
     activityController.on   "ActivityListControllerReady", @attachEvents.bind @
 
     # Do we really need this? ~ GG
-    # activityController.once "ActivityListControllerReady", @bound "populateActivity"
+    # yes - SY
+    activityController.once "ActivityListControllerReady", @bound "populateActivity"
 
   loadView:->
     @populateActivity() if @listController
@@ -100,7 +101,7 @@ class ActivityAppController extends AppController
       exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
       callback exempt
 
-  fetchActivitiesDirectly:(options = {})->
+  fetchActivitiesDirectly:(options = {}, callback)->
 
     KD.time "Activity fetch took"
     options = to : options.to or Date.now()
@@ -114,7 +115,10 @@ class ActivityAppController extends AppController
         warn "An error occured:", err  if err
         @listController.showNoItemWidget()
       else
+        @extractTeasersTimeStamps(teasers)
         @listController.listActivities teasers
+
+      callback? err, teasers
 
   fetchActivitiesFromCache:(options = {})->
     @fetchCachedActivity options, (err, cache)=>
@@ -124,6 +128,7 @@ class ActivityAppController extends AppController
         @listController.hideLazyLoader()
         @listController.showNoItemWidget()
       else
+        @extractCacheTimeStamps cache
         @sanitizeCache cache, (err, cache)=>
           @listController.hideLazyLoader()
           @listController.listActivitiesFromCache cache
@@ -134,10 +139,10 @@ class ActivityAppController extends AppController
     teasers  = _.compact(teasers)
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
+    # debugger
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
-
     @lastTo   = cache.to
     @lastFrom = cache.from
 
@@ -148,42 +153,17 @@ class ActivityAppController extends AppController
     @listController.showLazyLoader()
     @listController.hideNoItemWidget()
 
-    currentGroup = @getSingleton('groupsController').getCurrentGroupData()
+    currentGroup = @getSingleton('groupsController').getCurrentGroup()
     slug = currentGroup.getAt 'slug'
 
     unless slug is 'koding'
-      # options.group = slug
       @fetchActivitiesDirectly options
-
     else
       @isExempt (exempt)=>
         if exempt or @getFilter() isnt activityTypes
-
-          options = to : options.to or Date.now()
-
-          @fetchActivitiesDirectly options, (err, teasers)=>
-            @isLoading = no
-            @listController.hideLazyLoader()
-            if err or teasers.length is 0
-              warn err
-              @listController.noActivityItem.show()
-            else
-              @extractTeasersTimeStamps(teasers)
-              @listController.listActivities teasers
-
+          @fetchActivitiesDirectly options
         else
-          @fetchActivitiesFromCache options, (err, cache)=>
-            @isLoading = no
-            if err or cache.length is 0
-              warn err
-              @listController.hideLazyLoader()
-              @listController.noActivityItem.show()
-            else
-              @extractCacheTimeStamps(cache)
-
-              @sanitizeCache cache, (err, cache)=>
-                @listController.hideLazyLoader()
-                @listController.listActivitiesFromCache cache
+          @fetchActivitiesFromCache options
 
   sanitizeCache:(cache, callback)->
 
@@ -272,9 +252,12 @@ class ActivityAppController extends AppController
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
+    # the page structure has changed
+    # we don't need this anymore
+    # we need a different approach tho, tBDL - SY
 
-    unless @listController.scrollView.hasScrollBars()
-      @continueLoadingTeasers()
+    # unless @listController.scrollView.hasScrollBars()
+    #   @continueLoadingTeasers()
 
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName
@@ -283,7 +266,7 @@ class ActivityAppController extends AppController
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       when "JBlogPost"     then @createBlogPostContentDisplay activity
       when "JTutorial"     then @createTutorialContentDisplay activity
-    @utils.defer -> callback contentDisplayController
+    @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"

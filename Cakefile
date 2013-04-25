@@ -12,30 +12,13 @@ option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 
-{argv} = require 'optimist'
 {spawn, exec} = require 'child_process'
-# mix koding node modules into node_modules
-# exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
-#   # can't run the program if this fails,
-#   if a or b or c
-#     console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
-#     process.exit(0)
-
-ProgressBar = require 'progress'
-Builder     = require './Builder'
-# log4js      = require "log4js"
-# log         = log4js.getLogger("[Main]")
 
 log =
   info  : console.log
   error : console.log
   debug : console.log
   warn  : console.log
-
-prompt    = require 'prompt'
-hat       = require "hat"
-mkdirp    = require 'mkdirp'
-commander = require 'commander'
 
 processes          = new (require "processes") main : true
 {daisy}            = require 'sinkrow'
@@ -45,19 +28,12 @@ url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
-KODING_CAKE = './node_modules/koding-cake/bin/cake'
-
-# create required folders
-mkdirp.sync "./.build"
 
 addFlags = (options)->
   flags  = ""
   flags += " -d" if options.debug
   flags += " -v" if options.verbose
-
   return flags
-
-compilePistachios = require 'pistachio-compiler'
 
 compileGoBinaries = (configFile,callback)->
 
@@ -256,7 +232,7 @@ task 'libratoWorker',({configFile})->
 
   processes.fork
     name  : 'libratoWorker'
-    cmd   : "#{KODING_CAKE} ./workers/librato -c #{configFile} run"
+    cmd   : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
     restart: yes
     restartInterval: 100
     verbose: yes
@@ -319,7 +295,7 @@ task 'run', (options)->
   queue = []
   if config.buildClient is yes
     queue.push ->
-      (new Builder).buildClient options
+      (new (require('./Builder'))).buildClient options
       queue.next()
   queue.push -> run options
   daisy queue
@@ -338,7 +314,7 @@ task 'accounting', (options)->
 
 
 task 'buildClient', (options)->
-  (new Builder).buildClient options
+  (new (require('./Builder'))).buildClient options
 
 task 'release',(options)->
   # Release and shared data directories
