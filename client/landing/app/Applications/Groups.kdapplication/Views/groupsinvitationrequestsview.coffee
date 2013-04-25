@@ -1,288 +1,221 @@
 class GroupsInvitationRequestsView extends GroupsRequestView
 
-  controllerNames = ['penRequestsList','penInvitationsList','resRequestsList','resInvitationsList']
-
   constructor:(options, data)->
     options.cssClass = 'groups-invitation-request-view'
 
     super
 
     group = @getData()
-
-    @timestamp = new Date 0
-
-    @preparePendingRequestsList()
-    @preparePendingInvitationsList()
-    @prepareResolvedRequestsList()
-    @prepareResolvedInvitationsList()
-
     @currentState = new KDView cssClass: 'formline'
+    @invitationTypeFilter = options.invitationTypeFilter ? ['basic approval','invitation']
 
-    @invitationTypeFilter =
-      options.invitationTypeFilter ? ['basic approval','invitation']
-
-    @statusFilter =
-      options.statusFilter ? ['pending','sent','approved', 'declined', 'accepted', 'ignored']
+    [@penRequestsListController, @pendingRequestsList]        = @preparePendingRequestsList()
+    [@penInvitationsListController, @pendingInvitationsList]  = @preparePendingInvitationsList()
+    [@resRequestsListController, @resolvedRequestsList]       = @prepareResolvedRequestsList()
+    [@resInvitationsListController, @resolvedInvitationsList] = @prepareResolvedInvitationsList()
 
     @inviteByEmailButton = new KDButtonView
       title    : 'Invite by Email'
       cssClass : 'clean-gray'
-      callback : => @showInviteByEmailModal()
+      callback : @bound 'showInviteByEmailModal'
     @inviteByUsernameButton = new KDButtonView
       title    : 'Invite by Username'
       cssClass : 'clean-gray'
-      callback : => @showInviteByUsernameModal()
+      callback : @bound 'showInviteByUsernameModal'
     @batchInviteButton = new KDButtonView
       title    : 'Batch Invite'
       cssClass : 'clean-gray'
-      callback : => @showBatchInviteModal()
+      callback : @bound 'showBatchInviteModal'
     @batchApproveButton = new KDButtonView
       title    : 'Batch Approve Requests'
       cssClass : 'clean-gray'
-      callback : => @showBatchApproveModal()
+      callback : @bound 'showBatchApproveModal'
 
     @prepareBulkInvitations()
     @refresh()
     @utils.defer =>
-      @parent.on 'NewInvitationActionArrived', =>
-        @refresh()
+      @parent.on 'NewInvitationActionArrived', @bound 'refresh'
 
-  getControllers:->
-    (@["#{controllerName}Controller"] for controllerName in controllerNames)
+  fetchAndPopulate:(controller, removeAllItems=no)->
+    controller.showLazyLoader()
+    @fetchSomeRequests @invitationTypeFilter, controller.getStatuses(), controller.getLastTimestamp(), (err, requests)=>
+      controller.hideLazyLoader()
+      return warn err if err
+      controller.removeAllItems() if removeAllItems
+      controller.instantiateListItems requests 
+      if requests?.length > 0
+        controller.setLastTimestamp requests.last.timestamp_
+        controller.emit 'teasersLoaded', requests.length
+      else
+        controller.emit 'noItemsFound'
 
   refresh:->
-    @fetchSomeRequests @invitationTypeFilter, @statusFilter, (err, requests)=>
-      if err then console.error err
-      else
-        groupedRequests = {}
+    @fetchAndPopulate @penRequestsListController, yes
+    @fetchAndPopulate @penInvitationsListController, yes
+    @fetchAndPopulate @resRequestsListController, yes
+    @fetchAndPopulate @resInvitationsListController, yes
 
-        requests.reverse().forEach (request)->
-          requestGroup =
-            if request.status in ['approved','declined']
-              groupedRequests.resRequests ?= []
-            else if request.status in ['accepted','ignored']
-              groupedRequests.resInvitations ?= []
-            else
-              groupedRequests[request.status] ?= []
-          requestGroup.push request
+  prepareList:(options)->
+    controller = new InvitationRequestListController options
 
-        {pending, sent, resRequests, resInvitations} = groupedRequests
+    if options.isModal
+      controller.on 'LazyLoadThresholdReached', @fetchAndPopulate.bind this, controller
+      controller.on 'teasersLoaded', =>
+        unless controller.scrollView.hasScrollBars()
+          @fetchAndPopulate controller
+    else
+      controller.on 'teasersLoaded', (count)=>
+        controller.moreLink?.show() if count >= @requestLimit
+      controller.on 'ShowMoreRequested', @showListModal.bind this, options
 
-        # clear out any items that may be there already:
-        @getControllers().forEach (controller)-> controller.removeAllItems()
+    return [controller, controller.getView()]
 
-        # populate the lists:
-        @penRequestsListController.instantiateListItems pending           if pending?
-        @penInvitationsListController.instantiateListItems sent           if sent?
-        @resRequestsListController.instantiateListItems resRequests       if resRequests?
-        @resInvitationsListController.instantiateListItems resInvitations if resInvitations?
+  showListModal:({prepareMethod, title, width})->
+    [controller, view] = @[prepareMethod] yes
+    @fetchAndPopulate controller, yes
 
-    return this
+    modal = new GroupsInvitationRequestsModalView {title, width}
+    modal.addSubView controller.getView()
+    modal._windowDidResize()
 
-  preparePendingInvitationsList:->
-    @penInvitationsListController = new InvitationRequestListController
-      viewOptions       :
-        cssClass        : 'request-list'
-      showDefaultItem   : yes
-      defaultItem       :
-        options         :
-          cssClass      : 'default-item'
-          partial       : 'No invitations sent'
+  preparePendingRequestsList:(isModal=no)->
+    [controller, view] = @prepareList
+      itemClass       : GroupsInvitationRequestListItemView
+      statuses        : 'pending'
+      isModal         : isModal
+      prepareMethod   : 'preparePendingRequestsList'
+      title           : 'Pending Requests'
+      noItemFound     : 'No pending requests.'
+      noMoreItemFound : 'No more pending requests found.'
+      width           : 400
 
-    @forwardEvent @penInvitationsListController, 'ShowMoreRequested', 'PendingInvitations'
-
-    @pendingInvitationsList = @penInvitationsListController.getView()
-    return @pendingInvitationsList
-
-  preparePendingRequestsList:->
-    @penRequestsListController = new InvitationRequestListController
-      viewOptions       :
-        cssClass        : 'request-list'
-      itemClass         : GroupsInvitationRequestListItemView
-      showDefaultItem   : yes
-      defaultItem       :
-        options         :
-          cssClass      : 'default-item'
-          partial       : 'No requests pending'
-
-    @pendingRequestsList = @penRequestsListController.getView()
-
-    listView = @penRequestsListController.getListView()
+    listView = controller.getListView()
     @forwardEvent listView, 'RequestIsApproved'
     @forwardEvent listView, 'RequestIsDeclined'
 
-    @forwardEvent @penRequestsListController, 'ShowMoreRequested', 'PendingRequests'
+    return [controller, view]
 
-    return @pendingRequestsList
+  preparePendingInvitationsList:(isModal=no)->
+    @prepareList
+      itemClass       : GroupsInvitationRequestListItemView
+      statuses        : 'sent'
+      isModal         : isModal
+      prepareMethod   : 'preparePendingInvitationsList'
+      title           : 'Pending Invitations'
+      noItemFound     : 'No pending invitations.'
+      noMoreItemFound : 'No more pending invitations found.'
 
-  prepareResolvedRequestsList:->
-    @resRequestsListController = new InvitationRequestListController
-      showDefaultItem   : yes
-      defaultItem       :
-        options         :
-          cssClass      : 'default-item'
-          partial       : 'No requests resolved'
+  prepareResolvedRequestsList:(isModal=no)->
+    @prepareList
+      itemClass       : GroupsInvitationListItemView
+      statuses        : ['approved', 'declined']
+      isModal         : isModal
+      prepareMethod   : 'prepareResolvedRequestsList'
+      title           : 'Resolved Requests'
+      noItemFound     : 'No resolved requests.'
+      noMoreItemFound : 'No more resolved requests found.'
 
-    @forwardEvent @resRequestsListController, 'ShowMoreRequested', 'ResolvedRequests'
+  prepareResolvedInvitationsList:(isModal=no)->
+    @prepareList
+      itemClass       : GroupsInvitationListItemView
+      statuses        : ['accepted', 'ignored']
+      isModal         : isModal
+      prepareMethod   : 'prepareResolvedInvitationsList'
+      title           : 'Resolved Invitations'
+      noItemFound     : 'No resolved invitations.'
+      noMoreItemFound : 'No more resolved invitations found.'
 
-    @resolvedRequestsList = @resRequestsListController.getView()
-    return @resolvedRequestsList
+  showModalForm:(options)->
+    modal = new KDModalViewWithForms
+      title                  : options.title
+      overlay                : yes
+      width                  : 300
+      height                 : 'auto'
+      tabs                   :
+        forms                :
+          invite             :
+            callback         : options.callback
+            buttons          :
+              Send           :
+                itemClass    : KDButtonView
+                type         : 'submit'
+                loader       :
+                  color      : '#444444'
+                  diameter   : 12
+              Cancel         :
+                style        : 'modal-cancel'
+                callback     : (event)=> modal.destroy()
+            fields           : options.fields
 
-  prepareResolvedInvitationsList:->
-    @resInvitationsListController = new InvitationRequestListController
-      showDefaultItem   : yes
-      defaultItem       :
-        options         :
-          cssClass      : 'default-item'
-          partial       : 'No invitations resolved'
+    form = modal.modalTabs.forms.invite
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
 
-    @forwardEvent @resInvitationsListController, 'ShowMoreRequested', 'ResolvedRequests'
-
-    @resolvedInvitationsList = @resInvitationsListController.getView()
-    return @resolvedInvitationsList
+    return modal
 
   showInviteByEmailModal:->
-    modal = @inviteByEmail = new KDModalViewWithForms
-      title                  : 'Invite by Email'
-      overlay                : yes
-      width                  : 300
-      height                 : 'auto'
-      tabs                   :
-        forms                :
-          invite             :
-            callback         : => @emit 'InviteByEmail', modal.modalTabs.forms.invite
-            buttons          :
-              Send           :
-                itemClass    : KDButtonView
-                type         : 'submit'
-                loader       :
-                  color      : '#444444'
-                  diameter   : 12
-              Cancel         :
-                style        : 'modal-cancel'
-                callback     : (event)=> modal.destroy()
-            fields           :
-              recipient      :
-                label        : 'Email address'
-                type         : 'text'
-                name         : 'recipient'
-                placeholder  : 'Enter an email address...'
-                validate     :
-                  rules      :
-                    required : yes
-                    email    : yes
-                  messages   :
-                    required : 'An email address is required!'
-                    email    : 'That does not not seem to be a valid email address!'
-
-    form = modal.modalTabs.forms.invite
-    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+    @inviteByEmail = @showModalForm
+      title              : 'Invite by Email'
+      callback           : @emit.bind @, 'InviteByEmail'
+      fields             :
+        recipient        :
+          label          : 'Email address'
+          type           : 'text'
+          name           : 'recipient'
+          placeholder    : 'Enter an email address...'
+          validate       :
+            rules        :
+              required   : yes
+              email      : yes
+            messages     :
+              required   : 'An email address is required!'
+              email      : 'That does not not seem to be a valid email address!'
 
   showInviteByUsernameModal:->
-    modal = @inviteByUsername = new KDModalViewWithForms
-      title                  : 'Invite by Username'
-      overlay                : yes
-      width                  : 300
-      height                 : 'auto'
-      tabs                   :
-        forms                :
-          invite             :
-            callback         : => @emit 'InviteByUsername', modal.modalTabs.forms.invite
-            buttons          :
-              Send           :
-                itemClass    : KDButtonView
-                type         : 'submit'
-                loader       :
-                  color      : '#444444'
-                  diameter   : 12
-              Cancel         :
-                style        : 'modal-cancel'
-                callback     : (event)=> modal.destroy()
-            fields           :
-              recipient      :
-                label        : 'Username'
-                type         : 'text'
-                name         : 'recipient'
-                placeholder  : 'Enter a user name...'
-                validate     :
-                  rules      :
-                    required : yes
-                  messages   :
-                    required : 'A user name is required!'
-
-    form = modal.modalTabs.forms.invite
-    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+    @inviteByUsername = @showModalForm
+      title            : 'Invite by Username'
+      callback         : @emit.bind @, 'InviteByUsername'
+      fields           :
+        recipient      :
+          label        : 'Username'
+          type         : 'text'
+          name         : 'recipient'
+          placeholder  : 'Enter a user name...'
+          validate     :
+            rules      :
+              required : yes
+            messages   :
+              required : 'A user name is required!'
 
   showBatchInviteModal:->
-    modal = @batchInvite = new KDModalViewWithForms
-      title                  : 'Batch Invite by Email'
-      overlay                : yes
-      width                  : 300
-      height                 : 'auto'
-      tabs                   :
-        forms                :
-          invite             :
-            callback         : => @emit 'BatchInvite', modal.modalTabs.forms.invite
-            buttons          :
-              Send          :
-                itemClass    : KDButtonView
-                type         : 'submit'
-                loader       :
-                  color      : '#444444'
-                  diameter   : 12
-              Cancel         :
-                style        : 'modal-cancel'
-                callback     : (event)=> modal.destroy()
-            fields           :
-              emails         :
-                label        : 'Emails'
-                type         : 'textarea'
-                placeholder  : 'Enter each email address on a new line...'
-                validate     :
-                  rules      :
-                    required : yes
-                  messages   :
-                    required : 'At least one email address required!'
-
-    form = modal.modalTabs.forms.invite
-    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+    @batchInvite = @showModalForm
+      title            : 'Batch Invite by Email'
+      callback         : @emit.bind @, 'BatchInvite'
+      fields           :
+        emails         :
+          label        : 'Emails'
+          type         : 'textarea'
+          placeholder  : 'Enter each email address on a new line...'
+          validate     :
+            rules      :
+              required : yes
+            messages   :
+              required : 'At least one email address required!'
 
   showBatchApproveModal:->
-    modal = @batchApprove = new KDModalViewWithForms
-      title                  : 'Batch Approve Requests'
-      overlay                : yes
-      width                  : 300
-      height                 : 'auto'
-      tabs                   :
-        forms                :
-          invite             :
-            callback         : => 
-              form = modal.modalTabs.forms.invite
-              @emit 'BatchApproveRequests', form, +form.getFormData().count
-            buttons          :
-              Send          :
-                itemClass    : KDButtonView
-                type         : 'submit'
-                loader       :
-                  color      : '#444444'
-                  diameter   : 12
-              Cancel         :
-                style        : 'modal-cancel'
-                callback     : (event)=> modal.destroy()
-            fields           :
-              count          :
-                label        : '# of requests'
-                type         : 'text'
-                defaultValue : 10
-                placeholder  : 'how many requests do you want to approve?'
-                validate     :
-                  rules      :
-                    regExp   : /\d+/i
-                  messages   :
-                    regExp   : 'numbers only please'
-
-    form = modal.modalTabs.forms.invite
-    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+    @batchApprove = @showModalForm
+      title            : 'Batch Approve Requests'
+      callback         : @emit.bind @, 'BatchApproveRequests'
+      fields           :
+        count          :
+          label        : '# of requests'
+          type         : 'text'
+          defaultValue : 10
+          placeholder  : 'how many requests do you want to approve?'
+          validate     :
+            rules      :
+              regExp   : /\d+/i
+            messages   :
+              regExp   : 'numbers only please'
 
   showErrorMessage:(err)->
     warn err
@@ -320,3 +253,18 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       </section>
     </div>
     """
+
+class GroupsInvitationRequestsModalView extends KDModalView
+  constructor:(options = {}, data)->
+    options.cssClass or= 'invitations-request-modal'
+    options.overlay   ?= yes
+    options.width    or= 400
+    options.height   or= 'auto'
+
+    super
+
+  _windowDidResize:->
+    super
+    {winHeight} = @getSingleton('windowController')
+    log @$('.kdmodal-content .kdscrollview')
+    @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 200

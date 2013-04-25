@@ -549,41 +549,30 @@ class GroupsAppController extends AppController
     pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
       (pane, invitationRequestView)->
 
-        invitationRequestView.on 'BatchApproveRequests', (form, count)->
-          count = form.inputs.count.getValue()
-          group.sendSomeInvitations count, (err)->
-            form.buttons.Send.hideLoader()
+        kallback = (modal, err)=>
+          modal.modalTabs.forms.invite.buttons.Send.hideLoader()
+          return invitationRequestView.showErrorMessage err if err
+          new KDNotificationView title:'Invitation sent!'
+          invitationRequestView.refresh()
+          modal.destroy()
+
+        invitationRequestView.on 'BatchApproveRequests', (formData)->
+          group.sendSomeInvitations formData.count, (err)=>
             return invitationRequestView.showErrorMessage err if err
-            new KDNotificationView title:'Invites sent!'
             invitationRequestView.prepareBulkInvitations()
-            invitationRequestView.refresh()
+            kallback @batchApprove, err
 
-        invitationRequestView.on 'BatchInvite', (form)->
-          {emails} = form.getFormData()
-          group.inviteByEmails emails, (err)=>
-            form.buttons.Send.hideLoader()
-            if err then invitationRequestView.showErrorMessage err
-            else 
-              new KDNotificationView title:'Invitations sent!'
-              invitationRequestView.refresh()
+        invitationRequestView.on 'BatchInvite', (formData)->
+          group.inviteByEmails formData.emails, (err)=>
+            kallback @batchInvite, err
 
-        invitationRequestView.on 'InviteByEmail', (form)->
-          {recipient} = form.getFormData()
-          group.inviteByEmail recipient, (err)=>
-            form.buttons.Send.hideLoader()
-            if err then invitationRequestView.showErrorMessage err
-            else 
-              new KDNotificationView title:'Invitation sent!'
-              invitationRequestView.refresh()
+        invitationRequestView.on 'InviteByEmail', (formData)->
+          group.inviteByEmail formData.recipient, (err)=>
+            kallback @inviteByEmail, err
 
-        invitationRequestView.on 'InviteByUsername', (form)->
-          {recipient} = form.getFormData()
-          group.inviteByUsername recipient, (err)=>
-            form.buttons.Send.hideLoader()
-            if err then invitationRequestView.showErrorMessage err
-            else 
-              new KDNotificationView title:'Invitation sent!'
-              invitationRequestView.refresh()
+        invitationRequestView.on 'InviteByUsername', (formData)->
+          group.inviteByUsername formData.recipient, (err)=>
+            kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request)->
           request.approveInvitation()

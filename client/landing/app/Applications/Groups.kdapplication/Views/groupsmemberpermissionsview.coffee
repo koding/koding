@@ -20,7 +20,7 @@ class GroupsMemberPermissionsView extends JView
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
 
-    @listController.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind this
+    @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
     @on 'teasersLoaded', =>
       unless @listController.scrollView.hasScrollBars()
         @loader.show()
@@ -29,8 +29,7 @@ class GroupsMemberPermissionsView extends JView
 
     @loader.show()
     @loaderText.show()
-    @fetchRoles =>
-      @refresh()
+    @fetchRoles @bound 'refresh'
 
   fetchRoles:(callback=->)->
     groupData = @getData()
