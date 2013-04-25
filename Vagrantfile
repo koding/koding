@@ -69,7 +69,10 @@ Vagrant.configure("2") do |config|
     config.vm.box_url = "http://salt-master.in.koding.com:54623/koding-1.box"
   end
 
-  config.vm.network :private_network, :ip => "10.5.5.2"
+  config.vm.network :forwarded_port, guest: 27017, host: 27018 # mongodb 
+  config.vm.network :forwarded_port, guest:  5672, host: 5673  # rabbitmq
+  config.vm.network :forwarded_port, guest: 15672, host: 15673 # rabbitmq api
+  
   config.vm.hostname = "vagrant"
 
   config.vm.synced_folder ".", "/opt/koding"
