@@ -1,5 +1,5 @@
-**Kontrol Server** is a process management server, to control various aspects of
-processes on remote machines. It has these following features:
+**Kontrol Server** is a central management server to control various
+aspects of processes on remote machines. It has these following features:
 
 * Get basic information from the process. This basically monitors every process,
 thus you know if a process is running or not responding
@@ -31,7 +31,6 @@ Java,etc..). To connect a process to the kontrol server, it basically just have
 to agree on a JSON bassed message protocol. However currently application
 written in Node can benefit from parent-child communication. This is explained
 in more detail below with the "emailWorker" example
-
 
 ## Configure and install Kontrol Server
 
@@ -89,6 +88,7 @@ task 'fooWorker',({configFile})->
     cmd             : "./workers/fooWorker/index -c #{configFile}"
     kontrol         :
       enabled       : yes
+      startMode     : "one"
       
 ```
 
@@ -96,7 +96,7 @@ This flag basically creates a helper-process inside our processes module, which
 communicate with the Kontrol server. Kontrol server first looks if there is any
 other process running, if yes it doesn't let the process to be run. To run the
 process, one have to stop or kill the other machine. But you have the option to
-force start it (via the `forceStart` option):
+force start it (via the `force` option):
 
 ```
 task 'fooWorker',({configFile})->
@@ -105,10 +105,24 @@ task 'fooWorker',({configFile})->
     cmd             : "./workers/fooWorker/index -c #{configFile}"
     kontrol         :
       enabled       : yes
-      forceStart    : yes
+      startMode     : "force"
 ```
 
 This stops and kills all running process with the same name.
+
+There might be processes that can be run multiple times on the same machine.
+Like a webserver. To start multiple workers with the same type, use 'many' as
+startmode
+
+```
+task 'fooWorker',({configFile})->
+  processes.fork
+    name            : 'fooWorker'
+    cmd             : "./workers/fooWorker/index -c #{configFile}"
+    kontrol         :
+      enabled       : yes
+      startMode     : "many"
+```
 
 Kontrol also have the option to communicate directly with the process itself.
 What does it mean? Basically, you can programm your process in a way, that when

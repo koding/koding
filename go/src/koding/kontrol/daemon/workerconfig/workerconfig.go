@@ -465,25 +465,6 @@ func (w *WorkerConfig) IsEmpty() (bool, error) {
 	return false, fmt.Errorf("%s workers are registered.", v)
 }
 
-func (w *WorkerConfig) HasName(name string) (bool, error) {
-	result := MsgWorker{}
-	err := w.Collection.Find(bson.M{"name": name}).One(&result)
-	if err != nil {
-		return false, fmt.Errorf("no worker found. Please register worker '%s' before you can continue", name)
-	}
-
-	return true, nil
-}
-
-func (w *WorkerConfig) HasUuid(uuid string) error {
-	result := MsgWorker{}
-	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
-	if err != nil {
-		return fmt.Errorf("no worker with the uuid %s exist.", uuid)
-	}
-	return nil
-}
-
 func (w *WorkerConfig) GetWorker(uuid string) (MsgWorker, error) {
 	result := MsgWorker{}
 	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)

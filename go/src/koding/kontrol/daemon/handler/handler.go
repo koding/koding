@@ -11,7 +11,6 @@ import (
 	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/amqputil"
 	"koding/tools/config"
-	"koding/tools/utils"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
@@ -35,11 +34,8 @@ type ApiMessage struct {
 	Cli    *cliRequest
 }
 
-type ProcessConfig map[string]ProcessWorker
-
 type ProcessWorker struct {
 	Cmd            string           `json:"cmd"`
-	Number         int              `json:"number"`
 	Host           []string         `json:"host"`
 	Version        int              `json:"version"`
 	CompatibleWith map[string][]int `json:"compatibleWith"`
@@ -52,7 +48,6 @@ type Producer struct {
 	done    chan error
 }
 
-var processConfig ProcessConfig
 var kontrolConfig *workerconfig.WorkerConfig
 
 var workerProducer *Producer
@@ -103,59 +98,6 @@ func Startup() {
 	kontrolConfig, err = workerconfig.Connect()
 	if err != nil {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
-	}
-
-	var worker workerconfig.MsgWorker
-
-	configFile := "kontrold-process.config.json"
-	file, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(file, &processConfig)
-	if err != nil {
-		log.Print("bad json unmarshalling process config file", err)
-		return
-	}
-
-	for name, prop := range processConfig {
-
-		if prop.Number == 1 {
-			worker.Name = name
-			kontrolConfig.RegisteredHosts[name] = prop.Host
-		} else {
-			// for multiple kontrolConfig we are just creating the first entry. After
-			// starting the process our internal config will be updated
-			// automatically, no need to create entries for them
-			worker.Name = name + "-1"
-			worker.Number = prop.Number
-
-			// but for approval we have to setup explicit permission
-			for i := 0; i < prop.Number; i++ {
-				// i + 1 because names begin index 1, like foo-1, foo-2
-				kontrolConfig.RegisteredHosts[name+"-"+strconv.Itoa(i+1)] = prop.Host
-			}
-		}
-
-		worker.Version = prop.Version
-		worker.CompatibleWith = prop.CompatibleWith
-		worker.Cmd = prop.Cmd
-		worker.Hostname = customHostname()
-		worker.Uuid = utils.RandomString()
-		worker.Pid = 0
-		worker.Status = workerconfig.Notstarted
-		worker.Number = prop.Number
-
-		ok, _ := kontrolConfig.IsEmpty()
-		if ok {
-			kontrolConfig.AddWorker(worker)
-		} else {
-			ok, _ := kontrolConfig.HasName(worker.Name)
-			if !ok {
-				kontrolConfig.AddWorker(worker)
-			}
-			// there are already kontrolConfig in the config file, nothing to do.
-		}
 	}
 
 	log.Printf("ready on host %s", kontrolConfig.Hostname)
@@ -217,7 +159,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if command == "add" || command == "addWithProxy" {
-		log.Println("COMMAND", command)
+		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -478,13 +420,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		return worker, nil
 	case "one":
 		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
-		// If there is no other workers of same name(type) on the same hostname than add it immediadetly ...
-		log.Printf("'%s' workers allowed: %d, workers available: %d",
-			worker.Name,
-			worker.Number,
-			availableWorkers)
-
-		if availableWorkers < worker.Number {
+		if availableWorkers < 1 {
 			log.Printf("adding worker '%s'", worker.Name)
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running

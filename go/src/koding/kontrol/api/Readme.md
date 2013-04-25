@@ -224,7 +224,9 @@ An example of `GET /proxies/{uuid}/{name}`
 
 To add a domain for routing table use
 
+```
 POST /proxies/mahlika.local-915/domains/example.com  {"name": "server", "key": "15"}
+```
 
 This will lookup the domain and will use the server-15 proxy for forwarding.
 
