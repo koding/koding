@@ -78,6 +78,7 @@ class ProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.followers is 0
         KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
@@ -88,6 +89,7 @@ class ProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
         KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
@@ -98,6 +100,7 @@ class ProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
         KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
     , memberData

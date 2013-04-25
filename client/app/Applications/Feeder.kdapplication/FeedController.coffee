@@ -9,6 +9,9 @@ class FeedController extends KDViewController
     options.limitPerPage  or= 10
     options.dataType      or= null
     options.onboarding    or= null
+    options.domId         or= ''
+
+    log options.domId, 'is domId'
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -27,7 +30,7 @@ class FeedController extends KDViewController
         delegate  : @
 
       options.view or= new FeederSplitView
-        domId   : 'feeder-split-view'
+        domId   : options.domId
         views   : [
           @facetsController.getView()
           @resultsController.getView()
