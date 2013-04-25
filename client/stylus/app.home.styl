@@ -1,5 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
+@import "nib"
 @import "nib/gradients"
 @import "nib/vendor"
 
@@ -9,204 +10,354 @@ HOME stylesheet
 app.home.styl
 */
 }
-
-#content-page-home
-  border-top              1px solid white
-  text-align              center
-  overflow                auto
-  bg                      color, #ddd
-  .video-wrapper
-    size                  auto, auto
-    overflow              visible
-    padding               5.48% 0
-    gradient              #f8f8f8, #ddd
-    // shadow                0 1px 0 rgba(255, 255, 255, .75)
-    // margin-bottom         40px
-    iframe
-      size                89.13%, 76.6%
-      border              8px solid rgba(0,0,0,.1)
-      rounded             2px
-      shadow              0 -1px 0 rgba(0,0,0,0.2)\,\
-                          0 1px 0 rgba(255,255,255,0.8)
-      borderBox()
-    a.login-register
-      display             inline-block
-      margin              10px auto 0
-    button
-      margin              2px 0 0 0
-      padding             6px 10px
-      font-weight         400
-      color               transparent
-      text-shadow         none
-      rounded             13px
-
-  hr
-    size                  100%, 2px
-    border-top            1px solid #bbb
-    background            rgba(255, 255, 255, .75)
-    margin                40px auto
-    vendor                transition, margin .3s ease-in
-    borderBox()
-  .reviews
-    margin-top            40px
-    p
-      text-shadow         0 -1px 0 rgba(255, 255, 255, .75)\,\
-                          0 1px 0 rgba(0, 0, 0, .2)
-      color               #455
-      font-size           32px
-      margin              20px 0 10px 0
-      line-height         40px
-      font-family         serif
-      font-style          italic
-      vendor              transition, all .3s ease-in
-    span
-      display             block
-      color               #666
-      font-size           14px
-      font-weight         300
-
-  .footer-links
-    a
-      color               #aaa
-      &:hover
-        color             white
-
-  footer.copy
-    font-size             11px
-    color                 #444
-    padding-bottom        30px
-
-  .home-links
-    size                  89.13%, 80px
-    margin                0 auto
-    padding               20px 0
-    border-top            1px solid rgba(0,0,0,.8)
-    border-bottom         1px solid rgba(0, 0, 0, .75)
-    shadow                0 1px 0 rgba(255, 255, 255, .75)\,\
-                          inset 0 0 10px rgba(0, 0, 0, .5)
-    // gradient              #37332D, #2D2A25
-    background            url("../images/koding-new-bg.png") repeat-x 0 -300px
-    rounded               2px
-    borderBox()
-
-  p.bigLink
-    // text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    display               inline-block
-    font-size             20px
-    line-height           40px
-    margin-right          40px
-    vendor                transition, font-size .3s ease-in
-    text-shadow           0 1px 0 rgba(0, 0, 0, .8)
-    font-weight           500
-    a
-      color               linkColor1
-      noTextDeco()
-      &:hover
-        color             white
-
-    &:nth-child(4)
-      margin-right    0
-
-
 // NEW TRY
-div.screenshots
-  height                  530px
-  // h1
-  // h2
-  //   //padding-left          13px
-  //   //text-align            left
-  //   text-shadow           0 1px 1px rgba(0,0,0,0.3)
-  //   vendor                transition, all .3s ease-in-out
-  //   borderBox()
-  // h1
-  //   font-weight           600
-  //   font-size             36px
-  //   letter-spacing        -1px
-  //   margin                0 0 10px 0
-  //   color                 #eee
 
-  // h2
-  //   font-size             18px
-  //   color                 rgba(255,255,255,0.7)
-  //   font-weight           300
-  //   margin                0 0 60px 0
+body.group
+  div.screenshots
+    > section
+      height              auto
+
+  .group-desc
+    margin                30px
+    line-height           30px
+    font-size             16px
+    color                 white
+    text-shadow           0 1px 0 rgba(0, 0, 0, .75)
+    bg                    color, transparent
+    max-width             800px
+    text-align            left
+
+  .readme
+    margin                30px
+    max-width             800px
+    text-align            left
+
+div.screenshots
+  rel()
+  height                  auto
+  z-index                 1000
 
   .arrow
     abs()
     display               block
-    top                   50%
-    margin-top            -40px
-    size                  40px, 80px
-    shadow                0 10px 25px rgba(0,0,0,0.5)
-    bg                    color, rgba(0,0,0,0.5)
-    vendor                transition, all .15s ease-in-out
+    top                   107px
+    size                  30px, 503px
+    shadow                0 10px 25px rgba(0, 0, 0, .4)
+    bg                    color, rgba(0, 0, 0, .5)
+    vendor                transition, left  .15s ease-in-out\,\
+                                      right .15s ease-in-out\,\
+                                      width .15s ease-in-out
     z-index               1
-    &:hover
-      width               50px
-      span
-        opacity           1
+    border                1px solid transparent
+    border-color          rgba(255, 255, 255, .2)\
+                          rgba(0, 0, 0, .1)\
+                          rgba(0, 0, 0, .3)
+    borderBox()
     &.left
       left                0
       rounded             0 4px 4px 0
+      border-width        1px 1px 1px 0
       span
+        right             10px
         bg                position, -220px -100px
-        right             20px
     &.right
       right               0
       rounded             4px 0 0 4px
+      border-width        1px 0 1px 1px
       span
         left              20px
         bg                position, -200px -100px
+    &:hover
+      width               40px
+
+
     span
       abs()
       display             block
-      top                 25px
+      top                 50%
+      margin-top          -15px
+      margin-left         -10px
       size                20px, 30px
-      opacity             .5
-      vendor              transition, opacity .15s ease-in-out
       sprite()
 
-  section
-    top                   0
-    left                  0
-    abs()
-    size                  100%,100%
+  > section
+    size                  100%, 506px
     overflow              hidden
-    // overflow-x            visible
-
+    text-align            center
+    padding               30px 0
+    background            transparent url("../images/bg/blurred/4.jpg") no-repeat 0 0
+    background-size       cover
+    shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
 
   ul
     margin                0
-    size                  100%, auto
+    size                  600%, 506px
     z-index               0
 
     li
-      // opacity             0
       rel()
-      size                100%, auto
+      size                16.6667%, 506px
       overflow            visible
-      vendor              transition, opacity .5s ease-in-out
       fl()
-      // &.in
-      //   opacity           1
 
       p
-        hidden()
         abs()
-        bottom            30px
-        size              100%, 60px
-        font-size         16px
-        text-shadow       0 1px 0 rgba(0,0,0,0.2)
+        size              auto, auto
+        bottom            20px
+        right             50%
+        max-width         600px
+        padding           10px 40px
+        margin-right      -410px
+        font-size         20px
+        line-height       30px
+        text-align        right
+        color             #FFF
+        opacity           .9
+        text-shadow       0 1px 0 rgba(0,0,0,0.4)
+        gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
         bg                color, #ff9200
-        padding           20px 0
-        shadow            0 5px 15px rgba(0,0,0,0.5)
+        shadow            0 0 10px rgba(0,0,0,0.5)
+        rounded           2px
         borderBox()
+        span
+          font-style      italic
+          font-size       12px
+          line-height     20px
+          color           rgba(255, 255, 255, .85)
+          display         block
 
-      img
+      > div
+      > img
+        display           inline-block
         width             90%
         max-width         800px
         min-width         500px
+        max-height        503px
         rounded           4px
         shadow            0 10px 25px rgba(0,0,0,0.5)
+        overflow          hidden
+      > div
+        background        rgba(0, 0, 0, .4)
+        iframe
+          padding         10px
+          borderBox()
+
+  .home-links
+    size                auto, auto
+    text-align          left
+    gradient            #fff, #eee
+
+    .custom-link-view
+      size              25%, 50px
+      padding           0 26px 0 20px
+      margin            0
+      // rounded           4px
+      line-height       49px
+      gradient          #666, #505050
+      // border-right      1px solid rgba(255,255,255,.2)
+      border-top        1px solid rgba(255,255,255,.3)
+      border-left       1px solid rgba(0,0,0,.1)
+      text-shadow       0 1px 0 rgba(0,0,0,.9)
+      shadow            0 -1px 0 rgba(0, 0, 0, .3)\,\
+                        0 1px 0 rgba(255, 255, 255, .6)
+      borderBox()
+      fl()
+      .title
+        color           rgba(255,255,255,.9)
+      .icon
+        margin          15px 1px 0 0
+      &:hover
+        .title
+          color         rgba(255,255,255,1)
+      &.open
+        .icon
+          bg            position, -200px -340px
+      &.logout
+        .icon
+          bg            position, -200px -320px
+      &.login
+        .icon
+          bg            position, -220px -320px
+      &.register
+        .icon
+          bg            position, -220px -341px
+      &.customize
+        .icon
+          bg            position, -200px -380px
+      &.request
+        .icon
+          bg            position, -200px -360px
+      &.join
+        .icon
+          bg            position, -220px -379px
+      &.browse
+        .icon
+          bg            position, -220px -400px
+      &.green
+        border-top      1px solid rgba(255,255,255,.4)
+        gradient        #68B43B, #5B9D33
+      &.orange
+        border-top      1px solid rgba(255,255,255,.4)
+        gradient        rgb(233, 142, 27), rgb(223, 118, 4)
 
 // NEW TRY END
+
+
+
+// DEPRECATED
+// we don't need featured
+// sections on homepage anymore/yet.
+// left here for refernce
+
+/*
+
+div.home-featured
+  max-width               1000px
+  margin                  0 auto
+
+div.home-featured-activities
+  borderBox()
+  text-align              left
+
+  > .kdlistview
+    width                 840px
+    margin:               20px auto;
+    background-color:     rgba(255,255,255,0.75);
+    shadow                0 0 25px 1px rgba(0,0,0,0.25);
+
+
+
+div.home-featured-members
+  borderBox()
+  fl()
+  width                   480px
+  margin-right 20px
+  display                 inline-block
+  height                  525px
+
+  .kdloader
+    abs()
+    top                   50%
+    margin-top            -15px
+
+  .kdlistview-members
+    margin                5px
+  .kdlistitemview-member
+    display               inline-block
+    width                 25%
+    a.avatarview
+      width               115px!important
+      height              115px!important
+
+div.home-featured-apps
+  borderBox()
+  display                 block
+  margin-left             520px
+  width                   480px
+  .kdlistview-apps
+    .kdlistitemview
+      cursor              pointer
+      background-color    rgba(245, 245, 245, 0.5)
+      width               230px
+      height              230px
+      display             inline-block
+      margin              5px
+      vertical-align      top
+      > img
+        width             100%
+        height            auto
+
+      .details
+
+        abs()
+        bottom            0
+        left              0
+        right             0
+        bg                color, rgba(255,255,255,0.75)
+        height            38%
+        text-align        left
+        border-top        rgba(255,255,255,0.75)
+        text-shadow       0 0 3px white
+        vendor            transition, background-color 0.2s linear
+
+        .app-name
+          borderBox()
+          padding         15px 15px 10px 24px
+          color           #444
+          font-size       18px
+          font-weight     300
+          height          auto
+          text-align      left
+        .followers-wrapper
+          width           50%
+          fl()
+          display         inline-block
+        .installed-wrapper
+          width           50%
+          margin-left     50%
+          display         block
+        .app-followers
+        .app-installed
+          borderBox()
+          padding         5px
+          color           #888
+          text-align      center
+      &:hover
+        shadow            0px 0px 10px rgba(0,0,0,0.25)\,0 1px 5px -2px rgba(0,0,0,0.6)
+        .details
+          bg              color, rgba(255,255,255,0.85)
+
+div.featured-header
+  color                   #444
+  font-size               24px
+  font-weight             300
+  text-align              left
+  padding                 10px
+
+div.featured-app-details
+  borderBox()
+  width                   100%
+  height                  auto
+  padding                 25px 15px 30px 0px
+
+  .sidebar
+    borderBox()
+    padding               10px
+    height                100%
+    width                 256px
+    display               inline-block
+    fl()
+    text-align            center
+    .details-thumb
+      margin-bottom       15px
+      max-width           100%
+    // .details-install-button
+
+  .content
+    borderBox()
+    margin-left           256px
+    width                 auto
+    padding               10px
+    .details-name
+      font-size           18px
+      width               auto
+      display             inline-block
+      margin-bottom       5px
+    .details-version
+      width               auto
+      display             inline-block
+    .details-description
+      color               #aaa
+      padding             20px 0
+    .details-author
+      text-transform      italic
+
+    .counts
+      .details-followers
+      .details-installed
+      .details-likes
+        width             auto
+        display           inline-block
+        padding           10px 10px 10px 0
+
+*/

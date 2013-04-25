@@ -3,8 +3,8 @@ lxc.network.link = lxcbr0
 lxc.network.veth.pair = {{.VEth}}
 lxc.network.flags = up
 lxc.network.hwaddr = {{.MAC}}
-lxc.network.ipv4 = {{.IP}}/16
-lxc.network.ipv4.gateway = 172.16.0.1
+lxc.network.ipv4 = {{.IP}}/9
+lxc.network.ipv4.gateway = auto
 lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
 lxc.utsname = {{.Hostname}}
 

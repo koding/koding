@@ -162,10 +162,6 @@ class KDView extends KDObject
 
     @bindEvents()
 
-# #
-# VIEW PROPERTY GETTERS
-# #
-
   getDomId:-> @domElement.attr "id"
 
 
@@ -181,8 +177,8 @@ class KDView extends KDObject
       el = document.getElementById domId
 
     @lazy = unless el?
-      el = document.createElement tagName
-      el.setAttribute 'id', domId  if domId
+      el    = document.createElement tagName
+      el.id = domId  if domId
       no
     else yes
 
@@ -222,7 +218,7 @@ class KDView extends KDObject
   getElement:-> @getDomElement()[0]
 
   # shortcut method for @getDomElement()
-  
+
   $ :(selector)->
     if selector?
       @getDomElement().find(selector)
@@ -323,9 +319,23 @@ class KDView extends KDObject
     # @$().show duration
     #@getDomElement()[0].style.display = "block"
 
-  setSize:(sizes)->
-    @setWidth   sizes.width  if sizes.width?
-    @setHeight  sizes.height if sizes.height?
+  setSize: do->
+    counter = 0
+    isPredefinedSize = (size)->
+      # we have predefined classes for 0 to 1000px
+      return !isNaN(size) and (1000 >= size >= 0)
+
+    (sizes)->
+      if sizes.width?
+        if isPredefinedSize sizes.width
+        then @setClass "w#{sizes.width}"
+        else @setWidth sizes.width
+
+      if sizes.height?
+        if isPredefinedSize sizes.height
+        then @setClass "h#{sizes.height}"
+        else @setHeight  sizes.height
+
 
   setPosition:()->
     positionOptions = @getOptions().position
@@ -386,32 +396,30 @@ class KDView extends KDObject
         subView?.destroy?()
 
   addSubView:(subView,selector,shouldPrepend)->
-    unless subView?
-      throw new Error 'no subview was specified'
+    throw new Error 'no subview was specified' unless subView?
 
-    if subView.parent and subView.parent instanceof KDView
-      index = subView.parent.subViews.indexOf subView
-      if index > -1
-        subView.parent.subViews.splice index, 1
+    # this is a performance killer
+    # and we dont know whom it belongs to
+    # let's see if it was really needed -> SY
+
+    # if subView.parent and subView.parent instanceof KDView
+    #   index = subView.parent.subViews.indexOf subView
+    #   if index > -1
+    #     subView.parent.subViews.splice index, 1
 
     @subViews.push subView
-
     subView.setParent @
-
     subView.parentIsInDom = @parentIsInDom
 
     unless subView.lazy
       if shouldPrepend
-        @prepend subView, selector
-      else
-        @append subView, selector
-    else
-      log "lazy view", subView
+      then @prepend subView, selector
+      else @append subView, selector
+    # else log "lazy view", subView
 
     subView.on "ViewResized", => subView.parentDidResize()
 
-    if @template?
-      @template["#{if shouldPrepend then 'prepend' else 'append'}Child"]? subView
+    @template.addSymbol subView  if @template?
 
     return subView
 
@@ -456,20 +464,17 @@ class KDView extends KDObject
         @parent = parent
 
   embedChild:(placeholderId, child, isCustom)->
+
+    @addSubView child, '#'+placeholderId, no
     unless isCustom
-      $child = child.$().attr 'id', child.id
-      @$('#'+placeholderId).replaceWith $child
-    else
-      @$('#'+placeholderId).append(child.$())
-    child.setParent @
-    @subViews.push child
-    child.emit 'viewAppended', child
+      @$('#'+placeholderId).replaceWith child.$()
 
   render:->
     if @template?
       @template.update()
-    # else if 'function' is typeof @partial and data = @getData()
-    #   @updatePartial @partial data
+      return
+    else if 'function' is typeof @partial and data = @getData()
+      @updatePartial @partial data
 
 
 # #

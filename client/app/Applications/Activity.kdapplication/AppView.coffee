@@ -1,4 +1,6 @@
-class ActivityAppView extends JView
+class ActivityAppView extends KDScrollView
+
+  headerHeight = 0
 
   constructor:(options = {}, data)->
 
@@ -7,44 +9,65 @@ class ActivityAppView extends JView
 
     super options, data
 
-    account        = KD.whoami()
-    feedWrapper    = new ActivityListContainer
-    @innerNav      = new ActivityInnerNavigation
+    @listenWindowResize()
 
-    @header = new WelcomeHeader
-      type      : "big"
-      title     : if KD.isLoggedIn() then\
-        "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
-        "Welcome to the Koding Public Beta!<br>"
-      subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
+    entryPoint        = KD.config.groupEntryPoint
+    HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
+    @feedWrapper      = new ActivityListContainer
+    @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
+    @header           = new HomeKonstructor {entryPoint}
+    @widget           = new ActivityUpdateWidget
+    @widgetController = new ActivityUpdateWidgetController view : @widget
+    mainController    = @getSingleton("mainController")
 
-    @split = new ActivitySplitView
-      views     : [@innerNav, feedWrapper]
-      delegate  : @
+    mainController.on "AccountChanged", @bound "decorate"
+    mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
+    @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
-    @widget = new ActivityUpdateWidget
+    @decorate()
+    @setLazyLoader(.99)
 
-    @widget.hide()  unless KD.isLoggedIn()
+    {scrollView} = @feedWrapper.controller
+    @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
+    @header.on "viewAppended", -> headerHeight = @getHeight()
 
-    @widgetController = new ActivityUpdateWidgetController
-      view : @widget
+  decorate:->
+    if KD.isLoggedIn()
+      @setClass 'loggedin'
+      @widget.show()
+      @header.$('.home-links').addClass 'hidden'
+    else
+      @unsetClass 'loggedin'
+      @widget.hide()
+      @header.$('.home-links').removeClass 'hidden'
+    @notifyResizeListeners()
 
-    @getSingleton("mainController").once "AccountChanged", (account)=>
-      @widget[if KD.isLoggedIn() then "show" else "hide"]()
-      @notifyResizeListeners()
+  setFixed:->
+    if @getScrollTop() > headerHeight
+      @setClass "fixed"
+    else
+      @unsetClass "fixed"
 
-    @split.on "ViewResized", =>
-      feedWrapper.setSize @split.getHeight()
+  navigateHome:(itemData)->
 
-    @utils.wait 1000, @notifyResizeListeners.bind @
+    top      = if itemData.pageName is "Home" then 0 else @header.getHeight()
+    duration = 300
 
-    @header.hide()  if localStorage.welcomeMessageClosed
+    @scrollTo {top, duration} if itemData.pageName in ["Home", "Activity"]
+
+  viewAppended: JView::viewAppended
+
+  _windowDidResize:->
+
+    headerHeight = @header.getHeight()
+    @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
   pistachio:->
     """
       {{> @header}}
       {{> @widget}}
-      {{> @split}}
+      {{> @innerNav}}
+      {{> @feedWrapper}}
     """
 
 class ActivityListContainer extends JView
@@ -58,6 +81,8 @@ class ActivityListContainer extends JView
       delegate          : @
       lazyLoadThreshold : .99
       itemClass         : ActivityListItemView
+      # wrapper           : no
+      # scrollView        : no
 
     @listWrapper = @controller.getView()
 
@@ -65,7 +90,7 @@ class ActivityListContainer extends JView
       @getSingleton('activityController').emit "ActivityListControllerReady", @controller
 
   setSize:(newHeight)->
-    @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
+    # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
 
   pistachio:->
     """
