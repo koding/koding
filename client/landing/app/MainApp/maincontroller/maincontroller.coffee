@@ -32,7 +32,6 @@ class MainController extends KDController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
-    KD.registerSingleton "lazyDomController", new LazyDomController
     # KD.registerSingleton "fatih", new Fatih
 
     KD.registerSingleton "linkController", new LinkController
