@@ -10,6 +10,10 @@ class ChatAppController extends AppController
 
     notificationController = KD.getSingleton 'notificationController'
     notificationController.on 'chatRequest', @bound 'handleChatRequest'
+    notificationController.on 'chatRoomOpen', @bound 'handleChatRoomOpen'
+
+  handleChatRoomOpen:({publishingToken, subscriptionToken})->
+
 
   create:(invitees, callback)->
     {JChatConversation} = KD.remote.api
@@ -19,7 +23,7 @@ class ChatAppController extends AppController
       callback null, chatChannel
 
   subscribe:(publicName)->
-    options = { serviceType: 'chat', isP2P: yes }
+    options = { serviceType: 'chat', isP2P: yes, exchange: 'chat' }
     channel = KD.remote.subscribe publicName, options
     channel.on 'message', @bound 'handleChatMessage'
 

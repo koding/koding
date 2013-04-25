@@ -105,10 +105,10 @@ module.exports = class AuthWorker extends EventEmitter
       callbacks : {}
     }
 
-  setSecretName:(routingKey, secretChannelName)->
-    setSecretNameEvent = "#{routingKey}.setSecretName"
-    message = JSON.stringify secretChannelName
-    @bongo.respondToClient setSecretNameEvent, message
+  setSecretNames:(routingKey, publishingName, subscribingName)->
+    setSecretNamesEvent = "#{routingKey}.setSecretNames"
+    message = JSON.stringify { publishingName, subscribingName }
+    @bongo.respondToClient setSecretNamesEvent, message
 
   fetchReroutingExchange:(callback)->
     @bongo.mq.connection.exchange(
@@ -116,6 +116,14 @@ module.exports = class AuthWorker extends EventEmitter
       REROUTING_EXCHANGE_OPTIONS
       callback
     )
+
+  fetchNotificationExchange:(callback)->
+    @bongo.mq.connection.exchange(
+      'notification'
+      REROUTING_EXCHANGE_OPTIONS
+      callback
+    )
+
 
   addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
     suffix = ".#{suffix}"  if suffix.length
@@ -136,6 +144,10 @@ module.exports = class AuthWorker extends EventEmitter
         queue.on 'queueBindOk', ->
           queue.subscribe (message)->
             console.log message.data+''
+
+  notify:(routingKey, notification)->
+    @fetchNotificationExchange (exchange)->
+      exchange.publish routingKey, notification
 
   join: do ->
 
@@ -191,7 +203,7 @@ module.exports = class AuthWorker extends EventEmitter
                         if err or not secretChannelName
                           @rejectClient routingKey
                         else
-                          @setSecretName routingKey, secretChannelName
+                          @setSecretNames routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
@@ -216,12 +228,21 @@ module.exports = class AuthWorker extends EventEmitter
         JName.fetchSecretName name, (err, secretChannelName)=>
           return console.error err  if err
 
-          personalToken = do require 'hat'
+          personalToken = 'pt' + do require 'hat'
 
-          @addBinding 'chat', secretChannelName, personalToken, session.username
+          bindingKey = "client.#{personalToken}"
+
+          {username} = session
+
+          @addBinding 'chat', bindingKey, secretChannelName, username
 
           @_fakePersistenceWorker secretChannelName
-          @setSecretName routingKey, personalToken
+          @notify username, {
+            event         : 'chatOpen'
+            publicName    : routingKey
+            routingKey    : secretChannelName
+            bindingKey
+          }
 
     join =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData

@@ -175,7 +175,7 @@ func publishToBroker(data []byte, routingKey string) {
 		Priority:        0, // 0-9
 	}
 
-	log.Println("publishing data ", string(data))
+	log.Println("publishing data ", string(data), routingKey)
 	err := producer.channel.Publish("broker", routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
