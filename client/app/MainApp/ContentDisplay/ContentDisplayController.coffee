@@ -14,6 +14,7 @@ class ContentDisplayController extends KDController
   showContentDisplay:(view, callback=->)->
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
+      domId : 'content-display-wrapper'
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper

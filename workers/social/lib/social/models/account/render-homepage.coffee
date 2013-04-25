@@ -1,95 +1,212 @@
 
-module.exports = ({profile,skillTags,counts,lastBlogPosts,content})->
+module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
   # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
 
   staticPage ?= {}
   {customize} = staticPage
-
+  {locationTags,meta} = account
   firstName ?= 'Koding'
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
+  console.log account
+  title = "#{firstName} #{lastName}"
+  slug = nickname
+
+  amountOfDays = Math.floor (new Date().getTime()-meta.createdAt)/(1000*60*60*24)
 
   """
+
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{nickname}</title>
+    <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="login" data-profile="#{nickname}">
-    <div class="profile-landing" id='static-landing-page' data-profile="#{nickname}">
+  <body class="group">
 
-    <div class="profile-content-wrapper kdview" id="profile-content-wrapper" #{applyCustomBackground customize}>
-      <div class="profile-title" id="profile-title">
-        <div class="profile-title-wrapper" id="profile-title-wrapper">
-          <div class="profile-admin-customize hidden" id="profile-admin-customize"></div>
-          <div class="profile-admin-message" id="profile-admin-message"></div>
-          <div class="profile-name" id="profile-name"><span id="profile-name-span" class="text">#{getStaticProfileTitle profile}</span></div>
-          <div class="profile-bio" id="profile-bio"><span id="profile-bio-span" class="text">#{getStaticProfileAbout profile}</span></div>
-          <div class="profile-handles">
-            #{getHandleLink 'twitter',handles}
-            #{getHandleLink 'github',handles}
+  <div class="kdview" id="kdmaincontainer">
+    <header class="kdview" id='main-header'>
+      <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+    </header>
+    <section class="kdview" id="main-panel-wrapper">
+      <div class="kdview" id="sidebar-panel">
+        <div class="kdview" id="sidebar">
+          <div id="main-nav">
+            <div class="avatar-placeholder">
+              <div id="avatar-area">
+                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(//api.koding.com/images/defaultavatar/default.avatar.160.png);"></div>
+              </div>
+            </div>
+            <div class="kdview actions">
+              <a class="notifications" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+              <a class="messages" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+              <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
+            </div>
+            <div class="kdview status-leds"></div>
+            <div class="kdview kdlistview kdlistview-navigation">
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected">
+                <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title"><span class="main-nav-icon members"></span>Members</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title"><span class="main-nav-icon groups"></span>Groups</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title"><span class="main-nav-icon develop"></span>Develop</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+                <a class="title"><span class="main-nav-icon apps"></span>Apps</a>
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
+                <hr class="">
+              </div>
+              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+                <a class="title" href="#"><span class="main-nav-icon invite-friends"><span data-paths="quota usage">0</span></span>Invite Friends</a>
+              </div>
+            </div>
+            <div class="kdview kdlistview kdlistview-footer-menu">
+              <div class="kdview kdlistitemview kdlistitemview-default help"><span></span></div>
+              <div class="kdview kdlistitemview kdlistitemview-default about"><span></span></div>
+              <div class="kdview kdlistitemview kdlistitemview-default chat"><span></span></div>
+            </div>
           </div>
+          <div id="finder-panel"></div>
         </div>
       </div>
-      <div class="profile-splitview" id="profile-splitview">
-        <div id="landing-page-sidebar" class="profile-sidebar kdview">
-          <div class="kdview kdlistview kdlistview-navigation" id="profile-static-nav">
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user selected">
-              <button type="button" class="kdbutton editor-button" id='profile-home-button'>
-                <span class="icon hidden"></span>
-                <span class="button-title">Home</span>
-              </button>
-            </div>
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-              <button type="button" class="kdbutton editor-button" id='profile-activity-button'>
-                <span class="icon hidden"></span>
-                <span class="button-title">Activity</span>
-              </button>
-            </div>
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix user">
-              <button type="button" class="kdbutton editor-button" id='profile-about-button'>
-                <span class="icon hidden"></span>
-                <span class="button-title">About</span>
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="kdview" id="content-panel">
+        <div class="kdview kdscrollview kdtabview" id="main-tab-view">
+          <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
+            <div class="kdview content-display-wrapper" id='content-display-wrapper' style="left: 0%;">
+              <div id='member-contentdisplay' class="kdview member content-display">
+                <h2 id='sub-header' class="sub-header">
+                  <a class="" href="#"><span>«</span> Back</a>
+                </h2>
+                <div id='profilearea' class="kdview profilearea clearfix">
+                  <div class="profileleft">
+  <span>
+    <span class="avatarview" style="width: 90px; height: 90px; background-image: url(http://gravatar.com/avatar/#{profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png);"></span>
+  </span>
+  <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader" id="kd-274"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span id="cl_kd-287" class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span>
+  <span class="icon hidden"></span>
+  <span class="button-title">Follow</span>
+</button>
+  <cite class="data" data-paths="profile.nickname" id="el-98">@#{nickname}</cite>
+</div>
 
-        <div class="profile-loading-bar" id="profile-loading-bar"></div>
+  <div class=""></div>
 
-         <div class="profile-content-list #{if customize?.background?.customType in ['defaultColor','customColor'] then 'vignette' else ''}" id="profile-content-list">
-          <div class="profile-content front" id="profile-content" data-count="#{lastBlogPosts.length or 0}">
-            <div class="profile-content-links links-hidden" id="profile-content-links">
-              <h4>Show me</h4>
-              <ul>
-                <!--<li class="" id="CBlogPostActivity">Blog Posts</li>-->
-                <li class="disabled" id="CStatusActivity">Status Updates</li>
-                <li class="disabled" id="CCodeSnipActivity">Code Snippets</li>
-                <li class="disabled" id="CDiscussionActivity">Discussions</li>
-                <li class="disabled" id="CTutorialActivity">Tutorials</li>
-              </ul>
-            </div>
-            #{getBlogPosts(lastBlogPosts,firstName,lastName)}
-            <div id="profile-show-more-wrapper" class="profile-show-more-wrapper hidden">
-             <button id="profile-show-more-button" class="profile-show-more-button kdview clean-gray">Show more</button>
-            </div>
-          </div>
-          <div class="profile-content back" id='back-wrapper'>
-            <div class="profile-config" id='profile-config'>
-            </div>
-           </div>
-        </div>
-
-      <div id="landing-page-logo"></div>
-
+<section>
+  <div class="profileinfo">
+    <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
+    <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{locationTags[0]}</span></div></h4>
+    <h5>
+      <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
+      <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
+    </h5>
+    <div class="profilestats">
+      <div class="fers">
+        <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.followers" id="el-93">#{counts.followers}</span> <span>Followers</span></a>
+      </div>
+      <div class="fing">
+        <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.following" id="el-94">#{counts.following}</span> <span>Following</span></a>
+      </div>
+       <div class="liks">
+        <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes" id="el-95">#{counts.likes}</span> <span>Likes</span></a>
+      </div>
+      <div class="contact">
+        <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-110">#{firstName}</span></a>
       </div>
     </div>
+
+    <div class="profilebio">
+      <p><span class="data" data-paths="profile.about" id="el-107">#{about}</span></p>
+    </div>
+    <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper"><div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
+  </div>
+</section>
+</div>
+<div id='feeder-split-view' class="kdview kdsplitview kdsplitview-vertical" style="height: 955px; width: 1808px;">
+  <div class="kdview kdscrollview kdsplitview-panel panel-0 toggling" style="width: 139px; left: 0px;">
+    <div class="kdview common-inner-nav">
+      <div class="kdview listview-wrapper list">
+        <h4 class="kdview kdheaderview list-group-title">
+          <span>FILTER</span>
+        </h4>
+        <ul class="kdview kdlistview kdlistview-default">
+          <li class="kdview kdlistitemview kdlistitemview-default everything"><a href="#">Everything</a></li>
+          <li class="kdview kdlistitemview kdlistitemview-default statuses"><a href="#">Status Updates</a></li>
+          <li class="kdview kdlistitemview kdlistitemview-default codesnips"><a href="#">Code Snippets</a></li>
+        </ul>
+      </div>
+      <div class="kdview listview-wrapper list">
+        <h4 class="kdview kdheaderview list-group-title"><span>SORT</span></h4>
+          <ul class="kdview kdlistview kdlistview-default">
+            <li class="kdview kdlistitemview kdlistitemview-default sorts.likesCount"><a href="#">Most popular</a></li>
+            <li class="kdview kdlistitemview kdlistitemview-default modifiedAt"><a href="#">Latest activity</a></li>
+            <li class="kdview kdlistitemview kdlistitemview-default sorts.repliesCount"><a href="#">Most activity</a></li>
+          </ul>
+        </div>
+        <div class="kdview help-box">
+          <span></span>
+          <div>
+            <cite class="data" data-paths="title" id="el-112">NEED HELP?</cite>
+            <a href="#"><span class="data" data-paths="subtitle" id="el-113">Learn Personal feed</span></a>
+          </div>
+        </div>
+      </div>
+      <span class="generic-menu-toggler"></span>
+    </div>
+    <div class="kdview kdscrollview kdsplitview-panel panel-1 extra-wide" style="width: 1669px; left: 139px;">
+      <div class="kdview feeder-tabs kdtabview">
+        <div class="kdview kdtabhandlecontainer hide-close-icons hidden">
+          <div class="kdtabhandle active" style="max-width: 128px;">
+            <span class="close-tab"></span>
+            <b>everything</b>
+          </div>
+          <div class="kdtabhandle" style="max-width: 128px;">
+            <span class="close-tab"></span>
+              <b>statuses</b>
+          </div>
+          <div class="kdtabhandle" style="max-width: 128px;">
+            <span class="close-tab"></span>
+            <b>codesnips</b>
+          </div>
+        </div>
+        <div class="kdview kdtabpaneview everything clearfix active">
+          <header class="kdview feeder-header clearfix"><p>Everything</p> <span></span></header>
+          <div class="kdview listview-wrapper" style="height: 1246px;">
+            <div class="kdview kdscrollview">
+              <div class="kdview kdlistview kdlistview-everything activity-related"></div>
+              <div class="lazy-loader">
+                Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;">
+                <span id="cl_kd-341" class="canvas-loader" style="display: block;">
+                  <canvas width="16" height="16"></canvas>
+                  <canvas style="display: none;" width="16" height="16"></canvas>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kdview kdtabpaneview statuses clearfix kdhiddentab">
+        <header class="kdview feeder-header clearfix"><p>Status Updates</p> <span></span></header><div class="kdview listview-wrapper" style="height: 1246px;"><div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-statuses activity-related"></div><div class="lazy-loader">Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-343" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span></div></div></div></div><div class="kdview kdtabpaneview codesnips clearfix kdhiddentab"><header class="kdview feeder-header clearfix"><p>Code Snippets</p> <span></span></header><div class="kdview listview-wrapper" style="height: 1246px;"><div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-codesnips activity-related"></div><div class="lazy-loader">Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-345" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span></div></div></div></div></div></div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
     #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
     #{getScripts()}
-    </div>
   </body>
   </html>
   """
