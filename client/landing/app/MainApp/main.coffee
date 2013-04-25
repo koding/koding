@@ -17,28 +17,36 @@ do ->
   #   connectionSetNotification?.destroy()
   #   connectionSetNotification = null
 
-  destroyModal = (reconnected = no)->
+  destroyModal = (reconnected=no, reason="")->
     connectionLostModal?.destroy()
     destroyNotification()
+
+    text =
+      silentlyReconnected : "Welcome back!"
+      reconnected         : "Server connection has been reset, you can continue working."
+      disconnected        : "Server connection has been lost, changes will not be saved until server reconnects, please back up locally."
+
+    reason = text[reason] or text["reconnected"]
+
     if reconnected isnt no
       new KDNotificationView
         title         : "Reconnected"
         type          : "tray"
-        content       : "Server connection has been reset, you can continue working."
+        content       : reason
         duration      : 3000
     else
       connectionLostNotification = new KDNotificationView
         title         : "Trying to reconnect..."
         type          : "tray"
         closeManually : no
-        content       : "Server connection has been lost, changes will not be saved until server reconnects, please back up locally."
+        content       : reason
         duration      : 0
       connectionLostModal = null
 
-  disconnectionText = (reason) ->
-    text = {}
-    text.internetDown = "Your internet connection is down.<br/><br/>"
-    text.kodingDown = "Sorry, our servers are down temporarily..<br/><br/>"
+  disconnectionText = (reason)->
+    text =
+      internetDown : "Your internet connection is down.<br/><br/>"
+      kodingDown   : "Sorry, our servers are down temporarily..<br/><br/>"
 
     return text[reason] or "Something went wrong."
 
@@ -60,9 +68,19 @@ do ->
           style     : "modal-clean-red"
           callback  : ->
             manuallyClosed = yes
-            destroyModal()
+            destroyModal(no, "disconnected")
 
-    connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal()
+    connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal(no, "disconnected")
+
+  # Unintrusive notification; used when user clicks 'Refresh' on activity feed
+  # and we reconnect in the background if no connection.
+  notifySilentReconnection = ->
+    notification = new KDNotificationView
+      title     : "<span></span>Welcome Back"
+      type      : "tray"
+      cssClass  : "mini realtime"
+      duration  : 3303
+      click     : noop
 
   ###
   # CONNECTIVITY EVENTS
@@ -78,13 +96,18 @@ do ->
   status.on 'connected', ->
     log 'kd remote connected'
 
-  status.on 'reconnected', ->
+  status.on 'reconnected', (reason, showModalNotification=yes)->
     log 'kd remote re-connected'
-    destroyModal yes
 
-  status.on 'disconnected', (reason) ->
-    # to avoid modal to appear on page refresh
-    __utils.wait 500, showModal(reason)
+    if showModalNotification
+      destroyModal yes, showModalNotification
+    else
+      notifySilentReconnection()
+
+  status.on 'disconnected', (reason, showModalNotification=yes) ->
+    if showModalNotification
+      # to avoid modal to appear on page refresh
+      __utils.wait 500, showModal(reason)
 
   KD.remote.connect()
 

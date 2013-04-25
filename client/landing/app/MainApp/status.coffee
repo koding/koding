@@ -25,8 +25,11 @@ class Status extends KDController
     if "boolean" is typeof options
       options = autoReconnect : options
 
+    log "status", options
+
     autoReconnect = options.autoReconnect
-    @reason = options.reason
+    @reason       = options.reason
+    @showModal    = options.showModal
 
     @remote.disconnect(autoReconnect)
     @disconnected()
@@ -39,7 +42,7 @@ class Status extends KDController
       @emit "connected"
     else
       @state = RECONNECTED
-      @emit "reconnected"
+      @emit "reconnected", @reason, @showModal
       @startPingingKites()
 
   startPingingKites: ->
@@ -52,7 +55,7 @@ class Status extends KDController
     @stopPingingKites()
     @connectionState = DOWN
     @state = DISCONNECTED
-    @emit "disconnected", @reason
+    @emit "disconnected", @reason, @showModal
 
   stopPingingKites: ->
     @eachKite (channel)->
