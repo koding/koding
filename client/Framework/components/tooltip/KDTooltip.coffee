@@ -17,11 +17,7 @@ class KDTooltip extends KDView
 
   constructor:(options,data)->
 
-    # options = $.extend {}, options,
-    #   bind     : "mouseenter mouseleave"
-
-    options.bind        or= "mouseenter mouseleave"
-    options.sessionKey  or= ""
+    options.bind  or= "mouseenter mouseleave"
 
     super options, data
 
