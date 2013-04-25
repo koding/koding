@@ -100,7 +100,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount block device to overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
@@ -173,9 +173,10 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
-	// Add a static route so it is redistributed by BGP
+
+	// add a static route so it is redistributed by BGP
 	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-		return out, err
+		panic(commandError("adding route failed.", err, out))
 	}
 }
 
@@ -199,6 +200,11 @@ func (vm *VM) Unprepare() error {
 		}
 	}
 
+	// remove the static route so it is no longer redistribed by BGP
+	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		firstError = commandError("removing route failed.", err, out)
+	}
+
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
@@ -211,10 +217,6 @@ func (vm *VM) Unprepare() error {
 	}
 	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("rbd unmap failed.", err, out)
-	}
-	// Remove the static route so it is no longer redistribed by BGP
-	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-		return out, err
 	}
 
 	// remove VM directory

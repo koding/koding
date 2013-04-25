@@ -131,12 +131,10 @@ class ApplicationManager extends KDObject
 
     return warn "ApplicationManager::tell called without an app name!"  unless name
 
-    log "::: Telling #{command} to #{name}"
+    # log "::: Telling #{command} to #{name}"
 
     app = @get name
-    cb  = (appInstance)->
-      log command, rest
-      appInstance?[command]? rest...
+    cb  = (appInstance)-> appInstance?[command]? rest...
 
     if app then cb app
     else @create name, cb
@@ -260,7 +258,6 @@ class ApplicationManager extends KDObject
         forms               :
           openWith          :
             callback        : (formOutput)->
-              log formOutput, "openWith ::::::"
               modal.destroy()
               {index, openNew} = formOutput
               callback index, openNew

@@ -1,17 +1,10 @@
 module.exports = [
   # --- Libraries ---
-  # "libs/pusher.min.js",
   "libs/encode.js",
   "libs/docwritenoop.js",
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
-  # "libs/highlight.pack.js",
-  # "libs/jquery-1.7.1.js",
-  # "libs/jquery-1.7.1.min.js",
-  # "libs/jquery-ui-1.8.16.custom.min.js",
-  # "libs/three.js" ==> added for testplay, please dont delete,
-  # "libs/jquery-emit.js",
 
   # --- Framework ---
   "libs/sockjs-0.3-patched.js",
@@ -179,11 +172,8 @@ module.exports = [
   "app/CommonViews/CommonListHeader.coffee",
   "app/CommonViews/CommonInnerNavigation.coffee",
   "app/CommonViews/headers.coffee",
-  # "app/CommonViews/logo.coffee",
   "app/CommonViews/HelpBox.coffee",
   "app/CommonViews/KeyboardHelper.coffee",
-  "app/CommonViews/mainnavigation/navigationactivitylink.coffee",
-  "app/CommonViews/Navigation.coffee",
   "app/CommonViews/VerifyPINModal.coffee",
 
   "app/CommonViews/followbutton.coffee",
@@ -231,7 +221,6 @@ module.exports = [
 
   "app/CommonViews/introductiontooltip.coffee",
 
-  # "app/MainApp/foreign_auth.coffee",
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
@@ -241,6 +230,14 @@ module.exports = [
   "app/MainApp/sidebar/footermenuitem.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
+
+  "app/MainApp/navigation/navigationcontroller.coffee",
+  "app/MainApp/navigation/navigationlist.coffee",
+  "app/MainApp/navigation/navigationlink.coffee",
+  "app/MainApp/navigation/navigationseparator.coffee",
+  "app/MainApp/navigation/navigationadminlink.coffee",
+  "app/MainApp/navigation/navigationinvitationlink.coffee",
+  "app/MainApp/navigation/navigationactivitylink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -323,59 +320,39 @@ module.exports = [
   # "app/MainApp/bottompanels/chat/chatuseritem.coffee",
   # "app/MainApp/bottompanels/terminal/terminalpanel.coffee",
 
-  "app/MainApp/maincontroller/mainview.coffee",
+  "app/MainApp/maincontroller/mainviews/mainview.coffee",
+  "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
   "app/MainApp/localstorage.coffee",
-  "app/MainApp/lazy/lazydomcontroller.coffee",
-  "app/MainApp/lazy/staticprofilecontroller.coffee",
-  "app/MainApp/lazy/staticprofileconfigviews.coffee",
-  "app/MainApp/lazy/staticprofileaboutview.coffee",
-  "app/MainApp/lazy/staticuserbuttonbar.coffee",
-  "app/MainApp/lazy/staticgroupcontroller.coffee",
-  "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
+
+
+  # got rid of static controllers
+
+  # "app/MainApp/lazy/lazydomcontroller.coffee",
+  # "app/MainApp/lazy/staticprofilecontroller.coffee",
+  # "app/MainApp/lazy/staticprofileconfigviews.coffee",
+  # "app/MainApp/lazy/staticprofileaboutview.coffee",
+  # "app/MainApp/lazy/staticuserbuttonbar.coffee",
+  # "app/MainApp/lazy/staticgroupcontroller.coffee",
+  # "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
 
   # these are libraries, but adding it here so they are minified properly
   # minifying jquery breaks the code.
 
 
-#  "libs/jquery-hashchange.js",
   "libs/jquery-timeago.js",
   "libs/date.format.js",
   "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
-  # "libs/keypress.js",
   "libs/mousetrap.js",
-  # "libs/jquery.wmd.js",
-  # "libs/jquery.fieldselection.js",
-  # "libs/jquery.multiselect.min.js",
-  # "libs/log4js.js",
-  # "libs/jsonh.js",
   "libs/md5-min.js",
-  # "libs/frogaloop.min.js",
-
-  # "libs/bootstrap-twipsy.js",
-  # "libs/jquery.tipsy.js",
   "libs/async.js",
   "libs/jquery.mousewheel.js",
-  # "libs/mwheelIntent.js",
-  # "libs/underscore.js",
   "libs/inflector.js",
   "libs/canvas-loader.js",
-
   "libs/marked.js",
-  # "libs/google-code-prettify/prettify.js",
-  # "libs/less.min.js",
-
-  # "libs/xml2json.js",
-  # "libs/ZeroClipboard.js",
-
   "app/Helpers/jspath.coffee",
-
-  # "app/Helpers/Command.coffee",
-  # "app/Helpers/FileEmitter.coffee",
-  # "app/Helpers/polyfills.coffee",
-  # "app/Helpers/CommandParser.coffee",
 
   # --- Applications ---
   "app/MainApp/channels/kitechannel.coffee",
@@ -495,13 +472,13 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
 
  # Static Profile List Items
-  "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
+  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
+  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -544,14 +521,13 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
-  "app/MainApp/lazy/staticprofilecustomizeview.coffee",
+  # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
-  "app/Applications/Apps.kdapplication/AppController.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee",
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
@@ -610,8 +586,11 @@ module.exports = [
 
   # HOME VIEWS
   "app/Applications/Home.kdapplication/AppView.coffee",
-  "app/Applications/Home.kdapplication/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
+  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
+  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
+  "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
 
@@ -680,7 +659,6 @@ module.exports = [
   # --- Styles ---
   "css/style.css",
   "css/highlight-styles/sunburst.css",
-  # "css/tipsy.css",
 
   "Framework/themes/default/kdfn.styl",
   "stylus/appfn.styl",
@@ -695,13 +673,13 @@ module.exports = [
   "Framework/themes/default/kd.modal.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
-  # "stylus/kd.tiptip.styl" => discarded,
 
   "stylus/app.styl",
   "stylus/app.landing.styl",
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
+  "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
