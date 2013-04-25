@@ -100,7 +100,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount block device to overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
