@@ -101,11 +101,14 @@ class ActivityAppController extends AppController
       @setFilter data.type
       @populateActivity()
 
-    @listController.on "scrolledToTopOfPage", =>
-      return if @isLoading
+    # SA: commenting it out since
+    #     1. ui isn't implemeneted,
+    #     2. if the latet item can't be revived, this gets duplicate entries
+    #@listController.on "scrolledToTopOfPage", =>
+      #return if @isLoading
 
-      log "scrolled_up fetching activities"
-      @fetchSomeActivities()
+      #log "scrolled_up fetching activities"
+      #@fetchSomeActivities()
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
