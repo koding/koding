@@ -26,6 +26,8 @@ type Worker struct {
 	Timestamp time.Time `json:"timestamp"`
 	Pid       int       `json:"pid"`
 	State     string    `json:"state"`
+	Uptime    int       `json:"uptime"`
+	Port      int       `json:"port"`
 }
 
 type Workers []Worker
@@ -486,6 +488,8 @@ func queryResult(query bson.M) Workers {
 			worker.Timestamp,
 			worker.Pid,
 			StatusCode[worker.Status],
+			worker.Monitor.Uptime,
+			worker.Port,
 		}
 
 		workers = append(workers, *apiWorker)
