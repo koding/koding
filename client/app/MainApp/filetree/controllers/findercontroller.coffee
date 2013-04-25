@@ -101,6 +101,8 @@ class NFinderController extends KDViewController
 
       kiteFailureTimer = @utils.wait 5000, =>
         unless @treeLoaded
+          KD.logToExternal "SharedHosting fetching files failed"
+
           msg = "Couldn't fetch files! Click to retry"
           @treeController.notify msg, 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
           log msg+" fired from initial kiteFailureTimer"

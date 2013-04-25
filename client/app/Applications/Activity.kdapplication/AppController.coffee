@@ -44,8 +44,12 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-    status = @getSingleton "status"
-    status.on "reconnected", @bound "fetchSomeActivities"
+    @status = @getSingleton "status"
+    @status.on "reconnected", (reason)=>
+      if reason is "internetDownForLongTime"
+        @refresh()
+      else
+        @fetchSomeActivities()
 
   bringToFront:()->
 
@@ -56,11 +60,12 @@ class ActivityAppController extends AppController
       ac = @getSingleton('activityController')
       ac.once "ActivityListControllerReady", @populateActivity.bind @
 
-  resetList:->
+  resetAll:->
 
     delete @lastTo
     delete @lastFrom
 
+    @listController.resetList()
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -83,6 +88,7 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
+    activityController.on 'Refresh', @bound "refresh"
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
@@ -91,9 +97,15 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-      @resetList()
+      @resetAll()
       @setFilter data.type
       @populateActivity()
+
+    @listController.on "scrolledToTopOfPage", =>
+      return if @isLoading
+
+      log "scrolled_up fetching activities"
+      @fetchSomeActivities()
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -112,7 +124,25 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
-  populateActivity:(options = {})->
+  # Refreshes activity feed, used when user has been disconnected
+  # for so long, backend connection is long gone.
+  refresh:->
+
+    # prevents multiple clicks to refresh from interfering
+    return if @isLoading
+
+    @resetAll()
+    @populateActivity {},\
+      KD.utils.getTimedOutCallback (err, items)->
+        log 'refreshing activity feed'
+      , =>
+        # set in populateActivity, but if that fails, this
+        # is never unset, therefore will block further clicks
+        @isLoading = no
+        @status.disconnect(showModal:false)
+      , 5000
+
+  populateActivity:(options = {}, callback)->
 
     return if @isLoading
     @isLoading = yes
@@ -126,6 +156,8 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
+          callback? err, teasers
+
           @isLoading = no
           @listController.hideLazyLoader()
           if err or teasers.length is 0
@@ -137,6 +169,8 @@ class ActivityAppController extends AppController
 
       else
         @fetchCachedActivity options, (err, cache)=>
+          callback? err, cache
+
           @isLoading = no
           if err or cache.length is 0
             warn err
@@ -176,14 +210,20 @@ class ActivityAppController extends AppController
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
-  # Fetches activities that occur when user is disconnected.
+  # Fetches activities that occured after the first entry in user feed,
+  # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
 
+    return if @isLoading
+    @isLoading = yes
+
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
+    unless lastItemCreatedAt? or lastItemCreatedAt is ""
+      @isLoading = no
+      return
 
     selector       =
       createdAt    :
-        $lte       : new Date
         $gt        : options.createdAt or lastItemCreatedAt
       type         : { $in : options.facets or @getFilter() }
       isLowQuality : { $ne : options.exempt or no }
@@ -193,16 +233,21 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.some selector, options, (err, activities) =>
-      if err then warn err
-      else
-        # FIXME: SY
-        # if it is exact 20 there may be other items
-        # put a separator and check for new items in between
-        if activities.length is 20
-          warn "put a separator in between new and old activities"
+    KD.remote.api.CActivity.some selector, options,\
+      KD.utils.getTimedOutCallback (err, activities) =>
+        if err then warn err
+        else
+          # FIXME: SY
+          # if it is exact 20 there may be other items
+          # put a separator and check for new items in between
+          if activities.length is 20
+            warn "put a separator in between new and old activities"
 
-        @activitiesArrived activities.reverse()
+          @activitiesArrived activities.reverse()
+          @isLoading = no
+      , =>
+        @isLoading = no
+        log "fetchSomeActivities timeout reached"
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -288,4 +333,3 @@ class ActivityAppController extends AppController
           if err then callback err
           else
             callback instances
-
