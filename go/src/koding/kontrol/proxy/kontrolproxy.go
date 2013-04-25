@@ -51,12 +51,7 @@ func main() {
 	log.Println("register command is send. waiting for response from kontrold...")
 	go handleInput(amqpStream.input, amqpStream.uuid)
 
-	select {
-	case <-time.After(time.Second * 15):
-		log.Fatalf("ERROR: no repsonse received from kontrold, aborting process.")
-		os.Exit(1)
-	case <-start: // wait until we got message from kontrold or exit via above chan
-	}
+	<-start // wait until we got message from kontrold or exit via above chan
 
 	reverseProxy := NewSingleHostReverseProxy()
 	http.Handle("/", reverseProxy)
