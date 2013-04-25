@@ -122,14 +122,7 @@ class MainView extends KDView
     @sidebarPanel.addSubView @sidebar
 
   createChatPanel:->
-    @chatPanel = new ChatContactListView
-      cssClass : 'main-chat-panel'
-
-    @chatController = new ChatContactListController
-      view : @chatPanel
-
-    @chatController.loadItems()
-    @addSubView @chatPanel
+    @addSubView @chatPanel = new MainChatPanel
 
   getMainSettingsMenuButton:->
     new KDButtonView

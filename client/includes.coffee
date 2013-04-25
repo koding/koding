@@ -409,6 +409,7 @@ module.exports = [
   "app/Applications/Chat.kdapplication/Views/chatcontactlistview.coffee",
   "app/Applications/Chat.kdapplication/Views/chatcontactlistitem.coffee",
   "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",

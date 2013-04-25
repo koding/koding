@@ -25,8 +25,8 @@ class MainViewController extends KDViewController
       book = mainView.addBook()
       book.fillPage index
 
-    mainController.on "ShowChatPanel", =>
-      mainView.chatPanel.toggleClass 'visible'
+    mainController.on "ToggleChatPanel", =>
+      mainView.chatPanel.toggle()
 
   loadView:(mainView)->
 
