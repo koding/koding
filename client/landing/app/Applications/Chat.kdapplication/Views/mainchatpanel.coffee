@@ -6,13 +6,13 @@ class MainChatPanel extends JView
 
     @registerSingleton "chatPanel", @, yes
 
-    @contactList = new ChatContactListView
-    @contactListController = new ChatContactListController
-      view : @contactList
+    @conversationList = new ChatConversationListView
+    @conversationListController = new ChatConversationListController
+      view : @conversationList
 
   viewAppended:->
-    @addSubView @contactList
-    @contactListController.loadItems()
+    @addSubView @conversationList
+    @conversationListController.loadItems()
 
   show:->
     @setClass 'visible'
