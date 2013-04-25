@@ -87,7 +87,7 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
         </div>
 
-        <div id="content-display-wrapper-#{nickname}" class="kdview content-display-wrapper in">
+        <div id="content-display-wrapper" class="kdview content-display-wrapper in">
             <div id="member-contentdisplay" class="kdview member content-display">
                 <h2 class="sub-header" id='members-sub-header'>
                     <a id='members-back-link' class="" href="#"><span>«</span> Back</a>
@@ -109,7 +109,7 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
                   <section>
                     <div class="profileinfo">
                       <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
-                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{locationTags[0]}</span></div></h4>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{locationTags[0] if locationTags}</span></div></h4>
                       <h5>
                         <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
