@@ -32,5 +32,5 @@ class ChatAppController extends AppController
     chatChannel = @subscribe publicName
 
     console.log {chatChannel}
-  
+
   handleChatMessage:-> console.log arguments
