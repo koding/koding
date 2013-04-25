@@ -11,7 +11,7 @@ class ContentDisplayController extends KDController
     @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
     KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
-  showContentDisplay:(view, callback=->)->
+  showContentDisplay:(view)->
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
       domId : 'content-display-wrapper'
@@ -19,7 +19,7 @@ class ContentDisplayController extends KDController
     wrapper.addSubView view
     contentPanel.addSubView wrapper
     @slideWrapperIn wrapper
-    callback wrapper
+    return wrapper
 
   hideContentDisplay:(view)-> history.back()
 
