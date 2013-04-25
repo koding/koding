@@ -405,7 +405,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	// After creating a processes, the process sends a new "update" message with
 	// child pid, a new uuid and his new status.
 	result := MsgWorker{}
-	err := w.Collection.Find(bson.M{"name": worker.Name, "hostname": worker.Hostname}).One(&result)
+	err := w.Collection.Find(bson.M{"uuid": worker.Uuid, "hostname": worker.Hostname}).One(&result)
 	if err != nil {
 		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
 	}

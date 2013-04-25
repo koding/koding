@@ -183,7 +183,7 @@ task 'guestCleanup',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      startMode     : "force"
+      startMode     : "many"
       nodeProcess   : yes
     verbose         : yes
 

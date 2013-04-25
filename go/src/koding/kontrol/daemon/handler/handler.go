@@ -532,6 +532,16 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		return worker, nil // contains first.start or added.before
 	case "many":
+		log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
+			worker.Name,
+			worker.Hostname,
+			worker.Uuid)
+
+		worker.Message.Result = "added.now"
+		worker.Status = workerconfig.Running
+		log.Printf("'add' worker '%s' with pid: '%d'", worker.Name, worker.Pid)
+		kontrolConfig.AddWorker(worker)
+		return worker, nil //
 	default:
 		return worker, errors.New("no option specified for add action. aborting add handler...")
 	}
