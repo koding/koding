@@ -21,11 +21,12 @@ class MainViewController extends KDViewController
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
 
-
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
 
+    mainController.on "ToggleChatPanel", =>
+      mainView.chatPanel.toggle()
 
   loadView:(mainView)->
 

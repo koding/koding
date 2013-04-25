@@ -51,11 +51,11 @@ class MainTabView extends KDTabView
 
     @showPane pane
 
-  showHandleContainer:()->
+  showHandleContainer:->
     @tabHandleContainer.$().css top : -25
     @handlesHidden = no
 
-  hideHandleContainer:()->
+  hideHandleContainer:->
     @tabHandleContainer.$().css top : 0
     @handlesHidden = yes
 
