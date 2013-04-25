@@ -17,9 +17,5 @@ class DemosAppController extends AppController
     mainView.addSubView new KDHeaderView
       title : 'Demo App'
 
-    chatListView   = new ChatContactListView
-    chatController = new ChatContactListController
-      view : chatListView
-    chatController.loadItems()
-
-    mainView.addSubView chatListView
+    mainView.addSubView new KDCustomHTMLView
+      partial : 'Hello World!'

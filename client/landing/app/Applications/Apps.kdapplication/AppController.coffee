@@ -109,15 +109,15 @@ class AppsAppController extends AppController
     @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"
 
   createContentDisplay:(app, callback)->
-    controller = @showContentDisplay app
-    @utils.defer => callback controller
+    contentDisplay = @showContentDisplay app
+    @utils.defer => callback contentDisplay
 
-  showContentDisplay:(content, callback=->)->
+  showContentDisplay:(content)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
+    return contentDisplay
 
   putAddAnAppButton:->
     {facetsController} = @feedController

@@ -53,6 +53,17 @@ class ChatContactListItem extends KDListItemView
 
     @conversation = new ChatConversationWidget @
     @conversation.on 'click', @conversation.bound 'takeFocus'
+
+    @conversation.messageInput.on 'moveUpRequested', =>
+      itemIndex = @getDelegate().getItemIndex @
+      @getDelegate().emit 'moveToIndexRequested', @, itemIndex - 1
+      @conversation.messageInput.setFocus()
+
+    @conversation.messageInput.on 'moveDownRequested', =>
+      itemIndex = @getDelegate().getItemIndex @
+      @getDelegate().emit 'moveToIndexRequested', @, itemIndex + 1
+      @conversation.messageInput.setFocus()
+
     @conversationWasOpen = no
     @addSubView @conversation
 
