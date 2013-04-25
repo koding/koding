@@ -28,7 +28,7 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
 
   <div class="kdview" id="kdmaincontainer">
     <header class="kdview" id='main-header'>
-      <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+      <a id="koding-logo" href="#"><span></span></a>
     </header>
     <section class="kdview" id="main-panel-wrapper">
       <div class="kdview" id="sidebar-panel">
@@ -83,64 +83,58 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
           <div id="finder-panel"></div>
         </div>
       </div>
-      <div class="kdview" id="content-panel">
+      <div class="kdview social" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
         </div>
 
-        <div id="content-display-wrapper-#{nickname}" class="kdview content-display-wrapper" style='left:0%'>
+        <div id="content-display-wrapper-#{nickname}" class="kdview content-display-wrapper in">
             <div id="member-contentdisplay" class="kdview member content-display">
                 <h2 class="sub-header" id='members-sub-header'>
                     <a id='members-back-link' class="" href="#"><span>«</span> Back</a>
                 </h2>
                 <div id="profilearea" class="kdview profilearea clearfix">
-                    <div class="profileleft">
-                        <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader" id="kd-1208"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span id="cl_kd-1221" class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span> <span class="button-title">Follow</span></button> <cite class="data" data-paths="profile.nickname" id="el-600">@sinan</cite>
-                    </div>
-                    <div class=""></div>
-                    <section>
-                        <div class="profileinfo">
-                            <h3 class="profilename">
-                                <span class="data" data-paths="profile.firstName" id="el-602">シナ ン</span> <span class="data" data-paths="profile.lastName" id="el-603">ヤッサ</span>
-                            </h3>
-                            <div class="kdview">
-                                <h4 class="profilelocation">
-                                    <span class="data" data-paths="locationTags" id="el-611">Osaka</span>
-                                </h4>
-                            </div>
-                            <h5>
-                                <a class="user-home-link" href="http://sinan.koding.com" target="_blank">sinan.koding.com</a> <cite>member for 15820 days.</cite>
-                            </h5>
-                            <div class="profilestats">
-                                <div class="fers">
-                                    <a class="kdview" href="#"><span class="data" data-paths="counts.followers" id="el-595">22</span> <span>Followers</span></a>
-                                </div>
-                                <div class="fing">
-                                    <a class="kdview" href="#"><span class="data" data-paths="counts.following" id="el-596">43</span> <span>Following</span></a>
-                                </div>
-                                <div class="liks">
-                                    <a class="kdview" href="#"><span class="data" data-paths="counts.likes" id="el-597">137</span> <span>Likes</span></a>
-                                </div>
-                                <div class="contact">
-                                    <a class="" href="#"><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-612">シナ ン</span></a>
-                                </div>
-                            </div>
-                            <div class="profilebio">
-                                <p>
-                                    <span class="data" data-paths="profile.about" id="el-609">domo arigato.</span>
-                                </p>
-                            </div>
-                            <div class="skilltags">
-                                <label>SKILLS</label>
-                                <div class="tag-group">
-                                    <div class="kdview listview-wrapper">
-                                        <div class="kdview kdscrollview">
-                                            <div class="kdview kdlistview kdlistview-default skilltag-cloud"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                  <div class="profileleft">
+                    <span>
+                      <span class="avatarview" style="width: 90px; height: 90px; background-image: url(http://gravatar.com/avatar/#{profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png);"></span>
+                    </span>
+                    <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader" id="kd-274"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span id="cl_kd-287" class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span>
+                      <span class="icon hidden"></span>
+                      <span class="button-title">Follow</span>
+                    </button>
+                    <cite class="data" data-paths="profile.nickname" id="el-98">@#{nickname}</cite>
+                  </div>
+
+                  <div class=""></div>
+
+                  <section>
+                    <div class="profileinfo">
+                      <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{locationTags[0]}</span></div></h4>
+                      <h5>
+                        <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
+                        <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
+                      </h5>
+                      <div class="profilestats">
+                        <div class="fers">
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.followers" id="el-93">#{counts.followers}</span> <span>Followers</span></a>
                         </div>
-                    </section>
+                        <div class="fing">
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.following" id="el-94">#{counts.following}</span> <span>Following</span></a>
+                        </div>
+                         <div class="liks">
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes" id="el-95">#{counts.likes}</span> <span>Likes</span></a>
+                        </div>
+                        <div class="contact">
+                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-110">#{firstName}</span></a>
+                        </div>
+                      </div>
+
+                      <div class="profilebio">
+                        <p><span class="data" data-paths="profile.about" id="el-107">#{about}</span></p>
+                      </div>
+                      <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper"><div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
+                    </div>
+                  </section>
                 </div>
                 <div class="kdview kdsplitview kdsplitview-vertical lazy" style="height: 925px; width: 692px;">
                     <div class="kdview kdscrollview kdsplitview-panel panel-0 toggling" style="width: 139px; left: 0px;">
@@ -402,13 +396,9 @@ getScripts =->
 
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require([
-      "order!/js/libs/jquery-1.8.2.min.js",
-      "order!/js/underscore-min.1.3.js",
-      "order!/js/libs/highlight.pack.js",
-      "order!/js/kd.#{KONFIG.version}.js",
-    ]);
+    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
   </script>
+
 
   <script type="text/javascript">
     var _gaq = _gaq || [];

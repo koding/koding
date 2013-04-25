@@ -4,6 +4,7 @@ class ContentDisplayController extends KDController
     super
     @displays = {}
     @attachListeners()
+    @revivedContentDisplay = no
 
   attachListeners:->
     @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
@@ -15,11 +16,13 @@ class ContentDisplayController extends KDController
     entryPoint = KD.config.profileEntryPoint
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
-      domId : "content-display-wrapper-#{entryPoint}" if entryPoint
+      domId : "content-display-wrapper-#{entryPoint}" if entryPoint and view.domId is 'member-contentdisplay' and not @revivedContentDisplay
+    wrapper.bindTransitionEnd()
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper
     @slideWrapperIn wrapper
+    @revivedContentDisplay = yes
     return wrapper
 
   hideContentDisplay:(view)-> history.back()
@@ -40,12 +43,14 @@ class ContentDisplayController extends KDController
     @slideWrapperOut @displays[lastId]
 
   slideWrapperIn:(wrapper)->
-    wrapper.$().animate left : "0%",200
+    wrapper.setClass 'in'
+    # wrapper.$().animate left : "0%",200
 
   slideWrapperOut:(view)->
     wrapper = view.parent
-    wrapper.$().animate left : "100%",100,=>
-      @destroyView view
+    wrapper.once 'transitionend', => @destroyView view
+    wrapper.unsetClass 'in'
+    # wrapper.$().animate left : "100%",100,=>
 
   destroyView:(view)->
     wrapper = view.parent

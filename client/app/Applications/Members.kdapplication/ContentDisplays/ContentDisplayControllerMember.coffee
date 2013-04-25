@@ -7,16 +7,17 @@ class ContentDisplayControllerMember extends KDViewController
         domId : 'member-contentdisplay'
     ,options
     super options, data
+    @revivedContentDisplay = no
 
   loadView:(mainView)->
     member = @getData()
     mainView.addSubView subHeader = new KDCustomHTMLView
       tagName   : "h2"
       cssClass  : 'sub-header'
-      domId     : 'members-sub-header'
+      domId     : 'members-sub-header' unless @revivedContentDisplay
 
     subHeader.addSubView backLink = new KDCustomHTMLView
-      domId   : 'members-back-link'
+      domId   : 'members-back-link' unless @revivedContentDisplay
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)->
@@ -51,18 +52,25 @@ class ContentDisplayControllerMember extends KDViewController
     @addProfileView member
     @addActivityView member
 
+    @utils.wait 500, => @revivedContentDisplay = yes
+
+
   addProfileView:(member)->
 
     if KD.isMine member
 
-      @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
+      @getView().addSubView memberProfile = new OwnProfileView
+        cssClass : "profilearea clearfix"
+        delegate : @getView()
+        domId    : 'profilearea' unless @revivedContentDisplay
+      , member
       return memberProfile
 
     else
       return @getView().addSubView memberProfile = new ProfileView
         cssClass : "profilearea clearfix"
         bind     : "mouseenter"
-        domId    : 'profilearea'
+        domId    : 'profilearea' unless @revivedContentDisplay
         delegate : @getView()
       , member
 
@@ -88,10 +96,10 @@ class ContentDisplayControllerMember extends KDViewController
 
   addActivityView:(account)->
 
-    @$('div.lazy').remove()
+    @getView().$('div.lazy').remove()
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
-      domId                 : 'members-feeder-split-view'
+      domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
