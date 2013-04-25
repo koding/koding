@@ -15,7 +15,6 @@ class GroupReadmeView extends JView
       cssClass        : ' loader-text'
 
     @readmeView       = new KDView
-      cssClass        : 'data'
       partial         : '<p>Loading Readme</p>'
 
     @readmeInput      = new KDInputViewWithPreview
@@ -115,7 +114,7 @@ class GroupReadmeView extends JView
       {{> @readmeSaveButton}}
     </div>
     {{> @readmeInput}}
-    <p class="body no-scroll has-markdown">
+    <figure class="has-markdown">
       {{> @readmeView}}
-    </p>
+    </figure>
     """
