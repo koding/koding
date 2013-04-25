@@ -100,7 +100,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount block device to overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
@@ -173,6 +173,11 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
 	}
+
+	// add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		panic(commandError("adding route failed.", err, out))
+	}
 }
 
 func (vm *VM) Unprepare() error {
@@ -193,6 +198,11 @@ func (vm *VM) Unprepare() error {
 		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
 			firstError = commandError("ebtables rule deletion failed.", err, out)
 		}
+	}
+
+	// remove the static route so it is no longer redistribed by BGP
+	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		firstError = commandError("removing route failed.", err, out)
 	}
 
 	// unmount and unmap everything
