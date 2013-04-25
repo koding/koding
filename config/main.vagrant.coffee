@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+mongo           = '10.5.5.2/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -12,13 +12,13 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://10.5.5.2"
+    address     : "http://localhost"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
@@ -28,8 +28,8 @@ module.exports =
   runGoBroker   : yes
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : yes
-  runProxy      : yes
+  runOsKite     : no
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -82,18 +82,18 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://10.5.5.2'
+    staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://10.5.5.2:8008/subscribe'
+        sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://10.5.5.2'
+      mainUri   : 'http://localhost'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://10.5.5.2:1337'
+      sourceUri : 'http://localhost:1337'
   mq            :
     host        : '10.5.5.2'
     port        : 5672
@@ -113,7 +113,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : '10.5.5.2'
+    host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :

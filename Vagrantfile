@@ -65,8 +65,8 @@ Vagrant.configure("2") do |config|
     config.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
     config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
   else
-    config.vm.box = "ubuntu1304-64-1.0"
-    config.vm.box_url = "http://d1vrbmdcyl9zrp.cloudfront.net/ubuntu1304-64-1.0.box"
+    config.vm.box = "koding-1"
+    config.vm.box_url = "http://salt-master.in.koding.com:54623/koding-1.box"
   end
 
   config.vm.network :private_network, :ip => "10.5.5.2"

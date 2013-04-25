@@ -44,13 +44,23 @@ compileGoBinaries = (configFile,callback)->
   compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
   if compileGo
     processes.spawn
-      name: 'build'
+      name: 'build go'
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
       verbose : yes
       onExit :->
-        callback null
+        if configFile == "vagrant"
+          processes.spawn
+            name: 'build go in vagrant'
+            cmd : 'vagrant ssh --command "/opt/koding/go/build.sh bin-vagrant"'
+            stdout : process.stdout
+            stderr : process.stderr
+            verbose : yes
+            onExit :->
+              callback null
+        else
+          callback null
   else
     callback null
 
