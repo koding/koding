@@ -4,8 +4,9 @@ class IntroductionTooltip extends KDObject
 
     super options, data
 
-    @setData @getIntroData() unless @getData() # we just know the intro view and should find the data, called from viewAppended
-    return unless @getData() # we know introId but we have no JIntroSnippet for this view, should return
+    introData = @getData() or @getIntroData() # make sure we have the data
+    return unless introData # we know introId but we have no JIntroSnippet for this view, should return
+    @setData introData unless @getData() # we just know the intro view and should find the data, called from viewAppended
 
     {@introId} = @getData() # we have an intro view and data for this view, go on!
     @storage   = @getSingleton("mainController").introductionTooltipStatusStorage # to store tooltip status
@@ -36,7 +37,7 @@ class IntroductionTooltip extends KDObject
     {introSnippets} = @getSingleton "mainController"
     ourSnippet = null
     for key, snippet of introSnippets
-      if @getOptions().parentView.getOptions().introId is snippet.introId
+      if @getOptions().parentView?.getOptions().introId is snippet.introId
         ourSnippet = snippet
     return ourSnippet
 
