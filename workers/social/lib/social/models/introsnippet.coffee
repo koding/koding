@@ -36,8 +36,7 @@ module.exports = class JIntroSnippet extends jraphical.Module
 
   @fetchAll = secure (client, callback) ->
     JIntroSnippet.some {}, {}, (err, records) ->
-      return callback err if err
-      callback records
+      callback? err, records
 
   @checkPermission = (client) ->
     {globalFlags}  = client.connection.delegate

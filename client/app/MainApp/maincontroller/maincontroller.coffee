@@ -80,7 +80,7 @@ class MainController extends KDController
 
         @emit 'AppIsReady'
         @emit 'FrameworkIsReady'
-        @fetchIntroTooltipData()
+        @setUpIntroTooltips()
         @appIsReady = yes
 
   accountReady:(fn)->
@@ -242,11 +242,17 @@ class MainController extends KDController
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
           @utils.wait 2500, -> modal?.destroy()
 
-  fetchIntroTooltipData: ->
-    KD.remote.api.JIntroSnippet.fetchAll (err, snippets) ->
+  # TODO: maybe we should move tooltip related methods to a controller file
+  setUpIntroTooltips: ->
+    KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
       return log err if err # TODO: error handling
-      # should create tooltip instance for each snippet
 
-  initIntroTooltip: (view) ->
-    return if not @introSnippets or not view
-    # should create tooltip instance for this view
+      # TODO: Ask Mr. Sinan for such a long name since it's 4KB.
+      @introductionTooltipStatusStorage = new AppStorage "IntroductionTooltipStatus"
+      @introductionTooltipStatusStorage.fetchStorage (storage) =>
+        @introSnippets = snippets
+        new IntroductionTooltip {}, snippet for snippet, key in @introSnippets
+
+  initIntroTooltip: (parentView) ->
+    return if not @introSnippets or not parentView or
+    new IntroductionTooltip { parentView }
