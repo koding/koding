@@ -11,8 +11,6 @@ class FeedController extends KDViewController
     options.onboarding    or= null
     options.domId         or= ''
 
-    log options.domId, 'is domId'
-
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
       itemClass     : options.itemClass
