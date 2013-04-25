@@ -141,6 +141,11 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :

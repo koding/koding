@@ -18,7 +18,7 @@ type Consumer struct {
 }
 
 func init() {
-	log.SetPrefix("kontrold ")
+	log.SetPrefix("kontrol-daemon ")
 }
 
 func main() {

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"koding/kontrol/daemon/workerconfig"
 	"koding/kontrol/proxy/proxyconfig"
+	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
@@ -83,6 +84,8 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
+	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
+
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
@@ -108,9 +111,10 @@ func main() {
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
 
-	log.Println("kontrol-api started")
+	log.Printf("kontrol api is started. serving at :%s ...", port)
+
 	http.Handle("/", rout)
-	err = http.ListenAndServe(":80", nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Println(err)
 	}

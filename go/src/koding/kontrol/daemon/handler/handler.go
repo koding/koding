@@ -61,7 +61,7 @@ var webapiProducer *Producer
 var clientProducer *Producer
 
 func init() {
-	log.SetPrefix("kontrold-handler ")
+	log.SetPrefix("kontrol-daemonhandler ")
 }
 
 func NewProducer(name string) *Producer {

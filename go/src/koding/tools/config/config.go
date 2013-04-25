@@ -43,6 +43,13 @@ type Config struct {
 		Interval int
 	}
 	Kontrold struct {
+		Api struct {
+			Port int
+		}
+		Proxy struct {
+			Port    int
+			PortSSL int
+		}
 		Mongo struct {
 			Host string
 		}
@@ -63,18 +70,11 @@ var Current Config
 var LogDebug bool
 var Verbose bool
 
-var HttpPort string
-var HttpsPort string
-
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.BoolVar(&Verbose, "v", false, "Enable verbose mode")
-
-	// proxy-handler
-	flag.StringVar(&HttpPort, "port", "80", "Change local serving http port")
-	flag.StringVar(&HttpsPort, "portSSL", "443", "Change local serving https port")
 
 	flag.Parse()
 	if flag.NArg() != 0 {

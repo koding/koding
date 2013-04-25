@@ -13,13 +13,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
 func init() {
-	log.SetPrefix("fujin ")
+	log.SetPrefix("kontrol-proxy ")
 }
 
 type IncomingMessage struct {
@@ -61,17 +62,20 @@ func main() {
 	http.Handle("/", reverseProxy)
 
 	// start one with goroutine in order not to block the other one
+	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+
 	go func() {
-		err = http.ListenAndServeTLS(":"+config.HttpsPort, "cert.pem", "key.pem", nil)
+		err = http.ListenAndServeTLS(":"+portssl, "cert.pem", "key.pem", nil)
 		if err != nil {
 			log.Println("https mode is disabled. please add cert.pem and key.pem files.")
 		} else {
-			log.Printf("https mode is enabled. serving at :%s ...", config.HttpsPort)
+			log.Printf("https mode is enabled. serving at :%s ...", portssl)
 		}
 	}()
 
-	log.Printf("normal mode is enabled. serving at :%s ...", config.HttpPort)
-	err = http.ListenAndServe(":"+config.HttpPort, nil)
+	log.Printf("normal mode is enabled. serving at :%s ...", port)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Println(err)
 	}

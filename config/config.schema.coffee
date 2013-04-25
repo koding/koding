@@ -164,6 +164,11 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      api           :
+        port        : 1
+      proxy         :
+        port        : 1
+        portssl     : 1
       mongo         :
         host        : 1
       rabbitmq      :
