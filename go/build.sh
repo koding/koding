@@ -15,7 +15,7 @@ services=(
 	koding/alice
 	koding/kontrol/daemon
 	koding/kontrol/api
-	koding/fujin
+	koding/kontrol/proxy
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

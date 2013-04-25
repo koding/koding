@@ -3,7 +3,7 @@ package proxy
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/fujin/proxyconfig"
+	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"log"

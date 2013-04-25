@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io"
-	"koding/fujin/proxyconfig"
+	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/config"
 	"log"
 	"net"
