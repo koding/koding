@@ -10,8 +10,13 @@ class ContentDisplayControllerMember extends KDViewController
 
   loadView:(mainView)->
     member = @getData()
-    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'#, domId : 'sub-header'
+    mainView.addSubView subHeader = new KDCustomHTMLView
+      tagName   : "h2"
+      cssClass  : 'sub-header'
+      domId     : 'members-sub-header'
+
     subHeader.addSubView backLink = new KDCustomHTMLView
+      domId   : 'members-back-link'
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)->
@@ -43,8 +48,8 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView contentDisplayController._updateController.updateWidget
 
-    memberProfile = @addProfileView member
-    memberStream  = @addActivityView member
+    @addProfileView member
+    @addActivityView member
 
   addProfileView:(member)->
 
@@ -83,8 +88,11 @@ class ContentDisplayControllerMember extends KDViewController
 
   addActivityView:(account)->
 
+    @$('div.lazy').remove()
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
-      itemClass          : ActivityListItemView
+      domId                 : 'members-feeder-split-view'
+      itemClass             : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
