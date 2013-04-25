@@ -16,10 +16,10 @@ class ChatConversationWidget extends JView
     @messageInput.on 'goDownRequested', =>
       item.getDelegate().goDown item
 
-    @conversationList = new ChatConversationListView
-      itemClass : ChatConversationListItem
+    @conversationList = new ChatMessageListView
+      itemClass : ChatMessageListItem
 
-    @conversationController = new ChatConversationListController
+    @conversationController = new ChatMessageListController
       view : @conversationList
 
   toggle:->

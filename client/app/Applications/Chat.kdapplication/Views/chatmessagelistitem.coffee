@@ -1,4 +1,4 @@
-class ChatConversationListItem extends KDListItemView
+class ChatMessageListItem extends KDListItemView
 
   constructor:(options = {},data)->
 
