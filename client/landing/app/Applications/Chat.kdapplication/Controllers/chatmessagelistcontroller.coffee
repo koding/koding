@@ -1,0 +1,1 @@
+class ChatMessageListController extends CommonChatController

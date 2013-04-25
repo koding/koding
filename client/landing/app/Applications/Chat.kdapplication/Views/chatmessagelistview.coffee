@@ -1,4 +1,4 @@
-class ChatConversationListView extends KDListView
+class ChatMessageListView extends KDListView
 
   constructor:(options = {}, data)->
 
