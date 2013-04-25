@@ -4,12 +4,13 @@ class ContentDisplayControllerMember extends KDViewController
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
+        domId : 'member-contentdisplay'
     ,options
     super options, data
 
   loadView:(mainView)->
     member = @getData()
-    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
+    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'#, domId : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
@@ -56,6 +57,7 @@ class ContentDisplayControllerMember extends KDViewController
       return @getView().addSubView memberProfile = new ProfileView
         cssClass : "profilearea clearfix"
         bind     : "mouseenter"
+        domId    : 'profilearea'
         delegate : @getView()
       , member
 

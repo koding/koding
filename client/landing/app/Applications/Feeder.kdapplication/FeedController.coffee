@@ -27,6 +27,7 @@ class FeedController extends KDViewController
         delegate  : @
 
       options.view or= new FeederSplitView
+        domId   : 'feeder-split-view'
         views   : [
           @facetsController.getView()
           @resultsController.getView()
@@ -141,15 +142,15 @@ class FeedController extends KDViewController
       partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
     @noItemFound.hide()
 
-  # this is a temporary solution for a bug that 
+  # this is a temporary solution for a bug that
   # bongo returns correct result set in a wrong order
   sortByKey : (array, key) ->
     array.sort (first, second) ->
       firstVar  = JsPath.getAt first,  key
       secondVar = JsPath.getAt second, key
       #quick sort-ware
-      if (firstVar < secondVar) then return 1 
-      else if (firstVar > secondVar) then return -1 
+      if (firstVar < secondVar) then return 1
+      else if (firstVar > secondVar) then return -1
       else return 0
 
 
