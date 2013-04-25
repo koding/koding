@@ -452,7 +452,8 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	// 	return worker, errors.New("Worker is not in approved host before")
 	// }
 
-	if option == "force" {
+	switch option {
+	case "force":
 		log.Println("force option is enabled.")
 
 		// First kill and delete all alive workers for the same name type.
@@ -475,11 +476,10 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		kontrolConfig.AddWorker(worker)
 
 		return worker, nil
-
-	} else {
+	case "one":
 		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
 		// If there is no other workers of same name(type) on the same hostname than add it immediadetly ...
-		log.Printf("for '%s' workers allowed: %d, workers available: %d",
+		log.Printf("'%s' workers allowed: %d, workers available: %d",
 			worker.Name,
 			worker.Number,
 			availableWorkers)
@@ -492,15 +492,12 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			return worker, nil
 		}
 
-		log.Printf("a worker of the type '%s' is already registered. Checking for status...", worker.Name)
-
+		log.Printf("a worker with the name '%s' is already registered. checking for status...", worker.Name)
 		err := kontrolConfig.RefreshStatusAll()
 		if err != nil {
 			log.Println("couldn't refresh data", err)
 		}
 
-		// First kill and delete all alive workers for the same name type.
-		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
 		iter := kontrolConfig.Collection.Find(bson.M{
 			"name":     worker.Name,
 			"hostname": worker.Hostname,
@@ -516,7 +513,8 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		for iter.Next(&result) {
 			kontrolConfig.DeleteWorker(result.Uuid)
 
-			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
+			log.Printf("worker with the name '%s' is not alive anymore. permission grant to run", worker.Name)
+			log.Printf("adding new worker '%s' on hostname '%s' with uuid '%s' as started",
 				worker.Name,
 				worker.Hostname,
 				worker.Uuid)
@@ -528,11 +526,14 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		}
 
 		if !gotPermission {
-			log.Printf("another worker is already workerconfig.Running. No permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
+			log.Printf("another worker is already running. No permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
 			worker.Message.Result = "added.before"
 		}
 
 		return worker, nil // contains first.start or added.before
+	case "many":
+	default:
+		return worker, errors.New("no option specified for add action. aborting add handler...")
 	}
 
 	return worker, errors.New("couldn't add any worker")

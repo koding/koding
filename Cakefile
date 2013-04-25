@@ -81,6 +81,7 @@ task 'webserver', ({configFile}) ->
       restartInterval   : 100
       kontrol           :
         enabled         : yes
+        startMode       : "many"
         registerToProxy : yes
         port            : port
 
@@ -121,7 +122,7 @@ task 'socialWorker', ({configFile}) ->
       restartInterval : 100
       kontrol         :
         enabled       : yes
-        forceStart    : yes
+        startMode     : "force"
         nodeProcess   : yes
       # onMessage: (msg) ->
       #   if msg.exiting
@@ -158,7 +159,7 @@ task 'authWorker',({configFile}) ->
       restartInterval : 1000
       kontrol         :
         enabled       : yes
-        forceStart    : yes
+        startMode     : "force"
         nodeProcess   : yes
       verbose         : yes
 
@@ -182,7 +183,7 @@ task 'guestCleanup',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      forceStart    : yes
+      startMode     : "force"
       nodeProcess   : yes
     verbose         : yes
 
@@ -195,6 +196,7 @@ task 'emailWorker',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
+      startMode     : "one"
       nodeProcess   : yes
     verbose         : yes
 
@@ -235,6 +237,7 @@ task 'goBroker',(options)->
     stderr            : process.stderr
     kontrol           :
       enabled         : yes
+      startMode       : "many"
       registerToProxy : yes
       port            : broker.port
     verbose           : yes
@@ -270,7 +273,7 @@ task 'libratoWorker',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      forceStart    : yes
+      startMode     : "force"
     verbose         : yes
 
 task 'cacheWorker',({configFile})->
@@ -284,7 +287,7 @@ task 'cacheWorker',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      forceStart    : yes
+      startMode     : "force"
       nodeProcess   : yes
 
   if cacheWorker.watch is yes
