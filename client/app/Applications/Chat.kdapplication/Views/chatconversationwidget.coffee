@@ -8,7 +8,7 @@ class ChatConversationWidget extends JView
 
     @messageInput = new ChatInputWidget
     @messageInput.on 'messageSent', (message)=>
-      @conversationController.addItem {message}
+      @chatMessageController.addItem {message}
 
     @messageInput.on 'goUpRequested', =>
       item.getDelegate().goUp item
@@ -16,11 +16,11 @@ class ChatConversationWidget extends JView
     @messageInput.on 'goDownRequested', =>
       item.getDelegate().goDown item
 
-    @conversationList = new ChatMessageListView
+    @chatMessageList = new ChatMessageListView
       itemClass : ChatMessageListItem
 
-    @conversationController = new ChatMessageListController
-      view : @conversationList
+    @chatMessageController = new ChatMessageListController
+      view : @chatMessageList
 
   toggle:->
     @toggleClass 'ready'
@@ -40,6 +40,6 @@ class ChatConversationWidget extends JView
 
   pistachio:->
     """
-      {{> @conversationList}}
+      {{> @chatMessageList}}
       {{> @messageInput}}
     """
