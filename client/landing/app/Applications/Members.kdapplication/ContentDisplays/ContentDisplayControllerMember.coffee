@@ -1,13 +1,15 @@
 class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
+
+    {@revivedContentDisplay} = @getSingleton("contentDisplayController")
+
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
-        domId : 'member-contentdisplay'
+        domId : 'member-contentdisplay' unless @revivedContentDisplay
     ,options
     super options, data
-    @revivedContentDisplay = no
 
   loadView:(mainView)->
     member = @getData()
@@ -52,11 +54,7 @@ class ContentDisplayControllerMember extends KDViewController
     @addProfileView member
     @addActivityView member
 
-    @utils.wait 500, => @revivedContentDisplay = yes
-
-
   addProfileView:(member)->
-
     if KD.isMine member
 
       @getView().addSubView memberProfile = new OwnProfileView

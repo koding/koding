@@ -13,10 +13,9 @@ class ContentDisplayController extends KDController
     KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
   showContentDisplay:(view)->
-    entryPoint = KD.config.profileEntryPoint
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
-      domId : "content-display-wrapper-#{entryPoint}" if entryPoint and view.domId is 'member-contentdisplay' and not @revivedContentDisplay
+      domId : "content-display-wrapper" if not @revivedContentDisplay
     wrapper.bindTransitionEnd()
     @displays[view.id] = view
     wrapper.addSubView view
