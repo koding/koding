@@ -526,7 +526,6 @@ module.exports = [
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
-  "app/Applications/Apps.kdapplication/AppController.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee",
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
@@ -678,6 +677,7 @@ module.exports = [
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
+  "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
