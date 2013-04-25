@@ -2,7 +2,7 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, kontrold} = KONFIG
 
 {loggedInPage, loggedOutPage} = require './staticpages'
 
@@ -54,6 +54,8 @@ koding.connect ->
       incService serviceKey, -1
 
 {extend} = require 'underscore'
+os       = require "os"
+amqp     = require 'amqp'
 express  = require 'express'
 Broker   = require 'broker'
 request  = require 'request'
