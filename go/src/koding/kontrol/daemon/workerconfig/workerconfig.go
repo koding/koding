@@ -434,20 +434,6 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 		return fmt.Errorf("ack method error '%s'", err)
 	}
 
-	// if config.Verbose {
-	// 	log.Printf(" remote worker '%s' on '%s' with pid: %d is alive", workerResult.Name, workerResult.Hostname, workerResult.Pid)
-	// }
-
-	// FIXME:
-	// if workerResult.Cmd == "" {
-	// 	for name, prop := range processConfig {
-	// 		if name == worker.Name {
-	// 			log.Printf("updating worker cmd: %+v", worker)
-	// 			workerResult.Cmd = prop.Cmd
-	// 		}
-	// 	}
-	// }
-
 	workerResult.Message.Result = "alive"
 	workerResult.Message.Command = "acked.now" //Not used by anyone, future...
 	workerResult.Timestamp = worker.Timestamp
