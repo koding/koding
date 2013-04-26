@@ -43,24 +43,18 @@ do ->
         duration      : 0
       connectionLostModal = null
 
-  disconnectionText = (reason)->
-    text =
-      internetDown : "Your internet connection is down.<br/><br/>"
-      kodingDown   : "Sorry, our servers are down temporarily..<br/><br/>"
-
-    return text[reason] or "Something went wrong."
-
   showModal = (reason) ->
     return if connectionLostModal or manuallyClosed
     destroyNotification()
     connectionLostModal = new KDBlockingModalView
-      title   : disconnectionText(reason)
+      title   : "Server connection lost"
       content : """
-      <div class='modalformline'>
-        If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-        <span class='small-loader fade in'></span> Trying to reconnect...
-      </div>
-      """
+        <div class='modalformline'>
+          Your internet connection may be down, or our server is.<br/><br/>
+          If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
+          <span class='small-loader fade in'></span> Trying to reconnect...
+        </div>
+        """
       height  : "auto"
       overlay : yes
       buttons :
@@ -68,7 +62,7 @@ do ->
           style     : "modal-clean-red"
           callback  : ->
             manuallyClosed = yes
-            destroyModal(no, "disconnected")
+            destroyModal()
 
     connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal(no, "disconnected")
 
