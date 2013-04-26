@@ -1,4 +1,4 @@
-class Kite extends KDEventEmitter
+class Kite extends KDObject
 
   [ NOTREADY, READY ] = [ 0, 1 ]
 
@@ -14,19 +14,20 @@ class Kite extends KDEventEmitter
     @localStore   = new Store
     @remoteStore  = new Store
 
-    @entropy = @createId 128
-
     @readyState = NOTREADY
 
   createId: Bongo.createId
 
   initChannel: ->
-    @channelName = @getChannelName()
+    @entropy        = @createId 128
+    @qualifiedName  = "kite-#{@kiteName}"
+
+    @channelName  = @getChannelName()
 
     @channel = KD.remote.mq.subscribe @channelName
     @channel.setAuthenticationInfo
       serviceType       : 'kite'
-      name              : "kite-#{@kiteName}"
+      name              : @qualifiedName
       correlationName   : @correlationName
       clientId          : KD.remote.getSessionToken()
 
@@ -40,7 +41,9 @@ class Kite extends KDEventEmitter
     @channel.on 'publish'               , @bound 'handleChannelPublish'
     @channel.on 'possibleUnresponsive'  , @bound 'handleSuspectChannel'
     @channel.on 'unresponsive'          , @bound 'handleUnresponsiveChannel'
-    @channel.once 'broker.subscribed'   , @bound 'handleBrokerSubscribed'
+
+  handleBrokerSubscribed:->
+
 
   cycleChannel: ->
     @setStopPinging()
@@ -50,11 +53,12 @@ class Kite extends KDEventEmitter
     @emit 'destroy'
 
   pingChannel: (callback) ->
+    return if @stopPinging
     @channel.publish JSON.stringify
       method      : 'ping'
       arguments   : []
       callbacks   : {}
-    @once 'pong', callback  if callback
+    @channel.once 'pong', callback  if callback
 
   setStartPinging: -> @stopPinging = false
 
@@ -66,7 +70,7 @@ class Kite extends KDEventEmitter
     @unresponded = 0
 
     @pingTimeoutId = setTimeout =>
-      @ping()
+      @pingChannel()
     , 5000
 
   handleChannelMessage: (args) ->
@@ -79,10 +83,8 @@ class Kite extends KDEventEmitter
       when 'pong'             then @bound 'handlePong'
       when 'cycleChannel'     then @bound 'cycleChannel'
       else (@localStore.get method) ? ->
-
-    @unscrubbed = @unscrub args
     
-    callback.apply this, unscrubbed
+    callback.apply this, @unscrub args
 
   handleChannelPublish: ->
     clearTimeout @pingTimeoutId           if @pingTimeoutId?
@@ -109,8 +111,9 @@ class Kite extends KDEventEmitter
     return KD.utils.defer callback  if @readyState is READY
     @once 'ready', callback
 
-  handleReady: ->
+  handleReady: (resourceName)->
     @readyState = READY
+    @channel.exchange = resourceName
     @emit 'ready'
 
   handleError: (err) ->
@@ -133,7 +136,7 @@ class Kite extends KDEventEmitter
       scrubbed.method or= method
       callback scrubbed
 
-  unscrub:->
+  unscrub: (args) ->
     scrubber = new Scrubber @localStore
     return scrubber.unscrub args, (callbackId) =>
       unless remoteStore.has callbackId
@@ -146,7 +149,7 @@ class Kite extends KDEventEmitter
     nickname  = delegate?.profile.nickname ?
                 if delegate.guestId then "guest#{delegate.guestId}" ?
                 'unknown'
-    channelName = "#{@entropy}.#{nickname}.#{@kiteName}"
+    channelName = "#{@entropy}.#{nickname}.#{@qualifiedName}"
     return channelName
 
   tell:(options, callback) ->
