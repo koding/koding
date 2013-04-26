@@ -91,7 +91,7 @@ class MainController extends KDController
     @accountReadyState       = 1
     connectedState.connected = yes
 
-    @emit "AccountChanged", account, firstLoad
+    @accountReady @emit.bind @, "AccountChanged", account, firstLoad
 
     unless @mainViewController
 
