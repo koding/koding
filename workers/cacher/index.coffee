@@ -17,9 +17,13 @@ koding = new Bongo {
   mq           : new Broker mqOptions
   resourceName : cacheWorker.queueName
   models       : '../social/lib/social/models'
-}
+}  
 
-{JActivityCache, CActivity} = koding.models
+REROUTING_EXCHANGE_OPTIONS = 
+  type        : 'fanout'
+  autoDelete  : yes
+
+{JActivityCache, CActivity, JName, JSecretName} = koding.models
 
 do ->
 
@@ -43,15 +47,31 @@ do ->
 
     {connection} = koding.mq
 
-    connection.exchange 'broker', {type:'topic', autoDelete:no}, (exchange)->
-      connection.queue '', {exclusive: yes, autoDelete: yes}, (queue)->
-        queue.bind exchange, 'constructor.CActivity.event.#'
-        queue.on 'queueBindOk', ->
-          queue.subscribe (message, headers, deliveryInfo)->
-            eventName = deliveryInfo.routingKey.split('.').pop()
-            payload = koding.revive message
-            payload = [payload]  unless Array.isArray payload
-            emitter.emit eventName, payload...
+    JName.one name:'koding', (err, name)->
+      return console.error err if err
+      JSecretName.one name:name._id, (err, secretName)->
+        return console.error err if err
+        routingKey = "cacheWorker.#{secretName.secretName}"
+        # notify rerouter
+        connection.exchange 'routing-control', REROUTING_EXCHANGE_OPTIONS, (exchange)->
+          controlMessage =
+            exchange   : 'cacheWorker'
+            bindingKey : 'koding'
+            routingKey : routingKey
+          # we make sure that there is no other rerouter running
+          exchange.publish 'auth.leave', controlMessage
+          exchange.publish 'auth.join', controlMessage
+          exchange.close()
+
+        connection.exchange 'broker', {type:'topic', autoDelete:no}, (exchange)->
+          connection.queue '', {exclusive:yes, autoDelete:yes}, (queue)->
+            queue.bind exchange, routingKey
+            queue.on 'queueBindOk', ->
+              queue.subscribe (message)->
+                message   = JSON.parse koding.mq.cleanPayload message
+                payload   = koding.revive message.contents
+                payload   = [payload] unless Array.isArray payload
+                emitter.emit message.event, payload...
 
     emitter.on "ActivityIsCreated", (activity)->
       if not cachingInProgress\
@@ -60,7 +80,7 @@ do ->
         JActivityCache.init()
 
     emitter.on "PostIsDeleted", JActivityCache.removeActivity.bind JActivityCache
-    emitter.on "post-updated", (teaser)->
+    emitter.on "PostIsUpdated", (teaser)->
       {teaserId, createdAt} = teaser
       createdAt = (new Date createdAt).getTime()
       JActivityCache.modifyByTeaser {teaserId, createdAt}

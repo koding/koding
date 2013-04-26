@@ -271,3 +271,14 @@ module.exports = class CActivity extends jraphical.Capsule
           likedIds.push likedRel.sourceId
 
         callback err, likedIds
+
+  notifyCache = (event, contents)->
+    console.log event, contents
+    routingKey = @group or 'koding'
+    @emit 'cacheWorker', {routingKey, event, contents}
+
+  @on 'ActivityIsCreated', notifyCache.bind this, 'ActivityIsCreated'
+  @on 'PostIsUpdated',     notifyCache.bind this, 'PostIsUpdated'
+  @on 'PostIsDeleted',     notifyCache.bind this, 'PostIsDeleted'
+  @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
+  @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'

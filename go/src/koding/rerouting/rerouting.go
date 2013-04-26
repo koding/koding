@@ -31,14 +31,12 @@ type LeaveMsg struct {
 }
 
 var authPairs map[string]JoinMsg
-var exchanges map[string]bool
 var producer *Producer
 
 func main() {
 	log.Println("routing worker started")
 
 	authPairs = make(map[string]JoinMsg)
-	exchanges = make(map[string]bool)
 
 	var err error
 	producer, err = createProducer()
@@ -111,12 +109,11 @@ func startRouting() {
 			}
 
 			// delete user from the authPairs map and cancel it from consuming
-			delete(authPairs, leave.RoutingKey)
-
 			err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
 			if err != nil {
 				log.Fatal("basic.cancel: %s", err)
 			}
+			delete(authPairs, leave.RoutingKey)
 
 		default:
 			log.Println("routing key is not defined: ", msg.RoutingKey)
@@ -125,11 +122,8 @@ func startRouting() {
 }
 
 func declareExchange(c *Consumer, exchange string) {
-	if !exchanges[exchange] {
-		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
-			log.Fatal("exchange.declare: %s", err)
-		}
-		exchanges[exchange] = true
+	if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
+		log.Fatal("exchange.declare: %s", err)
 	}
 }
 
@@ -149,7 +143,7 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 		log.Fatal("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume("", "", true, false, false, false, nil)
+	messages, err := c.channel.Consume("", bindingKey, true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}

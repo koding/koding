@@ -467,7 +467,7 @@ module.exports = class JPost extends jraphical.Message
     super
 
   triggerCache:->
-    CActivity.emit "post-updated",
+    CActivity.emit "PostIsUpdated",
       teaserId  : @getId()
       createdAt : @meta.createdAt
 
