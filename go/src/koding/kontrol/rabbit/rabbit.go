@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/streadway/amqp"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -19,9 +20,16 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
+var producer *Producer
+
 func main() {
 	log.Println("kontrol rabbitproxy started")
 
+	var err error
+	producer, err = createProducer()
+	if err != nil {
+		log.Println(err)
+	}
 	startRouting()
 }
 
@@ -65,13 +73,13 @@ func startRouting() {
 		log.Fatal("queue.bind: %s", err)
 	}
 
-	authStream, err := c.channel.Consume("", "", true, false, false, false, nil)
+	httpStream, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
 
 	log.Println("routing started...")
-	for msg := range authStream {
+	for msg := range httpStream {
 		log.Printf("got %dB message data: [%v]-[%s] %s",
 			len(msg.Body),
 			msg.DeliveryTag,
@@ -84,8 +92,68 @@ func startRouting() {
 		if err != nil {
 			log.Println(err)
 		}
+		req.RequestURI = ""
 
-		log.Println("Request is", req)
+		log.Println("Doing a http request")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Println(err)
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println("Response is", string(body))
+
+		go publishToClient(body, "remote.key")
 
 	}
+}
+
+func publishToClient(data []byte, routingKey string) {
+	msg := amqp.Publishing{
+		Headers:         amqp.Table{},
+		ContentType:     "text/plain",
+		ContentEncoding: "",
+		Body:            data,
+		DeliveryMode:    1, // 1=non-persistent, 2=persistent
+		Priority:        0, // 0-9
+	}
+
+	log.Println("publishing data ", string(data), routingKey)
+	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
+	if err != nil {
+		log.Printf("error while publishing proxy message: %s", err)
+	}
+
+}
+
+func createProducer() (*Producer, error) {
+	p := &Producer{
+		conn:    nil,
+		channel: nil,
+	}
+
+	log.Printf("creating publisher connections")
+	var err error
+	user := "guest"
+	password := "guest"
+	host := "localhost"
+	port := "5672"
+
+	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
+	p.conn, err = amqp.Dial(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p.channel, err = p.conn.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return p, nil
 }
