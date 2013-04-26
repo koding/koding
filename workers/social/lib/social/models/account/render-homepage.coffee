@@ -1,5 +1,5 @@
 
-module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
+module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
 
@@ -10,7 +10,6 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
-  console.log account
   title = "#{firstName} #{lastName}"
   slug = nickname
 
@@ -83,7 +82,7 @@ module.exports = ({account,profile,skillTags,counts,lastBlogPosts,content})->
           <div id="finder-panel"></div>
         </div>
       </div>
-      <div class="kdview social" id="content-panel">
+      <div class="kdview #{if isLoggedIn then 'social' else 'full'}" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
         </div>
 
