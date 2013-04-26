@@ -43,7 +43,8 @@ class ActivityAppView extends KDScrollView
     @_windowDidResize()
 
   setFixed:->
-    pre = if @getScrollTop() > headerHeight then "set" else "unset"
+    {groupEntryPoint:entryPoint} = KD.config
+    pre = if @getScrollTop() > headerHeight and not entryPoint then "set" else "unset"
     @["#{pre}Class"] "fixed"
 
   navigateHome:(itemData)->
