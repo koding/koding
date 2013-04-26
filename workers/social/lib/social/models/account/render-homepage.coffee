@@ -135,7 +135,8 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
                     </div>
                   </section>
                 </div>
-                <div class="kdview kdsplitview kdsplitview-vertical lazy" style="height: 925px; width: 692px;">
+                #{if not isLoggedIn then addHomeLinkBar() else ''}
+                <div class="kdview kdsplitview kdsplitview-vertical lazy" style="height: 100%; width: 100%;">
                     <div class="kdview kdscrollview kdsplitview-panel panel-0 toggling" style="width: 139px; left: 0px;">
                         <div class="kdview common-inner-nav">
                             <div class="kdview listview-wrapper list">
@@ -177,7 +178,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
                             </div>
                         </div>
                     </div>
-                    <div class="kdview kdscrollview kdsplitview-panel panel-1 narrow" style="width: 553px; left: 139px;">
+                    <div class="kdview kdscrollview kdsplitview-panel panel-1 narrow" style="width: 100%; left: 139px;">
                         <div class="kdview feeder-tabs kdtabview">
                             <div class="kdview kdtabhandlecontainer hide-close-icons hidden">
                                 <div class="kdtabhandle active" style="max-width: 128px;">
@@ -196,41 +197,11 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
                                         Everything
                                     </p>
                                 </header>
-                                <div class="kdview listview-wrapper" style="height: 1237px;">
+                                <div class="kdview listview-wrapper" style="height: 100%;">
                                     <div class="kdview kdscrollview">
                                         <div class="kdview kdlistview kdlistview-everything activity-related"></div>
                                         <div class="lazy-loader">
                                             Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-1275" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="kdview kdtabpaneview statuses clearfix kdhiddentab">
-                                <header class="kdview feeder-header clearfix">
-                                    <p>
-                                        Status Updates
-                                    </p>
-                                </header>
-                                <div class="kdview listview-wrapper" style="height: 1237px;">
-                                    <div class="kdview kdscrollview">
-                                        <div class="kdview kdlistview kdlistview-statuses activity-related"></div>
-                                        <div class="lazy-loader">
-                                            Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-1277" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="kdview kdtabpaneview codesnips clearfix kdhiddentab">
-                                <header class="kdview feeder-header clearfix">
-                                    <p>
-                                        Code Snippets
-                                    </p>
-                                </header>
-                                <div class="kdview listview-wrapper" style="height: 1237px;">
-                                    <div class="kdview kdscrollview">
-                                        <div class="kdview kdlistview kdlistview-codesnips activity-related"></div>
-                                        <div class="lazy-loader">
-                                            Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-1279" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span>
                                         </div>
                                     </div>
                                 </div>
@@ -250,121 +221,13 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   </html>
   """
 
-applyCustomBackground = (customize={})->
-
-  defaultImages = ['/images/bg/bg01.jpg','/images/bg/bg02.jpg',
-   '/images/bg/bg03.jpg','/images/bg/bg04.jpg','/images/bg/bg05.jpg',]
-
-  if customize.background?.customType is 'defaultImage' \
-  and customize.background?.customValue <= defaultImages.length
-    url = defaultImages[(customize.background.customValue or 0)]
-    """ style='background-color:transparent;background-image:url("#{url}")'"""
-  else if customize.background?.customType is 'customImage'
-    url = customize.background?.customValue
-    """ style='background-color:transparent;background-image:url("#{url}")'"""
-  else if customize.background?.customType in ['defaultColor','customColor']
-    """ style='background-image:none;background-color:#{customize.background.customValue or "ffffff"}'"""
-  else
-    """ style='background-image:url("#{defaultImages[0]}")'"""
-
-
-getStaticProfileTitle = (profile)->
-  {firstName,lastName,nickname,staticPage} = profile
-  if staticPage?.title? and not (staticPage.title in [null, ''])
-    "#{staticPage.title}"
-  else
-    if firstName and lastName then "#{firstName} #{lastName}"
-    else if firstName then "#{firstName}"
-    else if lastName then "#{lastName}"
-    else "#{nickname}"
-
-getStaticProfileAbout = (profile)->
-  {about,staticPage} = profile
-  if staticPage?.about? and not(staticPage.about in [null, ''])
-    "#{staticPage.about}"
-  else if about then "#{about}" else ""
-
-getBlogPosts = (blogPosts=[],firstName,lastName)->
-  posts = ""
-  for blog,i in blogPosts
-
-    slug = blog.slug
-    if 'string' is typeof slug
-      href = "/Activity/#{slug}"
-    else
-      href = "/Activity/#{slug.slug}"
-
-    if blog.tags?.length
-      tags = ""
-      for tag in blog.tags
-        tags+="<a class='ttag' href='#'>#{tag.title}</a>"
-      tagsList = " <div class='link-group'> in #{tags}</div>"
-    else tagsList = ""
-
-    postDate = require('dateformat')(blog.meta.createdAt,'mmmm dS, yyyy')
-
-    posts+="""
-      <div class="content-item static">
-        <div class="title">
-          <a href="#{href}" target='_blank'><span class="text">#{blog.title}</span></a>
-        </div>
-        <div class="has-markdown">
-          <span class="create-date">
-            <span>
-              Published on #{postDate}#{tagsList}
-            </span>
-            <span>
-              #{getMeta blog.repliesCount, blog.meta.likes}
-            </span>
-          </span>
-          <span class="data">#{blog.html}</span>
-        </div>
-      </div>
-    """
-  if i>0
-    posts
-  else
-    getDefaultUserContents firstName, lastName
-
-getHandleLink = (handle,handles={})->
-
-  handleMap =
-    twitter :
-      baseUrl : 'https://www.twitter.com/'
-      text : 'Twitter'
-      prefix : '@'
-
-    github :
-      baseUrl : 'https://www.github.com/'
-      text : 'GitHub'
-
-  if handles?[handle]
-    """
-      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}'>
-      <span class="icon #{handle}"></span><span class="text">#{handleMap[handle].prefix or ''}#{handles[handle]}</span></a>
-    """
-  else
-    """
-      <a href='#{handleMap[handle].baseUrl}#{handles[handle]}' target='_blank' id='profile-handle-#{handle}' class='hidden'>
-      <span class="icon #{handle}"></span><span class="text"></span></a>
-    """
-
-getTags = (tags)->
-  for value in tags
-    """
-    <div class='ttag' data-tag='#{value}'>#{value}</div>
-    """
-
-getMeta = (replies,likes)->
+addHomeLinkBar =->
+  slug = 'koding'
   """
-  <div class="kdview static-activity-actions" id="kd-396">
-    <a class="action-link" href="#">Comment</a><a class="count #{if replies is 0 then 'hidden'}" href="#"><span class="data" data-paths="repliesCount">#{replies}</span></a> ·
-    <span class="optional">
-    <a class="action-link" href="#">Share</a> ·
-    </span>
-    <span class="kdview like-view">
-      <a class="action-link" href="#">Like</a><a class="count #{if likes is 0 then 'hidden'}" href="#"><span class="data" data-paths="meta.likes">#{likes}</span></a>
-    </span>
+  <div class='screenshots'>
+    <div class="home-links" id='home-links'>
+      <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
+    </div>
   </div>
   """
 
