@@ -249,8 +249,25 @@ class MainController extends KDController
       # TODO: Ask Mr. Sinan for such a long name since it's 4KB.
       @introductionTooltipStatusStorage = new AppStorage "IntroductionTooltipStatus"
       @introductionTooltipStatusStorage.fetchStorage (storage) =>
-        @introSnippets = snippets
-        new IntroductionTooltip {}, snippet for snippet, key in @introSnippets
+        @introSnippets    = snippets
+        shouldAddOverlay = no
+        for snippet in snippets
+          shouldAddOverlay = yes if snippet.overlay
+          for item in snippet.snippets
+            item.expiryDate = snippet.expiry
+            new IntroductionTooltip {}, item
+
+        @addOverlay() if shouldAddOverlay
+
+  addOverlay: ->
+    @$overlay = $ "<div/>",
+      class : "kdoverlay"
+    @$overlay.hide()
+    @$overlay.appendTo "body"
+    @$overlay.fadeIn 200
+    if @getOptions().overlayClick
+      @$overlay.bind "click",()=>
+        @destroy()
 
   initIntroTooltip: (parentView) ->
     return if not @introSnippets or not parentView or
