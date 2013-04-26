@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"github.com/streadway/amqp"
 	"log"
+	"net/http"
 )
 
 type Consumer struct {
@@ -49,7 +52,7 @@ func startRouting() {
 		log.Fatal(err)
 	}
 
-	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "topic", false, true, false, false, nil)
+	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "fanout", false, true, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
@@ -74,5 +77,15 @@ func startRouting() {
 			msg.DeliveryTag,
 			msg.RoutingKey,
 			msg.Body)
+
+		buf := bytes.NewBuffer(msg.Body)
+		reader := bufio.NewReader(buf)
+		req, err := http.ReadRequest(reader)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println("Request is", req)
+
 	}
 }
