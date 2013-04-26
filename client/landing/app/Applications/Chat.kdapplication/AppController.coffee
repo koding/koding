@@ -10,24 +10,30 @@ class ChatAppController extends AppController
 
     notificationController = KD.getSingleton 'notificationController'
     notificationController.on 'chatRequest', @bound 'handleChatRequest'
-    notificationController.on 'chatRoomOpen', @bound 'handleChatRoomOpen'
+    notificationController.on 'chatOpen', @bound 'handleChatOpen'
 
-  handleChatRoomOpen:({publishingToken, subscriptionToken})->
+    @channels       = {}
+    @conversations  = {}
 
+  handleChatOpen:({routingKey, bindingKey, publicName})->
+    channel = KD.remote.mq.setP2PKeys publicName, { routingKey, bindingKey }, 'secret'
 
   create:(invitees, callback)->
     {JChatConversation} = KD.remote.api
     JChatConversation.create invitees, (err, chatConversation)=>
       return callback err  if err
-      chatChannel = @subscribe chatConversation.publicName
-      callback null, chatChannel
+
+      @handleChatRequest {
+        invitee     : KD.whoami().profile.nickname
+        publicName  : chatConversation.publicName
+      }, callback
 
   subscribe:(publicName)->
     options = { serviceType: 'chat', isP2P: yes, exchange: 'chat' }
     channel = KD.remote.subscribe publicName, options
     channel.on 'message', @bound 'handleChatMessage'
 
-  handleChatRequest:(request)->
+  handleChatRequest:(request, callback)->
     {invitee, publicName} = request
 
     if invitee isnt KD.whoami().profile.nickname
@@ -35,6 +41,8 @@ class ChatAppController extends AppController
 
     chatChannel = @subscribe publicName
 
-    console.log {chatChannel}
+    @channels[publicName] = chatChannel
+
+    callback? null, chatChannel
 
   handleChatMessage:-> console.log arguments
