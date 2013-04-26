@@ -1,15 +1,48 @@
 class ChatConversationListItem extends KDListItemView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
     options.tagName   = "li"
     options.cssClass  = "person"
+    data.invitees    ?= data.conversation.invitees
     super options, data
 
-    @title = new ChatConversationListItemTitle null, data
-    @title.on 'click', @bound 'toggleConversation'
+    {conversation, invitees} = data
+    {nickname} = KD.whoami().profile
 
-    @setDragHandlers()
+    unless conversation.createdBy is nickname
+      @participant = conversation.createdBy
+    else
+      @participant = invitees.first
+
+  viewAppended:->
+
+    KD.remote.cacheable @participant, (err, res)=>
+      account = res.first if res.first instanceof KD.remote.api.JAccount
+      unless account
+        throw new Error "No such user", res
+
+      @title = new ChatConversationListItemTitle null, account
+      @title.on 'click', @bound 'toggleConversation'
+      @addSubView @title
+
+      @setDragHandlers()
+
+      @conversation = new ChatConversationWidget @
+      @conversation.on 'click', @conversation.bound 'takeFocus'
+
+      @conversation.messageInput.on 'moveUpRequested', =>
+        itemIndex = @getDelegate().getItemIndex @
+        @getDelegate().emit 'moveToIndexRequested', @, itemIndex - 1
+        @conversation.messageInput.setFocus()
+
+      @conversation.messageInput.on 'moveDownRequested', =>
+        itemIndex = @getDelegate().getItemIndex @
+        @getDelegate().emit 'moveToIndexRequested', @, itemIndex + 1
+        @conversation.messageInput.setFocus()
+
+      @conversationWasOpen = no
+      @addSubView @conversation
 
   setDragHandlers:->
 
@@ -47,25 +80,3 @@ class ChatConversationListItem extends KDListItemView
     @conversation.toggle()
     @conversation.takeFocus() if @conversation.isVisible()
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-    @conversation = new ChatConversationWidget @
-    @conversation.on 'click', @conversation.bound 'takeFocus'
-
-    @conversation.messageInput.on 'moveUpRequested', =>
-      itemIndex = @getDelegate().getItemIndex @
-      @getDelegate().emit 'moveToIndexRequested', @, itemIndex - 1
-      @conversation.messageInput.setFocus()
-
-    @conversation.messageInput.on 'moveDownRequested', =>
-      itemIndex = @getDelegate().getItemIndex @
-      @getDelegate().emit 'moveToIndexRequested', @, itemIndex + 1
-      @conversation.messageInput.setFocus()
-
-    @conversationWasOpen = no
-    @addSubView @conversation
-
-  pistachio:->
-    """{{> @title}}"""

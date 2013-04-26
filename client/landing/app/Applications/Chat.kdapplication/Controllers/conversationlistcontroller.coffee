@@ -4,8 +4,8 @@ class ChatConversationListController extends CommonChatController
     super
     @getListView().on 'moveToIndexRequested', @bound 'moveItemToIndex'
 
-  loadItems:(callback)->
-    super
+  # loadItems:(callback)->
+  #   super
 
-    @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
-      @instantiateListItems accounts unless err
+  #   @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
+  #     @instantiateListItems accounts unless err
