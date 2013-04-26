@@ -2,7 +2,8 @@ class ChatMessageListView extends KDListView
 
   constructor:(options = {}, data)->
 
-    options.cssClass  = "chat-conversation"
-    options.tagName   = "ul"
+    options.autoScroll = yes
+    options.cssClass   = "chat-conversation"
+    options.tagName    = "ul"
 
     super options, data

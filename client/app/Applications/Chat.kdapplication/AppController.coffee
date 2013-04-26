@@ -12,16 +12,17 @@ class ChatAppController extends AppController
     notificationController.on 'chatRequest', @bound 'handleChatRequest'
 
   create:(invitees, callback)->
+    chatPanel = KD.getSingleton 'chatPanel'
     {JChatConversation} = KD.remote.api
-    JChatConversation.create invitees, (err, chatConversation)=>
+    JChatConversation.create invitees, (err, conversation)=>
       return callback err  if err
-      chatChannel = @subscribe chatConversation.publicName
-      callback null, chatChannel
+      chatChannel = @subscribe conversation.publicName
+      chatPanel.createConversation {chatChannel, conversation, invitees}
+      callback null, new ChannelWrapper chatChannel
 
   subscribe:(publicName)->
     options = { serviceType: 'chat', isP2P: yes }
-    channel = KD.remote.subscribe publicName, options
-    channel.on 'message', @bound 'handleChatMessage'
+    return KD.remote.subscribe publicName, options
 
   handleChatRequest:(request)->
     {invitee, publicName} = request
@@ -29,8 +30,20 @@ class ChatAppController extends AppController
     if invitee isnt KD.whoami().profile.nickname
       throw new Error 'Red alert!  Security breach detected!'
 
+    chatPanel = KD.getSingleton 'chatPanel'
     chatChannel = @subscribe publicName
 
-    console.log {chatChannel}
+    {JChatConversation} = KD.remote.api
+    JChatConversation.fetch publicName, (err, conversation)=>
+      chatPanel.createConversation {chatChannel, conversation}
 
-  handleChatMessage:-> console.log arguments
+class ChannelWrapper extends KDObject
+
+  constructor:(@channel)->
+    super
+    @me = KD.whoami().profile.nickname
+
+  sendMessage:(message)->
+    @channel.publish JSON.stringify
+      sender  : @me
+      message : message

@@ -10,6 +10,9 @@ class MainChatPanel extends JView
     @conversationListController = new ChatConversationListController
       view : @conversationList
 
+  createConversation:(channel)->
+    @conversationListController.addItem channel
+
   viewAppended:->
     @addSubView @conversationList
     @conversationListController.loadItems()
