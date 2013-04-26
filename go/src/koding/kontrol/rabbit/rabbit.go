@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/streadway/amqp"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -60,7 +59,7 @@ func startRouting() {
 		log.Fatal(err)
 	}
 
-	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "fanout", false, true, false, false, nil)
+	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "topic", false, true, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
@@ -69,7 +68,7 @@ func startRouting() {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
+	if err := c.channel.QueueBind("", "local.key", "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
@@ -85,35 +84,49 @@ func startRouting() {
 			msg.DeliveryTag,
 			msg.RoutingKey,
 			msg.Body)
+		switch msg.RoutingKey {
+		case "local.key":
+			body, err := doRequest(msg.Body)
+			if err != nil {
+				log.Println(err)
+				go publishToRemote(nil, "remote.key")
+			} else {
+				go publishToRemote(body, "remote.key")
+			}
 
-		buf := bytes.NewBuffer(msg.Body)
-		reader := bufio.NewReader(buf)
-		req, err := http.ReadRequest(reader)
-		if err != nil {
-			log.Println(err)
 		}
-		req.RequestURI = ""
-
-		log.Println("Doing a http request")
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Println(err)
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println("Response is", string(body))
-
-		go publishToClient(body, "remote.key")
-
 	}
 }
 
-func publishToClient(data []byte, routingKey string) {
+func doRequest(msg []byte) ([]byte, error) {
+	buf := bytes.NewBuffer(msg)
+	reader := bufio.NewReader(buf)
+	req, err := http.ReadRequest(reader)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Request.RequestURI can't be set in client requests.
+	// http://golang.org/src/pkg/net/http/client.go
+	req.RequestURI = ""
+
+	log.Println("Doing a http request")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	output := new(bytes.Buffer)
+	resp.Write(output)
+	data := output.Bytes()
+
+	log.Println("Response is", string(data))
+
+	return data, nil
+}
+
+func publishToRemote(data []byte, routingKey string) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",

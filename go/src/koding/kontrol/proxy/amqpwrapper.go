@@ -72,7 +72,7 @@ func setupAmqp() *AmqpStream {
 	return &AmqpStream{stream, c.channel, appId}
 }
 
-func (a *AmqpStream) Publish(data []byte) {
+func (a *AmqpStream) Publish(exchange, routingKey string, data []byte) {
 	appId := customHostname()
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
@@ -84,7 +84,7 @@ func (a *AmqpStream) Publish(data []byte) {
 		AppId:           appId,
 	}
 
-	a.channel.Publish("infoExchange", "input.proxy", false, false, msg)
+	a.channel.Publish(exchange, routingKey, false, false, msg)
 }
 
 func customHostname() string {
@@ -105,4 +105,66 @@ func readVersion() string {
 	}
 
 	return strings.TrimSpace(string(file))
+}
+
+func consumeFromClient(ready chan bool, received chan []byte) {
+
+	c := &Consumer{
+		conn:    nil,
+		channel: nil,
+		tag:     "",
+		done:    make(chan error),
+	}
+
+	var err error
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
+
+	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
+	c.conn, err = amqp.Dial(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.channel, err = c.conn.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "topic", false, true, false, false, nil)
+	if err != nil {
+		log.Fatal("exchange.declare: %s", err)
+	}
+
+	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+		log.Fatal("queue.declare: %s", err)
+	}
+
+	if err := c.channel.QueueBind("", "remote.key", "kontrol-rabbitproxy", false, nil); err != nil {
+		log.Fatal("queue.bind: %s", err)
+	}
+
+	messages, err := c.channel.Consume("", "", true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("basic.consume: %s", err)
+	}
+
+	ready <- true
+
+	log.Println("START TO CONSUME")
+	// TODO: try channel.get
+	for msg := range messages {
+		log.Printf("messages stream got %dB message data: [%v] %s",
+			len(msg.Body),
+			msg.DeliveryTag,
+			msg.Body)
+		switch msg.RoutingKey {
+		case "remote.key":
+			received <- msg.Body
+		}
+
+	}
+
 }

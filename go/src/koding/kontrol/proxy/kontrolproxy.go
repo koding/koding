@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -47,7 +49,7 @@ func main() {
 	// register fujin instance to kontrol-daemon
 	amqpStream = setupAmqp()
 	log.Printf("register fujin to kontrold with uuid '%s'", amqpStream.uuid)
-	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
+	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
 	log.Println("register command is send. waiting for response from kontrold...")
 	go handleInput(amqpStream.input, amqpStream.uuid)
 
@@ -77,42 +79,44 @@ func main() {
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
-	for {
-		select {
-		case d := <-input:
-			// log.Printf("got %dB message data: [%v] %s",
-			// 	len(d.Body),
-			// 	d.DeliveryTag,
-			// 	d.Body)
+	for d := range input {
+		// log.Printf("got %dB message data: [%v] %s",
+		// 	len(d.Body),
+		// 	d.DeliveryTag,
+		// 	d.Body)
 
-			var msg IncomingMessage
+		switch d.RoutingKey {
+		case "local.key":
+		}
 
-			err := json.Unmarshal(d.Body, &msg)
-			if err != nil {
-				log.Print("bad json incoming msg: ", err)
-			}
+		var msg IncomingMessage
 
-			if msg.ProxyResponse != nil {
-				if msg.ProxyResponse.Action == "updateProxy" {
-					log.Println("update action received from kontrold. updating proxy route table")
-					var err error
-					proxy, err = proxyDB.GetProxy(uuid)
-					if err != nil {
-						log.Println(err)
-					}
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			log.Print("bad json incoming msg: ", err)
+		}
 
-					if first {
-						start <- true
-						first = false
-						log.Println("routing tables updated. ready to start servers.")
-					}
-
+		if msg.ProxyResponse != nil {
+			if msg.ProxyResponse.Action == "updateProxy" {
+				log.Println("update action received from kontrold. updating proxy route table")
+				var err error
+				proxy, err = proxyDB.GetProxy(uuid)
+				if err != nil {
+					log.Println(err)
 				}
 
-			} else {
-				log.Println("incoming message is in wrong format")
+				if first {
+					start <- true
+					first = false
+					log.Println("routing tables updated. ready to start servers.")
+				}
+
 			}
+
+		} else {
+			log.Println("incoming message is in wrong format")
 		}
+
 	}
 }
 
@@ -197,20 +201,20 @@ func buildProxyCmd(action, uuid string) []byte {
 }
 
 // not used currently, find a more reliable way
-func checkServer(host string) error {
+func checkServer(host string) (bool, error) {
 	log.Println("Checking server")
 	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	remoteConn, err := net.DialTCP("tcp", nil, remoteAddr)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	remoteConn.Close()
-	return nil
+	return true, nil
 }
 
 /*************************************************
@@ -435,12 +439,53 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			outreq.Header.Set("X-Forwarded-For", clientIP)
 		}
 
-		res, err := transport.RoundTrip(outreq)
+		// Test values, will be removed - arslan
+		// outreq.URL.Host = "localhost:5000"
+		// outreq.Host = "localhost:5000"
+		outreq.URL.Host = "67.169.70.88"
+		outreq.Host = "67.169.70.88"
+
+		var err error
+		res := new(http.Response)
+
+		res, err = transport.RoundTrip(outreq)
 		if err != nil {
-			log.Printf("http: proxy error: %v", err)
-			rw.WriteHeader(http.StatusInternalServerError)
-			return
+			// we can't connect to url, thus proxy trough amqp
+			log.Println("Trying to make rabbit connection to ", outreq)
+			response := make(chan []byte)
+			ready := make(chan bool)
+			go consumeFromClient(ready, response)
+
+			<-ready
+
+			output := new(bytes.Buffer)
+			err := outreq.WriteProxy(output)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprint(err))
+				return
+			}
+
+			data := output.Bytes()
+			amqpStream.Publish("kontrol-rabbitproxy", "local.key", data)
+
+			log.Println("Waiting for rabbit response...")
+			body := <-response
+			if body == nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			buf := bytes.NewBuffer(body)
+			respreader := bufio.NewReader(buf)
+
+			// ok got now response from rabbit :)
+			res, err = http.ReadResponse(respreader, outreq)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprint(err))
+				return
+			}
 		}
+
 		defer res.Body.Close()
 
 		copyHeader(rw.Header(), res.Header)
