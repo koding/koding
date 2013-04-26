@@ -17,6 +17,8 @@ module.exports = class JDiscussion extends JPost
 
   {once, extend} = require 'underscore'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @getActivityType =-> require './discussionactivity'

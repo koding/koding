@@ -9,6 +9,8 @@ module.exports = class JPrivateMessage extends JPost
 
   jraphical = require 'jraphical'
 
+  @trait __dirname, '../../traits/grouprelated'
+
   @share()
 
   @set

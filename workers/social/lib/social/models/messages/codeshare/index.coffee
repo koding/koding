@@ -13,6 +13,8 @@ module.exports = class JCodeShare extends JPost
   {secure} = require 'bongo'
   {extend} = require 'underscore'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   {log} = console
   @share()
 

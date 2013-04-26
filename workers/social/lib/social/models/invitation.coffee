@@ -1,6 +1,8 @@
 jraphical = require 'jraphical'
 
 module.exports = class JInvitation extends jraphical.Module
+  
+  @trait __dirname, '../traits/grouprelated'
 
   fs = require 'fs'
   crypto = require 'crypto'
