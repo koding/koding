@@ -27,7 +27,6 @@ class HomeSlideShow extends KDScrollView
     aWidth = @$('>ul>li>*').first().width()
     @$('>ul>li>p').css
       width      : aWidth
-      marginLeft : -(@getWidth() - aWidth)/2
 
   click:->
     @setKeyView()
