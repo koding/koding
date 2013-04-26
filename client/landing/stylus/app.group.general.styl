@@ -247,10 +247,13 @@
     &:nth-child(2n)
       margin-right          2%
 
-    &.own-group
+    &.member-group
       .badge.member
         visible()
       .group-settings-context
+        visible()
+    &.own-group
+      .group-settings-context .remove-group
         visible()
 
     .side-wrapper
