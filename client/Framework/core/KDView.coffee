@@ -812,6 +812,7 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
+    o.cssClass  or= ""
     o.placement or= "top"
     o.direction or= "center"
     o.offset    or=
