@@ -179,7 +179,7 @@ class GroupsAppController extends AppController
 
   markMemberAndOwnGroups:(controller, ids)->
     {JGroup} = KD.remote.api
-    fetchRoles = 
+    fetchRoles =
       member: (view)-> view.markMemberGroup()
       owner : (view)-> view.markOwnGroup()
     for as, callback of fetchRoles
@@ -621,7 +621,7 @@ class GroupsAppController extends AppController
       @prepareInvitationsTab()
 
     contentDisplay = @showContentDisplay @groupView
-    callback contentDisplay
+    callback? contentDisplay
 
 
   showContentDisplay:(groupView)->

@@ -42,7 +42,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       controller.hideLazyLoader()
       return warn err if err
       controller.removeAllItems() if removeAllItems
-      controller.instantiateListItems requests 
+      controller.instantiateListItems requests
       if requests?.length > 0
         controller.setLastTimestamp requests.last.timestamp_
         controller.emit 'teasersLoaded', requests.length
@@ -129,8 +129,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     modal = new KDModalViewWithForms
       title                  : options.title
       overlay                : yes
-      width                  : 300
-      height                 : 'auto'
+      width                  : options.width or 400
+      height                 : options.height or 'auto'
       tabs                   :
         forms                :
           invite             :
@@ -144,7 +144,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
                   diameter   : 12
               Cancel         :
                 style        : 'modal-cancel'
-                callback     : (event)=> modal.destroy()
+                callback     : -> modal.destroy()
             fields           : options.fields
 
     form = modal.modalTabs.forms.invite
@@ -219,7 +219,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   showErrorMessage:(err)->
     warn err
-    new KDNotificationView 
+    new KDNotificationView
       title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
       duration : 2000
 
