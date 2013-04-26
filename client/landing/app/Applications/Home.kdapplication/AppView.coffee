@@ -35,6 +35,7 @@ class HomeAppView extends JView
         @slideShow.slideTo "next"
 
     @homeLoginBar = new HomeLoginBar
+      domId       : 'home-links'
 
     @slideShow.on "FirstSlideShown", =>
       @rightArrow.$().css right : 0
