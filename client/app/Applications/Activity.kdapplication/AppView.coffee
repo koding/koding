@@ -29,7 +29,7 @@ class ActivityAppView extends KDScrollView
 
     {scrollView} = @feedWrapper.controller
     @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
-    @header.on "viewAppended", -> headerHeight = @getHeight()
+    @header.on ["viewAppended","ready"], -> headerHeight = @getHeight()
 
   decorate:->
     if KD.isLoggedIn()
@@ -40,7 +40,7 @@ class ActivityAppView extends KDScrollView
       @unsetClass 'loggedin'
       @widget.hide()
       @header.$('.home-links').removeClass 'hidden'
-    @notifyResizeListeners()
+    @_windowDidResize()
 
   setFixed:->
     if @getScrollTop() > headerHeight

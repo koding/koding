@@ -28,9 +28,11 @@ body.group
     text-align            left
 
   .readme
-    margin                30px
+    bg                    color, #fff
+    padding               30px
     max-width             800px
     text-align            left
+    borderBox()
 
 div.screenshots
   rel()
@@ -97,26 +99,27 @@ div.screenshots
     li
       rel()
       size                16.6667%, 506px
-      overflow            visible
+      overflow            hidden
+      padding             30px 0
+      borderBox()
       fl()
 
       p
         abs()
-        size              auto, auto
+        size              100%, auto
         bottom            20px
-        right             50%
-        max-width         600px
+        left              50%
         padding           10px 40px
-        margin-right      -410px
         font-size         20px
         line-height       30px
-        text-align        right
+        text-align        center
         color             #FFF
         opacity           .9
         text-shadow       0 1px 0 rgba(0,0,0,0.4)
-        gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
+        // gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
+        gradient          #888, #666
         bg                color, #ff9200
-        shadow            0 0 10px rgba(0,0,0,0.5)
+        shadow            0 3px 10px rgba(0,0,0,0.5)
         rounded           2px
         borderBox()
         span

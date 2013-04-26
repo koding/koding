@@ -239,12 +239,7 @@ getScripts =->
 
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require([
-      "order!/js/libs/jquery-1.8.2.min.js",
-      "order!/js/underscore-min.1.3.js",
-      "order!/js/libs/highlight.pack.js",
-      "order!/js/kd.#{KONFIG.version}.js",
-    ]);
+    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
   </script>
 
   <script type="text/javascript">

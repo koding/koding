@@ -83,6 +83,7 @@ class GroupReadmeView extends JView
       @highlightCode()
       @loader.hide()
       @loaderText.hide()
+      @emit "readmeReady"
 
   hideReadmeEditButtons:->
     @readmeInput.hide()
