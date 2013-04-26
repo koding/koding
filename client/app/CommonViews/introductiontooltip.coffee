@@ -24,8 +24,12 @@ class IntroductionTooltip extends KDObject
       cssClass : "close-icon"
       click    : => @close()
 
-    parentView.setTooltip { view }
-    parentView.tooltip.show()
+    parentView.setTooltip {
+      view,
+      cssClass: "introduction-tooltip"
+    }
+    @utils.defer =>
+      parentView.tooltip.show()
 
   close: ->
     @storage.setValue @introId, yes
