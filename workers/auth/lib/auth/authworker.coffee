@@ -12,10 +12,15 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'fanout'
     autoDelete  : yes
 
+  NOTIFICATION_EXCHANGE_OPTIONS = 
+    type        : 'topic'
+    autoDelete  : yes
+
   constructor:(@bongo, options = {})->
-    { @presenceExchange, @reroutingExchange } = options
+    { @presenceExchange, @reroutingExchange, @notificationExchange } = options
     @presenceExchange     ?= 'services-presence'
     @reroutingExchange    ?= 'routing-control'
+    @notificationExchange ?= 'notification'
     @services = {}
     @clients  = {
       bySocketId    : {}
@@ -110,20 +115,19 @@ module.exports = class AuthWorker extends EventEmitter
     message = JSON.stringify { publishingName, subscribingName }
     @bongo.respondToClient setSecretNamesEvent, message
 
-  fetchReroutingExchange:(callback)->
-    @bongo.mq.connection.exchange(
-      @reroutingExchange
-      REROUTING_EXCHANGE_OPTIONS
-      callback
-    )
+  makeExchangeFetcher =(exchangeName, exchangeOptions)->
+    exKey   = "#{exchangeName}_"
+    (callback)->
+      if @[exKey] then return process.nextTick => callback @[exKey]
+      @bongo.mq.connection.exchange(
+        @[exchangeName]
+        exchangeOptions
+        (exchange)=> callback @[exKey] = exchange
+      )
 
-  fetchNotificationExchange:(callback)->
-    @bongo.mq.connection.exchange(
-      'notification'
-      REROUTING_EXCHANGE_OPTIONS
-      callback
-    )
+  fetchReroutingExchange: makeExchangeFetcher 'reroutingExchange', REROUTING_EXCHANGE_OPTIONS
 
+  fetchNotificationExchange: makeExchangeFetcher 'notificationExchange', NOTIFICATION_EXCHANGE_OPTIONS
 
   addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
     suffix = ".#{suffix}"  if suffix.length
@@ -145,9 +149,9 @@ module.exports = class AuthWorker extends EventEmitter
           queue.subscribe (message)->
             console.log message.data+''
 
-  notify:(routingKey, notification)->
+  notify:(routingKey, event, contents)->
     @fetchNotificationExchange (exchange)->
-      exchange.publish routingKey, notification
+      exchange.publish routingKey, { event, contents }
 
   join: do ->
 
@@ -230,18 +234,18 @@ module.exports = class AuthWorker extends EventEmitter
 
           personalToken = 'pt' + do require 'hat'
 
-          bindingKey = "client.#{personalToken}"
+          bindingKey          = "client.#{personalToken}"
+          consumerRoutingKey  = "chat.#{secretChannelName}"
 
           {username} = session
 
-          @addBinding 'chat', bindingKey, secretChannelName, username
+          @addBinding 'chat', bindingKey, consumerRoutingKey, username
 
           @_fakePersistenceWorker secretChannelName
-          @notify username, {
-            event         : 'chatOpen'
-            publicName    : routingKey
-            routingKey    : secretChannelName
-            bindingKey
+          @notify username, 'chatOpen', {
+            publicName  : name
+            routingKey  : personalToken
+            bindingKey  : consumerRoutingKey
           }
 
     join =(messageData, socketId)->
