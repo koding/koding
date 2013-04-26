@@ -5,10 +5,9 @@
 # improved   : sinan - 02/2013
 
 class KDEventEmitter
-  @KDEventEmitterEvents = {}
 
   # listeners will be put inside @KDEventEmitterEvents[className]
-  _e = @KDEventEmitterEvents[@name] = {}
+  _e = {}
 
   _registerEvent = (registry, eventName, callback)->
     # on can be defined before any emit, so create
@@ -70,18 +69,18 @@ class KDEventEmitter
 
   constructor:->
     @KDEventEmitterEvents  = {}
-    @_e = @KDEventEmitterEvents[@constructor.name] = {}
+    @_e = {}
 
   emit:(eventName, args...)->
     @_e[eventName] ?= []
 
     listenerStack = []
 
-    for own eventToBeFired of @_e
-      continue if eventToBeFired is eventName
-      parser = getEventParser eventToBeFired
-      if parser.test eventName
-        listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
+    # for own eventToBeFired of @_e
+    #   continue if eventToBeFired is eventName
+    #   parser = getEventParser eventToBeFired
+    #   if parser.test eventName
+    #     listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
 
     listenerStack = listenerStack.concat @_e[eventName].slice(0)
 
@@ -90,7 +89,6 @@ class KDEventEmitter
 
   on  :(eventName, callback) -> _on  @_e, eventName, callback
   off :(eventName, callback) -> _off @_e, eventName, callback
-  unsubscribe:(eventName, callback) -> _off @_e, eventName, callback
 
   once:(eventName, callback) ->
     _callback = =>

@@ -623,7 +623,8 @@ module.exports = [
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
 
   # KITE CONTROLLER
-  "app/MainApp/KiteController.coffee",
+  "app/MainApp/kite/kite.coffee",
+  "app/MainApp/kite/kitecontroller.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
