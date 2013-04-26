@@ -83,6 +83,7 @@ class MembersAppController extends AppController
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      # domId                 : 'members-feeder-split-view'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
@@ -120,13 +121,17 @@ class MembersAppController extends AppController
 
   createFolloweeContentDisplay:(account, filter)->
     # log "I need to create followee for", account, filter
-    newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
+    newView = new MembersContentDisplayView
+      cssClass : "content-display #{filter}"
+      # domId    : 'members-feeder-split-view'
+
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
 
   createLikedFeedForContentDisplay:(view, account)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
@@ -171,7 +176,10 @@ class MembersAppController extends AppController
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
 
   createLikedContentDisplay:(account)->
-    newView = (new MembersLikedContentDisplayView cssClass : "content-display likes")
+    newView = new MembersLikedContentDisplayView
+      cssClass : "content-display likes"
+      # domId    : 'members-feeder-split-view'
+
     newView.createCommons account
     @createLikedFeedForContentDisplay newView, account
 
