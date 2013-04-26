@@ -28,7 +28,7 @@ chatTextColor = #000
   top                     0
   z-index                 102
   right                   -260px
-  background              whitesmoke
+  background              white
   border-left             1px solid #999
   padding-top             2px
   width                   250px
@@ -54,9 +54,6 @@ ul.chat-list
     &.unread
       background          rgba(250, 239, 223, .5)
       border-left         3px solid #ff9200
-
-    &.selected
-      background-color    rgba(0,0,0,.01)
 
     &:last-child
       border-bottom       1px solid #e0e0df !important
@@ -158,6 +155,7 @@ ul.chat-list
 
 
 ul.chat-conversation
+  background-color
   max-height              210px
   min-height              210px
   box-shadow              0 0 10px rgba(0,0,0,0.3) inset
@@ -166,4 +164,15 @@ ul.chat-conversation
 
   li.message
     padding               4px
-    border-bottom         1px solid rgba(0,0,0,0.03)
+    border                1px solid rgba(0,0,0,0.03)
+    width                 233px
+    background-color      rgba(253, 243, 0, .29)
+    border-radius         4px
+    margin-bottom         4px
+
+    &.mine
+      text-align          right
+      background-color    rgba(0, 255, 0, .1)
+
+  &:last-child
+    border                1px solid rgba(0,0,0,0.03) !important
