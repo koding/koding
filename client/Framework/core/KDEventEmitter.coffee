@@ -20,7 +20,7 @@ class KDEventEmitter
   _unregisterEvent = (registry, eventName, callback)->
     if eventName is "*"
       registry = {}
-    # reset the listener container so no event
+    # reset the listener container so no event3
     # will be propagated to previously registered
     # listener callbacks.
     else if callback and registry[eventName]
@@ -70,7 +70,7 @@ class KDEventEmitter
 
   constructor:->
     @KDEventEmitterEvents  = {}
-    @_e = @KDEventEmitterEvents[@constructor.name] = {}
+    @_e = {}
 
   emit:(eventName, args...)->
     @_e[eventName] ?= []
@@ -90,7 +90,6 @@ class KDEventEmitter
 
   on  :(eventName, callback) -> _on  @_e, eventName, callback
   off :(eventName, callback) -> _off @_e, eventName, callback
-  unsubscribe:(eventName, callback) -> _off @_e, eventName, callback
 
   once:(eventName, callback) ->
     _callback = =>
