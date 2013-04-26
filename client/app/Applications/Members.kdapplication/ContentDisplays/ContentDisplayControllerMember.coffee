@@ -1,16 +1,25 @@
 class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
+
+    {@revivedContentDisplay} = @getSingleton("contentDisplayController")
+
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
+        domId : 'member-contentdisplay' unless @revivedContentDisplay
     ,options
     super options, data
 
   loadView:(mainView)->
     member = @getData()
-    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
+    mainView.addSubView subHeader = new KDCustomHTMLView
+      tagName   : "h2"
+      cssClass  : 'sub-header'
+      domId     : 'members-sub-header' unless @revivedContentDisplay
+
     subHeader.addSubView backLink = new KDCustomHTMLView
+      domId   : 'members-back-link' unless @revivedContentDisplay
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)->
@@ -42,20 +51,24 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView contentDisplayController._updateController.updateWidget
 
-    memberProfile = @addProfileView member
-    memberStream  = @addActivityView member
+    @addProfileView member
+    @addActivityView member
 
   addProfileView:(member)->
-
     if KD.isMine member
 
-      @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
+      @getView().addSubView memberProfile = new OwnProfileView
+        cssClass : "profilearea clearfix"
+        delegate : @getView()
+        domId    : 'profilearea' unless @revivedContentDisplay
+      , member
       return memberProfile
 
     else
       return @getView().addSubView memberProfile = new ProfileView
         cssClass : "profilearea clearfix"
         bind     : "mouseenter"
+        domId    : 'profilearea' unless @revivedContentDisplay
         delegate : @getView()
       , member
 
@@ -81,8 +94,11 @@ class ContentDisplayControllerMember extends KDViewController
 
   addActivityView:(account)->
 
+    @getView().$('div.lazy').remove()
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
-      itemClass          : ActivityListItemView
+      domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
+      itemClass             : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8

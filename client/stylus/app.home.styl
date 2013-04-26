@@ -28,9 +28,11 @@ body.group
     text-align            left
 
   .readme
-    margin                30px
+    bg                    color, #fff
+    padding               30px
     max-width             800px
     text-align            left
+    borderBox()
 
 div.screenshots
   rel()
@@ -89,34 +91,34 @@ div.screenshots
     background-size       cover
     shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
 
-  ul
-    margin                0
-    size                  600%, 506px
-    z-index               0
+    ul
+      margin                0
+      size                  600%, 506px
+      z-index               0
 
     li
       rel()
       size                16.6667%, 506px
-      overflow            visible
+      overflow            hidden
+      padding             30px 0
+      borderBox()
       fl()
 
       p
-        abs()
-        size              auto, auto
-        bottom            20px
-        right             50%
-        max-width         600px
+        rel()
+        size              100%, auto
         padding           10px 40px
-        margin-right      -410px
+        margin            -120px auto 0 auto
         font-size         20px
         line-height       30px
-        text-align        right
+        text-align        center
         color             #FFF
         opacity           .9
         text-shadow       0 1px 0 rgba(0,0,0,0.4)
-        gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
+        // gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
+        gradient          #888, #666
         bg                color, #ff9200
-        shadow            0 0 10px rgba(0,0,0,0.5)
+        shadow            0 3px 10px rgba(0,0,0,0.5)
         rounded           2px
         borderBox()
         span
@@ -132,7 +134,7 @@ div.screenshots
         width             90%
         max-width         800px
         min-width         500px
-        max-height        503px
+        max-height        443px
         rounded           4px
         shadow            0 10px 25px rgba(0,0,0,0.5)
         overflow          hidden
@@ -143,7 +145,7 @@ div.screenshots
           borderBox()
 
   .home-links
-    size                auto, auto
+    size                auto, 50px
     text-align          left
     gradient            #fff, #eee
 

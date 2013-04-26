@@ -57,21 +57,6 @@ class OwnProfileView extends JView
       {callback,inputValue,blacklist} = event
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
-    @staticPageView = new KDView
-      tooltip :
-        placement : 'bottom'
-        direction : 'right'
-        delayIn : 50
-        delayOut : 1000
-        view :
-          constructorName : StaticProfileTooltip
-          options : {}
-          data : @getData()
-      partial : 'Your Public Page'
-      cssClass : 'static-page-view'
-      # callback :=>
-      #   modal = new StaticProfileSettingsModalView
-
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
@@ -93,7 +78,6 @@ class OwnProfileView extends JView
         {{> @location}}
         <h5>
           <a class="user-home-link no-right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
-          {{> @staticPageView}}
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">
