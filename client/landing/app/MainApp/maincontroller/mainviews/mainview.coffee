@@ -57,7 +57,6 @@ class MainView extends KDView
         $('.kdoverlay').remove()
 
   addHeader:->
-    log "adding header"
 
     @addSubView @header = new KDView
       tagName : "header"
