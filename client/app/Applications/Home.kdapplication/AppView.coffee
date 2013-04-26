@@ -1,24 +1,30 @@
-class HomeAppView extends JView
+class HomeAppView extends KDView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    options.domId    = "home-header"
+    options.cssClass = "screenshots"
 
-    @setClass "screenshots"
+    super options, data
+
+  viewAppended:->
+
 
     account = KD.whoami()
-
-    @header = new WelcomeHeader
+    @addSubView @header = new WelcomeHeader
+      domId     : "home-welcome-header"
       type      : "big"
       title     : if KD.isLoggedIn() then\
         "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
         "Welcome to the Koding Public Beta!<br>"
       subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
-    @slideShow = new HomeSlideShow
+    @addSubView @slideShow = new HomeSlideShow
+      domId   : "home-slideshow"
       tagName : "section"
 
-    @leftArrow = new KDCustomHTMLView
+    @addSubView @leftArrow = new KDCustomHTMLView
+      domId    : "home-ss-left-arrow"
       tagName  : "a"
       cssClass : "arrow left"
       partial  : "<span></span>"
@@ -26,7 +32,8 @@ class HomeAppView extends JView
         @utils.stopDOMEvent event
         @slideShow.slideTo "prev"
 
-    @rightArrow = new KDCustomHTMLView
+    @addSubView @rightArrow = new KDCustomHTMLView
+      domId    : "home-ss-right-arrow"
       tagName  : "a"
       cssClass : "arrow right"
       partial  : "<span></span>"
@@ -34,7 +41,8 @@ class HomeAppView extends JView
         @utils.stopDOMEvent event
         @slideShow.slideTo "next"
 
-    @homeLoginBar = new HomeLoginBar
+    @addSubView @homeLoginBar = new HomeLoginBar
+      domId    : "home-login-bar"
 
     @slideShow.on "FirstSlideShown", =>
       @rightArrow.$().css right : 0
@@ -47,16 +55,6 @@ class HomeAppView extends JView
     @slideShow.on "OtherSlideShown", =>
       @leftArrow.$().css  left  : ""
       @rightArrow.$().css right : ""
-
-  pistachio:->
-
-    """
-    {{> @header}}
-    {{> @leftArrow}}
-    {{> @rightArrow}}
-    {{> @slideShow}}
-    {{> @homeLoginBar}}
-    """
 
   # OLD HOME PISTACHIO
   # left here for reference - SY

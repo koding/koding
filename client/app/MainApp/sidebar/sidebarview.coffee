@@ -326,14 +326,14 @@ class Sidebar extends JView
         title   : "Launch Terminal", icon : "terminal",
         appPath : "WebTerm", isWebTerm : yes
       }
-      {
-        title   : "Manage Remotes", icon : "remotes",
-        action  : "manageRemotes"
-      }
-      {
-        title   : "Manage Databases", icon : "databases",
-        action  : "manageDatabases"
-      }
+      # {
+      #   title   : "Manage Remotes", icon : "remotes",
+      #   action  : "manageRemotes"
+      # }
+      # {
+      #   title   : "Manage Databases", icon : "databases",
+      #   action  : "manageDatabases"
+      # }
       { title   : "Add Resources",      icon : "resources" }
       { title   : "Settings",           icon : "cog" }
       {
