@@ -178,8 +178,8 @@ module.exports = [
 
   "app/CommonViews/followbutton.coffee",
 
-  "app/CommonViews/remotesmodal.coffee",
-  "app/CommonViews/databasesmodal.coffee",
+  # "app/CommonViews/remotesmodal.coffee",
+  # "app/CommonViews/databasesmodal.coffee",
 
   "app/CommonViews/comments/commentview.coffee",
   "app/CommonViews/comments/commentlistviewcontroller.coffee",
