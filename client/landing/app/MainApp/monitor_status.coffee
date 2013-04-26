@@ -19,7 +19,7 @@ class Ping extends KDObject
     @pingTimeout = setTimeout =>
       @status = FAILED
       @emit "failed", @item, @name
-    , 3000
+    , 5000
 
   finish: ->
     @status = SUCCESS
@@ -169,7 +169,7 @@ class ExternalPing extends KDObject
     KD.externalPong = @pong.bind(this)
     $.ajax
       url : @url+"?callback"+KD.externalPong
-      timeout: 3000
+      timeout: 5000
       dataType: "jsonp"
       error : ->
 

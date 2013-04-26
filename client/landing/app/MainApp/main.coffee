@@ -62,7 +62,7 @@ do ->
           style     : "modal-clean-red"
           callback  : ->
             manuallyClosed = yes
-            destroyModal()
+            destroyModal(no, "disconnected")
 
     connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal(no, "disconnected")
 
