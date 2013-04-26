@@ -55,7 +55,7 @@ class KDEventEmitter
   # user is able to do ClassName.on .emit
   #
 
-  @emit : ->
+  @emit: ->
     # slice the arguments, 1st argument is the event name,
     # rest is args supplied with emit.
     [eventName, args...] = [].slice.call arguments
@@ -63,12 +63,17 @@ class KDEventEmitter
     _e[eventName] ?= []
     # call every listener inside the container with the arguments (args)
     listener.apply null,args for listener in _e[eventName] if _e[eventName]?
+    return this
 
-  @on   :(eventName, callback)-> _on _e, eventName, callback
-  @off  :(eventName, callback)-> _off _e, eventName, callback
+  @on: (eventName, callback) ->
+    _on _e, eventName, callback
+    return this
+
+  @off: (eventName, callback) ->
+    _off _e, eventName, callback
+    return this
 
   constructor:->
-    @KDEventEmitterEvents  = {}
     @_e = {}
 
   emit:(eventName, args...)->
