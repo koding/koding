@@ -1,8 +1,11 @@
 class GroupHomeView extends KDView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
+
+    options.domId    = "home-group-header"
+    options.cssClass = "screenshots"
+
     super options, data
-    @setClass "screenshots"
 
   viewAppended:->
     entryPoint       = @getOption 'entryPoint'
@@ -18,7 +21,7 @@ class GroupHomeView extends KDView
           tagName   : 'section'
           pistachio : """<div class='group-desc'>{{ #(body)}}</div>"""
         , group
-        @homeLoginBar = new HomeLoginBar
+        @addSubView @homeLoginBar = new HomeLoginBar
           domId : "group-home-links"
         @addSubView @readmeView = new GroupReadmeView
           domId : "home-group-readme"

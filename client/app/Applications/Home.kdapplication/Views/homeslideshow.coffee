@@ -58,7 +58,7 @@ class HomeSlideShow extends KDScrollView
     else if pos > amount-1 then pos = amount - 1
 
     @pos = pos
-    log pos, aWidth, @getScrollWidth(), -(pos * (@getScrollWidth() * aWidth / 100))
+
     @$().animate scrollLeft : (pos * (@getScrollWidth() * aWidth / 100)), 277
 
     if pos is 0
