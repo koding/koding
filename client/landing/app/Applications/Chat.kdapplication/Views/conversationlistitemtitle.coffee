@@ -1,4 +1,4 @@
-class ChatContactListItemTitle extends JView
+class ChatConversationListItemTitle extends JView
 
   constructor:(options = {},data)->
     options.cssClass = 'chat-contact-list-item-title'

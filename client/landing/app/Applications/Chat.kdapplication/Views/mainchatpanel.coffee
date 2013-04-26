@@ -2,17 +2,20 @@ class MainChatPanel extends JView
 
   constructor:->
     super
-      cssClass : 'main-chat-panel'
+      cssClass : 'main-chat-panel visible'
 
     @registerSingleton "chatPanel", @, yes
 
-    @contactList = new ChatContactListView
-    @contactListController = new ChatContactListController
-      view : @contactList
+    @conversationList = new ChatConversationListView
+    @conversationListController = new ChatConversationListController
+      view : @conversationList
+
+  createConversation:(channel)->
+    @conversationListController.addItem channel
 
   viewAppended:->
-    @addSubView @contactList
-    @contactListController.loadItems()
+    @addSubView @conversationList
+    @conversationListController.loadItems()
 
   show:->
     @setClass 'visible'

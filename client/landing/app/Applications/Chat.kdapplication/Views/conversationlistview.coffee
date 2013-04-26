@@ -1,8 +1,8 @@
-class ChatContactListView extends KDListView
+class ChatConversationListView extends KDListView
 
   constructor:(options = {}, data)->
 
-    options.itemClass = ChatContactListItem
+    options.itemClass = ChatConversationListItem
     options.cssClass  = KD.utils.curryCssClass "chat-list", options.cssClass
     options.tagName   = "ul"
 
