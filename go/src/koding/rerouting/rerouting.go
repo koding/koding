@@ -31,12 +31,14 @@ type LeaveMsg struct {
 }
 
 var authPairs map[string]JoinMsg
+var exchanges map[string]bool
 var producer *Producer
 
 func main() {
 	log.Println("routing worker started")
 
 	authPairs = make(map[string]JoinMsg)
+	exchanges = make(map[string]bool)
 
 	var err error
 	producer, err = createProducer()
@@ -108,11 +110,14 @@ func startRouting() {
 				log.Print("bad json incoming msg: ", err)
 			}
 
-			// delete user from the authPairs map and cancel it from consuming
+			// cancel consuming
 			err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
 			if err != nil {
 				log.Fatal("basic.cancel: %s", err)
 			}
+			// delete exchange reference so it gets redeclared
+			delete(exchanges, authPairs[leave.RoutingKey].Exchange)
+			// delete authPairs map
 			delete(authPairs, leave.RoutingKey)
 
 		default:
@@ -122,8 +127,11 @@ func startRouting() {
 }
 
 func declareExchange(c *Consumer, exchange string) {
-	if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
-		log.Fatal("exchange.declare: %s", err)
+	if !exchanges[exchange] {
+		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
+			log.Fatal("exchange.declare: %s", err)
+		}
+		exchanges[exchange] = true
 	}
 }
 
