@@ -40,10 +40,11 @@ class IntroductionTooltip extends KDObject
   getIntroData: ->
     {introSnippets} = @getSingleton "mainController"
     ourSnippet = null
-    for key, snippet of introSnippets
-      if @getOptions().parentView?.getOptions().introId is snippet.introId
-        ourSnippet = snippet
-    return ourSnippet
+    for introSnippet in introSnippets
+      for snippet in introSnippet.snippets
+        if @getOptions().parentView?.getOptions().introId is snippet.introId
+          ourSnippet = snippet
+      return ourSnippet
 
   getParentView: ->
     view      = null
