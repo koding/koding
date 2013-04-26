@@ -16,7 +16,7 @@ class IntroductionTooltip extends KDObject
     return unless parentView # view not appended to dom yet, probably came from db query
 
     view       = null
-    try view   = eval @getData().snippet?.split("&quot;").join("\"") # trying to eval snippet, sanity check
+    try view   = eval Encoder.htmlDecode @getData().snippet.split("@").join("this.") # trying to eval snippet
     return unless view instanceof KDView # we will add this as a subview, should be a KDView instance
 
     view.addSubView @closeButton = new KDCustomHTMLView
