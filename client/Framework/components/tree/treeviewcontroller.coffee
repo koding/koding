@@ -607,37 +607,20 @@ class JTreeViewController extends KDViewController
       event.preventDefault()
       event.stopPropagation()
       return no
+
     @dragIsActive = yes
     e = event.originalEvent
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
-    transferredData = (JSON.stringify node.getData() for node in @selectedNodes)
+
+    # We need to look it at later FIXME GG
+    # transferredData = (JSON.stringify node.getData() for node in @selectedNodes)
+    transferredData = (@getNodeId node.getData() for node in @selectedNodes)
+
     e.dataTransfer.setData('Text', transferredData.join()) # required otherwise doesn't work
 
     if @selectedNodes.length > 1
       e.dataTransfer.setDragImage dragHelper, -10, 0
 
-    # this doesnt work in webkit only firefox
-
-    # items = for node in @selectedNodes
-    #   node.getData()
-    #
-    # options = @getOptions()
-    # draggedListController = new KDListViewController
-    #   wrapper        : no
-    #   scrollView     : no
-    #   selection      : no
-    #   view           : new JTreeView
-    #     tagName      : "ul"
-    #     type         : "jtree"
-    #     cssClass     : "drag-helper-list"
-    #     itemClass : JTreeItemView
-    # , {items}
-    #
-    # @tempDragList = draggedListController.getView()
-    # KDView.appendToDOMBody @tempDragList
-    # @tempDragList.$().css top : e.pageY, left : e.pageY
-    # draggedList = @tempDragList.$()[0]
-    # e.dataTransfer.addElement(draggedList);
     nodeView.setClass "drag-started"
 
   dragEnter: (nodeView, event)->

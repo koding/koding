@@ -216,7 +216,10 @@ class MembersAppController extends AppController
   setCurrentViewNumber:(type)->
     group = KD.getSingleton('groupsController').getCurrentGroup()
     return unless group
-    count = group.counts?.members
+    switch type
+      when 'all' then count = group.counts?.members
+      when 'followers' then count = KD.whoami().counts.followers
+      when 'following' then count = KD.whoami().counts.following
     @getView().$(".feeder-header span.member-numbers-#{type}").html count or "n/a"
 
   setCurrentViewHeader:(count)->
