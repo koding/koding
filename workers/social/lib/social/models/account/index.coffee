@@ -40,6 +40,7 @@ module.exports = class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
@@ -336,6 +337,7 @@ module.exports = class JAccount extends jraphical.Module
     edgeSelector  =
       sourceName  : 'JGroup'
       targetId    : @getId()
+      as          : 'member'
     edgeFields    =
       sourceId    : 1
       as          : 1
@@ -368,9 +370,10 @@ module.exports = class JAccount extends jraphical.Module
       if err then callback err
       else
         selector =
-          email  : user.email
-          status : {$in:['pending', 'sent']}
-          group  : {$exists:1}
+          email          : user.email
+          invitationType : 'invitation'
+          status         : 'sent'
+          group          : {$exists:1}
 
         JInvitationRequest.some selector, {}, (err, invites)->
           if err then callback err

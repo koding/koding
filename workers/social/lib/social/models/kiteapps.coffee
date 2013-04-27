@@ -9,6 +9,7 @@ module.exports = class JKiteCall extends jraphical.Module
   @share()
 
   @set
+    softDelete : yes
     permissions: [
       'read kiteapps'
       'create kiteapps'

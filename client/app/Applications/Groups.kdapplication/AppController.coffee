@@ -135,14 +135,9 @@ class GroupsAppController extends AppController
               JGroup.byRelevance @_searchValue, options, callback
             else
               JGroup.streamModels selector, options, callback
-          dataEnd           :({resultsController}, ids)->
-            {JGroup} = KD.remote.api
-            JGroup.fetchMyMemberships ids, (err, groups)->
-              if err then error err
-              else
-                {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, (view)->
-                  view.markOwnGroup()
+          dataEnd           :({resultsController}, ids)=>
+            {everything} = resultsController.listControllers
+            @markMemberAndOwnGroups everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
@@ -150,9 +145,16 @@ class GroupsAppController extends AppController
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
+              console.log items
+              ids = []
               for item in items
                 item.followee = true
+                ids.push item.group.getId()
               callback err, (item.group for item in items)
+              callback err, null, ids
+          dataEnd           :({resultsController}, ids)=>
+            {mine} = resultsController.listControllers
+            @markMemberAndOwnGroups mine, ids
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -174,6 +176,17 @@ class GroupsAppController extends AppController
 
       @putAddAGroupButton()
       @emit 'ready'
+
+  markMemberAndOwnGroups:(controller, ids)->
+    {JGroup} = KD.remote.api
+    fetchRoles =
+      member: (view)-> view.markMemberGroup()
+      owner : (view)-> view.markOwnGroup()
+    for as, callback of fetchRoles
+      do (as, callback)->
+        JGroup.fetchMyMemberships ids, as, (err, groups)->
+          return error err if err
+          controller.forEachItemByIndex groups, callback
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
@@ -260,6 +273,10 @@ class GroupsAppController extends AppController
       callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->
+
+    if formData.privacy in ['by-invite', 'by-request', 'same-domain']
+      formData.privacy = 'private'
+
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
         new KDNotificationView
@@ -316,7 +333,7 @@ class GroupsAppController extends AppController
                   { title : "University/School", value : "educational"}
                   { title : "Company",           value : "company"}
                   { title : "Project",           value : "project"}
-                  { title : "Custom",            value : "custom"}
+                  { title : "Other",             value : "custom"}
                 ]
           "General Settings"         :
             title                    : 'Create a group'
@@ -364,9 +381,9 @@ class GroupsAppController extends AppController
                     { title : "Anyone can join",    value : "public" }
                   ]
                   Private            : [
-                    { title : "By invititation",     value : "private" }
-                    { title : "By access request",   value : "private" }
-                    { title : "In same domain",      value : "private" }
+                    { title : "By invitation",       value : "by-invite" }
+                    { title : "By access request",   value : "by-request" }
+                    { title : "In same domain",      value : "same-domain" }
                   ]
               "Visibility"           :
                 label                : "Visibility settings"
@@ -536,14 +553,30 @@ class GroupsAppController extends AppController
     pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
       (pane, invitationRequestView)->
 
-        invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-          count = invitationRequestView.batchInvites.inputs.Count.getValue()
-          group.sendSomeInvitations count, (err, message)->
-            if message is null
-              message = 'Done'
-              invitationRequestView.prepareBulkInvitations()
-            {statusInfo} = invitationRequestView.batchInvites.inputs
-            statusInfo.updatePartial Encoder.htmlDecode message
+        kallback = (modal, err)=>
+          modal.modalTabs.forms.invite.buttons.Send.hideLoader()
+          return invitationRequestView.showErrorMessage err if err
+          new KDNotificationView title:'Invitation sent!'
+          invitationRequestView.refresh()
+          modal.destroy()
+
+        invitationRequestView.on 'BatchApproveRequests', (formData)->
+          group.sendSomeInvitations formData.count, (err)=>
+            return invitationRequestView.showErrorMessage err if err
+            invitationRequestView.prepareBulkInvitations()
+            kallback @batchApprove, err
+
+        invitationRequestView.on 'BatchInvite', (formData)->
+          group.inviteByEmails formData.emails, (err)=>
+            kallback @batchInvite, err
+
+        invitationRequestView.on 'InviteByEmail', (formData)->
+          group.inviteByEmail formData.recipient, (err)=>
+            kallback @inviteByEmail, err
+
+        invitationRequestView.on 'InviteByUsername', (formData)->
+          group.inviteByUsername formData.recipient, (err)=>
+            kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request)->
           request.approveInvitation()
@@ -592,7 +625,7 @@ class GroupsAppController extends AppController
       @prepareInvitationsTab()
 
     contentDisplay = @showContentDisplay @groupView
-    callback contentDisplay
+    callback? contentDisplay
 
 
   showContentDisplay:(groupView)->
