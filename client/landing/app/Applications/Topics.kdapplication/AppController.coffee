@@ -43,14 +43,14 @@ class TopicsAppController extends AppController
             else
               JTag.streamModels selector, options, callback
           dataEnd           : ({resultsController}, ids)->
-            if ids
-              JTag.fetchMyFollowees ids, (err, followees)->
-                if err then error err
-                else
-                  {everything} = resultsController.listControllers
-                  everything.forEachItemByIndex followees, ({followButton})->
-                    followButton.setState 'Following'
-                    followButton.redecorateState()
+            JTag.fetchMyFollowees ids, (err, followees)->
+              console.log followees
+              if err then error err
+              else
+                {everything} = resultsController.listControllers
+                everything.forEachItemByIndex followees, ({followButton})->
+                  followButton.setState 'Following'
+                  followButton.redecorateState()
           dataError         :->
             log "Seems something broken:", arguments
 
