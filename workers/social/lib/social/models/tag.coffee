@@ -144,7 +144,9 @@ module.exports = class JTag extends jraphical.Module
           fin =(i)-> if i is tagRefs.length-1 then queue.next()
           tagRefs.forEach (tagRef, i)->
             if tagRef?.$suggest?
+              {group} = client.context
               newTag = {title: tagRef.$suggest.trim()}
+              newTag.group = group if group isnt 'koding'
               JTag.one newTag, (err, tag)->
                 if err
                   callbackForEach err

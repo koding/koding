@@ -739,7 +739,7 @@ module.exports = class JAccount extends jraphical.Module
               else
                 callback null, messages
 
-  fetchTopics: (query, page, callback)->
+  fetchTopics: secure (client, query, page, callback)->
     query       =
       targetId  : @getId()
       as        : 'follower'
@@ -747,8 +747,11 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else
+        {group} = client.context
         ids = (rel.sourceId for rel in docs)
-        JTag.all _id: $in: ids, (err, tags)->
+        selector = _id: $in: ids
+        selector.group = group if group isnt 'koding'
+        JTag.all selector, (err, tags)->
           callback err, tags
 
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
