@@ -58,6 +58,7 @@ func main() {
 	go ldapserver.Listen()
 	go LimiterLoop()
 	k := kite.New("os")
+	k.LoadBalance()
 
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
