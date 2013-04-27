@@ -66,6 +66,10 @@ class ActivityAppView extends KDScrollView
     @addSubView @innerNav
     @addSubView @feedWrapper
 
+    if KD.isLoggedIn()
+      @utils.wait 1500, =>
+        @navigateHome pageName :"Activity"
+
   # pistachio:->
   #   """
   #     {{> @header}}
