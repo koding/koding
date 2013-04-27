@@ -79,16 +79,8 @@ class KiteController extends KDController
 
     mainController = @getSingleton "mainController"
 
-#    mainController.getVisitor().on 'change.login', (account)=>
-#      KD.whoami()Changed account
-
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
-#      mainView.putOverlay
-#        isRemovable : no
-#        cssClass    : "dummy"
-#        animated    : yes
-#        parent      : "#finder-panel"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
