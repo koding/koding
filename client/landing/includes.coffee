@@ -626,6 +626,9 @@ module.exports = [
   # KITE CONTROLLER
   "app/MainApp/KiteController.coffee",
 
+  # Virtualization CONTROLLER
+  "app/MainApp/VirtualizationController.coffee",
+
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
   # "app/MainApp/oldPages/pageRegister.coffee",
