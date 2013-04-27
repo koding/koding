@@ -23,7 +23,7 @@ class TopicsAppController extends AppController
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
-      noItemFoundText       : "There is no topics."
+      noItemFoundText       : "There are no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
@@ -43,19 +43,20 @@ class TopicsAppController extends AppController
             else
               JTag.streamModels selector, options, callback
           dataEnd           : ({resultsController}, ids)->
-            JTag.fetchMyFollowees ids, (err, followees)->
-              if err then error err
-              else
-                {everything} = resultsController.listControllers
-                everything.forEachItemByIndex followees, ({followButton})->
-                  followButton.setState 'Following'
-                  followButton.redecorateState()
+            if ids
+              JTag.fetchMyFollowees ids, (err, followees)->
+                if err then error err
+                else
+                  {everything} = resultsController.listControllers
+                  everything.forEachItemByIndex followees, ({followButton})->
+                    followButton.setState 'Following'
+                    followButton.redecorateState()
           dataError         :->
             log "Seems something broken:", arguments
 
         following           :
           title             : "Following"
-          noItemFoundText   : "There is no topics that you follow."
+          noItemFoundText   : "There are no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
               for item in items
