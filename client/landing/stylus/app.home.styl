@@ -162,8 +162,14 @@ div.screenshots
   .home-links
     size                auto, 50px
     text-align          left
-    gradient            #fff, #eee
-
+    rel()
+    .overlay
+      abs()
+      size              100%, 100%
+      z-index           10
+      bg                color, transparent
+    > ul
+      z-index           0
     .custom-link-view
       size              25%, 50px
       padding           0 26px 0 20px
