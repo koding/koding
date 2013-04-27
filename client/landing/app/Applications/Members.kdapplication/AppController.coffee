@@ -46,22 +46,27 @@ class MembersAppController extends AppController
                   targetOptions: {options}
                 }
                 selector = {}
-                group.fetchMembers selector, relationshipOptions, callback
+                group.fetchMembers selector, relationshipOptions, (err, items, rest...)=>
+                  @setCurrentViewNumber 'all', items?.length
+                  callback err, items, rest...
               else
-                JAccount.someWithRelationship selector, options, callback
-              @setCurrentViewNumber 'all'
+                JAccount.someWithRelationship selector, options, (err, items, rest...)=>
+                  @setCurrentViewNumber 'all', items?.length
+                  callback err, items, rest...
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           noItemFoundText   : "There is no member who follows you."
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchFollowersWithRelationship selector, options, callback
-            @setCurrentViewNumber 'followers'
+            KD.whoami().fetchFollowersWithRelationship selector, options, (err, items, rest...)=>
+              @setCurrentViewNumber 'followers', items?.length
+              callback err, items, rest...
         followings          :
           title             : "Following <span class='member-numbers-following'></span>"
           noItemFoundText   : "You are not following anyone."
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchFollowingWithRelationship selector, options, callback
-            @setCurrentViewNumber 'following'
+            KD.whoami().fetchFollowingWithRelationship selector, options, (err, items, rest...)=>
+              @setCurrentViewNumber 'following', items?.length
+              callback err, items, rest...
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
@@ -75,6 +80,7 @@ class MembersAppController extends AppController
     }, (controller)=>
       @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
+      controller.loadFeed()
       @emit 'ready'
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'
@@ -83,6 +89,7 @@ class MembersAppController extends AppController
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      # domId                 : 'members-feeder-split-view'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
@@ -120,13 +127,17 @@ class MembersAppController extends AppController
 
   createFolloweeContentDisplay:(account, filter)->
     # log "I need to create followee for", account, filter
-    newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
+    newView = new MembersContentDisplayView
+      cssClass : "content-display #{filter}"
+      # domId    : 'members-feeder-split-view'
+
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
 
   createLikedFeedForContentDisplay:(view, account)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
@@ -171,7 +182,10 @@ class MembersAppController extends AppController
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
 
   createLikedContentDisplay:(account)->
-    newView = (new MembersLikedContentDisplayView cssClass : "content-display likes")
+    newView = new MembersLikedContentDisplayView
+      cssClass : "content-display likes"
+      # domId    : 'members-feeder-split-view'
+
     newView.createCommons account
     @createLikedFeedForContentDisplay newView, account
 
@@ -204,10 +218,8 @@ class MembersAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
-  setCurrentViewNumber:(type)->
-    group = KD.getSingleton('groupsController').getCurrentGroup()
-    return unless group
-    count = group.counts?.members
+  setCurrentViewNumber:(type, count)->
+    if count >= 10 then count = '10+'
     @getView().$(".feeder-header span.member-numbers-#{type}").html count or "n/a"
 
   setCurrentViewHeader:(count)->

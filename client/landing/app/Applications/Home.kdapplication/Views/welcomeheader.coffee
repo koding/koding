@@ -4,10 +4,11 @@ class WelcomeHeader extends KDHeaderView
     @setClass "notification-header"
 
   click:(event)->
-    if $(event.target).is "i"
-      localStorage.welcomeMessageClosed = yes
-      @remove()
-    else if $(event.target).is "a"
+    # if $(event.target).is "i"
+    #   localStorage.welcomeMessageClosed = yes
+    #   @remove()
+    # else if $(event.target).is "a"
+    if $(event.target).is "a"
       $.ajax
         # url       : KD.config.apiUri+'https://api.koding.com/1.0/logout'
         url       : "/beta.txt"
