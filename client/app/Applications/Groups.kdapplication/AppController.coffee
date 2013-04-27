@@ -273,6 +273,10 @@ class GroupsAppController extends AppController
       callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->
+
+    if formData.privacy in ['by-invite', 'by-request', 'same-domain']
+      formData.privacy = 'private'
+
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
         new KDNotificationView
@@ -329,7 +333,7 @@ class GroupsAppController extends AppController
                   { title : "University/School", value : "educational"}
                   { title : "Company",           value : "company"}
                   { title : "Project",           value : "project"}
-                  { title : "Custom",            value : "custom"}
+                  { title : "Other",             value : "custom"}
                 ]
           "General Settings"         :
             title                    : 'Create a group'
@@ -377,9 +381,9 @@ class GroupsAppController extends AppController
                     { title : "Anyone can join",    value : "public" }
                   ]
                   Private            : [
-                    { title : "By invititation",     value : "private" }
-                    { title : "By access request",   value : "private" }
-                    { title : "In same domain",      value : "private" }
+                    { title : "By invitation",       value : "by-invite" }
+                    { title : "By access request",   value : "by-request" }
+                    { title : "In same domain",      value : "same-domain" }
                   ]
               "Visibility"           :
                 label                : "Visibility settings"
