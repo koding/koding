@@ -153,5 +153,5 @@ module.exports =
       host        : 'kontrol.in.koding.com'
       port        : '5672'
       login       : 'guest'
-      password    : 'HV5l856bME'
+      password    : 's486auEkPzvUjYfeFTMQ'
       vhost       : '/'
