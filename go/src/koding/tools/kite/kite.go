@@ -15,8 +15,9 @@ import (
 )
 
 type Kite struct {
-	Name     string
-	Handlers map[string]Handler
+	Name          string
+	Handlers      map[string]Handler
+	LoadBalancing bool
 }
 
 type Handler struct {
@@ -29,6 +30,10 @@ func New(name string) *Kite {
 		Name:     name,
 		Handlers: make(map[string]Handler),
 	}
+}
+
+func (k *Kite) LoadBalance() {
+	k.LoadBalancing = true
 }
 
 func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, session *Session) (interface{}, error)) {
@@ -61,7 +66,7 @@ func (k *Kite) Run() {
 	defer publishChannel.Close()
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
-	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
+	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name, k.LoadBalancing)
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
 	for {
