@@ -181,15 +181,37 @@ module.exports = class Followable
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
+  getQueryWithGroupMembers = (client, query, orientation, callback)->
+    {group} = client.context
+    if group is 'koding'
+      return callback null, query
+
+    JGroup = require '../models/group'
+    JGroup.one slug:group, (err, groupModel)->
+      return callback err if err
+      selector =
+        sourceId   : groupModel._id
+        sourceName : 'JGroup'
+        targetName : 'JAccount'
+        as         : 'member'
+      Relationship.some selector, {}, (err, rels)->
+        return callback err if err
+        query["#{orientation}Id"] = $in: (rel.targetId for rel in rels)
+        callback null, query
+
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
     JAccount = require '../models/account'
-    @fetchFollowers query, page, (err, accounts)->
-      if err then callback err else JAccount.markFollowing client, accounts, callback
+    getQueryWithGroupMembers client, query, 'target', (err, filteredQuery)=>
+      return callback err if err
+      @fetchFollowers filteredQuery, page, (err, accounts)->
+        if err then callback err else JAccount.markFollowing client, accounts, callback
 
   fetchFollowingWithRelationship: secure (client, query, page, callback)->
     JAccount = require '../models/account'
-    @fetchFollowing query, page, (err, accounts)->
-      if err then callback err else JAccount.markFollowing client, accounts, callback
+    getQueryWithGroupMembers client, query, 'source', (err, filteredQuery)=>
+      return callback err if err
+      @fetchFollowing query, page, (err, accounts)->
+        if err then callback err else JAccount.markFollowing client, accounts, callback
 
   fetchFollowedTopics: secure (client, query, page, callback)->
     extend query,
@@ -198,7 +220,11 @@ module.exports = class Followable
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else
+        {group} = client.context
         ids = (rel.sourceId for rel in docs)
+        selector = _id: $in: ids
+        selector.group = group if group isnt 'koding'
+
         JTag = require '../models/tag'
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts

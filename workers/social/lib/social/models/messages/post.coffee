@@ -46,7 +46,10 @@ module.exports = class JPost extends jraphical.Message
   @set
     softDelete  : yes
     slugifyFrom : 'title'
-    slugTemplate: 'Activity/#{slug}'
+    slugTemplate: ->
+      """
+      #{if @group is 'koding' then '' else "#{@group}/"}Activity/\#{slug}
+      """
     indexes     :
       slug      : 'unique'
       group     : 'sparse'
