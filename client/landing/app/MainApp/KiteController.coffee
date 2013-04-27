@@ -72,7 +72,7 @@ class KiteController extends KDController
     notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
     log "Kite Request:", options
 
-    KD.whoami().tellKite options, (err, response)=>
+    KD.whoami().tellKite? options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
