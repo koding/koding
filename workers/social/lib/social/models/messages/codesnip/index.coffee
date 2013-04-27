@@ -14,6 +14,8 @@ module.exports = class JCodeSnip extends JPost
   {secure} = require 'bongo'
   {extend} = require 'underscore'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @getActivityType =-> require './codesnipactivity'

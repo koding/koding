@@ -8,6 +8,10 @@ class SidebarController extends KDViewController
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
 
+  loadView:->
+
+    @accountChanged KD.whoami()
+
   accountChanged:(account)->
 
     {profile} = account
@@ -38,6 +42,7 @@ class SidebarController extends KDViewController
 
   resetAdminNavItems:->
     return unless KD.isLoggedIn()
+
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
         @getView().navController.addItem

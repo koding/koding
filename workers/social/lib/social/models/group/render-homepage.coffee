@@ -73,18 +73,18 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
-              <div class="kdview screenshots">
+              <div class="kdview screenshots" id="home-group-header" >
                 <section id="home-group-body" class="kdview kdscrollview">
                   <div class="group-desc">#{body}</div>
                 </section>
-                <div class="home-links">
-                  <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
+                <div class="home-links" id="group-home-links">
+                  <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register an account</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
-              </div>
-              <div class="kdview readme">
-                <figure class='has-markdown'>
-                  #{content}
-                </figure>
+                <div class="kdview readme" id="home-group-readme">
+                  <figure class='has-markdown'>
+                    #{content}
+                  </figure>
+                </div>
               </div>
             </div>
           </div>
@@ -177,14 +177,9 @@ getScripts =->
 
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require([
-      "order!/js/libs/jquery-1.8.2.min.js",
-      "order!/js/libs/jquery-ui-1.8.16.custom.min.js",
-      "order!/js/underscore-min.1.3.js",
-      "order!/js/libs/highlight.pack.js",
-      "order!/js/kd.#{KONFIG.version}.js",
-    ]);
+    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
   </script>
+
 
   <script type="text/javascript">
     var _gaq = _gaq || [];

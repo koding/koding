@@ -6,6 +6,7 @@ module.exports = class JGroupRole extends Module
   KodingError   = require '../../error'
 
   @set
+    softDelete        : yes
     schema            :
       title           : String
       value           : String
