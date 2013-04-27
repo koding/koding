@@ -81,6 +81,7 @@ class TopicsAppController extends AppController
       controller.resultsController.on 'ItemWasAdded', (item)=>
         item.on 'LinkClicked', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
+      controller.loadFeed()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
       @emit 'ready'

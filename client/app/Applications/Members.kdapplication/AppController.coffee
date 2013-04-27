@@ -80,6 +80,7 @@ class MembersAppController extends AppController
     }, (controller)=>
       @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
+      controller.loadFeed()
       @emit 'ready'
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'

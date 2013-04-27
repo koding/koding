@@ -43,7 +43,7 @@ class ActivityAppView extends KDScrollView
     @_windowDidResize()
 
   setFixed:->
-    pre = if @getScrollTop() > headerHeight then "set" else "unset"
+    pre = if @getScrollTop() > headerHeight = @header.getHeight() then "set" else "unset"
     @["#{pre}Class"] "fixed"
 
   navigateHome:(itemData)->
@@ -59,7 +59,7 @@ class ActivityAppView extends KDScrollView
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
   viewAppended:->
-    log "here >>>>>>>>>"
+
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
     @addSubView @header
     @addSubView @widget

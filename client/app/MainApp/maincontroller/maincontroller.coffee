@@ -29,6 +29,7 @@ class MainController extends KDController
     KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
+    KD.registerSingleton "vmController", new VirtualizationController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
@@ -91,7 +92,7 @@ class MainController extends KDController
     @accountReadyState       = 1
     connectedState.connected = yes
 
-    @emit "AccountChanged", account, firstLoad
+    @accountReady @emit.bind @, "AccountChanged", account, firstLoad
 
     unless @mainViewController
 

@@ -19,10 +19,12 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/slugifiable'
   @trait __dirname, '../traits/restrictedquery'
   # @trait __dirname, '../traits/groupable'
+  @trait __dirname, '../traits/grouprelated'
 
   @share()
 
   @set
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : ->
       """

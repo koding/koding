@@ -8,6 +8,7 @@ module.exports = class JMembershipPolicy extends Module
   @share()
 
   @set
+    softDelete            : yes
     sharedMethods         :
       static              : ['byGroupSlug']
     schema                :
