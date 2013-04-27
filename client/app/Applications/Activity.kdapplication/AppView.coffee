@@ -25,11 +25,11 @@ class ActivityAppView extends KDScrollView
     @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
     @decorate()
-    @setLazyLoader(.99)
+    @setLazyLoader .99
 
     {scrollView} = @feedWrapper.controller
     @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
-    @header.on "viewAppended", -> headerHeight = @getHeight()
+    @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
     if KD.isLoggedIn()
@@ -40,13 +40,11 @@ class ActivityAppView extends KDScrollView
       @unsetClass 'loggedin'
       @widget.hide()
       @header.$('.home-links').removeClass 'hidden'
-    @notifyResizeListeners()
+    @_windowDidResize()
 
   setFixed:->
-    if @getScrollTop() > headerHeight
-      @setClass "fixed"
-    else
-      @unsetClass "fixed"
+    pre = if @getScrollTop() > headerHeight = @header.getHeight() then "set" else "unset"
+    @["#{pre}Class"] "fixed"
 
   navigateHome:(itemData)->
 
@@ -55,20 +53,26 @@ class ActivityAppView extends KDScrollView
 
     @scrollTo {top, duration} if itemData.pageName in ["Home", "Activity"]
 
-  viewAppended: JView::viewAppended
-
   _windowDidResize:->
 
     headerHeight = @header.getHeight()
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
-  pistachio:->
-    """
-      {{> @header}}
-      {{> @widget}}
-      {{> @innerNav}}
-      {{> @feedWrapper}}
-    """
+  viewAppended:->
+
+    $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
+    @addSubView @header
+    @addSubView @widget
+    @addSubView @innerNav
+    @addSubView @feedWrapper
+
+  # pistachio:->
+  #   """
+  #     {{> @header}}
+  #     {{> @widget}}
+  #     {{> @innerNav}}
+  #     {{> @feedWrapper}}
+  #   """
 
 class ActivityListContainer extends JView
 

@@ -59,6 +59,7 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    softDelete      : yes
     broadcastable   : no
     indexes         :
       username      : 'unique'
@@ -551,7 +552,7 @@ module.exports = class JUser extends jraphical.Module
 
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView clientId, callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require './emailconfirmation'

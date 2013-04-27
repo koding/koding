@@ -40,6 +40,7 @@ module.exports = class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
@@ -186,10 +187,10 @@ module.exports = class JAccount extends jraphical.Module
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require '../group/permissionset'
-    client = 
+    client =
       context     : { group: target.slug }
       connection  : { delegate: this }
-    advanced = 
+    advanced =
       if Array.isArray permission then permission
       else JPermissionSet.wrapPermission permission
     JPermissionSet.checkPermission client, advanced, target, callback
@@ -249,29 +250,13 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
-
-    CActivity = require '../activity'
-
-    CActivity.some
-      originId: @getId()
-      type : 'CBlogPostActivity'
-    ,
-      to : Date.now()
-      limit : 5
-      sort :
-        createdAt : -1
-    , (err, activities)=>
-      posts = []
-
-      for i in activities
-        posts.push JSON.parse(i.snapshot)
-
+    require("../session").fetchSession clientId, (err, session)=>
       callback null, JAccount.renderHomepage {
         profile       : @profile
         account       : @
         counts        : @counts
         skillTags     : @skillTags
-        lastBlogPosts : posts or {}
+        isLoggedIn    : session?.username?
       }
 
   setHandle: secure (client, data, callback)->
@@ -352,6 +337,7 @@ module.exports = class JAccount extends jraphical.Module
     edgeSelector  =
       sourceName  : 'JGroup'
       targetId    : @getId()
+      as          : 'member'
     edgeFields    =
       sourceId    : 1
       as          : 1
@@ -384,9 +370,10 @@ module.exports = class JAccount extends jraphical.Module
       if err then callback err
       else
         selector =
-          email  : user.email
-          status : {$in:['pending', 'sent']}
-          group  : {$exists:1}
+          email          : user.email
+          invitationType : 'invitation'
+          status         : 'sent'
+          group          : {$exists:1}
 
         JInvitationRequest.some selector, {}, (err, invites)->
           if err then callback err
@@ -406,7 +393,7 @@ module.exports = class JAccount extends jraphical.Module
                       invitations.push {invitation, group, roles: []}
                     done()
             , -> callback null, invitations
-            
+
             checkMembership invitation for invitation in invites
 
   fetchGroupRoles: secure (client, slug, callback)->

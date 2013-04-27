@@ -2,6 +2,8 @@ CActivity = require '../../activity'
 
 module.exports = class CTutorialListActivity extends CActivity
 
+  @trait __dirname, '../../../traits/grouprelated'
+  
   @share()
 
   @set
