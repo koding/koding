@@ -654,7 +654,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type is 'folder'
+    return unless nodeView.getData?().type in ['folder', 'mount']
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
