@@ -42,17 +42,18 @@ module.exports = class AuthWorker extends EventEmitter
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
     return  unless servicesOfType?.length
-    serviceName = servicesOfType[count % servicesOfType.length]
+    {serviceName} = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
     return serviceName
 
-  addService:({serviceGenericName, serviceUniqueName})->
+  addService:({serviceGenericName, serviceUniqueName, loadBalancing})->
     servicesOfType = @services[serviceGenericName] ?= []
-    servicesOfType.push serviceUniqueName 
+    servicesOfType.push {serviceUniqueName, loadBalancing}
 
   removeService:({serviceGenericName, serviceUniqueName})->
     servicesOfType = @services[serviceGenericName] 
-    index = servicesOfType.indexOf serviceUniqueName
+    index = (i for s, i in servicesOfType \
+               when s.serviceUniqueName is serviceUniqueName)[0]
     servicesOfType.splice index, 1
     clientsByExchange = @clients.byExchange[serviceUniqueName]
     clientsByExchange?.forEach @bound 'cycleClient'
@@ -190,6 +191,7 @@ module.exports = class AuthWorker extends EventEmitter
       else acc[last] = edge
       return acc
     , {}
+    serviceInfo.loadBalancing = yes  if /\.loadBalancing$/.test serviceKey
     isValidKey  = serviceInfo.serviceGenericName? and
                   serviceInfo.serviceUniqueName?
     throw {
