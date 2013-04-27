@@ -43,13 +43,11 @@ class ContentDisplayController extends KDController
 
   slideWrapperIn:(wrapper)->
     wrapper.setClass 'in'
-    # wrapper.$().animate left : "0%",200
 
   slideWrapperOut:(view)->
     wrapper = view.parent
     wrapper.once 'transitionend', => @destroyView view
     wrapper.unsetClass 'in'
-    # wrapper.$().animate left : "100%",100,=>
 
   destroyView:(view)->
     wrapper = view.parent
