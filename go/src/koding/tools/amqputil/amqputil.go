@@ -67,7 +67,7 @@ func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, 
 	return stream
 }
 
-func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string) {
+func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string, loadBalancing bool) {
 	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
@@ -77,6 +77,11 @@ func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, servi
 	}
 
 	routingKey := fmt.Sprintf("serviceType.%s.serviceGenericName.%s.serviceUniqueName.%s", serviceType, serviceGenericName, serviceUniqueName)
+
+	if loadBalancing {
+		routingKey += ".loadBalancing"
+	}
+
 	if err := channel.QueueBind("", routingKey, exchange, false, nil); err != nil {
 		panic(err)
 	}
