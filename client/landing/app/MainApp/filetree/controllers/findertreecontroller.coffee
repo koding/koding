@@ -654,12 +654,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-
-    sameParent = no
-    @selectedNodes.forEach (selectedNode)->
-      sameParent = yes if selectedNode.getData().parentPath is nodeView.getData().parentPath
-
-    return if sameParent
+    return unless nodeView.getData?().type is 'folder'
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
