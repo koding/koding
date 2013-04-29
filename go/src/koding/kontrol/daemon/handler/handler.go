@@ -194,8 +194,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			RabbitKey:   worker.RabbitKey,
 			Host:        worker.Hostname + ":" + port,
 			HostData:    "FromKontrolDaemon",
-			// Uuid:        "proxy.in.koding.com",
-			Uuid: "mahlika.local",
+			Uuid:        "proxy.in.koding.com",
 		}
 
 		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
