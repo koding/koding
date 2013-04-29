@@ -447,7 +447,11 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			// we can't connect to url, thus proxy trough amqp
 			log.Println("rabbit proxy started...")
-			log.Println("trying to make rabbit connection to", outreq.URL.Host)
+			// log.Println("trying to make rabbit connection to", outreq.URL.Host)
+			log.Println("URL.HOST", outreq.URL.Host)
+			log.Println("URL", outreq.URL)
+			log.Println("HOST", outreq.Host)
+			log.Println("OUTREQ", outreq)
 			response := make(chan []byte)
 			ready := make(chan bool)
 			go consumeFromRemote(rabbitKey, ready, response)
