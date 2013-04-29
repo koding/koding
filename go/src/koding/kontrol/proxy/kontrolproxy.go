@@ -453,7 +453,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Println("trying to make rabbit connection to", outreq.URL.Host)
 			response := make(chan []byte)
 			ready := make(chan bool)
-			go consumeFromClient(ready, response)
+			go consumeFromClient("remote.key", ready, response)
 
 			<-ready
 

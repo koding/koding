@@ -107,7 +107,7 @@ func readVersion() string {
 	return strings.TrimSpace(string(file))
 }
 
-func consumeFromClient(ready chan bool, received chan []byte) {
+func consumeFromClient(clientKey string, ready chan bool, received chan []byte) {
 
 	c := &Consumer{
 		conn:    nil,
@@ -142,7 +142,7 @@ func consumeFromClient(ready chan bool, received chan []byte) {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", "remote.key", "kontrol-rabbitproxy", false, nil); err != nil {
+	if err := c.channel.QueueBind("", clientKey, "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
@@ -159,7 +159,7 @@ func consumeFromClient(ready chan bool, received chan []byte) {
 			msg.DeliveryTag,
 			msg.Body)
 		switch msg.RoutingKey {
-		case "remote.key":
+		case clientKey:
 			received <- msg.Body
 		}
 
