@@ -29,7 +29,7 @@ class GroupsMemberPermissionsView extends JView
 
     @loader.show()
     @loaderText.show()
-    @fetchRoles @bound 'refresh'
+    @refresh()
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -68,7 +68,7 @@ class GroupsMemberPermissionsView extends JView
   refresh:->
     @listController.removeAllItems()
     @timestamp = new Date 0
-    @fetchSomeMembers()
+    @fetchRoles @bound 'fetchSomeMembers'
 
   continueLoadingTeasers:->
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}

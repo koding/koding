@@ -771,22 +771,26 @@ module.exports = class JGroup extends Module
             @isMember account, (err, isMember)=>
               return callback err if err
               return callback new KodingError "#{username} is already member of this group!" if isMember
-              @inviteMember client, user.email, ->
-                return callback err if err
-                queue.next()
+              @inviteMember client, user.email, (err)->
+                return queue.next() unless err
+                replaceEmail = (errMsg)-> errMsg.replace user.email, username
+                if err.name is 'KodingError' then err.message = replaceEmail err.message
+                else err = replaceEmail err
+                callback err
       queue.push -> callback null
       daisy queue
 
   inviteMember: (client, email, callback)->
       params = 
-        email: email
-        group: @slug
+        email  : email
+        group  : @slug
+        status : $not: $in: ['declined', 'ignored']
 
       JInvitationRequest = require '../invitationrequest'
       JInvitationRequest.one params, (err, invitationRequest)=>
         if invitationRequest
           callback new KodingError """
-            You've already invited #{email} to join this group.
+            You've already invited #{email} to join this group before.
             """
         else
           params.invitationType = 'invitation'
