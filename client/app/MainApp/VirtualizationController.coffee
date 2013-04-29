@@ -5,14 +5,15 @@ class VirtualizationController extends KDController
     @kc = KD.singletons.kiteController
 
   _cbWrapper:(callback, emitStateChanged)->
+    return callback  unless emitStateChanged
+
     kallback = (rest...)=>
       @info (err, info)=>
         warn "[VM]", err  if err
         @emit 'StateChanged', err, info
       callback? rest...
 
-    return kallback  if emitStateChanged
-    return callback
+    return kallback
 
   run:(command, callback, emitStateChanged=yes)->
     @kc.run
