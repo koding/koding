@@ -58,13 +58,11 @@ func main() {
 	go ldapserver.Listen()
 	go LimiterLoop()
 	k := kite.New("os")
-	k.LoadBalance()
 
-	k.Handle("auth.who", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
-		log.Warn("This is the stub for auth.who")
-		var foo struct{}
-		return foo, nil
-	})
+	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		// TODO: look up VM
+		return "some serviceUniqueName"
+	}
 
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
