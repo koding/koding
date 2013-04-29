@@ -121,11 +121,10 @@ func doRequest(msg []byte) ([]byte, error) {
 	}
 	output := new(bytes.Buffer)
 	resp.Write(output)
-	data := output.Bytes()
 
 	// log.Println("Response is", string(data))
 
-	return data, nil
+	return output.Bytes(), nil
 }
 
 func publishToRemote(data []byte, routingKey string) {
@@ -138,7 +137,7 @@ func publishToRemote(data []byte, routingKey string) {
 		Priority:        0, // 0-9
 	}
 
-	log.Println("publishing data ", string(data), routingKey)
+	log.Println("publishing repsonse to",  routingKey)
 	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
