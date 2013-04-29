@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -64,7 +65,7 @@ func (k *Kite) Run() {
 	consumeChannel := amqputil.CreateChannel(consumeConn)
 
 	hostname, _ := os.Hostname()
-	serviceUniqueName := "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + hostname
+	serviceUniqueName := "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, serviceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", serviceUniqueName, "", true)
