@@ -38,13 +38,13 @@ module.exports = class AuthWorker extends EventEmitter
       arguments   : [clientId]
       callbacks   : {}
 
-  getNextServiceName:(serviceType)->
+  getNextServiceInfo:(serviceType)->
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
     return  unless servicesOfType?.length
-    {serviceUniqueName} = servicesOfType[count % servicesOfType.length]
+    serviceInfo = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
-    return serviceUniqueName
+    return serviceInfo
 
   addService:({serviceGenericName, serviceUniqueName, loadBalancing})->
     servicesOfType = @services[serviceGenericName] ?= []
@@ -98,27 +98,37 @@ module.exports = class AuthWorker extends EventEmitter
       callbacks : {}
     }
 
+  publishToService:(exchangeName, routingKey, payload, callback)->
+    {connection} = @bongo.mq
+    connection.exchange exchangeName, AUTH_EXCHANGE_OPTIONS,
+      (exchange)=>
+        exchange.publish routingKey, payload
+        exchange.close() # don't leak a channel
+        callback? null
+
   joinClient: do ->
 
     joinClientHelper =(messageData, routingKey, socketId)->
       @authenticate messageData, routingKey, (session)=>
-        serviceResourceName = @getNextServiceName messageData.name
-        unless serviceResourceName?
+        serviceInfo = @getNextServiceInfo messageData.name
+        {serviceUniqueName, loadBalancing} = serviceInfo
+        if loadBalancing
+          @publishToService serviceUniqueName, 'auth.who', {
+            username    : session.username
+            routingKey  : routingKey
+          }
+        else if serviceUniqueName?
+          @publishToService serviceUniqueName, 'auth.join', {
+            username    : session.username
+            routingKey  : routingKey
+          }, =>
+            @addClient socketId, serviceUniqueName, routingKey
+        else
           @bongo.respondToClient routingKey, {
             method    : 'error'
             arguments : [message: 'Service unavailable!', code:503]
             callbacks : {}
           }
-        else
-          {connection} = @bongo.mq
-          connection.exchange serviceResourceName, AUTH_EXCHANGE_OPTIONS,
-            (exchange)=>
-              exchange.publish 'auth.join', {
-                username    : session.username
-                routingKey  : routingKey
-              }
-              exchange.close() # don't leak a channel
-              @addClient socketId, exchange.name, routingKey
 
     ensureGroupPermission =(group, account, roles, callback)->
       {JPermissionSet, JGroup} = @bongo.models
@@ -249,6 +259,8 @@ module.exports = class AuthWorker extends EventEmitter
                   @addService messageData
                 when 'kite.leave'
                   @removeService messageData
+                when 'kite.who'
+                  console.log 'got a kite.who', messageData
                 when "client.auth"
                   @joinClient messageData, socketId
                 else

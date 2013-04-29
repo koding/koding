@@ -60,6 +60,12 @@ func main() {
 	k := kite.New("os")
 	k.LoadBalance()
 
+	k.Handle("auth.who", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+		log.Warn("This is the stub for auth.who")
+		var foo struct{}
+		return foo, nil
+	})
+
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {

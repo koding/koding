@@ -211,6 +211,19 @@ func (k *Kite) Run() {
 					delete(routeMap, client.RoutingKey)
 				}
 
+			case "auth.who":
+				var client struct {
+					RoutingKey string
+					Username   string
+				}
+				if handler, ok := k.Handlers["auth.who"]; ok {
+					json.Unmarshal(message.Body, &client)
+					session := NewSession(client.Username)
+					handler.Callback(nil, session)
+				} else {
+					log.Warn("Need to implement the handler for auth.who")
+				}
+
 			default:
 				channel, found := routeMap[message.RoutingKey]
 				if found {
