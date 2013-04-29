@@ -459,7 +459,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			<-ready
 
 			output := new(bytes.Buffer)
-			err := outreq.WriteProxy(output)
+			err := outreq.Write(output)
 			if err != nil {
 				io.WriteString(rw, fmt.Sprint(err))
 				return
