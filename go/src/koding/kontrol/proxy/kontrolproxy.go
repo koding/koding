@@ -55,8 +55,8 @@ func main() {
 
 	<-start // wait until we got message from kontrold or exit via above chan
 
-	reverseProxy := NewSingleHostReverseProxy()
-	http.Handle("/", reverseProxy)
+	reverseProxy := &ReverseProxy{}
+	http.HandleFunc("/", reverseProxy.ServeHTTP)
 
 	// start one with goroutine in order not to block the other one
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
@@ -148,7 +148,7 @@ func lookupDomain(domainname string) (string, string, string, error) {
 	return domain.Name, domain.Key, domain.FullUrl, nil
 }
 
-func targetUrl(numberOfDeaths int, name, key string) *url.URL {
+func targetUrl(name, key string) *url.URL {
 	var target *url.URL
 	var err error
 	host := targetHost(name, key)
@@ -245,12 +245,6 @@ var onExitFlushLoop func()
 // sends it to another server, proxying the response back to the
 // client.
 type ReverseProxy struct {
-	// Director must be a function which modifies
-	// the request into a new request to be sent
-	// using Transport. Its response is then copied
-	// back to the original client unmodified.
-	Director func(*http.Request)
-
 	// The transport used to perform proxy requests.
 	// If nil, http.DefaultTransport is used.
 	Transport http.RoundTripper
@@ -272,49 +266,6 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
-}
-
-// NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
-// URLs to the scheme, host, and base path provided in target. If the
-// target's path is "/base" and the incoming request was for "/dir",
-// the target request will be for /base/dir.
-func NewSingleHostReverseProxy() *ReverseProxy {
-	director := func(req *http.Request) {
-		var deaths int
-		var target *url.URL
-		var fullurl string
-
-		name, key, err := lookupKey(req.Host)
-		if err != nil {
-			log.Println(err)
-			name, key, fullurl, err = lookupDomain(req.Host)
-			if err != nil {
-				log.Println(err)
-			}
-
-		}
-
-		if fullurl != "" {
-			target, err = url.Parse("http://" + fullurl)
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			target = targetUrl(deaths, name, key)
-		}
-
-		targetQuery := target.RawQuery
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
-		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-		if targetQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = targetQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
-		}
-	}
-
-	return &ReverseProxy{Director: director}
 }
 
 func copyHeader(dst, src http.Header) {
@@ -359,7 +310,39 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	p.Director(outreq)
+	var target *url.URL
+	var fullurl string
+
+	name, key, err := lookupKey(outreq.Host)
+	if err != nil {
+		log.Println(err)
+		name, key, fullurl, err = lookupDomain(outreq.Host)
+		if err != nil {
+			log.Println(err)
+		}
+
+	}
+
+	if fullurl != "" {
+		target, err = url.Parse("http://" + fullurl)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		target = targetUrl(name, key)
+	}
+
+	// Reverseproxy.Director closure
+	targetQuery := target.RawQuery
+	outreq.URL.Scheme = target.Scheme
+	outreq.URL.Host = target.Host
+	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
+	if targetQuery == "" || outreq.URL.RawQuery == "" {
+		outreq.URL.RawQuery = targetQuery + outreq.URL.RawQuery
+	} else {
+		outreq.URL.RawQuery = targetQuery + "&" + outreq.URL.RawQuery
+	}
+
 	outreq.Proto = "HTTP/1.1"
 	outreq.ProtoMajor = 1
 	outreq.ProtoMinor = 1
