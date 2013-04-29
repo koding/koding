@@ -174,7 +174,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 
 		go deliver(workerJson, workerProducer, res.Uuid)
 
-		// register to fujin
+		// register to kontrol proxy
 		if command != "addWithProxy" {
 			return nil
 		}
