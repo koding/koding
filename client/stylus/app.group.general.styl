@@ -247,10 +247,13 @@
     &:nth-child(2n)
       margin-right          2%
 
-    &.own-group
+    &.member-group
       .badge.member
         visible()
       .group-settings-context
+        visible()
+    &.own-group
+      .group-settings-context .remove-group
         visible()
 
     .side-wrapper
@@ -294,6 +297,23 @@
       rel()
       hidden()
       height                28px
+      width                 20px
+      bg                    color, #f5f5f5
+      padding-right         0px!important
+      cursor                pointer
+
+      &:hover
+        bg                  image, none
+        bg                  color, none
+        shadow              none
+
+      span.chevron-separator
+        hidden()
+
+      span.chevron
+        margin              1px -1px 0 0
+        opacity             0.5
+
       span
         height              28px
 

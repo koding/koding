@@ -279,7 +279,7 @@ class LoginView extends KDScrollView
 
   hide:(callback)->
 
-    @setY -@getSingleton('windowController').winWidth
+    @setY -@getSingleton('windowController').winHeight
 
     cb = =>
       @emit "LoginViewHidden"

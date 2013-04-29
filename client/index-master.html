@@ -82,16 +82,13 @@
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
-              <div class="kdview screenshots">
-                <div>
-                  <h1 class="kdview kdheaderview notification-header">
-                    <div><span>Welcome to the Koding Public Beta!<br></span><cite>Warning! when we say beta - <a href="#">we mean it</a> :)</cite></div>
-                    <i></i>
-                  </h1>
-                </div>
-                <a class="arrow left" href="#" style="left: -40px;"><span></span></a>
-                <a class="arrow right" href="#" style="right: 0px;"><span></span></a>
-                <section class="kdview kdscrollview">
+              <div class="kdview screenshots" id="home-header">
+                <h1 id="home-welcome-header" class="kdview kdheaderview notification-header">
+                  <div><span>Welcome to the Koding Public Beta!<br></span><cite>Warning! when we say beta - <a href="#">we mean it</a> :)</cite></div><i></i>
+                </h1>
+                <a id="home-ss-left-arrow"  class="arrow left" href="#" style="left: -40px;"><span></span></a>
+                <a id="home-ss-right-arrow" class="arrow right" href="#" style="right: 0px;"><span></span></a>
+                <section class="kdview kdscrollview" id="home-slideshow">
                   <ul class="clearfix">
                     <li>
                       <div>
@@ -120,8 +117,9 @@
                     </li>
                   </ul>
                 </section>
-                <div class="home-links">
-                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
+                <div class="home-links" id="home-login-bar">
+                  <div class='overlay'></div>
+                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register an account</span></a><a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
               </div>
               <div class="kdview fl common-inner-nav">
@@ -150,7 +148,7 @@
                   <div class="kdview feeder-header clearfix"><span>Latest Activity</span></div>
                   <div class="kdview kdscrollview">
                     <div class="kdview kdlistview kdlistview-default activity-related"></div>
-                    <div class="lazy-loader">Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-477" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span></div>
+                    <div class="lazy-loader">Loading...</div>
                   </div>
                 </div>
               </div>
