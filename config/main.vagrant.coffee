@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@localhost:27018/koding'
+mongo           = 'dev:k9lc4G1k32nyD72@localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -28,7 +28,7 @@ module.exports =
   runGoBroker   : yes
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
+  runOsKite     : yes
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -96,9 +96,9 @@ module.exports =
       sourceUri : 'http://localhost:1337'
   mq            :
     host        : 'localhost'
-    port        : 5673
+    port        : 5672
     apiAddress  : "localhost"
-    apiPort     : 15673
+    apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
