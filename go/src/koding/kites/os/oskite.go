@@ -153,9 +153,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		var params struct {
 			Vm string
 		}
-		if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
-			return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
-		}
+
+		// if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
+		// 	return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
+		// }
 
 		var vm *virt.VM
 		if params.Vm != "" {

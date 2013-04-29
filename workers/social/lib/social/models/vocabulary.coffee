@@ -15,6 +15,7 @@ module.exports = class JVocabulary extends Module
   @trait __dirname, '../traits/protected'
 
   @set
+    softDelete      : yes
     sharedMethods   :
       static        : ['create']
       instance      : ['remove', 'modify']

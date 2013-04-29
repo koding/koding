@@ -17,6 +17,8 @@ module.exports = class JTutorial extends JPost
 
   {once, extend} = require 'underscore'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   schema = extend {}, JPost.schema, {

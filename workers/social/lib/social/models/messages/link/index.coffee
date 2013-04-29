@@ -7,6 +7,8 @@ module.exports = class JLink extends JPost
   {once,extend} = require 'underscore'
   {log} = console
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   schema = extend {}, JPost.schema, {
