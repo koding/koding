@@ -114,7 +114,7 @@ func doRequest(msg []byte) ([]byte, error) {
 	// http://golang.org/src/pkg/net/http/client.go
 	req.RequestURI = ""
 
-	log.Println("Doing a http request")
+	log.Println("Doing a http request to", req.URL.Host)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
