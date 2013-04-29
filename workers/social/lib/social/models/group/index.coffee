@@ -758,17 +758,24 @@ module.exports = class JGroup extends Module
       daisy queue
 
   inviteByUsername: permit 'send invitations',
-    success: (client, username, callback)->
+    success: (client, usernames, callback)->
       JUser    = require '../user'
-      JUser.one {username}, (err, user)=>
-        return callback err if err
-        return callback new KodingError 'User does not exist!' unless user
-        user.fetchOwnAccount (err, account)=>
+      usernames = [usernames] unless Array.isArray usernames
+      queue = usernames.map (username)=>=>
+        console.log username
+        JUser.one {username}, (err, user)=>
           return callback err if err
-          @isMember account, (err, isMember)=>
+          return callback new KodingError 'User does not exist!' unless user
+          user.fetchOwnAccount (err, account)=>
             return callback err if err
-            return callback new KodingError "#{username} is already member of this group!" if isMember
-            @inviteMember client, user.email, callback
+            @isMember account, (err, isMember)=>
+              return callback err if err
+              return callback new KodingError "#{username} is already member of this group!" if isMember
+              @inviteMember client, user.email, ->
+                return callback err if err
+                queue.next()
+      queue.push -> callback null
+      daisy queue
 
   inviteMember: (client, email, callback)->
       params = 

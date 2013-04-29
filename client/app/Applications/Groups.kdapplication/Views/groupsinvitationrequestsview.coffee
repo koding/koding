@@ -127,6 +127,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   showModalForm:(options)->
     modal = new KDModalViewWithForms
+      cssClass               : options.cssClass
       title                  : options.title
       overlay                : yes
       width                  : options.width or 400
@@ -172,19 +173,38 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   showInviteByUsernameModal:->
     @inviteByUsername = @showModalForm
+      cssClass         : 'invite-by-username'
       title            : 'Invite by Username'
       callback         : @emit.bind @, 'InviteByUsername'
       fields           :
         recipient      :
           label        : 'Username'
-          type         : 'text'
-          name         : 'recipient'
-          placeholder  : 'Enter a user name...'
-          validate     :
-            rules      :
-              required : yes
-            messages   :
-              required : 'A user name is required!'
+          type         : 'hidden'
+
+    recipientField = @inviteByUsername.modalTabs.forms.invite.fields.recipient
+    recipientsWrapper = new KDView
+      cssClass: 'completed-items'
+
+    @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
+      {callback,inputValue} = event
+      KD.remote.api.JAccount.byRelevance inputValue, {}, (err,accounts)->
+        callback accounts
+
+    recipient = new KDAutoCompleteController
+      name                : 'recipient'
+      itemClass           : InviteByUsernameAutoCompleteItemView
+      selectedItemClass   : InviteByUsernameAutoCompletedItemView
+      outputWrapper       : recipientsWrapper
+      form                : @inviteByUsername.modalTabs.forms.invite
+      itemDataPath        : 'profile.nickname'
+      listWrapperCssClass : 'users'
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,callback}
+
+    recipientField.addSubView recipient.getView()
+    recipientField.addSubView recipientsWrapper
 
   showBatchInviteModal:->
     @batchInvite = @showModalForm
@@ -268,3 +288,44 @@ class GroupsInvitationRequestsModalView extends KDModalView
     {winHeight} = @getSingleton('windowController')
     log @$('.kdmodal-content .kdscrollview')
     @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 200
+
+class InviteByUsernameAutoCompleteItemView extends KDAutoCompleteListItemView
+  constructor:(options, data)->
+    options.cssClass = "clearfix member-suggestion-item"
+    super
+    userInput = options.userInput or @getDelegate().userInput
+    @avatar = new AutoCompleteAvatarView {},data
+    @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data
+
+  pistachio:->
+    """
+      <span class='avatar'>{{> @avatar}}</span>
+      {{> @profileLink}}
+    """
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  partial:()-> ''
+
+class InviteByUsernameAutoCompletedItemView extends KDAutoCompletedItem
+  constructor:(options, data)->
+    options.cssClass = "clearfix"
+    super
+    @avatar = new AutoCompleteAvatarView {size : width : 16, height : 16},data
+    @profileText = new AutoCompleteProfileTextView {},data
+
+  pistachio:->
+    """
+      <span class='avatar'>{{> @avatar}}</span>
+      {{> @profileText}}
+    """
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  partial:()-> ''
