@@ -450,7 +450,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Println("trying to make rabbit connection to", outreq.URL.Host)
 			response := make(chan []byte)
 			ready := make(chan bool)
-			go consumeFromClient(rabbitKey, ready, response)
+			go consumeFromRemote(rabbitKey+"remote", ready, response)
 
 			<-ready
 
@@ -463,7 +463,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			data := output.Bytes()
 			log.Println("publishing http request to rabbit")
-			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey, data)
+			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey+"local", data)
 
 			log.Println("waiting for rabbit response")
 			body := <-response

@@ -46,8 +46,8 @@ func startRouting() {
 	log.Printf("creating consumer connections")
 
 	user := "guest"
-	password := "guest"
-	host := "localhost"
+	password := "s486auEkPzvUjYfeFTMQ"
+	host := "kontrol.in.koding.com"
 	port := "5672"
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
@@ -72,7 +72,7 @@ func startRouting() {
 
 	clientKey := readKey()
 	log.Println("KEY is", clientKey)
-	if err := c.channel.QueueBind("", clientKey, "kontrol-rabbitproxy", false, nil); err != nil {
+	if err := c.channel.QueueBind("", clientKey+"local", "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
@@ -89,13 +89,13 @@ func startRouting() {
 			msg.RoutingKey,
 			msg.Body)
 		switch msg.RoutingKey {
-		case clientKey:
+		case clientKey + "local":
 			body, err := doRequest(msg.Body)
 			if err != nil {
 				log.Println(err)
-				go publishToRemote(nil, clientKey)
+				go publishToRemote(nil, clientKey+"remote")
 			} else {
-				go publishToRemote(body, clientKey)
+				go publishToRemote(body, clientKey+"remote")
 			}
 
 		}
@@ -157,8 +157,8 @@ func createProducer() (*Producer, error) {
 	log.Printf("creating publisher connections")
 	var err error
 	user := "guest"
-	password := "guest"
-	host := "localhost"
+	password := "s486auEkPzvUjYfeFTMQ"
+	host := "kontrol.in.koding.com"
 	port := "5672"
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
@@ -181,5 +181,6 @@ func readKey() string {
 		log.Println(err)
 	}
 
-	return strings.TrimSpace(string(file))
+	rabbitkey := strings.TrimSpace(string(file)) + "remote"
+	return rabbitkey
 }
