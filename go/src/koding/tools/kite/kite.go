@@ -2,7 +2,6 @@ package kite
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
@@ -10,14 +9,15 @@ import (
 	"koding/tools/log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
 type Kite struct {
-	Name          string
-	Handlers      map[string]Handler
-	LoadBalancing bool
+	Name         string
+	Handlers     map[string]Handler
+	LoadBalancer func(correlationName string, username string, deadService string) string
 }
 
 type Handler struct {
@@ -30,10 +30,6 @@ func New(name string) *Kite {
 		Name:     name,
 		Handlers: make(map[string]Handler),
 	}
-}
-
-func (k *Kite) LoadBalance() {
-	k.LoadBalancing = true
 }
 
 func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, session *Session) (interface{}, error)) {
@@ -66,9 +62,12 @@ func (k *Kite) Run() {
 	defer publishChannel.Close()
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
-	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name, k.LoadBalancing)
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + hostname
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, serviceUniqueName, k.LoadBalancer != nil)
+
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", serviceUniqueName, "", true)
 	for {
 		select {
 		case message, ok := <-stream:
@@ -139,7 +138,7 @@ func (k *Kite) Run() {
 
 						handler, found := k.Handlers[method]
 						if !found {
-							resultCallback(fmt.Sprintf("Method '%v' not known.", method), nil)
+							resultCallback("Method '"+method+"' not known.", nil)
 							return
 						}
 
@@ -172,14 +171,13 @@ func (k *Kite) Run() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
 							log.Debug("Write", client.RoutingKey, data)
-							err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data})
-							if err != nil {
+							if err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
 						}
 					}()
 
-					d.Send("ready", "kite-"+k.Name)
+					d.Send("ready", serviceUniqueName)
 
 					for {
 						select {
@@ -213,15 +211,30 @@ func (k *Kite) Run() {
 
 			case "auth.who":
 				var client struct {
-					RoutingKey string
-					Username   string
+					RoutingKey        string `json:"routingKey"`
+					CorrelationName   string `json:"correlationName"`
+					Username          string `json:"username"`
+					DeadService       string `json:"deadService"`
+					ServiceUniqueName string `json:"serviceUniqueName"` // used only for response
 				}
-				if handler, ok := k.Handlers["auth.who"]; ok {
-					json.Unmarshal(message.Body, &client)
-					session := NewSession(client.Username)
-					handler.Callback(nil, session)
-				} else {
-					log.Warn("Need to implement the handler for auth.who")
+				err := json.Unmarshal(message.Body, &client)
+				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
+					log.Err("Invalid auth.who message.", message.Body)
+					continue
+				}
+				if k.LoadBalancer == nil {
+					log.Err("Got auth.who without having a load balancer.", message.Body)
+					continue
+				}
+
+				client.ServiceUniqueName = k.LoadBalancer(client.CorrelationName, client.Username, client.DeadService)
+				response, err := json.Marshal(client)
+				if err != nil {
+					log.LogError(err, 0)
+					continue
+				}
+				if err := publishChannel.Publish("auth", "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
+					log.LogError(err, 0)
 				}
 
 			default:
