@@ -148,6 +148,7 @@ type MsgWorker struct {
 	Message        WorkerMessage    `json:"message"`
 	CompatibleWith map[string][]int `json:"compatibleWith"`
 	Port           int              `json:"port"`
+	RabbitKey      string           `json:"rabbitKey"`
 	Monitor        struct {
 		Mem    MemData `json:"mem"`
 		Uptime int     `json:"uptime"`

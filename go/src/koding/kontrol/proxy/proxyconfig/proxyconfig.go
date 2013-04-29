@@ -13,6 +13,7 @@ type ProxyMessage struct {
 	DomainName  string `json:"domainName"`
 	ServiceName string `json:"serviceName"`
 	Key         string `json:"key"`
+	RabbitKey   string `json:"rabbitKey"`
 	Host        string `json:"host"`
 	HostData    string `json:"hostdata"`
 	Uuid        string `json:"uuid"`
@@ -28,14 +29,16 @@ type KeyData struct {
 	Host         string
 	HostData     string
 	CurrentIndex int
+	RabbitKey    string
 }
 
-func NewKeyData(key, host, hostdata string, currentindex int) *KeyData {
+func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyData {
 	return &KeyData{
 		Key:          key,
 		Host:         host,
 		HostData:     hostdata,
 		CurrentIndex: currentindex,
+		RabbitKey:    rabbitkey,
 	}
 }
 
@@ -111,7 +114,6 @@ func Connect() (*ProxyConfiguration, error) {
 	return pr, nil
 }
 
-// Base INSERT/CREATE crud action
 func (p *ProxyConfiguration) Add(proxy Proxy) error {
 	err := p.Collection.Insert(proxy)
 	if err != nil {
@@ -208,7 +210,7 @@ func (p *ProxyConfiguration) AddDomain(domainname, servicename, key, fullurl, uu
 	return nil
 }
 
-func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid, rabbitkey string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key not possible '%s'", err)
@@ -221,7 +223,7 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid string) erro
 	keyRoutingTable := proxy.Services[name]
 
 	if len(keyRoutingTable.Keys) == 0 { // empty routing table, add it
-		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
 		proxy.Services[name] = keyRoutingTable
 		err = p.UpdateProxy(proxy)
 		if err != nil {
@@ -232,7 +234,7 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid string) erro
 
 	_, ok = keyRoutingTable.Keys[key] // new key, add it
 	if !ok {
-		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
 		proxy.Services[name] = keyRoutingTable
 		err = p.UpdateProxy(proxy)
 		if err != nil {
@@ -248,7 +250,7 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid string) erro
 		}
 	}
 
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, 0))
+	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
 
 	proxy.Services[name] = keyRoutingTable
 	err = p.UpdateProxy(proxy)
