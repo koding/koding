@@ -2,7 +2,8 @@ class KDFormViewWithFields extends KDFormView
 
   sanitizeOptions = (options)->
     for key,option of options
-      option.title = key
+      option.title or= key
+      option.key     = key
       option
 
   constructor:->
@@ -27,7 +28,7 @@ class KDFormViewWithFields extends KDFormView
     @addSubView @buttonField = new KDView cssClass : "formline button-field clearfix"
     buttons.forEach (buttonOptions)=>
       @buttonField.addSubView button = @createButton buttonOptions
-      @buttons[buttonOptions.title] = button
+      @buttons[buttonOptions.key] = button
 
   createField:(data, field)->
     {itemClass, title} = data

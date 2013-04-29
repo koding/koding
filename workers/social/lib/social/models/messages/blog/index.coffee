@@ -1,10 +1,13 @@
 JPost = require '../post'
 
 module.exports = class JBlogPost extends JPost
+
   {secure} = require 'bongo'
   {Relationship} = require 'jraphical'
 
   {once, extend} = require 'underscore'
+
+  @trait __dirname, '../../../traits/grouprelated'
 
   @share()
 

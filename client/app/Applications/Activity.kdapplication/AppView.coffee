@@ -4,14 +4,15 @@ class ActivityAppView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "content-page activity"
-    options.domId    = "content-page-activity"
+    options.cssClass   = "content-page activity"
+    options.domId      = "content-page-activity"
+    options.entryPoint = KD.config.groupEntryPoint
 
     super options, data
 
     @listenWindowResize()
 
-    entryPoint        = KD.config.groupEntryPoint
+    {entryPoint}      = @getOptions()
     HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
@@ -32,18 +33,17 @@ class ActivityAppView extends KDScrollView
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
+    {entryPoint} = @getOptions()
     if KD.isLoggedIn()
       @setClass 'loggedin'
       @widget.show()
-      @header.$('.home-links').addClass 'hidden'
     else
       @unsetClass 'loggedin'
       @widget.hide()
-      @header.$('.home-links').removeClass 'hidden'
     @_windowDidResize()
 
   setFixed:->
-    pre = if @getScrollTop() > headerHeight then "set" else "unset"
+    pre = if @getScrollTop() > headerHeight = @header.getHeight() then "set" else "unset"
     @["#{pre}Class"] "fixed"
 
   navigateHome:(itemData)->
@@ -59,12 +59,16 @@ class ActivityAppView extends KDScrollView
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
   viewAppended:->
-    log "here >>>>>>>>>"
+
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
     @addSubView @header
     @addSubView @widget
     @addSubView @innerNav
     @addSubView @feedWrapper
+
+    if KD.isLoggedIn()
+      @utils.wait 1500, =>
+        @navigateHome pageName :"Activity"
 
   # pistachio:->
   #   """
