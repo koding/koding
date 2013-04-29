@@ -42,9 +42,9 @@ module.exports = class AuthWorker extends EventEmitter
     count = @counts[serviceType] ?= 0
     servicesOfType = @services[serviceType]
     return  unless servicesOfType?.length
-    {serviceName} = servicesOfType[count % servicesOfType.length]
+    {serviceUniqueName} = servicesOfType[count % servicesOfType.length]
     @counts[serviceType] += 1
-    return serviceName
+    return serviceUniqueName
 
   addService:({serviceGenericName, serviceUniqueName, loadBalancing})->
     servicesOfType = @services[serviceGenericName] ?= []
