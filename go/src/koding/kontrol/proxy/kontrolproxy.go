@@ -462,9 +462,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			data := output.Bytes()
 			log.Println("publishing http request to rabbit")
-			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey+"local", data)
+			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey+"local", output.Bytes())
 
 			log.Println("waiting for rabbit response")
 			body := <-response
