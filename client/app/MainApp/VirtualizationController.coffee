@@ -37,3 +37,30 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info callback? rest...
 
+  askToTurnOn:(appName='', callback)->
+
+    content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
+                 you need to turn on your VM first, you can do that by
+                 clicking '<b>Turn ON VM</b>' button below."""
+
+    modal = new KDModalView
+      title          : "Your VM is turned off"
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        'Turn ON VM' :
+          style      : "modal-clean-green"
+          callback   : =>
+            @start =>
+              modal.destroy()
+              if appName
+                @once 'StateChanged', ->
+                  appManager.open appName
+        Cancel       :
+          style      : "modal-clean-gray"
+          callback   : ->
+            modal.destroy()
+            callback?()
+
+    modal.once 'KDModalViewDestroyed', -> callback?()
