@@ -31,13 +31,13 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       cssClass : 'clean-gray'
       callback : @bound 'showBatchApproveModal'
 
-    @prepareBulkInvitations()
     @refresh()
     @utils.defer =>
       @parent.on 'NewInvitationActionArrived', @bound 'refresh'
 
   fetchAndPopulate:(controller, removeAllItems=no)->
     controller.showLazyLoader()
+    controller.setLastTimestamp null if removeAllItems
     @fetchSomeRequests @invitationTypeFilter, controller.getStatuses(), controller.getLastTimestamp(), (err, requests)=>
       controller.hideLazyLoader()
       return warn err if err
@@ -50,6 +50,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         controller.emit 'noItemsFound'
 
   refresh:->
+    @prepareBulkInvitations()
     @fetchAndPopulate @penRequestsListController, yes
     @fetchAndPopulate @penInvitationsListController, yes
     @fetchAndPopulate @resRequestsListController, yes
