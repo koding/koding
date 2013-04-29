@@ -187,9 +187,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       cssClass: 'completed-items'
 
     @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
-      {callback,inputValue} = event
-      KD.remote.api.JAccount.byRelevance inputValue, {}, (err,accounts)->
-        callback accounts
+      {callback,blacklist,inputValue} = event
+      @fetchBlacklistForInviteByUsernameModal (ids)->
+        blacklist.push id for id in ids
+        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err,accounts)->
+          callback accounts
 
     recipient = new KDAutoCompleteController
       name                : 'recipient'
@@ -202,7 +204,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
         {inputValue} = args
-        @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,callback}
+        blacklist = (data.getId() for data in recipient.getSelectedItemData())
+        @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,blacklist,callback}
 
     recipientField.addSubView recipient.getView()
     recipientField.addSubView recipientsWrapper
@@ -274,6 +277,23 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       </section>
     </div>
     """
+
+  fetchBlacklistForInviteByUsernameModal:(callback)->
+    unless @usernameBlacklist
+      @usernameBlacklist = []
+      @getData().fetchInvitationRequests
+        targetOptions:selector:
+          'koding.username': {$exists:1},
+          status: $not:$in :['declined','ignored']
+      , (err, requests)=>
+        unless err
+          @usernameBlacklist.push request.getId() for request in requests
+          @getData().fetchMembers (err, members)=>
+            unless err
+              @usernameBlacklist.push member.getId() for member in members
+            callback @usernameBlacklist
+    else
+      callback @usernameBlacklist
 
 class GroupsInvitationRequestsModalView extends KDModalView
   constructor:(options = {}, data)->
