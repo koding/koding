@@ -159,7 +159,7 @@ func consumeFromRemote(clientKey string, ready chan bool, received chan []byte) 
 			msg.DeliveryTag,
 			msg.Body)
 		switch msg.RoutingKey {
-		case clientKey:
+		case clientKey + "remote":
 			received <- msg.Body
 		}
 
