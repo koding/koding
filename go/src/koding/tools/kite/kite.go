@@ -150,6 +150,13 @@ func (k *Kite) Run() {
 							}
 
 							if err != nil {
+								if _, ok := err.(*WrongChannelError); ok {
+									if err := publishChannel.Publish("broker", client.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
+										log.LogError(err, 0)
+									}
+									return
+								}
+
 								resultCallback(err.Error(), result)
 								return
 							}
