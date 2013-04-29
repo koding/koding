@@ -2,7 +2,6 @@ package kite
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
@@ -10,6 +9,7 @@ import (
 	"koding/tools/log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -62,9 +62,12 @@ func (k *Kite) Run() {
 	defer publishChannel.Close()
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
-	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name, k.LoadBalancer != nil)
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + hostname
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, serviceUniqueName, k.LoadBalancer != nil)
+
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", serviceUniqueName, "", true)
 	for {
 		select {
 		case message, ok := <-stream:
@@ -135,7 +138,7 @@ func (k *Kite) Run() {
 
 						handler, found := k.Handlers[method]
 						if !found {
-							resultCallback(fmt.Sprintf("Method '%v' not known.", method), nil)
+							resultCallback("Method '"+method+"' not known.", nil)
 							return
 						}
 
@@ -174,7 +177,7 @@ func (k *Kite) Run() {
 						}
 					}()
 
-					d.Send("ready", "kite-"+k.Name)
+					d.Send("ready", serviceUniqueName)
 
 					for {
 						select {
