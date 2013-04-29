@@ -9,7 +9,6 @@ class HomeAppView extends KDView
 
   viewAppended:->
 
-
     account = KD.whoami()
     @addSubView @header = new WelcomeHeader
       domId     : "home-welcome-header"

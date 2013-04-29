@@ -28,13 +28,13 @@ class AccountMyKiteListController extends KDListViewController
     ##################### Events ############################
     list.on "DeleteKiteSubmitted", @bound "deleteKite"
 
-    list.on "UpdateKiteSubmitted", @bound "updateDatabase"
+    list.on "UpdateKiteSubmitted", @bound "updateKite"
 
     list.on "CreateKiteSubmitted", @bound "createKite"
 
     @on "KiteDeleted", list.bound "removeItem"
 
-    @on "KiteUpdated", list.bound ""
+    # @on "KiteUpdated", list.bound ""
 
     @on "KiteCreated", (itemData)=>
       list.addItem itemData, null, {type : "slideDown", duration : 100}

@@ -178,8 +178,8 @@ module.exports = [
 
   "app/CommonViews/followbutton.coffee",
 
-  "app/CommonViews/remotesmodal.coffee",
-  "app/CommonViews/databasesmodal.coffee",
+  # "app/CommonViews/remotesmodal.coffee",
+  # "app/CommonViews/databasesmodal.coffee",
 
   "app/CommonViews/comments/commentview.coffee",
   "app/CommonViews/comments/commentlistviewcontroller.coffee",
@@ -509,6 +509,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsdangermodalview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
@@ -626,6 +627,9 @@ module.exports = [
 
   # KITE CONTROLLER
   "app/MainApp/KiteController.coffee",
+
+  # Virtualization CONTROLLER
+  "app/MainApp/VirtualizationController.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
