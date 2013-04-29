@@ -465,9 +465,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Println("publishing http request to rabbit")
 			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey+"local", output.Bytes())
 
-			log.Println("waiting for rabbit response")
+			log.Println("waiting for rabbit response...")
 			body := <-response
-			log.Println("got rabbit response", string(body))
+			log.Println("...got rabbit response")
 			if body == nil {
 				rw.WriteHeader(http.StatusInternalServerError)
 				return

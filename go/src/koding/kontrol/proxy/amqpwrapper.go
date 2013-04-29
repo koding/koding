@@ -154,10 +154,10 @@ func consumeFromRemote(clientKey string, ready chan bool, received chan []byte) 
 	ready <- true
 	// TODO: try channel.get
 	for msg := range messages {
-		log.Printf("messages stream got %dB message data: [%v] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.Body)
+		// log.Printf("messages stream got %dB message data: [%v] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.Body)
 		switch msg.RoutingKey {
 		case clientKey + "remote":
 			received <- msg.Body

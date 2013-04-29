@@ -83,11 +83,11 @@ func startRouting() {
 
 	log.Println("routing started...")
 	for msg := range httpStream {
-		log.Printf("got %dB message data: [%v]-[%s] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.RoutingKey,
-			msg.Body)
+		// log.Printf("got %dB message data: [%v]-[%s] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.RoutingKey,
+		// 	msg.Body)
 		switch msg.RoutingKey {
 		case clientKey + "local":
 			body, err := doRequest(msg.Body)
@@ -113,19 +113,17 @@ func doRequest(msg []byte) ([]byte, error) {
 	// Request.RequestURI can't be set in client requests.
 	// http://golang.org/src/pkg/net/http/client.go
 	req.RequestURI = ""
-
 	log.Println("Doing a http request to", req.URL.Host)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
 	output := new(bytes.Buffer)
 	resp.Write(output)
 	data := output.Bytes()
 
-	log.Println("Response is", string(data))
+	// log.Println("Response is", string(data))
 
 	return data, nil
 }
