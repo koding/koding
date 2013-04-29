@@ -6,13 +6,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 var localPort *string = flag.String("p", "8002", "local port")
 
 func HelloServer(w http.ResponseWriter, req *http.Request) {
 	log.Printf("got a request")
-	res := fmt.Sprintf("hello koding from localhost:%s ...\n", *localPort)
+	res := fmt.Sprintf("Hello Devrim!\nThis is Fatih's localhost:%s @ Ankara,Turkey\nTime is: %s", *localPort, time.Now())
 	io.WriteString(w, res)
 }
 
