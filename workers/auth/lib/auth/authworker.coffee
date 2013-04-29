@@ -52,8 +52,8 @@ module.exports = class AuthWorker extends EventEmitter
 
   removeService: ({serviceGenericName, serviceUniqueName}) ->
     servicesOfType = @services[serviceGenericName] 
-    index = (i for s, i in servicesOfType \
-               when s.serviceUniqueName is serviceUniqueName)[0]
+    [index] = (i for s, i in servicesOfType \
+                 when s.serviceUniqueName is serviceUniqueName)
     servicesOfType.splice index, 1
     clientsByExchange = @clients.byExchange[serviceUniqueName]
     clientsByExchange?.forEach @bound 'cycleClient'
