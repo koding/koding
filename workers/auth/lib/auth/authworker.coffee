@@ -191,7 +191,7 @@ module.exports = class AuthWorker extends EventEmitter
       else acc[last] = edge
       return acc
     , {}
-    serviceInfo.loadBalancing = yes  if /\.loadBalancing$/.test serviceKey
+    serviceInfo.loadBalancing = /\.loadBalancing$/.test serviceKey
     isValidKey  = serviceInfo.serviceGenericName? and
                   serviceInfo.serviceUniqueName?
     throw {
