@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/streadway/amqp"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Consumer struct {
@@ -68,7 +70,9 @@ func startRouting() {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", "local.key", "kontrol-rabbitproxy", false, nil); err != nil {
+	clientKey := readKey()
+	log.Println("KEY is", clientKey)
+	if err := c.channel.QueueBind("", clientKey, "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
@@ -85,13 +89,13 @@ func startRouting() {
 			msg.RoutingKey,
 			msg.Body)
 		switch msg.RoutingKey {
-		case "local.key":
+		case clientKey:
 			body, err := doRequest(msg.Body)
 			if err != nil {
 				log.Println(err)
-				go publishToRemote(nil, "remote.key")
+				go publishToRemote(nil, clientKey)
 			} else {
-				go publishToRemote(body, "remote.key")
+				go publishToRemote(body, clientKey)
 			}
 
 		}
@@ -169,4 +173,13 @@ func createProducer() (*Producer, error) {
 	}
 
 	return p, nil
+}
+
+func readKey() string {
+	file, err := ioutil.ReadFile("KEY")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return strings.TrimSpace(string(file))
 }

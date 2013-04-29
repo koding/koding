@@ -163,6 +163,18 @@ func targetUrl(name, key string) *url.URL {
 	return target
 }
 
+func lookupRabbitKey(name, key string) string {
+	var rabbitkey string
+	keyRoutingTable := proxy.Services[name]
+	keyDataList := keyRoutingTable.Keys[key]
+
+	for _, keyData := range keyDataList {
+		rabbitkey = keyData.RabbitKey
+	}
+
+	return rabbitkey //return empty if not found
+}
+
 func targetHost(name, key string) string {
 	var hostname string
 
@@ -232,7 +244,7 @@ func checkServer(host string) (bool, error) {
 /*************************************************
 *
 *  modified version of go's reverseProxy source code
-*  has support for dynamic url and websockets
+*  has support for dynamic target url, websockets and amqp
 *
 *  - arslan
 *************************************************/
@@ -322,6 +334,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 	}
+
+	rabbitKey := lookupRabbitKey(name, key)
 
 	if fullurl != "" {
 		target, err = url.Parse("http://" + fullurl)
@@ -421,8 +435,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// Test values, will be removed - arslan
-		outreq.URL.Host = "localhost:5000"
-		outreq.Host = "localhost:5000"
+		// outreq.URL.Host = "localhost:5000"
+		// outreq.Host = "localhost:5000"
 		// outreq.URL.Host = "67.169.70.88"
 		// outreq.Host = "67.169.70.88"
 
@@ -430,13 +444,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		res := new(http.Response)
 
 		res, err = transport.RoundTrip(outreq)
-		if err == nil {
+		if err != nil {
 			// we can't connect to url, thus proxy trough amqp
 			log.Println("rabbit proxy started...")
 			log.Println("trying to make rabbit connection to", outreq.URL.Host)
 			response := make(chan []byte)
 			ready := make(chan bool)
-			go consumeFromClient("remote.key", ready, response)
+			go consumeFromClient(rabbitKey, ready, response)
 
 			<-ready
 
@@ -449,7 +463,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			data := output.Bytes()
 			log.Println("publishing http request to rabbit")
-			amqpStream.Publish("kontrol-rabbitproxy", "local.key", data)
+			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey, data)
 
 			log.Println("waiting for rabbit response")
 			body := <-response
