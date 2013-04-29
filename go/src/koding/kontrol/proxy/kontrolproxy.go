@@ -36,7 +36,7 @@ var start chan bool
 var first bool = true
 
 func main() {
-	log.Printf("fujin proxy started ")
+	log.Printf("kontrol proxy started ")
 	start = make(chan bool)
 
 	// open kontrol-daemon database connection

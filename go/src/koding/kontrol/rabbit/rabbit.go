@@ -181,6 +181,5 @@ func readKey() string {
 		log.Println(err)
 	}
 
-	rabbitkey := strings.TrimSpace(string(file)) + "remote"
-	return rabbitkey
+	return strings.TrimSpace(string(file))
 }
