@@ -27,15 +27,14 @@ func main() {
 	handler.Startup()
 	proxy.Startup()
 
-	_, err := startRouting()
+	err := startRouting()
 	if err != nil {
 		log.Fatalf("Could not start routing of api messages: %s", err)
 	}
 
-	select {}
 }
 
-func startRouting() (*Consumer, error) {
+func startRouting() error {
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
@@ -128,35 +127,33 @@ func startRouting() (*Consumer, error) {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	go func() {
-		for {
-			select {
-			case d := <-workerStream:
-				if config.Verbose {
-					log.Printf("worker handle got %dB message data: [%v] %s %s", len(d.Body), d.DeliveryTag, d.Body, d.AppId)
-				}
-				handler.HandleWorkerMessage(d.Body)
-			case d := <-cliStream:
-				if config.Verbose {
-					log.Printf("cli handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
-				}
-				handler.HandleApiMessage(d.Body, d.AppId)
-			case d := <-webapiStream:
-				if config.Verbose {
-					log.Printf("webapi handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
-				}
-				handler.HandleApiMessage(d.Body, "")
-			case d := <-proxyStream:
-				if config.Verbose {
-					log.Printf("proxy handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
-				}
-				// d.AppId is stored in d.Body.ProxyMessage.Uuid...
-				proxy.HandleMessage(d.Body)
+	for {
+		select {
+		case d := <-workerStream:
+			if config.Verbose {
+				log.Printf("worker handle got %dB message data: [%v] %s %s", len(d.Body), d.DeliveryTag, d.Body, d.AppId)
 			}
+			handler.HandleWorkerMessage(d.Body)
+		case d := <-cliStream:
+			if config.Verbose {
+				log.Printf("cli handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+			}
+			handler.HandleApiMessage(d.Body, d.AppId)
+		case d := <-webapiStream:
+			if config.Verbose {
+				log.Printf("webapi handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+			}
+			handler.HandleApiMessage(d.Body, "")
+		case d := <-proxyStream:
+			if config.Verbose {
+				log.Printf("proxy handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+			}
+			// d.AppId is stored in d.Body.ProxyMessage.Uuid...
+			proxy.HandleMessage(d.Body)
 		}
-	}()
+	}
 
-	return c, nil
+	return nil
 }
 
 func (c *Consumer) Shutdown() error {
