@@ -121,6 +121,7 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 }
 
 func lookupKey(host string) (string, string, error) {
+	log.Printf("lookup key table for host '%s'", host)
 	counts := strings.Count(host, "-")
 	if counts == 0 {
 		return "", "", fmt.Errorf("no key found for host '%s'", host)
@@ -136,6 +137,17 @@ func lookupKey(host string) (string, string, error) {
 	return name, key, nil
 }
 
+func lookupDomain(domainname string) (string, string, string, error) {
+	log.Printf("lookup domain table for domain '%s'", domainname)
+
+	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
+	if !ok {
+		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+	}
+
+	return domain.Name, domain.Key, domain.FullUrl, nil
+}
+
 func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 	var target *url.URL
 	var err error
@@ -146,7 +158,7 @@ func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 		log.Fatal(err)
 	}
 
-	log.Printf("got / request. using proxy to %s (key: %s)", target.Host, key)
+	log.Printf("proxy to %s (key: %s)", target.Host, key)
 
 	return target
 }
@@ -262,24 +274,12 @@ func singleJoiningSlash(a, b string) string {
 	return a + b
 }
 
-func lookupDomain(domainname string) (string, string, string, error) {
-	log.Printf("lookup domain table for host '%s'", domainname)
-
-	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
-	}
-
-	return domain.Name, domain.Key, domain.FullUrl, nil
-}
-
 // NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
 // URLs to the scheme, host, and base path provided in target. If the
 // target's path is "/base" and the incoming request was for "/dir",
 // the target request will be for /base/dir.
 func NewSingleHostReverseProxy() *ReverseProxy {
 	director := func(req *http.Request) {
-		log.Println("HOST:", req.RequestURI, req.Host)
 		var deaths int
 		var target *url.URL
 		var fullurl string
@@ -303,7 +303,6 @@ func NewSingleHostReverseProxy() *ReverseProxy {
 			target = targetUrl(deaths, name, key)
 		}
 
-		log.Printf("proxy to host '%s' ...", target.Host)
 		targetQuery := target.RawQuery
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
@@ -404,9 +403,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			transport = http.DefaultTransport
 		}
 
+		// Display error when someone hits the main page
 		name, _ := os.Hostname()
-		log.Println("LOCAL HOSTNAME:", name)
-		log.Println("REMOTE HOSTANME:", outreq.URL.Host)
 		if name == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
@@ -440,18 +438,19 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// Test values, will be removed - arslan
-		// outreq.URL.Host = "localhost:5000"
-		// outreq.Host = "localhost:5000"
-		outreq.URL.Host = "67.169.70.88"
-		outreq.Host = "67.169.70.88"
+		outreq.URL.Host = "localhost:5000"
+		outreq.Host = "localhost:5000"
+		// outreq.URL.Host = "67.169.70.88"
+		// outreq.Host = "67.169.70.88"
 
 		var err error
 		res := new(http.Response)
 
 		res, err = transport.RoundTrip(outreq)
-		if err != nil {
+		if err == nil {
 			// we can't connect to url, thus proxy trough amqp
-			log.Println("Trying to make rabbit connection to ", outreq)
+			log.Println("rabbit proxy started...")
+			log.Println("trying to make rabbit connection to", outreq.URL.Host)
 			response := make(chan []byte)
 			ready := make(chan bool)
 			go consumeFromClient(ready, response)
@@ -466,10 +465,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			data := output.Bytes()
+			log.Println("publishing http request to rabbit")
 			amqpStream.Publish("kontrol-rabbitproxy", "local.key", data)
 
-			log.Println("Waiting for rabbit response...")
+			log.Println("waiting for rabbit response")
 			body := <-response
+			log.Println("got rabbit response", string(body))
 			if body == nil {
 				rw.WriteHeader(http.StatusInternalServerError)
 				return
@@ -484,6 +485,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				io.WriteString(rw, fmt.Sprint(err))
 				return
 			}
+			log.Println("proxy trough amqp ...")
+		} else {
+			log.Println("proxy trough http ...")
 		}
 
 		defer res.Body.Close()

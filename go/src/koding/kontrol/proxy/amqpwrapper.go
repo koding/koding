@@ -152,8 +152,6 @@ func consumeFromClient(ready chan bool, received chan []byte) {
 	}
 
 	ready <- true
-
-	log.Println("START TO CONSUME")
 	// TODO: try channel.get
 	for msg := range messages {
 		log.Printf("messages stream got %dB message data: [%v] %s",
