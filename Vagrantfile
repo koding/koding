@@ -66,7 +66,7 @@ Vagrant.configure("2") do |config|
     config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
   else
     config.vm.box = "koding-2"
-    config.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-2.box"
+    config.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
   end
 
   config.vm.network :forwarded_port, guest: 27017, host: 27017 # mongodb
