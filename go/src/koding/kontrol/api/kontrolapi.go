@@ -153,7 +153,7 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 
 	buildSendProxyCmd("deleteProxy", "", "", "", "", "", "", uuid)
-	resp := fmt.Sprintf("'%' is deleted", uuid)
+	resp := fmt.Sprintf("'%s' is deleted", uuid)
 	io.WriteString(writer, resp)
 }
 
@@ -186,7 +186,7 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd("addProxy", "", "", "", "", "", "", uuid)
 
-	resp := fmt.Sprintf("'%' is registered", uuid)
+	resp := fmt.Sprintf("'%s' is registered", uuid)
 	io.WriteString(writer, resp)
 }
 
@@ -198,7 +198,7 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 
 	buildSendProxyCmd("deleteName", "", servicename, "", "", "", "", uuid)
-	resp := fmt.Sprintf("service: '%' is deleted on proxy uuid: '%s'", servicename, uuid)
+	resp := fmt.Sprintf("service: '%s' is deleted on proxy uuid: '%s'", servicename, uuid)
 	io.WriteString(writer, resp)
 }
 
@@ -211,7 +211,7 @@ func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 
 	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", "", uuid)
-	resp := fmt.Sprintf("key: '%' is deleted for service: '%s'", key, servicename)
+	resp := fmt.Sprintf("key: '%s' is deleted for service: '%s'", key, servicename)
 	io.WriteString(writer, resp)
 }
 
@@ -223,7 +223,7 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	domain := vars["domain"]
 
 	buildSendProxyCmd("deleteDomain", domain, "", "", "", "", "", uuid)
-	resp := fmt.Sprintf("domain: '%' is deleted on proxy uuid: '%s'", domain, uuid)
+	resp := fmt.Sprintf("domain: '%s' is deleted on proxy uuid: '%s'", domain, uuid)
 	io.WriteString(writer, resp)
 }
 
@@ -298,9 +298,9 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	var resp string
 	if host != "" {
-		resp = fmt.Sprintf("'%' will proxy to '%s'", domain, host)
+		resp = fmt.Sprintf("'%s' will proxy to '%s'", domain, host)
 	} else {
-		resp = fmt.Sprintf("'%' will proxy to '%s-%s.x.koding.com'", domain, name, key)
+		resp = fmt.Sprintf("'%s' will proxy to '%s-%s.x.koding.com'", domain, name, key)
 	}
 
 	io.WriteString(writer, resp)
@@ -370,7 +370,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd("addKey", "", servicename, key, rabbitkey, host, hostdata, uuid)
 
-	url := fmt.Sprintf("http.//%s-%s.x.koding.com", servicename, key)
+	url := fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
 	io.WriteString(writer, url)
 	return
 }
@@ -508,7 +508,7 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 
 	buildSendCmd("delete", "", uuid)
-	resp := fmt.Sprintf("worker: '%' is deleted from db", uuid)
+	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
 	io.WriteString(writer, resp)
 }
 
@@ -523,7 +523,7 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid, action := vars["uuid"], vars["action"]
 
 	buildSendCmd(action, "", uuid)
-	resp := fmt.Sprintf("worker: '%' is updated in db", uuid)
+	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
 	io.WriteString(writer, resp)
 }
 
