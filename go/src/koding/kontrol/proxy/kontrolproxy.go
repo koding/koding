@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -185,14 +186,18 @@ func targetHost(name, key string) string {
 	var hostname string
 
 	keyRoutingTable := proxy.Services[name]
-
-	var latestKey string
 	if key == "latest" {
+		// get all keys and sort them
+		listOfKeys := make([]int, len(keyRoutingTable.Keys))
+		i := 0
 		for k, _ := range keyRoutingTable.Keys {
-			if k > latestKey {
-				key = k
-			}
+			listOfKeys[i], _ = strconv.Atoi(k)
+			i++
 		}
+		sort.Ints(listOfKeys)
+
+		// give precedence to the largest key number
+		key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
 	}
 
 	v := len(keyRoutingTable.Keys)
