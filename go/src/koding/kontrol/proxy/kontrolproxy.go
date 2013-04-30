@@ -230,21 +230,39 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
-// not used currently, find a more reliable way
-func checkServer(host string) (bool, error) {
-	log.Println("Checking server")
-	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
+func checkServer(host string) error {
+	fmt.Println("Checking server")
+	c, err := net.Dial("tcp", host)
 	if err != nil {
-		return false, err
+		return err
 	}
+	c.Close()
+	return nil
+}
 
-	remoteConn, err := net.DialTCP("tcp", nil, remoteAddr)
+func localIP() (net.IP, error) {
+	tt, err := net.Interfaces()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-
-	remoteConn.Close()
-	return true, nil
+	for _, t := range tt {
+		aa, err := t.Addrs()
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range aa {
+			ipnet, ok := a.(*net.IPNet)
+			if !ok {
+				continue
+			}
+			v4 := ipnet.IP.To4()
+			if v4 == nil || v4[0] == 127 { // loopback address
+				continue
+			}
+			return v4, nil
+		}
+	}
+	return nil, errors.New("cannot find local IP address")
 }
 
 /*************************************************
@@ -340,8 +358,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 	}
-
-	rabbitKey := lookupRabbitKey(name, key)
 
 	if fullurl != "" {
 		target, err = url.Parse("http://" + fullurl)
@@ -446,13 +462,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// outreq.URL.Host = "67.169.70.88"
 		// outreq.Host = "67.169.70.88"
 
-		var err error
+		// var err error
 		res := new(http.Response)
-
-		res, err = transport.RoundTrip(outreq)
+		err := checkServer(outreq.URL.Host)
 		if err != nil {
+			rabbitKey := lookupRabbitKey(name, key)
+			if rabbitKey == "" {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
+				return
+			}
+
+			log.Println("proxy trough amqp ...")
 			// we can't connect to url, thus proxy trough amqp
-			log.Println("rabbit proxy started...")
 			log.Println("trying to make rabbit connection to", outreq.URL.Host)
 
 			output := new(bytes.Buffer)
@@ -538,9 +559,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				io.WriteString(rw, fmt.Sprint(err))
 				return
 			}
-			log.Println("proxy trough amqp ...")
 		} else {
 			log.Println("proxy trough http ...")
+			res, err = transport.RoundTrip(outreq)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprint(err))
+				return
+			}
 		}
 
 		defer res.Body.Close()
@@ -608,28 +633,3 @@ func (m *maxLatencyWriter) flushLoop() {
 }
 
 func (m *maxLatencyWriter) stop() { m.done <- true }
-
-func localIP() (net.IP, error) {
-	tt, err := net.Interfaces()
-	if err != nil {
-		return nil, err
-	}
-	for _, t := range tt {
-		aa, err := t.Addrs()
-		if err != nil {
-			return nil, err
-		}
-		for _, a := range aa {
-			ipnet, ok := a.(*net.IPNet)
-			if !ok {
-				continue
-			}
-			v4 := ipnet.IP.To4()
-			if v4 == nil || v4[0] == 127 { // loopback address
-				continue
-			}
-			return v4, nil
-		}
-	}
-	return nil, errors.New("cannot find local IP address")
-}
