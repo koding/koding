@@ -263,10 +263,15 @@ class MainController extends KDController
       #   KD.utils.wait 5000, -> location.reload yes
 
     checkConnectionState = ->
-      fail() unless connectedState.connected
+      unless connectedState.connected
+        fail()
+
+        KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "RemoveFailModal", =>
+        KD.logToMixpanel "Connected to backend"
+
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
