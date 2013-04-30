@@ -46,27 +46,31 @@ class MembersAppController extends AppController
                   targetOptions: {options}
                 }
                 selector = {}
-                group.fetchMembers selector, relationshipOptions, (err, items, rest...)=>
-                  @setCurrentViewNumber 'all', items?.length
-                  callback err, items, rest...
+                group.fetchMembers selector, relationshipOptions, callback
+                group.countMembers selector, (err, count)=>
+                  @setCurrentViewNumber 'all', count
               else
-                JAccount.someWithRelationship selector, options, (err, items, rest...)=>
-                  @setCurrentViewNumber 'all', items?.length
-                  callback err, items, rest...
+                JAccount.someWithRelationship selector, options, callback
+                JAccount.count selector, (err, count)=>
+                  @setCurrentViewNumber 'all', count
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           noItemFoundText   : "There is no member who follows you."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchFollowersWithRelationship selector, options, (err, items, rest...)=>
-              @setCurrentViewNumber 'followers', items?.length
               callback err, items, rest...
+
+            KD.whoami().countFollowersWithRelationship selector, (err, count)=>
+              @setCurrentViewNumber 'followers', count
         followings          :
           title             : "Following <span class='member-numbers-following'></span>"
           noItemFoundText   : "You are not following anyone."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchFollowingWithRelationship selector, options, (err, items, rest...)=>
-              @setCurrentViewNumber 'following', items?.length
               callback err, items, rest...
+
+            KD.whoami().countFollowingWithRelationship selector, (err, count)=>
+              @setCurrentViewNumber 'following', count
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
@@ -219,8 +223,7 @@ class MembersAppController extends AppController
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->
-    if count >= 10 then count = '10+'
-    @getView().$(".feeder-header span.member-numbers-#{type}").html count or "n/a"
+    @getView().$(".feeder-header span.member-numbers-#{type}").html count ? "n/a"
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
