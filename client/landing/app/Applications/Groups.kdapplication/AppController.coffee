@@ -50,6 +50,7 @@ class GroupsAppController extends AppController
 
     mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
     mainController.on 'groupJoinRequested',   @joinGroup.bind this
+    mainController.on 'loginRequired',        @loginRequired.bind this
 
   getCurrentGroupData:-> @currentGroupData
 
@@ -671,7 +672,18 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
+  loginRequired:(callback)->
+    new KDNotificationView
+      type     : 'mini'
+      cssClass : 'error'
+      title    : 'Login is required for this action'
+      duration : 5000
 
+    route = "/#{KD.groupEntryPoint}/Login" if KD.groupEntryPoint isnt ''
+    @getSingleton('router').handleRoute route
+    @getSingleton('mainController').once 'AccountChanged', ->
+      if KD.isLoggedIn()
+        callback()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->
