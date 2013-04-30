@@ -7,6 +7,8 @@ class HomeLoginBar extends JView
 
     super options, data
 
+    @utils.wait 400, => @setClass 'in'
+
     entryPoint = @getOptions().entryPoint or ''
 
     handler = (event)->
