@@ -10,7 +10,6 @@ import (
 	"io"
 	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/config"
-	"koding/tools/utils"
 	"log"
 	"net"
 	"net/http"
@@ -66,7 +65,6 @@ func main() {
 	reverseProxy := &ReverseProxy{}
 	http.HandleFunc("/", reverseProxy.ServeHTTP)
 
-	// start one with goroutine in order not to block the other one
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 
@@ -474,7 +472,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			}
 
-			id := utils.RandomString()
 			if _, ok := connections[rabbitKey]; !ok {
 				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
 				if err != nil {
@@ -497,7 +494,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 				go func() {
 					for msg := range messages {
-						log.Println("ID IS: ", id)
 						log.Printf("got rabbit http message for %s", connections[rabbitKey].ReplyTo)
 						connections[rabbitKey].Receive <- msg.Body
 
