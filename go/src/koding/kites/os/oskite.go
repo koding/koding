@@ -60,8 +60,23 @@ func main() {
 	k := kite.New("os")
 
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
-		// TODO: look up VM
-		return "some serviceUniqueName"
+		if deadService != "" {
+			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": deadService}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		var vm *virt.VM
+		if !bson.IsObjectIdHex(correlationName) {
+			return k.ServiceUniqueName
+		}
+		if err := db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm); err != nil {
+			return k.ServiceUniqueName
+		}
+		if vm.HostKite == "" {
+			return k.ServiceUniqueName
+		}
+		return vm.HostKite
 	}
 
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
@@ -163,6 +178,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, errors.New("There is no VM with id '" + session.CorrelationName + "'.")
 		}
 
+		if vm.HostKite != k.ServiceUniqueName {
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+				return nil, &kite.WrongChannelError{}
+			}
+			vm.HostKite = k.ServiceUniqueName
+		}
+
 		infosMutex.Lock()
 		info, isExistingState := infos[vm.Id]
 		if !isExistingState {
@@ -261,6 +283,9 @@ func (info *VMInfo) startTimeout() {
 			log.Warn(err.Error())
 		}
 
+		if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+			log.LogError(err, 0)
+		}
 		delete(infos, vm.Id)
 	})
 }
