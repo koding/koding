@@ -162,8 +162,8 @@ class KDModalView extends KDView
         @destroy()
 
   createButton:(title, buttonOptions)->
-    buttonOptions.title    or= title
-    buttonOptions.delegate   = @
+    buttonOptions.title    = title
+    buttonOptions.delegate = @
     itemClass = buttonOptions.itemClass
     delete buttonOptions.itemClass
     @buttonHolder.addSubView button = new (itemClass or KDButtonView) buttonOptions
