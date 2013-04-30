@@ -19,10 +19,10 @@ class VirtualizationControls extends JView
       state = if state in ['off', 'red'] then no else yes
       @VMToggle.setDefaultValue state
 
-    @VMToggle = new KDOnOffSwitch
-      cssClass  : "tiny vm-toggle"
-      callback  : (state)=>
-        @vm.run if state then 'vm.start' else 'vm.stop'
+    @VMToggle  = new KDOnOffSwitch
+      cssClass : "tiny vm-toggle"
+      callback : (state)=>
+        if state then @vm.start() else @vm.stop()
 
   checkVMState:(err, info)->
     if err or not info
