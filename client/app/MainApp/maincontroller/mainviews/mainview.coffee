@@ -115,8 +115,9 @@ class MainView extends KDView
 
   createSideBar:->
 
-    @sidebar = new Sidebar domId : "sidebar", delegate : @
-    @emit "SidebarCreated", @sidebar
+    @sidebar             = new Sidebar domId : "sidebar", delegate : @
+    mc                   = @getSingleton 'mainController'
+    mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
   getMainSettingsMenuButton:->

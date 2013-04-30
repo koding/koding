@@ -59,6 +59,7 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    softDelete      : yes
     broadcastable   : no
     indexes         :
       username      : 'unique'
