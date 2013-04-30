@@ -230,7 +230,26 @@ func buildProxyCmd(action, uuid string) []byte {
 	return data
 }
 
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
+}
+
+// Check if a server is alive or not
 func checkServer(host string) error {
+	ok := hasPort(host)
+	if !ok {
+		host = addPort(host, "80")
+	}
+
 	c, err := net.Dial("tcp", host)
 	if err != nil {
 		return err
@@ -239,6 +258,7 @@ func checkServer(host string) error {
 	return nil
 }
 
+// Return local ipv4 adress
 func localIP() (net.IP, error) {
 	tt, err := net.Interfaces()
 	if err != nil {
@@ -466,6 +486,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		res := new(http.Response)
 		err := checkServer(outreq.URL.Host)
 		if err != nil {
+			log.Println(err)
 			// we can't connect to url, thus proxy trough amqp
 			if rabbitKey == "" {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
