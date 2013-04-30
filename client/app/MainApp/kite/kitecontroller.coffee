@@ -14,6 +14,24 @@ class KiteController extends KDController
     checkingServers   : "Checking if servers are back..."
     alive             : "Shared hosting is alive!"
 
+  getKiteKey =(kiteName, correlationName)->
+    "~#{kiteName}~#{correlationName}"
+
+  getKite:(kiteName, correlationName)->
+    key = getKiteKey kiteName, correlationName
+    kite = @kiteInstances[key]
+    return kite  if kite?
+    kite = @createKite kiteName, correlationName, key
+    @kiteInstances[key] = kite
+    return kite
+
+  destroyKite:(kite)->
+    delete @kiteInstances[kite.kiteKey]
+
+  createKite:(kiteName, correlationName, kiteKey)->
+    kite = new Kite { kiteName, correlationName, kiteKey }
+    kite.on 'destroy', => @destroyKite kite
+    return kite
 
   # notification = null
   notify = (options = {})->
@@ -44,6 +62,10 @@ class KiteController extends KDController
     @setListeners()
     @kites     = {}
     @channels  = {}
+
+    # new API:
+    @kiteInstances = {}
+
 
   addKite: (name, channel) ->
     @channels[name] = channel

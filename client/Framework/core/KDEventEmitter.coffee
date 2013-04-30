@@ -5,10 +5,9 @@
 # improved   : sinan - 02/2013
 
 class KDEventEmitter
-  @KDEventEmitterEvents = {}
 
   # listeners will be put inside @KDEventEmitterEvents[className]
-  _e = @KDEventEmitterEvents[@name] = {}
+  _e = {}
 
   _registerEvent = (registry, eventName, callback)->
     # on can be defined before any emit, so create
@@ -56,7 +55,7 @@ class KDEventEmitter
   # user is able to do ClassName.on .emit
   #
 
-  @emit : ->
+  @emit: ->
     # slice the arguments, 1st argument is the event name,
     # rest is args supplied with emit.
     [eventName, args...] = [].slice.call arguments
@@ -64,24 +63,29 @@ class KDEventEmitter
     _e[eventName] ?= []
     # call every listener inside the container with the arguments (args)
     listener.apply null,args for listener in _e[eventName] if _e[eventName]?
+    return this
 
-  @on   :(eventName, callback)-> _on _e, eventName, callback
-  @off  :(eventName, callback)-> _off _e, eventName, callback
+  @on: (eventName, callback) ->
+    _on _e, eventName, callback
+    return this
+
+  @off: (eventName, callback) ->
+    _off _e, eventName, callback
+    return this
 
   constructor:->
-    @KDEventEmitterEvents  = {}
-    @_e = @KDEventEmitterEvents[@constructor.name] = {}
+    @_e = {}
 
   emit:(eventName, args...)->
     @_e[eventName] ?= []
 
     listenerStack = []
 
-    for own eventToBeFired of @_e
-      continue if eventToBeFired is eventName
-      parser = getEventParser eventToBeFired
-      if parser.test eventName
-        listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
+    # for own eventToBeFired of @_e
+    #   continue if eventToBeFired is eventName
+    #   parser = getEventParser eventToBeFired
+    #   if parser.test eventName
+    #     listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
 
     listenerStack = listenerStack.concat @_e[eventName].slice(0)
 
@@ -90,7 +94,6 @@ class KDEventEmitter
 
   on  :(eventName, callback) -> _on  @_e, eventName, callback
   off :(eventName, callback) -> _off @_e, eventName, callback
-  unsubscribe:(eventName, callback) -> _off @_e, eventName, callback
 
   once:(eventName, callback) ->
     _callback = =>
