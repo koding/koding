@@ -231,7 +231,6 @@ func buildProxyCmd(action, uuid string) []byte {
 }
 
 func checkServer(host string) error {
-	fmt.Println("Checking server")
 	c, err := net.Dial("tcp", host)
 	if err != nil {
 		return err
@@ -467,15 +466,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		res := new(http.Response)
 		err := checkServer(outreq.URL.Host)
 		if err != nil {
+			// we can't connect to url, thus proxy trough amqp
 			if rabbitKey == "" {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
 				return
 			}
-
-			log.Println("proxy trough amqp ...")
-			// we can't connect to url, thus proxy trough amqp
-			log.Println("trying to make rabbit connection to", outreq.URL.Host)
-
+			log.Println("proxy via rabbitmq to '%s'", outreq.URL.Host)
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
 			err := outreq.WriteProxy(output)
@@ -490,7 +486,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				if err != nil {
 					log.Fatal("exchange.declare: %s", err)
 				}
-
 			}
 
 			if _, ok := connections[rabbitKey]; !ok {
@@ -498,11 +493,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				if err != nil {
 					log.Fatal("queue.declare: %s", err)
 				}
-
 				if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
 					log.Fatal("queue.bind: %s", err)
 				}
-
 				messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
 				if err != nil {
 					log.Fatal("basic.consume: %s", err)
@@ -531,11 +524,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitKey, false, false, msg)
 
-			log.Println("...waiting for http response from rabbit")
-
 			var respData []byte
 			// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
 			t := time.NewTimer(20 * time.Second)
+			log.Println("...waiting for http response from rabbit")
 			select {
 			case respData = <-connections[rabbitKey].Receive:
 			case <-t.C:
@@ -549,7 +541,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				rw.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-
 			buf := bytes.NewBuffer(respData)
 			respreader := bufio.NewReader(buf)
 
@@ -571,7 +562,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		defer res.Body.Close()
 
 		copyHeader(rw.Header(), res.Header)
-
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
 	}
