@@ -109,7 +109,7 @@ class ActivityListController extends KDListViewController
     modifiedAt = sortedActivities.last.modifiedAt
     @lastItemTimeStamp = modifiedAt  unless @lastItemTimeStamp > modifiedAt
 
-    KD.logToMixpanel "populateActivity.success", 5
+    KD.logToMixpanel "populateActivity.cache.success", 5
 
     @emit "teasersLoaded"
 
