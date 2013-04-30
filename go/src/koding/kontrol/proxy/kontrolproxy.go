@@ -245,11 +245,6 @@ func addPort(host, port string) string {
 
 // Check if a server is alive or not
 func checkServer(host string) error {
-	ok := hasPort(host)
-	if !ok {
-		host = addPort(host, "80")
-	}
-
 	c, err := net.Dial("tcp", host)
 	if err != nil {
 		return err
@@ -484,6 +479,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		// var err error
 		res := new(http.Response)
+
+		// add :80 if not available
+		ok := hasPort(outreq.URL.Host)
+		if !ok {
+			outreq.URL.Host = addPort(outreq.URL.Host, "80")
+		}
+
 		err := checkServer(outreq.URL.Host)
 		if err != nil {
 			log.Println(err)
