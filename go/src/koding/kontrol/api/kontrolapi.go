@@ -111,6 +111,8 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
+	//TODO: UPDATE DOMAIN
+	//TODO: DELETE DOMAIN
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 
 	// Rollbar api
@@ -138,7 +140,8 @@ func GetProxies(writer http.ResponseWriter, req *http.Request) {
 
 	data, err := json.MarshalIndent(proxies, "", "  ")
 	if err != nil {
-		log.Println("Marshall allWorkers into Json failed", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	writer.Write([]byte(data))
@@ -151,6 +154,8 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 
 	buildSendProxyCmd("deleteProxy", "", "", "", "", "", "", uuid)
+	resp := fmt.Sprintf("'%' is deleted", uuid)
+	io.WriteString(writer, resp)
 }
 
 // Register a proxy
@@ -169,16 +174,21 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 
 	if msg.Uuid != nil {
 		if *msg.Uuid == "default" {
-			log.Println("reserved keyword, please choose another uuid name")
+			err := "reserved keyword, please choose another uuid name"
+			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 			return
 		}
 		uuid = *msg.Uuid
 	} else {
-		log.Println("aborting. no 'uuid' available")
+		err := "aborting. no 'uuid' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
 	buildSendProxyCmd("addProxy", "", "", "", "", "", "", uuid)
+
+	resp := fmt.Sprintf("'%' is registered", uuid)
+	io.WriteString(writer, resp)
 }
 
 // Delete key for the given name and key
@@ -190,6 +200,8 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 
 	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", "", uuid)
+	resp := fmt.Sprintf("key: '%' is deleted for service: '%s'", key, servicename)
+	io.WriteString(writer, resp)
 }
 
 // Get all domains registered to a proxy machine
@@ -204,14 +216,14 @@ func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 
 	data, err := json.MarshalIndent(domains, "", "  ")
 	if err != nil {
-		log.Println("Marshall proxy services into Json failed", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	writer.Write([]byte(data))
-
 }
 
-// Add domain to the domainroutingtable
+// Add domain to the domain routingtable
 // example: http POST "localhost:8000/proxies/mahlika.local-915/domains/blog.arsln.org" name=server key=15
 func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -228,19 +240,23 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
-		log.Print("bad json incoming msg: ", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	if msg.Name != nil {
 		name = *msg.Name
 	} else {
-		log.Println("aborting. no 'name' available")
+		err := "no 'name' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	if msg.Key != nil {
 		key = *msg.Key
 	} else {
-		log.Println("aborting. no 'key' available")
+		err := "no 'key' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
@@ -256,6 +272,16 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	buildSendProxyCmd("addDomain", domain, name, key, "", host, "FromKontrolAPI", uuid)
+
+	var resp string
+	if host != "" {
+		resp = fmt.Sprintf("'%' will proxy to '%s'", domain, host)
+	} else {
+		resp = fmt.Sprintf("'%' will proxy to '%s-%s.x.koding.com'", domain, name, key)
+	}
+
+	io.WriteString(writer, resp)
+	return
 
 }
 
@@ -341,7 +367,8 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 
 	data, err := json.MarshalIndent(services, "", "  ")
 	if err != nil {
-		log.Println("Marshall proxy services into Json failed", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	writer.Write([]byte(data))
@@ -401,7 +428,8 @@ func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
-		log.Println("Marshall allWorkers into Json failed", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	writer.Write([]byte(data))
@@ -457,6 +485,8 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 
 	buildSendCmd("delete", "", uuid)
+	resp := fmt.Sprintf("worker: '%' is deleted from db", uuid)
+	io.WriteString(writer, resp)
 }
 
 // Change workers states. Action may be:
@@ -470,6 +500,8 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid, action := vars["uuid"], vars["action"]
 
 	buildSendCmd(action, "", uuid)
+	resp := fmt.Sprintf("worker: '%' is updated in db", uuid)
+	io.WriteString(writer, resp)
 }
 
 // Fallback function will be removed later
