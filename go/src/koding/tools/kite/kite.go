@@ -79,8 +79,9 @@ func (k *Kite) Run() {
 			switch message.RoutingKey {
 			case "auth.join":
 				var client struct {
-					Username   string
-					RoutingKey string
+					Username        string
+					RoutingKey      string
+					CorrelationName string
 				}
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" {
@@ -105,7 +106,7 @@ func (k *Kite) Run() {
 						log.Debug("Client disconnected: " + client.Username)
 					}()
 
-					session := NewSession(client.Username)
+					session := NewSession(client.Username, client.CorrelationName)
 					defer session.Close()
 
 					d := dnode.New()
@@ -219,9 +220,9 @@ func (k *Kite) Run() {
 
 			case "auth.who":
 				var client struct {
+					Username          string `json:"username"`
 					RoutingKey        string `json:"routingKey"`
 					CorrelationName   string `json:"correlationName"`
-					Username          string `json:"username"`
 					DeadService       string `json:"deadService"`
 					ServiceUniqueName string `json:"serviceUniqueName"` // used only for response
 				}
@@ -276,15 +277,17 @@ func (k *Kite) Run() {
 }
 
 type Session struct {
-	Username     string
-	Alive        bool
-	onDisconnect []func()
+	Username        string
+	CorrelationName string
+	Alive           bool
+	onDisconnect    []func()
 }
 
-func NewSession(username string) *Session {
+func NewSession(username, correlationName string) *Session {
 	return &Session{
-		Username: username,
-		Alive:    true,
+		Username:        username,
+		CorrelationName: correlationName,
+		Alive:           true,
 	}
 }
 

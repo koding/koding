@@ -155,22 +155,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		var params struct {
-			Vm string
-		}
-
-		// if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
-		// 	return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
-		// }
-
 		var vm *virt.VM
-		if params.Vm != "" {
-			if err := db.VMs.FindId(bson.ObjectIdHex(params.Vm)).One(&vm); err != nil {
-				return nil, errors.New("There is no VM with id '" + params.Vm + "'.")
-			}
+		if !bson.IsObjectIdHex(session.CorrelationName) {
+			return nil, errors.New("Correlation name needs to be a VM id.")
 		}
-		if vm == nil {
-			vm = getDefaultVM(&user)
+		if err := db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm); err != nil {
+			return nil, errors.New("There is no VM with id '" + session.CorrelationName + "'.")
 		}
 
 		infosMutex.Lock()
@@ -226,33 +216,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		return callback(args, session, &user, vm, vm.OS(&user))
 	})
-}
-
-func getDefaultVM(user *virt.User) *virt.VM {
-	if user.DefaultVM == "" {
-		// create new vm
-		vm := virt.VM{
-			Id:    bson.NewObjectId(),
-			Name:  user.Name,
-			Users: []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
-		}
-		if err := db.VMs.Insert(vm); err != nil {
-			panic(err)
-		}
-
-		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
-			panic(err)
-		}
-		user.DefaultVM = vm.Id
-
-		return &vm
-	}
-
-	var vm virt.VM
-	if err := db.VMs.FindId(user.DefaultVM).One(&vm); err != nil {
-		panic(err)
-	}
-	return &vm
 }
 
 func getUsers(vm *virt.VM) []virt.User {
