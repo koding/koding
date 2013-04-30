@@ -30,11 +30,11 @@ class NFinderController extends KDViewController
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
     @treeController.on "folder.expanded", (folder)=> @setRecentFolder folder.path
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
+    @treeController.on "fs.retry.success", => @treeController.hideNotification()
 
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
-    @reset()
     @viewLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
@@ -54,6 +54,7 @@ class NFinderController extends KDViewController
     return pathArray
 
   resetInitialPath:->
+
     {nickname}  = KD.whoami().profile
     initialPath   = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website"
     @initialPath  = @expandInitialPath initialPath
@@ -100,30 +101,28 @@ class NFinderController extends KDViewController
       @utils.killWait kiteFailureTimer if kiteFailureTimer
 
       kiteFailureTimer = @utils.wait 5000, =>
-        unless @treeLoaded
-          KD.logToExternal "SharedHosting fetching files failed"
 
-          msg = "Couldn't fetch files! Click to retry"
-          @treeController.notify msg, 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
-          log msg+" fired from initial kiteFailureTimer"
-          @mount.emit "fs.fetchContents.finished"
+        KD.logToMixpanel "sharedHosting fetch files timeout", 100
 
-          @treeController.once 'fs.retry.scheduled', =>
-            @defaultStructureLoaded = no
-            @loadDefaultStructure()
+        msg = "Couldn't fetch files! Click to retry"
+        @treeController.notify msg, 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+        log msg+" fired from initial kiteFailureTimer"
+        @mount.emit "fs.fetchContents.finished"
+
+        @treeController.once 'fs.retry.scheduled', =>
+          @defaultStructureLoaded = no
+          @treeController.refreshTopNode()
 
       if recentFolders.length is 0
         return log "recentFolders", recentFolders.length
 
       @multipleLs recentFolders, (err, response)=>
         if response
-          @treeLoaded = true
           @utils.killWait kiteFailureTimer
           @treeController.hideNotification()
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
           @treeController.emit 'fs.retry.success'
-
 
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller

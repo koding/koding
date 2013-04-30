@@ -18,9 +18,7 @@ class Status extends KDController
     @remote.on "sessionTokenChanged", @bound "sessionTokenChanged"
     @remote.on "loggedInStateChanged", @bound "loggedInStateChanged"
 
-  resetLocals:->
-    @reason    = null
-    @showModal = null
+  resetLocals:-> delete @disconnectOptions
 
   connect: ->
     @remote.connect()
@@ -32,10 +30,9 @@ class Status extends KDController
     log "status", options
 
     autoReconnect = options.autoReconnect
-    @reason       = options.reason
-    @showModal    = options.showModal
-
     @remote.disconnect(autoReconnect)
+
+    @disconnectOptions = options
     @disconnected()
 
   connected: ->
@@ -46,7 +43,7 @@ class Status extends KDController
       @emit "connected"
     else
       @state = RECONNECTED
-      @emit "reconnected", @reason, @showModal
+      @emit "reconnected", @disconnectOptions
       @startPingingKites()
       @resetLocals()
 
@@ -60,7 +57,7 @@ class Status extends KDController
     @stopPingingKites()
     @connectionState = DOWN
     @state = DISCONNECTED
-    @emit "disconnected", @reason, @showModal
+    @emit "disconnected", @disconnectOptions
 
   stopPingingKites: ->
     @eachKite (channel)->
