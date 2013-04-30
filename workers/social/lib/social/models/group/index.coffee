@@ -855,6 +855,10 @@ module.exports = class JGroup extends Module
           daisy queue
 
   requestAccess: secure (client, callback)->
+    @requestAccessFor client, invitationType, callback
+
+  requestAccessFor: (account, callback)->
+    account = connection:delegate:account unless account.connection?
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
@@ -863,7 +867,7 @@ module.exports = class JGroup extends Module
         else
           invitationType = 'basic approval'
 
-        @requestInvitation client, invitationType, callback
+        @requestInvitation account, invitationType, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
