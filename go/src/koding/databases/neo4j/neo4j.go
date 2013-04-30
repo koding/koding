@@ -126,6 +126,32 @@ func GetNode(id string) []map[string]interface{} {
 	return nodeData
 }
 
+// updates node with given data
+// response will be object
+func UpdateNode(id, propertiesJSON string) map[string]interface{} {
+
+	node := GetNode(id)
+
+	//if self is not there!
+	if _, ok := node[0]["self"]; !ok {
+		return nil
+	}
+
+	// create  url to get relationship information of source node
+	propertiesURL := fmt.Sprintf("%s", node[0]["self"]) + "/properties"
+
+	response := sendRequest("PUT", propertiesURL, propertiesJSON)
+	if response != "" {
+		fmt.Println(response)
+		res, err := jsonDecode(response)
+		if err != nil {
+			fmt.Println("Problem with response", err, res)
+		}
+	}
+
+	return make(map[string]interface{})
+}
+
 // creates a unique node with given id and node name
 
 func DeleteNode(id string) bool {
