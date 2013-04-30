@@ -58,48 +58,43 @@ class KodingAppsController extends KDController
   fetchAppsFromFs:(callback)->
 
     path = "/home/#{KD.whoami().profile.nickname}/Applications"
-
-    throw "Please adapt to new os kite interface."
-
-    @kiteController.run "ls #{escapeFilePath path} -lpva", \
-      KD.utils.getTimedOutCallback (err, response)=>
-        if err
-          @putAppsToAppStorage {}
-          warn err, response
-          callback err
-        else
-          files = FSHelper.parseLsOutput [path], response
-          apps  = []
-          stack = []
-
-          files.forEach (file)->
-            if /\.kdapp$/.test file.name
-              apps.push file
-
-          apps.forEach (app)=>
-            stack.push (cb)=>
-              manifestFile = if app.type is "folder" then \
-                FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-              manifestFile.fetchContents (err, response)->
-                # shadowing the error is intentional here
-                # to not to break the results of the stack
-                cb null, response
-
-          manifests = @constructor.manifests
-          async.parallel stack, (err, results)=>
-            warn err if err
-            results.forEach (rawManifest)->
-              if rawManifest
-                try
-                  manifest = JSON.parse rawManifest
-                  manifests["#{manifest.name}"] = manifest
-                catch e
-                  console.warn "Manifest file is broken", e
-            @putAppsToAppStorage manifests
-            callback? null, manifests
-      , ->
-        log "Timeout reached for kite request"
+    appDir = FSHelper.createFileFromPath path
+    appDir.fetchContents KD.utils.getTimedOutCallback (files)=>
+      if not Array.isArray files or files.length is 0
+        @putAppsToAppStorage {}
         callback()
+      else
+        apps  = []
+        stack = []
+
+        files.forEach (file)->
+          if /\.kdapp$/.test file.name
+            apps.push file
+
+        apps.forEach (app)=>
+          stack.push (cb)=>
+            manifestFile = if app.type is "folder" then \
+              FSHelper.createFileFromPath "#{app.path}/.manifest" else app
+            manifestFile.fetchContents (err, response)->
+              # shadowing the error is intentional here
+              # to not to break the results of the stack
+              cb null, response
+
+        manifests = @constructor.manifests
+        async.parallel stack, (err, results)=>
+          warn err if err
+          results.forEach (rawManifest)->
+            if rawManifest
+              try
+                manifest = JSON.parse rawManifest
+                manifests["#{manifest.name}"] = manifest
+              catch e
+                console.warn "Manifest file is broken", e
+          @putAppsToAppStorage manifests
+          callback? null, manifests
+    , ->
+      log "Timeout reached for kite request"
+      callback()
 
   fetchAppsFromDb:(callback)->
     return unless @appStorage
