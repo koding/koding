@@ -575,7 +575,7 @@ class GroupsAppController extends AppController
             kallback @inviteByEmail, err
 
         invitationRequestView.on 'InviteByUsername', (formData)->
-          group.inviteByUsername formData.recipient, (err)=>
+          group.inviteByUsername formData.recipients, (err)=>
             kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request)->
