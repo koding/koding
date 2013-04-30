@@ -64,12 +64,15 @@ func main() {
 		}
 
 		var vm *virt.VM
-		if !bson.IsObjectIdHex(correlationName) {
-			return k.ServiceUniqueName
+		if bson.IsObjectIdHex(correlationName) {
+			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 		}
-		if err := db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm); err != nil {
-			return k.ServiceUniqueName
+		if vm == nil {
+			if err := db.VMs.Find(bson.M{"name": correlationName}).One(&vm); err != nil {
+				return k.ServiceUniqueName
+			}
 		}
+
 		if vm.HostKite == "" {
 			return k.ServiceUniqueName
 		}
@@ -168,11 +171,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		var vm *virt.VM
-		if !bson.IsObjectIdHex(session.CorrelationName) {
-			return nil, errors.New("Correlation name needs to be a VM id.")
+		if bson.IsObjectIdHex(session.CorrelationName) {
+			db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm)
 		}
-		if err := db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm); err != nil {
-			return nil, errors.New("There is no VM with id '" + session.CorrelationName + "'.")
+		if vm == nil {
+			if err := db.VMs.Find(bson.M{"name": session.CorrelationName}).One(&vm); err != nil {
+				return nil, errors.New("There is no VM with name/id '" + session.CorrelationName + "'.")
+			}
 		}
 
 		if vm.HostKite != k.ServiceUniqueName {
