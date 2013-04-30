@@ -516,7 +516,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			log.Println("...waiting for http response from rabbit")
 
-			respData := <-connections[rabbitKey].Receive
+			var respData []byte
+			// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
+			t := time.NewTimer(20 * time.Second)
+			select {
+			case respData = <-connections[rabbitKey].Receive:
+			case <-t.C:
+				log.Println("timeout. no rabbit proxy message receieved")
+				io.WriteString(rw, "{\"err\":\"no rabbit proxy message received\"}\n")
+				return
+			}
+			t.Stop()
+
 			if respData == nil {
 				rw.WriteHeader(http.StatusInternalServerError)
 				return
