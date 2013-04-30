@@ -8,6 +8,7 @@ import (
 	"koding/tools/config"
 	"log"
 	"net/http"
+	"os/user"
 	"strings"
 )
 
@@ -169,7 +170,15 @@ func createProducer() (*Producer, error) {
 }
 
 func readKey() string {
-	file, err := ioutil.ReadFile("KEY")
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyfile := usr.HomeDir + "/.kd/koding.key"
+	log.Println(keyfile)
+
+	file, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		log.Println(err)
 	}
