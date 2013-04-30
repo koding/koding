@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/databases/mongo"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"labix.org/v2/mgo/bson"
 	"log"
 )
 
@@ -76,7 +78,7 @@ func startConsuming() {
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
-	relationshipEvent, err := c.channel.Consume("relationshipEventWorker", "neo4jFeeding", true, false, false, false, nil)
+	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
@@ -104,7 +106,21 @@ func startConsuming() {
 func createNode(data EventData) {
 
 	sourceNode := neo4j.CreateUniqueNode(data.SourceId, data.SourceName)
+	fmt.Println(data)
+	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(data.SourceId), data.SourceName)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		neo4j.UpdateNode(data.SourceId, sourceContent)
+	}
+
 	targetNode := neo4j.CreateUniqueNode(data.TargetId, data.TargetName)
+	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(data.TargetId), data.TargetName)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		neo4j.UpdateNode(data.TargetId, targetContent)
+	}
 
 	source := fmt.Sprintf("%s", sourceNode["create_relationship"])
 	target := fmt.Sprintf("%s", targetNode["self"])
