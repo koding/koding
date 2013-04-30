@@ -48,6 +48,9 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
+    mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
+    mainController.on 'groupJoinRequested',   @joinGroup.bind this
+
   getCurrentGroupData:-> @currentGroupData
 
   getCurrentGroup:->
@@ -248,12 +251,47 @@ class GroupsAppController extends AppController
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
-  requestAccess:(group, callback)->
-    group.requestAccess (err)->
-      callback err
-      new KDNotificationView title:
-        if err then err.message
-        else "Invitation has been requested!"
+  showRequestAccessModal:(group, isApproval, callback=->)->
+    if isApproval
+      title   = 'Request Access'
+      content = 'Membership to this group requires administrative approval.'
+      success = 'Access has been requested!'
+    else
+      title   = 'Request an Invite'
+      content = 'Membership to this group requires an invitation.'
+      success = 'Invitation has been requested!'
+
+    modal = new KDModalView
+      title          : title
+      overlay        : yes
+      width          : 300
+      height         : 'auto'
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      buttons        :
+        request      :
+          title      : title
+          loader     : 
+            color    : "#ffffff"
+            diameter : 12
+          style      : 'modal-clean-green'
+          callback   : (event)->
+            group.requestAccess (err)->
+              modal.buttons.request.hideLoader()
+              callback err
+              new KDNotificationView title:
+                if err then err.message else success
+              modal.destroy() unless err
+
+  joinGroup:(group)->
+    group.join (err, response)=>
+      if err
+        error err
+        new KDNotificationView
+          title : "An error occured, please try again"
+      else
+        new KDNotificationView
+          title : "You successfully joined the group!"
+        @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>
@@ -481,7 +519,6 @@ class GroupsAppController extends AppController
       # click   : (event)->
       #   event.preventDefault()
       #   @getSingleton('windowManager').open @href, slug
-
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
